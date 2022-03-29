@@ -2,16 +2,8 @@ id     = "PRINTER"
 name   = "Printing"
 
 [[option]]
-  name       = "flattenHOChains"
-  category   = "regular"
-  long       = "flatten-ho-chains"
-  type       = "bool"
-  default    = "false"
-  help       = "print (binary) application chains in a flattened way, e.g. (a b c) rather than ((a b) c)"
-
-[[option]]
   name       = "printInstMode"
-  category   = "regular"
+  category   = "common"
   long       = "print-inst=MODE"
   type       = "PrintInstMode"
   default    = "LIST"
@@ -39,3 +31,47 @@ name   = "Printing"
   type       = "bool"
   default    = "false"
   help       = "when printing unsat cores, include unlabeled assertions"
+
+[[option]]
+  name       = "flattenHOChains"
+  category   = "expert"
+  long       = "flatten-ho-chains"
+  type       = "bool"
+  default    = "false"
+  help       = "print (binary) application chains in a flattened way, e.g. (a b c) rather than ((a b) c)"
+
+[[option]]
+  name       = "modelUninterpPrint"
+  category   = "regular"
+  long       = "model-u-print=MODE"
+  type       = "ModelUninterpPrintMode"
+  default    = "None"
+  help       = "determines how to print uninterpreted elements in models"
+  help_mode  = "uninterpreted elements in models printing modes."
+[[option.mode.DeclSortAndFun]]
+  name = "decl-sort-and-fun"
+  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
+[[option.mode.DeclFun]]
+  name = "decl-fun"
+  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.None]]
+  name = "none"
+  help = "(default) do not print declarations of uninterpreted elements in models."
+
+[[option]]
+  name       = "sygusOut"
+  category   = "regular"
+  long       = "sygus-out=MODE"
+  type       = "SygusSolutionOutMode"
+  default    = "STANDARD"
+  help       = "output mode for sygus"
+  help_mode  = "Modes for sygus solution output."
+[[option.mode.STATUS]]
+  name = "status"
+  help = "Print only status for check-synth calls."
+[[option.mode.STATUS_AND_DEF]]
+  name = "status-and-def"
+  help = "Print status followed by definition corresponding to solution."
+[[option.mode.STANDARD]]
+  name = "sygus-standard"
+  help = "Print based on SyGuS standard."

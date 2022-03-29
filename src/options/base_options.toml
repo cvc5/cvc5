@@ -3,7 +3,7 @@ name   = "Base"
 
 [[option]]
   name       = "err"
-  category   = "regular"
+  category   = "expert"
   long       = "err=erroutput"
   type       = "ManagedErr"
   default    = '{}'
@@ -14,7 +14,7 @@ name   = "Base"
 
 [[option]]
   name       = "in"
-  category   = "regular"
+  category   = "expert"
   long       = "in=input"
   type       = "ManagedIn"
   default    = '{}'
@@ -23,7 +23,7 @@ name   = "Base"
 
 [[option]]
   name       = "out"
-  category   = "regular"
+  category   = "expert"
   long       = "out=output"
   type       = "ManagedOut"
   default    = '{}'
@@ -59,7 +59,7 @@ name   = "Base"
 [[option]]
   name       = "verbosity"
   long       = "verbosity=N"
-  category   = "regular"
+  category   = "common"
   type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
@@ -130,7 +130,7 @@ name   = "Base"
 
 [[option]]
   name       = "parseOnly"
-  category   = "regular"
+  category   = "common"
   long       = "parse-only"
   type       = "bool"
   default    = "false"
@@ -138,7 +138,7 @@ name   = "Base"
 
 [[option]]
   name       = "preprocessOnly"
-  category   = "regular"
+  category   = "common"
   long       = "preprocess-only"
   type       = "bool"
   default    = "false"
@@ -162,11 +162,11 @@ name   = "Base"
 
 [[option]]
   short      = "o"
+  category   = "common"
   long       = "output=TAG"
   type       = "OutputTag"
   default    = "NONE"
   predicates = ["enableOutputTag"]
-  category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
 [[option.mode.NONE]]
@@ -227,7 +227,7 @@ name   = "Base"
 
 [[option]]
   name       = "printSuccess"
-  category   = "regular"
+  category   = "common"
   long       = "print-success"
   type       = "bool"
   default    = "false"

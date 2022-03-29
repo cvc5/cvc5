@@ -1222,8 +1222,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_REPLACE_ALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
   case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
-  case kind::STRING_TOLOWER: return "str.tolower";
-  case kind::STRING_TOUPPER: return "str.toupper";
+  case kind::STRING_TO_LOWER: return "str.to_lower";
+  case kind::STRING_TO_UPPER: return "str.to_upper";
   case kind::STRING_REV: return "str.rev";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
@@ -2003,7 +2003,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          Node conj,
                                          TypeNode sygusType) const
 {
-  out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
+  out << "(get-interpolant " << cvc5::quoteSymbol(name) << ' ' << conj;
   if (!sygusType.isNull())
   {
     out << ' ' << sygusGrammarString(sygusType);
@@ -2013,7 +2013,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
 
 void Smt2Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
 {
-  out << "(get-interpol-next)" << std::endl;
+  out << "(get-interpolant-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,

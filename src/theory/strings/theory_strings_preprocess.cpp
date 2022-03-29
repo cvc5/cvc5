@@ -849,7 +849,7 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(ITE, noMatch, k.eqNode(x), nm->mkNode(AND, lemmas)));
     retNode = k;
   }
-  else if (t.getKind() == STRING_TOLOWER || t.getKind() == STRING_TOUPPER)
+  else if (t.getKind() == STRING_TO_LOWER || t.getKind() == STRING_TO_UPPER)
   {
     Node x = t[0];
     Node r = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
@@ -864,11 +864,12 @@ Node StringsPreprocess::reduce(Node t,
     Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
     Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
 
-    Node lb = nm->mkConstInt(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
+    Node lb =
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 97 : 65));
     Node ub =
-        nm->mkConstInt(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 122 : 90));
     Node offset =
-        nm->mkConstInt(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? -32 : 32));
 
     Node res = nm->mkNode(
         ITE,

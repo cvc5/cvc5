@@ -823,7 +823,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
  public:
   CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
   /** returns the result of the check-synth call */
-  api::Result getResult() const;
+  api::SynthResult getResult() const;
   /** prints the result of the check-synth-call */
   void printResult(std::ostream& out) const override;
   /** invokes this command
@@ -849,7 +849,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
   /** Whether this is a check-synth-next call */
   bool d_isNext;
   /** result of the check-synth call */
-  api::Result d_result;
+  api::SynthResult d_result;
   /** string stream that stores the output of the solution */
   std::stringstream d_solution;
 };
@@ -1012,7 +1012,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
   api::Solver* d_solver;
 }; /* class GetInstantiationsCommand */
 
-/** The command (get-interpol s B (G)?)
+/** The command (get-interpolant s B (G)?)
  *
  * This command asks for an interpolant from the current set of assertions and
  * conjecture (goal) B.
@@ -1021,12 +1021,14 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
  * find a predicate P, then the output response of this command is: (define-fun
  * s () Bool P)
  */
-class CVC5_EXPORT GetInterpolCommand : public Command
+class CVC5_EXPORT GetInterpolantCommand : public Command
 {
  public:
-  GetInterpolCommand(const std::string& name, api::Term conj);
+  GetInterpolantCommand(const std::string& name, api::Term conj);
   /** The argument g is the grammar of the interpolation query */
-  GetInterpolCommand(const std::string& name, api::Term conj, api::Grammar* g);
+  GetInterpolantCommand(const std::string& name,
+                        api::Term conj,
+                        api::Grammar* g);
 
   /** Get the conjecture of the interpolation query */
   api::Term getConjecture() const;
@@ -1056,11 +1058,11 @@ class CVC5_EXPORT GetInterpolCommand : public Command
   api::Term d_result;
 }; /* class GetInterpolCommand */
 
-/** The command (get-interpol-next) */
-class CVC5_EXPORT GetInterpolNextCommand : public Command
+/** The command (get-interpolant-next) */
+class CVC5_EXPORT GetInterpolantNextCommand : public Command
 {
  public:
-  GetInterpolNextCommand();
+  GetInterpolantNextCommand();
   /**
    * Get the result of the query, which is the solution to the interpolation
    * query.

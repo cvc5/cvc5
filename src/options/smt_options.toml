@@ -42,14 +42,6 @@ name   = "SMT Layer"
   help       = "rewrite the input based on learned literals"
 
 [[option]]
-  name       = "expandDefinitions"
-  long       = "expand-definitions"
-  category   = "regular"
-  type       = "bool"
-  default    = "false"
-  help       = "always expand symbol definitions in output"
-
-[[option]]
   name       = "produceModels"
   category   = "common"
   short      = "m"
@@ -60,7 +52,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkModels"
-  category   = "regular"
+  category   = "common"
   long       = "check-models"
   type       = "bool"
   default    = "false"
@@ -68,7 +60,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "regular"
+  category   = "expert"
   long       = "debug-check-models"
   type       = "bool"
   default    = "false"
@@ -102,7 +94,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "blockModelsMode"
-  category   = "regular"
+  category   = "expert"
   long       = "block-models=MODE"
   type       = "BlockModelsMode"
   default    = "NONE"
@@ -160,27 +152,6 @@ name   = "SMT Layer"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
-  name       = "sygusOut"
-  category   = "regular"
-  long       = "sygus-out=MODE"
-  type       = "SygusSolutionOutMode"
-  default    = "STANDARD"
-  help       = "output mode for sygus"
-  help_mode  = "Modes for sygus solution output."
-[[option.mode.STATUS]]
-  name = "status"
-  help = "Print only status for check-synth calls."
-[[option.mode.STATUS_AND_DEF]]
-  name = "status-and-def"
-  help = "Print status followed by definition corresponding to solution."
-[[option.mode.STATUS_OR_DEF]]
-  name = "status-or-def"
-  help = "Print status if infeasible, or definition corresponding to solution if feasible."
-[[option.mode.STANDARD]]
-  name = "sygus-standard"
-  help = "Print based on SyGuS standard."
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
@@ -190,7 +161,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unsatCoresMode"
-  category   = "regular"
+  category   = "expert"
   long       = "unsat-cores-mode=MODE"
   type       = "UnsatCoresMode"
   default    = "OFF"
@@ -208,7 +179,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "minimalUnsatCores"
-  category   = "regular"
+  category   = "expert"
   long       = "minimal-unsat-cores"
   type       = "bool"
   default    = "false"
@@ -240,7 +211,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "difficultyMode"
-  category   = "regular"
+  category   = "expert"
   long       = "difficulty-mode=MODE"
   type       = "DifficultyMode"
   default    = "LEMMA_LITERAL"
@@ -274,7 +245,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceAssertions"
-  category   = "common"
+  category   = "regular"
   long       = "produce-assertions"
   type       = "bool"
   alias      = ["interactive-mode"]
@@ -299,7 +270,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "expert"
+  category   = "regular"
   long       = "ext-rew-prep=MODE"
   type       = "ExtRewPrepMode"
   default    = "OFF"
@@ -372,25 +343,6 @@ name   = "SMT Layer"
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
-  name       = "modelUninterpPrint"
-  alias      = ["model-uninterp-print"]
-  category   = "regular"
-  long       = "model-u-print=MODE"
-  type       = "ModelUninterpPrintMode"
-  default    = "None"
-  help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing modes."
-[[option.mode.DeclSortAndFun]]
-  name = "decl-sort-and-fun"
-  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
-[[option.mode.DeclFun]]
-  name = "decl-fun"
-  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
-[[option.mode.None]]
-  name = "none"
-  help = "(default) do not print declarations of uninterpreted elements in models."
-
-[[option]]
   name       = "foreignTheoryRewrite"
   category   = "expert"
   long       = "foreign-theory-rewrite"
@@ -458,7 +410,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -466,23 +418,28 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "produceInterpols"
+  name       = "interpolants"
   category   = "regular"
-  long       = "produce-interpols=MODE"
-  type       = "ProduceInterpols"
-  default    = "NONE"
-  help       = "support the get-interpol command"
+  long       = "produce-interpolants"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on interpolation generation."
+
+[[option]]
+  name       = "interpolantsMode"
+  category   = "regular"
+  long       = "interpolants-mode=MODE"
+  type       = "InterpolantsMode"
+  default    = "DEFAULT"
+  help       = "choose interpolants production mode, see --interpolants-mode=help"
   help_mode  = "Interpolants grammar mode"
-[[option.mode.NONE]]
-  name = "none"
-  help = "don't compute interpolants"
 [[option.mode.DEFAULT]]
   name = "default"
   help = "use the default grammar for the theory or the user-defined grammar if given"
@@ -508,12 +465,12 @@ name   = "SMT Layer"
   help       = "support the get-abduct command"
 
 [[option]]
-  name       = "checkInterpols"
+  name       = "checkInterpolants"
   category   = "regular"
-  long       = "check-interpols"
+  long       = "check-interpolants"
   type       = "bool"
   default    = "false"
-  help       = "checks whether produced solutions to get-interpol are correct"
+  help       = "checks whether produced solutions to get-interpolant are correct"
 
 [[option]]
   name       = "checkAbducts"

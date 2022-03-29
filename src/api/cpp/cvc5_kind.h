@@ -20,18 +20,15 @@
 
 #include <ostream>
 
-namespace cvc5 {
-namespace api {
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-// TODO(Gereon): Fix links that involve std::vector. See
-// https://github.com/doxygen/doxygen/issues/8503
 // clang-format off
 /**
- * The kind of a cvc5 term.
+ * The kind of a cvc5 Term.
  *
  * \internal
  *
@@ -47,19 +44,29 @@ enum Kind : int32_t
 {
   /**
    * Internal kind.
-   * Should never be exposed or created via the API.
+   *
+   * This kind serves as an abstraction for internal kinds that are not exposed
+   * via the API but may appear in terms returned by API functions, e.g.,
+   * when querying the simplified form of a term.
+   *
+   * @note Should never be created via the API.
    */
   INTERNAL_KIND = -2,
   /**
    * Undefined kind.
-   * Should never be exposed or created via the API.
+   *
+   * @note Should never be exposed or created via the API.
    */
   UNDEFINED_KIND = -1,
   /**
-   * Null kind (kind of null term `Term::Term()`).
-   * Do not explicitly create via API functions other than `Term::Term()`.
+   * Null kind.
+   *
+   * The kind of a null term (Term::Term()).
+   *
+   * @note May not be explicitly created via API functions other than
+   *       Term::Term().
    */
-  NULL_EXPR,
+  NULL_TERM,
 
   /* Builtin --------------------------------------------------------------- */
 
@@ -67,132 +74,143 @@ enum Kind : int32_t
    * The value of an uninterpreted constant.
    *
    * @note May be returned as the result of an API call, but terms of this kind
-   *       may not be created explicitly via the API. Terms of this kind may
-   *       further not appear in assertions.
+   *       may not be created explicitly via the API and may not appear in
+   *       assertions.
    */
   UNINTERPRETED_SORT_VALUE,
-#if 0
-  /* Built-in operator */
-  BUILTIN,
-#endif
   /**
    * Equality, chainable.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms with same sorts
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of the same Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EQUAL,
   /**
    * Disequality.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms with same sorts
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of the same Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   DISTINCT,
   /**
-   * First-order constant.
+   * Free constant symbol.
    *
-   * Not permitted in bindings (forall, exists, ...).
+   * @note Not permitted in bindings (e.g., #FORALL, #EXISTS).
    *
-   * Parameters:
-   *   - See @ref cvc5::api::Solver::mkConst() "mkConst()".
-   *
-   * Create with:
-   *   - `Solver::mkConst(const Sort& sort, const std::string& symbol) const`
-   *   - `Solver::mkConst(const Sort& sort) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkConst(const Sort&, const std::string&) const
+   *   - Solver::mkConst(const Sort&) const
    */
   CONSTANT,
   /**
    * (Bound) variable.
    *
-   * Permitted in bindings and in the lambda and quantifier bodies only.
+   * @note Only permitted in bindings and in lambda and quantifier bodies.
    *
-   * Parameters:
-   *   - See @ref cvc5::api::Solver::mkVar() "mkVar()".
-   *
-   * Create with:
-   *   - `Solver::mkVar(const Sort& sort, const std::string& symbol) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkVar(const Sort&, const std::string&) const
    */
   VARIABLE,
-#if 0
-  /* Skolem variable (internal only) */
-  SKOLEM,
-#endif
   /**
    * Symbolic expression.
    *
-   * Parameters: n > 0
-   *   - 1..n: terms
+   * - Arity: `n > 0`
+   *   - `1..n:` Terms with same sorts
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEXPR,
   /**
    * Lambda expression.
    *
-   * Parameters:
-   *   - 1: VARIABLE_LIST
-   *   - 2: Lambda body
+   * - Arity: `2`
+   *   - `1:` Term of kind #VARIABLE_LIST
+   *   - `2:` Term of any Sort (the body of the lambda)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   LAMBDA,
   /**
+   * Witness.
+   *
    * The syntax of a witness term is similar to a quantified formula except that
    * only one variable is allowed.
-   * The term `(witness ((x T)) F)` returns an element `x` of type `T`
-   * and asserts `F`.
+   * For example, the term
+   * \rst
+   * .. code:: smtlib
+   *
+   *     (witness ((x S)) F)
+   * \endrst
+   * returns an element @f$x@f$ of Sort @f$S@f$ and asserts formula @f$F@f$.
    *
    * The witness operator behaves like the description operator
-   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
-   * that satisfies F. But if such x exists, the witness operator does not
-   * enforce the axiom that ensures uniqueness up to logical equivalence:
+   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is
+   * no @f$x@f$ that satisfies @f$F@f$. But if such @f$x@f$ exists, the witness
+   * operator does not enforce the following axiom which ensures uniqueness up
+   * to logical equivalence:
    *
    * @f[
    *   \forall x. F \equiv G \Rightarrow witness~x. F =  witness~x. G
    * @f]
    *
-   * For example if there are 2 elements of type T that satisfy F, then the
-   * following formula is satisfiable:
+   * For example, if there are two elements of Sort @f$S@f$ that satisfy
+   * formula @f$F@f$, then the following formula is satisfiable:
+   *
+   * \rst
+   * .. code:: smtlib
    *
    *     (distinct
    *        (witness ((x Int)) F)
    *        (witness ((x Int)) F))
+   * \endrst
    *
-   * This kind is primarily used internally, but may be returned in models
-   * (e.g. for arithmetic terms in non-linear queries). However, it is not
-   * supported by the parser. Moreover, the user of the API should be cautious
-   * when using this operator. In general, all witness terms
-   * `(witness ((x Int)) F)` should be such that `(exists ((x Int)) F)` is a
-   * valid formula. If this is not the case, then the semantics in formulas that
-   * use witness terms may be unintuitive. For example, the following formula is
-   * unsatisfiable:
-   * `(or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))`
-   * whereas notice that `(or (= z 0) (not (= z 0)))` is true for any `z`.
+   * @note This kind is primarily used internally, but may be returned in
+   *       models (e.g., for arithmetic terms in non-linear queries). However,
+   *       it is not supported by the parser. Moreover, the user of the API
+   *       should be cautious when using this operator. In general, all witness
+   *       terms `(witness ((x Int)) F)` should be such that `(exists ((x Int))
+   *       F)` is a valid formula. If this is not the case, then the semantics
+   *       in formulas that use witness terms may be unintuitive. For example,
+   *       the following formula is unsatisfiable:
+   *       `(or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int))
+   *       false) 0))`, whereas notice that `(or (= z 0) (not (= z 0)))` is
+   *       true for any @f$z@f$.
    *
-   * Parameters:
-   *   - 1: VARIABLE_LIST
-   *   - 2: Witness body
+   * - Arity: `3`
+   *   - `1:` Term of kind #VARIABLE_LIST
+   *   - `2:` Term of Sort Bool (the body of the witness)
+   *   - `3:` (optional) Term of kind #INST_PATTERN_LIST
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   WITNESS,
 
@@ -201,86 +219,96 @@ enum Kind : int32_t
   /**
    * Boolean constant.
    *
-   * Parameters:
-   *   - 1: Boolean value of the constant
-   *
-   * Create with:
-   *   - `Solver::mkTrue() const`
-   *   - `Solver::mkFalse() const`
-   *   - `Solver::mkBoolean(bool val) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTrue() const
+   *   - Solver::mkFalse() const
+   *   - Solver::mkBoolean(bool) const
    */
   CONST_BOOLEAN,
   /**
    * Logical negation.
    *
-   * Parameters:
-   *   - 1: Boolean Term to negate
+   * - Arity: `1`
+   *   - `1:` Term of Sort Bool
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   NOT,
   /**
    * Logical conjunction.
    *
-   * Parameters: n > 1
-   *   - 1..n: Boolean Term of the conjunction
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Bool
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   AND,
   /**
    * Logical implication.
    *
-   * Parameters: n > 1
-   *   - 1..n: Boolean Terms, right associative
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Bool
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   IMPLIES,
   /**
    * Logical disjunction.
    *
-   * Parameters: n > 1
-   *   - 1..n: Boolean Term of the disjunction
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Bool
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   OR,
   /**
    * Logical exclusive disjunction, left associative.
    *
-   * Parameters: n > 1
-   *   - 1..n: Boolean Terms, `[1] xor ... xor [n]`
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Bool
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   XOR,
   /**
    * If-then-else.
    *
-   * Parameters:
-   *   - 1: is a Boolean condition Term
-   *   - 2: the 'then' Term
-   *   - 3: the 'else' Term
+   * - Arity: `3`
+   *   - `1:` Term of Sort Bool
+   *   - `2:` The 'then' term, Term of any Sort
+   *   - `3:` The 'else' term, Term of the same sort as second argument
    *
-   * 'then' and 'else' term must have same base sort.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ITE,
 
@@ -289,46 +317,43 @@ enum Kind : int32_t
   /**
    * Application of an uninterpreted function.
    *
-   * Parameters: n > 1
-   *   - 1: Function Term
-   *   - 2..n: Function argument instantiation Terms
+   * - Arity: `n > 1`
+   *   - `1:` Function Term
+   *   - `2..n:` Function argument instantiation Terms of any first-class Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   APPLY_UF,
-#if 0
-  /* Boolean term variable */
-  BOOLEAN_TERM_VARIABLE,
-#endif
   /**
-   * Cardinality constraint on uninterpreted sort S.
-   * Interpreted as a predicate that is true when the cardinality of S
-   * is less than or equal to the value of the second argument.
+   * Cardinality constraint on uninterpreted sort.
    *
-   * Parameters:
-   *   - 1: Term of sort S
-   *   - 2: Positive integer constant that bounds the cardinality of sort S
+   * Interpreted as a predicate that is true when the cardinality of
+   * uinterpreted Sort @f$S@f$ is less than or equal to an upper bound.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `0`
+   * - Create Term of this Kind with:
+   *   - Solver::mkCardinalityConstraint(const Sort&, uint32_t) const
    */
   CARDINALITY_CONSTRAINT,
   /**
    * Higher-order applicative encoding of function application, left
    * associative.
    *
-   * Parameters: n > 1
-   *   - 1: Function to apply
-   *   - 2..n: Arguments of the function
+   * - Arity: `n = 2`
+   *   - `1:` Function Term
+   *   - `2:` Argument Term of the domain Sort of the function
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   HO_APPLY,
 
@@ -337,414 +362,508 @@ enum Kind : int32_t
   /**
    * Arithmetic addition.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer, Real (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ADD,
   /**
    * Arithmetic multiplication.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer, Real (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   MULT,
   /**
-   * Operator for bit-wise AND over integers, parameterized by a (positive)
-   * bitwidth k.
+   * Integer and.
    *
-   * ((_ iand k) i1 i2) is equivalent to:
-   * (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
-   * for all integers i1, i2.
+   * Operator for bit-wise `AND` over integers, parameterized by a (positive)
+   * bit-width @f$k@f$.
    *
-   * Parameters:
-   *   - 1: Size of the bit-vector that determines the semantics of the IAND
+   * \rst
+   * .. code:: smtlib
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
+   *     ((_ iand k) i_1 i_2)
+   * \endrst
+   * is equivalent to
+   * \rst
+   * .. code:: smtlib
    *
-   * Apply integer and.
+   *     ((_ iand k) i_1 i_2)
+   *     (bv2int (bvand ((_ int2bv k) i_1) ((_ int2bv k) i_2)))
+   * \endrst
+   * for all integers `i_1`, `i_2`.
    *
-   * Parameters:
-   *   - 1: Op of kind IAND
-   *   - 2: Integer term
-   *   - 3: Integer term
+   * - Arity: `2`
+   *   - `1..2:` Terms of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Indices: `1`
+   *   - `1:` Bit-width @f$k@f$
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   IAND,
   /**
-   * Operator for raising 2 to a non-negative integer power.
+   * Power of two.
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind) const`
+   * Operator for raising `2` to a non-negative integer power.
    *
-   * Parameters:
-   *   - 1: Op of kind IAND
-   *   - 2: Integer term
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int
    *
-   * Apply 2 to the power operator.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   POW2,
-#if 0
-  /* Synonym for MULT.  */
-  NONLINEAR_MULT,
-#endif
   /**
    * Arithmetic subtraction, left associative.
    *
-   * Parameters:
-   *   - 1..n: Terms of sort Integer, Real (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SUB,
   /**
    * Arithmetic negation.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int or Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   NEG,
   /**
    * Real division, division by 0 undefined, left associative.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer, Real
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   DIVISION,
   /**
    * Integer division, division by 0 undefined, left associative.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INTS_DIVISION,
   /**
-   * Integer modulus, division by 0 undefined.
+   * Integer modulus, modulus by 0 undefined.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer
-   *   - 2: Term of sort Integer
+   * - Arity: `2`
+   *   - `1:` Term of Sort Int
+   *   - `2:` Term of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INTS_MODULUS,
   /**
    * Absolute value.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int or Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ABS,
   /**
    * Arithmetic power.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
-   *   - 2: Term of sort Integer, Real
+   * - Arity: `2`
+   *   - `1..2:` Term of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   POW,
   /**
    * Exponential function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EXPONENTIAL,
   /**
    * Sine function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SINE,
   /**
    * Cosine function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   COSINE,
   /**
    * Tangent function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TANGENT,
   /**
    * Cosecant function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   COSECANT,
   /**
    * Secant function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SECANT,
   /**
    * Cotangent function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   COTANGENT,
   /**
    * Arc sine function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ARCSINE,
   /**
    * Arc cosine function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ARCCOSINE,
   /**
    * Arc tangent function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ARCTANGENT,
   /**
    * Arc cosecant function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ARCCOSECANT,
   /**
    * Arc secant function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ARCSECANT,
   /**
    * Arc cotangent function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   ARCCOTANGENT,
   /**
    * Square root.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SQRT,
   /**
-   * Operator for the divisibility-by-k predicate.
+   * Operator for the divisibility-by-@f$k@f$ predicate.
    *
-   * Parameter:
-   *   - 1: The k to divide by (sort Integer)
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
+   * - Indices: `1`
+   *   - `1:` The integer @f$k@f$ to divide by.
    *
-   * Apply divisibility-by-k predicate.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind DIVISIBLE
-   *   - 2: Integer Term
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   DIVISIBLE,
   /**
    * Multiple-precision rational constant.
    *
-   * Parameters:
-   *   See @ref cvc5::api::Solver::mkInteger() "mkInteger()", @ref cvc5::api::Solver::mkReal() "mkReal()".
-   *
-   * Create with:
-   *   - `Solver::mkInteger(const std::string& s) const`
-   *   - `Solver::mkInteger(int64_t val) const`
-   *   - `Solver::mkReal(const std::string& s) const`
-   *   - `Solver::mkReal(int64_t val) const`
-   *   - `Solver::mkReal(int64_t num, int64_t den) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkInteger(const std::string&) const
+   *   - Solver::mkInteger(int64_t) const
+   *   - Solver::mkReal(const std::string&) const
+   *   - Solver::mkReal(int64_t) const
+   *   - Solver::mkReal(int64_t, int64_t) const
    */
   CONST_RATIONAL,
   /**
    * Less than, chainable.
    *
-   * Parameters: n
-   *   - 1..n: Terms of sort Integer, Real; [1] < ... < [n]
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   LT,
   /**
    * Less than or equal, chainable.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer, Real; [1] <= ... <= [n]
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   LEQ,
   /**
    * Greater than, chainable.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer, Real, [1] > ... > [n]
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   GT,
   /**
    * Greater than or equal, chainable.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of sort Integer, Real; [1] >= ... >= [n]
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort Int or Real (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   GEQ,
   /**
    * Is-integer predicate.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int or Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   IS_INTEGER,
   /**
-   * Convert Term to Integer by the floor function.
+   * Convert Term of sort Int or Real to Int via the floor function.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer, Real
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int or Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TO_INTEGER,
   /**
-   * Convert Term to Real.
+   * Convert Term of Sort Int or Real to Real.
    *
-   * Parameters:
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int or Real
    *
-   *   - 1: Term of sort Integer, Real
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * This is a no-op in cvc5, as Integer is a subtype of Real.
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TO_REAL,
   /**
    * Pi constant.
    *
-   * Note that PI is considered a special symbol of sort Real, but is not
-   * a real value, i.e., `Term::isRealValue() const` will return false.
+   * @note #PI is considered a special symbol of Sort Real, but is not
+   * a Real value, i.e., Term::isRealValue() will return `false`.
    *
-   * Create with:
-   *   - `Solver::mkPi() const`
-   *   - `Solver::mkTerm(Kind kind) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkPi() const
    */
   PI,
 
@@ -753,1037 +872,1143 @@ enum Kind : int32_t
   /**
    * Fixed-size bit-vector constant.
    *
-   * Parameters:
-   *   See @ref cvc5::api::Solver::mkBitVector() "mkBitVector()".
-   *
-   * Create with:
-   *   - `Solver::mkBitVector(uint32_t size, uint64_t val) const`
-   *   - `Solver::mkBitVector(const std::string& s, uint32_t base) const`
-   *   - `Solver::mkBitVector(uint32_t size, const std::string& s, uint32_t base) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkBitVector(uint32_t, uint64_t) const
+   *   - Solver::mkBitVector(uint32_t, const std::string&, uint32_t) const
    */
   CONST_BITVECTOR,
   /**
    * Concatenation of two or more bit-vectors.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_CONCAT,
   /**
    * Bit-wise and.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_AND,
   /**
    * Bit-wise or.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_OR,
   /**
    * Bit-wise xor.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_XOR,
   /**
    * Bit-wise negation.
    *
-   * Parameters:
-   *   - 1: Term of bit-vector sort
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_NOT,
   /**
    * Bit-wise nand.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_NAND,
   /**
    * Bit-wise nor.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_NOR,
   /**
    * Bit-wise xnor, left associative.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_XNOR,
   /**
-   * Equality comparison (returns bit-vector of size 1).
+   * Equality comparison (returns bit-vector of size `1`).
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_COMP,
   /**
    * Multiplication of two or more bit-vectors.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_MULT,
   /**
    * Addition of two or more bit-vectors.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of bit-vector sort (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ADD,
   /**
    * Subtraction of two bit-vectors.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SUB,
   /**
    * Negation of a bit-vector (two's complement).
    *
-   * Parameters:
-   *   - 1: Term of bit-vector sort
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_NEG,
   /**
-   * Unsigned division of two bit-vectors, truncating towards 0. If the divisor
-   * is zero, the result is all ones.
+   * Unsigned bit-vector division.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * Truncates towards `0`. If the divisor is zero, the result is all ones.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_UDIV,
   /**
-   * Unsigned remainder from truncating division of two bit-vectors. If the
-   * modulus is zero, the result is the dividend.
+   * Unsigned bit-vector remainder.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * Remainder from unsigned bit-vector division. If the modulus is zero, the
+   * result is the dividend.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_UREM,
   /**
+   * Signed bit-vector division.
+   *
    * Two's complement signed division of two bit-vectors. If the divisor is
    * zero and the dividend is positive, the result is all ones. If the divisor
    * is zero and the dividend is negative, the result is one.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SDIV,
   /**
-   * Two's complement signed remainder of two bit-vectors (sign follows
-   * dividend). If the modulus is zero, the result is the dividend.
+   * Signed bit-vector remainder (sign follows dividend).
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * Two's complement signed remainder of two bit-vectors where the sign
+   * follows the dividend. If the modulus is zero, the result is the dividend.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SREM,
   /**
-   * Two's complement signed remainder (sign follows divisor). If the modulus
-   * is zero, the result is the dividend.
+   * Signed bit-vector remainder (sign follows divisor).
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * Two's complement signed remainder where the sign follows the divisor. If
+   * the modulus is zero, the result is the dividend.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SMOD,
   /**
    * Bit-vector shift left.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SHL,
   /**
    * Bit-vector logical shift right.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_LSHR,
   /**
    * Bit-vector arithmetic shift right.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ASHR,
   /**
    * Bit-vector unsigned less than.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ULT,
   /**
    * Bit-vector unsigned less than or equal.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ULE,
   /**
    * Bit-vector unsigned greater than.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_UGT,
   /**
    * Bit-vector unsigned greater than or equal.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_UGE,
   /**
    * Bit-vector signed less than.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SLT,
   /**
    * Bit-vector signed less than or equal.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SLE,
   /**
    * Bit-vector signed greater than.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SGT,
   /**
    * Bit-vector signed greater than or equal.
-   * The two bit-vector parameters must have same width.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SGE,
   /**
-   * Bit-vector unsigned less than, returns bit-vector of size 1.
+   * Bit-vector unsigned less than returning a bit-vector of size 1.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ULTBV,
   /**
-   * Bit-vector signed less than. returns bit-vector of size 1.
+   * Bit-vector signed less than returning a bit-vector of size `1`.
    *
-   * Parameters:
-   *   - 1..2: Terms of bit-vector sort (sorts must match)
+   * - Arity: `2`
+   *   - `1..2:` Terms of bit-vector Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SLTBV,
   /**
-   * Same semantics as regular ITE, but condition is bit-vector of size 1.
+   * Bit-vector if-then-else.
    *
-   * Parameters:
-   *   - 1: Term of bit-vector sort of size 1, representing the condition
-   *   - 2: Term reprsenting the 'then' branch
-   *   - 3: Term representing the 'else' branch
+   * Same semantics as regular ITE, but condition is bit-vector of size `1`.
    *
-   * 'then' and 'else' term must have same base sort.
+   * - Arity: `3`
+   *   - `1:` Term of bit-vector Sort of size `1`
+   *   - `1..3:` Terms of bit-vector sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ITE,
   /**
    * Bit-vector redor.
    *
-   * Parameters:
-   *   - 1: Term of bit-vector sort
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_REDOR,
   /**
    * Bit-vector redand.
    *
-   * Parameters:
-   *   - 1: Term of bit-vector sort
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_REDAND,
-#if 0
-  /* formula to be treated as a bv atom via eager bit-blasting
-   * (internal-only symbol) */
-  BITVECTOR_EAGER_ATOM,
-  /* term to be treated as a variable. used for eager bit-blasting Ackermann
-   * expansion of bvudiv (internal-only symbol) */
-  BITVECTOR_ACKERMANIZE_UDIV,
-  /* term to be treated as a variable. used for eager bit-blasting Ackermann
-   * expansion of bvurem (internal-only symbol) */
-  BITVECTOR_ACKERMANIZE_UREM,
-#endif
   /**
-   * Operator for bit-vector extract (from index 'high' to 'low').
+   * Bit-vector extract.
    *
-   * Parameters:
-   *   - 1: The 'high' index
-   *   - 2: The 'low' index
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param, uint32_t param) const`
+   * - Indices: `2`
+   *   - `1:` The upper bit index.
+   *   - `2:` The lower bit index.
    *
-   * Apply bit-vector extract.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind BITVECTOR_EXTRACT
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_EXTRACT,
   /**
-   * Operator for bit-vector repeat.
+   * Bit-vector repeat.
    *
-   * Parameter:
-   *   - 1: Number of times to repeat a given bit-vector
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`.
+   * - Indices: `1`
+   *   - `1:` The number of times to repeat the given term.
    *
-   * Apply bit-vector repeat.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind BITVECTOR_REPEAT
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_REPEAT,
   /**
-   * Operator for bit-vector zero-extend.
+   * Bit-vector zero extension.
    *
-   * Parameter:
-   *   - 1: Number of bits by which a given bit-vector is to be extended
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`.
+   * - Indices: `1`
+   *   - `1:` The number of zeroes to extend the given term with.
    *
-   * Apply bit-vector zero-extend.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind BITVECTOR_ZERO_EXTEND
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ZERO_EXTEND,
   /**
-   * Operator for bit-vector sign-extend.
+   * Bit-vector sign extension.
    *
-   * Parameter:
-   *   - 1: Number of bits by which a given bit-vector is to be extended
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`.
+   * - Indices: `1`
+   *   - `1:` The number of bits (of the value of the sign bit) to extend
+   *          the given term with.
    *
-   * Apply bit-vector sign-extend.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind BITVECTOR_SIGN_EXTEND
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SIGN_EXTEND,
   /**
-   * Operator for bit-vector rotate left.
+   * Bit-vector rotate left.
    *
-   * Parameter:
-   *   - 1: Number of bits by which a given bit-vector is to be rotated
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`.
+   * - Indices: `1`
+   *   - `1:` The number of bits to rotate the given term left.
    *
-   * Apply bit-vector rotate left.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind BITVECTOR_ROTATE_LEFT
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ROTATE_LEFT,
   /**
-   * Operator for bit-vector rotate right.
+   * Bit-vector rotate right.
    *
-   * Parameter:
-   *   - 1: Number of bits by which a given bit-vector is to be rotated
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`.
+   * - Indices: `1`
+   *   - `1:` The number of bits to rotate the given term right.
    *
-   * Apply bit-vector rotate right.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind BITVECTOR_ROTATE_RIGHT
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_ROTATE_RIGHT,
-#if 0
-  /* bit-vector boolean bit extract. */
-  BITVECTOR_BITOF,
-#endif
   /**
-   * Operator for the conversion from Integer to bit-vector.
+   * Conversion from Int to bit-vector.
    *
-   * Parameter:
-   *   - 1: Size of the bit-vector to convert to
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`.
+   * - Indices: `1`
+   *   - `1:` The size of the bit-vector to convert to.
    *
-   * Apply integer conversion to bit-vector.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind INT_TO_BITVECTOR
-   *   - 2: Integer term
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INT_TO_BITVECTOR,
   /**
-   * Bit-vector conversion to (nonnegative) integer.
+   * Bit-vector conversion to (non-negative) integer.
    *
-   * Parameter:
-   *   - 1: Term of bit-vector sort
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_TO_NAT,
 
   /* FP -------------------------------------------------------------------- */
 
   /**
-   * Floating-point constant, constructed from a double or string.
+   * Floating-point constant, created from IEEE-754 bit-vector representation
+   * of the floating-point value.
    *
-   * Parameters:
-   *   - 1: Size of the exponent
-   *   - 2: Size of the significand
-   *   - 3: Value of the floating-point constant as a bit-vector term
-   *
-   * Create with:
-   *   - `Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const`
+   * - Create Term of this Kind with:
+   *   - Term mkFloatingPoint(uint32_t, uint32_t, Term) const;
    */
   CONST_FLOATINGPOINT,
   /**
-   * Floating-point rounding mode term.
+   * RoundingMode constant.
    *
-   * Create with:
-   *   - `Solver::mkRoundingMode(RoundingMode rm) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkRoundingMode(RoundingMode rm) const
    */
   CONST_ROUNDINGMODE,
   /**
    * Create floating-point literal from bit-vector triple.
    *
-   * Parameters:
-   *   - 1: Sign bit as a bit-vector term
-   *   - 2: Exponent bits as a bit-vector term
-   *   - 3: Significand bits as a bit-vector term (without hidden bit)
+   * - Arity: `3`
+   *   - `1:` Term of bit-vector Sort of size `1` (sign bit)
+   *   - `2:` Term of bit-vector Sort of exponent size (exponent)
+   *   - `3:` Term of bit-vector Sort of significand size - 1
+   *          (significand without hidden bit)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_FP,
   /**
    * Floating-point equality.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_EQ,
   /**
    * Floating-point absolute value.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_ABS,
   /**
    * Floating-point negation.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_NEG,
   /**
    * Floating-point addition.
    *
-   * Parameters:
-   *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of floating-point sort
-   *   - 3: Term of floating-point sort
+   * - Arity: `3`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2..3:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_ADD,
   /**
    * Floating-point sutraction.
    *
-   * Parameters:
-   *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of floating-point sort
-   *   - 3: Term of floating-point sort
+   * - Arity: `3`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2..3:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_SUB,
   /**
    * Floating-point multiply.
    *
-   * Parameters:
-   *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of floating-point sort
-   *   - 3: Term of floating-point sort
+   * - Arity: `3`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2..3:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_MULT,
   /**
    * Floating-point division.
    *
-   * Parameters:
-   *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of floating-point sort
-   *   - 3: Term of floating-point sort
+   * - Arity: `3`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2..3:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_DIV,
   /**
    * Floating-point fused multiply and add.
    *
-   * Parameters:
-   *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of floating-point sort
-   *   - 3: Term of floating-point sort
-   *   - 4: Term of floating-point sort
+   * - Arity: `4`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2..4:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_FMA,
   /**
    * Floating-point square root.
    *
-   * Parameters:
-   *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of floating-point sort
+   * - Arity: `2`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_SQRT,
   /**
    * Floating-point remainder.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_REM,
   /**
    * Floating-point round to integral.
    *
-   * Parameters:
-   *   -1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_RTI,
   /**
    * Floating-point minimum.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_MIN,
   /**
    * Floating-point maximum.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_MAX,
   /**
    * Floating-point less than or equal.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_LEQ,
   /**
    * Floating-point less than.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_LT,
   /**
    * Floating-point greater than or equal.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_GEQ,
   /**
    * Floating-point greater than.
    *
-   * Parameters:
-   *   - 1..2: Terms of floating-point sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of floating-point Sort (sorts must match)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_GT,
   /**
-   * Floating-point is normal.
+   * Floating-point is normal tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_NORMAL,
   /**
-   * Floating-point is sub-normal.
+   * Floating-point is sub-normal tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_SUBNORMAL,
   /**
-   * Floating-point is zero.
+   * Floating-point is zero tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_ZERO,
   /**
-   * Floating-point is infinite.
+   * Floating-point is infinite tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_INF,
   /**
-   * Floating-point is NaN.
+   * Floating-point is NaN tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_NAN,
   /**
-   * Floating-point is negative.
+   * Floating-point is negative tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_NEG,
   /**
-   * Floating-point is positive.
+   * Floating-point is positive tester.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_IS_POS,
   /**
-   * Operator for to_fp from bit-vector.
+   * Conversion to floating-point from IEEE-754 bit-vector.
    *
-   * Parameters:
-   *   - 1: Exponent size
-   *   - 2: Significand size
+   * - Arity: `1`
+   *   - `1:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
+   * - Indices: `2`
+   *   - `1:` The exponent size
+   *   - `2:` The significand size
    *
-   * Conversion from an IEEE-754 bit-vector to floating-point.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - 2: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
   /**
-   * Operator for to_fp from floating-point.
+   * Conversion to floating-point from floating-point.
    *
-   * Parameters:
-   *   - 1: Exponent size
-   *   - 2: Significand size
+   * - Arity: `2`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
+   * - Indices: `2`
+   *   - `1:` The exponent size
+   *   - `2:` The significand size
    *
-   * Conversion between floating-point sorts.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_FP
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of floating-point sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_FP_FROM_FP,
   /**
-   * Operator for to_fp from real.
+   * Conversion to floating-point from Real.
    *
-   * Parameters:
-   *   - 1: Exponent size
-   *   - 2: Significand size
+   * - Arity: `2`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
+   * - Indices: `2`
+   *   - `1:` The exponent size
+   *   - `2:` The significand size
    *
-   * Conversion from a real to floating-point.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of sort Real
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_FP_FROM_REAL,
   /**
-   * Operator for to_fp from signed bit-vector
+   * Conversion to floating-point from signed bit-vector.
    *
-   * Parameters:
-   *   - 1: Exponent size
-   *   - 2: Significand size
+   * - Arity: `2`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
+   * - Indices: `2`
+   *   - `1:` The exponent size
+   *   - `2:` The significand size
    *
-   * Conversion from a signed bit-vector to floating-point.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_FP_FROM_SBV,
   /**
-   * Operator for to_fp from unsigned bit-vector.
+   * Conversion to floating-point from unsigned bit-vector.
    *
-   * Parameters:
-   *   - 1: Exponent size
-   *   - 2: Significand size
+   * - Arity: `2`
+   *   - `1:` Term of Sort RoundingMode
+   *   - `2:` Term of bit-vector Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
+   * - Indices: `2`
+   *   - `1:` The exponent size
+   *   - `2:` The significand size
    *
-   * Converting an unsigned bit-vector to floating-point.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_UBV
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_FP_FROM_UBV,
   /**
-   * Operator for to_ubv.
+   * Conversion to unsigned bit-vector from floating-point.
    *
-   * Parameters:
-   *   - 1: Size of the bit-vector to convert to
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
+   * - Indices: `1`
+   *   - `1:` The size of the bit-vector to convert to.
    *
-   * Conversion from a floating-point value to an unsigned bit-vector.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_TO_UBV
-   *   - 2: Term of floating-point sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_UBV,
   /**
-   * Operator for to_sbv.
+   * Conversion to signed bit-vector from floating-point.
    *
-   * Parameters:
-   *   - 1: Size of the bit-vector to convert to
+   * - Arity: `1`
+   *   - `1:` Term of floating-point Sort
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
+   * - Indices: `1`
+   *   - `1:` The size of the bit-vector to convert to.
    *
-   * Conversion from a floating-point value to a signed bit-vector.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_TO_SBV
-   *   - 2: Term of floating-point sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_SBV,
   /**
-   * Floating-point to real.
+   * Conversion to Real from floating-point.
    *
-   * Parameters:
-   *   - 1: Term of floating-point sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort Real
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FLOATINGPOINT_TO_REAL,
 
@@ -1792,133 +2017,161 @@ enum Kind : int32_t
   /**
    * Array select.
    *
-   * Parameters:
-   *   - 1: Term of array sort
-   *   - 2: Selection index
+   * - Arity: `2`
+   *   - `1:` Term of array Sort
+   *   - `2:` Term of array index Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SELECT,
   /**
    * Array store.
    *
-   * Parameters:
-   *   - 1: Term of array sort
-   *   - 2: Store index
-   *   - 3: Term to store at the index
+   * - Arity: `3`
+   *   - `1:` Term of array Sort
+   *   - `2:` Term of array index Sort
+   *   - `3:` Term of array element Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STORE,
   /**
    * Constant array.
    *
-   * Parameters:
-   *   - 1: Array sort
-   *   - 2: Term representing a constant
+   * - Arity: `2`
+   *   - `1:` Term of array Sort
+   *   - `2:` Term of array element Sort (value)
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * @note We currently support the creation of constant arrays, but under some
-   * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue <a
-   * href="https://github.com/cvc5/cvc5/issues/1667">#1667</a>).
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   CONST_ARRAY,
   /**
-   * Equality over arrays a and b over a given range [i,j], i.e.,
+   * Equality over arrays @f$a@f$ and @f$b@f$ over a given range @f$[i,j]@f$,
+   * i.e.,
    * @f[
    *   \forall k . i \leq k \leq j \Rightarrow a[k] = b[k]
    * @f]
    *
-   * Parameters:
-   *   - 1: First array
-   *   - 2: Second array
-   *   - 3: Lower bound of range (inclusive)
-   *   - 4: Uppper bound of range (inclusive)
+   * @note We currently support the creation of array equalities over index
+   *       Sorts bit-vector, floating-point, Int and Real.
+   *       \verbatim embed:rst:leading-asterisk
+   *       Requires to enable option :ref:`arrays-exp<lbl-option-arrays-exp>`.
+   *       \endverbatim
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Arity: `4`
+   *   - `1:` Term of array Sort (first array)
+   *   - `2:` Term of array Sort (second array)
+   *   - `3:` Term of array index Sort (lower bound of range, inclusive)
+   *   - `4:` Term of array index Sort (upper bound of range, inclusive)
    *
-   * Note: We currently support the creation of array equalities over index
-   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
-   * required to support this operator.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
    */
   EQ_RANGE,
-#if 0
-  /* array table function (internal-only symbol) */
-  ARR_TABLE_FUN,
-  /* array lambda (internal-only symbol) */
-  ARRAY_LAMBDA,
-  /* partial array select, for internal use only */
-  PARTIAL_SELECT_0,
-  /* partial array select, for internal use only */
-  PARTIAL_SELECT_1,
-#endif
 
   /* Datatypes ------------------------------------------------------------- */
 
   /**
-   * Constructor application.
+   * Datatype constructor application.
    *
-   * Paramters: n > 0
-   *   - 1: Constructor (operator)
-   *   - 2..n: Parameters to the constructor
+   * - Arity: `n > 0`
+   *   - `1:` DatatypeConstructor Term
+   *          (see DatatypeConstructor::getConstructorTerm() const,
+   *          Datatype::getConstructorTerm(const std::string&) const)
+   *   - `2..n:` Terms of the Sorts of the selectors of the constructor (the arguments to the constructor)
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op) const`
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   APPLY_CONSTRUCTOR,
   /**
-   * Datatype selector application, which is undefined if misapplied.
+   * Datatype selector application.
    *
-   * Parameters:
-   *   - 1: Selector (operator)
-   *   - 2: Datatype term
+   * @note Undefined if misapplied.
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   * - Arity: `2`
+   *   - `1:` DatatypeSelector Term
+   *          (see DatatypeSelector::getSelectorTerm() const,
+   *          DatatypeConstructor::getSelectorTerm(const std::string&) const)
+   *   - `2:` Term of the codomain Sort of the selector
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   APPLY_SELECTOR,
   /**
    * Datatype tester application.
    *
-   * Parameters:
-   *   - 1: Tester term
-   *   - 2: Datatype term
+   * - Arity: `2`
+   *   - `1:` Datatype tester Term
+   *          (see DatatypeConstructor::getTesterTerm() const)
+   *   - `2:` Term of Datatype Sort (DatatypeConstructor must belong to this
+   *          Datatype Sort)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   APPLY_TESTER,
   /**
-   * Datatype update application, which does not change the argument if
-   * misapplied.
+   * Datatype update application.
    *
-   * Parameters:
-   *   - 1: Updater (operator)
-   *   - 2: Datatype term
-   *   - 3: Value to update a field of the datatype term with
+   * @note Does not change the datatype argument if misapplied.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Datatype updater Term
+   *          (see DatatypeSelector::getUpdaterTerm() const)
+   *   - `2:` Term of Datatype Sort (DatatypeSelector of the updater must
+   *          belong to a constructor of this Datatype Sort)
+   *   - `3:` Term of the codomain Sort of the selector (the Term to update
+   *          the field of the datatype term with)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   APPLY_UPDATER,
   /**
-   * Match expressions.
-   * For example, the smt2 syntax match term
+   * Match expression.
+   
+   * This kind is primarily used in the parser to support the
+   * SMT-LIBv2 `match` expression.
+   *
+   * For example, the SMT-LIBv2 syntax for the following match term
    * \rst
    * .. code:: smtlib
    *
@@ -1928,644 +2181,827 @@ enum Kind : int32_t
    *
    * \rst
    * .. code:: lisp
-   * 
+   *
    *     (MATCH l
    *         (MATCH_BIND_CASE (VARIABLE_LIST h t) (cons h t) h)
    *         (MATCH_CASE nil 0))
    * \endrst
    *
-   * The type of the last argument of each case term could be equal.
+   * Terms of kind #MATCH_CASE are constant case expressions, which are used
+   * for nullary constructors. Kind #MATCH_BIND_CASE is used for constructors
+   * with selectors and variable match patterns. If not all constructors are
+   * covered, at least one catch-all variable pattern must be included.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of kind MATCH_CASE or MATCH_BIND_CASE
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of kind #MATCH_CASE and #MATCH_BIND_CASE
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   MATCH,
   /**
-   * Match case
+   * Match case for nullary constructors.
+   *
    * A (constant) case expression to be used within a match expression.
    *
-   * Parameters:
-   *   - 1: Term denoting the pattern expression
-   *   - 2: Term denoting the return value
+   * - Arity: `2`
+   *   - `1:` Term of kind #APPLY_CONSTRUCTOR (the pattern to match against)
+   *   - `2:` Term of any Sort (the term the match term evaluates to)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   MATCH_CASE,
   /**
-   * Match bind case
+   * Match case with binders, for constructors with selectors and variable
+   * patterns.
+   *
    * A (non-constant) case expression to be used within a match expression.
    *
-   * Parameters:
-   *   - 1: a VARIABLE_LIST Term containing the free variables of the case
-   *   - 2: Term denoting the pattern expression
-   *   - 3: Term denoting the return value
+   * - Arity: `3`
+   *   - For variable patterns:
+   *     - `1:` Term of kind #VARIABLE_LIST (containing the free variable of
+   *            the case)
+   *     - `2:` Term of kind #VARIABLE (the pattern expression, the free
+   *            variable of the case)
+   *     - `3:` Term of any Sort (the term the pattern evaluates to)
+   *   - For constructors with selectors:
+   *     - `1:` Term of kind #VARIABLE_LIST (containing the free variable of
+   *            the case)
+   *     - `2:` Term of kind #APPLY_CONSTRUCTOR (the pattern expression,
+   *            applying the set of variables to the constructor)
+   *     - `3:` Term of any Sort (the term the match term evaluates to)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   MATCH_BIND_CASE,
   /**
-   * Datatypes size
-   * An operator mapping datatypes to an integer denoting the number of
-   * non-nullary applications of constructors they contain.
+   * Datatypes size operator.
    *
-   * Parameters:
-   *   - 1: Datatype term
+   * An operator mapping a datatype term to an integer denoting the number of
+   * non-nullary applications of constructors it contains.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `1`
+   *   - `1:` Term of datatype Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   DT_SIZE,
   /**
-   * Operator for tuple projection indices
+   * Tuple projection.
    *
-   * Parameters:
-   *   - 1: A vector of tuple projection indices.
+   * This operator takes a tuple as an argument and returns a tuple obtained by
+   * concatenating components of its argument at the provided indices.
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind TUPLE_PROJECT, std::vector<uint32_t> param) const`
+   * For example,
+   * \rst
+   * .. code:: smtlib
    *
-   * Constructs a new tuple from an existing one using the elements at the
-   * given indices
+   *     ((_ tuple_project 1 2 2 3 1) (tuple 10 20 30 40))
+   * \endrst
+   * yields
+   * \rst
+   * .. code:: smtlib
    *
-   * Parameters:
-   *   - 1: a term of tuple sort
+   *     (tuple 20 30 30 40 20)
+   * \endrst
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Arity: `1`
+   *   - `1:` Term of tuple Sort
+   *
+   * - Indices: `n`
+   *   - `1..n:` The tuple indices to project
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TUPLE_PROJECT,
-#if 0
-  /* datatypes height bound */
-  DT_HEIGHT_BOUND,
-  /* datatypes height bound */
-  DT_SIZE_BOUND,
-  /* datatypes sygus bound */
-  DT_SYGUS_BOUND,
-  /* datatypes sygus term order */
-  DT_SYGUS_TERM_ORDER,
-  /* datatypes sygus is constant */
-  DT_SYGUS_IS_CONST,
-#endif
 
   /* Separation Logic ------------------------------------------------------ */
 
   /**
-   * Separation logic nil term.
+   * Separation logic nil.
    *
-   * Parameters: none
-   *
-   * Create with:
-   *   - `Solver::mkSepNil(const Sort& sort) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkSepNil(const Sort&) const
    */
   SEP_NIL,
   /**
-   * Separation logic empty heap constraint
+   * Separation logic empty heap.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkSepEmp() const
    */
   SEP_EMP,
   /**
    * Separation logic points-to relation.
    *
-   * Parameters:
-   *   - 1: Location of the points-to constraint
-   *   - 2: Data of the points-to constraint
+   * - Arity: `2`
+   *   - `1:` Term denoting the location of the points-to constraint
+   *   - `2:` Term denoting the data of the points-to constraint
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEP_PTO,
   /**
    * Separation logic star.
    *
-   * Parameters: n > 1
-   *   - 1..n: Child constraints that hold in disjoint (separated) heaps
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of sort Bool (the child constraints that hold in
+   *             disjoint (separated) heaps)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEP_STAR,
   /**
    * Separation logic magic wand.
    *
-   * Parameters:
-   *   - 1: Antecendant of the magic wand constraint
-   *   - 2: Conclusion of the magic wand constraint, which is asserted to
-   *         hold in all heaps that are disjoint extensions of the antecedent.
+   * - Arity: `2`
+   *   - `1:` Terms of Sort Bool (the antecendant of the magic wand constraint)
+   *   - `2:` Terms of Sort Bool (conclusion of the magic wand constraint,
+   *          which is asserted to hold in all heaps that are disjoint
+   *          extensions of the antecedent)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEP_WAND,
-#if 0
-  /* separation label (internal use only) */
-  SEP_LABEL,
-#endif
 
   /* Sets ------------------------------------------------------------------ */
 
   /**
-   * Empty set constant.
+   * Empty set.
    *
-   * Parameters:
-   *   - 1: Sort of the set elements
-   *
-   * Create with:
-   *   - `Solver::mkEmptySet(const Sort& sort) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkEmptySet(const Sort&) const
    */
   SET_EMPTY,
   /**
    * Set union.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_UNION,
   /**
    * Set intersection.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_INTER,
   /**
    * Set subtraction.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_MINUS,
   /**
    * Subset predicate.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort, [1] a subset of set [2]?
+   * Determines if the first set is a subset of the second set.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of set Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_SUBSET,
   /**
    * Set membership predicate.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort, [1] a member of set [2]?
+   * Determines if the given set element is a member of the second set.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of any Sort (must match the element Sort of the
+   *          given set Term)
+   *   - `2:` Term of set Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_MEMBER,
   /**
+   * Singleton set.
+   *
    * Construct a singleton set from an element given as a parameter.
-   * The returned set has same type of the element.
+   * The returned set has the same Sort as the element.
    *
-   * Parameters:
-   *   - 1: Single element
+   * - Arity: `1`
+   *   - `1:` Term of any Sort (the set element)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_SINGLETON,
   /**
    * The set obtained by inserting elements;
    *
-   * Parameters: n > 0
-   *   - 1..n-1: Elements inserted into set [n]
-   *   - n: Set Term
+   * - Arity: `n > 0`
+   *   - `1..n-1:` Terms of any Sort (must match the element sort of the
+   *               given set Term)
+   *   - `n:` Term of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_INSERT,
   /**
    * Set cardinality.
    *
-   * Parameters:
-   *   - 1: Set to determine the cardinality of
+   * - Arity: `1`
+   *   - `1:` Term of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_CARD,
   /**
    * Set complement with respect to finite universe.
    *
-   * Parameters:
-   *   - 1: Set to complement
+   * - Arity: `1`
+   *   - `1:` Term of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_COMPLEMENT,
   /**
    * Finite universe set.
+   *
    * All set variables must be interpreted as subsets of it.
    *
-   * Note that SET_UNIVERSE is considered a special symbol of the theory of
-   * sets and is not considered as a set value,
-   * i.e., `Term::isSetValue() const` will return false.
+   * @note #SET_UNIVERSE is considered a special symbol of the theory of
+   *       sets and is not considered as a set value, i.e.,
+   *       Term::isSetValue() will return `false`.
    *
-   * Create with:
-   *   - `Solver::mkUniverseSet(const Sort& sort) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkUniverseSet(const Sort&) const
    */
   SET_UNIVERSE,
   /**
    * Set comprehension
-   * A set comprehension is specified by a variable list x1 ... xn,
-   * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
-   * above form has members given by the following semantics:
+   *
+   * A set comprehension is specified by a variable list @f$x_1 ... x_n@f$,
+   * a predicate @f$P[x_1...x_n]@f$, and a term @f$t[x_1...x_n]@f$. A
+   * comprehension @f$C@f$ with the above form has members given by the
+   * following semantics:
    * @f[
    *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \wedge t[x_1...x_n] = y )
    * \Leftrightarrow (set.member \; y \; C)
    * @f]
-   * where y ranges over the element type of the (set) type of the
-   * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to
-   * y in the above formula.
+   * where @f$y@f$ ranges over the element Sort of the (set) Sort of the
+   * comprehension. If @f$t[x_1..x_n]@f$ is not provided, it is equivalent
+   * to @f$y@f$ in the above formula.
    *
-   * Parameters:
-   *   - 1: Term VARIABLE_LIST
-   *   - 2: Term denoting the predicate of the comprehension
-   *   - 3: (optional) a Term denoting the generator for the comprehension
+   * - Arity: `3`
+   *   - `1:` Term of Kind #VARIABLE_LIST
+   *   - `2:` Term of sort Bool (the predicate of the comprehension)
+   *   - `3:` (optional) Term denoting the generator for the comprehension
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_COMPREHENSION,
   /**
-   * Returns an element from a given set.
-   * If a set A = {x}, then the term (set.choose A) is equivalent to the term x.
-   * If the set is empty, then (set.choose A) is an arbitrary value.
-   * If the set has cardinality > 1, then (set.choose A) will deterministically
-   * return an element in A.
+   * Set choose.
    *
-   * Parameters:
-   *   - 1: Term of set sort
+   * Select an element from a given set. For a set @f$A = \{x\}@f$, the term
+   * `(set.choose A)` is equivalent to the term @f$x@f$. For an empty set,
+   * it is an arbitrary value. For a set with cardinality > 1, it will
+   * deterministically return an element in @f$A@f$.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Arity: `1`
+   *   - `1:` Term of set Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_CHOOSE,
   /**
-   * Set is_singleton predicate.
+   * Set is singleton tester.
    *
-   * Parameters:
-   *   - 1: Term of set sort, is [1] a singleton set?
+   * - Arity: `1`
+   *   - `1:` Term of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SET_IS_SINGLETON,
   /**
-   * set.map operator applies the first argument, a function of type (-> T1 T2),
-   * to every element of the second argument, a set of type (Set T1),
-   * and returns a set of type (Set T2).
+   * Set map.
    *
-   * Parameters:
-   *   - 1: a function of type (-> T1 T2)
-   *   - 2: a set of type (Set T1)
+   * This operator applies the first argument, a function of
+   * Sort @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second
+   * argument, a set of Sort (Set @f$S_1@f$), and returns a set of Sort
+   * (Set @f$S_2@f$).
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
+   *   - `2:` Term of set Sort (Set @f$S_1@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
    SET_MAP,
 
   /* Relations ------------------------------------------------------------- */
 
   /**
-   * Set join.
+   * Relation join.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of relation Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   RELATION_JOIN,
   /**
-   * Set cartesian product.
+   * Relation cartesian product.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of relation Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   RELATION_PRODUCT,
   /**
-   * Set transpose.
+   * Relation transpose.
    *
-   * Parameters:
-   *   - 1: Term of set sort
+   * - Arity: `1`
+   *   - `1:` Term of relation Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   RELATION_TRANSPOSE,
   /**
-   * Set transitive closure.
+   * Relation transitive closure.
    *
-   * Parameters:
-   *   - 1: Term of set sort
+   * - Arity: `1`
+   *   - `1:` Term of relation Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   RELATION_TCLOSURE,
   /**
-   * Set join image.
+   * Relation join image.
    *
-   * Parameters:
-   *   - 1..2: Terms of set sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of relation Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   RELATION_JOIN_IMAGE,
   /**
-   * Set identity.
+   * Relation identity.
    *
-   * Parameters:
-   *   - 1: Term of set sort
+   * - Arity: `1`
+   *   - `1:` Term of relation Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   RELATION_IDEN,
 
   /* Bags ------------------------------------------------------------------ */
 
   /**
-   * Empty bag constant.
+   * Empty bag.
    *
-   * Parameters:
-   *   - 1: Sort of the bag elements
-   *
-   * Create with:
-   *   mkEmptyBag(const Sort& sort)
+   * - Create Term of this Kind with:
+   *   - Solver::mkEmptyBag(const Sort&) const
    */
   BAG_EMPTY,
   /**
    * Bag max union.
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_UNION_MAX,
   /**
    * Bag disjoint union (sum).
    *
-   * Parameters:
-   *   -1..2: Terms of bag sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_UNION_DISJOINT,
   /**
    * Bag intersection (min).
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_INTER_MIN,
   /**
-   * Bag difference subtract (subtracts multiplicities of the second from the
-   * first).
+   * Bag difference subtract.
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort
+   * Subtracts multiplicities of the second from the first.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bag Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_DIFFERENCE_SUBTRACT,
   /**
-   * Bag difference 2 (removes shared elements in the two bags).
+   * Bag difference remove.
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort
+   * Removes shared elements in the two bags.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bag Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_DIFFERENCE_REMOVE,
   /**
-   * Inclusion predicate for bags
-   * (multiplicities of the first bag <= multiplicities of the second bag).
+   * Bag inclusion predicate.
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort
+   * Determine if multiplicities of the first bag are less than or equal to
+   * multiplicities of the second bag.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1..2:` Terms of bag Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_SUBBAG,
   /**
-   * Element multiplicity in a bag
+   * Bag element multiplicity.
    *
    * Parameters:
    *   - 1..2: Terms of bag sort (Bag E), [1] an element of sort E
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   *   - Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
+   *   - Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
    */
   BAG_COUNT,
   /**
    * Bag membership predicate.
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort (Bag E), is [1] of type E an element of [2]
+   * - Arity: `2`
+   *   - `1:` Term of any Sort (must match the element Sort of the
+   *          given bag Term)
+   *   - `2:` Terms of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_MEMBER,
   /**
+   * Bag duplicate removal.
+   *
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
    *
-   * Parameters:
-   *   - 1: a term of bag sort
+   * - Arity: `1`
+   *   - `1:` Term of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_DUPLICATE_REMOVAL,
   /**
+   * Bag make.
+   *
    * Construct a bag with the given element and given multiplicity.
    *
-   * Parameters:
-   *   - 1: The element
-   *   - 2: The multiplicity of the element. 
+   * - Arity: `2`
+   *   - `1:` Term of any Sort (the bag element)
+   *   - `2:` Term of Sort Int (the multiplicity of the element)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child, const Term& child) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_MAKE,
   /**
    * Bag cardinality.
    *
-   * Parameters:
-   *   - 1: Bag to determine the cardinality of
+   * - Arity: `1`
+   *   - `1:` Term of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_CARD,
   /**
-   * Returns an element from a given bag.
-   * If a bag A = {(x,n)} where n is the multiplicity, then the term (choose A)
-   * is equivalent to the term x.
-   * If the bag is empty, then (choose A) is an arbitrary value.
-   * If the bag contains distinct elements, then (choose A) will
-   * deterministically return an element in A.
+   * Bag choose.
    *
-   * Parameters:
-   *   - 1: Term of bag sort
+   * Select an element from a given bag.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * For a bag @f$A = \{(x,n)\}@f$ where @f$n@f$ is the multiplicity, then the
+   * term `(choose A)` is equivalent to the term @f$x@f$. For an empty bag,
+   * then it is an arbitrary value. For a bag that contains distinct elements,
+   * it will deterministically return an element in @f$A@f$.
+   *
+   * - Arity: `1`
+   *   - `1:` Term of bag Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_CHOOSE,
   /**
-   * Bag is_singleton predicate (single element with multiplicity exactly one).
+   * Bag is singleton tester.
    *
-   * Parameters:
-   *   - 1: Term of bag sort, is [1] a singleton bag?
+   * - Arity: `1`
+   *   - `1:` Term of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_IS_SINGLETON,
   /**
-   * Bag.from_set converts a set to a bag.
+   * Conversion from set to bag.
    *
-   * Parameters:
-   *   - 1: Term of set sort
+   * - Arity: `1`
+   *   - `1:` Term of set Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_FROM_SET,
   /**
-   * Bag.to_set converts a bag to a set.
+   * Conversion from bag to set.
    *
-   * Parameters:
-   *   - 1: Term of bag sort
+   * - Arity: `1`
+   *   - `1:` Term of bag Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_TO_SET,
   /**
-   * bag.map operator applies the first argument, a function of type (-> T1 T2),
-   * to every element of the second argument, a bag of type (Bag T1),
-   * and returns a bag of type (Bag T2).
+   * Bag map.
    *
-   * Parameters:
-   *   - 1: a function of type (-> T1 T2)
-   *   - 2: a bag of type (Bag T1)
+   * This operator applies the first argument, a function of
+   * Sort @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second
+   * argument, a set of Sort (Bag @f$S_1@f$), and returns a set of Sort
+   * (Bag @f$S_2@f$).
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
+   *   - `2:` Term of bag Sort (Bag @f$S_1@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_MAP,
   /**
-    * bag.filter operator filters the elements of a bag.
-    * (bag.filter p B) takes a predicate p of type (-> T Bool) as a first
-    * argument, and a bag B of type (Bag T) as a second argument, and returns a
-    * subbag of type (Bag T) that includes all elements of B that satisfy p
-    * with the same multiplicity.
-    *
-    * Parameters:
-    *   - 1: a function of type (-> T Bool)
-    *   - 2: a bag of type (Bag T)
-    *
-    * Create with:
-    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-    */
+   * Bag filter.
+   *
+   * This operator filters the elements of a bag.
+   * `(bag.filter p B)` takes a predicate @f$p@f$ of
+   * Sort @f$(\rightarrow S_1 \; S_2)@f$ as a first argument, and a bag @f$@f$
+   * of Sort (Bag @f$S@f$) as a second argument, and returns a subbag of Sort
+   * (Bag @f$T@f$) that includes all elements of @f$B@f$ that satisfy @f$p@f$
+   * with the same multiplicity.
+   *
+   * - Arity: `2`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
+   *   - `2:` Term of bag Sort (Bag @f$S_1@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
    BAG_FILTER,
   /**
-   * bag.fold operator combines elements of a bag into a single value.
-   * (bag.fold f t B) folds the elements of bag B starting with term t and using
-   * the combining function f.
+   * Bag fold.
    *
-   * Parameters:
-   *   - 1: a binary operation of type (-> T1 T2 T2)
-   *   - 2: an initial value of type T2
-   *   - 2: a bag of type (Bag T1)
+   * This operator combines elements of a bag into a single value.
+   * `(bag.fold f t B)` folds the elements of bag @f$B@f$ starting with
+   * Term @f$t@f$ and using the combining function @f$f@f$.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2 \; S_2)@f$
+   *   - `2:` Term of Sort `S_2)` (the initial value)
+   *   - `3:` Term of bag Sort (Bag @f$S_1@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BAG_FOLD,
   /**
    * Table cross product.
    *
-   * Parameters:
-   *   - 1..2: Terms of bag sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of table Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TABLE_PRODUCT,
 
@@ -2574,737 +3010,919 @@ enum Kind : int32_t
   /**
    * String concat.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of String sort
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_CONCAT,
   /**
    * String membership.
    *
-   * Parameters:
-   *   - 1: Term of String sort
-   *   - 2: Term of RegExp sort
+   * - Arity: `2`
+   *   - `1:` Term of Sort String
+   *   - `2:` Term of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_IN_REGEXP,
   /**
    * String length.
    *
-   * Parameters:
-   *   - 1: Term of String sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_LENGTH,
   /**
    * String substring.
-   * Extracts a substring, starting at index i and of length l, from a string
-   * s.  If the start index is negative, the start index is greater than the
-   * length of the string, or the length is negative, the result is the empty
-   * string.
    *
-   * Parameters:
-   *   - 1: Term of sort String
-   *   - 2: Term of sort Integer (index i)
-   *   - 3: Term of sort Integer (length l)
+   * Extracts a substring, starting at index @f$i@f$ and of length @f$l@f$,
+   * from a string @f$s@f$.  If the start index is negative, the start index is
+   * greater than the length of the string, or the length is negative, the
+   * result is the empty string.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of Sort Int (length @f$l@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_SUBSTR,
   /**
    * String update.
-   * Updates a string s by replacing its context starting at an index with t.
-   * If the start index is negative, the start index is greater than the
-   * length of the string, the result is s. Otherwise, the length of the
-   * original string is preserved.
    *
-   * Parameters:
-   *   - 1: Term of sort String
-   *   - 2: Term of sort Integer (index i)
-   *   - 3: Term of sort String (replacement string t)
+   * Updates a string @f$s@f$ by replacing its context starting at an index
+   * with string @f$t@f$. If the start index is negative, the start index is
+   * greater than the length of the string, the result is @f$s@f$. Otherwise,
+   * the length of the original string is preserved.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of Sort Strong (replacement string @f$t@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_UPDATE,
   /**
    * String character at.
-   * Returns the character at index i from a string s. If the index is negative
-   * or the index is greater than the length of the string, the result is the
-   * empty string. Otherwise the result is a string of length 1.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s)
-   *   - 2: Term of sort Integer (index i)
+   * Returns the character at index @f$i@f$ from a string @f$s@f$. If the index is
+   * negative or the index is greater than the length of the string, the result
+   * is the empty string. Otherwise the result is a string of length @f$1@f$.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (string @f$s@f$)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_CHARAT,
   /**
    * String contains.
-   * Checks whether a string s1 contains another string s2. If s2 is empty, the
-   * result is always true.
    *
-   * Parameters:
-   *   - 1: Term of sort String (the string s1)
-   *   - 2: Term of sort String (the string s2)
+   * Determines whether a string @f$s_1@f$ contains another string @f$s_2@f$.
+   * If @f$s_2@f$ is empty, the result is always `true`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (the string @f$s_1@f$)
+   *   - `2:` Term of Sort String (the string @f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_CONTAINS,
   /**
    * String index-of.
-   * Returns the index of a substring s2 in a string s1 starting at index i. If
-   * the index is negative or greater than the length of string s1 or the
-   * substring s2 does not appear in string s1 after index i, the result is -1.
    *
-   * Parameters:
-   *   - 1: Term of sort String (substring s1)
-   *   - 2: Term of sort String (substring s2)
-   *   - 3: Term of sort Integer (index i)
+   * Returns the index of a substring @f$s_2@f$ in a string @f$s_1@f$ starting
+   * at index @f$i@f$. If the index is negative or greater than the length of
+   * string @f$s_1@f$ or the substring @f$s_2@f$ does not appear in
+   * string @f$s_1@f$ after index @f$i@f$, the result is `-1`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (substring @f$s_1@f$)
+   *   - `2:` Term of Sort String (substring @f$s_2@f$)
+   *   - `3:` Term of Sort Int (index @f$i@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_INDEXOF,
   /**
    * String index-of regular expression match.
-   * Returns the first match of a regular expression r in a string s. If the
-   * index is negative or greater than the length of string s1, or r does not
-   * match a substring in s after index i, the result is -1.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s)
-   *   - 2: Term of sort RegLan (regular expression r)
-   *   - 3: Term of sort Integer (index i)
+   * Returns the first match of a regular expression @f$r@f$ in a
+   * string @f$s@f$. If the index is negative or greater than the length of
+   * string @f$s_1@f$, or @f$r@f$ does not match a substring in @f$s@f$ after
+   * index @f$i@f$, the result is `-1`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String (string @f$s@f$)
+   *   - `2:` Term of Sort RegLan (regular expression @f$r@f$)
+   *   - `3:` Term of Sort Int (index @f$i@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_INDEXOF_RE,
   /**
    * String replace.
-   * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
-   * in s1, s1 is returned unmodified.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s1)
-   *   - 2: Term of sort String (string s2)
-   *   - 3: Term of sort String (string s3)
+   * Replaces a string @f$s_2@f$ in a string @f$s_1@f$ with string @f$s_3@f$.
+   * If @f$s_2@f$ does not appear in @f$s_1@f$, @f$s_1@f$ is returned
+   * unmodified.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String (string @f$s_1@f$)
+   *   - `2:` Term of Sort String (string @f$s_2@f$)
+   *   - `3:` Term of Sort String (string @f$s_3@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_REPLACE,
   /**
    * String replace all.
-   * Replaces all occurrences of a string s2 in a string s1 with string s3.
-   * If s2 does not appear in s1, s1 is returned unmodified.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s1)
-   *   - 2: Term of sort String (string s2)
-   *   - 3: Term of sort String (string s3)
+   * Replaces all occurrences of a string @f$s_2@f$ in a string @f$s_1@f$ with
+   * string @f$s_3@f$. If @f$s_2@f$ does not appear in @f$s_1@f$, @f$s_1@f$ is
+   * returned unmodified.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort String (@f$s_2@f$)
+   *   - `3:` Term of Sort String (@f$s_3@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_REPLACE_ALL,
   /**
    * String replace regular expression match.
-   * Replaces the first match of a regular expression r in string s1 with
-   * string s2. If r does not match a substring of s1, s1 is returned
-   * unmodified.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s1)
-   *   - 2: Term of sort Regexp (regexp r)
-   *   - 3: Term of sort String (string s2)
+   * Replaces the first match of a regular expression @f$r@f$ in
+   * string @f$s_1@f$ with string @f$s_2@f$. If @f$r@f$ does not match a
+   * substring of @f$s_1@f$, @f$s_1@f$ is returned unmodified.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort RegLan
+   *   - `3:` Term of Sort String (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_REPLACE_RE,
   /**
    * String replace all regular expression matches.
-   * Replaces all matches of a regular expression r in string s1 with string
-   * s2. If r does not match a substring of s1, s1 is returned unmodified.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s1)
-   *   - 2: Term of sort Regexp (regexp r)
-   *   - 3: Term of sort String (string s2)
+   * Replaces all matches of a regular expression @f$r@f$ in string @f$s_1@f$
+   * with string @f$s_2@f$. If @f$r@f$ does not match a substring of @f$s_1@f$,
+   * string @f$s_1@f$ is returned unmodified.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort RegLan
+   *   - `3:` Term of Sort String (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_REPLACE_RE_ALL,
   /**
    * String to lower case.
    *
-   * Parameters:
-   *   - 1: Term of String sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TOLOWER,
+  STRING_TO_LOWER,
   /**
    * String to upper case.
    *
-   * Parameters:
-   *   - 1: Term of String sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TOUPPER,
+  STRING_TO_UPPER,
   /**
    * String reverse.
    *
-   * Parameters:
-   *   - 1: Term of String sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_REV,
   /**
    * String to code.
-   * Returns the code point of a string if it has length one, or returns -1
+   *
+   * Returns the code point of a string if it has length one, or returns `-1`
    * otherwise.
    *
-   * Parameters:
-   *   - 1: Term of String sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_TO_CODE,
   /**
    * String from code.
+   *
    * Returns a string containing a single character whose code point matches
    * the argument to this function, or the empty string if the argument is
    * out-of-bounds.
    *
-   * Parameters:
-   *   - 1: Term of Integer sort
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_FROM_CODE,
   /**
    * String less than.
-   * Returns true if string s1 is (strictly) less than s2 based on a
-   * lexiographic ordering over code points.
    *
-   * Parameters:
-   *   - 1: Term of sort String (the string s1)
-   *   - 2: Term of sort String (the string s2)
+   * Returns true if string @f$s_1@f$ is (strictly) less than @f$s_2@f$ based
+   * on a lexiographic ordering over code points.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort String (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_LT,
   /**
    * String less than or equal.
-   * Returns true if string s1 is less than or equal to s2 based on a
-   * lexiographic ordering over code points.
    *
-   * Parameters:
-   *   - 1: Term of sort String (the string s1)
-   *   - 2: Term of sort String (the string s2)
+   * Returns true if string @f$s_1@f$ is less than or equal to @f$s_2@f$ based
+   * on a lexiographic ordering over code points.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort String (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_LEQ,
   /**
    * String prefix-of.
-   * Checks whether a string s1 is a prefix of string s2. If string s1 is
-   * empty, this operator returns true.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s1)
-   *   - 2: Term of sort String (string s2)
+   * Determines whether a string @f$s_1@f$ is a prefix of string @f$s_2@f$.
+   * If string s1 is empty, this operator returns `true`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort String (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_PREFIX,
   /**
    * String suffix-of.
-   * Checks whether a string s1 is a suffix of string 2. If string s1 is empty,
-   * this operator returns true.
    *
-   * Parameters:
-   *   - 1: Term of sort String (string s1)
-   *   - 2: Term of sort String (string s2)
+   * Determines whether a string @f$s_1@f$ is a suffix of the second string.
+   * If string @f$s_1@f$ is empty, this operator returns `true`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (@f$s_1@f$)
+   *   - `2:` Term of Sort String (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_SUFFIX,
   /**
    * String is-digit.
-   * Returns true if string s is digit (it is one of "0", ..., "9").
    *
-   * Parameters:
-   *   - 1: Term of sort String
+   * Returns true if given string is a digit (it is one of `"0"`, ..., `"9"`).
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_IS_DIGIT,
   /**
-   * Integer to string.
+   * Conversion from Int to String.
+   *
    * If the integer is negative this operator returns the empty string.
    *
-   * Parameters:
-   *   - 1: Term of sort Integer
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_FROM_INT,
   /**
    * String to integer (total function).
+   *
    * If the string does not contain an integer or the integer is negative, the
-   * operator returns -1.
+   * operator returns `-1`.
    *
-   * Parameters:
-   *   - 1: Term of sort String
+   * - Arity: `1`
+   *   - `1:` Term of Sort Int
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_TO_INT,
   /**
    * Constant string.
    *
-   * Parameters:
-   *   - See @ref cvc5::api::Solver::mkString() "mkString()".
-   *
-   * Create with:
-   *   - `Solver::mkString(const std::string& s, bool useEscSequences) const`
-   *   - `Solver::mkString(const unsigned char c) const`
-   *   - `Solver::mkString(const std::vector<uint32_t>& s) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkString(const std::string&, bool) const
+   *   - Solver::mkString(const std::wstring&) const
    */
   CONST_STRING,
   /**
    * Conversion from string to regexp.
    *
-   * Parameters:
-   *   - 1: Term of sort String
+   * - Arity: `1`
+   *   - `1:` Term of Sort String
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   STRING_TO_REGEXP,
   /**
-   * Regexp Concatenation.
+   * Regular expression concatenation.
    *
-   * Parameters:
-   *   - 1..2: Terms of Regexp sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_CONCAT,
   /**
-   * Regexp union.
+   * Regular expression union.
    *
-   * Parameters:
-   *   - 1..2: Terms of Regexp sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_UNION,
   /**
-   * Regexp intersection.
+   * Regular expression intersection.
    *
-   * Parameters:
-   *   - 1..2: Terms of Regexp sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_INTER,
   /**
-   * Regexp difference.
+   * Regular expression difference.
    *
-   * Parameters:
-   *   - 1..2: Terms of Regexp sort
+   * - Arity: `2`
+   *   - `1..2:` Terms of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_DIFF,
   /**
-   * Regexp \*.
+   * Regular expression \*.
    *
-   * Parameters:
-   *   - 1: Term of sort Regexp
+   * - Arity: `1`
+   *   - `1:` Term of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_STAR,
   /**
-   * Regexp +.
+   * Regular expression +.
    *
-   * Parameters:
-   *   - 1: Term of sort Regexp
+   * - Arity: `1`
+   *   - `1:` Term of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_PLUS,
   /**
-   * Regexp ?.
+   * Regular expression ?.
    *
-   * Parameters:
-   *   - 1: Term of sort Regexp
+   * - Arity: `1`
+   *   - `1:` Term of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_OPT,
   /**
-   * Regexp range.
+   * Regular expression range.
    *
-   * Parameters:
-   *   - 1: Lower bound character for the range
-   *   - 2: Upper bound character for the range
+   * - Arity: `2`
+   *   - `1:` Term of Sort String (lower bound character for the range)
+   *   - `2:` Term of Sort String (upper bound character for the range)
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_RANGE,
   /**
    * Operator for regular expression repeat.
    *
-   * Parameters:
-   *   - 1: The number of repetitions
+   * - Arity: `1`
+   *   - `1:` Term of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
+   * - Indices: `1`
+   *   - `1:` The number of repetitions
    *
-   * Apply regular expression loop.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Parameters:
-   *   - 1: Op of kind REGEXP_REPEAT
-   *   - 2: Term of regular expression sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_REPEAT,
   /**
-   * Operator for regular expression loop, from lower bound to upper bound
-   * number of repetitions.
+   * Regular expression loop.
    *
-   * Parameters:
-   *   - 1: The lower bound
-   *   - 2: The upper bound
+   * Regular expression loop from lower bound to upper bound number of
+   * repetitions.
    *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param, uint32_t param) const`
+   * - Arity: `1`
+   *   - `1:` Term of Sort RegLan
    *
-   * Apply regular expression loop.
+   * - Indices: `1`
+   *   - `1:` The lower bound
+   *   - `2:` The upper bound
    *
-   * Parameters:
-   *   - 1: Op of kind REGEXP_LOOP
-   *   - 2: Term of regular expression sort
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_LOOP,
   /**
-   * Regexp none.
+   * Regular expression none.
    *
-   * Parameters: none
-   *
-   * Create with:
-   *   - `Solver::mkRegexpNone() const`
-   *   - `Solver::mkTerm(Kind kind) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkRegexpNone() const
    */
   REGEXP_NONE,
   /**
-   * Regexp all.
+   * Regular expression all.
    *
-   * Parameters: none
-   *
-   * Create with:
-   *   - `Solver::mkRegexpAll() const`
-   *   - `Solver::mkTerm(Kind kind) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkRegexpAll() const
    */
   REGEXP_ALL,
   /**
-   * Regexp all characters.
+   * Regular expression all characters.
    *
-   * Parameters: none
-   *
-   * Create with:
-   *   - `Solver::mkRegexpAllchar() const`
-   *   - `Solver::mkTerm(Kind kind) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkRegexpAllchar() const
    */
   REGEXP_ALLCHAR,
   /**
-   * Regexp complement.
+   * Regular expression complement.
    *
-   * Parameters:
-   *   - 1: Term of sort RegExp
+   * - Arity: `1`
+   *   - `1:` Term of Sort RegLan
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_COMPLEMENT,
 
   /**
    * Sequence concat.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of Sequence sort
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of sequence Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_CONCAT,
   /**
    * Sequence length.
    *
-   * Parameters:
-   *   - 1: Term of Sequence sort
+   * - Arity: `1`
+   *   - `1:` Term of sequence Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_LENGTH,
   /**
    * Sequence extract.
-   * Extracts a subsequence, starting at index i and of length l, from a
-   * sequence s.  If the start index is negative, the start index is greater
-   * than the length of the sequence, or the length is negative, the result is
-   * the empty sequence.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence
-   *   - 2: Term of sort Integer (index i)
-   *   - 3: Term of sort Integer (length l)
+   * Extracts a subsequence, starting at index @f$i@f$ and of length @f$l@f$,
+   * from a sequence @f$s@f$.  If the start index is negative, the start index
+   * is greater than the length of the sequence, or the length is negative, the
+   * result is the empty sequence.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of sequence Sort
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of Sort Int (length @f$l@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_EXTRACT,
   /**
    * Sequence update.
-   * Updates a sequence s by replacing its context starting at an index with t.
-   * If the start index is negative, the start index is greater than the
-   * length of the sequence, the result is s. Otherwise, the length of the
-   * original sequence is preserved.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence
-   *   - 2: Term of sort Integer (index i)
-   *   - 3: Term of sort Sequence (replacement sequence t)
+   * Updates a sequence @f$s@f$ by replacing its context starting at an index
+   * with string @f$t@f$. If the start index is negative, the start index is
+   * greater than the length of the sequence, the result is @f$s@f$. Otherwise,
+   * the length of the original sequence is preserved.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of sequence Sort
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of sequence Sort (replacement sequence @f$t@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_UPDATE,
   /**
    * Sequence element at.
-   * Returns the element at index i from a sequence s. If the index is negative
-   * or the index is greater or equal to the length of the sequence, the result
-   * is the empty sequence. Otherwise the result is a sequence of length 1.
    *
-   * Parameters:
-   *   - 1: Term of sequence sort (string s)
-   *   - 2: Term of sort Integer (index i)
+   * Returns the element at index @f$i@f$ from a sequence @f$s@f$. If the index
+   * is negative or the index is greater or equal to the length of the
+   * sequence, the result is the empty sequence. Otherwise the result is a
+   * sequence of length `1`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of sequence Sort
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_AT,
   /**
    * Sequence contains.
-   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
-   * the result is always true.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence (the sequence s1)
-   *   - 2: Term of sort Sequence (the sequence s2)
+   * Checks whether a sequence @f$s_1@f$ contains another sequence @f$s_2@f$.
+   * If @f$s_2@f$ is empty, the result is always `true`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `2`
+   *   - `1:` Term of sequence Sort (@f$s_1@f$)
+   *   - `2:` Term of sequence Sort (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_CONTAINS,
   /**
    * Sequence index-of.
-   * Returns the index of a subsequence s2 in a sequence s1 starting at index i.
-   * If the index is negative or greater than the length of sequence s1 or the
-   * subsequence s2 does not appear in sequence s1 after index i, the result is
-   * -1.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence (subsequence s1)
-   *   - 2: Term of sort Sequence (subsequence s2)
-   *   - 3: Term of sort Integer (index i)
+   * Returns the index of a subsequence @f$s_2@f$ in a sequence @f$s_1@f$
+   * starting at index @f$i@f$. If the index is negative or greater than the
+   * length of sequence @f$s_1@f$ or the subsequence @f$s_2@f$ does not appear
+   * in sequence @f$s_1@f$ after index @f$i@f$, the result is `-1`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of sequence Sort (@f$s_1@f$)
+   *   - `2:` Term of sequence Sort (@f$s_2@f$)
+   *   - `3:` Term of Sort Int (@f$i@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_INDEXOF,
   /**
    * Sequence replace.
-   * Replaces the first occurrence of a sequence s2 in a sequence s1 with
-   * sequence s3. If s2 does not appear in s1, s1 is returned unmodified.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence (sequence s1)
-   *   - 2: Term of sort Sequence (sequence s2)
-   *   - 3: Term of sort Sequence (sequence s3)
+   * Replaces the first occurrence of a sequence @f$s_2@f$ in a
+   * sequence @f$s_1@f$ with sequence @f$s_3@f$. If @f$s_2@f$ does not
+   * appear in @f$s_1@f$, @f$s_1@f$ is returned unmodified.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of sequence Sort (@f$s_1@f$)
+   *   - `2:` Term of sequence Sort (@f$s_2@f$)
+   *   - `3:` Term of sequence Sort (@f$s_3@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_REPLACE,
   /**
    * Sequence replace all.
-   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence
-   * s3. If s2 does not appear in s1, s1 is returned unmodified.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence (sequence s1)
-   *   - 2: Term of sort Sequence (sequence s2)
-   *   - 3: Term of sort Sequence (sequence s3)
+   * Replaces all occurrences of a sequence @f$s_2@f$ in a sequence @f$s_1@f$
+   * with sequence @f$s_3@f$. If @f$s_2@f$ does not appear in @f$s_1@f$,
+   * sequence @f$s_1@f$ is returned unmodified.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `3`
+   *   - `1:` Term of sequence Sort (@f$s_1@f$)
+   *   - `2:` Term of sequence Sort (@f$s_2@f$)
+   *   - `3:` Term of sequence Sort (@f$s_3@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_REPLACE_ALL,
   /**
    * Sequence reverse.
    *
-   * Parameters:
-   *   - 1: Term of Sequence sort
+   * - Arity: `1`
+   *   - `1:` Term of sequence Sort
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_REV,
   /**
    * Sequence prefix-of.
-   * Checks whether a sequence s1 is a prefix of sequence s2. If sequence s1 is
-   * empty, this operator returns true.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence (sequence s1)
-   *   - 2: Term of sort Sequence (sequence s2)
+   * Checks whether a sequence @f$s_1@f$ is a prefix of sequence @f$s_2@f$. If
+   * sequence @f$s_1@f$ is empty, this operator returns `true`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `1`
+   *   - `1:` Term of sequence Sort (@f$s_1@f$)
+   *   - `2:` Term of sequence Sort (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_PREFIX,
   /**
    * Sequence suffix-of.
-   * Checks whether a sequence s1 is a suffix of sequence s2. If sequence s1 is
-   * empty, this operator returns true.
    *
-   * Parameters:
-   *   - 1: Term of sort Sequence (sequence s1)
-   *   - 2: Term of sort Sequence (sequence s2)
+   * Checks whether a sequence @f$s_1@f$ is a suffix of sequence @f$s_2@f$. If
+   * sequence @f$s_1@f$ is empty, this operator returns `true`.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `1`
+   *   - `1:` Term of sequence Sort (@f$s_1@f$)
+   *   - `2:` Term of sequence Sort (@f$s_2@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_SUFFIX,
   /**
    * Constant sequence.
    *
-   * Parameters:
-   *   - See @ref cvc5::api::Solver::mkEmptySequence() "mkEmptySequence()".
-   *
-   * Create with:
-   *   - `Solver::mkEmptySequence(const Sort& sort) const`
-   *
-   * Note that a constant sequence is a term that is equivalent to:
+   * A constant sequence is a term that is equivalent to:
+   * \rst
+   * .. code:: smtlib
    *
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
+   * \endrst
+   * where @f$n \leq 0@f$ and @f$c_1, ..., c_n@f$ are constants of some sort.
+   * The elements can be extracted with Term::getSequenceValue().
    *
-   * where n>=0 and c1, ..., cn are constants of some sort. The elements
-   * can be extracted by `Term::getSequenceValue()`.
+   * - Create Term of this Kind with:
+   *   - Solver::mkEmptySequence(const Sort&) const
    */
   CONST_SEQUENCE,
   /**
-   * Sequence unit, corresponding to a sequence of length one with the given
-   * term.
+   * Sequence unit.
    *
-   * Parameters:
-   *   - 1: Element term.
+   * Corresponds to a sequence of length one with the given term.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
+   * - Arity: `1`
+   *   - `1:` Term of any Sort (the element term)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_UNIT,
   /**
-   * Sequence nth, corresponding to the nth element of a sequence.
+   * Sequence nth.
    *
-   * Parameters:
-   *   - 1: Sequence term.
-   *   - 2: Integer term.
+   * Corresponds to the nth element of a sequence.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   * - Arity: `2`
+   *   - `1:` Term of sequence Sort
+   *   - `2:` Term of Sort Int (@f$n@f$)
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_NTH,
 
@@ -3313,166 +3931,233 @@ enum Kind : int32_t
   /**
    * Universally quantified formula.
    *
-   * Parameters:
-   *   - 1: VARIABLE_LIST Term
-   *   - 2: Quantifier body
-   *   - 3: (optional) INST_PATTERN_LIST Term
+   * - Arity: `3`
+   *   - `1:` Term of Kind #VARIABLE_LIST
+   *   - `2:` Term of Sort Bool (the quantifier body)
+   *   - `3:` (optional) Term of Kind #INST_PATTERN
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FORALL,
   /**
    * Existentially quantified formula.
    *
-   * Parameters:
-   *   - 1: VARIABLE_LIST Term
-   *   - 2: Quantifier body
-   *   - 3: (optional) INST_PATTERN_LIST Term
+   * - Arity: `3`
+   *   - `1:` Term of Kind #VARIABLE_LIST
+   *   - `2:` Term of Sort Bool (the quantifier body)
+   *   - `3:` (optional) Term of Kind #INST_PATTERN
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EXISTS,
   /**
+   * Variable list.
+   *
    * A list of variables (used to bind variables under a quantifier)
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms with kind VARIABLE
+   * - Arity: `n > 0`
+   *   - `1..n:` Terms of Kind #VARIABLE
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   VARIABLE_LIST,
   /**
-   * An instantiation pattern.
+   * Instantiation pattern.
+   *
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of any sort
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `n > 0`
+   *   - `1..n:` Terms of any Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_PATTERN,
   /**
-   * An instantiation no-pattern.
+   * Instantiation no-pattern.
+   *
    * Specifies a (list of) terms that should not be used as a pattern for
    * quantifier instantiation.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms of any sort
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Arity: `n > 0`
+   *   - `1..n:` Terms of any Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_NO_PATTERN,
-  /*
-   * An instantiation pool.
+  /**
+   * Instantiation pool annotation.
+   *
    * Specifies an annotation for pool based instantiation.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms that comprise the pools, which are one-to-one with the variables of the quantified formula to be instantiated.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
    *
-   * Create with:
-   *   - `mkTerm(Kind kind, Term child1, Term child2)`
-   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)`
-   *   - `mkTerm(Kind kind, const std::vector<Term>& children)`
+   * In detail, pool symbols can be declared via the method
+   *  - Solver::declarePool(const std::string&, const Sort&, const std::vector<Term>&) const
+   *
+   * A pool symbol represents a set of terms of a given sort. An instantiation
+   * pool annotation should match the types of the quantified formula.
+   *
+   * For example, for a quantified formula:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (FORALL (VARIABLE_LIST x y) F (INST_PATTERN_LIST (INST_POOL p q)))
+   * \endrst
+   *
+   * if @f$x@f$ and @f$y@f$ have Sorts @f$S_1@f$ and @f$S_2@f$,
+   * then pool symbols @f$p@f$ and @f$q@f$ should have Sorts
+   * (Set @f$S_1@f$) and (Set @f$S_2@f$), respectively.
+   * This annotation specifies that the quantified formula above should be
+   * instantiated with the product of all terms that occur in the sets @f$p@f$
+   * and @f$q@f$.
+   * 
+   * - Arity: `n > 0`
+   *   - `1..n:` Terms that comprise the pools, which are one-to-one with the
+   *             variables of the quantified formula to be instantiated
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_POOL,
-  /*
+  /**
    * A instantantiation-add-to-pool annotation.
    *
-   * Parameters: n = 1
-   *   - 1: The pool to add to.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   * 
+   * An instantantiation-add-to-pool annotation indicates that when a quantified
+   * formula is instantiated, the instantiated version of a term should be
+   * added to the given pool.
+   * 
+   * For example, consider a quantified formula:
+   * 
+   * \rst
+   * .. code:: lisp
    *
-   * Create with:
-   *   - `mkTerm(Kind kind, Term child)`
+   *     (FORALL (VARIABLE_LIST x) F 
+   *             (INST_PATTERN_LIST (INST_ADD_TO_POOL (ADD x 1) p)))
+   * \endrst
+   * 
+   * where assume that @f$x@f$ has type Int. When this quantified formula is
+   * instantiated with, e.g., the term @f$t@f$, the term `(ADD t 1)` is added to pool @f$p@f$.
+   *
+   * - Arity: `2`
+   *   - `1:` The Term whose free variables are bound by the quantified formula.
+   *   - `2:` The pool to add to, whose Sort should be a set of elements that
+   *          match the Sort of the first argument.
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_ADD_TO_POOL,
-  /*
+  /**
    * A skolemization-add-to-pool annotation.
    *
-   * Parameters: n = 1
-   *   - 1: The pool to add to.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
    *
-   * Create with:
-   *   - `mkTerm(Kind kind, Term child)`
+   * An skolemization-add-to-pool annotation indicates that when a quantified
+   * formula is skolemized, the skolemized version of a term should be added to
+   * the given pool.
+   *
+   * For example, consider a quantified formula:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (FORALL (VARIABLE_LIST x) F
+   *             (INST_PATTERN_LIST (SKOLEM_ADD_TO_POOL (ADD x 1) p)))
+   * \endrst
+   *
+   * where assume that @f$x@f$ has type Int. When this quantified formula is
+   * skolemized, e.g., with @f$k@f$ of type Int, then the term `(ADD k 1)` is
+   * added to the pool @f$p@f$.
+   *
+   * - Arity: `2`
+   *   - `1:` The Term whose free variables are bound by the quantified formula.
+   *   - `2:` The pool to add to, whose Sort should be a set of elements that
+   *          match the Sort of the first argument.
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SKOLEM_ADD_TO_POOL,
   /**
-   * An instantiation attribute
+   * Instantiation attribute.
+   *
    * Specifies a custom property for a quantified formula given by a
    * term that is ascribed a user attribute.
    *
-   * Parameters: n >= 1
-   *   - 1: The keyword of the attribute (a term with kind CONST_STRING).
-   *   - 2...n: The values of the attribute.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
    *
-   * Create with:
-   *   - `mkTerm(Kind kind, Term child1, Term child2)`
-   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)`
-   *   - `mkTerm(Kind kind, const std::vector<Term>& children)`
+   * - Arity: `n > 0`
+   *   - `1:` Term of Kind #CONST_STRING (the keyword of the attribute)
+   *   - `2...n:` Terms representing the values of the attribute
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_ATTRIBUTE,
   /**
-   * A list of instantiation patterns and/or attributes.
+   * A list of instantiation patterns, attributes or annotations.
    *
-   * Parameters: n > 1
-   *   - 1..n: Terms with kind INST_PATTERN, INST_NO_PATTERN, or INST_ATTRIBUTE.
+   * - Arity: `n > 1`
+   *   - `1..n:` Terms of Kind #INST_PATTERN, #INST_NO_PATTERN, #INST_POOL,
+   *             #INST_ADD_TO_POOL, #SKOLEM_ADD_TO_POOL, #INST_ATTRIBUTE
    *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_PATTERN_LIST,
-#if 0
-
-  /* Sort Kinds ------------------------------------------------------------ */
-
-  /* array type */
-   ARRAY_TYPE,
-  /* a type parameter for type ascription */
-  ASCRIPTION_TYPE,
-  /* constructor */
-  CONSTRUCTOR_TYPE,
-  /* a datatype type index */
-  DATATYPE_TYPE,
-  /* selector */
-  SELECTOR_TYPE,
-  /* set type, takes as parameter the type of the elements */
-  SET_TYPE,
-  /* bag type, takes as parameter the type of the elements */
-  BAG_TYPE,
-  /* sort tag */
-  SORT_TAG,
-  /* specifies types of user-declared 'uninterpreted' sorts */
-  SORT_TYPE,
-  /* tester */
-  TESTER_TYPE,
-  /* a representation for basic types */
-  TYPE_CONSTANT,
-  /* a function type */
-  FUNCTION_TYPE,
-  /* the type of a symbolic expression */
-  SEXPR_TYPE,
-  /* bit-vector type */
-  BITVECTOR_TYPE,
-  /* floating-point type */
-  FLOATINGPOINT_TYPE,
-#endif
 
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
@@ -3495,8 +4180,7 @@ std::string kindToString(Kind k) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
 
-}  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::api
 
 namespace std {
 

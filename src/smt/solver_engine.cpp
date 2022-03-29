@@ -220,8 +220,7 @@ void SolverEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
-  if (d_env->getOptions().smt.produceInterpols
-      != options::ProduceInterpols::NONE)
+  if (d_env->getOptions().smt.interpolants)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
@@ -892,7 +891,7 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth(bool isNext)
+SynthResult SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
@@ -902,7 +901,7 @@ Result SolverEngine::checkSynth(bool isNext)
         "Cannot check-synth-next unless immediately preceded by a successful "
         "call to check-synth(-next).");
   }
-  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  SynthResult r = d_sygusSolver->checkSynth(*d_asserts, isNext);
   d_state->notifyCheckSynthResult(r);
   return r;
 }
@@ -1644,7 +1643,7 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   Node interpol;
   bool success =
       d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
-  // notify the state of whether the get-interpol call was successfuly, which
+  // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
   Assert(success == !interpol.isNull());
@@ -1658,12 +1657,13 @@ Node SolverEngine::getInterpolantNext()
   if (d_state->getMode() != SmtMode::INTERPOL)
   {
     throw RecoverableModalException(
-        "Cannot get-interpol-next unless immediately preceded by a successful "
-        "call to get-interpol(-next).");
+        "Cannot get-interpolant-next unless immediately preceded by a "
+        "successful "
+        "call to get-interpolant(-next).");
   }
   Node interpol;
   bool success = d_interpolSolver->getInterpolantNext(interpol);
-  // notify the state of whether the get-interpolant-next call was successful
+  // notify the state of whether the get-interpolantant-next call was successful
   d_state->notifyGetInterpol(success);
   Assert(success == !interpol.isNull());
   return interpol;

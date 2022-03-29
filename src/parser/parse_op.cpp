@@ -29,7 +29,7 @@ std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   {
     out << " :op " << p.d_op;
   }
-  if (p.d_kind != api::NULL_EXPR)
+  if (p.d_kind != api::NULL_TERM)
   {
     out << " :kind " << p.d_kind;
   }

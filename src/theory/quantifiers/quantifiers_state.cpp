@@ -44,10 +44,8 @@ void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
 {
   if (e == Theory::EFFORT_FULL)
   {
-    // increment if a last call happened, we are not strictly enforcing
-    // interleaving, or already were in phase
+    // increment if a last call happened, or already were in phase
     if (d_ierCounterLastLc != d_ierCounterLc
-        || !options().quantifiers.instWhenStrictInterleave
         || d_ierCounter % d_instWhenPhase != 0)
     {
       d_ierCounter = d_ierCounter + 1;

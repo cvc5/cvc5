@@ -281,8 +281,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       // we allow overloading for function declarations
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-fun are not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-fun are not allowed in sygus "
+                                 "version 2.0");
       }
       else
       {
@@ -518,7 +518,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      api::Term var = SOLVER->mkSygusVar(t, name);
+      api::Term var = SOLVER->declareSygusVar(t, name);
       PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
@@ -780,8 +780,8 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { // allow overloading here
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-const is not allowed in sygus "
+                                 "version 2.0");
       }
       api::Term c =
           PARSER_STATE->bindVar(name, t, true);
@@ -1023,11 +1023,11 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetInterpolCommand(name, e, g));
+      cmd->reset(new GetInterpolantCommand(name, e, g));
     }
   | GET_INTERPOL_NEXT_TOK {
       PARSER_STATE->checkThatLogicIsSet();
-      cmd->reset(new GetInterpolNextCommand);
+      cmd->reset(new GetInterpolantNextCommand);
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
@@ -1248,7 +1248,7 @@ symbolicExpr[cvc5::api::Term& sexpr]
  */
 term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   cvc5::api::Term f;
   std::string name;
   cvc5::api::Sort type;
@@ -1272,7 +1272,7 @@ term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
   Trace("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   std::string name;
   std::vector<cvc5::api::Term> args;
   std::vector< std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
@@ -1597,7 +1597,7 @@ identifier[cvc5::ParseOp& p]
 @init {
   cvc5::api::Term f;
   cvc5::api::Term f2;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
 }
 : functionName[p.d_name, CHECK_NONE]
 
@@ -1644,13 +1644,7 @@ identifier[cvc5::ParseOp& p]
         // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
         // i_1, ..., i_n are numerals
         p.d_kind = api::TUPLE_PROJECT;
-        std::vector<uint32_t> indices(numerals.size());
-        for(size_t i = 0; i < numerals.size(); ++i)
-        {
-          // convert uint64_t to uint32_t
-          indices[i] = numerals[i];
-        }
-        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
+        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, numerals);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -1661,11 +1655,8 @@ identifier[cvc5::ParseOp& p]
           // We don't know which kind to use until we know the type of the
           // arguments
           p.d_name = opName;
-          // convert uint64_t to uint32_t
-          for(uint32_t numeral : numerals)
-          {
-            p.d_indices.push_back(numeral);
-          }
+          p.d_indices = numerals;
+          p.d_kind = api::UNDEFINED_KIND;
         }
         else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
@@ -1682,13 +1673,9 @@ identifier[cvc5::ParseOp& p]
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
-        else if (numerals.size() == 1)
+        else if (numerals.size() == 1 || numerals.size() == 2)
         {
-          p.d_op = SOLVER->mkOp(k, numerals[0]);
-        }
-        else if (numerals.size() == 2)
-        {
-          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+          p.d_op = SOLVER->mkOp(k, numerals);
         }
         else
         {
@@ -1708,7 +1695,7 @@ termAtomic[cvc5::api::Term& atomTerm]
 @init {
   cvc5::api::Sort t;
   std::string s;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
 }
     /* constants */
   : INTEGER_LITERAL
@@ -1719,8 +1706,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   | DECIMAL_LITERAL
     {
       std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
-      atomTerm = SOLVER->ensureTermSort(SOLVER->mkReal(realStr),
-                                        SOLVER->getRealSort());
+      atomTerm = SOLVER->mkReal(realStr);
     }
 
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
@@ -1974,7 +1960,7 @@ sortSymbol[cvc5::api::Sort& t, cvc5::parser::DeclarationCheck check]
 @declarations {
   std::string name;
   std::vector<cvc5::api::Sort> args;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
   bool indexed = false;
 }
   : sortName[name,CHECK_NONE]
@@ -2141,7 +2127,7 @@ symbol[std::string& id,
  * Matches a nonempty list of numerals.
  * @param numerals the (empty) vector to house the numerals.
  */
-nonemptyNumeralList[std::vector<uint64_t>& numerals]
+nonemptyNumeralList[std::vector<uint32_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
     )+
@@ -2264,8 +2250,8 @@ GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
 GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
-GET_INTERPOL_TOK : 'get-interpol';
-GET_INTERPOL_NEXT_TOK : 'get-interpol-next';
+GET_INTERPOL_TOK : 'get-interpolant';
+GET_INTERPOL_NEXT_TOK : 'get-interpolant-next';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
 

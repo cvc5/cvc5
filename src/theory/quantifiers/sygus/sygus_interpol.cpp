@@ -99,22 +99,22 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.produceInterpols != options::ProduceInterpols::NONE);
+  Assert(options().smt.interpolants);
   // ASSUMPTIONS
-  if (options().smt.produceInterpols == options::ProduceInterpols::ASSUMPTIONS)
+  if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (options().smt.produceInterpols
-           == options::ProduceInterpols::CONJECTURE)
+  else if (options().smt.interpolantsMode
+           == options::InterpolantsMode::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
   // SHARED
-  else if (options().smt.produceInterpols == options::ProduceInterpols::SHARED)
+  else if (options().smt.interpolantsMode == options::InterpolantsMode::SHARED)
   {
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node>> include_cons_axioms;
@@ -154,7 +154,7 @@ void SygusInterpol::getIncludeCons(
     }
   }
   // ALL
-  else if (options().smt.produceInterpols == options::ProduceInterpols::ALL)
+  else if (options().smt.interpolantsMode == options::InterpolantsMode::ALL)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
@@ -275,7 +275,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
     Trace("sygus-interpol")
         << "SolverEngine::getInterpol: could not find solution!" << std::endl;
     throw RecoverableModalException(
-        "Could not find solution for get-interpol.");
+        "Could not find solution for get-interpolant.");
     return false;
   }
   Trace("sygus-interpol") << "SolverEngine::getInterpol: solution is "
@@ -346,10 +346,10 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
 
   Trace("sygus-interpol")
       << "  SygusInterpol::solveInterpolation check synth..." << std::endl;
-  Result r = d_subSolver->checkSynth();
+  SynthResult r = d_subSolver->checkSynth();
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation result: " << r
                           << std::endl;
-  if (r.getStatus() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }
@@ -361,10 +361,10 @@ bool SygusInterpol::solveInterpolationNext(Node& interpol)
   Trace("sygus-interpol")
       << "  SygusInterpol::solveInterpolationNext check synth..." << std::endl;
   // invoke the check-synth with isNext = true.
-  Result r = d_subSolver->checkSynth(true);
+  SynthResult r = d_subSolver->checkSynth(true);
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: "
                           << r << std::endl;
-  if (r.getStatus() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }

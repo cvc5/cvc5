@@ -29,7 +29,7 @@ int main()
   Solver slv;
 
   // required options
-  slv.setOption("lang", "sygus2");
+  slv.setOption("sygus", "true");
   slv.setOption("incremental", "false");
 
   // set the logic
@@ -71,8 +71,8 @@ int main()
   Term min = slv.synthFun("min", {x, y}, integer);
 
   // declare universal variables.
-  Term varX = slv.mkSygusVar(integer, "x");
-  Term varY = slv.mkSygusVar(integer, "y");
+  Term varX = slv.declareSygusVar(integer, "x");
+  Term varY = slv.declareSygusVar(integer, "y");
 
   Term max_x_y = slv.mkTerm(APPLY_UF, {max, varX, varY});
   Term min_x_y = slv.mkTerm(APPLY_UF, {min, varX, varY});
@@ -97,7 +97,7 @@ int main()
       {slv.mkTerm(ADD, {max_x_y, min_x_y}), slv.mkTerm(ADD, {varX, varY})}));
 
   // print solutions if available
-  if (slv.checkSynth().isUnsat())
+  if (slv.checkSynth().hasSolution())
   {
     // Output should be equivalent to:
     // (

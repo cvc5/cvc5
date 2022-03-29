@@ -200,17 +200,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatype(long pointer);
 
   /**
-   * Is this a parametric datatype sort?
-   * @return true if the sort is a parametric datatype sort
-   */
-  public boolean isParametricDatatype()
-  {
-    return isParametricDatatype(pointer);
-  }
-
-  private native boolean isParametricDatatype(long pointer);
-
-  /**
    * Is this a constructor sort?
    * @return true if the sort is a constructor sort
    */
@@ -291,6 +280,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Is this a record sort?
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return true if the sort is a record sort
    */
   public boolean isRecord()
@@ -356,15 +348,36 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isUninterpretedSort(long pointer);
 
   /**
-   * Is this a sort constructor kind?
+   * Is this an uninterpreted sort constructor kind?
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with arity
+   * &gt; 0.
+   *
    * @return true if this is a sort constructor kind
    */
-  public boolean isSortConstructor()
+  public boolean isUninterpretedSortConstructor()
   {
-    return isSortConstructor(pointer);
+    return isUninterpretedSortConstructor(pointer);
   }
 
-  private native boolean isSortConstructor(long pointer);
+  private native boolean isUninterpretedSortConstructor(long pointer);
+
+  /**
+   * Is this an instantiated (parametric datatype or uninterpreted sort
+   * constructor) sort?
+   *
+   * An instantiated sort is a sort that has been constructed from
+   * instantiating a sort with sort arguments
+   * (see Sort.instantiate()).
+   *
+   * @return true if this is an instantiated sort
+   */
+  public boolean isInstantiated()
+  {
+    return isInstantiated(pointer);
+  }
+
+  private native boolean isInstantiated(long pointer);
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -378,9 +391,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getDatatype(long pointer);
 
   /**
-   * Instantiate a parameterized datatype/sort sort.
+   * Instantiate a parameterized datatype sort or uninterpreted sort
+   * constructor sort.
+   *
    * Create sorts parameter with Solver.mkParamSort().
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param params the list of sort parameters to instantiate with
+   * @return the instantiated sort
    */
   public Sort instantiate(List<Sort> params)
   {
@@ -388,8 +407,13 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   /**
-   * Instantiate a parameterized datatype/sort sort.
+   * Instantiate a parameterized datatype sort or uninterpreted sort
+   * constructor sort.
+   *
    * Create sorts parameter with Solver.mkParamSort().
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param params the list of sort parameters to instantiate with
    */
   public Sort instantiate(Sort[] params)
@@ -402,12 +426,31 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long instantiate(long pointer, long[] paramsPointers);
 
   /**
+   * Get the sorts used to instantiate the sort parameters of a parametric
+   * sort (parametric datatype or uninterpreted sort constructor sort,
+   * see Sort.instantiate()).
+   *
+   * @return the sorts used to instantiate the sort parameters of a
+   *         parametric sort
+   */
+  public Sort[] getInstantiatedParameters()
+  {
+    long[] pointers = getInstantiatedParameters(pointer);
+    return Utils.getSorts(solver, pointers);
+  }
+
+  private native long[] getInstantiatedParameters(long pointer);
+
+  /**
    * Substitution of Sorts.
-   * @param sort the subsort to be substituted within this sort.
-   * @param replacement the sort replacing the substituted subsort.
    *
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
+   * @param sort the subsort to be substituted within this sort.
+   * @param replacement the sort replacing the substituted subsort.
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
@@ -419,8 +462,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Simultaneous substitution of Sorts.
-   * @param sorts the subsorts to be substituted within this sort.
-   * @param replacements the sort replacing the substituted subsorts.
    *
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point. In the case that
@@ -430,6 +471,11 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * For example,
    * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
    * return (Array (Array C D) B).
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
+   * @param sorts the subsorts to be substituted within this sort.
+   * @param replacements the sort replacing the substituted subsorts.
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
@@ -632,40 +678,17 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   private native long getSequenceElementSort(long pointer);
 
-  /* Uninterpreted sort -------------------------------------------------- */
-
-  /**
-   * @return true if an uninterpreted sort is parameterezied
-   */
-  public boolean isUninterpretedSortParameterized()
-  {
-    return isUninterpretedSortParameterized(pointer);
-  }
-
-  private native boolean isUninterpretedSortParameterized(long pointer);
-
-  /**
-   * @return the parameter sorts of an uninterpreted sort
-   */
-  public Sort[] getUninterpretedSortParamSorts()
-  {
-    long[] pointers = getUninterpretedSortParamSorts(pointer);
-    return Utils.getSorts(solver, pointers);
-  }
-
-  private native long[] getUninterpretedSortParamSorts(long pointer);
-
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the arity of a sort constructor sort
+   * @return the arity of an uninterpreted sort constructor sort
    */
-  public int getSortConstructorArity()
+  public int getUninterpretedSortConstructorArity()
   {
-    return getSortConstructorArity(pointer);
+    return getUninterpretedSortConstructorArity(pointer);
   }
 
-  private native int getSortConstructorArity(long pointer);
+  private native int getUninterpretedSortConstructorArity(long pointer);
 
   /* Bit-vector sort ----------------------------------------------------- */
 
@@ -702,23 +725,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int getFloatingPointSignificandSize(long pointer);
 
   /* Datatype sort ------------------------------------------------------- */
-
-  /**
-   * Return the parameters of a parametric datatype sort. If this sort is a
-   * non-instantiated parametric datatype, this returns the parameter sorts of
-   * the underlying datatype. If this sort is an instantiated parametric
-   * datatype, then this returns the sort parameters that were used to
-   * construct the sort via Sort.instantiate().
-   *
-   * @return the parameter sorts of a datatype sort
-   */
-  public Sort[] getDatatypeParamSorts()
-  {
-    long[] pointers = getDatatypeParamSorts(pointer);
-    return Utils.getSorts(solver, pointers);
-  }
-
-  private native long[] getDatatypeParamSorts(long pointer);
 
   /**
    * @return the arity of a datatype sort

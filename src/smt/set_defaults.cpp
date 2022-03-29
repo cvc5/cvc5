@@ -469,7 +469,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     verbose(1) << "SolverEngine: turning on produce-models" << std::endl;
     opts.smt.produceModels = true;
   }
-  
+
   // --ite-simp is an experimental option designed for QF_LIA/nec. This
   // technique is experimental. This benchmark set also requires removing ITEs
   // during preprocessing, before repeating simplification. Hence, we enable
@@ -481,7 +481,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       opts.smt.earlyIteRemoval = true;
     }
   }
-  
+
   // Set the options for the theoryOf
   if (!opts.theory.theoryOfModeWasSetByUser)
   {
@@ -556,13 +556,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                  << std::endl;
     opts.smt.repeatSimp = repeatSimp;
   }
-  
+
   /* Disable bit-level propagation by default for the BITBLAST solver. */
   if (opts.bv.bvSolver == options::BVSolver::BITBLAST)
   {
     opts.bv.bitvectorPropagate = false;
   }
-  
+
   if (opts.bv.boolToBitvector == options::BoolToBVMode::ALL
       && !logic.isTheoryEnabled(THEORY_BV))
   {
@@ -691,10 +691,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 
-  // until bugs 371,431 are fixed
-  if (!opts.prop.minisatUseElimWasSetByUser)
+  if (!opts.prop.minisatSimpModeWasSetByUser
+      && opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
-    // cannot use minisat elimination for logics where a theory solver
+    // cannot use minisat variable elimination for logics where a theory solver
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
@@ -703,7 +703,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || opts.smt.produceAssignments || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      opts.prop.minisatUseElim = false;
+      opts.prop.minisatSimpMode = options::MinisatSimpMode::CLAUSE_ELIM;
     }
   }
 
@@ -850,14 +850,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
 bool SetDefaults::isSygus(const Options& opts) const
 {
-  if (language::isLangSygus(opts.base.inputLanguage))
+  if (opts.quantifiers.sygus)
   {
     return true;
   }
   if (!d_isInternalSubsolver)
   {
-    if (opts.smt.produceAbducts
-        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
+    if (opts.smt.produceAbducts || opts.smt.interpolants
         || opts.quantifiers.sygusInference
         || opts.quantifiers.sygusRewSynthInput)
     {
@@ -915,8 +914,10 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   if (isSygus(opts))
   {
-    // When sygus answers "unsat", it is not due to showing a set of
-    // formulas is unsat in the standard way. Thus, proofs do not apply.
+    // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
+    // functions are incompatible with our equality proofs. Moreover, enabling
+    // proofs for sygus (sub)solvers is irrelevant, since they are not given
+    // check-sat queries.
     reason << "sygus";
     return true;
   }
@@ -960,9 +961,9 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
     reason << "sort-inference";
     return true;
   }
-  else if (opts.prop.minisatUseElim)
+  else if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
-    reason << "minisat-elimination";
+    reason << "minisat-simplification";
     return true;
   }
   else if (opts.quantifiers.globalNegate)
@@ -1326,10 +1327,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     opts.quantifiers.cegqi = false;
   }
 
-  if ((opts.quantifiers.fmfBoundLazyWasSetByUser
+  if (opts.quantifiers.fmfBoundLazyWasSetByUser
        && opts.quantifiers.fmfBoundLazy)
-      || (opts.quantifiers.fmfBoundIntWasSetByUser
-          && opts.quantifiers.fmfBoundInt))
   {
     opts.quantifiers.fmfBound = true;
     Trace("smt")
@@ -1413,7 +1412,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (usesSygus(opts))
+  if (isSygus(opts))
   {
     std::stringstream reasonNoSygus;
     if (incompatibleWithSygus(opts, reasonNoSygus))
@@ -1520,21 +1519,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     if (!opts.quantifiers.purifyTriggersWasSetByUser)
     {
       opts.quantifiers.purifyTriggers = true;
-    }
-  }
-  if (opts.quantifiers.conjectureNoFilter)
-  {
-    if (!opts.quantifiers.conjectureFilterActiveTermsWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterActiveTerms = false;
-    }
-    if (!opts.quantifiers.conjectureFilterCanonicalWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterCanonical = false;
-    }
-    if (!opts.quantifiers.conjectureFilterModelWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterModel = false;
     }
   }
   if (opts.quantifiers.conjectureGenPerRoundWasSetByUser)
