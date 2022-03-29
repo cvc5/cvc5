@@ -339,6 +339,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sort parameter.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param symbol the name of the sort
    * @return the sort parameter
    */
@@ -365,6 +368,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a record sort
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param fields the list of fields of the record
    * @return the record sort
    */
@@ -689,8 +695,10 @@ public class Solver implements IPointer, AutoCloseable
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
    *   (e.g. BITVECTOR_EXTRACT).
+   *
    * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
+   *
    * @param kind the kind to wrap
    */
   public Op mkOp(Kind kind)
@@ -965,6 +973,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a separation logic empty term.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return the separation logic empty term
    */
   public Term mkSepEmp()
@@ -977,6 +988,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a separation logic nil term.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sort the sort of the nil term
    * @return the separation logic nil term
    */
@@ -1238,6 +1252,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
@@ -1321,6 +1338,11 @@ public class Solver implements IPointer, AutoCloseable
   /* Create datatype constructor declarations                             */
   /* .................................................................... */
 
+  /**
+   * Create a datatype constructor declaration.
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
     long declPointer = mkDatatypeConstructorDecl(pointer, name);
@@ -1437,6 +1459,9 @@ public class Solver implements IPointer, AutoCloseable
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param t the formula to simplify
    * @return the simplified formula
    */
@@ -1559,8 +1584,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
+   *
    * @apiNote This corresponds to mkUninterpretedSort() const if arity = 0, and
    *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -1753,22 +1780,14 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Echo a given string to the given output stream.
-   * SMT-LIB:
-   * {@code
-   * ( echo <std::string> )
-   * }
-   * @param out the output stream
-   * @param str the string to echo
-   */
-  // TODO: void echo(std::ostream& out, String  str)
-
-  /**
    * Get a list of literals that are entailed by the current set of assertions
    * SMT-LIB:
    * {@code
    * ( get-learned-literals )
    * }
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return the list of learned literals
    */
   public Term[] getLearnedLiterals() {
@@ -1871,11 +1890,13 @@ public class Solver implements IPointer, AutoCloseable
    * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   *
    * @apiNote In contrast to SMT-LIB, the API does not distinguish between
    *          named and unnamed assertions when producing an unsatisfiable
    *          core. Additionally, the API allows this option to be called after
    *          a check with assumptions. A subset of those assumptions may be
    *          included in the unsatisfiable core returned by this method.
+   *
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -1889,6 +1910,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    *
    * @return a map from (a subset of) the input assertions to a real value that
    * is an estimate of how difficult each assertion was to solve. Unmentioned
@@ -1916,6 +1939,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-proof )
    * }
    * Requires to enable option 'produce-proofs'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
@@ -1983,6 +2009,8 @@ public class Solver implements IPointer, AutoCloseable
    * current model. This method will only return false (for any v) if
    * the model-cores option has been set.
    *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param v The term in question
    * @return true if v is a model core symbol
    */
@@ -2000,6 +2028,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-model )
    * }
    * Requires to enable option 'produce-models'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
    * @param vars The list of free constants that should be printed in the
@@ -2021,8 +2052,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-qe <q> )
    * }
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
@@ -2047,8 +2081,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-qe-disjunct <q> )
    * }
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
@@ -2079,6 +2116,9 @@ public class Solver implements IPointer, AutoCloseable
    * When using separation logic, this sets the location sort and the
    * datatype sort to the given ones. This method should be invoked exactly
    * once, before any separation logic constraints are provided.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
@@ -2091,6 +2131,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * When using separation logic, obtain the term for the heap.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return The term for the heap
    */
   public Term getValueSepHeap()
@@ -2103,6 +2146,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * When using separation logic, obtain the term for nil.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return The term for nil
    */
   public Term getValueSepNil()
@@ -2119,6 +2165,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( declare-pool <symbol> <sort> ( <term>* ) )
    * }
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
@@ -2167,9 +2216,12 @@ public class Solver implements IPointer, AutoCloseable
    * Get an interpolant
    * SMT-LIB:
    * {@code
-   * ( get-interpol <conj> )
+   * ( get-interpolant <conj> )
    * }
-   * Requires 'produce-interpols' to be set to a mode different from 'none'.
+   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
    *        A is the current set of assertions and B is given in the input by
@@ -2187,9 +2239,12 @@ public class Solver implements IPointer, AutoCloseable
    * Get an interpolant
    * SMT-LIB:
    * {@code
-   * ( get-interpol <conj> <g> )
+   * ( get-interpolant <conj> <g> )
    * }
-   * Requires 'produce-interpols' to be set to a mode different from 'none'.
+   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
@@ -2206,7 +2261,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
    * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
@@ -2215,11 +2270,13 @@ public class Solver implements IPointer, AutoCloseable
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol-next)
+   *     (get-interpolant-next)
    *
-   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * Requires to enable incremental mode, and option 'produce-interpolants' to be
    * set to a mode different from 'none'.
    * \endverbatim
+   *
+   * @apiNote This method is experimental and may change in future versions.
    *
    * @return a Term I such that {@code A->I} and {@code I->B} are valid,
    *        where A is the current set of assertions and B is given in the input
@@ -2241,6 +2298,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct <conj> )
    * }
    * Requires enabling option 'produce-abducts'
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @return a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
@@ -2261,6 +2321,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct <conj> <g> )
    * }
    * Requires enabling option 'produce-abducts'
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
    * @return a term C such that A^C is satisfiable, and A^~B^C is
@@ -2285,6 +2348,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct-next )
    * }
    * Requires enabling incremental mode and option 'produce-abducts'
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return a term C such that A^C is satisfiable, and A^~B^C is
    *         unsatisfiable, where A is the current set of assertions and B is
    *         given in the input by conj in the last call to getAbduct, or the
@@ -2307,6 +2373,8 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public void blockModel()
   {
@@ -2323,6 +2391,8 @@ public class Solver implements IPointer, AutoCloseable
    * ( block-model-values ( <terms>+ ) )
    * }
    * Requires enabling 'produce-models' option.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2335,6 +2405,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Return a string that contains information about all instantiations made by
    * the quantifiers module.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public String getInstantiations()
   {
@@ -2435,23 +2507,6 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native void setOption(long pointer, String option, String value);
-
-  /**
-   * If needed, convert this term to a given sort.
-   *
-   * @apiNote The sort of the term must be convertible into the target sort.
-   *          Currently only Int to Real conversions are supported.
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
-   */
-  public Term ensureTermSort(Term t, Sort s)
-  {
-    long termPointer = ensureTermSort(pointer, t.getPointer(), s.getPointer());
-    return new Term(this, termPointer);
-  }
-
-  private native long ensureTermSort(long pointer, long termPointer, long sortPointer);
 
   /**
    * Append \p symbol to the current list of universal variables.

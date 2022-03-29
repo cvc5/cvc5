@@ -19,9 +19,9 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 CDProof::CDProof(ProofNodeManager* pnm,
                  context::Context* c,
@@ -485,4 +485,4 @@ Node CDProof::getSymmFact(TNode f)
 
 std::string CDProof::identify() const { return d_name; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

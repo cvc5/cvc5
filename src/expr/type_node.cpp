@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
@@ -360,10 +360,14 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
   return args;
 }
 
-std::vector<TypeNode> TypeNode::getParamTypes() const {
+std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
+{
+  Assert(isInstantiated());
   vector<TypeNode> params;
-  Assert(isParametricDatatype());
-  for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
+  for (uint32_t i = isInstantiatedDatatype() ? 1 : 0, i_end = getNumChildren();
+       i < i_end;
+       ++i)
+  {
     params.push_back((*this)[i]);
   }
   return params;
@@ -415,6 +419,12 @@ bool TypeNode::isInstantiatedDatatype() const {
     }
   }
   return true;
+}
+
+bool TypeNode::isInstantiated() const
+{
+  return isInstantiatedDatatype()
+         || (isSort() && getNumChildren() > 0);
 }
 
 TypeNode TypeNode::instantiateParametricDatatype(
@@ -667,11 +677,11 @@ TypeNode TypeNode::getRangeType() const
   return (*this)[getNumChildren() - 1];
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::TypeNode>::operator()(const cvc5::TypeNode& tn) const
+size_t hash<cvc5::internal::TypeNode>::operator()(const cvc5::internal::TypeNode& tn) const
 {
   return tn.getId();
 }

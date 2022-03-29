@@ -23,7 +23,7 @@
 #include "theory/arith/arith_poly_norm.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace theory::arith;
@@ -129,4 +129,4 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

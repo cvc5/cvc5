@@ -123,6 +123,8 @@ set(regress_0_tests
   regress0/arrays/issue5720.smt2
   regress0/arrays/issue5836-2.smt2
   regress0/arrays/issue5836.smt2
+  regress0/arrays/issue5925.smt2
+  regress0/arrays/issue5925-2.smt2
   regress0/arrays/issue6276-2.smt2
   regress0/arrays/issue6276.smt2
   regress0/arrays/issue6700-inc-check-model.smt2
@@ -276,6 +278,8 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
+  regress0/bv/bv_to_int_issue_8413_1.smt2
+  regress0/bv/bv_to_int_issue_8413_2.smt2
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc.smt2
@@ -1261,6 +1265,7 @@ set(regress_0_tests
   regress0/sets/proj-issue177.smt2
   regress0/sets/proj-issue486-sets-split-eq.smt2
   regress0/sets/proj-issue493-choose-det.smt2
+  regress0/sets/proj-issue501-choose-bool-term-var.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2

@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Result::Result()
     : d_status(NONE), d_unknownExplanation(UNKNOWN_REASON), d_inputName("")
@@ -222,4 +222,4 @@ void Result::toStreamTptp(std::ostream& out) const {
   out << " for " << getInputName();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

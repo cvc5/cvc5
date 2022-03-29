@@ -23,9 +23,9 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -382,6 +382,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
+  else if (id == PfRule::ALETHE_RULE)
+  {
+    Assert(args.size() > 1);
+    Assert(args[0].getType().isInteger());
+    return args[1];
+  }
   else if (id == PfRule::ANNOTATION)
   {
     Assert(children.size() == 1);
@@ -411,4 +417,4 @@ Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

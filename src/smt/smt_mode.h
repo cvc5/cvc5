@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * The mode of the solver, which is an extension of Figure 4.1 on
@@ -41,7 +41,7 @@ enum class SmtMode
   UNSAT,
   // immediately after a successful call to get-abduct
   ABDUCT,
-  // immediately after a successful call to get-interpol
+  // immediately after a successful call to get-interpolant
   INTERPOL,
   // immediately after a successful call to check-synth or check-synth-next
   SYNTH
@@ -55,6 +55,6 @@ enum class SmtMode
  */
 std::ostream& operator<<(std::ostream& out, SmtMode m);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

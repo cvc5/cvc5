@@ -40,9 +40,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SetDefaults::SetDefaults(Env& env, bool isInternalSubsolver)
@@ -856,7 +856,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   }
   if (!d_isInternalSubsolver)
   {
-    if (opts.smt.produceAbducts || opts.smt.interpols
+    if (opts.smt.produceAbducts || opts.smt.interpolants
         || opts.quantifiers.sygusInference
         || opts.quantifiers.sygusRewSynthInput)
     {
@@ -1763,4 +1763,4 @@ void SetDefaults::notifyModifyOption(const std::string& x,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

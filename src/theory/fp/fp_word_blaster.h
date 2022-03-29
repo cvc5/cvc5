@@ -34,7 +34,7 @@
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -86,7 +86,7 @@ class traits
 typedef traits::bwt bwt;
 
 /**
- * Wrap the cvc5::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
  */
 class nodeWrapper : public Node
 {
@@ -327,6 +327,6 @@ class FpWordBlaster
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__FP__THEORY_FP_H */

@@ -19,9 +19,7 @@
 #include "base/output.h"
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -452,7 +450,20 @@ TEST_F(TestApiBlackSolver, mkBoolean)
 
 TEST_F(TestApiBlackSolver, mkRoundingMode)
 {
-  ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN)
+                .toString(),
+            "roundNearestTiesToEven");
+  ASSERT_EQ(
+      d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE).toString(),
+      "roundTowardPositive");
+  ASSERT_EQ(
+      d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE).toString(),
+      "roundTowardNegative");
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO).toString(),
+            "roundTowardZero");
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY)
+                .toString(),
+            "roundNearestTiesToAway");
 }
 
 TEST_F(TestApiBlackSolver, mkFloatingPoint)
@@ -1402,7 +1413,7 @@ TEST_F(TestApiBlackSolver, getAbductNext)
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
-  d_solver.setOption("produce-interpols", "true");
+  d_solver.setOption("produce-interpolants", "true");
   d_solver.setOption("incremental", "false");
 
   Sort intSort = d_solver.getIntegerSort();
@@ -1430,7 +1441,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 TEST_F(TestApiBlackSolver, getInterpolantNext)
 {
   d_solver.setLogic("QF_LIA");
-  d_solver.setOption("produce-interpols", "true");
+  d_solver.setOption("produce-interpolants", "true");
   d_solver.setOption("incremental", "true");
 
   Sort intSort = d_solver.getIntegerSort();
@@ -1527,7 +1538,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
   }
   {
-    api::OptionInfo info = d_solver.getOptionInfo("verbose");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("verbose");
     EXPECT_EQ("verbose", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
@@ -1537,7 +1548,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // bool type with default
-    api::OptionInfo info = d_solver.getOptionInfo("print-success");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("print-success");
     EXPECT_EQ("print-success", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(
@@ -1553,7 +1564,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // int64 type with default
-    api::OptionInfo info = d_solver.getOptionInfo("verbosity");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("verbosity");
     EXPECT_EQ("verbosity", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
@@ -1569,7 +1580,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // uint64 type with default
-    api::OptionInfo info = d_solver.getOptionInfo("rlimit");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("rlimit");
     EXPECT_EQ("rlimit", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
@@ -1587,9 +1598,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto info = d_solver.getOptionInfo("random-freq");
     ASSERT_EQ(info.name, "random-freq");
     ASSERT_EQ(info.aliases, std::vector<std::string>{"random-frequency"});
-    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::NumberInfo<double>>(
+    ASSERT_TRUE(std::holds_alternative<cvc5::OptionInfo::NumberInfo<double>>(
         info.valueInfo));
-    auto ni = std::get<api::OptionInfo::NumberInfo<double>>(info.valueInfo);
+    auto ni = std::get<cvc5::OptionInfo::NumberInfo<double>>(info.valueInfo);
     ASSERT_EQ(ni.currentValue, 0.0);
     ASSERT_EQ(ni.defaultValue, 0.0);
     ASSERT_TRUE(ni.minimum && ni.maximum);
@@ -1604,7 +1615,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // string type with default
-    api::OptionInfo info = d_solver.getOptionInfo("force-logic");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("force-logic");
     EXPECT_EQ("force-logic", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
@@ -1620,7 +1631,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // mode option
-    api::OptionInfo info = d_solver.getOptionInfo("simplification");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("simplification");
     EXPECT_EQ("simplification", info.name);
     EXPECT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
@@ -1659,7 +1670,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
     Term t3 = d_solver.mkTerm(Kind::SELECT, {t2, t1});
     d_solver.checkSat();
   }
-  cvc5::api::Statistics stats = d_solver.getStatistics();
+  cvc5::Statistics stats = d_solver.getStatistics();
   {
     std::stringstream ss;
     ss << stats;
@@ -1699,7 +1710,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
     // check some basic utility methods
     EXPECT_TRUE(!(it == stats.end()));
     EXPECT_EQ(s.first, it->first);
-    if (s.first == "api::CONSTANT")
+    if (s.first == "cvc5::CONSTANT")
     {
       EXPECT_FALSE(s.second.isInternal());
       EXPECT_FALSE(s.second.isDefault());
@@ -1802,7 +1813,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   {
     d_solver.assertFormula(t);
   }
-  cvc5::api::Result res = d_solver.checkSat();
+  cvc5::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
   ASSERT_NO_THROW(d_solver.getProof());
 }
@@ -2070,7 +2081,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   solver->declareSepHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
-  Term heap = solver->mkTerm(cvc5::api::Kind::SEP_PTO, {p, x});
+  Term heap = solver->mkTerm(cvc5::Kind::SEP_PTO, {p, x});
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
   solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
@@ -2746,7 +2757,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
 
   ASSERT_THROW(d_solver.getSynthSolution(f), CVC5ApiException);
 
-  cvc5::api::SynthResult sr = d_solver.checkSynth();
+  cvc5::SynthResult sr = d_solver.checkSynth();
   ASSERT_EQ(sr.hasSolution(), true);
 
   ASSERT_NO_THROW(d_solver.getSynthSolution(f));
@@ -2790,7 +2801,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
-  cvc5::api::SynthResult sr = d_solver.checkSynth();
+  cvc5::SynthResult sr = d_solver.checkSynth();
   ASSERT_EQ(sr.hasSolution(), true);
   ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
   sr = d_solver.checkSynthNext();
@@ -2879,10 +2890,10 @@ TEST_F(TestApiBlackSolver, Output)
   ASSERT_THROW(d_solver.isOutputOn("foo-invalid"), CVC5ApiException);
   ASSERT_THROW(d_solver.getOutput("foo-invalid"), CVC5ApiException);
   ASSERT_FALSE(d_solver.isOutputOn("inst"));
-  ASSERT_EQ(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  ASSERT_EQ(null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
   d_solver.setOption("output", "inst");
   ASSERT_TRUE(d_solver.isOutputOn("inst"));
-  ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  ASSERT_NE(null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
 }
 
 TEST_F(TestApiBlackSolver, issue7000)
@@ -3367,4 +3378,4 @@ TEST_F(TestApiBlackSolver, projIssue337)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

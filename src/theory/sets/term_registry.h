@@ -28,7 +28,7 @@
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -100,6 +100,6 @@ class TermRegistry : protected EnvObj
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SETS__TERM_REGISTRY_H */

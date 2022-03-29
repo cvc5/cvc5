@@ -22,7 +22,7 @@
 #include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Options;
 
@@ -340,6 +340,6 @@ class QuantifiersRewriter : public TheoryRewriter
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

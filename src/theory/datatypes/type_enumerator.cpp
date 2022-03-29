@@ -21,7 +21,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-using namespace cvc5;
+using namespace cvc5::internal;
 using namespace theory;
 using namespace datatypes;
 

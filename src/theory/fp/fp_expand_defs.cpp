@@ -18,7 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "util/floatingpoint.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -244,4 +244,4 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

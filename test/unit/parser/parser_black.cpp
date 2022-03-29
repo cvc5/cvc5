@@ -27,7 +27,7 @@
 #include "smt/command.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace parser;
 
@@ -44,7 +44,7 @@ class TestParserBlackParser : public TestInternal
   {
     TestInternal::SetUp();
     d_symman.reset(nullptr);
-    d_solver.reset(new cvc5::api::Solver());
+    d_solver.reset(new cvc5::Solver());
     d_solver->setOption("parse-only", "true");
   }
 
@@ -62,9 +62,9 @@ class TestParserBlackParser : public TestInternal
     parser.bindVar("b", d_solver.get()->getBooleanSort());
     parser.bindVar("c", d_solver.get()->getBooleanSort());
     /* t, u, v: TYPE */
-    api::Sort t = parser.mkSort("t");
-    api::Sort u = parser.mkSort("u");
-    api::Sort v = parser.mkSort("v");
+    cvc5::Sort t = parser.mkSort("t");
+    cvc5::Sort u = parser.mkSort("u");
+    cvc5::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
     parser.bindVar("f", d_solver.get()->mkFunctionSort(t, u));
     parser.bindVar("g", d_solver.get()->mkFunctionSort(u, v));
@@ -134,7 +134,7 @@ class TestParserBlackParser : public TestInternal
     ASSERT_FALSE(parser->done());
     setupContext(*parser);
     ASSERT_FALSE(parser->done());
-    api::Term e = parser->nextExpression();
+    cvc5::Term e = parser->nextExpression();
     ASSERT_FALSE(e.isNull());
     e = parser->nextExpression();
     ASSERT_TRUE(parser->done());
@@ -161,7 +161,7 @@ class TestParserBlackParser : public TestInternal
     parser->setInput(Input::newStringInput(d_lang, badExpr, "test"));
     setupContext(*parser);
     ASSERT_FALSE(parser->done());
-    ASSERT_THROW(api::Term e = parser->nextExpression();
+    ASSERT_THROW(cvc5::Term e = parser->nextExpression();
                  std::cout << std::endl
                            << "Bad expr succeeded." << std::endl
                            << "Input: <<" << badExpr << ">>" << std::endl
@@ -170,7 +170,7 @@ class TestParserBlackParser : public TestInternal
   }
 
   std::string d_lang;
-  std::unique_ptr<cvc5::api::Solver> d_solver;
+  std::unique_ptr<cvc5::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };
 
@@ -278,4 +278,4 @@ TEST_F(TestParserBlackSmt2Parser, bad_exprs)
 #endif
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -25,9 +25,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/statistics_registry.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -1358,4 +1358,4 @@ Node InferProofCons::maybePurifyTerm(Node n,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

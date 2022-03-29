@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -196,4 +196,4 @@ Node SygusRandomEnumerator::getMin(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -23,7 +23,7 @@
 
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A result for a synthesis query. This can be used for synthesis, abduction,
@@ -72,6 +72,6 @@ class SynthResult
 std::ostream& operator<<(std::ostream& out, const SynthResult& r);
 std::ostream& operator<<(std::ostream& out, SynthResult::Status s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESULT_H */

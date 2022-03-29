@@ -20,7 +20,7 @@
 #include "test_node.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace expr;
@@ -80,4 +80,4 @@ TEST_F(TestNodeWhiteNode, iterators)
   ASSERT_EQ(v[2], y);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -29,7 +29,7 @@
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class TheoryEngine;
@@ -147,6 +147,6 @@ class PreprocessingPassContext : protected EnvObj
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */

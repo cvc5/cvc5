@@ -21,9 +21,9 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackDatatype : public TestSmt
@@ -536,4 +536,4 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

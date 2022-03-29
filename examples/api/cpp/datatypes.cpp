@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 void test(Solver& slv, Sort& consListSort)
 {

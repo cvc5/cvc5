@@ -430,7 +430,16 @@ class SolverTest
 
   @Test void mkRoundingMode() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN).toString(),
+        "roundNearestTiesToEven");
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE).toString(),
+        "roundTowardPositive");
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE).toString(),
+        "roundTowardNegative");
+    assertEquals(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO).toString(), "roundTowardZero");
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_AWAY).toString(),
+        "roundNearestTiesToAway");
   }
 
   @Test void mkFloatingPoint() throws CVC5ApiException
@@ -1394,7 +1403,7 @@ class SolverTest
   @Test void getInterpolant() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
-    d_solver.setOption("produce-interpols", "true");
+    d_solver.setOption("produce-interpolants", "true");
     d_solver.setOption("incremental", "false");
 
     Sort intSort = d_solver.getIntegerSort();
@@ -1419,7 +1428,7 @@ class SolverTest
   @Test void getInterpolantNext() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
-    d_solver.setOption("produce-interpols", "true");
+    d_solver.setOption("produce-interpolants", "true");
     d_solver.setOption("incremental", "true");
 
     Sort intSort = d_solver.getIntegerSort();
@@ -1625,7 +1634,7 @@ class SolverTest
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Map.Entry<String, Stat> elem = it.next();
-      if (elem.getKey() == "api::CONSTANT")
+      if (elem.getKey() == "cvc5::CONSTANT")
       {
         assertFalse(elem.getValue().isInternal());
         assertFalse(elem.getValue().isDefault());

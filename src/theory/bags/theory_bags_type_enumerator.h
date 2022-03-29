@@ -21,7 +21,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -87,6 +87,6 @@ class BagEnumerator : public TypeEnumeratorBase<BagEnumerator>
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__TYPE_ENUMERATOR_H */

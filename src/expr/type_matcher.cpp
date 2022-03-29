@@ -15,7 +15,9 @@
 
 #include "type_matcher.h"
 
-namespace cvc5 {
+#include "expr/dtype.h"
+
+namespace cvc5::internal {
 
 TypeMatcher::TypeMatcher(TypeNode dt)
 {
@@ -25,7 +27,15 @@ TypeMatcher::TypeMatcher(TypeNode dt)
 
 void TypeMatcher::addTypesFromDatatype(TypeNode dt)
 {
-  std::vector<TypeNode> argTypes = dt.getParamTypes();
+  std::vector<TypeNode> argTypes;
+  if (dt.isInstantiated())
+  {
+    argTypes = dt.getInstantiatedParamTypes();
+  }
+  else
+  {
+    argTypes = dt.getDType().getParameters();
+  }
   addTypes(argTypes);
   Trace("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
   for (unsigned i = 0, narg = argTypes.size(); i < narg; ++i)
@@ -126,4 +136,4 @@ void TypeMatcher::getMatches(std::vector<TypeNode>& types) const
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

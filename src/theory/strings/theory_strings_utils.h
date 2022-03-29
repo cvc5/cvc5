@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 namespace utils {
@@ -214,6 +214,6 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

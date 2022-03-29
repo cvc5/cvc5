@@ -19,9 +19,9 @@
 #include "expr/node_algorithm.h"
 #include "printer/printer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 void PrintBenchmark::printAssertions(std::ostream& out,
@@ -281,4 +281,4 @@ void PrintBenchmark::printBenchmark(std::ostream& out,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

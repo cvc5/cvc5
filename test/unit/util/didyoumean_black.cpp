@@ -17,7 +17,7 @@
 
 #include "util/didyoumean.h"
 
-namespace cvc5::test {
+namespace cvc5::internal::test {
 
 class TestUtilDidYouMean : public TestInternal
 {
@@ -72,4 +72,4 @@ Did you mean any of these?
     }
 }
 
-}  // namespace cvc5::test
+}  // namespace cvc5::internal::test

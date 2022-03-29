@@ -21,7 +21,7 @@
 #include "theory/quantifiers/query_generator_sample_sat.h"
 #include "theory/quantifiers/query_generator_unsat.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -217,4 +217,4 @@ bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

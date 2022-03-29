@@ -38,10 +38,10 @@
 #include "main/main.h"
 #include "util/safe_print.h"
 
-using cvc5::Exception;
+using cvc5::internal::Exception;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace main {
 
 /**
@@ -345,4 +345,4 @@ void cleanup() noexcept
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::internal

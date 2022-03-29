@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/theory_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * This is an abstract class for computing "term context identifiers". A term
@@ -182,6 +182,6 @@ class TheoryLeafTermContext : public TermContext
   theory::TheoryId d_theoryId;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

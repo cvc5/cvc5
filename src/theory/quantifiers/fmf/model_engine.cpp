@@ -23,10 +23,10 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::context;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -387,4 +387,4 @@ bool ModelEngine::shouldProcess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

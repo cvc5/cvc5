@@ -42,8 +42,8 @@ int main(int argc, char* argv[])
   Options options;
   options.setInputLanguage(language::input::LANG_SMTLIB_V2);
   options.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-  std::unique_ptr<api::Solver> solver =
-      std::unique_ptr<api::Solver>(new api::Solver(&options));
+  std::unique_ptr<Solver> solver =
+      std::unique_ptr<Solver>(new Solver(&options));
 
   cout << expr::ExprDag(0) << expr::ExprSetDepth(-1);
 

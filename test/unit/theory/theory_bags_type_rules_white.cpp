@@ -19,7 +19,7 @@
 #include "theory/strings/type_enumerator.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace kind;
@@ -35,8 +35,7 @@ class TestTheoryWhiteBagsTypeRule : public TestSmt
   std::vector<Node> getNStrings(size_t n)
   {
     std::vector<Node> elements(n);
-    cvc5::theory::strings::StringEnumerator enumerator(
-        d_nodeManager->stringType());
+    theory::strings::StringEnumerator enumerator(d_nodeManager->stringType());
 
     for (size_t i = 0; i < n; i++)
     {
@@ -154,4 +153,4 @@ TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
