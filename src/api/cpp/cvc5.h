@@ -1607,6 +1607,16 @@ class CVC5_EXPORT Term
    */
   std::vector<Term> getSequenceValue() const;
 
+  /**
+   * @return true if the term is a cardinality constraint
+   */
+  bool isCardinalityConstraint() const;
+  /**
+   * Asserts isCardinalityConstraint().
+   * @return the sort the cardinality constraint is for and its upper bound.
+   */
+  std::pair<Sort, uint32_t> getCardinalityConstraint() const;
+
  protected:
   /**
    * The associated solver object.
