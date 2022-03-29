@@ -417,6 +417,12 @@ bool TypeNode::isInstantiatedDatatype() const {
   return true;
 }
 
+bool TypeNode::isInstantiated() const
+{
+  return isInstantiatedDatatype()
+         || (isSort() && getNumChildren() > 0);
+}
+
 TypeNode TypeNode::instantiateParametricDatatype(
     const std::vector<TypeNode>& params) const
 {

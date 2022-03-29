@@ -2806,6 +2806,19 @@ cdef class Sort:
         """
         return self.csort.isUninterpretedSortConstructor()
 
+    def isInstantiated(self):
+        """
+            Is this an instantiated (parametric datatype or uninterpreted sort
+            constructor) sort?
+
+            An instantiated sort is a sort that has been constructed from
+            instantiating a sort parameters with sort arguments
+            (see Sort::instantiate()).
+
+            :return: True if this is an instantiated sort.
+        """
+        return self.csort.isInstantiated()
+
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort
@@ -3003,12 +3016,6 @@ cdef class Sort:
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSequenceElementSort()
         return sort
-
-    def isUninterpretedSortParameterized(self):
-        """
-            :return: True if an uninterpreted sort is parameterized
-        """
-        return self.csort.isUninterpretedSortParameterized()
 
     def getUninterpretedSortParamSorts(self):
         """

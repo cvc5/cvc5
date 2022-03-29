@@ -1378,9 +1378,19 @@ Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isDatatype()) << "Expected datatype sort.";
+  CVC5_API_CHECK(d_type->isDatatype()) << "Expected datatype sort.";
   //////// all checks before this line
   return Datatype(d_solver, d_type->getDType());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Sort::isInstantiated() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_type->isInstantiated();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1638,20 +1648,6 @@ Sort Sort::getSequenceElementSort() const
 }
 
 /* Uninterpreted sort -------------------------------------------------- */
-
-bool Sort::isUninterpretedSortParameterized() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  //////// all checks before this line
-
-  /* This method is not implemented in the NodeManager, since whether a
-   * uninterpreted sort is parameterized is irrelevant for solving. */
-  return d_type->getNumChildren() > 0;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 
 std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 {

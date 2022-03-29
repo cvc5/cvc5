@@ -299,7 +299,23 @@ def test_instantiate(solver):
     dtypeSort = solver.mkDatatypeSort(dtypeSpec)
     with pytest.raises(RuntimeError):
         dtypeSort.instantiate([solver.getIntegerSort()])
+    # instantiate uninterpreted sort constructor
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 1)
+    sortConsSort.instantiate([solver.getIntegerSort()])
 
+def test_is_instantiated(solver):
+    paramDtypeSort = create_param_datatype_sort(solver)
+    assert not paramDtypeSort.isInstantiated()
+    instParamDtypeSort = paramDtypeSort.instantiate([solver.getIntegerSort()]);
+    assert instParamDtypeSort.isInstantiated()
+
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 1)
+    assert not sortConsSort.isInstantiated()
+    instSortConsSort = sortConsSort.instantiate([solver.getIntegerSort()])
+    assert instSortConsSort.isInstantiated()
+
+    assert not solver.getIntegerSort().isInstantiated()
+    assert not solver.mkBitVectorSort(32).isInstantiated()
 
 def test_get_function_arity(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
@@ -382,17 +398,6 @@ def test_get_uninterpreted_sort_name(solver):
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getSymbol()
-
-
-def test_is_uninterpreted_sort_parameterized(solver):
-    uSort = solver.mkUninterpretedSort("u")
-    assert not uSort.isUninterpretedSortParameterized()
-    sSort = solver.mkUninterpretedSortConstructorSort("s", 1)
-    siSort = sSort.instantiate([uSort])
-    assert siSort.isUninterpretedSortParameterized()
-    bvSort = solver.mkBitVectorSort(32)
-    with pytest.raises(RuntimeError):
-        bvSort.isUninterpretedSortParameterized()
 
 
 def test_get_uninterpreted_sort_paramsorts(solver):
