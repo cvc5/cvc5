@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind
+from cvc5 import Kind, RoundingMode
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def test_recoverable_exception(solver):
 
 
 def test_supports_floating_point(solver):
-    solver.mkRoundingMode(cvc5.RoundNearestTiesToEven)
+    solver.mkRoundingMode(RoundingMode.RoundNearestTiesToEven)
 
 
 def test_get_boolean_sort(solver):
@@ -407,7 +407,16 @@ def test_mk_boolean(solver):
 
 
 def test_mk_rounding_mode(solver):
-    solver.mkRoundingMode(cvc5.RoundTowardZero)
+    assert str(solver.mkRoundingMode(
+        RoundingMode.RoundNearestTiesToEven)) == "roundNearestTiesToEven"
+    assert str(solver.mkRoundingMode(
+        RoundingMode.RoundTowardPositive)) == "roundTowardPositive"
+    assert str(solver.mkRoundingMode(
+        RoundingMode.RoundTowardNegative)) == "roundTowardNegative"
+    assert str(solver.mkRoundingMode(
+        RoundingMode.RoundTowardZero)) == "roundTowardZero"
+    assert str(solver.mkRoundingMode(
+        RoundingMode.RoundNearestTiesToAway)) == "roundNearestTiesToAway"
 
 
 def test_mk_floating_point(solver):

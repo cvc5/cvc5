@@ -7668,12 +7668,6 @@ size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
   }
 }
 
-size_t std::hash<cvc5::api::RoundingMode>::operator()(
-    cvc5::api::RoundingMode rm) const
-{
-  return static_cast<size_t>(rm);
-}
-
 size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const
 {
   return std::hash<cvc5::TypeNode>()(*s.d_type);
