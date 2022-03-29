@@ -218,7 +218,7 @@ void TheorySets::processCarePairArgs(TNode a, TNode b)
   // equality or disequality between members affects the number of elements
   // in a set. Therefore we need to split on (= x y) for kind SET_MEMBER.
   // Example:
-  // Suppose (= (member x S) member(y S)) is true and there are
+  // Suppose (set.member x S) = (set.member y S) = true and there are
   // no other members in S. We would get S = {x} if (= x y) is true.
   // Otherwise we would get S = {x, y}.
   if (a.getKind() != SET_MEMBER && d_state.areEqual(a, b))
