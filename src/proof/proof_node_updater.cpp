@@ -222,8 +222,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
   // only if the callback updated the node
   if (preVisit
           ? d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate)
-          : d_cb.updatePost(
-              res, id, ccn, cur->getArguments(), &cpf))
+          : d_cb.updatePost(res, id, ccn, cur->getArguments(), &cpf))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
     std::vector<Node> fullFa;
