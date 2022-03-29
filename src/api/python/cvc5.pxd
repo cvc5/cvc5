@@ -490,6 +490,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+        bint isCardinalityConstraint() except +
+        pair[Sort, uint32_t] getCardinalityConstraint() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +
