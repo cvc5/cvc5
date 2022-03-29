@@ -1,0 +1,10 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-enum=fast
+(set-logic ALL)
+(synth-fun f ((x Int)) (Set Int))
+
+(constraint (set.member 45 (f 45)))
+(constraint (set.member 8 (f 8)))
+(constraint (set.member 0 (f 3)))
+
+(check-synth)

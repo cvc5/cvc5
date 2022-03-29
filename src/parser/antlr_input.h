@@ -220,7 +220,7 @@ inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
   /* start and end are boundary pointers. The text is a string
    * of (end-start+1) bytes beginning at start. */
   std::string txt( (const char *)start, end-start+1 );
-  Debug("parser-extra") << "tokenText: start=" << start << std::endl
+  Trace("parser-extra") << "tokenText: start=" << start << std::endl
                         <<  "end=" << end << std::endl
                         <<  "txt='" << txt << "'" << std::endl;
   return txt;

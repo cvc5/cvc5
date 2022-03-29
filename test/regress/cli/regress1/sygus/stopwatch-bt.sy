@@ -1,0 +1,222 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-inv-templ=post --sygus-out=status
+(set-logic LIA)
+
+(define-fun
+  __node_init_previous_0 (
+    (previous.usr.x@0 Int)
+    (previous.usr.y@0 Int)
+    (previous.res.init_flag@0 Bool)
+  ) Bool
+  
+  (and (= previous.usr.y@0 0) previous.res.init_flag@0)
+)
+
+(define-fun
+  __node_trans_previous_0 (
+    (previous.usr.x@1 Int)
+    (previous.usr.y@1 Int)
+    (previous.res.init_flag@1 Bool)
+    (previous.usr.x@0 Int)
+    (previous.usr.y@0 Int)
+    (previous.res.init_flag@0 Bool)
+  ) Bool
+  
+  (and (= previous.usr.y@1 previous.usr.x@0) (not previous.res.init_flag@1))
+)
+
+(define-fun
+  __node_init_stopwatch_0 (
+    (stopwatch.usr.toggle@0 Bool)
+    (stopwatch.usr.reset@0 Bool)
+    (stopwatch.usr.count@0 Int)
+    (stopwatch.res.init_flag@0 Bool)
+    (stopwatch.res.abs_0@0 Bool)
+    (stopwatch.impl.usr.running@0 Bool)
+    (stopwatch.res.abs_1@0 Int)
+    (stopwatch.res.inst_0@0 Bool)
+  ) Bool
+  
+  (and
+   (= stopwatch.impl.usr.running@0 (not (not stopwatch.usr.toggle@0)))
+   (=
+    stopwatch.usr.count@0
+    (ite
+     stopwatch.usr.reset@0
+     0
+     (ite
+      stopwatch.impl.usr.running@0
+      (+ stopwatch.res.abs_1@0 1)
+      stopwatch.res.abs_1@0)))
+   (= stopwatch.res.abs_0@0 (>= stopwatch.usr.count@0 0))
+   (__node_init_previous_0
+    stopwatch.usr.count@0
+    stopwatch.res.abs_1@0
+    stopwatch.res.inst_0@0)
+   stopwatch.res.init_flag@0
+   true)
+)
+
+(define-fun
+  __node_trans_stopwatch_0 (
+    (stopwatch.usr.toggle@1 Bool)
+    (stopwatch.usr.reset@1 Bool)
+    (stopwatch.usr.count@1 Int)
+    (stopwatch.res.init_flag@1 Bool)
+    (stopwatch.res.abs_0@1 Bool)
+    (stopwatch.impl.usr.running@1 Bool)
+    (stopwatch.res.abs_1@1 Int)
+    (stopwatch.res.inst_0@1 Bool)
+    (stopwatch.usr.toggle@0 Bool)
+    (stopwatch.usr.reset@0 Bool)
+    (stopwatch.usr.count@0 Int)
+    (stopwatch.res.init_flag@0 Bool)
+    (stopwatch.res.abs_0@0 Bool)
+    (stopwatch.impl.usr.running@0 Bool)
+    (stopwatch.res.abs_1@0 Int)
+    (stopwatch.res.inst_0@0 Bool)
+  ) Bool
+  
+  (and
+   (=
+    stopwatch.impl.usr.running@1
+    (not (= stopwatch.impl.usr.running@0 stopwatch.usr.toggle@1)))
+   (=
+    stopwatch.usr.count@1
+    (ite
+     stopwatch.usr.reset@1
+     0
+     (ite
+      stopwatch.impl.usr.running@1
+      (+ stopwatch.res.abs_1@1 1)
+      stopwatch.res.abs_1@1)))
+   (= stopwatch.res.abs_0@1 (>= stopwatch.usr.count@1 0))
+   (__node_trans_previous_0
+    stopwatch.usr.count@1
+    stopwatch.res.abs_1@1
+    stopwatch.res.inst_0@1
+    stopwatch.usr.count@0
+    stopwatch.res.abs_1@0
+    stopwatch.res.inst_0@0)
+   (not stopwatch.res.init_flag@1)
+   true)
+)
+
+
+
+(synth-inv str_invariant(
+  (stopwatch.usr.toggle Bool)
+  (stopwatch.usr.reset Bool)
+  (stopwatch.usr.count Int)
+  (stopwatch.res.init_flag Bool)
+  (stopwatch.res.abs_0 Bool)
+  (stopwatch.impl.usr.running Bool)
+  (stopwatch.res.abs_1 Int)
+  (stopwatch.res.inst_0 Bool)
+))
+
+
+
+(define-fun
+  init (
+    (stopwatch.usr.toggle Bool)
+    (stopwatch.usr.reset Bool)
+    (stopwatch.usr.count Int)
+    (stopwatch.res.init_flag Bool)
+    (stopwatch.res.abs_0 Bool)
+    (stopwatch.impl.usr.running Bool)
+    (stopwatch.res.abs_1 Int)
+    (stopwatch.res.inst_0 Bool)
+  ) Bool
+  
+  (and
+   (= stopwatch.impl.usr.running (not (not stopwatch.usr.toggle)))
+   (=
+    stopwatch.usr.count
+    (ite
+     stopwatch.usr.reset
+     0
+     (ite
+      stopwatch.impl.usr.running
+      (+ stopwatch.res.abs_1 1)
+      stopwatch.res.abs_1)))
+   (= stopwatch.res.abs_0 (>= stopwatch.usr.count 0))
+   (__node_init_previous_0
+    stopwatch.usr.count
+    stopwatch.res.abs_1
+    stopwatch.res.inst_0)
+   stopwatch.res.init_flag
+   true)
+)
+
+(define-fun
+  trans (
+    
+    ;; Constants.
+    
+    
+    ;; Current state.
+    (stopwatch.usr.toggle Bool)
+    (stopwatch.usr.reset Bool)
+    (stopwatch.usr.count Int)
+    (stopwatch.res.init_flag Bool)
+    (stopwatch.res.abs_0 Bool)
+    (stopwatch.impl.usr.running Bool)
+    (stopwatch.res.abs_1 Int)
+    (stopwatch.res.inst_0 Bool)
+    
+    ;; Next state.
+    (stopwatch.usr.toggle! Bool)
+    (stopwatch.usr.reset! Bool)
+    (stopwatch.usr.count! Int)
+    (stopwatch.res.init_flag! Bool)
+    (stopwatch.res.abs_0! Bool)
+    (stopwatch.impl.usr.running! Bool)
+    (stopwatch.res.abs_1! Int)
+    (stopwatch.res.inst_0! Bool)
+  
+  ) Bool
+  
+  (and
+   (=
+    stopwatch.impl.usr.running!
+    (not (= stopwatch.impl.usr.running stopwatch.usr.toggle!)))
+   (=
+    stopwatch.usr.count!
+    (ite
+     stopwatch.usr.reset!
+     0
+     (ite
+      stopwatch.impl.usr.running!
+      (+ stopwatch.res.abs_1! 1)
+      stopwatch.res.abs_1!)))
+   (= stopwatch.res.abs_0! (>= stopwatch.usr.count! 0))
+   (__node_trans_previous_0
+    stopwatch.usr.count!
+    stopwatch.res.abs_1!
+    stopwatch.res.inst_0!
+    stopwatch.usr.count
+    stopwatch.res.abs_1
+    stopwatch.res.inst_0)
+   (not stopwatch.res.init_flag!)
+   true)
+)
+
+(define-fun
+  prop (
+    (stopwatch.usr.toggle Bool)
+    (stopwatch.usr.reset Bool)
+    (stopwatch.usr.count Int)
+    (stopwatch.res.init_flag Bool)
+    (stopwatch.res.abs_0 Bool)
+    (stopwatch.impl.usr.running Bool)
+    (stopwatch.res.abs_1 Int)
+    (stopwatch.res.inst_0 Bool)
+  ) Bool
+  
+  stopwatch.res.abs_0
+)
+
+(inv-constraint str_invariant init trans prop)
+
+(check-synth)

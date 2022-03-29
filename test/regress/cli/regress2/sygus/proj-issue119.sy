@@ -1,0 +1,35 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(define-fun safe-mod ((x Int) (y Int)) Int (mod x (+ 1 (abs y))))
+(synth-fun args_0_refinement_0
+	((r Int)) Bool
+	((fv_B Bool) (B Bool) (fv_I Int) (I Int) (IConst Int))
+	(
+		(fv_B Bool ((Variable Bool) (Constant Bool) (= fv_I I) (= I I) (< fv_I I) (< I fv_I) (<= fv_I I) (<= I fv_I) (=> fv_B B) (=> B fv_B) (and fv_B B) (and B fv_B)))
+		(B Bool ((Variable Bool) (Constant Bool) (= I I) (< I I) (<= I I) (=> B B) (and B B)))
+		(fv_I Int (r (+ fv_I I) (+ I fv_I) (* fv_I I) (* I fv_I) (safe-mod fv_I IConst) 0))
+		(I Int ((Variable Int) (+ I I) (+ I IConst) (- I I) (* I I) (safe-mod I IConst) 0))
+		(IConst Int ((Constant Int)))
+	)
+)
+(synth-fun ret_refinement_0
+	((x0 Int) (r Int)) Bool 
+	((fv_B Bool) (B Bool) (fv_I Int) (I Int) (IConst Int)) 
+	(
+		(fv_B Bool ((Variable Bool) (Constant Bool) (= fv_I I) (= I fv_I) (< fv_I I) (< I fv_I) (<= fv_I I) (<= I fv_I) (=> fv_B B) (=> B fv_B) (and fv_B B) (and B fv_B)))
+		(B Bool ((Variable Bool) (Constant Bool) (= I I) (< I I) (<= I I) (=> B B) (and B B)))
+		(fv_I Int (r (+ fv_I I) (+ I fv_I) (* fv_I I) (* I fv_I) (safe-mod fv_I IConst) 0))
+		(I Int ((Variable Int) (+ I I) (- I I) (* I I) 0 4))
+		(IConst Int ((Constant Int)))
+	)
+)
+(constraint (=> (and (args_0_refinement_0 2)) (and (ret_refinement_0 2 8))))
+(constraint (not (=> (and (args_0_refinement_0 2)) (and (ret_refinement_0 2 (- 1))))))
+(constraint (and (and (ret_refinement_0 (- 2) (- 8)))))
+(constraint (and (and (args_0_refinement_0 (- 2)))))
+(constraint (and (and (ret_refinement_0 0 0))))
+(constraint (and (and (args_0_refinement_0 0))))
+(constraint (=> (and (args_0_refinement_0 0)) (and (ret_refinement_0 0 0))))
+(constraint (not (=> (and (args_0_refinement_0 0)) (and (ret_refinement_0 0 (- 1))))))
+(check-synth)

@@ -414,7 +414,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                       << std::endl;
   // should always be non-null
   Assert(pf != nullptr);
-  if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))
+  if (TraceIsOn("pfee-proof") || TraceIsOn("pfee-proof-final"))
   {
     Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
                         << std::endl;
@@ -541,7 +541,7 @@ void ProofEqEngine::explainWithProof(Node lit,
       assumps.push_back(a);
     }
   }
-  if (Trace.isOn("pfee-proof"))
+  if (TraceIsOn("pfee-proof"))
   {
     Trace("pfee-proof") << "pfee::explainWithProof: add to proof ---"
                         << std::endl;

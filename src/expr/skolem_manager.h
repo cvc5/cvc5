@@ -30,6 +30,8 @@ class ProofGenerator;
 enum class SkolemFunId
 {
   NONE,
+  /** array diff to witness (not (= A B)) */
+  ARRAY_DEQ_DIFF,
   /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
   DIV_BY_ZERO,
   /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
@@ -148,6 +150,12 @@ enum class SkolemFunId
    */
   BAGS_MAP_PREIMAGE,
   /**
+   * A skolem variable for the size of the preimage of {y} that is unique per
+   * terms (map f A), y which might be an element in (map f A). (see the
+   * documentation for BAGS_MAP_PREIMAGE)
+   */
+  BAGS_MAP_PREIMAGE_SIZE,
+  /**
    * A skolem variable for the index that is unique per terms
    * (map f A), y, preImageSize, y, e which might be an element in A.
    * (see the documentation for BAGS_MAP_PREIMAGE)
@@ -161,6 +169,8 @@ enum class SkolemFunId
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    */
   BAGS_MAP_SUM,
+  /** bag diff to witness (not (= A B)) */
+  BAG_DEQ_DIFF,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))
@@ -172,8 +182,10 @@ enum class SkolemFunId
    * of A
    */
   SETS_CHOOSE,
+  /** set diff to witness (not (= A B)) */
+  SETS_DEQ_DIFF,
   /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED,
+  HO_TYPE_MATCH_PRED
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);

@@ -1,0 +1,14 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic LIA)
+
+(synth-fun f ((x Int) (y Int)) Bool)
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (= (f x y) (>= (+ x y) 500)))
+
+
+(check-synth)

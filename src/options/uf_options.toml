@@ -3,8 +3,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  alias      = ["uf-symmetry-breaker"]
-  category   = "regular"
+  category   = "expert"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
@@ -46,7 +45,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufssFairnessMonotone"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ss-fair-monotone"
   type       = "bool"
   default    = "false"
@@ -54,7 +53,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufHoExt"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"

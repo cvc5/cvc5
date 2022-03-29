@@ -1,0 +1,37 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic UFLIA)
+
+(declare-var x Int)
+(declare-var x! Int)
+(declare-var y Int)
+(declare-var y! Int)
+
+(define-fun-rec sum_n ((x Int)) Int
+                  (ite (>= x 1)
+                       (+ x (sum_n (- x 1)))
+                       0))
+
+(synth-fun inv_fun ((x Int) (y Int)) Bool
+	((C Bool) (B Bool) (E Int))
+	((C Bool ((and (>= y 1) B)))
+	 (B Bool ((= (sum_n E) E) (>= E E)))
+	 (E Int (0 1 x y (+ E E))))
+)
+
+(define-fun pre_fun ((x Int) (y Int)) Bool
+	(and (= x 0) (= y 1)))
+
+(define-fun trans_fun ((x Int) (y Int) (x! Int) (y! Int)) Bool
+	(and (<= y 2) (= x! (+ x y)) (= y! (+ y 1))))
+
+(define-fun post_fun ((x Int) (y Int)) Bool
+	(= x (sum_n (- y 1)))	
+)
+
+(constraint (=> (pre_fun x y) (inv_fun x y)))
+(constraint (=> (and (inv_fun x y) (trans_fun x y x! y!)) (inv_fun x! y!)))
+(constraint (=> (inv_fun x y) (post_fun x y)))
+
+
+(check-synth)

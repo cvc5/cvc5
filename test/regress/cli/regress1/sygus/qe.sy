@@ -1,0 +1,12 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --sygus-qe-preproc
+(set-logic LIA)
+
+(synth-fun f ((x Int)) Int)
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (=> (or (= y 2) (= y 3)) (> (f x) y)))
+
+(check-synth)

@@ -1,0 +1,23 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status
+(set-logic NIA)
+(synth-fun patternGen ((i Int)) Int
+((ITE Int) (CONST Int) (I Int)  (B Bool))
+( (ITE Int (
+    (ite (<= i CONST) I I)
+    
+  ))
+  (CONST Int (0))
+  (I Int (i 1
+    (+ I I) (- I I) (* I I)
+  ))
+  (B Bool (
+    (<= I I)
+  ))
+)
+)
+(declare-var i Int)
+(constraint (= (patternGen 0) 1))
+(constraint (= (patternGen 1) 1))
+(constraint (= (patternGen 2) 1))
+(check-synth)

@@ -1,0 +1,14 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none --no-sygus-pbe
+
+(set-logic LRA)
+
+(synth-fun f ((x Real)) Real)
+
+(declare-var x Real)
+
+(constraint (and (= (f (- 4)) (- 2)) (= (f (- 9)) (/ (- 9) 2))))
+
+(check-synth)
+
+; a solution is f = (/ x (+ 1 1))
