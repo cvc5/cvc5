@@ -2509,26 +2509,6 @@ public class Solver implements IPointer, AutoCloseable
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * If needed, convert this term to a given sort.
-   *
-   * @apiNote The sort of the term must be convertible into the target sort.
-   *          Currently only Int to Real conversions are supported.
-   *
-   * @apiNote This method is experimental and may change in future versions.
-   *
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
-   */
-  public Term ensureTermSort(Term t, Sort s)
-  {
-    long termPointer = ensureTermSort(pointer, t.getPointer(), s.getPointer());
-    return new Term(this, termPointer);
-  }
-
-  private native long ensureTermSort(long pointer, long termPointer, long sortPointer);
-
-  /**
    * Append \p symbol to the current list of universal variables.
    * @param sort the sort of the universal variable
    * @return the universal variable
