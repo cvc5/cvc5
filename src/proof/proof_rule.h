@@ -1948,21 +1948,35 @@ enum class PfRule : uint32_t
    */
   ARITH_NL_COVERING_RECURSIVE,
 
-  //================================================ Place holder for Lfsc rules
-  // ======== Lfsc rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- LFSC**
+   *
+   * Place holder for LFSC rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
+   * \endverbatim
+   */
   LFSC_RULE,
-  //================================================ Place holder for Alethe
-  // rules
-  // ======== Alethe rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, Q', A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
-  // where Q' is the representation of Q to be printed by the Alethe printer.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- ALethe**
+   *
+   * Place holder for Alethe rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external Alethe calculus,
+   * and that :math:`Q'` be the representation of Q to be printed by the Alethe
+   * printer.
+   * \endverbatim
+   */
   ALETHE_RULE,
 
   //================================================= Unknown rule
