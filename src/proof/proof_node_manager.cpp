@@ -129,7 +129,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       continue;
     }
     // trivial assumption
-    if (a == d_true)
+    Node ar = d_rewriter->rewrite(a);
+    if (ar == d_true)
     {
       Trace("pnm-scope") << "- justify trivial True assumption\n";
       for (std::shared_ptr<ProofNode> pfs : fa.second)
@@ -167,7 +168,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
           acr[accr] = acc;
         }
       }
-      Node ar = d_rewriter->rewrite(a);
       Trace("pnm-scope") << "- rewritten: " << ar << std::endl;
       std::unordered_map<Node, Node>::iterator itr = acr.find(ar);
       if (itr != acr.end())
