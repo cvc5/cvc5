@@ -2181,6 +2181,9 @@ cdef class Solver:
             Get a difficulty estimate for an asserted formula. This method is intended to be called immediately after 
             any response to a checkSat.
 
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :return: a map from (a subset of) the input assertions to a real value that is an estimate of how difficult each assertion was to solver. Unmentioned assertions can be assumed to have zero difficulty.
         """
         diffi = {}
@@ -2257,7 +2260,10 @@ cdef class Solver:
         Requires a logic that supports quantifier elimination.
         Currently, the only logics supported by quantifier elimination
         are LRA and LIA.
-        
+
+        .. warning:: This method is experimental and may change in future
+                         versions.
+
         :param q: a quantified formula of the form
                 :math:`Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)'
                 where
@@ -2287,6 +2293,9 @@ cdef class Solver:
         Requires a logic that supports quantifier elimination.
         Currently, the only logics supported by quantifier elimination
         are LRA and LIA.
+            
+	.. warning:: This method is experimental and may change in future
+                         versions.
         
            :param q: a quantified formula of the form
                    @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
