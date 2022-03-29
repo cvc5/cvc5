@@ -70,16 +70,14 @@ class ProofNodeUpdaterCallback
 
   /** As above, but at post-visit. */
   virtual bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                                const std::vector<Node>& fa,
-                                bool& continueUpdate);
+                                const std::vector<Node>& fa);
 
   /** As above, but at post-visit. */
   virtual bool updatePost(Node res,
                           PfRule id,
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
-                          CDProof* cdp,
-                          bool& continueUpdate);
+                          CDProof* cdp);
 };
 
 /**

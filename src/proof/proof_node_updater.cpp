@@ -36,8 +36,7 @@ bool ProofNodeUpdaterCallback::update(Node res,
 }
 
 bool ProofNodeUpdaterCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                                                const std::vector<Node>& fa,
-                                                bool& continueUpdate)
+                                                const std::vector<Node>& fa)
 {
   return false;
 }
@@ -46,8 +45,7 @@ bool ProofNodeUpdaterCallback::updatePost(Node res,
                                           PfRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
-                                          CDProof* cdp,
-                                          bool& continueUpdate)
+                                          CDProof* cdp)
 {
   return false;
 }
@@ -190,15 +188,12 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         fa.resize(fa.size() - args.size());
       }
       // run update (marked as post-visit) to a fixed point
-      bool continueUpdate = true;
-      while (runUpdate(cur, fa, continueUpdate, false) && continueUpdate)
+      bool dummyContinueUpdate;
+      while (runUpdate(cur, fa, dummyContinueUpdate, false))
       {
         Trace("pf-process-debug") << "...updated proof." << std::endl;
       }
-      if (!continueUpdate)
-      {
-        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
-      }
+      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -228,7 +223,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
   if (preVisit
           ? d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate)
           : d_cb.updatePost(
-              res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
+              res, id, ccn, cur->getArguments(), &cpf))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
     std::vector<Node> fullFa;
@@ -265,7 +260,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
 {
   // should it be updated?
   if (preVisit ? !d_cb.shouldUpdate(cur, fa, continueUpdate)
-               : !d_cb.shouldUpdatePost(cur, fa, continueUpdate))
+               : !d_cb.shouldUpdatePost(cur, fa))
   {
     return false;
   }

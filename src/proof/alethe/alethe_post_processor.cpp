@@ -46,9 +46,7 @@ bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
-    std::shared_ptr<ProofNode> pn,
-    const std::vector<Node>& fa,
-    bool& continueUpdate)
+    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
 {
   Assert(!pn->getArguments().empty());
   AletheRule rule = getAletheRule(pn->getArguments()[0]);
@@ -1489,8 +1487,7 @@ bool AletheProofPostprocessCallback::updatePost(
     PfRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
-    CDProof* cdp,
-    bool& continueUpdate)
+    CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
   AletheRule rule = getAletheRule(args[0]);
