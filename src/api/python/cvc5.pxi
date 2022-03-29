@@ -3531,10 +3531,6 @@ cdef class Term:
         """:return: True iff this term is a tuple value."""
         return self.cterm.isTupleValue()
 
-    def isUninterpretedSortValue(self):
-        """:return: True iff this term is a value from an uninterpreted sort."""
-        return self.cterm.isUninterpretedSortValue()
-
     def isRoundingModeValue(self):
         """:return: True if the term is a floating-point rounding mode value."""
         return self.cterm.isRoundingModeValue()
