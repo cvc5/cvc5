@@ -35,11 +35,19 @@ bool ProofNodeUpdaterCallback::update(Node res,
   return false;
 }
 
-bool ProofNodeUpdaterCallback::finalize(Node res,
-                                        PfRule id,
-                                        const std::vector<Node>& children,
-                                        const std::vector<Node>& args,
-                                        CDProof* cdp)
+bool ProofNodeUpdaterCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa,
+                                                bool& continueUpdate)
+{
+  return false;
+}
+
+bool ProofNodeUpdaterCallback::updatePost(Node res,
+                                          PfRule id,
+                                          const std::vector<Node>& children,
+                                          const std::vector<Node>& args,
+                                          CDProof* cdp,
+                                          bool& continueUpdate)
 {
   return false;
 }
@@ -47,14 +55,12 @@ bool ProofNodeUpdaterCallback::finalize(Node res,
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
-                                   bool autoSym,
-                                   bool runFinalize)
+                                   bool autoSym)
     : d_pnm(pnm),
       d_cb(cb),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
-      d_autoSym(autoSym),
-      d_runFinalize(runFinalize)
+      d_autoSym(autoSym)
 {
 }
 
@@ -183,7 +189,16 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         Assert(fa.size() >= args.size());
         fa.resize(fa.size() - args.size());
       }
-      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
+      // run update (marked as post-visit) to a fixed point
+      bool continueUpdate = true;
+      while (runUpdate(cur, fa, continueUpdate, false) && continueUpdate)
+      {
+        Trace("pf-process-debug") << "...updated proof." << std::endl;
+      }
+      if (!continueUpdate)
+      {
+        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
+      }
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -212,7 +227,8 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
   // only if the callback updated the node
   if (preVisit
           ? d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate)
-          : d_cb.finalize(res, id, ccn, cur->getArguments(), &cpf))
+          : d_cb.updatePost(
+              res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
     std::vector<Node> fullFa;
@@ -244,14 +260,16 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
 
 bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
                                  const std::vector<Node>& fa,
-                                 bool& continueUpdate)
+                                 bool& continueUpdate,
+                                 bool preVisit)
 {
   // should it be updated?
-  if (!d_cb.shouldUpdate(cur, fa, continueUpdate))
+  if (preVisit ? !d_cb.shouldUpdate(cur, fa, continueUpdate)
+               : !d_cb.shouldUpdatePost(cur, fa, continueUpdate))
   {
     return false;
   }
-  return updateProofNode(cur, fa, continueUpdate);
+  return updateProofNode(cur, fa, continueUpdate, preVisit);
 }
 
 void ProofNodeUpdater::runFinalize(
@@ -261,11 +279,6 @@ void ProofNodeUpdater::runFinalize(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
     std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
-  if (d_runFinalize)
-  {
-    bool dummyContunieUpdate;
-    updateProofNode(cur, fa, dummyContunieUpdate, false);
-  }
   if (d_mergeSubproofs)
   {
     Node res = cur->getResult();

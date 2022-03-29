@@ -68,16 +68,18 @@ class ProofNodeUpdaterCallback
                       CDProof* cdp,
                       bool& continueUpdate);
 
-  /**
-   * Finalize the proof rule application, store steps in cdp. Return true if
-   * the proof changed. It can be assumed that cdp contains proofs of each
-   * fact in children.
-   */
-  virtual bool finalize(Node res,
-                        PfRule id,
-                        const std::vector<Node>& children,
-                        const std::vector<Node>& args,
-                        CDProof* cdp);
+  /** As above, but at post-visit. */
+  virtual bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                                const std::vector<Node>& fa,
+                                bool& continueUpdate);
+
+  /** As above, but at post-visit. */
+  virtual bool updatePost(Node res,
+                          PfRule id,
+                          const std::vector<Node>& children,
+                          const std::vector<Node>& args,
+                          CDProof* cdp,
+                          bool& continueUpdate);
 };
 
 /**
@@ -100,15 +102,11 @@ class ProofNodeUpdater
    * the same SCOPE that prove the same fact.
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
-
-   * @param runFinalize Whether intermediate an update from the callback is run
-   * at post-traversial time. By default only pre-traversal updates are made.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
                    bool mergeSubproofs = false,
-                   bool autoSym = true,
-                   bool runFinalize = false);
+                   bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -151,15 +149,17 @@ class ProofNodeUpdater
   bool updateProofNode(std::shared_ptr<ProofNode> cur,
                        const std::vector<Node>& fa,
                        bool& continueUpdate,
-                       bool preVisit = true);
+                       bool preVisit);
   /**
-   * Update the node cur if it should be updated according to the callback. If
-   * continueUpdate is updated to false, then cur is not updated further and its
-   * children are not traversed.
+   * Update the node cur if it should be updated according to the callback. How
+   * the callback performs the update, if at all, depends if we are at pre- or
+   * post-visit time. If continueUpdate is updated to false, then cur is not
+   * updated further and its children are not traversed (when pre-visiting).
    */
   bool runUpdate(std::shared_ptr<ProofNode> cur,
                  const std::vector<Node>& fa,
-                 bool& continueUpdate);
+                 bool& continueUpdate,
+                 bool preVisit = true);
   /**
    * Finalize the node cur. This is called at the moment that it is established
    * that cur will appear in the final proof. We do any final debug checking and
@@ -185,8 +185,6 @@ class ProofNodeUpdater
    * automatically introduce SYMM steps.
    */
   bool d_autoSym;
-  /** Whether to run a finalizing method on proof nodes post-traversal time. */
-  bool d_runFinalize;
 };
 
 }  // namespace cvc5
