@@ -164,13 +164,11 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         for (const Node& acc : ac)
         {
           Node accr = d_rewriter->rewrite(acc);
-          if (accr != acc)
-          {
-            acr[accr] = acc;
-          }
+          acr[accr] = acc;
         }
       }
       Node ar = d_rewriter->rewrite(a);
+      Trace("pnm-scope") << "- rewritten: " << ar << std::endl;
       std::unordered_map<Node, Node>::iterator itr = acr.find(ar);
       if (itr != acr.end())
       {
