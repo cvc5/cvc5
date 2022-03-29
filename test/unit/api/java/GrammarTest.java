@@ -39,6 +39,7 @@ class GrammarTest
 
   @Test void addRule()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
@@ -63,6 +64,7 @@ class GrammarTest
 
   @Test void addRules()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
@@ -91,6 +93,7 @@ class GrammarTest
 
   @Test void addAnyConstant()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
 
     Term nullTerm = d_solver.getNullTerm();
@@ -112,6 +115,7 @@ class GrammarTest
 
   @Test void addAnyVariable()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
 
     Term nullTerm = d_solver.getNullTerm();

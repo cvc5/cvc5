@@ -1,0 +1,12 @@
+; COMMAND-LINE: --sygus-enum=random --sygus-out=status
+; EXPECT: feasible
+
+(set-logic BV)
+
+; Ensures random enumerator correctly handles non-sygus types.
+
+(synth-fun f () (_ BitVec 7)
+  ((Start (_ BitVec 7)))
+  ((Start (_ BitVec 7) ((Constant (_ BitVec 7))))))
+
+(check-synth)

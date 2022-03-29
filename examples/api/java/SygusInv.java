@@ -47,7 +47,7 @@ public class SygusInv
     try (Solver slv = new Solver())
     {
       // required options
-      slv.setOption("lang", "sygus2");
+      slv.setOption("sygus", "true");
       slv.setOption("incremental", "false");
 
       // set the logic
@@ -81,7 +81,7 @@ public class SygusInv
       slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 
       // print solutions if available
-      if (slv.checkSynth().isUnsat())
+      if (slv.checkSynth().hasSolution())
       {
         // Output should be equivalent to:
         // (

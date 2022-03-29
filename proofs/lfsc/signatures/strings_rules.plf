@@ -122,7 +122,7 @@
                               (holds s))))))
 
 (declare re_inter (! x term (! s term (! t term (! p1 (holds (str.in_re x s)) (! p2 (holds (str.in_re x t)) 
-  (holds (str.in_re x (re.inter s (re.inter t (re.* re.allchar)))))))))))
+  (holds (str.in_re x (re.inter s (re.inter t re.all))))))))))
 
 (declare string_reduction (! r term (! t term (! s sort (! u (^ (sc_string_reduction t s) r)
   (holds r))))))))

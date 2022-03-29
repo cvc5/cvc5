@@ -24,8 +24,8 @@ using namespace std;
 int main() {
   Solver s1;
   Solver s2;
-  Result r = s1.checkEntailed(s1.mkBoolean(true));
-  Result r2 = s2.checkEntailed(s2.mkBoolean(true));
-  return r.isEntailed() && r2.isEntailed() ? 0 : 1;
+  Result r = s1.checkSatAssuming(s1.mkBoolean(false));
+  Result r2 = s2.checkSatAssuming(s2.mkBoolean(false));
+  return r.isUnsat() && r2.isUnsat() ? 0 : 1;
 }
 

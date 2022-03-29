@@ -1,0 +1,33 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-qe-preproc --cegqi-full --sygus-out=status --sygus-si=all
+(set-logic BV)
+
+(define-fun B ((h (_ BitVec 8)) (l (_ BitVec 8)) (v (_ BitVec 8))) (_ BitVec 8) (bvlshr (bvshl v (bvsub #x07 h)) (bvsub #x07 (bvsub h l))))
+
+(define-fun E ((x (_ BitVec 8))) (_ BitVec 8)  (bvadd x #x41))
+
+(define-fun f ((x (_ BitVec 8))) (_ BitVec 8) (bvsub x #x41))
+
+(define-fun d ((x (_ BitVec 8))) Bool (bvule x #x3f))
+
+(synth-fun D ((x (_ BitVec 8)) (y (_ BitVec 8)) ) (_ BitVec 8)
+		((Start (_ BitVec 8)) (Const (_ BitVec 8)))
+		((Start (_ BitVec 8) (
+			(f Start) x y Const
+				(bvshl Start Start) 	 (bvnot Start)
+						 (bvand Start Start)
+						 (bvxor Start Start)
+						 (bvor Start Start)
+						 (bvneg Start)
+						 (bvadd Start Start)
+						 (bvlshr Start Start)
+						 (bvsub Start Start)
+			))
+	 (Const (_ BitVec 8) (#x01 #x03 #x06 #x07 #x04 #x05 #x02 #x00))
+))
+
+(declare-var x (_ BitVec 8))
+(constraint  (= x (D (E (B #x07 #x04 x) ) (E  (B #x03 #x00 x))  )) )
+
+; notice we don't have solution reconstruction for this
+(check-synth)

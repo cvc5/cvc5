@@ -127,7 +127,7 @@ void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+  Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (atom.getKind() == kind::EQUAL)
   {
@@ -164,19 +164,25 @@ void TheoryArith::postCheck(Effort level)
 {
   d_im.reset();
   Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
+  if (Theory::fullEffort(level))
+  {
+    // Make sure we don't have old lemmas floating around. This can happen if we
+    // didn't actually reach a last call effort check, but backtracked for some
+    // other reason. In such a case, these lemmas are likely to be irrelevant
+    // and possibly even harmful. If we produce proofs, their proofs have most
+    // likely been deallocated already as well.
+    d_im.clearPending();
+    d_im.clearWaitingLemmas();
+  }
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
-    if (d_nonlinearExtension != nullptr)
+    // If we computed lemmas in the last FULL_EFFORT check, send them now.
+    if (d_im.hasPendingLemma())
     {
-      // If we computed lemmas in the last FULL_EFFORT check, send them now.
-      if (d_im.hasPendingLemma())
-      {
-        d_im.doPendingFacts();
-        d_im.doPendingLemmas();
-        d_im.doPendingPhaseRequirements();
-        return;
-      }
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
     }
     return;
   }
@@ -274,7 +280,7 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
 bool TheoryArith::collectModelValues(TheoryModel* m,
                                      const std::set<Node>& termSet)
 {
-  if (Trace.isOn("arith::model"))
+  if (TraceIsOn("arith::model"))
   {
     Trace("arith::model") << "arithmetic model after pruning" << std::endl;
     for (const auto& p : d_arithModelCache)
@@ -328,7 +334,7 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  Trace("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
   if (a == b)
   {
     return EQUALITY_TRUE_IN_MODEL;
@@ -347,6 +353,11 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryArith::getModelValue(TNode var) {
+  std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
+  if (it != d_arithModelCache.end())
+  {
+    return it->second;
+  }
   return d_internal->getModelValue( var );
 }
 

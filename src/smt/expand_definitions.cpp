@@ -125,14 +125,14 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
       // Working upwards
       // Reconstruct the node from it's (now rewritten) children on the stack
 
-      Debug("expand") << "cons : " << node << std::endl;
+      Trace("expand") << "cons : " << node << std::endl;
       if (node.getNumChildren() > 0)
       {
         // cout << "cons : " << node << std::endl;
         NodeBuilder nb(node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
-          Debug("expand") << "op   : " << node.getOperator() << std::endl;
+          Trace("expand") << "op   : " << node.getOperator() << std::endl;
           // cout << "op   : " << node.getOperator() << std::endl;
           nb << node.getOperator();
         }
@@ -142,7 +142,7 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
           Node expanded = result.top();
           result.pop();
           // cout << "exchld : " << expanded << std::endl;
-          Debug("expand") << "exchld : " << expanded << std::endl;
+          Trace("expand") << "exchld : " << expanded << std::endl;
           nb << expanded;
         }
         node = nb;

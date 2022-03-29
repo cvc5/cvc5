@@ -1,0 +1,13 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status --sygus-add-const-grammar
+(set-logic LIA)
+
+(synth-fun lc ((x Int)) Int)
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (> (lc x) 1500))
+(constraint (< (lc x) 1600))
+
+(check-synth)

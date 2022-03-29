@@ -529,10 +529,16 @@ private:
   std::vector<TypeNode> getArgTypes() const;
 
   /**
-   * Get the paramater types of a parameterized datatype.  Fails an
-   * assertion if this type is not a parametric datatype.
+   * Get the types used to instantiate the type parameters of a parametric
+   * type (parametric datatype or uninterpreted sort constructor type,
+   * see TypeNode::instantiate(const std::vector<TypeNode>& const).
+   *
+   * Asserts that this type is an instantiated type.
+   *
+   * @return the types used to instantiate the type parameters of a
+   *         parametric type
    */
-  std::vector<TypeNode> getParamTypes() const;
+  std::vector<TypeNode> getInstantiatedParamTypes() const;
 
   /**
    * Get the range type (i.e., the type of the result) of a function,
@@ -596,6 +602,12 @@ private:
 
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
+
+  /**
+   * Return true if this is an instantiated parametric datatype or
+   * uninterpreted sort constructor type.
+   */
+  bool isInstantiated() const;
 
   /** Is this a sygus datatype type */
   bool isSygusDatatype() const;

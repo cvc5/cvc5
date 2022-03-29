@@ -23,11 +23,115 @@ namespace cvc5 {
 namespace theory {
 namespace builtin {
 
+TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
+                                       TNode n,
+                                       bool check)
+{
+  TypeNode booleanType = nodeManager->booleanType();
+
+  if (check)
+  {
+    TypeNode lhsType = n[0].getType(check);
+    TypeNode rhsType = n[1].getType(check);
+
+    if (TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull())
+    {
+      std::stringstream ss;
+      ss << "Subexpressions must have a common base type:" << std::endl;
+      ss << "Equation: " << n << std::endl;
+      ss << "Type 1: " << lhsType << std::endl;
+      ss << "Type 2: " << rhsType << std::endl;
+
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    // TODO : check isFirstClass for these types? (github issue #1202)
+  }
+  return booleanType;
+}
+
+TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
+                                       TNode n,
+                                       bool check)
+{
+  if (check)
+  {
+    TNode::iterator child_it = n.begin();
+    TNode::iterator child_it_end = n.end();
+    TypeNode joinType = (*child_it).getType(check);
+    for (++child_it; child_it != child_it_end; ++child_it)
+    {
+      TypeNode currentType = (*child_it).getType();
+      joinType = TypeNode::leastCommonTypeNode(joinType, currentType);
+      if (joinType.isNull())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "Not all arguments are of the same type");
+      }
+    }
+  }
+  return nodeManager->booleanType();
+}
+
+TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check)
+{
+  if (check)
+  {
+    for (TNode c : n)
+    {
+      c.getType(check);
+    }
+  }
+  return nodeManager->sExprType();
+}
+
 TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
                                                      bool check)
 {
   return n.getConst<UninterpretedSortValue>().getType();
+}
+
+TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
+                                      TNode n,
+                                      bool check)
+{
+  if (n[0].getType(check) != nodeManager->boundVarListType())
+  {
+    std::stringstream ss;
+    ss << "expected a bound var list for WITNESS expression, got `"
+       << n[0].getType().toString() << "'";
+    throw TypeCheckingExceptionPrivate(n, ss.str());
+  }
+  if (n[0].getNumChildren() != 1)
+  {
+    std::stringstream ss;
+    ss << "expected a bound var list with one argument for WITNESS expression";
+    throw TypeCheckingExceptionPrivate(n, ss.str());
+  }
+  if (check)
+  {
+    TypeNode rangeType = n[1].getType(check);
+    if (!rangeType.isBoolean())
+    {
+      std::stringstream ss;
+      ss << "expected a body of a WITNESS expression to have Boolean type";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (n.getNumChildren() == 3)
+    {
+      if (n[2].getType(check) != nodeManager->instPatternListType())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "third argument of witness is not instantiation "
+            "pattern list");
+      }
+    }
+  }
+  // The type of a witness function is the type of its bound variable.
+  return n[0][0].getType();
 }
 
 /**

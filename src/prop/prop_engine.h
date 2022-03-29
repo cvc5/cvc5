@@ -22,6 +22,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
@@ -108,11 +109,9 @@ class PropEngine : protected EnvObj
    * @param skolemMap a map which says which skolem (if any) each assertion
    * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
    * assertion, then skolemMap may contain the entry { i -> k }.
-   * @param ppl the list of preprocessed learned literals
    */
   void assertInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap,
-                           const std::vector<Node>& ppl);
+                           std::unordered_map<size_t, Node>& skolemMap);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -363,6 +362,8 @@ class PropEngine : protected EnvObj
   CnfStream* d_cnfStream;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
+  /** A default proof generator for theory lemmas */
+  CDProof d_theoryLemmaPg;
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;

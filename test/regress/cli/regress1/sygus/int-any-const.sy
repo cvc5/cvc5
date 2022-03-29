@@ -1,0 +1,11 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --sygus-si=none --sygus-grammar-cons=any-term-concise
+
+(set-logic LIA)
+(synth-fun f ((x Int) (y Int)) Int)
+(constraint (= (f 1 7) 15))
+(constraint (= (f 0 27) 27))
+(constraint (= (f 2 27) 43))
+; this example does not fit the polynomial solution to the above example, thus, we expect to construct an ITE
+(constraint (= (f 3 27) 43))
+(check-synth)

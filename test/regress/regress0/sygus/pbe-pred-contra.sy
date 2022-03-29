@@ -1,7 +1,0 @@
-; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status -q
-; EXPECT: unknown
-(set-logic LIA)
-(synth-fun P ((x Int)) Bool)
-(constraint (P 54))
-(constraint (not (P 54)))
-(check-synth)

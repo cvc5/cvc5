@@ -16,33 +16,44 @@
 #include "theory/bags/infer_info.h"
 
 #include "theory/bags/inference_manager.h"
+#include "theory/inference_manager_buffered.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo(TheoryInferenceManager* im, InferenceId id)
+InferInfo::InferInfo(InferenceManagerBuffered* im, InferenceId id)
     : TheoryInference(id), d_im(im)
 {
 }
 
 TrustNode InferInfo::processLemma(LemmaProperty& p)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node pnode = nm->mkAnd(d_premises);
-  Node lemma = nm->mkNode(kind::IMPLIES, pnode, d_conclusion);
+  Node lemma = getLemma();
 
+  Trace("bags::InferInfo::process") << (*this) << std::endl;
+  d_im->addPendingLemma(lemma, getId());
+  return TrustNode::mkTrustLemma(lemma, nullptr);
+}
+
+Node InferInfo::getLemma() const
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> nodes;
+  Node premises = nm->mkAnd(d_premises);
+  Node lemma = nm->mkNode(kind::IMPLIES, premises, d_conclusion);
+  nodes.push_back(lemma);
   // send lemmas corresponding to the skolems introduced
   for (const auto& pair : d_skolems)
   {
     Node n = pair.first.eqNode(pair.second);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    d_im->trustedLemma(trustedLemma, getId(), p);
+    nodes.push_back(n);
   }
-
-  Trace("bags::InferInfo::process") << (*this) << std::endl;
-
-  return TrustNode::mkTrustLemma(lemma, nullptr);
+  if (nodes.size() == 1)
+  {
+    return lemma;
+  }
+  return nm->mkNode(kind::AND, nodes);
 }
 
 bool InferInfo::isTrivial() const
