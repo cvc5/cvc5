@@ -730,24 +730,29 @@ const static std::unordered_set<Kind> s_indexed_kinds(
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
-const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
-    {ROUND_NEAREST_TIES_TO_EVEN,
-     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
-    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
-    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
-    {ROUND_NEAREST_TIES_TO_AWAY,
-     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
-};
+const static std::unordered_map<RoundingMode, cvc5::internal::RoundingMode>
+    s_rmodes{
+        {ROUND_NEAREST_TIES_TO_EVEN,
+         cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
+        {ROUND_TOWARD_POSITIVE,
+         cvc5::internal::RoundingMode::ROUND_TOWARD_POSITIVE},
+        {ROUND_TOWARD_NEGATIVE,
+         cvc5::internal::RoundingMode::ROUND_TOWARD_NEGATIVE},
+        {ROUND_TOWARD_ZERO, cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO},
+        {ROUND_NEAREST_TIES_TO_AWAY,
+         cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
+    };
 
-const static std::unordered_map<cvc5::RoundingMode, RoundingMode>
+const static std::unordered_map<cvc5::internal::RoundingMode, RoundingMode>
     s_rmodes_internal{
-        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
+        {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
          ROUND_NEAREST_TIES_TO_EVEN},
-        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_POSITIVE},
-        {cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_NEGATIVE},
-        {cvc5::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
-        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
+        {cvc5::internal::RoundingMode::ROUND_TOWARD_POSITIVE,
+         ROUND_TOWARD_POSITIVE},
+        {cvc5::internal::RoundingMode::ROUND_TOWARD_NEGATIVE,
+         ROUND_TOWARD_NEGATIVE},
+        {cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
+        {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          ROUND_NEAREST_TIES_TO_AWAY},
     };
 
@@ -3053,7 +3058,7 @@ RoundingMode Term::getRoundingModeValue() const
       << "Term to be a floating-point rounding mode value when calling "
          "getRoundingModeValue()";
   //////// all checks before this line
-  return s_rmodes_internal.at(d_node->getConst<cvc5::RoundingMode>());
+  return s_rmodes_internal.at(d_node->getConst<cvc5::internal::RoundingMode>());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5364,10 +5369,10 @@ void Solver::resetStatistics()
   {
     d_stats.reset(new APIStatistics{
         d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("CONSTANT"),
+            .registerHistogram<internal::TypeConstant>("cvc5::CONSTANT"),
         d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("VARIABLE"),
-        d_slv->getStatisticsRegistry().registerHistogram<Kind>("TERM"),
+            .registerHistogram<internal::TypeConstant>("cvc5::VARIABLE"),
+        d_slv->getStatisticsRegistry().registerHistogram<Kind>("cvc5::TERM"),
     });
   }
 }
