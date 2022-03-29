@@ -972,7 +972,7 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
   }
 
-  @Test void getCardinalityConstraint()
+  @Test void getCardinalityConstraint() throws CVC5ApiException
   {
     Sort su = d_solver.mkUninterpretedSort("u");
     Term t = d_solver.mkCardinalityConstraint(su, 3);
