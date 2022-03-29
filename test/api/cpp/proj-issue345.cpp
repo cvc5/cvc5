@@ -18,7 +18,7 @@
 #include "api/cpp/cvc5.h"
 #include <cassert>
 
-using namespace cvc5::internal::api;
+using namespace cvc5;
 
 int main(void)
 {
