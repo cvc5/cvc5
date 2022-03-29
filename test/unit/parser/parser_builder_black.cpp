@@ -29,7 +29,7 @@
 #include "smt/command.h"
 #include "test_api.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace parser;
 
@@ -38,14 +38,11 @@ namespace test {
 class TestParseBlackParserBuilder : public TestApi
 {
  protected:
-  void SetUp() override
-  {
-    d_symman.reset(new internal::SymbolManager(&d_solver));
-  }
+  void SetUp() override { d_symman.reset(new SymbolManager(&d_solver)); }
 
   void checkEmptyInput(Parser* parser)
   {
-    api::Term e = parser->nextExpression();
+    cvc5::Term e = parser->nextExpression();
     ASSERT_TRUE(e.isNull());
   }
 
@@ -70,7 +67,7 @@ class TestParseBlackParserBuilder : public TestApi
     close(fd);
     return filename;
   }
-  std::unique_ptr<internal::SymbolManager> d_symman;
+  std::unique_ptr<SymbolManager> d_symman;
 };
 
 TEST_F(TestParseBlackParserBuilder, empty_file_input)
@@ -146,4 +143,4 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

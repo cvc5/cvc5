@@ -1664,7 +1664,7 @@ def test_get_statistics(solver):
     solver.assertFormula(f1)
     solver.checkSat()
     s = solver.getStatistics()
-    assert s['api::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s['cvc5::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):

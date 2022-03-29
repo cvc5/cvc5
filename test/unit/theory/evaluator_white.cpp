@@ -25,10 +25,10 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestTheoryWhiteEvaluator : public TestSmt
@@ -161,4 +161,4 @@ TEST_F(TestTheoryWhiteEvaluator, code)
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

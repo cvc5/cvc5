@@ -20,9 +20,10 @@
 #include "expr/kind_map.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace kind;
+using namespace internal;
+using namespace internal::kind;
 
 namespace test {
 
@@ -44,4 +45,4 @@ TEST_F(TestNodeBlackKindMap, simple)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

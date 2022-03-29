@@ -29,7 +29,7 @@
 #define K 30u
 #define LARGE_K UINT_MAX / 40
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -413,4 +413,4 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
   ASSERT_EQ(nexpected, n);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
