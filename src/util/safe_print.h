@@ -45,7 +45,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <size_t N>
 void CVC5_EXPORT safe_print(int fd, const char (&msg)[N]);
@@ -142,6 +142,6 @@ void safe_print_hex(int fd, uint64_t i);
  */
 void safe_print_right_aligned(int fd, uint64_t i, ssize_t width);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SAFE_PRINT_H */

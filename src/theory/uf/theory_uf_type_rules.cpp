@@ -23,7 +23,7 @@
 #include "util/cardinality.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -263,4 +263,4 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

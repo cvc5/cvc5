@@ -22,7 +22,7 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -155,4 +155,4 @@ Node NestedQe::doQe(Env& env, Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

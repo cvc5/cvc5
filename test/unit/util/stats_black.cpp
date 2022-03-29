@@ -26,7 +26,7 @@
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& os, const StatisticBaseValue* sbv)
 {
@@ -98,4 +98,4 @@ TEST_F(TestUtilBlackStats, stats)
 #endif
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

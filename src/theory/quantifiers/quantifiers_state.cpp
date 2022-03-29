@@ -18,7 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/uf/equality_engine_iterator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -165,4 +165,4 @@ QuantifiersStatistics& QuantifiersState::getStats() { return d_statistics; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

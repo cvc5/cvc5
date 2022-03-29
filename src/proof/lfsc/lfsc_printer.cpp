@@ -25,9 +25,9 @@
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
@@ -783,4 +783,4 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

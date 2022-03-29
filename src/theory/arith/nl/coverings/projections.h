@@ -24,7 +24,7 @@
 
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -75,7 +75,7 @@ PolyVector projectionMcCallum(const std::vector<poly::Polynomial>& polys);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
 

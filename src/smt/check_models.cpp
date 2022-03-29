@@ -26,9 +26,9 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
@@ -151,4 +151,4 @@ void CheckModels::checkModel(TheoryModel* m,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

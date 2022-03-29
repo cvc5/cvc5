@@ -44,7 +44,7 @@ extern int optreset;
 #include <iostream>
 #include <limits>
 
-namespace cvc5::main {
+namespace cvc5::internal::main {
 
 // clang-format off
 static const std::string commonOptionsDescription =
@@ -117,7 +117,7 @@ std::string suggestCommandLineOptions(const std::string& optionName)
       optionName.substr(0, optionName.find('=')));
 }
 
-void parseInternal(api::Solver& solver,
+void parseInternal(cvc5::Solver& solver,
                    int argc,
                    char* argv[],
                    std::vector<std::string>& nonoptions)
@@ -234,13 +234,13 @@ void parseInternal(api::Solver& solver,
 }
 
 /**
- * Parse argc/argv and put the result into a cvc5::Options.
+ * Parse argc/argv and put the result into a cvc5::internal::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  *
  * Throws OptionException on failures.
  */
-std::vector<std::string> parse(api::Solver& solver,
+std::vector<std::string> parse(cvc5::Solver& solver,
                                int argc,
                                char* argv[],
                                std::string& binaryName)
@@ -277,4 +277,4 @@ std::vector<std::string> parse(api::Solver& solver,
   return nonoptions;
 }
 
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options

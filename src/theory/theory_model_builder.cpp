@@ -27,10 +27,10 @@
 #include "util/uninterpreted_sort_value.h"
 
 using namespace std;
-using namespace cvc5::kind;
-using namespace cvc5::context;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
@@ -1473,4 +1473,4 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 NodeBuilder::NodeBuilder()
     : d_nv(&d_inlineNv),
@@ -709,4 +709,4 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb)
   return out << *nb.d_nv;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

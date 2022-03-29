@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val)
 {
@@ -73,4 +73,4 @@ bool UninterpretedSortValue::operator<=(const UninterpretedSortValue& val) const
          || (getType() == val.getType() && d_index <= val.d_index);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

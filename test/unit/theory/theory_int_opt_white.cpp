@@ -18,11 +18,11 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::smt;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::smt;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
@@ -168,4 +168,4 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

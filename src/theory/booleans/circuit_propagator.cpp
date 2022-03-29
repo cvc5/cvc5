@@ -30,7 +30,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -815,4 +815,4 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

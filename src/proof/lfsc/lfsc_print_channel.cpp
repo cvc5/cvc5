@@ -19,7 +19,7 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
@@ -160,4 +160,4 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

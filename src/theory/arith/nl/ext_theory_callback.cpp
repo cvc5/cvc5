@@ -18,9 +18,9 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -135,4 +135,4 @@ bool NlExtTheoryCallback::isExtfReduced(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

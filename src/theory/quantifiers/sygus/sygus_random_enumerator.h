@@ -24,7 +24,7 @@
 #include "expr/type_node.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class DTypeConstructor;
 
@@ -127,6 +127,6 @@ class SygusRandomEnumerator : public EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5__THEORY__QUANTIFIERS__SYGUS_RANDOM_ENUMERATOR_H

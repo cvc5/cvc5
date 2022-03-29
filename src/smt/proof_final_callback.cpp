@@ -22,10 +22,10 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
@@ -146,4 +146,4 @@ bool ProofFinalCallback::wasPedanticFailure(std::ostream& out) const
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

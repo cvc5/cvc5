@@ -37,7 +37,7 @@
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -858,6 +858,6 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
 
 } // Namespace eq
 } // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

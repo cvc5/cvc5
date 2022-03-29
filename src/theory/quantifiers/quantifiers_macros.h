@@ -22,7 +22,7 @@
 #include <vector>
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -98,6 +98,6 @@ class QuantifiersMacros
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /*CVC5__THEORY__QUANTIFIERS__QUANTIFIER_MACROS_H */

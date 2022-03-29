@@ -26,7 +26,7 @@
 #include "theory/datatypes/tuple_project_op.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -579,4 +579,4 @@ TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -31,10 +31,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::context;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -1422,4 +1422,4 @@ bool FullModelChecker::isHandled(Node q) const
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

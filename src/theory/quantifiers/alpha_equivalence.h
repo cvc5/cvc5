@@ -23,7 +23,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -141,6 +141,6 @@ class AlphaEquivalence : protected EnvObj
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

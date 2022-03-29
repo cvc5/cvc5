@@ -36,9 +36,9 @@
 #include "util/cardinality.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -1822,4 +1822,4 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

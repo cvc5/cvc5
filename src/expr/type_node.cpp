@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
@@ -365,7 +365,9 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 {
   Assert(isInstantiated());
   vector<TypeNode> params;
-  for (uint32_t i = 1, i_end = getNumChildren(); i < i_end; ++i)
+  for (uint32_t i = isInstantiatedDatatype() ? 1 : 0, i_end = getNumChildren();
+       i < i_end;
+       ++i)
   {
     params.push_back((*this)[i]);
   }
@@ -679,11 +681,11 @@ TypeNode TypeNode::getRangeType() const
   return (*this)[getNumChildren() - 1];
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::TypeNode>::operator()(const cvc5::TypeNode& tn) const
+size_t hash<cvc5::internal::TypeNode>::operator()(const cvc5::internal::TypeNode& tn) const
 {
   return tn.getId();
 }

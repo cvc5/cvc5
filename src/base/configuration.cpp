@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
@@ -272,4 +272,4 @@ std::string Configuration::getCompiledDateTime() {
   return __DATE__ " " __TIME__;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

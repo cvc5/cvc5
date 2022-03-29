@@ -21,9 +21,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
@@ -355,4 +355,4 @@ bool ProofChecker::isPedanticFailure(PfRule id,
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -74,13 +74,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace cvc5::smt;
-using namespace cvc5::preprocessing;
-using namespace cvc5::prop;
-using namespace cvc5::context;
-using namespace cvc5::theory;
+using namespace cvc5::internal::smt;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::prop;
+using namespace cvc5::internal::context;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
@@ -1884,4 +1884,4 @@ const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
