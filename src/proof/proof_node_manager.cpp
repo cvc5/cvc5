@@ -142,7 +142,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     }
     else
     {
-      // trivial assumption
+      // trivial assumption (by rewriting)
       Node ar = d_rewriter->rewrite(a);
       if (ar == d_true)
       {
