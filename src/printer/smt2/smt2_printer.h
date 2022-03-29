@@ -168,13 +168,13 @@ class Smt2Printer : public cvc5::Printer
   /** Print get-proof command */
   void toStreamCmdGetProof(std::ostream& out) const override;
 
-  /** Print get-interpol command */
+  /** Print get-interpolant command */
   void toStreamCmdGetInterpol(std::ostream& out,
                               const std::string& name,
                               Node conj,
                               TypeNode sygusType) const override;
 
-  /** Print get-interpol-next command */
+  /** Print get-interpolant-next command */
   void toStreamCmdGetInterpolNext(std::ostream& out) const override;
 
   /** Print get-abduct command */

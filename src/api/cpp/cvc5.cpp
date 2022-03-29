@@ -7139,9 +7139,9 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpolants)";
   //////// all checks before this line
   TypeNode nullType;
   Node result = d_slv->getInterpolant(*conj.d_node, nullType);
@@ -7154,9 +7154,9 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpolants)";
   //////// all checks before this line
   Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
   return Term(this, result);
@@ -7167,9 +7167,9 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpolants)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";
@@ -7662,12 +7662,6 @@ size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
   {
     return std::hash<cvc5::api::Kind>()(t.d_kind);
   }
-}
-
-size_t std::hash<cvc5::api::RoundingMode>::operator()(
-    cvc5::api::RoundingMode rm) const
-{
-  return static_cast<size_t>(rm);
 }
 
 size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const

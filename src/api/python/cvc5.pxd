@@ -8,6 +8,7 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
+from cvc5types cimport RoundingMode
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -200,9 +201,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint hasNoSolution() except +
         bint isUnknown() except +
         string toString() except +
-
-    cdef cppclass RoundingMode:
-        pass
 
     cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
         cdef cppclass UnknownExplanation:
@@ -526,14 +524,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
         size_t operator()(const Term & t) except +
-
-
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::RoundingMode":
-    cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
-    cdef RoundingMode ROUND_TOWARD_POSITIVE,
-    cdef RoundingMode ROUND_TOWARD_NEGATIVE,
-    cdef RoundingMode ROUND_TOWARD_ZERO,
-    cdef RoundingMode ROUND_NEAREST_TIES_TO_AWAY
 
 
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":

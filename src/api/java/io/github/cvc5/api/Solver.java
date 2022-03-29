@@ -339,6 +339,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sort parameter.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param symbol the name of the sort
    * @return the sort parameter
    */
@@ -365,6 +368,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a record sort
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param fields the list of fields of the record
    * @return the record sort
    */
@@ -1246,6 +1252,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
@@ -1329,6 +1338,11 @@ public class Solver implements IPointer, AutoCloseable
   /* Create datatype constructor declarations                             */
   /* .................................................................... */
 
+  /**
+   * Create a datatype constructor declaration.
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
     long declPointer = mkDatatypeConstructorDecl(pointer, name);
@@ -1445,6 +1459,9 @@ public class Solver implements IPointer, AutoCloseable
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param t the formula to simplify
    * @return the simplified formula
    */
@@ -1763,17 +1780,6 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Echo a given string to the given output stream.
-   * SMT-LIB:
-   * {@code
-   * ( echo <std::string> )
-   * }
-   * @param out the output stream
-   * @param str the string to echo
-   */
-  // TODO: void echo(std::ostream& out, String  str)
-
-  /**
    * Get a list of literals that are entailed by the current set of assertions
    * SMT-LIB:
    * {@code
@@ -1904,6 +1910,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    *
    * @return a map from (a subset of) the input assertions to a real value that
    * is an estimate of how difficult each assertion was to solve. Unmentioned
@@ -2044,8 +2052,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-qe <q> )
    * }
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
@@ -2070,8 +2081,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-qe-disjunct <q> )
    * }
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
@@ -2151,6 +2165,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( declare-pool <symbol> <sort> ( <term>* ) )
    * }
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
@@ -2199,9 +2216,9 @@ public class Solver implements IPointer, AutoCloseable
    * Get an interpolant
    * SMT-LIB:
    * {@code
-   * ( get-interpol <conj> )
+   * ( get-interpolant <conj> )
    * }
-   * Requires 'produce-interpols' to be set to a mode different from 'none'.
+   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
    *
    * @apiNote This method is experimental and may change in future versions.
    *
@@ -2222,9 +2239,9 @@ public class Solver implements IPointer, AutoCloseable
    * Get an interpolant
    * SMT-LIB:
    * {@code
-   * ( get-interpol <conj> <g> )
+   * ( get-interpolant <conj> <g> )
    * }
-   * Requires 'produce-interpols' to be set to a mode different from 'none'.
+   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
    *
    * @apiNote This method is experimental and may change in future versions.
    *
@@ -2244,7 +2261,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
    * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
@@ -2253,9 +2270,9 @@ public class Solver implements IPointer, AutoCloseable
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol-next)
+   *     (get-interpolant-next)
    *
-   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * Requires to enable incremental mode, and option 'produce-interpolants' to be
    * set to a mode different from 'none'.
    * \endverbatim
    *
@@ -2496,6 +2513,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @apiNote The sort of the term must be convertible into the target sort.
    *          Currently only Int to Real conversions are supported.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed

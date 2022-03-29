@@ -46,37 +46,50 @@ public enum {name}
 ENUM_JAVA_BOTTOM = \
     r""";
 
-  /* the int value of the kind */
+  /* the int value of the {name} */
   private int value;
-  private static Map<Integer, Kind> kindMap = new HashMap<>();
-  private Kind(int value)
-  {
+  private static int minValue = 0;
+  private static int maxValue = 0;
+  private static Map<Integer, {name}> enumMap = new HashMap<>();
+
+  private {name}(int value)
+  {{
     this.value = value;
-  }
+  }}
 
   static
-  {
-    for (Kind kind : Kind.values())
-    {
-      kindMap.put(kind.getValue(), kind);
-    }
-  }
+  {{
+    boolean firstValue = true;
+    for ({name} enumerator : {name}.values())
+    {{
+      int value = enumerator.getValue();
+      if (firstValue)
+      {{
+        minValue = value;
+        maxValue = value;
+        firstValue = false;
+      }}
+      minValue = Math.min(minValue, value);
+      maxValue = Math.max(maxValue, value);
+      enumMap.put(value, enumerator);
+    }}
+  }}
 
-  public static Kind fromInt(int value) throws CVC5ApiException
-  {
-    if (value < INTERNAL_KIND.value || value > LAST_KIND.value)
-    {
-      throw new CVC5ApiException("Kind value " + value + " is outside the valid range ["
-          + INTERNAL_KIND.value + "," + LAST_KIND.value + "]");
-    }
-    return kindMap.get(value);
-  }
+  public static {name} fromInt(int value) throws CVC5ApiException
+  {{
+    if (value < minValue || value > maxValue)
+    {{
+      throw new CVC5ApiException("{name} value " + value + " is outside the valid range ["
+          + minValue + "," + maxValue + "]");
+    }}
+    return enumMap.get(value);
+  }}
 
   public int getValue()
-  {
+  {{
     return value;
-  }
-}
+  }}
+}}
 """
 
 # mapping from c++ patterns to java
@@ -129,7 +142,7 @@ def gen_java(parser: EnumParser, path):
                     comment = format_comment(comment)
                     code += "{comment}\n  {name}({enum_value}),\n".format(
                         comment=comment, name=name, enum_value=value)
-                code += ENUM_JAVA_BOTTOM
+                code += ENUM_JAVA_BOTTOM.format(name=enum.name)
                 f.write(code)
 
 
