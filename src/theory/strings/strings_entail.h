@@ -171,7 +171,7 @@ class StringsEntail
    *
    * componentContains({ y }, { substr(y,0,1) }, {}, false, 1) returns 1,
    * while componentContains({ y }, { substr(y,0,1) }, {}, true, 1) returns 0;
-   * it does not return 1 updating nb/ne to 
+   * it does not return 1 updating nb/ne to
    * { substr(y,0,1) } / { substr(y,1,len(y)-1) }. This is to avoid
    * non-termination in the rewriter.
    */

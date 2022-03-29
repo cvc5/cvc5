@@ -254,7 +254,7 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = 
+            n1[i] =
                 NodeManager::currentNM()->mkNode(STRING_CONCAT, n1[i], n1re);
           }
           if (remainderDir != 1)
@@ -268,7 +268,7 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = 
+            n1[i] =
                 NodeManager::currentNM()->mkNode(STRING_CONCAT, n1rb, n1[i]);
           }
         }
