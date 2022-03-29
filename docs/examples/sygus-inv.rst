@@ -8,7 +8,8 @@ SyGuS: Invariants
     <examples>/api/python/sygus-inv.py
     <examples>/api/smtlib/sygus-inv.sy
 
-The utility method used for printing the synthesis solutions is available separately in the utils module:
+The utility method used for printing the synthesis solutions in the examples
+above is defined separately in the ``utils`` module:
 
 .. api-examples::
     <examples>/api/cpp/utils.h

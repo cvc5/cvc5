@@ -8,7 +8,8 @@ SyGuS: Grammars
     <examples>/api/python/sygus-grammar.py
     <examples>/api/smtlib/sygus-grammar.sy
 
-The utility method used for printing the synthesis solutions is available separately in the utils module:
+The utility method used for printing the synthesis solutions in the examples
+above is defined separately in the ``utils`` module:
 
 .. api-examples::
     <examples>/api/cpp/utils.h
