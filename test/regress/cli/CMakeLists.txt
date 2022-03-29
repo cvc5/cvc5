@@ -123,6 +123,8 @@ set(regress_0_tests
   regress0/arrays/issue5720.smt2
   regress0/arrays/issue5836-2.smt2
   regress0/arrays/issue5836.smt2
+  regress0/arrays/issue5925.smt2
+  regress0/arrays/issue5925-2.smt2
   regress0/arrays/issue6276-2.smt2
   regress0/arrays/issue6276.smt2
   regress0/arrays/issue6700-inc-check-model.smt2
