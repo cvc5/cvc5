@@ -47,6 +47,16 @@ bool InferenceManager::assertInference(TNode atom,
                         << (polarity ? Node(atom) : atom.notNode()) << " by "
                         << reason << "; " << id << std::endl;
   Assert(atom.getKind() == EQUAL);
+  if (atom[1].getType().isBoolean() && atom[1].isConst())
+  {
+    // we require changing (= t true) to t, and (= t false) to (not t)
+    bool pol = atom[1].getConst<bool>();
+    atom = atom[0];
+    if (!pol)
+    {
+      atom = atom.notNode();
+    }
+  }
   // if proofs are enabled, we determine which proof rule to add, otherwise
   // we simply assert the internal fact
   if (isProofEnabled())

@@ -1648,7 +1648,8 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
       preRegisterTermInternal(selConst);
     }
     // not currently supported in proofs, use THEORY_INFERENCE
-    d_im.assertInference(selConst.eqNode(defValue),
+    Node eq = selConst.eqNode(defValue);
+    d_im.assertInference(eq,
                          true,
                          InferenceId::ARRAYS_CONST_ARRAY_DEFAULT,
                          d_true,
