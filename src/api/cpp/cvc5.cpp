@@ -1445,6 +1445,18 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Sort> Sort::getInstantiatedParameters() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_type->isInstantiated())
+      << "Expected instantiated parametric sort";
+  //////// all checks before this line
+  return typeNodeVectorToSorts(d_solver, d_type->getInstantiatedParamTypes());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1672,27 +1684,6 @@ Sort Sort::getSequenceElementSort() const
   CVC5_API_TRY_CATCH_END;
 }
 
-/* Uninterpreted sort -------------------------------------------------- */
-
-std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  //////// all checks before this line
-
-  /* This method is not implemented in the NodeManager, since whether a
-   * uninterpreted sort is parameterized is irrelevant for solving. */
-  std::vector<TypeNode> params;
-  for (size_t i = 0, nchildren = d_type->getNumChildren(); i < nchildren; i++)
-  {
-    params.push_back((*d_type)[i]);
-  }
-  return typeNodeVectorToSorts(d_solver, params);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 /* Sort constructor sort ----------------------------------------------- */
 
 size_t Sort::getUninterpretedSortConstructorArity() const
@@ -1744,18 +1735,6 @@ uint32_t Sort::getFloatingPointSignificandSize() const
 }
 
 /* Datatype sort ------------------------------------------------------- */
-
-std::vector<Sort> Sort::getDatatypeParamSorts() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isParametricDatatype())
-      << "Not a parametric datatype sort.";
-  //////// all checks before this line
-  return typeNodeVectorToSorts(d_solver, d_type->getDType().getParameters());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 
 size_t Sort::getDatatypeArity() const
 {

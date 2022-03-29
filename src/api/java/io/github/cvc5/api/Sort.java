@@ -425,6 +425,22 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long instantiate(long pointer, long[] paramsPointers);
 
   /**
+   * Get the sorts used to instantiate the sort parameters of a parametric
+   * sort (parametric datatype or uninterpreted sort constructor sort,
+   * see Sort.instantiate()).
+   *
+   * @return the sorts used to instantiate the sort parameters of a
+   *         parametric sort
+   */
+  public Sort[] getInstantiatedParameters()
+  {
+    long[] pointers = getInstantiatedParameters(pointer);
+    return Utils.getSorts(solver, pointers);
+  }
+
+  private native long[] getInstantiatedParameters(long pointer);
+
+  /**
    * Substitution of Sorts.
    *
    * Note that this replacement is applied during a pre-order traversal and
@@ -661,19 +677,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   private native long getSequenceElementSort(long pointer);
 
-  /* Uninterpreted sort -------------------------------------------------- */
-
-  /**
-   * @return the parameter sorts of an uninterpreted sort
-   */
-  public Sort[] getUninterpretedSortParamSorts()
-  {
-    long[] pointers = getUninterpretedSortParamSorts(pointer);
-    return Utils.getSorts(solver, pointers);
-  }
-
-  private native long[] getUninterpretedSortParamSorts(long pointer);
-
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
@@ -721,23 +724,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int getFloatingPointSignificandSize(long pointer);
 
   /* Datatype sort ------------------------------------------------------- */
-
-  /**
-   * Return the parameters of a parametric datatype sort. If this sort is a
-   * non-instantiated parametric datatype, this returns the parameter sorts of
-   * the underlying datatype. If this sort is an instantiated parametric
-   * datatype, then this returns the sort parameters that were used to
-   * construct the sort via Sort.instantiate().
-   *
-   * @return the parameter sorts of a datatype sort
-   */
-  public Sort[] getDatatypeParamSorts()
-  {
-    long[] pointers = getDatatypeParamSorts(pointer);
-    return Utils.getSorts(solver, pointers);
-  }
-
-  private native long[] getDatatypeParamSorts(long pointer);
 
   /**
    * @return the arity of a datatype sort
