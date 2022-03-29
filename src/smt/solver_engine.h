@@ -33,9 +33,7 @@
 
 namespace cvc5 {
 
-namespace api {
 class Solver;
-}  // namespace api
 
 namespace internal {
 
@@ -111,7 +109,7 @@ class QuantifiersEngine;
 
 class CVC5_EXPORT SolverEngine
 {
-  friend class ::cvc5::api::Solver;
+  friend class cvc5::Solver;
   friend class smt::SolverEngineState;
   friend class smt::SolverEngineScope;
 
@@ -879,7 +877,7 @@ class CVC5_EXPORT SolverEngine
   SolverEngine& operator=(const SolverEngine&) = delete;
 
   /** Set solver instance that owns this SolverEngine. */
-  void setSolver(api::Solver* solver) { d_solver = solver; }
+  void setSolver(cvc5::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the (new) PfManager owned by this SolverEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
@@ -1050,7 +1048,7 @@ class CVC5_EXPORT SolverEngine
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
-  api::Solver* d_solver = nullptr;
+  cvc5::Solver* d_solver = nullptr;
 
   /**
    * The environment object, which contains all utilities that are globally

@@ -22,9 +22,7 @@
 
 namespace cvc5 {
 
-namespace api {
 class Solver;
-}
 
 class SymbolManager;
 
@@ -39,7 +37,7 @@ namespace parser {
   class InteractiveShell
   {
    public:
-    InteractiveShell(api::Solver* solver,
+    InteractiveShell(Solver* solver,
                      SymbolManager* sm,
                      std::istream& in,
                      std::ostream& out);
@@ -61,7 +59,7 @@ namespace parser {
     parser::Parser* getParser() { return d_parser.get(); }
 
    private:
-    api::Solver* d_solver;
+    Solver* d_solver;
     std::istream& d_in;
     std::ostream& d_out;
     std::unique_ptr<parser::Parser> d_parser;

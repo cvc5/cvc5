@@ -29,7 +29,7 @@
 namespace cvc5 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver,
+ParserBuilder::ParserBuilder(cvc5::Solver* solver,
                              SymbolManager* sm,
                              bool useOptions)
     : d_solver(solver), d_symman(sm)
@@ -41,7 +41,7 @@ ParserBuilder::ParserBuilder(api::Solver* solver,
   }
 }
 
-void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
+void ParserBuilder::init(cvc5::Solver* solver, SymbolManager* sm)
 {
   d_lang = "LANG_AUTO";
   d_solver = solver;

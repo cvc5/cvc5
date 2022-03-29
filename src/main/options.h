@@ -42,7 +42,7 @@ void printUsage(const std::string& binary, std::ostream& os);
  *
  * Preconditions: options and argv must be non-null.
  */
-std::vector<std::string> parse(api::Solver& solver,
+std::vector<std::string> parse(cvc5::Solver& solver,
                                int argc,
                                char* argv[],
                                std::string& binaryName);

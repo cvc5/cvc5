@@ -21,7 +21,6 @@
 #define CVC5__API__CHECKS_H
 
 namespace cvc5 {
-namespace api {
 
 /* -------------------------------------------------------------------------- */
 /* Basic check macros.                                                        */
@@ -680,6 +679,5 @@ namespace api {
       << "Invalid number of indices for operator " << kind << ". Expected " \
       << expected << " but got " << nargs << "."
 
-}  // namespace api
 }  // namespace cvc5
 #endif

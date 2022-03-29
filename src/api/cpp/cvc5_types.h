@@ -70,7 +70,7 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace cvc5::modes {
 

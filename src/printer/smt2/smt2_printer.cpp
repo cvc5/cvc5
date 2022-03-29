@@ -1283,7 +1283,7 @@ std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
   Kind k = n.getKind();
   if (n.getNumChildren() > 0 && n[0].getType().isSequence())
   {
-    // this method parallels api::Term::getKind
+    // this method parallels cvc5::Term::getKind
     switch (k)
     {
       case kind::STRING_CONCAT: return "seq.concat";

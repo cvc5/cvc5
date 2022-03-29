@@ -59,7 +59,7 @@ std::unique_ptr<cvc5::internal::main::CommandExecutor> pExecutor;
 }  // namespace main
 }  // namespace cvc5::internal
 
-int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::api::Solver>& solver)
+int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 {
   // Initialize the signal handlers
   signal_handlers::install();
@@ -68,7 +68,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::api::Solver>& solver)
 
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
-  cvc5::api::DriverOptions dopts = solver->getDriverOptions();
+  cvc5::DriverOptions dopts = solver->getDriverOptions();
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
@@ -248,7 +248,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::api::Solver>& solver)
       }
     }
 
-    cvc5::api::Result result;
+    cvc5::Result result;
     if(status) {
       result = pExecutor->getResult();
       returnValue = 0;

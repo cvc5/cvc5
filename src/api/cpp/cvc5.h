@@ -62,8 +62,6 @@ class CommandExecutor;
 }  // namespace main
 }  // namespace internal
 
-namespace api {
-
 class Solver;
 class Statistics;
 struct APIStatistics;
@@ -879,7 +877,6 @@ class CVC5_EXPORT Sort
  */
 std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
 
-}  // namespace api
 }  // namespace cvc5
 
 namespace std {
@@ -888,14 +885,14 @@ namespace std {
  * Hash function for Sorts.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::api::Sort>
+struct CVC5_EXPORT hash<cvc5::Sort>
 {
-  size_t operator()(const cvc5::api::Sort& s) const;
+  size_t operator()(const cvc5::Sort& s) const;
 };
 
 }  // namespace std
 
-namespace cvc5::api {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Op                                                                     */
@@ -1045,20 +1042,20 @@ class CVC5_EXPORT Op
  */
 std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace std {
 /**
  * Hash function for Ops.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::api::Op>
+struct CVC5_EXPORT hash<cvc5::Op>
 {
-  size_t operator()(const cvc5::api::Op& t) const;
+  size_t operator()(const cvc5::Op& t) const;
 };
 }  // namespace std
 
-namespace cvc5::api {
+namespace cvc5 {
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -1735,20 +1732,20 @@ std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V>& unordered_map)
     CVC5_EXPORT;
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace std {
 /**
  * Hash function for Terms.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::api::Term>
+struct CVC5_EXPORT hash<cvc5::Term>
 {
-  size_t operator()(const cvc5::api::Term& t) const;
+  size_t operator()(const cvc5::Term& t) const;
 };
 }  // namespace std
 
-namespace cvc5::api {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
@@ -3342,11 +3339,11 @@ class CVC5_EXPORT Solver
    *   - #INT_TO_BITVECTOR
    *   - #TUPLE_PROJECT
    *
-   * See cvc5::api::Kind for a description of the parameters.
+   * See cvc5::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    *
-   * @note If ``args`` is empty, the Op simply wraps the cvc5::api::Kind.  The
+   * @note If ``args`` is empty, the Op simply wraps the cvc5::Kind.  The
    * Kind can be used in Solver::mkTerm directly without creating an Op
    * first.
    */
@@ -3361,7 +3358,7 @@ class CVC5_EXPORT Solver
   /**
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See cvc5::api::Kind for a description of the parameters.
+   * See cvc5::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
@@ -4986,6 +4983,6 @@ class CVC5_EXPORT Solver
   std::unique_ptr<internal::Random> d_rng;
 };
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 #endif

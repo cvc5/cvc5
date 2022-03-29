@@ -322,7 +322,7 @@ class Env
    */
   Options d_options;
   /**
-   * A pointer to the original options object as stored in the api::Solver.
+   * A pointer to the original options object as stored in the cvc5::Solver.
    * The referenced objects holds the options as initially parsed before being
    * changed, e.g., by setDefaults().
    */

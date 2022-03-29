@@ -88,7 +88,7 @@
 #include "util/uninterpreted_sort_value.h"
 #include "util/utility.h"
 
-namespace cvc5::api {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* APIStatistics                                                              */
@@ -753,24 +753,24 @@ const static std::unordered_map<cvc5::RoundingMode, RoundingMode>
 
 namespace {
 
-/** Convert a internal::Kind (internal) to a cvc5::api::Kind (external).
+/** Convert a internal::Kind (internal) to a cvc5::Kind (external).
  */
-cvc5::api::Kind intToExtKind(internal::Kind k)
+cvc5::Kind intToExtKind(internal::Kind k)
 {
-  auto it = api::s_kinds_internal.find(k);
-  if (it == api::s_kinds_internal.end())
+  auto it = s_kinds_internal.find(k);
+  if (it == s_kinds_internal.end())
   {
-    return api::INTERNAL_KIND;
+    return INTERNAL_KIND;
   }
   return it->second;
 }
 
-/** Convert a cvc5::api::Kind (external) to a internal::Kind (internal).
+/** Convert a cvc5::Kind (external) to a internal::Kind (internal).
  */
-internal::Kind extToIntKind(cvc5::api::Kind k)
+internal::Kind extToIntKind(cvc5::Kind k)
 {
-  auto it = api::s_kinds.find(k);
-  if (it == api::s_kinds.end())
+  auto it = s_kinds.find(k);
+  if (it == s_kinds.end())
   {
     return internal::Kind::UNDEFINED_KIND;
   }
@@ -3704,7 +3704,7 @@ Term DatatypeConstructor::getInstantiatedConstructorTerm(
   internal::Node ret = d_ctor->getInstantiatedConstructor(*retSort.d_type);
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
-  Term sctor = api::Term(d_solver, ret);
+  Term sctor = Term(d_solver, ret);
   return sctor;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -4933,7 +4933,7 @@ Term Solver::mkRationalValHelper(const internal::Rational& r, bool isInt) const
   internal::NodeManager* nm = getNodeManager();
   internal::Node res = isInt ? nm->mkConstInt(r) : nm->mkConstReal(r);
   (void)res.getType(true); /* kick off type checking */
-  api::Term t = Term(this, res);
+  Term t = Term(this, res);
   // NOTE: this block will be eliminated when arithmetic subtyping is eliminated
   if (!isInt)
   {
@@ -5110,7 +5110,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    if (kind == api::SET_SINGLETON)
+    if (kind == SET_SINGLETON)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
@@ -5122,7 +5122,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // element type can be used safely here.
       res = getNodeManager()->mkSingleton(type, *children[0].d_node);
     }
-    else if (kind == api::BAG_MAKE)
+    else if (kind == BAG_MAKE)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
@@ -5135,7 +5135,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       res = getNodeManager()->mkBag(
           type, *children[0].d_node, *children[1].d_node);
     }
-    else if (kind == api::SEQ_UNIT)
+    else if (kind == SEQ_UNIT)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
@@ -5363,10 +5363,10 @@ void Solver::resetStatistics()
   {
     d_stats.reset(new APIStatistics{
         d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("api::CONSTANT"),
+            .registerHistogram<internal::TypeConstant>("CONSTANT"),
         d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("api::VARIABLE"),
-        d_slv->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+            .registerHistogram<internal::TypeConstant>("VARIABLE"),
+        d_slv->getStatisticsRegistry().registerHistogram<Kind>("TERM"),
     });
   }
 }
@@ -7727,16 +7727,16 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   }
 }
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace std {
 
-size_t hash<cvc5::api::Kind>::operator()(cvc5::api::Kind k) const
+size_t hash<cvc5::Kind>::operator()(cvc5::Kind k) const
 {
   return static_cast<size_t>(k);
 }
 
-size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
+size_t hash<cvc5::Op>::operator()(const cvc5::Op& t) const
 {
   if (t.isIndexedHelper())
   {
@@ -7744,7 +7744,7 @@ size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
   }
   else
   {
-    return std::hash<cvc5::api::Kind>()(t.d_kind);
+    return std::hash<cvc5::Kind>()(t.d_kind);
   }
 }
 
@@ -7753,7 +7753,7 @@ size_t std::hash<cvc5::Sort>::operator()(const cvc5::Sort& s) const
   return std::hash<cvc5::internal::TypeNode>()(*s.d_type);
 }
 
-size_t std::hash<cvc5::api::Term>::operator()(const cvc5::api::Term& t) const
+size_t std::hash<cvc5::Term>::operator()(const cvc5::Term& t) const
 {
   return std::hash<cvc5::internal::Node>()(*t.d_node);
 }

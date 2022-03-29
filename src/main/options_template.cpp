@@ -117,7 +117,7 @@ std::string suggestCommandLineOptions(const std::string& optionName)
       optionName.substr(0, optionName.find('=')));
 }
 
-void parseInternal(api::Solver& solver,
+void parseInternal(cvc5::Solver& solver,
                    int argc,
                    char* argv[],
                    std::vector<std::string>& nonoptions)
@@ -240,7 +240,7 @@ void parseInternal(api::Solver& solver,
  *
  * Throws OptionException on failures.
  */
-std::vector<std::string> parse(api::Solver& solver,
+std::vector<std::string> parse(cvc5::Solver& solver,
                                int argc,
                                char* argv[],
                                std::string& binaryName)
