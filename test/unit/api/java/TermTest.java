@@ -870,6 +870,31 @@ class TermTest
     assertDoesNotThrow(() -> vy.getUninterpretedSortValue());
   }
 
+  @Test void isRoundingModeValue() throws CVC5ApiException
+  {
+    assertFalse(d_solver.mkInteger(15).isRoundingModeValue());
+    assertTrue(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN).isRoundingModeValue());
+    assertFalse(d_solver.mkConst(d_solver.getRoundingModeSort()).isRoundingModeValue());
+  }
+
+  @Test void getRoundingModeValue() throws CVC5ApiException
+  {
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger(15).getRoundingModeValue());
+    assertEquals(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN).getRoundingModeValue(),
+        RoundingMode.ROUND_NEAREST_TIES_TO_EVEN);
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE).getRoundingModeValue(),
+        RoundingMode.ROUND_TOWARD_POSITIVE);
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE).getRoundingModeValue(),
+        RoundingMode.ROUND_TOWARD_NEGATIVE);
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO).getRoundingModeValue(),
+        RoundingMode.ROUND_TOWARD_ZERO);
+    assertEquals(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_AWAY).getRoundingModeValue(),
+        RoundingMode.ROUND_NEAREST_TIES_TO_AWAY);
+  }
+
   @Test void getTuple()
   {
     Sort s1 = d_solver.getIntegerSort();

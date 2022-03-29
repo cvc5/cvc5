@@ -41,6 +41,7 @@ add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/BlockModelsMode.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/RoundingMode.java"
 )
 add_custom_command(
   OUTPUT
@@ -78,7 +79,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Pair.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Result.java
-  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/RoundingMode.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Sort.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Stat.java

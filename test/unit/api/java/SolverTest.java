@@ -430,7 +430,16 @@ class SolverTest
 
   @Test void mkRoundingMode() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN).toString(),
+        "roundNearestTiesToEven");
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE).toString(),
+        "roundTowardPositive");
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE).toString(),
+        "roundTowardNegative");
+    assertEquals(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO).toString(), "roundTowardZero");
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_AWAY).toString(),
+        "roundNearestTiesToAway");
   }
 
   @Test void mkFloatingPoint() throws CVC5ApiException

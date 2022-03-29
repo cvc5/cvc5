@@ -17,7 +17,7 @@
 ##
 
 import cvc5
-from cvc5 import Kind
+from cvc5 import Kind, RoundingMode
 
 if __name__ == "__main__":
     slv = cvc5.Solver()
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     fp32 = slv.mkFloatingPointSort(8, 24)
 
     # the standard rounding mode
-    rm = slv.mkRoundingMode(cvc5.RoundNearestTiesToEven)
+    rm = slv.mkRoundingMode(RoundingMode.RoundNearestTiesToEven)
 
     # create a few single-precision variables
     x = slv.mkConst(fp32, 'x')
