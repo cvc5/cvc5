@@ -1968,7 +1968,8 @@ def test_add_sygus_constraint(solver):
         slv.addSygusConstraint(boolTerm)
 
 def test_add_sygus_assume(solver):
-    nullTerm = pycvc5.Term(solver)
+    solver.setOption("sygus", "true")
+    nullTerm = cvc5.Term(solver)
     boolTerm = solver.mkBoolean(False)
     intTerm = solver.mkInteger(1)
     solver.addSygusAssume(boolTerm)
@@ -1976,7 +1977,7 @@ def test_add_sygus_assume(solver):
         solver.addSygusAssume(nullTerm)
     with pytest.raises(RuntimeError):
         solver.addSygusAssume(intTerm)
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.addSygusAssume(boolTerm)
 
@@ -2646,7 +2647,7 @@ def test_tuple_project(solver):
 #  with pytest.raises(RuntimeError):
 #      solver.defineFunsRec([f1, f2], [[b1, b11], [b4]], [v1, v4])
 #
-#  slv = pycvc5.Solver()
+#  slv = cvc5.Solver()
 #  uSort2 = slv.mkUninterpretedSort("u")
 #  bvSort2 = slv.mkBitVectorSort(32)
 #  funSort12 = slv.mkFunctionSort([bvSort2, bvSort2], bvSort2)
@@ -2758,7 +2759,7 @@ def test_get_model(solver):
     sorts = [uSort]
     terms = [x, y]
     solver.getModel(sorts, terms)
-    null = pycvc5.Term(solver)
+    null = cvc5.Term(solver)
     terms += [null]
     with pytest.raises(RuntimeError):
         solver.getModel(sorts, terms)
@@ -2791,18 +2792,18 @@ def test_get_quantifier_elimination(solver):
     x = solver.mkVar(solver.getBooleanSort(), "x")
     forall = solver.mkTerm(Kind.Forall, solver.mkTerm(Kind.VariableList, x), solver.mkTerm(Kind.Or, x, solver.mkTerm(Kind.Not, x)))
     with pytest.raises(RuntimeError):
-        solver.getQuantifierElimination(pycvc5.Term(solver))
+        solver.getQuantifierElimination(cvc5.Term(solver))
     with pytest.raises(RuntimeError):
-        solver.getQuantifierElimination(pycvc5.Solver().mkBoolean(False))
+        solver.getQuantifierElimination(cvc5.Solver().mkBoolean(False))
     solver.getQuantifierElimination(forall)
 
 def test_get_quantifier_elimination_disjunct(solver):
     x = solver.mkVar(solver.getBooleanSort(), "x")
     forall = solver.mkTerm(Kind.Forall, solver.mkTerm(Kind.VariableList, x), solver.mkTerm(Kind.Or, x, solver.mkTerm(Kind.Not, x)))
     with pytest.raises(RuntimeError):
-        solver.getQuantifierEliminationDisjunct(pycvc5.Term(solver))
+        solver.getQuantifierEliminationDisjunct(cvc5.Term(solver))
     with pytest.raises(RuntimeError):
-        solver.getQuantifierEliminationDisjunct(pycvc5.Solver().mkBoolean(False))
+        solver.getQuantifierEliminationDisjunct(cvc5.Solver().mkBoolean(False))
     solver.getQuantifierEliminationDisjunct(forall)
     
 
