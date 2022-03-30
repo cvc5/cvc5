@@ -43,7 +43,8 @@ public class Solver implements IPointer, AutoCloseable
   // store pointers for terms, sorts, etc
   List<AbstractPointer> abstractPointers = new ArrayList<>();
 
-  @Override public void close()
+  @Override
+  public void close()
   {
     // delete heap memory for terms, sorts, etc
     for (int i = abstractPointers.size() - 1; i >= 0; i--)
@@ -712,7 +713,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create operator of kind:
    *   - RECORD_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
@@ -738,7 +739,7 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_SBV
    *   - FLOATINGPOINT_TO_SBV_TOTAL
    *   - TUPLE_UPDATE
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the unsigned int argument to this operator
    * @throws CVC5ApiException
@@ -760,7 +761,7 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_FP_FROM_REAL
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first unsigned int argument to this operator
    * @param arg2 the second unsigned int argument to this operator
@@ -779,7 +780,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create operator of Kind:
    *   - TUPLE_PROJECT
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    * @throws CVC5ApiException
