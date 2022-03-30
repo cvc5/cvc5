@@ -25,7 +25,8 @@ public class Pair<K, V>
     this.second = second;
   }
 
-  @Override public boolean equals(Object pair)
+  @Override
+  public boolean equals(Object pair)
   {
     if (this == pair)
       return true;
