@@ -64,7 +64,7 @@ class OptimizationResult
   {
   }
   OptimizationResult()
-      : d_result(Result::UNKNOWN, Result::UnknownExplanation::NO_STATUS),
+      : d_result(Result::UNKNOWN, UnknownExplanation::NO_STATUS),
         d_value(),
         d_infinity(FINITE)
   {
