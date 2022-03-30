@@ -22,7 +22,10 @@ cvc5 1.0
   - A new array-inspired procedure (option `--seq-array`).
 
 * *Arithmetic*
-  - New nonlinear arithmetic solver based on cylindrical algebraic coverings.
+  - Nonlinear real arithmetic is now solved using a new solver based on cylindrical
+    algebraic coverings. Includes full support for non-rational models and a number
+    of options `--nl-cov-*` for, e.g., different projection operators, Lazard's
+    lifting or variable elimination.
 
 * *Arrays*
   - Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
