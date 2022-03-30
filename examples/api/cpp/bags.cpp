@@ -34,7 +34,7 @@ int main()
   Term A = slv.mkConst(bag, "A");
   Term B = slv.mkConst(bag, "B");
   Term C = slv.mkConst(bag, "C");
-  Term x = slv.mkConst(slv.getStringSort(), "A");
+  Term x = slv.mkConst(slv.getStringSort(), "x");
 
   Term intersectionAC = slv.mkTerm(BAG_INTER_MIN, {A, C});
   Term intersectionBC = slv.mkTerm(BAG_INTER_MIN, {B, C});
