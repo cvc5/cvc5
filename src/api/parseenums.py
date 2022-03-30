@@ -162,7 +162,8 @@ class EnumParser:
 
                 if ENUM_END in line:
                     self.in_enum = False
-                    break
+                    self.last_value = -1
+                    continue
                 elif self.in_enum:
                     if line == OCB:
                         continue

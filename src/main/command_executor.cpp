@@ -140,7 +140,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
             || (res.isUnknown()
-                && res.getUnknownExplanation() == cvc5::Result::INCOMPLETE)))
+                && res.getUnknownExplanation()
+                       == cvc5::UnknownExplanation::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }

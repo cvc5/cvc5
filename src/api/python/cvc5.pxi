@@ -22,7 +22,6 @@ from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport SynthResult as c_SynthResult
-from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport OptionInfo as c_OptionInfo
 from cvc5 cimport holds as c_holds
@@ -32,10 +31,6 @@ from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
-from cvc5 cimport REQUIRES_FULL_CHECK, INCOMPLETE, TIMEOUT
-from cvc5 cimport RESOURCEOUT, MEMOUT, INTERRUPTED
-from cvc5 cimport NO_STATUS, UNSUPPORTED, UNKNOWN_REASON
-from cvc5 cimport OTHER
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
 from cvc5 cimport wstring as c_wstring
@@ -43,6 +38,7 @@ from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
 from cvc5types cimport RoundingMode as c_RoundingMode
+from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
@@ -668,32 +664,6 @@ cdef class SynthResult:
 
     def __repr__(self):
         return self.cr.toString().decode()
-
-cdef class UnknownExplanation:
-    """
-        Wrapper class for :cpp:enum:`cvc5::Result::UnknownExplanation`.
-    """
-    cdef c_UnknownExplanation cue
-    cdef str name
-    def __cinit__(self, int ue):
-        # crm always assigned externally
-        self.cue = <c_UnknownExplanation> ue
-        self.name = __unknown_explanations[ue]
-
-    def __eq__(self, UnknownExplanation other):
-        return (<int> self.cue) == (<int> other.cue)
-
-    def __ne__(self, UnknownExplanation other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash((<int> self.crm, self.name))
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
 
 
 cdef class Solver:
@@ -3626,31 +3596,3 @@ cdef class Term:
                 res[k] = v
 
             return res
-
-
-# Generate unknown explanations
-cdef __unknown_explanations = {
-    <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
-    <int> INCOMPLETE: "Incomplete",
-    <int> TIMEOUT: "Timeout",
-    <int> RESOURCEOUT: "Resourceout",
-    <int> MEMOUT: "Memout",
-    <int> INTERRUPTED: "Interrupted",
-    <int> NO_STATUS: "NoStatus",
-    <int> UNSUPPORTED: "Unsupported",
-    <int> OTHER: "Other",
-    <int> UNKNOWN_REASON: "UnknownReason"
-}
-
-mod_ref = sys.modules[__name__]
-for ue_int, name in __unknown_explanations.items():
-    u = UnknownExplanation(ue_int)
-
-    if name in dir(mod_ref):
-        raise RuntimeError("Redefinition of Python UnknownExplanation %s."%name)
-
-    setattr(mod_ref, name, u)
-
-del u
-del ue_int
-del name
