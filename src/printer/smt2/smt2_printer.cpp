@@ -774,13 +774,13 @@ void Smt2Printer::toStream(std::ostream& out,
     TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
     if (op.getIndices().empty())
     {
-      // e.g. (tuple_project tuple)
-      out << "tuple_project " << n[0] << ")";
+      // e.g. (tuple.project tuple)
+      out << "tuple.project " << n[0] << ")";
     }
     else
     {
-      // e.g. ((_ tuple_project 2 4 4) tuple)
-      out << "(_ tuple_project" << op << ") " << n[0] << ")";
+      // e.g. ((_ tuple.project 2 4 4) tuple)
+      out << "(_ tuple.project" << op << ") " << n[0] << ")";
     }
     return;
   }
@@ -797,7 +797,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
+      out << "(_ tuple.select " << DType::indexOf(op) << ") ";
     }
   }
   break;
@@ -823,7 +823,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tuple_update " << DType::indexOf(op) << ") ";
+      out << "(_ tuple.update " << DType::indexOf(op) << ") ";
     }
     else
     {
@@ -1387,7 +1387,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
                                     TypeNode tn,
                                     const std::vector<Node>& elements) const
 {
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
     out << "ERROR: don't know how to print non uninterpreted sort in model: "
         << tn << std::endl;
@@ -1651,8 +1651,10 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          TypeNode type) const
 {
-  Assert(type.isSort() || type.isSortConstructor());
-  size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
+  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
+  size_t arity = type.isUninterpretedSortConstructor()
+                     ? type.getUninterpretedSortConstructorArity()
+                     : 0;
   out << "(declare-sort " << type << " " << arity << ")" << std::endl;
 }
 

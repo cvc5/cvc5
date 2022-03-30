@@ -2275,7 +2275,7 @@ enum Kind : int32_t
    * \rst
    * .. code:: smtlib
    *
-   *     ((_ tuple_project 1 2 2 3 1) (tuple 10 20 30 40))
+   *     ((_ tuple.project 1 2 2 3 1) (tuple 10 20 30 40))
    * \endrst
    * yields
    * \rst

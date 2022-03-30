@@ -49,8 +49,8 @@ jobs:
           linkchecker --check-extern docs-new/index.html
 
 # This workflow is run for commits in PRs (from branches in forks), commits
-# (from branches in main repo, usually master) and tags. Unfortunately, there
-# are only two properties in the github context that can be used here:
+# (from branches in main repo, usually main branch) and tags. Unfortunately,
+# there are only two properties in the github context that can be used here:
 # - workflow_run.event is "pull_request" for PRs and "push" otherwise
 # - workflow_run.head_branch contains the branch or tag name
 # We can not reliably identify a tag from that, so we simply match the
@@ -91,11 +91,11 @@ jobs:
             cp -r docs-new target/docs-$NAME-$HASH
             cd target/
 
-            isdiff=$(diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH >&2; echo $?; exit 0)
+            isdiff=$(diff -r -x "*.zip" docs-main/ docs-$NAME-$HASH >&2; echo $?; exit 0)
 
             if [[ ("$ISRELEASE" != true) && ($isdiff = 0) ]]
             then
-              echo "Ignored run, documentation is the same as for current master"
+              echo "Ignored run, documentation is the same as for current main"
             else
               rm -f docs-$NAME
               ln -s docs-$NAME-$HASH docs-$NAME

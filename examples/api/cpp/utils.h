@@ -18,6 +18,8 @@
 
 #include <cvc5/cvc5.h>
 
+namespace utils {
+
 /**
  * Print solutions for synthesis conjecture to the standard output stream.
  * @param terms the terms for which the synthesis solutions were retrieved
@@ -25,5 +27,7 @@
  */
 void printSynthSolutions(const std::vector<cvc5::Term>& terms,
                          const std::vector<cvc5::Term>& sols);
+
+}  // namespace utils
 
 #endif  // CVC5__UTILS_H

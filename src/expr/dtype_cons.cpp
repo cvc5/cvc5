@@ -310,7 +310,7 @@ bool DTypeConstructor::involvesUninterpretedType() const
 {
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
-    if (!getArgType(i).isSort())
+    if (!getArgType(i).isUninterpretedSort())
     {
       return true;
     }
@@ -645,7 +645,8 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   }
   for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
   {
-    if (paramTypes[i].getSortConstructorArity() == origChildren.size())
+    if (paramTypes[i].getUninterpretedSortConstructorArity()
+        == origChildren.size())
     {
       TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
       if (range == tn)

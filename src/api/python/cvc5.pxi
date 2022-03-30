@@ -1572,6 +1572,20 @@ cdef class Solver:
         """
         self.csolver.addSygusConstraint(t.cterm)
 
+    def addSygusAssume(self, Term t):
+        """
+        Add a formula to the set of Sygus assumptions.
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
+
+            ( assume <term> )
+
+        :param term: the formuula to add as an assumption
+        """
+        self.csolver.addSygusAssume(t.cterm)
+
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         """
         Add a set of SyGuS constraints to the current state that correspond to an
@@ -1969,7 +1983,8 @@ cdef class Solver:
         return assertions
 
     def getInfo(self, str flag):
-        """Get info from the solver.
+        """
+        Get info from the solver.
 
         SMT-LIB:
 
@@ -2074,6 +2089,15 @@ cdef class Solver:
             res['modes'] = [s.decode() for s in mi.modes]
         return res
 
+    def getOptionNames(self):
+       """Get all option names that can be used with `setOption`, `getOption` and `getOptionInfo`.
+       :return: all option names
+       """
+       result = []
+       for n in self.csolver.getOptionNames():
+           result += [n.decode()]
+       return result
+
     def getUnsatAssumptions(self):
         """
         Get the set of unsat ("failed") assumptions.
@@ -2121,6 +2145,30 @@ cdef class Solver:
             term.cterm = a
             core.append(term)
         return core
+
+    def getDifficulty(self):
+        """
+            Get a difficulty estimate for an asserted formula. This method is intended to be called immediately after 
+            any response to a checkSat.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :return: a map from (a subset of) the input assertions to a real value that is an estimate of how difficult each assertion was to solver. Unmentioned assertions can be assumed to have zero difficulty.
+        """
+        diffi = {}
+        for p in self.csolver.getDifficulty():
+            k = p.first
+            v = p.second
+
+            termk = Term(self)
+            termk.cterm = k
+
+            termv = Term(self)
+            termv.cterm = v
+
+            diffi[termk] = termv
+        return diffi
 
     def getValue(self, Term t):
         """Get the value of the given term in the current model.
@@ -2170,6 +2218,88 @@ cdef class Solver:
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
+    def getQuantifierElimination(self, Term term):
+        """Do quantifier elimination.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-qe <q> )
+
+        Requires a logic that supports quantifier elimination.
+        Currently, the only logics supported by quantifier elimination
+        are LRA and LIA.
+
+        .. warning:: This method is experimental and may change in future
+                         versions.
+
+        :param q: a quantified formula of the form
+                :math:`Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)'
+                where
+                :math:'Q\bar{x}' is a set of quantified variables of the form
+                :math:'Q x_1...x_k' and
+                :math:'P( x_1...x_i, y_1...y_j )' is a quantifier-free formula
+        :return: a formula :math:'\phi'  such that, given the current set of formulas
+               :math:'A asserted to this solver:
+               - :math:'(A \wedge q)' :math:'(A \wedge \phi)' are equivalent
+               - :math:'\phi' is quantifier-free formula containing only free
+                 variables in :math:'y_1...y_n'.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getQuantifierElimination(term.cterm)
+        return result
+
+    def getQuantifierEliminationDisjunct(self, Term term):
+        """Do partial quantifier elimination, which can be used for incrementally computing
+        the result of a quantifier elimination.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-qe-disjunct <q> )
+
+        Requires a logic that supports quantifier elimination.
+        Currently, the only logics supported by quantifier elimination
+        are LRA and LIA.
+            
+	.. warning:: This method is experimental and may change in future
+                         versions.
+        
+           :param q: a quantified formula of the form
+                   @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
+                   where
+                   @f$Q\bar{x}@f$ is a set of quantified variables of the form
+                   @f$Q x_1...x_k@f$ and
+                   @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
+           :return: a formula @f$\phi@f$ such that, given the current set of formulas
+                  @f$A@f$ asserted to this solver:
+                  - @f$(A \wedge q \implies A \wedge \phi)@f$ if @f$Q@f$ is
+                    @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
+                    @f$Q@f$ is @f$\exists@f$
+                  - @f$\phi@f$ is quantifier-free formula containing only free
+                    variables in @f$y_1...y_n@f$
+                  - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
+                    formula
+                    @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge
+                    \neg (\phi \wedge Q_n))@f$
+                    where for each @f$i = 1...n@f$,
+                    formula @f$(\phi \wedge Q_i)@f$ is the result of calling
+                    Solver::getQuantifierEliminationDisjunct() for @f$q@f$ with the
+                    set of assertions @f$(A \wedge Q_{i-1})@f$.
+                    Similarly, if @f$Q@f$ is @f$\forall@f$, then let
+                    @f$(A \wedge Q_n)@f$ be
+                    @f$(A \wedge (\phi \wedge Q_1) \wedge ... \wedge (\phi \wedge
+                    Q_n))@f$
+                    where @f$(\phi \wedge Q_i)@f$ is the same as above.
+                    In either case, we have that @f$(\phi \wedge Q_j)@f$ will
+                    eventually be true or false, for some finite j.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getQuantifierEliminationDisjunct(term.cterm)
+        return result
+    
     def getModel(self, sorts, consts):
         """Get the model
 
@@ -3472,6 +3602,27 @@ cdef class Term:
             term.cterm = e
             elems.append(term)
         return elems
+
+    def isCardinalityConstraint(self):
+        """
+        .. warning:: This method is experimental and may change in future
+                     versions.
+	:return: True if the term is a cardinality constraint.
+	"""
+        return self.cterm.isCardinalityConstraint()
+
+    def getCardinalityConstraint(self):
+        """
+        .. warning:: This method is experimental and may change in future
+                     versions.
+	:return: the sort the cardinality constraint is for and its upper bound.
+	"""
+        cdef pair[c_Sort, uint32_t] p
+        p = self.cterm.getCardinalityConstraint()
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = p.first
+        return (sort, p.second)
+
 
     def isUninterpretedSortValue(self):
         """:return: True iff this term is a value from an uninterpreted sort."""

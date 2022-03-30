@@ -242,7 +242,7 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     os << "(declare ";
     printType(os, tn);

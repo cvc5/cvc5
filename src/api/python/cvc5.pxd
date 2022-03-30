@@ -6,6 +6,7 @@ from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
 from cvc5types cimport RoundingMode, UnknownExplanation
@@ -240,6 +241,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term declareSygusVar(Sort sort, const string& symbol) except +
         Term declareSygusVar(Sort sort) except +
         void addSygusConstraint(Term term) except +
+        void addSygusAssume(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
@@ -322,8 +324,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
+        map[Term,Term] getDifficulty() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
+        Term getQuantifierElimination(const Term& q) except +
+        Term getQuantifierEliminationDisjunct(const Term& q) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
         string getModel(const vector[Sort]& sorts,
@@ -484,6 +489,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+        bint isCardinalityConstraint() except +
+        pair[Sort, uint32_t] getCardinalityConstraint() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +
