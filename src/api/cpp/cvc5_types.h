@@ -46,8 +46,7 @@ enum UnknownExplanation
  * @param e the explanation to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out,
-                         enum UnknownExplanation e) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& out, UnknownExplanation e) CVC5_EXPORT;
 
 /**
  * Rounding modes for floating-point numbers.

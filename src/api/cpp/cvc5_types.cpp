@@ -22,7 +22,7 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, enum UnknownExplanation e)
+std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
 {
   switch (e)
   {

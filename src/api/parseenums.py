@@ -190,7 +190,7 @@ class EnumParser:
                     fmt_comment = self.format_comment(
                         self.latest_block_comment)
                     enum.enumerators_doc[name] = fmt_comment
-                elif ENUM_START in line:
+                elif line.startswith(ENUM_START):
                     self.in_enum = True
                     tokens = line.split()
                     name = tokens[1]
