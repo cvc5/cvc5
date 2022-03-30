@@ -150,6 +150,11 @@ examples_types = {
                 'lang': 'c++',
                 'group': 'c++'
         },
+        '\.h$': {
+                'title': 'C++ (header)',
+                'lang': 'c++',
+                'group': 'c++'
+        },
         '\.java$': {
                 'title': 'Java',
                 'lang': 'java',
