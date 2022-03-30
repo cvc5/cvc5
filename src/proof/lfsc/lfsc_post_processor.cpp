@@ -22,9 +22,9 @@
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
@@ -419,4 +419,4 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

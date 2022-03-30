@@ -25,10 +25,10 @@
 #include "util/string.h"
 #include "expr/subtype_elim_node_converter.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
@@ -142,4 +142,4 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

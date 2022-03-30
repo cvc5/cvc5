@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 /** Mark variable as list */
@@ -62,6 +62,6 @@ Node narySubstitute(Node src,
                     const std::vector<Node>& subs);
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__EXPR__NARY_TERM_UTIL__H */

@@ -23,9 +23,9 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -58,6 +58,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_EQ, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_INFERENCE, this, 3);
+  // external proof rules
+  pc->registerChecker(PfRule::LFSC_RULE, this);
   pc->registerChecker(PfRule::ALETHE_RULE, this);
 }
 
@@ -382,7 +384,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == PfRule::ALETHE_RULE)
+  else if (id == PfRule::LFSC_RULE || id == PfRule::ALETHE_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
@@ -417,4 +419,4 @@ Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

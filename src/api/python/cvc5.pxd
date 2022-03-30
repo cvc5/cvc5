@@ -6,6 +6,7 @@ from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
 from cvc5types cimport RoundingMode
@@ -51,7 +52,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         pass
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](size_t idx) except +
@@ -182,7 +183,7 @@ cdef extern from "<variant>" namespace "std":
     bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
     T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
@@ -202,7 +203,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isUnknown() except +
         string toString() except +
 
-    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
+    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result":
         cdef cppclass UnknownExplanation:
             pass
 
@@ -245,6 +246,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term declareSygusVar(Sort sort, const string& symbol) except +
         Term declareSygusVar(Sort sort) except +
         void addSygusConstraint(Term term) except +
+        void addSygusAssume(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
@@ -327,8 +329,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
+        map[Term,Term] getDifficulty() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
+        Term getQuantifierElimination(const Term& q) except +
+        Term getQuantifierEliminationDisjunct(const Term& q) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
         string getModel(const vector[Sort]& sorts,
@@ -400,6 +405,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isInstantiated() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
+        vector[Sort] getInstantiatedParameters() except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
@@ -416,12 +422,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSetElementSort() except +
         Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
-        vector[Sort] getUninterpretedSortParamSorts() except +
         size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
         uint32_t getFloatingPointExponentSize() except +
         uint32_t getFloatingPointSignificandSize() except +
-        vector[Sort] getDatatypeParamSorts() except +
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +
         vector[Sort] getTupleSorts() except +
@@ -531,7 +535,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t operator()(const Term & t) except +
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result::UnknownExplanation":
     cdef UnknownExplanation REQUIRES_FULL_CHECK
     cdef UnknownExplanation INCOMPLETE
     cdef UnknownExplanation TIMEOUT

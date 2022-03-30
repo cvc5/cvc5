@@ -23,7 +23,7 @@
 #include "test_node.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
@@ -95,4 +95,4 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   ASSERT_TRUE(bvType.getBaseType() == bvType);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

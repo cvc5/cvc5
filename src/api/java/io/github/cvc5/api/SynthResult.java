@@ -15,9 +15,6 @@
 
 package io.github.cvc5.api;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SynthResult extends AbstractPointer
 {
   // region construction and destruction

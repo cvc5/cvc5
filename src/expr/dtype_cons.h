@@ -26,7 +26,7 @@
 #include "expr/type_node.h"
 #include "util/cardinality_class.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * The Node-level representation of a constructor for a datatype, which
@@ -365,6 +365,6 @@ struct DTypeConstructorHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

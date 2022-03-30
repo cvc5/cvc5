@@ -21,9 +21,9 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/uf/equality_engine_iterator.h"
 
-using namespace cvc5::context;
+using namespace cvc5::internal::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -374,4 +374,4 @@ bool InstMatchTrieOrdered::existsInstMatch(quantifiers::QuantifiersState& qs,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

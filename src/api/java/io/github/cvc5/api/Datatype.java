@@ -116,7 +116,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * @return the parameters of this datatype, if it is parametric. An exception
    * is thrown if this datatype is not parametric.
    */
-  public Sort[] getParameters() {
+  public Sort[] getParameters()
+  {
     long[] sortPointers = getParameters(pointer);
     Sort[] sorts = Utils.getSorts(solver, sortPointers);
     return sorts;

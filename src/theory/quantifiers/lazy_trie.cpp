@@ -15,7 +15,7 @@
 
 #include "theory/quantifiers/lazy_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -157,4 +157,4 @@ void LazyTrieMulti::clear()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

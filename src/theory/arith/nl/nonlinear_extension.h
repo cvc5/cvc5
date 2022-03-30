@@ -42,7 +42,7 @@
 #include "theory/theory.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
   class EqualityEngine;
@@ -267,6 +267,6 @@ class NonlinearExtension : EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

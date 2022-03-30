@@ -27,7 +27,7 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 
@@ -354,6 +354,6 @@ class CegisCoreConnective : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

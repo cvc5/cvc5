@@ -117,4 +117,4 @@ if __name__ == '__main__':
     print(
         'If you are sure you want to push this release, use the following command:'
     )
-    print('\tgit push --tags origin master')
+    print('\tgit push --tags origin main')

@@ -35,9 +35,9 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -1675,4 +1675,4 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -41,9 +41,9 @@
 #include "theory/fp/fp_word_blaster.h"
 #include "util/floatingpoint.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -1516,4 +1516,4 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
 
   }  // namespace fp
   }  // namespace theory
-  }  // namespace cvc5
+  }  // namespace cvc5::internal

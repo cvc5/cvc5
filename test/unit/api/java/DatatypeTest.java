@@ -541,12 +541,10 @@ class DatatypeTest
 
     AtomicReference<Term> atomicTerm = new AtomicReference<>();
     // get the specialized constructor term for list[Int]
-    assertDoesNotThrow(
-        () -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
+    assertDoesNotThrow(() -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
     Term testConsTerm = atomicTerm.get();
     assertNotEquals(testConsTerm, nilc.getConstructorTerm());
     // error to get the specialized constructor term for Int
-    assertThrows(CVC5ApiException.class,
-        () -> nilc.getInstantiatedConstructorTerm(isort));
+    assertThrows(CVC5ApiException.class, () -> nilc.getInstantiatedConstructorTerm(isort));
   }
 }

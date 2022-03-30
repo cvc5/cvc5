@@ -102,8 +102,8 @@ autosectionlabel_prefix_document = True
 # -- core extension:: sphinx.ext.extlinks ------------------------------------
 
 extlinks = {
-        'cvc5src': ('https://github.com/cvc5/cvc5/blob/master/src/%s', '%s'),
-        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/master/%s', '%s'),
+        'cvc5src': ('https://github.com/cvc5/cvc5/blob/main/src/%s', '%s'),
+        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/main/%s', '%s'),
 }
 
 
@@ -150,6 +150,11 @@ examples_types = {
                 'lang': 'c++',
                 'group': 'c++'
         },
+        '\.h$': {
+                'title': 'C++ (header)',
+                'lang': 'c++',
+                'group': 'c++'
+        },
         '\.java$': {
                 'title': 'Java',
                 'lang': 'java',
@@ -180,7 +185,7 @@ examples_types = {
 examples_file_patterns = {
         '^<examples>(.*)': {
                 'local': '/../examples{}',
-                'url': 'https://github.com/cvc5/cvc5/tree/master/examples{}',
+                'url': 'https://github.com/cvc5/cvc5/tree/main/examples{}',
                 'urlname': 'examples{}',
         },
         '<z3pycompat>(.*)': {

@@ -20,7 +20,7 @@
 
 #include "proof/alethe/alethe_proof_rule.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -257,4 +257,4 @@ std::string AletheProofPrinter::printInternal(
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

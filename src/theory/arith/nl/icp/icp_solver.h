@@ -30,7 +30,7 @@
 #include "theory/arith/nl/icp/intersection.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -156,6 +156,6 @@ class ICPSolver : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -21,7 +21,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TConvProofGenerator;
 
@@ -74,5 +74,5 @@ class BitblastProofGenerator : public ProofGenerator, protected EnvObj
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif
