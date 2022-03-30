@@ -154,7 +154,7 @@ std::string Configuration::copyright() {
       ss << "cvc5 is statically linked against these libraries. To recompile\n"
             "this version of cvc5 with different versions of these libraries\n"
             "follow the instructions on "
-            "https://github.com/cvc5/cvc5/blob/master/INSTALL.md\n\n";
+            "https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\n";
     }
   }
 
