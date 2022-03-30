@@ -33,7 +33,7 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
 Class hierarchy
 ^^^^^^^^^^^^^^^
 
-``namespace cvc5::api {``
+``namespace cvc5 {``
 
   * class :cpp:class:`CVC5ApiException <cvc5::CVC5ApiException>`
   * class :cpp:class:`CVC5ApiRecoverableException <cvc5::CVC5ApiRecoverableException>`
