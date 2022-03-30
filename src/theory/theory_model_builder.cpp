@@ -513,14 +513,16 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // higher-order.
         if (tm->isValue(n))
         {
-          // In rare cases, it could be that multiple terms in the same
-          // equivalence class are considered values. We distinguish three kinds
-          // of model values: constants, non-constant base values and non-base
-          // values, and we use them in this order of preference.
-          // We print a warning if there is more than one model value in the
-          // same equivalence class. We throw a debug failure if there are at
-          // least two base model values in the same equivalence class that do
-          // not compare equal.
+          // In some cases, there can be multiple terms in the same equivalence
+          // class are considered values, e.g., when real algebraic numbers did
+          // not simplify to rational values or real.pi was used as a model
+          // value. We distinguish three kinds of model values: constants,
+          // non-constant base values and non-base values, and we use them in
+          // this order of preference.
+          // We print a trace message if there is more than one model value in
+          // the same equivalence class. We throw a debug failure if there are
+          // at least two base model values in the same equivalence class that
+          // do not compare equal.
           bool assignConstRep = false;
           bool isBaseValue = tm->isBaseModelValue(n);
           if (constRep.isNull())
