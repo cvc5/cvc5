@@ -17,6 +17,10 @@
 
 #include <iostream>
 
+namespace utils {
+
+using namespace cvc5;
+
 /**
  * Get the string version of define-fun command.
  * @param f the function to print
@@ -25,8 +29,8 @@
  * @return a string version of define-fun
  */
 std::string defineFunToString(const cvc5::Term& f,
-                              const std::vector<cvc5::Term> params,
-                              const cvc5::Term body)
+                              const std::vector<cvc5::Term>& params,
+                              const cvc5::Term& body)
 {
   cvc5::Sort sort = f.getSort();
   if (sort.isFunction())
@@ -51,18 +55,18 @@ void printSynthSolutions(const std::vector<cvc5::Term>& terms,
                          const std::vector<cvc5::Term>& sols)
 {
   std::cout << '(' << std::endl;
-
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
     std::vector<cvc5::Term> params;
-    cvc5::Term body;
+    cvc5::Term body = sols[i];
     if (sols[i].getKind() == cvc5::LAMBDA)
     {
       params.insert(params.end(), sols[i][0].begin(), sols[i][0].end());
       body = sols[i][1];
     }
-    std::cout << "  " << defineFunToString(terms[i], params, body)
-              << std::endl;
+    std::cout << "  " << defineFunToString(terms[i], params, body) << std::endl;
   }
   std::cout << ')' << std::endl;
 }
+
+}  // namespace utils

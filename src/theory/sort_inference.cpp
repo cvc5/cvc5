@@ -381,7 +381,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
         //apply sort inference to quantified variables
         for( size_t i=0; i<n[0].getNumChildren(); i++ ){
           TypeNode nitn = n[0][i].getType();
-          if( !nitn.isSort() )
+          if (!nitn.isUninterpretedSort())
           {
             // If the variable is of an interpreted sort, we assume the
             // the sort of the variable will stay the same sort.
@@ -574,7 +574,7 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
     // to be rewritten in the sort-inferred signature. Notice we only assign
     // pref here if it is an uninterpreted sort.
     if (!pref.isNull() && d_id_for_types.find(pref) == d_id_for_types.end()
-        && pref.isSort())
+        && pref.isUninterpretedSort())
     {
       retType = pref;
     }else{
@@ -875,7 +875,7 @@ bool SortInference::isWellSorted( Node n ) {
 }
 
 bool SortInference::isMonotonic( TypeNode tn ) {
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }
 
