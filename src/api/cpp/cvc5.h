@@ -2874,7 +2874,7 @@ struct CVC5_EXPORT OptionInfo
 };
 
 /**
- * Print a `OptionInfo` object to an ``std::ostream``.
+ * Print an `OptionInfo` object to an ``std::ostream``.
  */
 std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
 
