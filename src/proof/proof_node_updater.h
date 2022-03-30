@@ -68,7 +68,11 @@ class ProofNodeUpdaterCallback
                       CDProof* cdp,
                       bool& continueUpdate);
 
-  /** As above, but at post-visit. */
+  /** As above, but at post-visit.
+   *
+   * We do not pass a continueUpdate flag to this method, or the one below,
+   * since the children of this proof node have already been updated.
+   */
   virtual bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
                                 const std::vector<Node>& fa);
 
