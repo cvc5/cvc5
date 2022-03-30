@@ -22,6 +22,7 @@
 #include "options/option_exception.h"
 
 using namespace cvc5::internal;
+using namespace cvc5::main;
 
 /**
  * cvc5's main() routine is just an exception-safe wrapper around runCvc5.
@@ -68,13 +69,12 @@ int main(int argc, char* argv[])
       solver->getDriverOptions().err()
           << "(error \"" << e << "\")" << std::endl;
     }
-    if (solver->getOptionInfo("stats").boolValue()
-        && main::pExecutor != nullptr)
+    if (solver->getOptionInfo("stats").boolValue() && pExecutor != nullptr)
     {
-      main::pExecutor->printStatistics(solver->getDriverOptions().err());
+      pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
   // Make sure that the command executor is destroyed before the node manager.
-  main::pExecutor.reset();
+  pExecutor.reset();
   exit(1);
 }
