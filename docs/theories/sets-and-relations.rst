@@ -19,7 +19,7 @@ a `cvc5::Solver solver` object.
 |                      |                                              |                                                                         |
 |                      | ``(set-logic QF_UFLIAFS)``                   | ``solver.setLogic("QF_UFLIAFS");``                                      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Sort                 | ``(Set <Sort>)``                             | ``solver.mkSetSort(cvc5::Sort elementSort);``                      |
+| Sort                 | ``(Set <Sort>)``                             | ``solver.mkSetSort(cvc5::Sort elementSort);``                           |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Constants            | ``(declare-const X (Set Int)``               | ``Sort s = solver.mkSetSort(solver.getIntegerSort());``                 |
 |                      |                                              |                                                                         |
@@ -151,7 +151,7 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Logic String         | ``(set-logic QF_ALL)``                       | ``solver.setLogic("QF_ALL");``                                                     |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Sort           | ``(Tuple <Sort_1>, ..., <Sort_n>)``          | ``std::vector<cvc5::Sort> sorts = { ... };``                                  |
+| Tuple Sort           | ``(Tuple <Sort_1>, ..., <Sort_n>)``          | ``std::vector<cvc5::Sort> sorts = { ... };``                                       |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
@@ -171,7 +171,7 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Relation Sort        | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::Sort tupleSort);``                          |
+| Relation Sort        | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::Sort tupleSort);``                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Constants            | ``(declare-const X (Set (Tuple Int Int)``    | ``Sort s = solver.mkSetSort(solver.mkTupleSort({s_int, s_int});``                  |
 |                      |                                              |                                                                                    |
