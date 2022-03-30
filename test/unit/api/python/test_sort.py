@@ -137,8 +137,8 @@ def test_is_constructor(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
     cons_sort = dt[0].getConstructorTerm().getSort()
-    assert cons_sort.isConstructor()
-    Sort(solver).isConstructor()
+    assert cons_sort.isDatatypeConstructor()
+    Sort(solver).isDatatypeConstructor()
 
 
 def test_is_selector(solver):
@@ -147,23 +147,23 @@ def test_is_selector(solver):
     dt0 = dt[0]
     dt01 = dt0[1]
     cons_sort = dt01.getSelectorTerm().getSort()
-    assert cons_sort.isSelector()
-    Sort(solver).isSelector()
+    assert cons_sort.isDatatypeSelector()
+    Sort(solver).isDatatypeSelector()
 
 
 def test_is_tester(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
     cons_sort = dt[0].getTesterTerm().getSort()
-    assert cons_sort.isTester()
-    Sort(solver).isTester()
+    assert cons_sort.isDatatypeTester()
+    Sort(solver).isDatatypeTester()
 
 def test_is_updater(solver):
   dt_sort = create_datatype_sort(solver)
   dt = dt_sort.getDatatype()
   updater_sort = dt[0][0].getUpdaterTerm().getSort()
-  assert updater_sort.isUpdater()
-  Sort(solver).isUpdater()
+  assert updater_sort.isDatatypeUpdater()
+  Sort(solver).isDatatypeUpdater()
 
 def test_is_function(solver):
     fun_sort = solver.mkFunctionSort(solver.getRealSort(),
@@ -240,49 +240,49 @@ def test_datatype_sorts(solver):
     intSort = solver.getIntegerSort()
     dtypeSort = create_datatype_sort(solver)
     dt = dtypeSort.getDatatype()
-    assert not dtypeSort.isConstructor()
+    assert not dtypeSort.isDatatypeConstructor()
     with pytest.raises(RuntimeError):
-        dtypeSort.getConstructorCodomainSort()
+        dtypeSort.getDatatypeConstructorCodomainSort()
     with pytest.raises(RuntimeError):
-        dtypeSort.getConstructorDomainSorts()
+        dtypeSort.getDatatypeConstructorDomainSorts()
     with pytest.raises(RuntimeError):
-        dtypeSort.getConstructorArity()
+        dtypeSort.getDatatypeConstructorArity()
 
     # get constructor
     dcons = dt[0]
     consTerm = dcons.getConstructorTerm()
     consSort = consTerm.getSort()
-    assert consSort.isConstructor()
-    assert not consSort.isTester()
-    assert not consSort.isSelector()
-    assert consSort.getConstructorArity() == 2
-    consDomSorts = consSort.getConstructorDomainSorts()
+    assert consSort.isDatatypeConstructor()
+    assert not consSort.isDatatypeTester()
+    assert not consSort.isDatatypeSelector()
+    assert consSort.getDatatypeConstructorArity() == 2
+    consDomSorts = consSort.getDatatypeConstructorDomainSorts()
     assert consDomSorts[0] == intSort
     assert consDomSorts[1] == dtypeSort
-    assert consSort.getConstructorCodomainSort() == dtypeSort
+    assert consSort.getDatatypeConstructorCodomainSort() == dtypeSort
 
     # get tester
     isConsTerm = dcons.getTesterTerm()
-    assert isConsTerm.getSort().isTester()
+    assert isConsTerm.getSort().isDatatypeTester()
     booleanSort = solver.getBooleanSort()
 
-    assert isConsTerm.getSort().getTesterDomainSort() == dtypeSort
-    assert isConsTerm.getSort().getTesterCodomainSort() == booleanSort
+    assert isConsTerm.getSort().getDatatypeTesterDomainSort() == dtypeSort
+    assert isConsTerm.getSort().getDatatypeTesterCodomainSort() == booleanSort
     with pytest.raises(RuntimeError):
-        booleanSort.getTesterDomainSort()
+        booleanSort.getDatatypeTesterDomainSort()
     with pytest.raises(RuntimeError):
-        booleanSort.getTesterCodomainSort()
+        booleanSort.getDatatypeTesterCodomainSort()
 
     # get selector
     dselTail = dcons[1]
     tailTerm = dselTail.getSelectorTerm()
-    assert tailTerm.getSort().isSelector()
-    assert tailTerm.getSort().getSelectorDomainSort() == dtypeSort
-    assert tailTerm.getSort().getSelectorCodomainSort() == dtypeSort
+    assert tailTerm.getSort().isDatatypeSelector()
+    assert tailTerm.getSort().getDatatypeSelectorDomainSort() == dtypeSort
+    assert tailTerm.getSort().getDatatypeSelectorCodomainSort() == dtypeSort
     with pytest.raises(RuntimeError):
-        booleanSort.getSelectorDomainSort()
+        booleanSort.getDatatypeSelectorDomainSort()
     with pytest.raises(RuntimeError):
-        booleanSort.getSelectorCodomainSort()
+        booleanSort.getDatatypeSelectorCodomainSort()
 
 
 def test_instantiate(solver):
