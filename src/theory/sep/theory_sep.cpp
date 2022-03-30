@@ -922,9 +922,9 @@ void TheorySep::conflict(TNode a, TNode b) {
   d_im.conflictEqConstantMerge(a, b);
 }
 
-
-TheorySep::HeapAssertInfo::HeapAssertInfo( context::Context* c ) : d_pto(c), d_has_neg_pto(c,false) {
-
+TheorySep::HeapAssertInfo::HeapAssertInfo(context::Context* c)
+    : d_pto(c), d_has_neg_pto(c, false)
+{
 }
 
 TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {

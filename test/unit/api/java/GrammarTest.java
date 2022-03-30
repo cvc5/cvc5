@@ -27,17 +27,20 @@ class GrammarTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void addRule()
+  @Test
+  void addRule()
   {
     d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
@@ -62,7 +65,8 @@ class GrammarTest
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_solver.mkBoolean(false)));
   }
 
-  @Test void addRules()
+  @Test
+  void addRules()
   {
     d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
@@ -91,7 +95,8 @@ class GrammarTest
         CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_solver.mkBoolean(false)}));
   }
 
-  @Test void addAnyConstant()
+  @Test
+  void addAnyConstant()
   {
     d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
@@ -113,7 +118,8 @@ class GrammarTest
     assertThrows(CVC5ApiException.class, () -> g.addAnyConstant(start));
   }
 
-  @Test void addAnyVariable()
+  @Test
+  void addAnyVariable()
   {
     d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();

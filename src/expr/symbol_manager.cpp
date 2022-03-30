@@ -20,7 +20,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5 {
 
