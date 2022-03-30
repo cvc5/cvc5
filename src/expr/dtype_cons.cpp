@@ -21,10 +21,10 @@
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 DTypeConstructor::DTypeConstructor(std::string name,
                                    unsigned weight)
@@ -310,7 +310,7 @@ bool DTypeConstructor::involvesUninterpretedType() const
 {
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
-    if (!getArgType(i).isSort())
+    if (!getArgType(i).isUninterpretedSort())
     {
       return true;
     }
@@ -645,7 +645,8 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   }
   for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
   {
-    if (paramTypes[i].getSortConstructorArity() == origChildren.size())
+    if (paramTypes[i].getUninterpretedSortConstructorArity()
+        == origChildren.size())
     {
       TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
       if (range == tn)
@@ -692,4 +693,4 @@ std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

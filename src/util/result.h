@@ -23,7 +23,7 @@
 
 #include "options/language.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Result;
 
@@ -125,6 +125,6 @@ class Result
 std::ostream& operator<<(std::ostream& out, enum Result::Status s);
 std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESULT_H */

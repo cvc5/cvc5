@@ -20,7 +20,7 @@
 #include "options/base_options.h"
 #include "util/statistics_public.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
     : EnvObj(env)
@@ -153,4 +153,4 @@ std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

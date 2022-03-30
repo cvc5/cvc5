@@ -20,7 +20,7 @@
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /**
@@ -156,6 +156,6 @@ class SetDefaults : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SET_DEFAULTS_H */

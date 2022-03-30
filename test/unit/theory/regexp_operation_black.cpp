@@ -26,7 +26,7 @@
 #include "theory/strings/regexp_entail.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -138,4 +138,4 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

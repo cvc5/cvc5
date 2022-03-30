@@ -18,7 +18,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/skolemize.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -54,4 +54,4 @@ void QuantifiersInferenceManager::doPending()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

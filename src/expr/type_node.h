@@ -31,7 +31,7 @@
 #include "expr/node_value.h"
 #include "util/cardinality_class.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 class Cardinality;
@@ -650,13 +650,13 @@ private:
   uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
-  bool isSort() const;
+  bool isUninterpretedSort() const;
 
   /** Is this a sort constructor kind */
-  bool isSortConstructor() const;
+  bool isUninterpretedSortConstructor() const;
 
   /** Get sort constructor arity */
-  uint64_t getSortConstructorArity() const;
+  uint64_t getUninterpretedSortConstructorArity() const;
 
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
@@ -714,21 +714,21 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
 template <>
-struct hash<cvc5::TypeNode>
+struct hash<cvc5::internal::TypeNode>
 {
-  size_t operator()(const cvc5::TypeNode& tn) const;
+  size_t operator()(const cvc5::internal::TypeNode& tn) const;
 };
 
 }  // namespace std
 
 #include "expr/node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
@@ -977,6 +977,6 @@ inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   return getConst<FloatingPointSize>().significandWidth();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_H */

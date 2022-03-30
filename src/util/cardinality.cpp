@@ -23,7 +23,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 const Integer Cardinality::s_unknownCard(0);
 const Integer Cardinality::s_intCard(-1);
@@ -264,4 +264,4 @@ std::ostream& operator<<(std::ostream& out, const Cardinality& c) {
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

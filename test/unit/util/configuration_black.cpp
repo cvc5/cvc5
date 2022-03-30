@@ -16,7 +16,7 @@
 #include "base/configuration.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackConfiguration : public TestInternal
@@ -92,4 +92,4 @@ TEST_F(TestUtilBlackConfiguration, about)
   Configuration::about();
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

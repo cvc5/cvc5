@@ -20,7 +20,7 @@
 #include "base/check.h"
 #include "context/context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 
 
@@ -348,4 +348,4 @@ void Scope::enqueueToGarbageCollect(ContextObj* obj) {
 }
 
 }  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::internal

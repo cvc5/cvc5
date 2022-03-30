@@ -24,7 +24,7 @@
 #include "smt/env_obj.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -142,6 +142,6 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DECISION_STRATEGY__H */

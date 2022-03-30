@@ -22,7 +22,7 @@
 #include "theory/strings/word.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace theory::strings;
@@ -123,4 +123,4 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::roverlap(aaaaa, aa) == 2);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

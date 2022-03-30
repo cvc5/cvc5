@@ -5,7 +5,7 @@
 #include "theory/theory.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -46,4 +46,4 @@ std::optional<bool> isExpressionZero(Env& env,
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

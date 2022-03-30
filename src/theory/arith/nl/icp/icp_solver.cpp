@@ -27,7 +27,7 @@
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -386,4 +386,4 @@ void ICPSolver::check()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

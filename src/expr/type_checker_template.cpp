@@ -24,7 +24,7 @@
 ${typechecker_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -79,4 +79,4 @@ ${construles}
 }/* TypeChecker::computeIsConst */
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

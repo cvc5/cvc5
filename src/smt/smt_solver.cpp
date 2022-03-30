@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
@@ -265,4 +265,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

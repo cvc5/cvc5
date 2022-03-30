@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -92,6 +92,6 @@ class DtInstantiator : public Instantiator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */

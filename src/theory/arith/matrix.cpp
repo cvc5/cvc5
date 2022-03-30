@@ -16,7 +16,7 @@
 #include "theory/arith/matrix.h"
 
 using namespace std;
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -26,4 +26,4 @@ bool NoEffectCCCB::canUseRow(RowIndex ridx) const { return false; }
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

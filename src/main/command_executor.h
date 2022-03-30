@@ -26,6 +26,8 @@ namespace cvc5 {
 
 class Command;
 
+namespace internal {
+
 namespace main {
 
 class CommandExecutor
@@ -35,7 +37,7 @@ class CommandExecutor
    * The solver object, which is allocated by this class and is used for
    * executing most commands (e.g. check-sat).
    */
-  std::unique_ptr<api::Solver>& d_solver;
+  std::unique_ptr<cvc5::Solver>& d_solver;
   /**
    * The symbol manager, which is allocated by this class. This manages
    * all things related to definitions of symbols and their impact on behaviors
@@ -48,10 +50,10 @@ class CommandExecutor
    */
   std::unique_ptr<SymbolManager> d_symman;
 
-  api::Result d_result;
+  cvc5::Result d_result;
 
  public:
-  CommandExecutor(std::unique_ptr<api::Solver>& solver);
+  CommandExecutor(std::unique_ptr<cvc5::Solver>& solver);
 
   virtual ~CommandExecutor();
 
@@ -68,12 +70,12 @@ class CommandExecutor
   }
 
   /** Get a pointer to the solver object owned by this CommandExecutor. */
-  api::Solver* getSolver() { return d_solver.get(); }
+  cvc5::Solver* getSolver() { return d_solver.get(); }
 
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
   SymbolManager* getSymbolManager() { return d_symman.get(); }
 
-  api::Result getResult() const { return d_result; }
+  cvc5::Result getResult() const { return d_result; }
   void reset();
 
   /** Store the current options as the original options */
@@ -105,12 +107,13 @@ private:
 
 }; /* class CommandExecutor */
 
-bool solverInvoke(api::Solver* solver,
+bool solverInvoke(cvc5::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
                   std::ostream& out);
 
 }  // namespace main
+}  // namespace internal
 }  // namespace cvc5
 
 #endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */

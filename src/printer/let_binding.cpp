@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 LetBinding::LetBinding(uint32_t thresh)
     : d_thresh(thresh),
@@ -213,4 +213,4 @@ void LetBinding::convertCountToLet()
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

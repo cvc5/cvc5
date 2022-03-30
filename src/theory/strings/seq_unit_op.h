@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -58,6 +58,6 @@ struct SeqUnitOpHashFunction
   size_t operator()(const SeqUnitOp& op) const;
 }; /* struct SeqUnitOpHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SEQ_UNIT_OP_H */

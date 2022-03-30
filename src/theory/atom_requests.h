@@ -26,7 +26,7 @@
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class AtomRequests {
 
@@ -115,4 +115,4 @@ private:
 
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -17,7 +17,7 @@
 
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 AssumptionProofGenerator::AssumptionProofGenerator(ProofNodeManager* pnm)
     : d_pnm(pnm)
@@ -33,4 +33,4 @@ std::string AssumptionProofGenerator::identify() const
   return "AssumptionProofGenerator";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
