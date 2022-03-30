@@ -31,14 +31,14 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
-namespace cvc5 {
-
-class Solver;
-
 namespace cvc5::context {
 class Context;
 class UserContext;
 }  // namespace cvc5::context
+
+namespace cvc5 {
+
+class Solver;
 
 namespace internal {
 

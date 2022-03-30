@@ -51,7 +51,7 @@ RegExpSolver::RegExpSolver(Env& env,
       d_processed_memberships(context()),
       d_regexp_opr(env, tr.getSkolemCache())
 {
-  d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::internal::String(""));
+  d_emptyString = NodeManager::currentNM()->mkConst(cvc5::internal::String(""));
   d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_NONE);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
