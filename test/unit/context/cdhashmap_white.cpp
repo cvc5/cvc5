@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * White box testing of context::CDMap<>.
+ * White box testing of cvc5::context::CDMap<>.
  */
 
 #include "base/check.h"

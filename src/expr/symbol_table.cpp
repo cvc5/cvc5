@@ -28,15 +28,15 @@
 
 namespace cvc5::internal {
 
-using ::cvc5::internal::context::CDHashMap;
-using ::cvc5::internal::context::CDHashSet;
-using ::cvc5::internal::context::Context;
-using ::std::copy;
-using ::std::endl;
-using ::std::ostream_iterator;
-using ::std::pair;
-using ::std::string;
-using ::std::vector;
+using context::CDHashMap;
+using context::CDHashSet;
+using context::Context;
+using std::copy;
+using std::endl;
+using std::ostream_iterator;
+using std::pair;
+using std::string;
+using std::vector;
 
 /** Overloaded type trie.
  *

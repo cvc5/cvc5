@@ -30,10 +30,10 @@
 #include "theory/substitutions.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 

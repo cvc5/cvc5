@@ -25,11 +25,11 @@
 #include "expr/subs.h"
 #include "smt/env_obj.h"
 
-namespace cvc5::internal {
-
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+
+namespace cvc5::internal {
 
 namespace theory {
 
