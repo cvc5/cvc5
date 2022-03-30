@@ -631,7 +631,7 @@ private:
   TypeNode instantiate(const std::vector<TypeNode>& params) const;
 
   /** Is this an instantiated datatype parameter */
-  bool isParameterInstantiatedDatatype(unsigned n) const;
+  bool isParameterInstantiatedDatatype(size_t n) const;
 
   /** Is this a constructor type */
   bool isConstructor() const;

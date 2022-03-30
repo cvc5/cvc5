@@ -444,7 +444,7 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
     }
     return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
   }
-  Assert(isSortConstructor());
+  Assert(isUninterpretedSortConstructor());
   return nm->mkSort(*this, params);
 }
 
@@ -461,7 +461,7 @@ std::string TypeNode::getName() const
   return getAttribute(expr::VarNameAttr());
 }
 
-bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const
+bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
 {
   Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   const DType& dt = (*this)[0].getDType();
