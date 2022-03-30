@@ -51,7 +51,8 @@ class BoundedIntegers : public QuantifiersModule
   typedef context::CDHashMap<Node, int> NodeIntMap;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
   typedef context::CDHashMap<int, bool> IntBoolMap;
-private:
+
+ private:
   //for determining bounds
   bool hasNonBoundVar( Node f, Node b, std::map< Node, bool >& visited );
   bool hasNonBoundVar( Node f, Node b );

@@ -273,7 +273,7 @@ namespace strings {
 
 struct StringHashFunction
 {
-  size_t operator()(const ::cvc5::internal::String& s) const;
+  size_t operator()(const cvc5::internal::String& s) const;
 }; /* struct StringHashFunction */
 
 }  // namespace strings

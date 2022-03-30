@@ -265,6 +265,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
   // Figure 3 : c
   Node c = d_tstate.d_model.computeAbstractModelValue(tf[0]);
+  Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)
   {
