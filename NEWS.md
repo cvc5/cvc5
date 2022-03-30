@@ -19,7 +19,7 @@ cvc5 1.0
 * *Theory of Sequences*
   - A new parametric theory of sequences whose syntax is compatible with the
     syntax for sequences used by Z3.
-  - A new array-inspired procedure
+  - A new array-inspired procedure (option `--seq-array`).
 
 * *Arithmetic*
   - New nonlinear arithmetic solver based on cylindrical algebraic coverings.
