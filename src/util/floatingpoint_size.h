@@ -17,7 +17,7 @@
 #ifndef CVC5__FLOATINGPOINT_SIZE_H
 #define CVC5__FLOATINGPOINT_SIZE_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Inline these!
 inline bool validExponentSize(uint32_t e) { return e >= 2; }
@@ -93,6 +93,6 @@ struct FloatingPointSizeHashFunction
                   | t.significandWidth());
   }
 }; /* struct FloatingPointSizeHashFunction */
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

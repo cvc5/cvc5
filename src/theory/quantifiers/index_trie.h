@@ -23,7 +23,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -108,5 +108,5 @@ class IndexTrie
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif /* THEORY__QUANTIFIERS__INDEX_TRIE_H */

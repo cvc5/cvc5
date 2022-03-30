@@ -23,7 +23,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 class NodeSelfIterator {
@@ -141,6 +141,6 @@ inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__NODE_SELF_ITERATOR_H */

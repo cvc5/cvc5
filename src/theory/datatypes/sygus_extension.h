@@ -31,7 +31,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 class SynthConjecture;
@@ -714,7 +714,7 @@ private:
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
 

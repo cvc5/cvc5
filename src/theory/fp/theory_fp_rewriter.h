@@ -24,7 +24,7 @@
 #include "theory/fp/fp_expand_defs.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -60,6 +60,6 @@ class TheoryFpRewriter : public TheoryRewriter
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__FP__THEORY_FP_REWRITER_H */

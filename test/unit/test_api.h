@@ -19,15 +19,15 @@
 #include "api/cpp/cvc5.h"
 #include "gtest/gtest.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestApi : public ::testing::Test
 {
  protected:
-  cvc5::api::Solver d_solver;
+  cvc5::Solver d_solver;
 };
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

@@ -17,9 +17,9 @@
 
 #include "theory/quantifiers/quant_bound_inference.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -75,4 +75,4 @@ bool TermEnumeration::getDomain(TypeNode tn, std::vector<Node>& dom)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

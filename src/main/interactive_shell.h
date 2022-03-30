@@ -22,56 +22,57 @@
 
 namespace cvc5 {
 
-class Command;
-
-namespace api {
 class Solver;
-}
+
+class SymbolManager;
 
 namespace parser {
   class Parser;
   }  // namespace parser
 
-class SymbolManager;
+  class Command;
 
-class InteractiveShell
-{
- public:
-  InteractiveShell(api::Solver* solver,
-                   SymbolManager* sm,
-                   std::istream& in,
-                   std::ostream& out);
+  namespace internal {
 
-  /**
-   * Close out the interactive session.
-   */
-  ~InteractiveShell();
+  class InteractiveShell
+  {
+   public:
+    InteractiveShell(Solver* solver,
+                     SymbolManager* sm,
+                     std::istream& in,
+                     std::ostream& out);
 
-  /**
-   * Read a command from the interactive shell. This will read as
-   * many lines as necessary to parse a well-formed command.
-   */
-  Command* readCommand();
+    /**
+     * Close out the interactive session.
+     */
+    ~InteractiveShell();
 
-  /**
-   * Return the internal parser being used.
-   */
-  parser::Parser* getParser() { return d_parser.get(); }
+    /**
+     * Read a command from the interactive shell. This will read as
+     * many lines as necessary to parse a well-formed command.
+     */
+    Command* readCommand();
 
- private:
-  api::Solver* d_solver;
-  std::istream& d_in;
-  std::ostream& d_out;
-  std::unique_ptr<parser::Parser> d_parser;
-  bool d_quit;
-  bool d_usingEditline;
+    /**
+     * Return the internal parser being used.
+     */
+    parser::Parser* getParser() { return d_parser.get(); }
 
-  std::string d_historyFilename;
+   private:
+    Solver* d_solver;
+    std::istream& d_in;
+    std::ostream& d_out;
+    std::unique_ptr<parser::Parser> d_parser;
+    bool d_quit;
+    bool d_usingEditline;
 
-  static const std::string INPUT_FILENAME;
-  static const unsigned s_historyLimit = 500;
-};/* class InteractiveShell */
+    std::string d_historyFilename;
 
-}  // namespace cvc5
+    static const std::string INPUT_FILENAME;
+    static const unsigned s_historyLimit = 500;
+  }; /* class InteractiveShell */
+
+  }  // namespace internal
+  }  // namespace cvc5
 
 #endif /* CVC5__INTERACTIVE_SHELL_H */

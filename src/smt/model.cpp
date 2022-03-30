@@ -19,7 +19,7 @@
 #include "options/io_utils.h"
 #include "printer/printer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 Model::Model(bool isKnownSat, const std::string& inputName)
@@ -90,4 +90,4 @@ const std::vector<Node>& Model::getDeclaredTerms() const
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 ${headers_module}$
 // clang-format on
 
-namespace cvc5
+namespace cvc5::internal
 {
   thread_local Options* Options::s_current = nullptr;
 
@@ -50,5 +50,5 @@ ${holder_mem_copy}$
     }
   }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 

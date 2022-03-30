@@ -21,7 +21,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
@@ -303,4 +303,4 @@ void EqEngineManagerCentral::eqNotifyConstantTermMerge(TNode t1, TNode t2)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

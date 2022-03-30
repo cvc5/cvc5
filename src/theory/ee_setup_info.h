@@ -20,7 +20,7 @@
 
 #include <string>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 namespace eq {
@@ -75,6 +75,6 @@ struct EeSetupInfo
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__EE_SETUP_INFO__H */

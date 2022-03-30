@@ -19,22 +19,21 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SynthResult::SynthResult()
-    : d_status(NONE), d_unknownExplanation(Result::UNKNOWN_REASON)
+    : d_status(NONE), d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON)
 {
 }
 
-SynthResult::SynthResult(Status s,
-                         Result::UnknownExplanation unknownExplanation)
+SynthResult::SynthResult(Status s, UnknownExplanation unknownExplanation)
     : d_status(s), d_unknownExplanation(unknownExplanation)
 {
 }
 
 SynthResult::Status SynthResult::getStatus() const { return d_status; }
 
-Result::UnknownExplanation SynthResult::getUnknownExplanation() const
+UnknownExplanation SynthResult::getUnknownExplanation() const
 {
   return d_unknownExplanation;
 }
@@ -43,7 +42,7 @@ std::string SynthResult::toString() const
 {
   std::stringstream ss;
   ss << "(" << d_status;
-  if (d_unknownExplanation != Result::UNKNOWN_REASON)
+  if (d_unknownExplanation != UnknownExplanation::UNKNOWN_REASON)
   {
     ss << " :unknown-explanation " << d_unknownExplanation;
   }
@@ -70,4 +69,4 @@ ostream& operator<<(ostream& out, SynthResult::Status s)
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

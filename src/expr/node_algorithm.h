@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 /**
@@ -261,6 +261,6 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 bool isBooleanConnective(TNode cur);
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

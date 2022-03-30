@@ -25,7 +25,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -469,6 +469,6 @@ private:  //information about ground equivalence classes
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
