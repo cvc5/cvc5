@@ -30,7 +30,7 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2::Smt2(api::Solver* solver,
+Smt2::Smt2(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool parseOnly)
@@ -43,39 +43,39 @@ Smt2::Smt2(api::Solver* solver,
 Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
-  addOperator(api::ADD, "+");
-  addOperator(api::SUB, "-");
-  // api::SUB is converted to api::NEG if there is only a single operand
-  Parser::addOperator(api::NEG);
-  addOperator(api::MULT, "*");
-  addOperator(api::LT, "<");
-  addOperator(api::LEQ, "<=");
-  addOperator(api::GT, ">");
-  addOperator(api::GEQ, ">=");
+  addOperator(cvc5::ADD, "+");
+  addOperator(cvc5::SUB, "-");
+  // cvc5::SUB is converted to cvc5::NEG if there is only a single operand
+  Parser::addOperator(cvc5::NEG);
+  addOperator(cvc5::MULT, "*");
+  addOperator(cvc5::LT, "<");
+  addOperator(cvc5::LEQ, "<=");
+  addOperator(cvc5::GT, ">");
+  addOperator(cvc5::GEQ, ">=");
 
   if (!strictModeEnabled())
   {
     // NOTE: this operator is non-standard
-    addOperator(api::POW, "^");
+    addOperator(cvc5::POW, "^");
   }
 }
 
 void Smt2::addTranscendentalOperators()
 {
-  addOperator(api::EXPONENTIAL, "exp");
-  addOperator(api::SINE, "sin");
-  addOperator(api::COSINE, "cos");
-  addOperator(api::TANGENT, "tan");
-  addOperator(api::COSECANT, "csc");
-  addOperator(api::SECANT, "sec");
-  addOperator(api::COTANGENT, "cot");
-  addOperator(api::ARCSINE, "arcsin");
-  addOperator(api::ARCCOSINE, "arccos");
-  addOperator(api::ARCTANGENT, "arctan");
-  addOperator(api::ARCCOSECANT, "arccsc");
-  addOperator(api::ARCSECANT, "arcsec");
-  addOperator(api::ARCCOTANGENT, "arccot");
-  addOperator(api::SQRT, "sqrt");
+  addOperator(cvc5::EXPONENTIAL, "exp");
+  addOperator(cvc5::SINE, "sin");
+  addOperator(cvc5::COSINE, "cos");
+  addOperator(cvc5::TANGENT, "tan");
+  addOperator(cvc5::COSECANT, "csc");
+  addOperator(cvc5::SECANT, "sec");
+  addOperator(cvc5::COTANGENT, "cot");
+  addOperator(cvc5::ARCSINE, "arcsin");
+  addOperator(cvc5::ARCCOSINE, "arccos");
+  addOperator(cvc5::ARCTANGENT, "arctan");
+  addOperator(cvc5::ARCCOSECANT, "arccsc");
+  addOperator(cvc5::ARCSECANT, "arcsec");
+  addOperator(cvc5::ARCCOTANGENT, "arccot");
+  addOperator(cvc5::SQRT, "sqrt");
 }
 
 void Smt2::addQuantifiersOperators()
@@ -83,163 +83,163 @@ void Smt2::addQuantifiersOperators()
 }
 
 void Smt2::addBitvectorOperators() {
-  addOperator(api::BITVECTOR_CONCAT, "concat");
-  addOperator(api::BITVECTOR_NOT, "bvnot");
-  addOperator(api::BITVECTOR_AND, "bvand");
-  addOperator(api::BITVECTOR_OR, "bvor");
-  addOperator(api::BITVECTOR_NEG, "bvneg");
-  addOperator(api::BITVECTOR_ADD, "bvadd");
-  addOperator(api::BITVECTOR_MULT, "bvmul");
-  addOperator(api::BITVECTOR_UDIV, "bvudiv");
-  addOperator(api::BITVECTOR_UREM, "bvurem");
-  addOperator(api::BITVECTOR_SHL, "bvshl");
-  addOperator(api::BITVECTOR_LSHR, "bvlshr");
-  addOperator(api::BITVECTOR_ULT, "bvult");
-  addOperator(api::BITVECTOR_NAND, "bvnand");
-  addOperator(api::BITVECTOR_NOR, "bvnor");
-  addOperator(api::BITVECTOR_XOR, "bvxor");
-  addOperator(api::BITVECTOR_XNOR, "bvxnor");
-  addOperator(api::BITVECTOR_COMP, "bvcomp");
-  addOperator(api::BITVECTOR_SUB, "bvsub");
-  addOperator(api::BITVECTOR_SDIV, "bvsdiv");
-  addOperator(api::BITVECTOR_SREM, "bvsrem");
-  addOperator(api::BITVECTOR_SMOD, "bvsmod");
-  addOperator(api::BITVECTOR_ASHR, "bvashr");
-  addOperator(api::BITVECTOR_ULE, "bvule");
-  addOperator(api::BITVECTOR_UGT, "bvugt");
-  addOperator(api::BITVECTOR_UGE, "bvuge");
-  addOperator(api::BITVECTOR_SLT, "bvslt");
-  addOperator(api::BITVECTOR_SLE, "bvsle");
-  addOperator(api::BITVECTOR_SGT, "bvsgt");
-  addOperator(api::BITVECTOR_SGE, "bvsge");
-  addOperator(api::BITVECTOR_REDOR, "bvredor");
-  addOperator(api::BITVECTOR_REDAND, "bvredand");
+  addOperator(cvc5::BITVECTOR_CONCAT, "concat");
+  addOperator(cvc5::BITVECTOR_NOT, "bvnot");
+  addOperator(cvc5::BITVECTOR_AND, "bvand");
+  addOperator(cvc5::BITVECTOR_OR, "bvor");
+  addOperator(cvc5::BITVECTOR_NEG, "bvneg");
+  addOperator(cvc5::BITVECTOR_ADD, "bvadd");
+  addOperator(cvc5::BITVECTOR_MULT, "bvmul");
+  addOperator(cvc5::BITVECTOR_UDIV, "bvudiv");
+  addOperator(cvc5::BITVECTOR_UREM, "bvurem");
+  addOperator(cvc5::BITVECTOR_SHL, "bvshl");
+  addOperator(cvc5::BITVECTOR_LSHR, "bvlshr");
+  addOperator(cvc5::BITVECTOR_ULT, "bvult");
+  addOperator(cvc5::BITVECTOR_NAND, "bvnand");
+  addOperator(cvc5::BITVECTOR_NOR, "bvnor");
+  addOperator(cvc5::BITVECTOR_XOR, "bvxor");
+  addOperator(cvc5::BITVECTOR_XNOR, "bvxnor");
+  addOperator(cvc5::BITVECTOR_COMP, "bvcomp");
+  addOperator(cvc5::BITVECTOR_SUB, "bvsub");
+  addOperator(cvc5::BITVECTOR_SDIV, "bvsdiv");
+  addOperator(cvc5::BITVECTOR_SREM, "bvsrem");
+  addOperator(cvc5::BITVECTOR_SMOD, "bvsmod");
+  addOperator(cvc5::BITVECTOR_ASHR, "bvashr");
+  addOperator(cvc5::BITVECTOR_ULE, "bvule");
+  addOperator(cvc5::BITVECTOR_UGT, "bvugt");
+  addOperator(cvc5::BITVECTOR_UGE, "bvuge");
+  addOperator(cvc5::BITVECTOR_SLT, "bvslt");
+  addOperator(cvc5::BITVECTOR_SLE, "bvsle");
+  addOperator(cvc5::BITVECTOR_SGT, "bvsgt");
+  addOperator(cvc5::BITVECTOR_SGE, "bvsge");
+  addOperator(cvc5::BITVECTOR_REDOR, "bvredor");
+  addOperator(cvc5::BITVECTOR_REDAND, "bvredand");
 
-  addIndexedOperator(api::BITVECTOR_EXTRACT, "extract");
-  addIndexedOperator(api::BITVECTOR_REPEAT, "repeat");
-  addIndexedOperator(api::BITVECTOR_ZERO_EXTEND, "zero_extend");
-  addIndexedOperator(api::BITVECTOR_SIGN_EXTEND, "sign_extend");
-  addIndexedOperator(api::BITVECTOR_ROTATE_LEFT, "rotate_left");
-  addIndexedOperator(api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
+  addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
+  addIndexedOperator(cvc5::BITVECTOR_ZERO_EXTEND, "zero_extend");
+  addIndexedOperator(cvc5::BITVECTOR_SIGN_EXTEND, "sign_extend");
+  addIndexedOperator(cvc5::BITVECTOR_ROTATE_LEFT, "rotate_left");
+  addIndexedOperator(cvc5::BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
 void Smt2::addDatatypesOperators()
 {
-  Parser::addOperator(api::APPLY_CONSTRUCTOR);
-  Parser::addOperator(api::APPLY_TESTER);
-  Parser::addOperator(api::APPLY_SELECTOR);
+  Parser::addOperator(cvc5::APPLY_CONSTRUCTOR);
+  Parser::addOperator(cvc5::APPLY_TESTER);
+  Parser::addOperator(cvc5::APPLY_SELECTOR);
 
   if (!strictModeEnabled())
   {
-    Parser::addOperator(api::APPLY_UPDATER);
-    addOperator(api::DT_SIZE, "dt.size");
+    Parser::addOperator(cvc5::APPLY_UPDATER);
+    addOperator(cvc5::DT_SIZE, "dt.size");
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(api::APPLY_SELECTOR, "tuple_select");
-    addIndexedOperator(api::APPLY_UPDATER, "tuple_update");
+    addIndexedOperator(cvc5::APPLY_SELECTOR, "tuple.select");
+    addIndexedOperator(cvc5::APPLY_UPDATER, "tuple.update");
   }
 }
 
 void Smt2::addStringOperators() {
   defineVar("re.all", getSolver()->mkRegexpAll());
-  addOperator(api::STRING_CONCAT, "str.++");
-  addOperator(api::STRING_LENGTH, "str.len");
-  addOperator(api::STRING_SUBSTR, "str.substr");
-  addOperator(api::STRING_CONTAINS, "str.contains");
-  addOperator(api::STRING_CHARAT, "str.at");
-  addOperator(api::STRING_INDEXOF, "str.indexof");
-  addOperator(api::STRING_REPLACE, "str.replace");
-  addOperator(api::STRING_PREFIX, "str.prefixof");
-  addOperator(api::STRING_SUFFIX, "str.suffixof");
-  addOperator(api::STRING_FROM_CODE, "str.from_code");
-  addOperator(api::STRING_IS_DIGIT, "str.is_digit");
-  addOperator(api::STRING_REPLACE_RE, "str.replace_re");
-  addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
+  addOperator(cvc5::STRING_CONCAT, "str.++");
+  addOperator(cvc5::STRING_LENGTH, "str.len");
+  addOperator(cvc5::STRING_SUBSTR, "str.substr");
+  addOperator(cvc5::STRING_CONTAINS, "str.contains");
+  addOperator(cvc5::STRING_CHARAT, "str.at");
+  addOperator(cvc5::STRING_INDEXOF, "str.indexof");
+  addOperator(cvc5::STRING_REPLACE, "str.replace");
+  addOperator(cvc5::STRING_PREFIX, "str.prefixof");
+  addOperator(cvc5::STRING_SUFFIX, "str.suffixof");
+  addOperator(cvc5::STRING_FROM_CODE, "str.from_code");
+  addOperator(cvc5::STRING_IS_DIGIT, "str.is_digit");
+  addOperator(cvc5::STRING_REPLACE_RE, "str.replace_re");
+  addOperator(cvc5::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
-    addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
-    addOperator(api::STRING_UPDATE, "str.update");
-    addOperator(api::STRING_TO_LOWER, "str.to_lower");
-    addOperator(api::STRING_TO_UPPER, "str.to_upper");
-    addOperator(api::STRING_REV, "str.rev");
+    addOperator(cvc5::STRING_INDEXOF_RE, "str.indexof_re");
+    addOperator(cvc5::STRING_UPDATE, "str.update");
+    addOperator(cvc5::STRING_TO_LOWER, "str.to_lower");
+    addOperator(cvc5::STRING_TO_UPPER, "str.to_upper");
+    addOperator(cvc5::STRING_REV, "str.rev");
     // sequence versions
-    addOperator(api::SEQ_CONCAT, "seq.++");
-    addOperator(api::SEQ_LENGTH, "seq.len");
-    addOperator(api::SEQ_EXTRACT, "seq.extract");
-    addOperator(api::SEQ_UPDATE, "seq.update");
-    addOperator(api::SEQ_AT, "seq.at");
-    addOperator(api::SEQ_CONTAINS, "seq.contains");
-    addOperator(api::SEQ_INDEXOF, "seq.indexof");
-    addOperator(api::SEQ_REPLACE, "seq.replace");
-    addOperator(api::SEQ_PREFIX, "seq.prefixof");
-    addOperator(api::SEQ_SUFFIX, "seq.suffixof");
-    addOperator(api::SEQ_REV, "seq.rev");
-    addOperator(api::SEQ_REPLACE_ALL, "seq.replace_all");
-    addOperator(api::SEQ_UNIT, "seq.unit");
-    addOperator(api::SEQ_NTH, "seq.nth");
+    addOperator(cvc5::SEQ_CONCAT, "seq.++");
+    addOperator(cvc5::SEQ_LENGTH, "seq.len");
+    addOperator(cvc5::SEQ_EXTRACT, "seq.extract");
+    addOperator(cvc5::SEQ_UPDATE, "seq.update");
+    addOperator(cvc5::SEQ_AT, "seq.at");
+    addOperator(cvc5::SEQ_CONTAINS, "seq.contains");
+    addOperator(cvc5::SEQ_INDEXOF, "seq.indexof");
+    addOperator(cvc5::SEQ_REPLACE, "seq.replace");
+    addOperator(cvc5::SEQ_PREFIX, "seq.prefixof");
+    addOperator(cvc5::SEQ_SUFFIX, "seq.suffixof");
+    addOperator(cvc5::SEQ_REV, "seq.rev");
+    addOperator(cvc5::SEQ_REPLACE_ALL, "seq.replace_all");
+    addOperator(cvc5::SEQ_UNIT, "seq.unit");
+    addOperator(cvc5::SEQ_NTH, "seq.nth");
   }
-  addOperator(api::STRING_FROM_INT, "str.from_int");
-  addOperator(api::STRING_TO_INT, "str.to_int");
-  addOperator(api::STRING_IN_REGEXP, "str.in_re");
-  addOperator(api::STRING_TO_REGEXP, "str.to_re");
-  addOperator(api::STRING_TO_CODE, "str.to_code");
-  addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
+  addOperator(cvc5::STRING_FROM_INT, "str.from_int");
+  addOperator(cvc5::STRING_TO_INT, "str.to_int");
+  addOperator(cvc5::STRING_IN_REGEXP, "str.in_re");
+  addOperator(cvc5::STRING_TO_REGEXP, "str.to_re");
+  addOperator(cvc5::STRING_TO_CODE, "str.to_code");
+  addOperator(cvc5::STRING_REPLACE_ALL, "str.replace_all");
 
-  addOperator(api::REGEXP_CONCAT, "re.++");
-  addOperator(api::REGEXP_UNION, "re.union");
-  addOperator(api::REGEXP_INTER, "re.inter");
-  addOperator(api::REGEXP_STAR, "re.*");
-  addOperator(api::REGEXP_PLUS, "re.+");
-  addOperator(api::REGEXP_OPT, "re.opt");
-  addIndexedOperator(api::REGEXP_REPEAT, "re.^");
-  addIndexedOperator(api::REGEXP_LOOP, "re.loop");
-  addOperator(api::REGEXP_RANGE, "re.range");
-  addOperator(api::REGEXP_COMPLEMENT, "re.comp");
-  addOperator(api::REGEXP_DIFF, "re.diff");
-  addOperator(api::STRING_LT, "str.<");
-  addOperator(api::STRING_LEQ, "str.<=");
+  addOperator(cvc5::REGEXP_CONCAT, "re.++");
+  addOperator(cvc5::REGEXP_UNION, "re.union");
+  addOperator(cvc5::REGEXP_INTER, "re.inter");
+  addOperator(cvc5::REGEXP_STAR, "re.*");
+  addOperator(cvc5::REGEXP_PLUS, "re.+");
+  addOperator(cvc5::REGEXP_OPT, "re.opt");
+  addIndexedOperator(cvc5::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(cvc5::REGEXP_LOOP, "re.loop");
+  addOperator(cvc5::REGEXP_RANGE, "re.range");
+  addOperator(cvc5::REGEXP_COMPLEMENT, "re.comp");
+  addOperator(cvc5::REGEXP_DIFF, "re.diff");
+  addOperator(cvc5::STRING_LT, "str.<");
+  addOperator(cvc5::STRING_LEQ, "str.<=");
 }
 
 void Smt2::addFloatingPointOperators() {
-  addOperator(api::FLOATINGPOINT_FP, "fp");
-  addOperator(api::FLOATINGPOINT_EQ, "fp.eq");
-  addOperator(api::FLOATINGPOINT_ABS, "fp.abs");
-  addOperator(api::FLOATINGPOINT_NEG, "fp.neg");
-  addOperator(api::FLOATINGPOINT_ADD, "fp.add");
-  addOperator(api::FLOATINGPOINT_SUB, "fp.sub");
-  addOperator(api::FLOATINGPOINT_MULT, "fp.mul");
-  addOperator(api::FLOATINGPOINT_DIV, "fp.div");
-  addOperator(api::FLOATINGPOINT_FMA, "fp.fma");
-  addOperator(api::FLOATINGPOINT_SQRT, "fp.sqrt");
-  addOperator(api::FLOATINGPOINT_REM, "fp.rem");
-  addOperator(api::FLOATINGPOINT_RTI, "fp.roundToIntegral");
-  addOperator(api::FLOATINGPOINT_MIN, "fp.min");
-  addOperator(api::FLOATINGPOINT_MAX, "fp.max");
-  addOperator(api::FLOATINGPOINT_LEQ, "fp.leq");
-  addOperator(api::FLOATINGPOINT_LT, "fp.lt");
-  addOperator(api::FLOATINGPOINT_GEQ, "fp.geq");
-  addOperator(api::FLOATINGPOINT_GT, "fp.gt");
-  addOperator(api::FLOATINGPOINT_IS_NORMAL, "fp.isNormal");
-  addOperator(api::FLOATINGPOINT_IS_SUBNORMAL, "fp.isSubnormal");
-  addOperator(api::FLOATINGPOINT_IS_ZERO, "fp.isZero");
-  addOperator(api::FLOATINGPOINT_IS_INF, "fp.isInfinite");
-  addOperator(api::FLOATINGPOINT_IS_NAN, "fp.isNaN");
-  addOperator(api::FLOATINGPOINT_IS_NEG, "fp.isNegative");
-  addOperator(api::FLOATINGPOINT_IS_POS, "fp.isPositive");
-  addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
+  addOperator(cvc5::FLOATINGPOINT_FP, "fp");
+  addOperator(cvc5::FLOATINGPOINT_EQ, "fp.eq");
+  addOperator(cvc5::FLOATINGPOINT_ABS, "fp.abs");
+  addOperator(cvc5::FLOATINGPOINT_NEG, "fp.neg");
+  addOperator(cvc5::FLOATINGPOINT_ADD, "fp.add");
+  addOperator(cvc5::FLOATINGPOINT_SUB, "fp.sub");
+  addOperator(cvc5::FLOATINGPOINT_MULT, "fp.mul");
+  addOperator(cvc5::FLOATINGPOINT_DIV, "fp.div");
+  addOperator(cvc5::FLOATINGPOINT_FMA, "fp.fma");
+  addOperator(cvc5::FLOATINGPOINT_SQRT, "fp.sqrt");
+  addOperator(cvc5::FLOATINGPOINT_REM, "fp.rem");
+  addOperator(cvc5::FLOATINGPOINT_RTI, "fp.roundToIntegral");
+  addOperator(cvc5::FLOATINGPOINT_MIN, "fp.min");
+  addOperator(cvc5::FLOATINGPOINT_MAX, "fp.max");
+  addOperator(cvc5::FLOATINGPOINT_LEQ, "fp.leq");
+  addOperator(cvc5::FLOATINGPOINT_LT, "fp.lt");
+  addOperator(cvc5::FLOATINGPOINT_GEQ, "fp.geq");
+  addOperator(cvc5::FLOATINGPOINT_GT, "fp.gt");
+  addOperator(cvc5::FLOATINGPOINT_IS_NORMAL, "fp.isNormal");
+  addOperator(cvc5::FLOATINGPOINT_IS_SUBNORMAL, "fp.isSubnormal");
+  addOperator(cvc5::FLOATINGPOINT_IS_ZERO, "fp.isZero");
+  addOperator(cvc5::FLOATINGPOINT_IS_INF, "fp.isInfinite");
+  addOperator(cvc5::FLOATINGPOINT_IS_NAN, "fp.isNaN");
+  addOperator(cvc5::FLOATINGPOINT_IS_NEG, "fp.isNegative");
+  addOperator(cvc5::FLOATINGPOINT_IS_POS, "fp.isPositive");
+  addOperator(cvc5::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  addIndexedOperator(api::UNDEFINED_KIND, "to_fp");
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
-  addIndexedOperator(api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
-  addIndexedOperator(api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
+  addIndexedOperator(cvc5::UNDEFINED_KIND, "to_fp");
+  addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
+  addIndexedOperator(cvc5::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
+  addIndexedOperator(cvc5::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, "to_fp_bv");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP, "to_fp_fp");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL, "to_fp_real");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV, "to_fp_signed");
+    addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, "to_fp_bv");
+    addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_FP, "to_fp_fp");
+    addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_REAL, "to_fp_real");
+    addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_SBV, "to_fp_signed");
   }
 }
 
@@ -248,12 +248,12 @@ void Smt2::addSepOperators() {
   // the Boolean sort is a placeholder here since we don't have type info
   // without type annotation
   defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
-  addOperator(api::SEP_STAR, "sep");
-  addOperator(api::SEP_PTO, "pto");
-  addOperator(api::SEP_WAND, "wand");
-  Parser::addOperator(api::SEP_STAR);
-  Parser::addOperator(api::SEP_PTO);
-  Parser::addOperator(api::SEP_WAND);
+  addOperator(cvc5::SEP_STAR, "sep");
+  addOperator(cvc5::SEP_PTO, "pto");
+  addOperator(cvc5::SEP_WAND, "wand");
+  Parser::addOperator(cvc5::SEP_STAR);
+  Parser::addOperator(cvc5::SEP_PTO);
+  Parser::addOperator(cvc5::SEP_WAND);
 }
 
 void Smt2::addCoreSymbols()
@@ -261,17 +261,17 @@ void Smt2::addCoreSymbols()
   defineType("Bool", d_solver->getBooleanSort(), true);
   defineVar("true", d_solver->mkTrue(), true);
   defineVar("false", d_solver->mkFalse(), true);
-  addOperator(api::AND, "and");
-  addOperator(api::DISTINCT, "distinct");
-  addOperator(api::EQUAL, "=");
-  addOperator(api::IMPLIES, "=>");
-  addOperator(api::ITE, "ite");
-  addOperator(api::NOT, "not");
-  addOperator(api::OR, "or");
-  addOperator(api::XOR, "xor");
+  addOperator(cvc5::AND, "and");
+  addOperator(cvc5::DISTINCT, "distinct");
+  addOperator(cvc5::EQUAL, "=");
+  addOperator(cvc5::IMPLIES, "=>");
+  addOperator(cvc5::ITE, "ite");
+  addOperator(cvc5::NOT, "not");
+  addOperator(cvc5::OR, "or");
+  addOperator(cvc5::XOR, "xor");
 }
 
-void Smt2::addOperator(api::Kind kind, const std::string& name)
+void Smt2::addOperator(cvc5::Kind kind, const std::string& name)
 {
   Trace("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
@@ -279,8 +279,7 @@ void Smt2::addOperator(api::Kind kind, const std::string& name)
   d_operatorKindMap[name] = kind;
 }
 
-void Smt2::addIndexedOperator(api::Kind tKind,
-                              const std::string& name)
+void Smt2::addIndexedOperator(cvc5::Kind tKind, const std::string& name)
 {
   Parser::addOperator(tKind);
   d_indexedOpKindMap[name] = tKind;
@@ -291,7 +290,7 @@ bool Smt2::isIndexedOperatorEnabled(const std::string& name) const
   return d_indexedOpKindMap.find(name) != d_indexedOpKindMap.end();
 }
 
-api::Kind Smt2::getOperatorKind(const std::string& name) const
+cvc5::Kind Smt2::getOperatorKind(const std::string& name) const
 {
   // precondition: isOperatorEnabled(name)
   return d_operatorKindMap.find(name)->second;
@@ -301,7 +300,7 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
   return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
-bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
+bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);
 }
@@ -314,7 +313,7 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-bool Smt2::getTesterName(api::Term cons, std::string& name)
+bool Smt2::getTesterName(cvc5::Term cons, std::string& name)
 {
   if ((v2_6() || sygus()) && strictModeEnabled())
   {
@@ -328,10 +327,10 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
   return true;
 }
 
-api::Term Smt2::mkIndexedConstant(const std::string& name,
-                                  const std::vector<uint32_t>& numerals)
+cvc5::Term Smt2::mkIndexedConstant(const std::string& name,
+                                   const std::vector<uint32_t>& numerals)
 {
-  if (d_logic.isTheoryEnabled(theory::THEORY_FP))
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
     if (name == "+oo")
     {
@@ -355,7 +354,8 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
     }
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_BV) && name.find("bv") == 0)
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_BV)
+      && name.find("bv") == 0)
   {
     std::string bvStr = name.substr(2);
     return d_solver->mkBitVector(numerals[0], bvStr, 10);
@@ -364,10 +364,10 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
   // NOTE: Theory parametric constants go here
 
   parseError(std::string("Unknown indexed literal `") + name + "'");
-  return api::Term();
+  return cvc5::Term();
 }
 
-api::Kind Smt2::getIndexedOpKind(const std::string& name)
+cvc5::Kind Smt2::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())
@@ -375,42 +375,42 @@ api::Kind Smt2::getIndexedOpKind(const std::string& name)
     return (*kIt).second;
   }
   parseError(std::string("Unknown indexed function `") + name + "'");
-  return api::UNDEFINED_KIND;
+  return cvc5::UNDEFINED_KIND;
 }
 
-api::Term Smt2::bindDefineFunRec(
+cvc5::Term Smt2::bindDefineFunRec(
     const std::string& fname,
-    const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
-    api::Sort t,
-    std::vector<api::Term>& flattenVars)
+    const std::vector<std::pair<std::string, cvc5::Sort>>& sortedVarNames,
+    cvc5::Sort t,
+    std::vector<cvc5::Term>& flattenVars)
 {
-  std::vector<api::Sort> sorts;
-  for (const std::pair<std::string, api::Sort>& svn : sortedVarNames)
+  std::vector<cvc5::Sort> sorts;
+  for (const std::pair<std::string, cvc5::Sort>& svn : sortedVarNames)
   {
     sorts.push_back(svn.second);
   }
 
   // make the flattened function type, add bound variables
   // to flattenVars if the defined function was given a function return type.
-  api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
+  cvc5::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
   return bindVar(fname, ft, true);
 }
 
 void Smt2::pushDefineFunRecScope(
-    const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
-    api::Term func,
-    const std::vector<api::Term>& flattenVars,
-    std::vector<api::Term>& bvs)
+    const std::vector<std::pair<std::string, cvc5::Sort>>& sortedVarNames,
+    cvc5::Term func,
+    const std::vector<cvc5::Term>& flattenVars,
+    std::vector<cvc5::Term>& bvs)
 {
   pushScope();
 
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
-  for (const std::pair<std::string, api::Sort>& svn : sortedVarNames)
+  for (const std::pair<std::string, cvc5::Sort>& svn : sortedVarNames)
   {
-    api::Term v = bindBoundVar(svn.first, svn.second);
+    cvc5::Term v = bindBoundVar(svn.first, svn.second);
     bvs.push_back(v);
   }
 
@@ -420,9 +420,9 @@ void Smt2::pushDefineFunRecScope(
 void Smt2::reset() {
   d_logicSet = false;
   d_seenSetLogic = false;
-  d_logic = LogicInfo();
+  d_logic = internal::LogicInfo();
   d_operatorKindMap.clear();
-  d_lastNamedTerm = std::pair<api::Term, std::string>();
+  d_lastNamedTerm = std::pair<cvc5::Term, std::string>();
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -439,7 +439,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
         "arguments.");
   }
 
-  std::vector<api::Term> terms;
+  std::vector<cvc5::Term> terms;
   for (const std::string& name : names)
   {
     if (!isDeclared(name))
@@ -487,44 +487,46 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   // Core theory belongs to every logic
   addCoreSymbols();
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
-    Parser::addOperator(api::APPLY_UF);
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_UF))
+  {
+    Parser::addOperator(cvc5::APPLY_UF);
   }
 
   if (d_logic.isHigherOrder())
   {
-    addOperator(api::HO_APPLY, "@");
+    addOperator(cvc5::HO_APPLY, "@");
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH))
+  {
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true);
       addArithmeticOperators();
       if (!strictModeEnabled() || !d_logic.isLinear())
       {
-        addOperator(api::INTS_DIVISION, "div");
-        addOperator(api::INTS_MODULUS, "mod");
-        addOperator(api::ABS, "abs");
+        addOperator(cvc5::INTS_DIVISION, "div");
+        addOperator(cvc5::INTS_MODULUS, "mod");
+        addOperator(cvc5::ABS, "abs");
       }
-      addIndexedOperator(api::DIVISIBLE, "divisible");
+      addIndexedOperator(cvc5::DIVISIBLE, "divisible");
     }
 
     if (d_logic.areRealsUsed())
     {
       defineType("Real", d_solver->getRealSort(), true);
       addArithmeticOperators();
-      addOperator(api::DIVISION, "/");
+      addOperator(cvc5::DIVISION, "/");
       if (!strictModeEnabled())
       {
-        addOperator(api::ABS, "abs");
+        addOperator(cvc5::ABS, "abs");
       }
     }
 
     if (d_logic.areIntegersUsed() && d_logic.areRealsUsed())
     {
-      addOperator(api::TO_INTEGER, "to_int");
-      addOperator(api::IS_INTEGER, "is_int");
-      addOperator(api::TO_REAL, "to_real");
+      addOperator(cvc5::TO_INTEGER, "to_int");
+      addOperator(cvc5::IS_INTEGER, "is_int");
+      addOperator(cvc5::TO_REAL, "to_real");
     }
 
     if (d_logic.areTranscendentalsUsed())
@@ -535,87 +537,93 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if (!strictModeEnabled())
     {
       // integer version of AND
-      addIndexedOperator(api::IAND, "iand");
+      addIndexedOperator(cvc5::IAND, "iand");
       // pow2
-      addOperator(api::POW2, "int.pow2");
+      addOperator(cvc5::POW2, "int.pow2");
     }
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
-    addOperator(api::SELECT, "select");
-    addOperator(api::STORE, "store");
-    addOperator(api::EQ_RANGE, "eqrange");
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARRAYS))
+  {
+    addOperator(cvc5::SELECT, "select");
+    addOperator(cvc5::STORE, "store");
+    addOperator(cvc5::EQ_RANGE, "eqrange");
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_BV))
+  {
     addBitvectorOperators();
 
-    if (!strictModeEnabled() && d_logic.isTheoryEnabled(theory::THEORY_ARITH)
+    if (!strictModeEnabled()
+        && d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
         && d_logic.areIntegersUsed())
     {
       // Conversions between bit-vectors and integers
-      addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
-      addIndexedOperator(api::INT_TO_BITVECTOR, "int2bv");
+      addOperator(cvc5::BITVECTOR_TO_NAT, "bv2nat");
+      addIndexedOperator(cvc5::INT_TO_BITVECTOR, "int2bv");
     }
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
-    const std::vector<api::Sort> types;
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
+  {
+    const std::vector<cvc5::Sort> types;
     defineType("Tuple", d_solver->mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
+  {
     defineVar("set.empty", d_solver->mkEmptySet(d_solver->getNullSort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("set.universe",
               d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
-    addOperator(api::SET_UNION, "set.union");
-    addOperator(api::SET_INTER, "set.inter");
-    addOperator(api::SET_MINUS, "set.minus");
-    addOperator(api::SET_SUBSET, "set.subset");
-    addOperator(api::SET_MEMBER, "set.member");
-    addOperator(api::SET_SINGLETON, "set.singleton");
-    addOperator(api::SET_INSERT, "set.insert");
-    addOperator(api::SET_CARD, "set.card");
-    addOperator(api::SET_COMPLEMENT, "set.complement");
-    addOperator(api::SET_CHOOSE, "set.choose");
-    addOperator(api::SET_IS_SINGLETON, "set.is_singleton");
-    addOperator(api::SET_MAP, "set.map");
-    addOperator(api::RELATION_JOIN, "rel.join");
-    addOperator(api::RELATION_PRODUCT, "rel.product");
-    addOperator(api::RELATION_TRANSPOSE, "rel.transpose");
-    addOperator(api::RELATION_TCLOSURE, "rel.tclosure");
-    addOperator(api::RELATION_JOIN_IMAGE, "rel.join_image");
-    addOperator(api::RELATION_IDEN, "rel.iden");
+    addOperator(cvc5::SET_UNION, "set.union");
+    addOperator(cvc5::SET_INTER, "set.inter");
+    addOperator(cvc5::SET_MINUS, "set.minus");
+    addOperator(cvc5::SET_SUBSET, "set.subset");
+    addOperator(cvc5::SET_MEMBER, "set.member");
+    addOperator(cvc5::SET_SINGLETON, "set.singleton");
+    addOperator(cvc5::SET_INSERT, "set.insert");
+    addOperator(cvc5::SET_CARD, "set.card");
+    addOperator(cvc5::SET_COMPLEMENT, "set.complement");
+    addOperator(cvc5::SET_CHOOSE, "set.choose");
+    addOperator(cvc5::SET_IS_SINGLETON, "set.is_singleton");
+    addOperator(cvc5::SET_MAP, "set.map");
+    addOperator(cvc5::RELATION_JOIN, "rel.join");
+    addOperator(cvc5::RELATION_PRODUCT, "rel.product");
+    addOperator(cvc5::RELATION_TRANSPOSE, "rel.transpose");
+    addOperator(cvc5::RELATION_TCLOSURE, "rel.tclosure");
+    addOperator(cvc5::RELATION_JOIN_IMAGE, "rel.join_image");
+    addOperator(cvc5::RELATION_IDEN, "rel.iden");
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
     defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
-    addOperator(api::BAG_UNION_MAX, "bag.union_max");
-    addOperator(api::BAG_UNION_DISJOINT, "bag.union_disjoint");
-    addOperator(api::BAG_INTER_MIN, "bag.inter_min");
-    addOperator(api::BAG_DIFFERENCE_SUBTRACT, "bag.difference_subtract");
-    addOperator(api::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
-    addOperator(api::BAG_SUBBAG, "bag.subbag");
-    addOperator(api::BAG_COUNT, "bag.count");
-    addOperator(api::BAG_MEMBER, "bag.member");
-    addOperator(api::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
-    addOperator(api::BAG_MAKE, "bag");
-    addOperator(api::BAG_CARD, "bag.card");
-    addOperator(api::BAG_CHOOSE, "bag.choose");
-    addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
-    addOperator(api::BAG_FROM_SET, "bag.from_set");
-    addOperator(api::BAG_TO_SET, "bag.to_set");
-    addOperator(api::BAG_MAP, "bag.map");
-    addOperator(api::BAG_FILTER, "bag.filter");
-    addOperator(api::BAG_FOLD, "bag.fold");
-    addOperator(api::TABLE_PRODUCT, "table.product");
+    addOperator(cvc5::BAG_UNION_MAX, "bag.union_max");
+    addOperator(cvc5::BAG_UNION_DISJOINT, "bag.union_disjoint");
+    addOperator(cvc5::BAG_INTER_MIN, "bag.inter_min");
+    addOperator(cvc5::BAG_DIFFERENCE_SUBTRACT, "bag.difference_subtract");
+    addOperator(cvc5::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
+    addOperator(cvc5::BAG_SUBBAG, "bag.subbag");
+    addOperator(cvc5::BAG_COUNT, "bag.count");
+    addOperator(cvc5::BAG_MEMBER, "bag.member");
+    addOperator(cvc5::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
+    addOperator(cvc5::BAG_MAKE, "bag");
+    addOperator(cvc5::BAG_CARD, "bag.card");
+    addOperator(cvc5::BAG_CHOOSE, "bag.choose");
+    addOperator(cvc5::BAG_IS_SINGLETON, "bag.is_singleton");
+    addOperator(cvc5::BAG_FROM_SET, "bag.from_set");
+    addOperator(cvc5::BAG_TO_SET, "bag.to_set");
+    addOperator(cvc5::BAG_MAP, "bag.map");
+    addOperator(cvc5::BAG_FILTER, "bag.filter");
+    addOperator(cvc5::BAG_FOLD, "bag.fold");
+    addOperator(cvc5::TABLE_PRODUCT, "table.product");
   }
-  if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
     defineType("String", d_solver->getStringSort(), true);
     defineType("RegLan", d_solver->getRegExpSort(), true);
     defineType("Int", d_solver->getIntegerSort(), true);
@@ -634,33 +642,36 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addQuantifiersOperators();
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
+  {
     defineType("RoundingMode", d_solver->getRoundingModeSort(), true);
     defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true);
     defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true);
     defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true);
     defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true);
 
-    defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("RNE",
+              d_solver->mkRoundingMode(cvc5::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",
-              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar("RNA", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
+              d_solver->mkRoundingMode(cvc5::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("RNA",
+              d_solver->mkRoundingMode(cvc5::ROUND_NEAREST_TIES_TO_AWAY));
     defineVar("roundNearestTiesToAway",
-              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("RTP", d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
+              d_solver->mkRoundingMode(cvc5::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("RTP", d_solver->mkRoundingMode(cvc5::ROUND_TOWARD_POSITIVE));
     defineVar("roundTowardPositive",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
-    defineVar("RTN", d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
+              d_solver->mkRoundingMode(cvc5::ROUND_TOWARD_POSITIVE));
+    defineVar("RTN", d_solver->mkRoundingMode(cvc5::ROUND_TOWARD_NEGATIVE));
     defineVar("roundTowardNegative",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
-    defineVar("RTZ", d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
+              d_solver->mkRoundingMode(cvc5::ROUND_TOWARD_NEGATIVE));
+    defineVar("RTZ", d_solver->mkRoundingMode(cvc5::ROUND_TOWARD_ZERO));
     defineVar("roundTowardZero",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
+              d_solver->mkRoundingMode(cvc5::ROUND_TOWARD_ZERO));
 
     addFloatingPointOperators();
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_SEP))
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_SEP))
   {
     addSepOperators();
   }
@@ -683,11 +694,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   return cmd;
 } /* Smt2::setLogic() */
 
-api::Grammar* Smt2::mkGrammar(const std::vector<api::Term>& boundVars,
-                              const std::vector<api::Term>& ntSymbols)
+cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
+                               const std::vector<cvc5::Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
-      new api::Grammar(d_solver->mkSygusGrammar(boundVars, ntSymbols)));
+      new cvc5::Grammar(d_solver->mkSygusGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 
@@ -728,11 +739,11 @@ void Smt2::checkThatLogicIsSet()
 
 void Smt2::checkLogicAllowsFreeSorts()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF)
-      && !d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)
-      && !d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)
-      && !d_logic.isTheoryEnabled(theory::THEORY_SETS)
-      && !d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  if (!d_logic.isTheoryEnabled(internal::theory::THEORY_UF)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_ARRAYS)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_SETS)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
     parseErrorLogic("Free sort symbols not allowed in ");
   }
@@ -740,7 +751,7 @@ void Smt2::checkLogicAllowsFreeSorts()
 
 void Smt2::checkLogicAllowsFunctions()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF) && !isHoEnabled())
+  if (!d_logic.isTheoryEnabled(internal::theory::THEORY_UF) && !isHoEnabled())
   {
     parseError(
         "Functions (of non-zero arity) cannot "
@@ -815,12 +826,12 @@ bool Smt2::isAbstractValue(const std::string& name)
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
+void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
 {
   Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
-  if (p.d_kind == api::CONST_ARRAY)
+  if (p.d_kind == cvc5::CONST_ARRAY)
   {
     if (!type.isArray())
     {
@@ -859,11 +870,11 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
-api::Term Smt2::parseOpToExpr(ParseOp& p)
+cvc5::Term Smt2::parseOpToExpr(ParseOp& p)
 {
   Trace("parser") << "parseOpToExpr: " << p << std::endl;
-  api::Term expr;
-  if (p.d_kind != api::NULL_TERM || !p.d_type.isNull())
+  cvc5::Term expr;
+  if (p.d_kind != cvc5::NULL_TERM || !p.d_type.isNull())
   {
     parseError(
         "Bad syntax for qualified identifier operator in term position.");
@@ -886,23 +897,23 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
+cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
-  api::Kind kind = api::NULL_TERM;
+  cvc5::Kind kind = cvc5::NULL_TERM;
   // First phase: process the operator
   if (TraceIsOn("parser"))
   {
     Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
-    for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+    for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
          ++i)
     {
       Trace("parser") << "++ " << *i << std::endl;
     }
   }
-  api::Op op;
-  if (p.d_kind == api::UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
+  cvc5::Op op;
+  if (p.d_kind == cvc5::UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
   {
     // Resolve indexed symbols that cannot be resolved without knowing the type
     // of the arguments. This is currently limited to `to_fp`.
@@ -910,7 +921,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     size_t nchildren = args.size();
     if (nchildren == 1)
     {
-      kind = api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
+      kind = cvc5::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
       op = d_solver->mkOp(kind, p.d_indices);
     }
     else if (nchildren > 2)
@@ -930,35 +941,35 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     else
     {
-      api::Sort t = args[1].getSort();
+      cvc5::Sort t = args[1].getSort();
 
       if (t.isFloatingPoint())
       {
-        kind = api::FLOATINGPOINT_TO_FP_FROM_FP;
+        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_FP;
         op = d_solver->mkOp(kind, p.d_indices);
       }
       else if (t.isInteger() || t.isReal())
       {
-        kind = api::FLOATINGPOINT_TO_FP_FROM_REAL;
+        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_REAL;
         op = d_solver->mkOp(kind, p.d_indices);
       }
       else
       {
-        kind = api::FLOATINGPOINT_TO_FP_FROM_SBV;
+        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_SBV;
         op = d_solver->mkOp(kind, p.d_indices);
       }
     }
   }
-  else if (p.d_kind != api::NULL_TERM)
+  else if (p.d_kind != cvc5::NULL_TERM)
   {
-    // It is a special case, e.g. tuple_select or array constant specification.
+    // It is a special case, e.g. tuple.select or array constant specification.
     // We have to wait until the arguments are parsed to resolve it.
   }
   else if (!p.d_expr.isNull())
   {
     // An explicit operator, e.g. an apply function
-    api::Kind fkind = getKindForFunction(p.d_expr);
-    if (fkind != api::UNDEFINED_KIND)
+    cvc5::Kind fkind = getKindForFunction(p.d_expr);
+    if (fkind != cvc5::UNDEFINED_KIND)
     {
       // Some operators may require a specific kind.
       // Testers are handled differently than other indexed operators,
@@ -988,7 +999,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // A non-built-in function application, get the expression
       checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-      api::Term v = getVariable(p.d_name);
+      cvc5::Term v = getVariable(p.d_name);
       if (!v.isNull())
       {
         checkFunctionLike(v);
@@ -1001,13 +1012,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         // Could not find the expression. It may be an overloaded symbol,
         // in which case we may find it after knowing the types of its
         // arguments.
-        std::vector<api::Sort> argTypes;
-        for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+        std::vector<cvc5::Sort> argTypes;
+        for (std::vector<cvc5::Term>::iterator i = args.begin();
+             i != args.end();
              ++i)
         {
           argTypes.push_back((*i).getSort());
         }
-        api::Term fop = getOverloadedFunctionForTypes(p.d_name, argTypes);
+        cvc5::Term fop = getOverloadedFunctionForTypes(p.d_name, argTypes);
         if (!fop.isNull())
         {
           checkFunctionLike(fop);
@@ -1024,13 +1036,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   // handle special cases
-  if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
+  if (p.d_kind == cvc5::CONST_ARRAY && !p.d_type.isNull())
   {
     if (args.size() != 1)
     {
       parseError("Too many arguments to array constant.");
     }
-    api::Term constVal = args[0];
+    cvc5::Term constVal = args[0];
 
     if (p.d_type.getArrayElementSort() != constVal.getSort())
     {
@@ -1042,11 +1054,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
-    api::Term ret = d_solver->mkConstArray(p.d_type, constVal);
+    cvc5::Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
-  else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
+  else if ((p.d_kind == cvc5::APPLY_SELECTOR || p.d_kind == cvc5::APPLY_UPDATER)
            && !p.d_expr.isNull())
   {
     // tuple selector case
@@ -1056,11 +1068,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
           "index of tuple select or update is larger than size of uint64_t");
     }
     uint64_t n = p.d_expr.getUInt64Value();
-    if (args.size() != (p.d_kind == api::APPLY_SELECTOR ? 1 : 2))
+    if (args.size() != (p.d_kind == cvc5::APPLY_SELECTOR ? 1 : 2))
     {
       parseError("wrong number of arguments for tuple select or update");
     }
-    api::Sort t = args[0].getSort();
+    cvc5::Sort t = args[0].getSort();
     if (!t.isTuple())
     {
       parseError("tuple select or update applied to non-tuple");
@@ -1072,28 +1084,28 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       ss << "tuple is of length " << length << "; cannot access index " << n;
       parseError(ss.str());
     }
-    const api::Datatype& dt = t.getDatatype();
-    api::Term ret;
-    if (p.d_kind == api::APPLY_SELECTOR)
+    const cvc5::Datatype& dt = t.getDatatype();
+    cvc5::Term ret;
+    if (p.d_kind == cvc5::APPLY_SELECTOR)
     {
-      ret = d_solver->mkTerm(api::APPLY_SELECTOR,
+      ret = d_solver->mkTerm(cvc5::APPLY_SELECTOR,
                              {dt[0][n].getSelectorTerm(), args[0]});
     }
     else
     {
-      ret = d_solver->mkTerm(api::APPLY_UPDATER,
+      ret = d_solver->mkTerm(cvc5::APPLY_UPDATER,
                              {dt[0][n].getUpdaterTerm(), args[0], args[1]});
     }
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == api::TUPLE_PROJECT)
+  else if (p.d_kind == cvc5::TUPLE_PROJECT)
   {
-    api::Term ret = d_solver->mkTerm(p.d_op, args);
+    cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind != api::NULL_TERM)
+  else if (p.d_kind != cvc5::NULL_TERM)
   {
     // it should not have an expression or type specified at this point
     if (!p.d_expr.isNull() || !p.d_type.isNull())
@@ -1107,10 +1119,10 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!isHoEnabled() && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!isHoEnabled() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
     {
       // need hol if these operators are applied over function args
-      for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
            ++i)
       {
         if ((*i).getSort().isFunction())
@@ -1121,63 +1133,63 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         }
       }
     }
-    if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
+    if (!strictModeEnabled() && (kind == cvc5::AND || kind == cvc5::OR)
         && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       Trace("parser") << "applyParseOp: return unary " << args[0] << std::endl;
       return args[0];
     }
-    else if (kind == api::SUB && args.size() == 1)
+    else if (kind == cvc5::SUB && args.size() == 1)
     {
       if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
       {
         // (- n) denotes a negative value
         std::stringstream suminus;
         suminus << "-" << args[0].getIntegerValue();
-        api::Term ret = d_solver->mkInteger(suminus.str());
+        cvc5::Term ret = d_solver->mkInteger(suminus.str());
         Trace("parser") << "applyParseOp: return negative constant " << ret
                         << std::endl;
         return ret;
       }
-      api::Term ret = d_solver->mkTerm(api::NEG, {args[0]});
+      cvc5::Term ret = d_solver->mkTerm(cvc5::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    else if (kind == api::DIVISION && args.size() == 2 && isConstInt(args[0])
+    else if (kind == cvc5::DIVISION && args.size() == 2 && isConstInt(args[0])
              && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign() > 0)
     {
       // (/ m n) or (/ (- m) n) denote values in reals
       std::stringstream sdiv;
       sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
-      api::Term ret = d_solver->mkReal(sdiv.str());
+      cvc5::Term ret = d_solver->mkReal(sdiv.str());
       Trace("parser") << "applyParseOp: return rational constant " << ret
                       << std::endl;
       return ret;
     }
-    if (kind == api::SET_SINGLETON && args.size() == 1)
+    if (kind == cvc5::SET_SINGLETON && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, {args[0]});
+      cvc5::Term ret = d_solver->mkTerm(cvc5::SET_SINGLETON, {args[0]});
       Trace("parser") << "applyParseOp: return set.singleton " << ret
                       << std::endl;
       return ret;
     }
-    else if (kind == api::CARDINALITY_CONSTRAINT)
+    else if (kind == cvc5::CARDINALITY_CONSTRAINT)
     {
       if (args.size() != 2)
       {
         parseError("Incorrect arguments for cardinality constraint");
       }
-      api::Sort sort = args[0].getSort();
+      cvc5::Sort sort = args[0].getSort();
       if (!sort.isUninterpretedSort())
       {
         parseError("Expected uninterpreted sort for cardinality constraint");
       }
       uint64_t ubound = args[1].getUInt32Value();
-      api::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
+      cvc5::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
       return ret;
     }
-    api::Term ret = d_solver->mkTerm(kind, args);
+    cvc5::Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
     return ret;
@@ -1186,7 +1198,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (args.size() >= 2)
   {
     // may be partially applied function, in this case we use HO_APPLY
-    api::Sort argt = args[0].getSort();
+    cvc5::Sort argt = args[0].getSort();
     if (argt.isFunction())
     {
       unsigned arity = argt.getFunctionArity();
@@ -1201,7 +1213,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Trace("parser") << "Partial application of " << args[0];
         Trace("parser") << " : #argTypes = " << arity;
         Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
-        api::Term ret = d_solver->mkTerm(api::HO_APPLY, args);
+        cvc5::Term ret = d_solver->mkTerm(cvc5::HO_APPLY, args);
         Trace("parser") << "applyParseOp: return curry higher order " << ret
                         << std::endl;
         // must curry the partial application
@@ -1211,23 +1223,23 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   if (!op.isNull())
   {
-    api::Term ret = d_solver->mkTerm(op, args);
+    cvc5::Term ret = d_solver->mkTerm(op, args);
     Trace("parser") << "applyParseOp: return op : " << ret << std::endl;
     return ret;
   }
-  if (kind == api::NULL_TERM)
+  if (kind == cvc5::NULL_TERM)
   {
     // should never happen in the new API
     parseError("do not know how to process parse op");
   }
   Trace("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
-  api::Term ret = d_solver->mkTerm(kind, args);
+  cvc5::Term ret = d_solver->mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
 }
 
-void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
+void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
@@ -1244,7 +1256,7 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
   setLastNamedTerm(expr, name);
 }
 
-api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
+cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
 {
   if (es.size() == 0)
   {
@@ -1254,15 +1266,15 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
   {
     return es[0];
   }
-  return d_solver->mkTerm(api::AND, es);
+  return d_solver->mkTerm(cvc5::AND, es);
 }
 
-bool Smt2::isConstInt(const api::Term& t)
+bool Smt2::isConstInt(const cvc5::Term& t)
 {
-  api::Kind k = t.getKind();
+  cvc5::Kind k = t.getKind();
   // !!! Note when arithmetic subtyping is eliminated, this will update to
   // CONST_INTEGER.
-  return k == api::CONST_RATIONAL && t.getSort().isInteger();
+  return k == cvc5::CONST_RATIONAL && t.getSort().isInteger();
 }
 
 }  // namespace parser

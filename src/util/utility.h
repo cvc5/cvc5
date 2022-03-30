@@ -24,7 +24,7 @@
 #include <optional>
 #include <string>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Using std::find_if(), finds the first iterator in [first,last)
@@ -102,6 +102,6 @@ std::ostream& operator<<(std::ostream& out, const std::optional<T>& m)
  */
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTILITY_H */

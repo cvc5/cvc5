@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of cvc5::context::CDList<>.
+ * Black box testing of context::CDList<>.
  */
 
 #include <limits.h>
@@ -22,7 +22,7 @@
 #include "context/cdlist.h"
 #include "test_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace context;
 
@@ -178,4 +178,4 @@ TEST_F(TestContextBlackCDList, emplace_back)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

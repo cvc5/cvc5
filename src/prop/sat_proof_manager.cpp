@@ -22,7 +22,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 SatProofManager::SatProofManager(Env& env,
@@ -818,4 +818,4 @@ void SatProofManager::notifyPop()
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class CDProof;
 class ProofNode;
@@ -176,6 +176,6 @@ class ProofNodeUpdater
   bool d_runFinalize;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

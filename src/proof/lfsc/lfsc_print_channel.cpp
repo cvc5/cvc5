@@ -22,7 +22,7 @@
 
 using namespace cvc5::rewriter;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
@@ -201,4 +201,4 @@ const std::unordered_set<DslPfRule>& LfscPrintChannelPre::getDslRewrites() const
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

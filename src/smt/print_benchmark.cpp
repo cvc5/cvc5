@@ -19,9 +19,9 @@
 #include "expr/node_algorithm.h"
 #include "printer/printer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 void PrintBenchmark::printAssertions(std::ostream& out,
@@ -56,7 +56,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       std::vector<TypeNode> datatypeBlock;
       for (const TypeNode& ctn : connectedTypes)
       {
-        if (ctn.isSort())
+        if (ctn.isUninterpretedSort())
         {
           d_printer->toStreamCmdDeclareType(out, ctn);
         }
@@ -183,7 +183,7 @@ void PrintBenchmark::getConnectedSubfieldTypes(
     return;
   }
   processed.insert(tn);
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     connectedTypes.push_back(tn);
   }
@@ -281,4 +281,4 @@ void PrintBenchmark::printBenchmark(std::ostream& out,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

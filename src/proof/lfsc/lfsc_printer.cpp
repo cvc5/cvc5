@@ -25,10 +25,10 @@
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::rewriter;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::rewriter;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb)
@@ -258,7 +258,7 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     os << "(declare ";
     printType(os, tn);
@@ -1051,4 +1051,4 @@ void LfscPrinter::printDslRule(std::ostream& out,
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

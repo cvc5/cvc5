@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/theory_inference.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class InferenceManagerBuffered;
@@ -89,6 +89,6 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii);
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__INFER_INFO_H */

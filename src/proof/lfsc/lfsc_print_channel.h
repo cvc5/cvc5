@@ -27,7 +27,7 @@
 #include "proof/proof_node.h"
 #include "rewriter/rewrite_proof_rule.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -130,6 +130,6 @@ class LfscPrintChannelPre : public LfscPrintChannel
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -23,7 +23,7 @@
 #include "base/output.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 thread_local SolverEngine* s_slvEngine_current = nullptr;
@@ -65,4 +65,4 @@ StatisticsRegistry& SolverEngineScope::currentStatisticsRegistry()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

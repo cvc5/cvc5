@@ -21,13 +21,13 @@
 #include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 void registerPublicStatistics(StatisticsRegistry& reg)
 {
-  reg.registerHistogram<TypeConstant>("api::CONSTANT", false);
-  reg.registerHistogram<TypeConstant>("api::VARIABLE", false);
-  reg.registerHistogram<api::Kind>("api::TERM", false);
+  reg.registerHistogram<TypeConstant>("cvc5::CONSTANT", false);
+  reg.registerHistogram<TypeConstant>("cvc5::VARIABLE", false);
+  reg.registerHistogram<cvc5::Kind>("cvc5::TERM", false);
 
   reg.registerValue<std::string>("driver::filename", false);
   reg.registerTimer("global::totalTime", false);
@@ -45,4 +45,4 @@ void registerPublicStatistics(StatisticsRegistry& reg)
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -18,7 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 Node AletheNoSubtypeNodeConverter::postConvert(Node n)
@@ -211,4 +211,4 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

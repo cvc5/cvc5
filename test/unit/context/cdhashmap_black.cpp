@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of cvc5::context::CDMap<>.
+ * Black box testing of context::CDMap<>.
  */
 
 #include <map>
@@ -20,11 +20,11 @@
 #include "context/cdlist.h"
 #include "test_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
-using cvc5::context::CDHashMap;
-using cvc5::context::Context;
+using context::CDHashMap;
+using context::Context;
 
 class TestContextBlackCDHashMap : public TestContext
 {
@@ -189,4 +189,4 @@ TEST_F(TestContextBlackCDHashMap, insert_at_context_level_zero)
   ASSERT_TRUE(elements_are(map, {{3, 4}}));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

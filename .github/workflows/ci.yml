@@ -128,7 +128,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Add binary to latest and release
-      if: matrix.binary-name && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.binary-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/store-binary
       with:
         binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
@@ -143,5 +143,5 @@ jobs:
         uses: adRise/update-pr-branch@v0.5.1
         with:
           token: ${{ secrets.ACTION_USER_TOKEN }}
-          base: 'master'
+          base: 'main'
           required_approval_count: 1

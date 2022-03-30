@@ -21,7 +21,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 #define CVC5_NUM_ROUNDING_MODES 5
 
@@ -50,6 +50,6 @@ struct RoundingModeHashFunction
 
 std::ostream& operator<<(std::ostream& os, RoundingMode s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

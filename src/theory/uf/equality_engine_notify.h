@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -116,6 +116,6 @@ class EqualityEngineNotifyNone : public EqualityEngineNotify
 
 }  // Namespace eq
 }  // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

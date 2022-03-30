@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 /**
@@ -62,6 +62,6 @@ class LearnedLiteralManager : protected EnvObj
 };
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__LEARNED_LITERAL_MANAGER_H */

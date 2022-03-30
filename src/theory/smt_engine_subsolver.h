@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -139,6 +139,6 @@ bool getUnsatCoreFromSubsolver(SolverEngine& smt,
 void getUnsatCoreFromSubsolver(SolverEngine& smt, std::vector<Node>& uasserts);
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SMT_ENGINE_SUBSOLVER_H */

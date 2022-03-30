@@ -29,7 +29,7 @@
 #include "proof/proof_node.h"
 #include "rewriter/rewrite_db.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 class LfscPrintChannel;
@@ -189,6 +189,6 @@ class LfscPrinter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

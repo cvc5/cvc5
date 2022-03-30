@@ -16,7 +16,7 @@
 
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 DecisionEngine::DecisionEngine(Env& env)
@@ -51,4 +51,4 @@ prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 }
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal

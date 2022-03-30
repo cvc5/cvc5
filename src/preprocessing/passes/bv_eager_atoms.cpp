@@ -23,7 +23,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -51,4 +51,4 @@ PreprocessingPassResult BvEagerAtoms::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -19,7 +19,7 @@
 
 #include "proof/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -145,4 +145,4 @@ AletheRule getAletheRule(Node n)
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

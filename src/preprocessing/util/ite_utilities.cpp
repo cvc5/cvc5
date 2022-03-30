@@ -30,7 +30,7 @@
 #include "util/rational.h"
 
 using namespace std;
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace util {
 
@@ -1884,4 +1884,4 @@ ITECareSimplifier::CareSetPtr ITECareSimplifier::CareSetPtr::mkNew(
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

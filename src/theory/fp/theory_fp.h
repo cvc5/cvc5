@@ -29,7 +29,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -159,6 +159,6 @@ class TheoryFp : public Theory
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__FP__THEORY_FP_H */

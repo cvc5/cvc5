@@ -24,7 +24,7 @@
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -128,6 +128,6 @@ class RoundingModeEnumerator
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__FP__TYPE_ENUMERATOR_H */

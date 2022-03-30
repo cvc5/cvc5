@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/node_converter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -48,6 +48,6 @@ class AletheNoSubtypeNodeConverter : public NodeConverter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
