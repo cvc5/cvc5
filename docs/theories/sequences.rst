@@ -146,3 +146,48 @@ a ``cvc5::api::Solver solver`` object.
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 | Sequence suffix of   | ``(seq.suffixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_SUFFIXOF, X, Y);``              |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
+
+Examples
+^^^^^^^^
+
+.. code:: smtlib
+
+(set-logic QF_SLIA)
+(set-info :status unsat)
+(declare-fun x () (Seq Int))
+(declare-fun y () (Seq Int))
+(declare-fun z () (Seq Int))
+(declare-fun a () Int)
+(declare-fun b () Int)
+(assert (= y (seq.update x 0 (seq.unit a))))
+(assert (= z (seq.update x 0 (seq.unit b))))
+(assert (not (= a b)))
+(assert (= y z))
+(assert (> (seq.len y) 0))
+(check-sat)
+
+.. code:: smtlib
+
+(set-logic QF_SLIA)
+(set-info :status unsat)
+(declare-fun A () (Seq Int))
+(declare-fun S () (Seq Int))
+(declare-fun i () Int)
+(assert (<= 0 i))
+(assert (< i (- (seq.len A) 1)))
+(assert (= S (seq.extract A i 1)))
+(assert (distinct (seq.nth S 0) (seq.nth A i)))
+(check-sat)
+
+.. code:: smtlib
+
+(set-logic QF_SLIA)
+(set-info :status unsat)
+(declare-fun x () (Seq Int))
+(declare-fun y () (Seq Int))
+(declare-fun a () Int)
+(declare-fun b () Int)
+(assert (= (seq.++ (seq.unit a) y) (seq.update x 0 (seq.unit b))))
+(assert (not (= a b)))
+(check-sat)
+
