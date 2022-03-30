@@ -103,8 +103,9 @@ CPP_JAVA_MAPPING = \
         r"\buint64_t\b": "long",
         r"\bunsigned char\b": "byte",
         r"cvc5::": "cvc5.",
-        r"Term::Term\(\)": "Solver.getNullTerm()",
-        r"Solver::": "Solver.",
+        r"Term::Term\(\)": "{@link Solver#getNullTerm()",
+        r"Term::": "{@link Term#",
+        r"Solver::": "{@link Solver#",
         r"std::vector<int>": "int[]",
         r"std::vector<Term>": "Term[]",
         r"std::string": "String",
@@ -122,7 +123,24 @@ CPP_JAVA_MAPPING = \
 def format_comment(comment):
     for pattern, replacement in CPP_JAVA_MAPPING.items():
         comment = re.sub(pattern, replacement, comment)
-    return """  /**\n{}\n   */""".format(textwrap.indent(comment, '   * '))
+    comment = """  /**\n{}\n   */""".format(textwrap.indent(comment, '   * '))
+
+    # e.g. {@link Solver#mkBitVector(int, long) becomes {@link Solver#mkBitVector(int,long)}
+    def close_link(match):
+        link = match.group()
+        link = link.replace(" ", "")
+        link = link.replace("@link", "@link ")
+        if "}" in link:
+            return link
+        return "{0}}} ".format(link)
+
+    # e.g. {@link Solver#mkBitVector(int, long)
+    function_pattern = re.compile(r"{@link (.*?\))")
+    comment = re.sub(function_pattern, close_link, comment)
+    # e.g. {@link BigInteger#Ten
+    field_pattern = re.compile(r"{@link [a-zA-Z.#]*\s")
+    comment = re.sub(field_pattern, close_link, comment)
+    return comment
 
 
 # Files generation
