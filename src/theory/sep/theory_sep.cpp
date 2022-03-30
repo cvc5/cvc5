@@ -1197,10 +1197,13 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
 
     //check whether monotonic (elements can be added to tn without effecting satisfiability)
     bool tn_is_monotonic = true;
-    if( tn.isSort() ){
+    if (tn.isUninterpretedSort())
+    {
       //TODO: use monotonicity inference
       tn_is_monotonic = !logicInfo().isQuantified();
-    }else{
+    }
+    else
+    {
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }
     //add a reference type for maximum occurrences of empty in a constraint
