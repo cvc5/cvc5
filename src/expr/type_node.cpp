@@ -422,10 +422,14 @@ bool TypeNode::isInstantiatedDatatype() const {
   return true;
 }
 
+bool TypeNode::isInstantiatedUninterpretedSort() const
+{
+  return isUninterpretedSort() && getNumChildren() > 0;
+}
+
 bool TypeNode::isInstantiated() const
 {
-  return isInstantiatedDatatype()
-         || (isUninterpretedSort() && getNumChildren() > 0);
+  return isInstantiatedDatatype() || isInstantiatedUninterpretedSort();
 }
 
 TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
@@ -459,6 +463,14 @@ std::string TypeNode::getName() const
 {
   Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
+}
+
+TypeNode TypeNode::getUninterpretedSortConstructor() const
+{
+  Assert(isInstantiatedUninterpretedSort());
+  NodeBuilder nb(kind::SORT_TYPE);
+  nb << NodeManager::operatorFromType(*this);
+  return nb.constructTypeNode();
 }
 
 bool TypeNode::isParameterInstantiatedDatatype(size_t n) const

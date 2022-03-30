@@ -494,6 +494,23 @@ Java_io_github_cvc5_api_Sort_getInstantiatedParameters(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Sort
+ * Method:    getUninterpretedSortConstructor
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructor(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  Sort* retPointer = new Sort(current->getUninterpretedSortConstructor());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */

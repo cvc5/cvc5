@@ -1386,6 +1386,18 @@ bool Sort::isUninterpretedSortConstructor() const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Sort::getUninterpretedSortConstructor() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_type->isInstantiatedUninterpretedSort())
+      << "Expected instantiated uninterpreted sort.";
+  //////// all checks before this line
+  return Sort(d_solver, d_type->getUninterpretedSortConstructor());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;

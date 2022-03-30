@@ -386,6 +386,20 @@ TEST_F(TestApiBlackSort, getInstantiatedParameters)
   ASSERT_THROW(bvSort.getInstantiatedParameters(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSort, getUninterpretedSortConstructor)
+{
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort bvSort = d_solver.mkBitVectorSort(8);
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 4);
+  ASSERT_THROW(sortConsSort.getUninterpretedSortConstructor(),
+               CVC5ApiException);
+  Sort instSortConsSort =
+      sortConsSort.instantiate({boolSort, intSort, bvSort, realSort});
+  ASSERT_EQ(sortConsSort, instSortConsSort.getUninterpretedSortConstructor());
+}
+
 TEST_F(TestApiBlackSort, getFunctionArity)
 {
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),

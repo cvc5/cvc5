@@ -366,6 +366,18 @@ def test_get_instantiated_parameters(solver):
     with pytest.raises(RuntimeError):
         bvSort.getInstantiatedParameters()
 
+def test_get_uninterpreted_sort_constructor(solver):
+    intSort = solver.getIntegerSort()
+    realSort = solver.getRealSort()
+    boolSort = solver.getBooleanSort()
+    bvSort = solver.mkBitVectorSort(8)
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 4)
+    with pytest.raises(RuntimeError):
+        sortConsSort.getUninterpretedSortConstructor()
+    instSortConsSort = \
+        sortConsSort.instantiate([boolSort, intSort, bvSort, realSort]);
+    assert sortConsSort == instSortConsSort.getUninterpretedSortConstructor()
+
 def test_get_function_arity(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
                                     solver.getIntegerSort())

@@ -109,7 +109,10 @@ void TheoryDatatypes::finishInit()
   // We could but don't do congruence for DT_SIZE and DT_HEIGHT_BOUND here.
   // It also could make sense in practice to do congruence for APPLY_UF, but
   // this is not done.
-  if (getQuantifiersEngine() && options().quantifiers.sygus)
+  // Enable the sygus extension if we will introduce sygus datatypes. This
+  // is the case for sygus problems and when using sygus-inst.
+  if (getQuantifiersEngine()
+      && (options().quantifiers.sygus || options().quantifiers.sygusInst))
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
