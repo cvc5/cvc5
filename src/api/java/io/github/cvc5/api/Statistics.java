@@ -15,10 +15,10 @@
 
 package io.github.cvc5.api;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Map;
 import java.util.AbstractMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
@@ -90,29 +90,26 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
       iteratorPointer = getIterator(pointer);
     }
 
-    @Override public boolean hasNext()
+    @Override
+    public boolean hasNext()
     {
       return Statistics.this.hasNext(pointer, iteratorPointer);
     }
 
-    @Override public Map.Entry<String, Stat> next()
+    @Override
+    public Map.Entry<String, Stat> next()
     {
       try
       {
         Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
         Stat stat = new Stat(solver, pair.second);
         this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
-        return new AbstractMap.SimpleImmutableEntry(pair.first, stat);
+        return new AbstractMap.SimpleImmutableEntry<>(pair.first, stat);
       }
       catch (CVC5ApiException e)
       {
         throw new NoSuchElementException(e.getMessage());
       }
-    }
-
-    @Override public void finalize()
-    {
-      deleteIteratorPointer(iteratorPointer);
     }
   }
 
@@ -120,8 +117,9 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
   {
     return new ConstIterator(internal, defaulted);
   }
-  @Override public ConstIterator iterator()
+  @Override
+  public ConstIterator iterator()
   {
     return new ConstIterator();
   }
-};
+}

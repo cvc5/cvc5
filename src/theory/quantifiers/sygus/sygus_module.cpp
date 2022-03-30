@@ -17,7 +17,7 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -32,4 +32,4 @@ SygusModule::SygusModule(Env& env,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

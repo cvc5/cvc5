@@ -20,7 +20,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
@@ -285,4 +285,4 @@ void ProofNodeUpdater::setDebugFreeAssumptions(
   d_debugFreeAssumps = true;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

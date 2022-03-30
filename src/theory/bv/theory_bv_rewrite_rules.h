@@ -30,7 +30,7 @@
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -760,4 +760,4 @@ struct FixpointRewriteStrategy {
 
 } // End namespace bv
 } // End namespace theory
-}  // End namespace cvc5
+}  // End namespace cvc5::internal

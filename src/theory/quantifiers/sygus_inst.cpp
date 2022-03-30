@@ -30,7 +30,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -498,6 +498,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   // type is is the same as x_i, and whose value will be used to instantiate x_i
   std::vector<Node> evals;
   std::vector<Node> inst_constants;
+  InstConstantAttribute ica;
   for (size_t i = 0, size = types.size(); i < size; ++i)
   {
     TypeNode tn = types[i];
@@ -505,7 +506,6 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
     /* Create the instantiation constant and set attribute accordingly. */
     Node ic = nm->mkInstConstant(tn);
-    InstConstantAttribute ica;
     ic.setAttribute(ica, q);
     Trace("sygus-inst") << "Create " << ic << " for " << var << std::endl;
 
@@ -523,6 +523,10 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
     // skolem construction here is deterministic and reproducible.
     Node k = sm->mkPurifySkolem(eval, "eval");
+    // Requires instantiation constant attribute as well. This ensures that
+    // other instantiation methods, e.g. E-matching do not consider this term
+    // for instantiation, as it is model-unsound to do so.
+    k.setAttribute(ica, q);
 
     inst_constants.push_back(ic);
     evals.push_back(k);
@@ -569,4 +573,4 @@ void SygusInst::addCeLemma(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

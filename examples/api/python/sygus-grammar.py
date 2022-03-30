@@ -32,7 +32,6 @@ if __name__ == "__main__":
   slv.setLogic("LIA")
 
   integer = slv.getIntegerSort()
-  boolean = slv.getBooleanSort()
 
   # declare input variable for the function-to-synthesize
   x = slv.mkVar(integer, "x")

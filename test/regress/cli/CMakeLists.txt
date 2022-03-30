@@ -816,6 +816,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8183-tc-pi.smt2
   regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
+  regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
@@ -2213,6 +2214,9 @@ set(regress_1_tests
   regress1/quantifiers/issue7537-cegqi-comp-types.smt2
   regress1/quantifiers/issue8157-duplicate-conflicts.smt2
   regress1/quantifiers/issue8344-cegqi-string-witness.smt2
+  regress1/quantifiers/issue8410-vts-subtypes.smt2
+  regress1/quantifiers/issue8456-2-syqi-ic.smt2
+  regress1/quantifiers/issue8456-syqi-ic.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2

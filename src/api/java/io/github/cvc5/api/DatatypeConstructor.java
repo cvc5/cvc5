@@ -80,14 +80,13 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  public Term getInstantiatedConstructorTerm(Sort retSort) {
-    long termPointer =
-        getInstantiatedConstructorTerm(pointer, retSort.getPointer());
+  public Term getInstantiatedConstructorTerm(Sort retSort)
+  {
+    long termPointer = getInstantiatedConstructorTerm(pointer, retSort.getPointer());
     return new Term(solver, termPointer);
   }
 
-  private native long getInstantiatedConstructorTerm(
-      long pointer, long retSortPointer);
+  private native long getInstantiatedConstructorTerm(long pointer, long retSortPointer);
 
   /**
    * Get the tester operator of this datatype constructor.
@@ -175,12 +174,14 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
       size = getNumSelectors();
     }
 
-    @Override public boolean hasNext()
+    @Override
+    public boolean hasNext()
     {
       return currentIndex < size - 1;
     }
 
-    @Override public DatatypeSelector next()
+    @Override
+    public DatatypeSelector next()
     {
       if (currentIndex >= size - 1)
       {
@@ -192,7 +193,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     }
   }
 
-  @Override public Iterator<DatatypeSelector> iterator()
+  @Override
+  public Iterator<DatatypeSelector> iterator()
   {
     return new ConstIterator();
   }

@@ -49,9 +49,9 @@
 
 using namespace std;
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* -------------------------------------------------------------------------- */
 
@@ -64,19 +64,19 @@ namespace theory {
  */
 
 #define CVC5_FOR_EACH_THEORY                                     \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BUILTIN)   \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BOOL)      \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_UF)        \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_ARITH)     \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BV)        \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_FP)        \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_ARRAYS)    \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_DATATYPES) \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_SEP)       \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_SETS)      \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BAGS)      \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_STRINGS)   \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_QUANTIFIERS)
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BUILTIN)   \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BOOL)      \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_UF)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_ARITH)     \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BV)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_FP)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_ARRAYS)    \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_DATATYPES) \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_SEP)       \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_SETS)      \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BAGS)      \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_STRINGS)   \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_QUANTIFIERS)
 
 }  // namespace theory
 
@@ -335,7 +335,9 @@ void TheoryEngine::printAssertions(const char* tag) {
 
         if (d_logicInfo.isSharingEnabled()) {
           Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
-          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
+          context::CDList<TNode>::const_iterator
+              it = theory->shared_terms_begin(),
+              it_end = theory->shared_terms_end();
           for (unsigned i = 0; it != it_end; ++ it, ++i) {
               Trace(tag) << "[" << i << "]: " << (*it) << endl;
           }
@@ -1843,10 +1845,12 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-      for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
-            it_end = theory->facts_end();
-          it != it_end;
-          ++it) {
+      for (context::CDList<Assertion>::const_iterator
+               it = theory->facts_begin(),
+               it_end = theory->facts_end();
+           it != it_end;
+           ++it)
+      {
         Node assertion = (*it).d_assertion;
         if (hasRelevantAssertions
             && relevantAssertions.find(assertion) == relevantAssertions.end())
@@ -1981,4 +1985,4 @@ void TheoryEngine::initializeProofChecker(ProofChecker* pc)
 
 theory::Rewriter* TheoryEngine::getRewriter() { return d_env.getRewriter(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

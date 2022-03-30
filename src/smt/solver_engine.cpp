@@ -74,13 +74,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace cvc5::smt;
-using namespace cvc5::preprocessing;
-using namespace cvc5::prop;
+using namespace cvc5::internal::smt;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::prop;
 using namespace cvc5::context;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
@@ -140,11 +140,14 @@ Result SolverEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
 }
-context::UserContext* SolverEngine::getUserContext()
+UserContext* SolverEngine::getUserContext()
 {
   return d_env->getUserContext();
 }
-context::Context* SolverEngine::getContext() { return d_env->getContext(); }
+Context* SolverEngine::getContext()
+{
+  return d_env->getContext();
+}
 
 TheoryEngine* SolverEngine::getTheoryEngine()
 {
@@ -1010,7 +1013,7 @@ std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
 
 std::vector<Node> SolverEngine::getModelDomainElements(TypeNode tn) const
 {
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   TheoryModel* m = getAvailableModel("getModelDomainElements");
   return m->getDomainElements(tn);
 }
@@ -1159,7 +1162,7 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 std::vector<Node> SolverEngine::getAssertionsInternal()
 {
   Assert(d_state->isFullyInited());
-  const context::CDList<Node>& al = d_asserts->getAssertionList();
+  const CDList<Node>& al = d_asserts->getAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
   {
@@ -1442,7 +1445,7 @@ void SolverEngine::checkUnsatCore()
 
 void SolverEngine::checkModel(bool hardFailure)
 {
-  const context::CDList<Node>& al = d_asserts->getAssertionList();
+  const CDList<Node>& al = d_asserts->getAssertionList();
   // we always enable the assertion list, so it is able to be checked
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
@@ -1884,4 +1887,4 @@ const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

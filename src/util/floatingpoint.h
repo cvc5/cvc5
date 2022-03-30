@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* -------------------------------------------------------------------------- */
 
@@ -508,7 +508,7 @@ struct FloatingPointToBVHashFunction
 {
   inline size_t operator()(const FloatingPointToBV& fptbv) const
   {
-    UnsignedHashFunction< ::cvc5::BitVectorSize> f;
+    UnsignedHashFunction<cvc5::internal::BitVectorSize> f;
     return (key ^ 0x46504256) ^ f(fptbv.d_bv_size);
   }
 }; /* struct FloatingPointToBVHashFunction */
@@ -527,6 +527,6 @@ std::ostream& operator<<(std::ostream& os, const FloatingPointSize& fps);
 std::ostream& operator<<(std::ostream& os,
                          const FloatingPointConvertSort& fpcs);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__FLOATINGPOINT_H */

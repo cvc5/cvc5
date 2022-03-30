@@ -19,7 +19,7 @@
 #include "context/context.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestContext : public TestInternal
@@ -30,5 +30,5 @@ class TestContext : public TestInternal
 };
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

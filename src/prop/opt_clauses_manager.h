@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 /**
@@ -69,6 +69,6 @@ class OptimizedClausesManager : context::ContextNotifyObj
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP__OPT_CLAUSES_MANAGER_H */

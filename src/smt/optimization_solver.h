@@ -24,7 +24,7 @@
 #include "expr/type_node.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class SolverEngine;
@@ -64,7 +64,7 @@ class OptimizationResult
   {
   }
   OptimizationResult()
-      : d_result(Result::UNKNOWN, Result::UnknownExplanation::NO_STATUS),
+      : d_result(Result::UNKNOWN, UnknownExplanation::NO_STATUS),
         d_value(),
         d_infinity(FINITE)
   {
@@ -323,6 +323,6 @@ class OptimizationSolver
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__OPTIMIZATION_SOLVER_H */

@@ -25,15 +25,14 @@ public class Pair<K, V>
     this.second = second;
   }
 
-  @Override public boolean equals(Object pair)
+  @Override
+  public boolean equals(Object pair)
   {
     if (this == pair)
       return true;
     if (pair == null || getClass() != pair.getClass())
       return false;
 
-    Pair<K, V> p = (Pair<K, V>) pair;
-
-    return first.equals(p.first) && second.equals(p.second);
+    return first.equals(((Pair<?, ?>) pair).first) && second.equals(((Pair<?, ?>) pair).second);
   }
 }

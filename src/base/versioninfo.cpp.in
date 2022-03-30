@@ -15,8 +15,8 @@
 
 #include "base/configuration.h"
 
-const bool ::cvc5::Configuration::GIT_BUILD = @GIT_BUILD@;
-const bool ::cvc5::Configuration::CVC5_IS_RELEASE = @CVC5_IS_RELEASE@;
-const char* const ::cvc5::Configuration::CVC5_VERSION = "@CVC5_VERSION@";
-const char* const ::cvc5::Configuration::CVC5_FULL_VERSION = "@CVC5_FULL_VERSION@";
-const char* const ::cvc5::Configuration::CVC5_GIT_INFO = "@CVC5_GIT_INFO@";
+const bool cvc5::internal::Configuration::GIT_BUILD = @GIT_BUILD@;
+const bool cvc5::internal::Configuration::CVC5_IS_RELEASE = @CVC5_IS_RELEASE@;
+const char* const cvc5::internal::Configuration::CVC5_VERSION = "@CVC5_VERSION@";
+const char* const cvc5::internal::Configuration::CVC5_FULL_VERSION = "@CVC5_FULL_VERSION@";
+const char* const cvc5::internal::Configuration::CVC5_GIT_INFO = "@CVC5_GIT_INFO@";

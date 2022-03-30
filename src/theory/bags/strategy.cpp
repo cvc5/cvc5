@@ -15,7 +15,7 @@
 
 #include "theory/bags/strategy.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -106,4 +106,4 @@ void Strategy::initializeStrategy()
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

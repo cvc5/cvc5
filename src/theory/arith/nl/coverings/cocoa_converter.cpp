@@ -19,7 +19,7 @@
 #ifdef CVC5_POLY_IMP
 #ifdef CVC5_USE_COCOA
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -120,7 +120,7 @@ poly::Polynomial CoCoAConverter::convertImpl(const CoCoA::RingElem& p,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
 #endif

@@ -34,15 +34,15 @@
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
-
-namespace context {
-class Context;
-class UserContext;
-}
 
 namespace theory {
 struct EeSetupInfo;
@@ -297,4 +297,4 @@ std::vector<Node> andComponents(TNode an);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

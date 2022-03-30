@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -194,6 +194,6 @@ class TheorySetsRels : protected EnvObj
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* SRC_THEORY_SETS_THEORY_SETS_RELS_H_ */

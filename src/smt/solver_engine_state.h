@@ -26,7 +26,7 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 
@@ -250,6 +250,6 @@ class SolverEngineState : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

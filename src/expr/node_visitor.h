@@ -20,7 +20,7 @@
 #include "cvc5_private.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Traverses the nodes reverse-topologically (children before parents),
@@ -121,4 +121,4 @@ public:
 template <typename Visitor>
 thread_local bool NodeVisitor<Visitor>::s_inRun = false;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

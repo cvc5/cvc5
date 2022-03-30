@@ -29,7 +29,7 @@
 
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Listener;
 class Options;
@@ -209,6 +209,6 @@ class ResourceManager
   std::unique_ptr<Statistics> d_statistics;
 }; /* class ResourceManager */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESOURCE_MANAGER_H */

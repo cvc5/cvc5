@@ -37,11 +37,11 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5::preprocessing;
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /** Useful for counting the number of recursive calls. */
@@ -505,4 +505,4 @@ PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

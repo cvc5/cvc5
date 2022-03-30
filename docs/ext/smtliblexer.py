@@ -48,7 +48,7 @@ class SmtLibLexer(RegexLexer):
         '=>', '=', 'true', 'false', 'not', 'and', 'or', 'xor', 'distinct',
         'ite',
         # datatypes
-        'tuple', 'tuple_project', 'tuple_select',
+        'tuple', 'tuple\.project', 'tuple\.select', 'tuple\.update',
         # fp
         'RNE', 'RNA', 'RTP', 'RTN', 'RTZ', 'fp', 'NaN', 'fp\.abs', 'fp\.neg',
         'fp\.add', 'fp\.sub', 'fp\.mul', 'fp\.div', 'fp\.fma', 'fp\.sqrt',
@@ -62,15 +62,16 @@ class SmtLibLexer(RegexLexer):
         '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/', 'div', 'mod', 'abs',
         'divisible', 'to_real', 'to_int', 'is_int', 'iand', 'int2bv',
         # separation logic
-        'emp', 'pto', 'sep', 'wand', 'nil',
+        'sep\.emp', 'pto', 'sep', 'wand', 'sep\.nil',
         # sets / relations
-        'union', 'setminus', 'member', 'subset', 'emptyset', 'singleton',
-        'card', 'insert', 'complement', 'univset', 'transpose', 'tclosure',
-        'join', 'product', 'intersection',
+        'set\.union', 'set\.minus', 'set\.member', 'set\.subset', 'set\.empty',
+        'set\.singleton', 'set\.card', 'set\.insert', 'set\.complement',
+        'set\.universe', 'rel\.transpose', 'rel\.tclosure', 'rel\.join',
+        'rel\.product', 'set\.inter',
         # string
-        'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.to_re', 'str\.in_re',
-        're\.none', 're\.all', 're\.allchar', 're\.\+\+', 're\.union',
-        're\.inter', 're\.*', 'str\.<=', 'str\.at', 'str\.substr',
+        'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.<=', 'str\.to_re',
+        'str\.in_re', 're\.none', 're\.all', 're\.allchar', 're\.\+\+',
+        're\.union', 're\.inter', 're\.*', 'str\.<=', 'str\.at', 'str\.substr',
         'str\.prefixof', 'str\.suffixof', 'str\.contains', 'str\.indexof',
         'str\.replace', 'str\.replace_all', 'str\.replace_re',
         'str\.replace_re_all', 're\.comp', 're\.diff', 're\.\+', 're\.opt',

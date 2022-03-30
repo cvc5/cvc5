@@ -28,7 +28,7 @@
 #define RAN_UNREACHABLE \
   Unreachable() << "RealAlgebraicNumber is not available without libpoly."
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 #ifdef CVC5_POLY_IMP
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
@@ -247,11 +247,11 @@ RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
 #endif
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
-size_t hash<cvc5::RealAlgebraicNumber>::operator()(
-    const cvc5::RealAlgebraicNumber& ran) const
+size_t hash<cvc5::internal::RealAlgebraicNumber>::operator()(
+    const cvc5::internal::RealAlgebraicNumber& ran) const
 {
 #ifdef CVC5_POLY_IMP
   return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
