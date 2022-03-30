@@ -21,7 +21,7 @@ cvc5 1.0
 * *New Java language bindings*
 
 * *Theory of Bags (Multisets)*
-  - TODO: describe Bags
+  A new theory of bags, which are collections that allow duplicates. It supports basic operators like union disjoint, union max, intersection, difference subtract, difference remove, duplicate removal, and multiplicity of an element in a bag. 
 
 * *Theory of Sequences*
   - A new parametric theory of sequences whose syntax is compatible with the
