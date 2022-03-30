@@ -2919,6 +2919,17 @@ cdef class Sort:
         """
         return self.csort.isInstantiated()
 
+    def getUninterpretedSortConstructor(self):
+        """
+            Get the associated uninterpreted sort constructor of an
+            instantiated uninterpreted sort.
+
+            :return: the uninterpreted sort constructor sort
+        """
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getUninterpretedSortConstructor()
+        return sort
+
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort
