@@ -549,9 +549,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               }
               else
               {
-                Assert(false)
-                    << "Distinct base model values in the same equivalence class "
-                    << constRep << " " << n << std::endl;
+                Assert(false) << "Distinct base model values in the same "
+                                 "equivalence class "
+                              << constRep << " " << n << std::endl;
               }
             }
           }
