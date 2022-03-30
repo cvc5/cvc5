@@ -36,7 +36,7 @@ cvc5 1.0
   - New approach for solving bit-vectors as integers
 
 * *Datatypes*
-  - Updaters: TODO
+  - Support for generic datatype updaters `((_ update s) t u)` which replaces the field specified by selector `s` of `t` by the value `u`. 
 
 * *Integers*
   - Support for an integer operator `(_ iand n)` that returns the bitwise `and`
