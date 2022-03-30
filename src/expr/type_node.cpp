@@ -342,7 +342,7 @@ TypeNode TypeNode::getBaseType() const {
     for(size_t i = 1; i < getNumChildren(); ++i) {
       v.push_back((*this)[i].getBaseType());
     }
-    return (*this)[0].getDType().getTypeNode().instantiateParametricDatatype(v);
+    return (*this)[0].getDType().getTypeNode().instantiate(v);
   }
   return *this;
 }
@@ -428,20 +428,24 @@ bool TypeNode::isInstantiated() const
          || (isUninterpretedSort() && getNumChildren() > 0);
 }
 
-TypeNode TypeNode::instantiateParametricDatatype(
-    const std::vector<TypeNode>& params) const
+TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
 {
-  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
-  AssertArgument(params.size() == getNumChildren() - 1, *this);
   NodeManager* nm = NodeManager::currentNM();
-  TypeNode cons = nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
-  std::vector<TypeNode> paramsNodes;
-  paramsNodes.push_back(cons);
-  for (const TypeNode& t : params)
+  if (getKind() == kind::PARAMETRIC_DATATYPE)
   {
-    paramsNodes.push_back(t);
+    Assert(params.size() == getNumChildren() - 1);
+    TypeNode cons =
+        nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+    std::vector<TypeNode> paramsNodes;
+    paramsNodes.push_back(cons);
+    for (const TypeNode& t : params)
+    {
+      paramsNodes.push_back(t);
+    }
+    return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
   }
-  return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+  Assert(isUninterpretedSortConstructor());
+  return nm->mkSort(*this, params);
 }
 
 uint64_t TypeNode::getUninterpretedSortConstructorArity() const
@@ -457,18 +461,11 @@ std::string TypeNode::getName() const
   return getAttribute(expr::VarNameAttr());
 }
 
-TypeNode TypeNode::instantiateSortConstructor(
-    const std::vector<TypeNode>& params) const
+bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
 {
-  Assert(isUninterpretedSortConstructor());
-  return NodeManager::currentNM()->mkSort(*this, params);
-}
-
-/** Is this an instantiated datatype parameter */
-bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
-  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
+  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   const DType& dt = (*this)[0].getDType();
-  AssertArgument(n < dt.getNumParameters(), *this);
+  Assert(n < dt.getNumParameters());
   return dt.getParameter(n) != (*this)[n + 1];
 }
 

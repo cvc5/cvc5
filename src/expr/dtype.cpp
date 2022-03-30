@@ -833,7 +833,7 @@ TypeNode DType::getTypeNode(const std::vector<TypeNode>& params) const
 {
   Assert(isResolved());
   Assert(!d_self.isNull() && d_self.isParametricDatatype());
-  return d_self.instantiateParametricDatatype(params);
+  return d_self.instantiate(params);
 }
 
 const DTypeConstructor& DType::operator[](size_t index) const
