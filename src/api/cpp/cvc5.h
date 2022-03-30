@@ -2844,13 +2844,18 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Represents a snapshot of a single statistic value.
- * A value can be of type `int64_t`, `double`, `std::string` or a histogram
- * (`std::map<std::string, uint64_t>`).
- * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
- * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
+ * \verbatim embed:rst:leading-asterisk
+ * Represents a snapshot of a single statistic value. See :doc:`/statistics` for
+ * how statistics can be used.
+ * A value can be of type ``int64_t``, ``double``, ``std::string`` or a
+ * histogram
+ * (``std::map<std::string, uint64_t>``).
+ * The value type can be queried (using ``isInt()``, ``isDouble()``, etc.) and
+ * the stored value can be accessed (using ``getInt()``, ``getDouble()``, etc.).
  * It is possible to query whether this statistic is an internal statistic by
- * `isInternal()` and whether its value is the default value by `isDefault()`.
+ * :cpp:func:`isInternal() <cvc5::Stat::isInternal()>` and whether its value is
+ * the default value by :cpp:func:`isDefault() <cvc5::Stat::isDefault()>`.
+ * \endverbatim
  */
 class CVC5_EXPORT Stat
 {
@@ -2941,14 +2946,19 @@ class CVC5_EXPORT Stat
 std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
 
 /**
- * Represents a snapshot of the solver statistics.
- * Once obtained, an instance of this class is independent of the `Solver`
- * object: it will not change when the solvers internal statistics do, it
- * will not be invalidated if the solver is destroyed.
- * Iterating on this class (via `begin()` and `end()`) shows only public
- * statistics that have been changed. By passing appropriate flags to
- * `begin()`, statistics that are internal, defaulted, or both, can be
- * included as well. A single statistic value is represented as `Stat`.
+ * \verbatim embed:rst:leading-asterisk
+ * Represents a snapshot of the solver statistics. See :doc:`/statistics` for
+ * how statistics can be used.
+ * Once obtained via :cpp:func:`Solver::getStatistics()
+ * <cvc5::Solver::getStatistics()>`, an instance of this class is independent of
+ * the :cpp:class:`Solver <cvc5::Solver>` object: it will not change when the
+ * solvers internal statistics do, it will not be invalidated if the solver is
+ * destroyed. Iterating on this class (via :cpp:func:`begin()
+ * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
+ * shows only public statistics that have been changed. By passing appropriate
+ * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
+ * internal, defaulted, or both, can be included as well. A single statistic
+ * value is represented as :cpp:class:`Stat <cvc5::Stat>`. \endverbatim
  */
 class CVC5_EXPORT Statistics
 {
