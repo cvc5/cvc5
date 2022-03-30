@@ -67,7 +67,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> instTypes;
     m.getMatches(instTypes);
-    TypeNode range = t.instantiateParametricDatatype(instTypes);
+    TypeNode range = t.instantiate(instTypes);
     Trace("typecheck-idt") << "Return " << range << std::endl;
     return range;
   }

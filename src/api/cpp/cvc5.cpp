@@ -1455,12 +1455,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
       << "Arity mismatch for instantiated sort constructor";
   //////// all checks before this line
   std::vector<internal::TypeNode> tparams = sortVectorToTypeNodes(params);
-  if (d_type->isDatatype())
-  {
-    return Sort(d_solver, d_type->instantiateParametricDatatype(tparams));
-  }
-  Assert(d_type->isSortConstructor());
-  return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
+  return Sort(d_solver, d_type->instantiate(tparams));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
