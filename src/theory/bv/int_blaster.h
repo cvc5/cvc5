@@ -25,7 +25,7 @@
 #include "smt/env_obj.h"
 #include "theory/arith/nl/iand_utils.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /*
 ** Converts bit-vector formulas to integer formulas.
@@ -371,6 +371,6 @@ class IntBlaster : protected EnvObj
 
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* __CVC5__THEORY__BV__INT_BLASTER_H */

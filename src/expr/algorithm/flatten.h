@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5::expr::algorithm {
+namespace cvc5::internal::expr::algorithm {
 
 /**
  * Flatten a node into a vector of its (direct or indirect) children.
@@ -116,6 +116,6 @@ Node flatten(TNode t, Kinds... kinds)
   return NodeManager::currentNM()->mkNode(t.getKind(), children);
 }
 
-}  // namespace cvc5::expr
+}  // namespace cvc5::internal::expr
 
 #endif

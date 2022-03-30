@@ -18,9 +18,9 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -120,4 +120,4 @@ Node TupleUtils::reverseTuple(Node tuple)
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -278,6 +278,8 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
+  regress0/bv/bv_to_int_issue_8413_1.smt2
+  regress0/bv/bv_to_int_issue_8413_2.smt2
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc.smt2
@@ -1263,6 +1265,7 @@ set(regress_0_tests
   regress0/sets/proj-issue177.smt2
   regress0/sets/proj-issue486-sets-split-eq.smt2
   regress0/sets/proj-issue493-choose-det.smt2
+  regress0/sets/proj-issue501-choose-bool-term-var.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
@@ -2210,6 +2213,9 @@ set(regress_1_tests
   regress1/quantifiers/issue7537-cegqi-comp-types.smt2
   regress1/quantifiers/issue8157-duplicate-conflicts.smt2
   regress1/quantifiers/issue8344-cegqi-string-witness.smt2
+  regress1/quantifiers/issue8410-vts-subtypes.smt2
+  regress1/quantifiers/issue8456-2-syqi-ic.smt2
+  regress1/quantifiers/issue8456-syqi-ic.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2

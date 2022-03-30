@@ -24,7 +24,7 @@
 #include "smt/env_obj.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 namespace eq {
@@ -119,6 +119,6 @@ class TheoryState : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SOLVER_STATE_H */

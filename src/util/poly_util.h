@@ -29,7 +29,7 @@
 
 #include <poly/polyxx.h>
 
-namespace cvc5 {
+namespace cvc5::internal {
 /**
  * Utilities for working with libpoly.
  * This namespace contains various basic conversion routines necessary for the
@@ -42,28 +42,28 @@ namespace cvc5 {
  */
 namespace poly_utils {
 
-/** Converts a poly::Integer to a cvc5::Integer. */
+/** Converts a poly::Integer to a cvc5::internal::Integer. */
 Integer toInteger(const poly::Integer& i);
-/** Converts a poly::Integer to a cvc5::Rational. */
+/** Converts a poly::Integer to a cvc5::internal::Rational. */
 Rational toRational(const poly::Integer& r);
-/** Converts a poly::Rational to a cvc5::Rational. */
+/** Converts a poly::Rational to a cvc5::internal::Rational. */
 Rational toRational(const poly::Rational& r);
-/** Converts a poly::DyadicRational to a cvc5::Rational. */
+/** Converts a poly::DyadicRational to a cvc5::internal::Rational. */
 Rational toRational(const poly::DyadicRational& dr);
 
-/** Converts a poly::Value to a cvc5::Rational (that may be a bit above). */
+/** Converts a poly::Value to a cvc5::internal::Rational (that may be a bit above). */
 Rational toRationalAbove(const poly::Value& v);
-/** Converts a poly::Value to a cvc5::Rational (that may be a bit below). */
+/** Converts a poly::Value to a cvc5::internal::Rational (that may be a bit below). */
 Rational toRationalBelow(const poly::Value& v);
 
-/** Converts a cvc5::Integer to a poly::Integer. */
+/** Converts a cvc5::internal::Integer to a poly::Integer. */
 poly::Integer toInteger(const Integer& i);
-/** Converts a vector of cvc5::Integers to a vector of poly::Integers. */
+/** Converts a vector of cvc5::internal::Integers to a vector of poly::Integers. */
 std::vector<poly::Integer> toInteger(const std::vector<Integer>& vi);
-/** Converts a cvc5::Rational to a poly::Rational. */
+/** Converts a cvc5::internal::Rational to a poly::Rational. */
 poly::Rational toRational(const Rational& r);
 /**
- * Converts a cvc5::Rational to a poly::DyadicRational. If the input is not
+ * Converts a cvc5::internal::Rational to a poly::DyadicRational. If the input is not
  * dyadic, no result is produced.
  */
 std::optional<poly::DyadicRational> toDyadicRational(const Rational& r);
@@ -84,7 +84,7 @@ poly::Rational approximateToDyadic(const poly::Rational& r,
 
 /**
  * Constructs a poly::AlgebraicNumber, allowing for refinement of the
- * cvc5::Rational bounds. As a poly::AlgebraicNumber works on
+ * cvc5::internal::Rational bounds. As a poly::AlgebraicNumber works on
  * poly::DyadicRationals internally, the bounds are iteratively refined using
  * approximateToDyadic until the respective interval is isolating. If the
  * provided rational bounds are already dyadic, the refinement is skipped.
@@ -94,7 +94,7 @@ poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
                                               const Rational& upper);
 
 /**
- * Constructs a cvc5::RealAlgebraicNumber, simply wrapping
+ * Constructs a cvc5::internal::RealAlgebraicNumber, simply wrapping
  * toPolyRanWithRefinement.
  */
 RealAlgebraicNumber toRanWithRefinement(poly::UPolynomial&& p,
@@ -131,7 +131,7 @@ void getVariableInformation(VariableInformation& vi,
                             const poly::Polynomial& poly);
 
 }  // namespace poly_utils
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
 

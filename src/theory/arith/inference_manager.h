@@ -23,7 +23,7 @@
 #include "theory/inference_id.h"
 #include "theory/inference_manager_buffered.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -128,6 +128,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

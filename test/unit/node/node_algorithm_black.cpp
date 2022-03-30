@@ -25,7 +25,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace expr;
 using namespace kind;
@@ -200,4 +200,4 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   ASSERT_EQ(subs[x], a);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

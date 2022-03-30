@@ -23,9 +23,9 @@
 #include "proof/proof_node.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
@@ -308,4 +308,4 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   return ArgFormat::DEFAULT;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

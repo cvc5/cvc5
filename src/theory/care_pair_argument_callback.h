@@ -21,7 +21,7 @@
 #include "expr/node_trie_algorithm.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -51,6 +51,6 @@ class CarePairArgumentCallback : public NodeTriePathPairProcessCallback
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__CARE_ARGUMENT_CALLBACK_H */

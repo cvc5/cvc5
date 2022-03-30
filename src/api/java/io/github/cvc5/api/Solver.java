@@ -1790,7 +1790,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @return the list of learned literals
    */
-  public Term[] getLearnedLiterals() {
+  public Term[] getLearnedLiterals()
+  {
     long[] retPointers = getLearnedLiterals(pointer);
     return Utils.getTerms(this, retPointers);
   }
@@ -2509,26 +2510,6 @@ public class Solver implements IPointer, AutoCloseable
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * If needed, convert this term to a given sort.
-   *
-   * @apiNote The sort of the term must be convertible into the target sort.
-   *          Currently only Int to Real conversions are supported.
-   *
-   * @apiNote This method is experimental and may change in future versions.
-   *
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
-   */
-  public Term ensureTermSort(Term t, Sort s)
-  {
-    long termPointer = ensureTermSort(pointer, t.getPointer(), s.getPointer());
-    return new Term(this, termPointer);
-  }
-
-  private native long ensureTermSort(long pointer, long termPointer, long sortPointer);
-
-  /**
    * Append \p symbol to the current list of universal variables.
    * @param sort the sort of the universal variable
    * @return the universal variable
@@ -2722,7 +2703,8 @@ public class Solver implements IPointer, AutoCloseable
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
    */
-  public SynthResult checkSynth() {
+  public SynthResult checkSynth()
+  {
     long resultPointer = checkSynth(pointer);
     return new SynthResult(this, resultPointer);
   }
@@ -2743,7 +2725,8 @@ public class Solver implements IPointer, AutoCloseable
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
    */
-  public SynthResult checkSynthNext() {
+  public SynthResult checkSynthNext()
+  {
     long resultPointer = checkSynthNext(pointer);
     return new SynthResult(this, resultPointer);
   }

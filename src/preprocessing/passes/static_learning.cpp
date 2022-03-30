@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -98,4 +98,4 @@ void StaticLearning::flattenAnd(TNode node, std::vector<TNode>& children)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -19,7 +19,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/skolem_lemma.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -80,4 +80,4 @@ bool ArithPreprocess::isReduced(TNode atom) const
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

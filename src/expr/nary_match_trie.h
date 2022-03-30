@@ -24,7 +24,7 @@
 #include "expr/match_trie.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 /**
@@ -82,6 +82,6 @@ class NaryMatchTrie
 };
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */

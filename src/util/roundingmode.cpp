@@ -19,7 +19,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& os, RoundingMode rm)
 {
@@ -43,4 +43,4 @@ std::ostream& operator<<(std::ostream& os, RoundingMode rm)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

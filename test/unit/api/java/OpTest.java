@@ -173,8 +173,7 @@ class OpTest
     Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
     for (int i = 0, size = tupleProject.getNumIndices(); i < size; i++)
     {
-      assertEquals(
-          indices[i], tupleProject.get(i).getIntegerValue().intValue());
+      assertEquals(indices[i], tupleProject.get(i).getIntegerValue().intValue());
     }
   }
 

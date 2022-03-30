@@ -17,9 +17,9 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 QuantifiersUtil::QuantifiersUtil(Env& env) : EnvObj(env) {}
@@ -138,4 +138,4 @@ void QuantPhaseReq::getEntailPolarity(
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

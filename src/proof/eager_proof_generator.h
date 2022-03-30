@@ -24,7 +24,7 @@
 #include "proof/proof_rule.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNode;
 class ProofNodeManager;
@@ -204,6 +204,6 @@ class EagerProofGenerator : public ProofGenerator
   NodeProofNodeMap d_proofs;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_GENERATOR_H */

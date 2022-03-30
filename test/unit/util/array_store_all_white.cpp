@@ -18,9 +18,9 @@
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilWhiteArrayStoreAll : public TestSmt
@@ -80,4 +80,4 @@ TEST_F(TestUtilWhiteArrayStoreAll, const_error)
       IllegalArgumentException);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -86,6 +86,6 @@ class NestedQe
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -29,7 +29,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace preprocessing;
 using namespace preprocessing::passes;
@@ -3108,4 +3108,4 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(Rewriter::rewrite(plus7)), 17);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

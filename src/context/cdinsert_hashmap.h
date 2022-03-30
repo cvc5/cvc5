@@ -44,7 +44,7 @@
 
 #pragma once
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 
 
@@ -366,4 +366,4 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
 };
 
 }  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "expr/type_node.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class NoMoreValuesException : public Exception {
@@ -197,6 +197,6 @@ class TypeEnumerator {
 };/* class TypeEnumerator */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__TYPE_ENUMERATOR_H */

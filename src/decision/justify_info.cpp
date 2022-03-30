@@ -15,7 +15,7 @@
 
 #include "decision/justify_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 JustifyInfo::JustifyInfo(context::Context* c)
@@ -49,4 +49,4 @@ void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
 }
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

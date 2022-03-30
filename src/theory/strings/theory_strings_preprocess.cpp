@@ -28,10 +28,10 @@
 #include "util/statistics_registry.h"
 #include "util/string.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -1092,4 +1092,4 @@ Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
