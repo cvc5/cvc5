@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 /**
@@ -41,6 +41,6 @@ class RewriteDbSc
 };
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__REWRITE_DB_SC__H */

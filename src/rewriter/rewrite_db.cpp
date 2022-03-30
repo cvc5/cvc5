@@ -19,9 +19,9 @@
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrites.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 uint32_t IsListTypeClassCallback::getTypeClass(TNode v)
@@ -274,4 +274,4 @@ const std::unordered_set<Node>& RewriteDb::getAllFreeVariables() const
 }
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

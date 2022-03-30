@@ -19,9 +19,9 @@
 #include "rewriter/rewrites.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 void addRules(RewriteDb& db)
@@ -75,4 +75,4 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule)
 }
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

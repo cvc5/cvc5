@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 class RewriteDb;
@@ -64,6 +64,6 @@ const char* toString(DslPfRule drule);
 std::ostream& operator<<(std::ostream& out, DslPfRule drule);
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

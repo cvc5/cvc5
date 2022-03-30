@@ -15,9 +15,9 @@
 
 #include "rewriter/rewrite_db_sc.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 RewriteDbSc::RewriteDbSc() {}
@@ -35,4 +35,4 @@ Node RewriteDbSc::evaluate(Node f, const std::vector<Node>& args)
 }
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

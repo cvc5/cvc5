@@ -28,7 +28,7 @@
 #include "rewriter/rewrite_proof_rule.h"
 #include "rewriter/rewrites.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 /** Type class callback */
@@ -92,6 +92,6 @@ class RewriteDb
 };
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__THEORY__REWRITE_DB__H */

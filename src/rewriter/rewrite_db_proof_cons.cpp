@@ -23,9 +23,9 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
@@ -835,4 +835,4 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
 }
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

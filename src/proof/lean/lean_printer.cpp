@@ -20,7 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "proof/lean/lean_rules.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -249,7 +249,7 @@ void LeanPrinter::printSortsAndConstants(std::ostream& out,
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
-    if (st.isSort() && sts.find(st) == sts.end())
+    if (st.isUninterpretedSort() && sts.find(st) == sts.end())
     {
       // declare a user defined sort, if that sort has not been encountered
       // before
@@ -281,4 +281,4 @@ void LeanPrinter::print(std::ostream& out,
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -23,9 +23,9 @@
 #include "rewriter/rewrite_db_sc.h"
 #include "rewriter/rewrite_db_term_process.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 bool getDslPfRule(TNode n, DslPfRule& id)
@@ -269,4 +269,4 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 bool RewriteProofRule::isFixedPoint() const { return d_isFixedPoint; }
 bool RewriteProofRule::isFlatForm() const { return d_isFlatForm; }
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

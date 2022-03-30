@@ -20,7 +20,7 @@
 #include "proof/proof_node_manager.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -118,4 +118,4 @@ void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

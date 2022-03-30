@@ -32,7 +32,7 @@
 #include "theory/quantifiers/query_cache.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 class RewriteDbProofCons
@@ -156,6 +156,6 @@ class RewriteDbProofCons
 };
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__REWRITE_DB_PROOF_CONS__H */

@@ -24,7 +24,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -108,6 +108,6 @@ class LeanPrinter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

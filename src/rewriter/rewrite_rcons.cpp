@@ -18,9 +18,9 @@
 
 #include "proof/proof_checker.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
@@ -66,4 +66,4 @@ bool TheoryRewriteRCons::tryRule(CDProof* cdp,
 }
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

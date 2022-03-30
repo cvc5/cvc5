@@ -26,7 +26,7 @@
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 /**
@@ -49,6 +49,6 @@ class TheoryRewriteRCons
 };
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

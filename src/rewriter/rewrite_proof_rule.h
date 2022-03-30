@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "rewriter/rewrites.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 /** Get DslPfRule from node */
@@ -156,6 +156,6 @@ class RewriteProofRule
 };
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__REWRITER__REWRITE_PROOF_RULE__H */

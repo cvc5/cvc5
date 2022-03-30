@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/node_converter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace rewriter {
 
 /**
@@ -49,6 +49,6 @@ class RewriteDbNodeConverter : public NodeConverter
 };
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H */
