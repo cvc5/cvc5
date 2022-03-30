@@ -187,12 +187,6 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         Assert(fa.size() >= args.size());
         fa.resize(fa.size() - args.size());
       }
-      // run update (marked as post-visit) to a fixed point
-      bool dummyContinueUpdate;
-      while (runUpdate(cur, fa, dummyContinueUpdate, false))
-      {
-        Trace("pf-process-debug") << "...updated proof." << std::endl;
-      }
       runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
     }
   } while (!visit.empty());
@@ -273,6 +267,12 @@ void ProofNodeUpdater::runFinalize(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
     std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
+  // run update (marked as post-visit) to a fixed point
+  bool dummyContinueUpdate;
+  while (runUpdate(cur, fa, dummyContinueUpdate, false))
+  {
+    Trace("pf-process-debug") << "...updated proof." << std::endl;
+  }
   if (d_mergeSubproofs)
   {
     Node res = cur->getResult();
