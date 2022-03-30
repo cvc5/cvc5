@@ -356,7 +356,8 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
   }
   else
   {
-    Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector());
+    Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector()
+           || isDatatypeUpdater());
     for (uint32_t i = 0, i_end = getNumChildren() - 1; i < i_end; ++i)
     {
       args.push_back((*this)[i]);
@@ -698,7 +699,8 @@ TypeNode TypeNode::getRangeType() const
   {
     return NodeManager::currentNM()->booleanType();
   }
-  Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector())
+  Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector()
+         || isDatatypeUpdater())
       << "Cannot get range type of " << *this;
   return (*this)[getNumChildren() - 1];
 }

@@ -66,7 +66,7 @@ void SygusInterpol::createVariables(bool needsShared)
   {
     TypeNode tn = s.getType();
     if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
-        || tn.isDatatypeTester())
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // datatype symbols should be considered interpreted symbols here, not
       // (higher-order) variables.

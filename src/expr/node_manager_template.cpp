@@ -1271,6 +1271,10 @@ Kind NodeManager::getKindForFunction(TNode fun)
   {
     return kind::APPLY_TESTER;
   }
+  else if (tn.isDatatypeUpdater())
+  {
+    return kind::APPLY_UPDATER;
+  }
   return kind::UNDEFINED_KIND;
 }
 
