@@ -188,20 +188,6 @@ class CVC5_EXPORT Result
   friend class Solver;
 
  public:
-  enum UnknownExplanation
-  {
-    REQUIRES_FULL_CHECK,
-    INCOMPLETE,
-    TIMEOUT,
-    RESOURCEOUT,
-    MEMOUT,
-    INTERRUPTED,
-    NO_STATUS,
-    UNSUPPORTED,
-    OTHER,
-    UNKNOWN_REASON
-  };
-
   /** Constructor. */
   Result();
 
@@ -277,15 +263,6 @@ class CVC5_EXPORT Result
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
-
-/**
- * Serialize an UnknownExplanation to given stream.
- * @param out the output stream
- * @param e the explanation to be serialized to the given output stream
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out,
-                         enum Result::UnknownExplanation e) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
