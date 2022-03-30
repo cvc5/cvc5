@@ -45,7 +45,6 @@ cvc5 1.0
     represents 2 to the power of x.
 
 * *Quantifiers*
-  - Get list of relevant Instantiations
   - Improved support for enumerative instantiation
   - SyGuS-based quantifier instantiation
 
@@ -131,12 +130,6 @@ cvc5 1.0
   BSD-licensed Editline. Compiling with `--best` now enables Editline, instead
   of Readline. Without selecting optional GPL components, Editline-enabled CVC4
   builds will be BSD licensed.
-* The semantics for division and remainder operators in the CVC language now
-  correspond to SMT-LIB 2.6 semantics (i.e. a division by zero or a zero
-  modulus results in a constant value, instead of an uninterpreted one). As a
-  result the option `--bv-div-zero-const` has been removed. Similarly, when no
-  language is set, the API semantics now correspond to the SMT-LIB 2.6
-  semantics.
 * The `competition` build type includes the dependencies used for SMT-COMP by
   default. Note that this makes this build type produce GPL-licensed binaries.
 * Bit-vector operator bvxnor was previously mistakenly marked as
