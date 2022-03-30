@@ -2585,5 +2585,5 @@ def test_tuple_project(solver):
         simplifiedTerm = solver.simplify(selectedTerm)
         assert elements[i] == simplifiedTerm
 
-        assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
+        assert "((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
             projection)
