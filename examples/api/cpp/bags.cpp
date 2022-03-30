@@ -53,7 +53,7 @@ int main()
     cout << B << ": " << slv.getValue({B}) << endl;
     cout << C << ": " << slv.getValue({C}) << endl;
     cout << lhs << ": " << slv.getValue({lhs}) << endl;
-    cout << rhs << ": " << slv.getValue({lhs}) << endl;
+    cout << rhs << ": " << slv.getValue({rhs}) << endl;
   }
 
   // union max distributes over intersection
@@ -64,7 +64,7 @@ int main()
 
     Term theorem = slv.mkTerm(EQUAL, {lhs, rhs});
 
-    cout << "cvc5 reports: " << theorem << " is "
+    cout << "cvc5 reports: " << theorem.notTerm() << " is "
          << slv.checkSatAssuming(theorem.notTerm()) << "." << endl;
   }
 
@@ -74,7 +74,7 @@ int main()
 
     Term theorem = slv.mkTerm(BAG_SUBBAG, {emptybag, A});
 
-    cout << "cvc5 reports: " << theorem << " is "
+    cout << "cvc5 reports: " << theorem.notTerm() << " is "
          << slv.checkSatAssuming(theorem.notTerm()) << "." << endl;
   }
 
@@ -96,7 +96,8 @@ int main()
     Term bag_a_2_b_3 = slv.mkTerm(BAG_UNION_DISJOINT, {bag_a_2, bag_b_3});
     Term bag_b_1_c_2 =
         slv.mkTerm(BAG_UNION_DISJOINT, {bag_a_2_b_3, bag_b_1_c_2});
-    Term union_disjoint = slv.mkTerm(BAG_UNION_DISJOINT, {bag_b_1, bag_c_2});
+    Term union_disjoint =
+        slv.mkTerm(BAG_UNION_DISJOINT, {bag_a_2_b_3, bag_b_1_c_2});
 
     Term count_x = slv.mkTerm(BAG_COUNT, {x, union_disjoint});
 
