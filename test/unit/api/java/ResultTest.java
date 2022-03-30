@@ -83,8 +83,8 @@ class ResultTest
     assertFalse(res.isUnknown());
   }
 
-  @Test
-  void isUnknown() throws CVC5ApiException {
+  @Test void isUnknown() throws CVC5ApiException
+  {
     d_solver.setLogic("QF_NIA");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("solve-int-as-bv", "32");

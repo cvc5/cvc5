@@ -206,4 +206,4 @@ public class OptionInfo extends AbstractPointer
   }
 
   private native double doubleValue(long pointer);
-};
+}

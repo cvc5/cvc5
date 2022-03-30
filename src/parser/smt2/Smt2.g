@@ -1639,7 +1639,7 @@ identifier[cvc5::ParseOp& p]
       }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
-        // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
+        // we adopt a special syntax (_ tuple.project i_1 ... i_n) where
         // i_1, ..., i_n are numerals
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
@@ -2282,7 +2282,7 @@ FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple_project';
+TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

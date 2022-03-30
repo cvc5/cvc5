@@ -34,8 +34,8 @@ public class Triplet<A, B, C>
     if (object == null || getClass() != object.getClass())
       return false;
 
-    Triplet<A, B, C> triplet = (Triplet<A, B, C>) object;
-    return this.first.equals(triplet.first) && this.second.equals(triplet.second)
-        && this.third.equals(triplet.third);
+    return this.first.equals(((Triplet<?, ?, ?>) object).first)
+        && this.second.equals(((Triplet<?, ?, ?>) object).second)
+        && this.third.equals(((Triplet<?, ?, ?>) object).third);
   }
 }
