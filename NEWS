@@ -4,6 +4,8 @@ Changes since CVC4 1.8
 ======================
 
 New Features:
+* New streamlined C++ API
+  * Including Python and Java bindings
 * CaDiCaL is now a required dependency.
 * SymFPU is now a required dependency.
 * New unsat-core production modes based on the new proof infrastructure
@@ -14,6 +16,8 @@ New Features:
   syntax for sequences used by Z3.
 * Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
+* Bit-vectors:
+  * New bit-vector solver with CaDiCaL as default SAT back-end.
 * Integers:
   * Support for an integer operator `(_ iand n)` that returns the bitwise `and`
     of two integers, seen as integers modulo n.
@@ -30,6 +34,7 @@ Improvements:
   logic.
 
 Changes:
+* Removed support for the CVC language.
 * SyGuS: Removed support for SyGuS-IF 1.0.
 * Removed support for the (non-standard) `define` command.
 * Removed Java and Python bindings for the legacy API.
