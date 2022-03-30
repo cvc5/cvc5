@@ -15,7 +15,7 @@
 
 #include "prop/skolem_def_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 SkolemDefManager::SkolemDefManager(context::Context* context,
@@ -190,4 +190,4 @@ void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems)
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

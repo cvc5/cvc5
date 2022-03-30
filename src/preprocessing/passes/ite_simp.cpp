@@ -26,10 +26,10 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5;
-using namespace cvc5::theory;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -336,4 +336,4 @@ PreprocessingPassResult ITESimp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

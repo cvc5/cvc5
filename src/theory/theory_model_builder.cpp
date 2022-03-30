@@ -27,10 +27,10 @@
 #include "util/uninterpreted_sort_value.h"
 
 using namespace std;
-using namespace cvc5::kind;
-using namespace cvc5::context;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
@@ -282,7 +282,7 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
 
 bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     return true;
   }
@@ -316,7 +316,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
   {
     visited[v] = true;
     TypeNode tn = v.getType();
-    if (tn.isSort())
+    if (tn.isUninterpretedSort())
     {
       Trace("model-builder-debug") << "Is excluded usort value : " << v << " "
                                    << tn << std::endl;
@@ -608,7 +608,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // count the number of equivalence classes of sorts in finite model finding
     if (options().quantifiers.finiteModelFind)
     {
-      if (eqct.isSort())
+      if (eqct.isUninterpretedSort())
       {
         eqc_usort_count[eqct]++;
       }
@@ -889,7 +889,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       bool isUSortFiniteRestricted = false;
       if (options().quantifiers.finiteModelFind)
       {
-        isUSortFiniteRestricted = !t.isSort() && involvesUSort(t);
+        isUSortFiniteRestricted = !t.isUninterpretedSort() && involvesUSort(t);
       }
 #endif
 
@@ -960,7 +960,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !d_env.isFiniteType(t))
+          else if (t.isUninterpretedSort() || !d_env.isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.
@@ -1473,4 +1473,4 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

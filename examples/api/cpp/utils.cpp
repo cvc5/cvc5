@@ -17,6 +17,10 @@
 
 #include <iostream>
 
+namespace utils {
+
+using namespace cvc5;
+
 /**
  * Get the string version of define-fun command.
  * @param f the function to print
@@ -24,12 +28,11 @@
  * @param body the function body
  * @return a string version of define-fun
  */
-std::string defineFunToString(const cvc5::api::Term& f,
-                              const std::vector<cvc5::api::Term> params,
-                              const cvc5::api::Term body)
+std::string defineFunToString(const cvc5::Term& f,
+                              const std::vector<cvc5::Term>& params,
+                              const cvc5::Term& body)
 {
-
-  cvc5::api::Sort sort = f.getSort();
+  cvc5::Sort sort = f.getSort();
   if (sort.isFunction())
   {
     sort = sort.getFunctionCodomainSort();
@@ -48,22 +51,22 @@ std::string defineFunToString(const cvc5::api::Term& f,
   return ss.str();
 }
 
-void printSynthSolutions(const std::vector<cvc5::api::Term>& terms,
-                         const std::vector<cvc5::api::Term>& sols)
+void printSynthSolutions(const std::vector<cvc5::Term>& terms,
+                         const std::vector<cvc5::Term>& sols)
 {
   std::cout << '(' << std::endl;
-
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
-    std::vector<cvc5::api::Term> params;
-    cvc5::api::Term body;
-    if (sols[i].getKind() == cvc5::api::LAMBDA)
+    std::vector<cvc5::Term> params;
+    cvc5::Term body = sols[i];
+    if (sols[i].getKind() == cvc5::LAMBDA)
     {
       params.insert(params.end(), sols[i][0].begin(), sols[i][0].end());
       body = sols[i][1];
     }
-    std::cout << "  " << defineFunToString(terms[i], params, body)
-              << std::endl;
+    std::cout << "  " << defineFunToString(terms[i], params, body) << std::endl;
   }
   std::cout << ')' << std::endl;
 }
+
+}  // namespace utils

@@ -58,7 +58,7 @@
 #include "base/exception.h"
 #include "signal_handlers.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace main {
 
 #if HAVE_SETITIMER
@@ -132,4 +132,4 @@ TimeLimit install_time_limit(uint64_t ms)
 }
 
 }  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::internal

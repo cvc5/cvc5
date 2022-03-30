@@ -21,7 +21,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {

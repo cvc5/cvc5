@@ -26,7 +26,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -113,6 +113,6 @@ class ArraySolver : protected EnvObj
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

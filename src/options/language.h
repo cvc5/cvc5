@@ -23,7 +23,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 enum class Language
 {
@@ -65,6 +65,6 @@ inline bool isLangSygus(Language lang)
 Language toLanguage(const std::string& language) CVC5_EXPORT;
 
 }  // namespace language
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__LANGUAGE_H */

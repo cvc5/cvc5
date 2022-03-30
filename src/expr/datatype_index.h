@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* stores an index to Datatype residing in NodeManager */
 class DatatypeIndexConstant
@@ -65,6 +65,6 @@ struct DatatypeIndexConstantHashFunction
   size_t operator()(const DatatypeIndexConstant& dic) const;
 }; /* struct DatatypeIndexConstantHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DATATYPE_H */

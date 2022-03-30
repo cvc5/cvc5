@@ -1638,7 +1638,7 @@ class SolverTest
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Map.Entry<String, Stat> elem = it.next();
-      if (elem.getKey() == "api::CONSTANT")
+      if (elem.getKey() == "cvc5::CONSTANT")
       {
         assertFalse(elem.getValue().isInternal());
         assertFalse(elem.getValue().isDefault());

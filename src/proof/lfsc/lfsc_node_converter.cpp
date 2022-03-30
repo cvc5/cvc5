@@ -39,9 +39,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscNodeConverter::LfscNodeConverter()
@@ -562,7 +562,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       std::stringstream ss;
       options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
       tn.toStream(ss);
-      if (tn.isSort() || (tn.isDatatype() && !tn.isTuple()))
+      if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
@@ -1200,4 +1200,4 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

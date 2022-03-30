@@ -30,7 +30,7 @@
 #include "theory/substitutions.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 class Context;
 }
@@ -72,6 +72,6 @@ class UnconstrainedSimplifier : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

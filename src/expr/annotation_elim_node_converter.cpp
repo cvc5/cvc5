@@ -15,9 +15,9 @@
 
 #include "expr/annotation_elim_node_converter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 AnnotationElimNodeConverter::AnnotationElimNodeConverter() {}
 
@@ -30,4 +30,4 @@ Node AnnotationElimNodeConverter::postConvert(Node n)
   return n;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -25,7 +25,7 @@
 #include "smt/env_obj.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A utility for building model cores.
@@ -62,6 +62,6 @@ class ModelCoreBuilder : protected EnvObj
                     options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__MODEL_CORE_BUILDER_H */

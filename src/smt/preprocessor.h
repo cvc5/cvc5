@@ -25,7 +25,7 @@
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -132,6 +132,6 @@ class Preprocessor : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -34,7 +34,7 @@
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
@@ -297,4 +297,4 @@ std::vector<Node> andComponents(TNode an);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

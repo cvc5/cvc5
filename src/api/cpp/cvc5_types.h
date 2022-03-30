@@ -18,7 +18,7 @@
 #ifndef CVC5__API__CVC5_TYPES_H
 #define CVC5__API__CVC5_TYPES_H
 
-namespace cvc5::api {
+namespace cvc5 {
 
 /**
  * Rounding modes for floating-point numbers.
@@ -70,7 +70,7 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace cvc5::modes {
 

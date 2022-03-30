@@ -29,10 +29,10 @@
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -1009,4 +1009,4 @@ Node DatatypesRewriter::sygusToBuiltinEval(Node n,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

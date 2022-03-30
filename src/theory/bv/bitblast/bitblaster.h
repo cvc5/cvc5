@@ -34,7 +34,7 @@
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -201,6 +201,6 @@ void TBitblaster<T>::invalidateModelCache()
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BV__BITBLAST__BITBLASTER_H */

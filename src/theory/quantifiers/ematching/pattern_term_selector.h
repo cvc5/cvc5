@@ -24,7 +24,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -193,6 +193,6 @@ class PatternTermSelector
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

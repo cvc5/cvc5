@@ -25,7 +25,7 @@
 #include "theory/arith/nl/coverings/proof_checker.h"
 #include "theory/arith/nl/equality_substitution.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 
@@ -119,6 +119,6 @@ class CoveringsSolver: protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__COVERINGS_SOLVER_H */

@@ -19,7 +19,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -126,4 +126,4 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

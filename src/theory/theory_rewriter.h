@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class Rewriter;
@@ -172,6 +172,6 @@ class TheoryRewriter
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_REWRITER_H */

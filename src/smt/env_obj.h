@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "expr/node.h"
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class LogicInfo;
@@ -110,5 +110,5 @@ class EnvObj
   Env& d_env;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif
