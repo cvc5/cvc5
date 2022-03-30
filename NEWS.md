@@ -22,10 +22,10 @@ cvc5 1.0
   - A new array-inspired procedure (option `--seq-array`).
 
 * *Arithmetic*
-  - Nonlinear real arithmetic is now solved using a new solver based on cylindrical
-    algebraic coverings. Includes full support for non-rational models and a number
-    of options `--nl-cov-*` for, e.g., different projection operators, Lazard's
-    lifting or variable elimination.
+  - Nonlinear real arithmetic is now solved using a new solver based on
+    cylindrical algebraic coverings. Includes full support for non-rational
+    models and a number of options `--nl-cov-*` for, e.g., different projection
+    operators, Lazard's lifting or variable elimination.
 
 * *Arrays*
   - Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
@@ -36,7 +36,8 @@ cvc5 1.0
   - New approach for solving bit-vectors as integers
 
 * *Datatypes*
-  - Support for generic datatype updaters `((_ update s) t u)` which replaces the field specified by selector `s` of `t` by the value `u`. 
+  - Support for generic datatype updaters `((_ update s) t u)` which replaces
+    the field specified by selector `s` of `t` by the value `u`.
 
 * *Integers*
   - Support for an integer operator `(_ iand n)` that returns the bitwise `and`
@@ -49,7 +50,9 @@ cvc5 1.0
   - SyGuS-based quantifier instantiation
 
 * *Strings*
-  - Improved performance using new techniques, including model-based reductions, eager context-dependent simplification, and equality-based conflict finding.
+  - Improved performance using new techniques, including model-based
+    reductions, eager context-dependent simplification, and equality-based
+    conflict finding.
   - Support for `str.indexof_re(s, r, n)`, which returns the index of the first
     occurrence of a regular expression `r` in a string `s` after index `n` or
     -1 if `r` does not match a substring after `n`.
@@ -106,9 +109,9 @@ cvc5 1.0
 
 * *Unsat cores*
   - Production modes based on the new proof infrastructure
-    (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption feature
-    of Minisat (`--unsat-cores-mode=assumptions`). The mode based on SAT
-    assumptions + preprocessing proofs is the new default.
+    (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption
+    feature of Minisat (`--unsat-cores-mode=assumptions`). The mode based on
+    SAT assumptions + preprocessing proofs is the new default.
   - Computing minimal unsat cores (option `--minimal-unsat-cores`).
 
 * *Blocking Models*
