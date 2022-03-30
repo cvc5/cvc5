@@ -46,8 +46,8 @@ cvc5 1.0
     represents 2 to the power of x.
 
 * *Quantifiers*
-  - Improved support for enumerative instantiation
-  - SyGuS-based quantifier instantiation
+  - Improved support for enumerative instantiation (option `--enum-inst`).
+  - SyGuS-based quantifier instantiation (option `--sygus-inst`).
 
 * *Strings*
   - Improved performance using new techniques, including model-based
@@ -115,10 +115,12 @@ cvc5 1.0
   - Computing minimal unsat cores (option `--minimal-unsat-cores`).
 
 * *Blocking Models*
-  - TODO
+  - The API method `blockModels` can be used to block the current model using various policies for how to exclude the values of terms (`block-model` in SMT-LIB).
+  - The API method `blockModelValues` can be used to block the current model for a provided set of terms (`block-model-values` in SMT-LIB).
 
 * *Model Cores*
-  - TODO
+  - The API method `isModelCoreSymbol` can be used to query whether the value for a symbol was critical to whether the model satisfies the current set of assertions.
+  - Models can be limited to show only model core symbols (option `--model-cores`).
 
 **Changes**
 
