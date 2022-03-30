@@ -39,7 +39,8 @@ public class Op extends AbstractPointer
    * @param t the operator to compare to for equality
    * @return true if the operators are equal
    */
-  @Override public boolean equals(Object t)
+  @Override
+  public boolean equals(Object t)
   {
     if (this == t)
       return true;
