@@ -1514,7 +1514,7 @@ enum Kind : int32_t
    * RoundingMode constant.
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkRoundingMode(RoundingMode rm) const
+   *   - Solver::mkRoundingMode(RoundingMode) const
    */
   CONST_ROUNDINGMODE,
   /**
