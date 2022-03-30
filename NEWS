@@ -1,7 +1,7 @@
 This file contains a summary of important user-visible changes.
 
-Changes since CVC4 1.8
-======================
+cvc5 1.0
+=========
 
 New Features:
 * New streamlined C++ API
