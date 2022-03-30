@@ -26,70 +26,70 @@ Semantics
   * (seq.nth ((Seq S) Int) S)
 
     ⟦seq.nth⟧(s, i) is the n-th element in the sequence s,
-		                denoted as nth(s, i).
-	                  It is uninterpreted if i out of bound, 
-										i.e. i < 0 or i >= |s|.
+                    denoted as nth(s, i).
+                    It is uninterpreted if i out of bound, 
+                    i.e. i < 0 or i >= |s|.
 
-	* (seq.update ((Seq S) Int (Seq S)) (Seq S))
+  * (seq.update ((Seq S) Int (Seq S)) (Seq S))
 
     ⟦seq.update⟧(s, i, sub) is a sequence obtained by updating the continuous
-		                        sub-sequence of s starting at index i by sub.
-		                        The updated sequence has the same length as |s|.
-														If i + |sub| > |s|,
-														the out of bound part of sub is ignored.
-														If i out of bound, i.e. i < 0 or i >= |s|,
-														the updated sequence remains same with s.
-	
-	* (seq.extract ((Seq S) Int Int) (Seq S))
+                            sub-sequence of s starting at index i by sub.
+                            The updated sequence has the same length as |s|.
+                            If i + |sub| > |s|,
+                            the out of bound part of sub is ignored.
+                            If i out of bound, i.e. i < 0 or i >= |s|,
+                            the updated sequence remains same with s.
+  
+  * (seq.extract ((Seq S) Int Int) (Seq S))
 
     ⟦seq.extract⟧(s, i, j) is the maximal sub-sequence of s that starts at
-		                       index i and has length at most j,
-		                       in case both i and j are non-negative and i is
-													 smaller than |s|.
-													 Otherwise, the return value is the empty sequence.
+                           index i and has length at most j,
+                           in case both i and j are non-negative and i is
+                           smaller than |s|.
+                           Otherwise, the return value is the empty sequence.
 
-	 * (seq.++ ((Seq S) (Seq S)) (Seq S))
+   * (seq.++ ((Seq S) (Seq S)) (Seq S))
 
     ⟦seq.++⟧(s1, s2) is a sequence that is the concatenation of s1 and s2.
 
-	 * (seq.at ((Seq S) Int) (Seq S))
+   * (seq.at ((Seq S) Int) (Seq S))
 
     ⟦seq.at⟧(s, i) is a unit sequence that contains the i-th element of s as
-		               the only element.
+                   the only element.
 
-	 * (seq.contains ((Seq S) (Seq S)) Bool)
+   * (seq.contains ((Seq S) (Seq S)) Bool)
 
     ⟦seq.contains⟧(s, sub) is true if sub is a continuous sub-sequence of s,
-		                       i.e. sub = seq.extract(s, i, j) for some i, j,
-		                       and false if otherwise.
-	
+                           i.e. sub = seq.extract(s, i, j) for some i, j,
+                           and false if otherwise.
+  
    * (seq.indexof ((Seq S) (Seq S) Int) Int)
 
     ⟦seq.indexof⟧(s, sub, i) is the first position of sub at or after i in s,
-		                         and -1 if there is no occurrence.
+                             and -1 if there is no occurrence.
 
    * (seq.replace ((Seq S) (Seq S) (Seq S)) (Seq S))
 
     ⟦seq.replace⟧(s, src, dst) is the sequence obtained by replacing the
-		                           first occurrence of src by dst in s.
-															 It equals to s if there is no occurrence.
+                               first occurrence of src by dst in s.
+                               It equals to s if there is no occurrence.
 
    * (seq.replace_all ((Seq S) (Seq S) (Seq S)) (Seq S))
 
     ⟦seq.replace_all⟧(s, src, dst) is the sequence obtained by replacing all
-		                               the occurrences of src by dst in s,
-																	 in the order from left to right.
-																	 It equals to s if there is no occurrence.
+                                   the occurrences of src by dst in s,
+                                   in the order from left to right.
+                                   It equals to s if there is no occurrence.
 
-	 * (seq.rev (Seq S) (Seq S))
+   * (seq.rev (Seq S) (Seq S))
 
     ⟦seq.rev⟧(s) is the sequence obtained by reverse s.
 
-	 * (seq.prefixof ((Seq S) (Seq S)) Bool)
+   * (seq.prefixof ((Seq S) (Seq S)) Bool)
 
     ⟦seq.prefixof⟧(pre s) is true if pre is a prefix of s, false otherwise.
 
-	 * (seq.suffixof ((Seq S) (Seq S)) Bool)
+   * (seq.suffixof ((Seq S) (Seq S)) Bool)
 
     ⟦seq.suffixof⟧(suf s) is true if suf is a suffix of s, false otherwise.
 
