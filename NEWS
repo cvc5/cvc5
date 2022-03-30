@@ -4,36 +4,71 @@ cvc5 1.0
 =========
 
 New Features:
-* New streamlined C++ API
-  * Including Python and Java bindings
-* CaDiCaL is now a required dependency.
-* SymFPU is now a required dependency.
-* New unsat-core production modes based on the new proof infrastructure
-  (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption feature
-  of Minisat (`--unsat-cores-mode=assumptions`). The mode based on SAT
-  assumptions + preprocessing proofs is the new default.
-* A new parametric theory of sequences whose syntax is compatible with the
-  syntax for sequences used by Z3.
-* Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
-  if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
-* Bit-vectors:
-  * New bit-vector solver with CaDiCaL as default SAT back-end.
-* Integers:
-  * Support for an integer operator `(_ iand n)` that returns the bitwise `and`
+* **Streamlined C++ API**
+
+* **Two new Python bindings**
+  - Base module: Feature complete with C++ API
+  - Pythonc module: More pythonic bindings based on the base module
+
+* **New Java language bindings**
+
+* **Proofs**
+  - TODO: List features?
+
+* **Difficulty Estimates**
+  - Compute difficulty estimates for asserted formulas, i.e., a metric for
+    estimating how hard it is to solve an asserted formula.
+
+* **Learned Literals**
+  - Query list of literals entailed by current set of assertions.
+
+* **Interpolation**
+  - Support for SyGus-based interpolation.
+
+* **Abduction**
+  - Support for SyGus-based abduction.
+
+* **Pool Instantiation**
+  - It is now possible do declare instantiation pools to ...
+
+* **Unsat cores**
+  - production modes based on the new proof infrastructure
+    (`--unsat-cores-mode=sat-proof`) and on the solving-under-assumption feature
+    of Minisat (`--unsat-cores-mode=assumptions`). The mode based on SAT
+    assumptions + preprocessing proofs is the new default.
+
+* **Bags**
+  - TODO: describe Bags
+
+* **Sequences**
+  - A new parametric theory of sequences whose syntax is compatible with the
+    syntax for sequences used by Z3.
+
+* **Arrays**
+  - Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
+    if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
+
+* **Bit-vectors**
+  - New bit-vector solver with CaDiCaL as default SAT back-end.
+
+* **Integers**
+  - Support for an integer operator `(_ iand n)` that returns the bitwise `and`
     of two integers, seen as integers modulo n.
-  * Support for an integer operator `int.pow2`, used as `(int.pow2 x)` which
+  - Support for an integer operator `int.pow2`, used as `(int.pow2 x)` which
     represents 2 to the power of x.
-* Strings:
-  * Support for `str.indexof_re(s, r, n)`, which returns the index of the first
+
+* **Strings**
+  - Support for `str.indexof_re(s, r, n)`, which returns the index of the first
     occurrence of a regular expression `r` in a string `s` after index `n` or
     -1 if `r` does not match a substring after `n`.
-* A new option to compute minimal unsat cores (`--minimal-unsat-cores`).
 
-Improvements:
-* New API: Added functions to retrieve the heap/nil term when using separation
-  logic.
+* **Minimal unsat cores**
+  - A new option to compute minimal unsat cores (`--minimal-unsat-cores`).
 
 Changes:
+* CaDiCaL and SymFPU are now required dependencies.
+* Options have been extensively refactored, please refer to the cvc5
+  documentation for further information.
 * Removed support for the CVC language.
 * SyGuS: Removed support for SyGuS-IF 1.0.
 * Removed support for the (non-standard) `define` command.
@@ -59,6 +94,5 @@ Changes:
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
-* Removed the option `--rewrite-divk` (now effectively enabled by default).
 * Removed support for redundant logics ALL_SUPPORTED and QF_ALL_SUPPORTED,
   use ALL and QF_ALL instead.
