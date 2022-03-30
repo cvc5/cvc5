@@ -370,7 +370,7 @@ private:
   }
 
   /**
-   * Very basic pretty printer for Node.
+   * Very basic pretty printer for TypeNode.
    *
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -604,6 +604,12 @@ private:
   bool isInstantiatedDatatype() const;
 
   /**
+   * Is this an uninterpreted sort constructed from instantiating an
+   * uninterpreted sort constructor?
+   */
+  bool isInstantiatedUninterpretedSort() const;
+
+  /**
    * Return true if this is an instantiated parametric datatype or
    * uninterpreted sort constructor type.
    */
@@ -670,6 +676,14 @@ private:
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
    */
   std::string getName() const;
+
+  /**
+   * Get the uninterpreted sort constructor type this instantiated
+   * uninterpreted sort has been constructed from.
+   *
+   * Asserts that this is an instantiated uninterpreted sort.
+   */
+  TypeNode getUninterpretedSortConstructor() const;
 
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;

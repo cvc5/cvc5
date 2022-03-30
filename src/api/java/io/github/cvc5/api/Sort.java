@@ -380,6 +380,20 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isInstantiated(long pointer);
 
   /**
+   * Get the associated uninterpreted sort constructor of an instantiated
+   * uninterpreted sort.
+   *
+   * @return the uninterpreted sort constructor sort
+   */
+  public Sort getUninterpretedSortConstructor()
+  {
+    long sortPointer = getUninterpretedSortConstructor(pointer);
+    return new Sort(solver, sortPointer);
+  }
+
+  private native long getUninterpretedSortConstructor(long pointer);
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   public Datatype getDatatype()

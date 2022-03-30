@@ -586,6 +586,14 @@ class CVC5_EXPORT Sort
   bool isInstantiated() const;
 
   /**
+   * Get the associated uninterpreted sort constructor of an instantiated
+   * uninterpreted sort.
+   *
+   * @return the uninterpreted sort constructor sort
+   */
+  Sort getUninterpretedSortConstructor() const;
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -758,7 +766,7 @@ class CVC5_EXPORT Sort
    */
   bool isUninterpretedSortParameterized() const;
 
-  /* Sort constructor sort ----------------------------------------------- */
+  /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
    * @return the arity of an uninterpreted sort constructor sort
