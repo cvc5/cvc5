@@ -33,10 +33,10 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -215,10 +215,10 @@ private:
     void operator()(AVCPair* restore);
   };
 
-  typedef cvc5::context::CDList<AVCPair, LowerBoundCleanUp> LBReverts;
+  typedef context::CDList<AVCPair, LowerBoundCleanUp> LBReverts;
   LBReverts d_lbRevertHistory;
 
-  typedef cvc5::context::CDList<AVCPair, UpperBoundCleanUp> UBReverts;
+  typedef context::CDList<AVCPair, UpperBoundCleanUp> UBReverts;
   UBReverts d_ubRevertHistory;
 
   void pushUpperBound(VarInfo&);
@@ -235,8 +235,7 @@ private:
 
 
 public:
- ArithVariables(cvc5::context::Context* c,
-                DeltaComputeCallback deltaComputation);
+ ArithVariables(context::Context* c, DeltaComputeCallback deltaComputation);
 
  /**
   * This sets the lower bound for a variable in the current context.

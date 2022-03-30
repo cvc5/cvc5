@@ -42,13 +42,13 @@ namespace prop {
  */
 class SkolemDefManager
 {
-  using NodeNodeMap = cvc5::context::CDInsertHashMap<Node, Node>;
-  using NodeBoolMap = cvc5::context::CDHashMap<Node, bool>;
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeNodeMap = context::CDInsertHashMap<Node, Node>;
+  using NodeBoolMap = context::CDHashMap<Node, bool>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
-  SkolemDefManager(cvc5::context::Context* context,
-                   cvc5::context::UserContext* userContext);
+  SkolemDefManager(context::Context* context,
+                   context::UserContext* userContext);
 
   ~SkolemDefManager();
 

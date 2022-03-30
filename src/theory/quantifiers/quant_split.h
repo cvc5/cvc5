@@ -48,7 +48,7 @@ namespace quantifiers {
  * one variable per quantified formula at a time.
  */
 class QuantDSplit : public QuantifiersModule {
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   QuantDSplit(Env& env,

@@ -36,7 +36,7 @@ EqEngineManagerDistributed::~EqEngineManagerDistributed()
 
 void EqEngineManagerDistributed::initializeTheories()
 {
-  cvc5::context::Context* c = context();
+  context::Context* c = context();
   // initialize the shared solver
   EeSetupInfo esis;
   if (d_sharedSolver.needsEqualityEngine(esis))

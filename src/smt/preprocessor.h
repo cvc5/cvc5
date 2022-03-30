@@ -119,7 +119,7 @@ class Preprocessor : protected EnvObj
   /**
    * User-context-dependent flag of whether any assertions have been processed.
    */
-  cvc5::context::CDO<bool> d_assertionsProcessed;
+  context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
   std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
   /** Expand definitions module, responsible for expanding definitions */

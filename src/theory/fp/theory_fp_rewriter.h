@@ -33,7 +33,7 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryFpRewriter : public TheoryRewriter
 {
  public:
-  TheoryFpRewriter(cvc5::context::UserContext* u);
+  TheoryFpRewriter(context::UserContext* u);
 
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;

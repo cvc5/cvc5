@@ -308,7 +308,7 @@ void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
   // note that the assertion list is always available
-  const cvc5::context::CDList<Node>& al = as.getAssertionList();
+  const context::CDList<Node>& al = as.getAssertionList();
   for (const Node& a : al)
   {
     assertions.push_back(a);

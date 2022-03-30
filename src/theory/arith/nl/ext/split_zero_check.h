@@ -41,7 +41,7 @@ class SplitZeroCheck : protected EnvObj
   void check();
 
  private:
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
   /** Basic data that is shared with other checks */
   ExtState* d_data;

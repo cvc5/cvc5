@@ -888,7 +888,7 @@ void TheorySep::postCheck(Effort level)
   Trace("sep-process-debug") << "...preparing sep model..." << std::endl;
   d_heap_locs_nptos.clear();
   // collect data points that are not pointed to
-  for (cvc5::context::CDList<Assertion>::const_iterator it = facts_begin();
+  for (context::CDList<Assertion>::const_iterator it = facts_begin();
        it != facts_end();
        ++it)
   {
@@ -922,7 +922,7 @@ void TheorySep::conflict(TNode a, TNode b) {
   d_im.conflictEqConstantMerge(a, b);
 }
 
-TheorySep::HeapAssertInfo::HeapAssertInfo(cvc5::context::Context* c)
+TheorySep::HeapAssertInfo::HeapAssertInfo(context::Context* c)
     : d_pto(c), d_has_neg_pto(c, false)
 {
 }

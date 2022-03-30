@@ -53,7 +53,7 @@ PreprocessingPassResult FunDefFmf::applyInternal(
   d_input_arg_inj.clear();
   d_funcs.clear();
   // must carry over current definitions (in case of incremental)
-  for (cvc5::context::CDList<Node>::const_iterator fit =
+  for (context::CDList<Node>::const_iterator fit =
            d_fmfRecFunctionsDefined->begin();
        fit != d_fmfRecFunctionsDefined->end();
        ++fit)

@@ -31,7 +31,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
-typedef cvc5::context::CDList<TNode> CTNodeList;
+typedef context::CDList<TNode> CTNodeList;
 using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
 struct RowLemmaTypeHashFunction {
@@ -56,19 +56,19 @@ bool inList(const CTNodeList* l, const TNode el);
 
 class Info {
 public:
- cvc5::context::CDO<bool> isNonLinear;
- cvc5::context::CDO<bool> rIntro1Applied;
- cvc5::context::CDO<TNode> modelRep;
- cvc5::context::CDO<TNode> constArr;
- cvc5::context::CDO<TNode> weakEquivPointer;
- cvc5::context::CDO<TNode> weakEquivIndex;
- cvc5::context::CDO<TNode> weakEquivSecondary;
- cvc5::context::CDO<TNode> weakEquivSecondaryReason;
+ context::CDO<bool> isNonLinear;
+ context::CDO<bool> rIntro1Applied;
+ context::CDO<TNode> modelRep;
+ context::CDO<TNode> constArr;
+ context::CDO<TNode> weakEquivPointer;
+ context::CDO<TNode> weakEquivIndex;
+ context::CDO<TNode> weakEquivSecondary;
+ context::CDO<TNode> weakEquivSecondaryReason;
  CTNodeList* indices;
  CTNodeList* stores;
  CTNodeList* in_stores;
 
- Info(cvc5::context::Context* c);
+ Info(context::Context* c);
  ~Info();
 
  /**
@@ -99,7 +99,7 @@ typedef std::unordered_map<Node, Info*> CNodeInfoMap;
  */
 class ArrayInfo {
 private:
- cvc5::context::Context* ct;
+ context::Context* ct;
  CNodeInfoMap info_map;
 
  CTNodeList* emptyList;
@@ -130,7 +130,7 @@ private:
 public:
   const Info* emptyInfo;
 
-  ArrayInfo(cvc5::context::Context* c, std::string statisticsPrefix = "");
+  ArrayInfo(context::Context* c, std::string statisticsPrefix = "");
 
   ~ArrayInfo();
 

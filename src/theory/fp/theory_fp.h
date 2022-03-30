@@ -87,8 +87,8 @@ class TheoryFp : public Theory
   TrustNode explain(TNode n) override;
 
  protected:
-  using ConversionAbstractionMap = cvc5::context::CDHashMap<TypeNode, Node>;
-  using AbstractionMap = cvc5::context::CDHashMap<Node, Node>;
+  using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
+  using AbstractionMap = context::CDHashMap<Node, Node>;
 
   /** Equality engine. */
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -117,7 +117,7 @@ class TheoryFp : public Theory
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
-  cvc5::context::CDHashSet<Node> d_registeredTerms;
+  context::CDHashSet<Node> d_registeredTerms;
 
   /** The word-blaster. Translates FP -> BV. */
   std::unique_ptr<FpWordBlaster> d_wordBlaster;
@@ -151,7 +151,7 @@ class TheoryFp : public Theory
   /** A (default) inference manager. */
   TheoryInferenceManager d_im;
   /** Cache of word-blasted facts. */
-  cvc5::context::CDHashSet<Node> d_wbFactsCache;
+  context::CDHashSet<Node> d_wbFactsCache;
 
   /** True constant. */
   Node d_true;

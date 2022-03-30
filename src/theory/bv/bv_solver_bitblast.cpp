@@ -33,11 +33,11 @@ namespace bv {
  * that indicates whether assertions have been reset. If the user-context level
  * reaches level 0 it means that the assertions were reset.
  */
-class NotifyResetAssertions : public cvc5::context::ContextNotifyObj
+class NotifyResetAssertions : public context::ContextNotifyObj
 {
  public:
-  NotifyResetAssertions(cvc5::context::Context* c)
-      : cvc5::context::ContextNotifyObj(c, false),
+  NotifyResetAssertions(context::Context* c)
+      : context::ContextNotifyObj(c, false),
         d_context(c),
         d_doneResetAssertions(false)
   {
@@ -60,7 +60,7 @@ class NotifyResetAssertions : public cvc5::context::ContextNotifyObj
 
  private:
   /** The user-context. */
-  cvc5::context::Context* d_context;
+  context::Context* d_context;
 
   /** Flag to notify whether reset assertions was called. */
   bool d_doneResetAssertions;
@@ -115,7 +115,7 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
     : BVSolver(env, *s, inferMgr),
       d_bitblaster(new NodeBitblaster(env, s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
-      d_nullContext(new cvc5::context::Context()),
+      d_nullContext(new context::Context()),
       d_bbFacts(context()),
       d_bbInputFacts(context()),
       d_assumptions(context()),

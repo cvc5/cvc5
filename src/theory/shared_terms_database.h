@@ -35,7 +35,7 @@ namespace cvc5::internal {
 class Env;
 class TheoryEngine;
 
-class SharedTermsDatabase : public cvc5::context::ContextNotifyObj
+class SharedTermsDatabase : public context::ContextNotifyObj
 {
  public:
   /** A container for a list of shared terms */
@@ -61,22 +61,21 @@ class SharedTermsDatabase : public cvc5::context::ContextNotifyObj
   std::vector<TNode> d_addedSharedTerms;
 
   /** Context-dependent size of the d_addedSharedTerms list */
-  cvc5::context::CDO<unsigned> d_addedSharedTermsSize;
+  context::CDO<unsigned> d_addedSharedTermsSize;
 
   /** A map from atoms and subterms to the theories that use it */
-  typedef cvc5::context::CDHashMap<std::pair<Node, TNode>,
-                                   theory::TheoryIdSet,
-                                   TNodePairHashFunction>
+  typedef context::CDHashMap<std::pair<Node, TNode>,
+                             theory::TheoryIdSet,
+                             TNodePairHashFunction>
       SharedTermsTheoriesMap;
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef cvc5::context::CDHashMap<TNode, theory::TheoryIdSet>
-      AlreadyNotifiedMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet> AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
-  typedef cvc5::context::CDHashSet<Node> RegisteredEqualitiesSet;
+  typedef context::CDHashSet<Node> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
  private:
@@ -131,7 +130,7 @@ class SharedTermsDatabase : public cvc5::context::ContextNotifyObj
   TheoryEngine* d_theoryEngine;
 
   /** Are we in conflict */
-  cvc5::context::CDO<bool> d_inConflict;
+  context::CDO<bool> d_inConflict;
 
   /** Conflicting terms, if any */
   Node d_conflictLHS, d_conflictRHS;

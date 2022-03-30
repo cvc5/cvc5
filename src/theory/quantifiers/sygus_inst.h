@@ -134,13 +134,13 @@ class SygusInst : public QuantifiersModule
 
   /* Indicates whether a counterexample lemma was added for a quantified
    * formula in the current context. */
-  cvc5::context::CDHashSet<Node> d_ce_lemma_added;
+  context::CDHashSet<Node> d_ce_lemma_added;
 
   /* Set of global ground terms in assertions (outside of quantifiers). */
-  cvc5::context::CDHashMap<TypeNode, std::unordered_set<Node>> d_global_terms;
+  context::CDHashMap<TypeNode, std::unordered_set<Node>> d_global_terms;
 
   /* Assertions sent by ppNotifyAssertions. */
-  cvc5::context::CDHashSet<Node> d_notified_assertions;
+  context::CDHashSet<Node> d_notified_assertions;
 };
 
 }  // namespace quantifiers

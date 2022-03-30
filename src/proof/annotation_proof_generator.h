@@ -49,14 +49,13 @@ class Annotator
  */
 class AnnotationProofGenerator : public ProofGenerator
 {
-  typedef cvc5::context::CDHashMap<Node, std::pair<ProofGenerator*, Annotator*>>
+  typedef context::CDHashMap<Node, std::pair<ProofGenerator*, Annotator*>>
       NodeExpMap;
-  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<ProofNode>>
-      NodeProofNodeMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   AnnotationProofGenerator(ProofNodeManager* pnm,
-                           cvc5::context::Context* c = nullptr,
+                           context::Context* c = nullptr,
                            std::string name = "AnnotationProofGenerator");
   ~AnnotationProofGenerator() {}
   /** Get the proof for formula f. */
@@ -84,7 +83,7 @@ class AnnotationProofGenerator : public ProofGenerator
   /** Name identifier */
   std::string d_name;
   /** A dummy context used by this class if none is provided */
-  cvc5::context::Context d_context;
+  context::Context d_context;
   /**
    * A context-dependent map from formulas to a generator + annotation
    * pair, which will be used to generate the proof of formulas if asked.

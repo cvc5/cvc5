@@ -64,8 +64,8 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  */
 class TranscendentalState : protected EnvObj
 {
-  using NodeMap = cvc5::context::CDHashMap<Node, Node>;
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
@@ -263,7 +263,7 @@ class TranscendentalState : protected EnvObj
    * each transcendental function application. We store this set for each
    * Taylor degree.
    */
-  std::unordered_map<Node, std::map<uint64_t, cvc5::context::CDList<Node>>>
+  std::unordered_map<Node, std::map<uint64_t, context::CDList<Node>>>
       d_secant_points;
 
   /** PI

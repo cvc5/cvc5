@@ -637,7 +637,7 @@ bool TermDb::reset( Theory::Effort effort ){
       {
         continue;
       }
-      for (cvc5::context::CDList<Assertion>::const_iterator
+      for (context::CDList<Assertion>::const_iterator
                it = d_qstate.factsBegin(theoryId),
                it_end = d_qstate.factsEnd(theoryId);
            it != it_end;

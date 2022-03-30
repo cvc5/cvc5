@@ -45,7 +45,7 @@ typedef SortModel::Region Region;
 typedef Region::RegionNodeInfo RegionNodeInfo;
 typedef RegionNodeInfo::DiseqList DiseqList;
 
-Region::Region(SortModel* cf, cvc5::context::Context* c)
+Region::Region(SortModel* cf, context::Context* c)
     : d_cf(cf),
       d_testCliqueSize(c, 0),
       d_splitsSize(c, 0),

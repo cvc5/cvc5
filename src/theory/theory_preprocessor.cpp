@@ -42,7 +42,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
   ProofNodeManager* pnm = env.getProofNodeManager();
   if (pnm != nullptr)
   {
-    cvc5::context::Context* u = userContext();
+    context::Context* u = userContext();
     d_tpg.reset(
         new TConvProofGenerator(pnm,
                                 u,

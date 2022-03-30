@@ -35,13 +35,11 @@ class RelevanceManager;
  */
 class DifficultyManager
 {
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
-  typedef cvc5::context::CDHashMap<Node, uint64_t> NodeUIntMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(RelevanceManager* rlv,
-                    cvc5::context::Context* c,
-                    Valuation val);
+  DifficultyManager(RelevanceManager* rlv, context::Context* c, Valuation val);
   /** Notify input assertions */
   void notifyInputAssertions(const std::vector<Node>& assertions);
   /**

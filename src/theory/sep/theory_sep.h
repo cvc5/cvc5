@@ -38,9 +38,9 @@ class TheoryModel;
 namespace sep {
 
 class TheorySep : public Theory {
-  typedef cvc5::context::CDList<Node> NodeList;
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
-  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
   /////////////////////////////////////////////////////////////////////////////
   // MISC
@@ -275,10 +275,10 @@ class TheorySep : public Theory {
 
   class HeapAssertInfo {
   public:
-   HeapAssertInfo(cvc5::context::Context* c);
+   HeapAssertInfo(context::Context* c);
    ~HeapAssertInfo() {}
-   cvc5::context::CDO<Node> d_pto;
-   cvc5::context::CDO<bool> d_has_neg_pto;
+   context::CDO<Node> d_pto;
+   context::CDO<bool> d_has_neg_pto;
   };
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );

@@ -167,7 +167,7 @@ class FirstOrderModel : protected EnvObj
   /** equality query class */
   EqualityQuery d_eq_query;
   /** list of quantifiers asserted in the current context */
-  cvc5::context::CDList<Node> d_forall_asserts;
+  context::CDList<Node> d_forall_asserts;
   /** 
    * The (ordered) list of quantified formulas marked as relevant using
    * markRelevant, where the quantified formula q in the most recent

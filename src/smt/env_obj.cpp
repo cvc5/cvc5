@@ -51,9 +51,9 @@ Node EnvObj::evaluate(TNode n,
 
 const Options& EnvObj::options() const { return d_env.getOptions(); }
 
-cvc5::context::Context* EnvObj::context() const { return d_env.getContext(); }
+context::Context* EnvObj::context() const { return d_env.getContext(); }
 
-cvc5::context::UserContext* EnvObj::userContext() const
+context::UserContext* EnvObj::userContext() const
 {
   return d_env.getUserContext();
 }

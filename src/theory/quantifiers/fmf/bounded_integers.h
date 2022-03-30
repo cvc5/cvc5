@@ -47,10 +47,10 @@ namespace quantifiers {
 
 class BoundedIntegers : public QuantifiersModule
 {
-  typedef cvc5::context::CDHashMap<Node, bool> NodeBoolMap;
-  typedef cvc5::context::CDHashMap<Node, int> NodeIntMap;
-  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
-  typedef cvc5::context::CDHashMap<int, bool> IntBoolMap;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef context::CDHashMap<int, bool> IntBoolMap;
 
  private:
   //for determining bounds

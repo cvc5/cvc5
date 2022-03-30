@@ -203,7 +203,7 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  cvc5::context::CDInsertHashMap<Node, ConstraintP>
+  context::CDInsertHashMap<Node, ConstraintP>
       d_assertionsThatDoNotMatchTheirLiterals;
 
   /** Returns true if x is of type Integer. */
@@ -235,7 +235,7 @@ private:
   /**
    * Queue of Integer variables that are known to be equal to a constant.
    */
-  cvc5::context::CDQueue<ArithVar> d_constantIntegerVariables;
+  context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
   /**
@@ -254,7 +254,7 @@ private:
    * List of all of the disequalities asserted in the current context that are not known
    * to be satisfied.
    */
-  cvc5::context::CDQueue<ConstraintP> d_diseqQueue;
+  context::CDQueue<ConstraintP> d_diseqQueue;
 
   /**
    * Constraints that have yet to be processed by proagation work list.
@@ -272,12 +272,12 @@ private:
    */
   std::deque<ConstraintP> d_currentPropagationList;
 
-  cvc5::context::CDQueue<ConstraintP> d_learnedBounds;
+  context::CDQueue<ConstraintP> d_learnedBounds;
 
   /**
    * Contains all nodes that have been preregistered
    */
-  cvc5::context::CDHashSet<Node> d_preregisteredNodes;
+  context::CDHashSet<Node> d_preregisteredNodes;
 
   /**
    * Manages information about the assignment and upper and lower bounds on
@@ -319,12 +319,12 @@ private:
   static constexpr uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
   /** This is only used by simplex at the moment. */
-  cvc5::context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
+  context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
 
   /** This is only used by simplex at the moment. */
-  cvc5::context::CDO<Node> d_blackBoxConflict;
+  context::CDO<Node> d_blackBoxConflict;
   /** For holding the proof of the above conflict node. */
-  cvc5::context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
+  context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
   bool isProofEnabled() const;
 
@@ -381,7 +381,7 @@ private:
 
   /** This keeps track of difference equalities. Mostly for sharing. */
   ArithCongruenceManager d_congruenceManager;
-  cvc5::context::CDO<bool> d_cmEnabled;
+  context::CDO<bool> d_cmEnabled;
 
   /** This implements the Simplex decision procedure. */
   DualSimplexDecisionProcedure d_dualSimplex;
@@ -404,7 +404,7 @@ private:
   /* Sets d_qflraStatus */
   void importSolution(const ApproximateSimplex::Solution& solution);
   bool solveRelaxationOrPanic(Theory::Effort effortLevel);
-  cvc5::context::CDO<int> d_lastContextIntegerAttempted;
+  context::CDO<int> d_lastContextIntegerAttempted;
   bool replayLog(ApproximateSimplex* approx);
 
   class ModelException : public Exception {
@@ -708,7 +708,7 @@ private:
   }
 
   /** Used for replaying approximate simplex */
-  cvc5::context::CDQueue<TrustNode> d_approxCuts;
+  context::CDQueue<TrustNode> d_approxCuts;
   /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
   std::vector<TrustNode> d_acTmp;
 
@@ -718,12 +718,12 @@ private:
   TrustNode branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
-  cvc5::context::CDO<unsigned> d_cutCount;
-  cvc5::context::CDHashSet<ArithVar, std::hash<ArithVar>> d_cutInContext;
+  context::CDO<unsigned> d_cutCount;
+  context::CDHashSet<ArithVar, std::hash<ArithVar>> d_cutInContext;
 
-  cvc5::context::CDO<bool> d_likelyIntegerInfeasible;
+  context::CDO<bool> d_likelyIntegerInfeasible;
 
-  cvc5::context::CDO<bool> d_guessedCoeffSet;
+  context::CDO<bool> d_guessedCoeffSet;
   ArithRatPairVec d_guessedCoeffs;
 
 
@@ -738,7 +738,7 @@ private:
   /* Approximate simpplex solvers are given a copy of their stats */
   ApproximateStatistics* d_approxStats;
   ApproximateStatistics& getApproxStats();
-  cvc5::context::CDO<int32_t> d_attemptSolveIntTurnedOff;
+  context::CDO<int32_t> d_attemptSolveIntTurnedOff;
   void turnOffApproxFor(int32_t rounds);
   bool getSolveIntegerResource();
 

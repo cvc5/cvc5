@@ -22,7 +22,7 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-SubstitutionMap::SubstitutionMap(cvc5::context::Context* context)
+SubstitutionMap::SubstitutionMap(context::Context* context)
     : d_context(),
       d_substitutions(context ? context : &d_context),
       d_substitutionCache(),

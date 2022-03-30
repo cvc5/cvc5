@@ -41,7 +41,7 @@ class AbstractValues;
 class Assertions : protected EnvObj
 {
   /** The type of our internal assertion list */
-  typedef cvc5::context::CDList<Node> AssertionList;
+  typedef context::CDList<Node> AssertionList;
 
  public:
   Assertions(Env& env, AbstractValues& absv);
@@ -98,12 +98,12 @@ class Assertions : protected EnvObj
    * before preprocessing. This includes assertions corresponding to define-fun
    * and define-fun-rec.
    */
-  const cvc5::context::CDList<Node>& getAssertionList() const;
+  const context::CDList<Node>& getAssertionList() const;
   /**
    * Get assertions list corresponding to the original list of assertions
    * that correspond to definitions (define-fun or define-fun-rec).
    */
-  const cvc5::context::CDList<Node>& getAssertionListDefinitions() const;
+  const context::CDList<Node>& getAssertionListDefinitions() const;
   /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
@@ -171,7 +171,7 @@ class Assertions : protected EnvObj
    */
   std::vector<Node> d_globalDefineFunLemmas;
   /** The index of the above list that we have processed */
-  cvc5::context::CDO<size_t> d_globalDefineFunLemmasIndex;
+  context::CDO<size_t> d_globalDefineFunLemmasIndex;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
    * Note that if the last call to checkSatisfiability was an entailment check,

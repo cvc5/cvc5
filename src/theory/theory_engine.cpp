@@ -316,9 +316,9 @@ void TheoryEngine::printAssertions(const char* tag) {
         Trace(tag) << "--------------------------------------------" << endl;
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
         {
-          cvc5::context::CDList<Assertion>::const_iterator
-              it = theory->facts_begin(),
-              it_end = theory->facts_end();
+          context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+                                                     it_end =
+                                                         theory->facts_end();
           for (unsigned i = 0; it != it_end; ++it, ++i)
           {
             if ((*it).d_isPreregistered)
@@ -335,7 +335,7 @@ void TheoryEngine::printAssertions(const char* tag) {
 
         if (d_logicInfo.isSharingEnabled()) {
           Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
-          cvc5::context::CDList<TNode>::const_iterator
+          context::CDList<TNode>::const_iterator
               it = theory->shared_terms_begin(),
               it_end = theory->shared_terms_end();
           for (unsigned i = 0; it != it_end; ++ it, ++i) {
@@ -1845,7 +1845,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-      for (cvc5::context::CDList<Assertion>::const_iterator
+      for (context::CDList<Assertion>::const_iterator
                it = theory->facts_begin(),
                it_end = theory->facts_end();
            it != it_end;

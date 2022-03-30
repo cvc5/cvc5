@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using CDNodeMap = cvc5::context::CDHashMap<Node, Node>;
+using CDNodeMap = context::CDHashMap<Node, Node>;
 
 class BVToInt : public PreprocessingPass
 {

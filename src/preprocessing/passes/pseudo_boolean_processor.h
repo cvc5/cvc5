@@ -90,14 +90,14 @@ class PseudoBooleanProcessor : public PreprocessingPass
   static Node mkGeqOne(Node v);
 
   // x ->  <geqZero, leqOne>
-  typedef cvc5::context::CDHashMap<Node, std::pair<Node, Node>> CDNode2PairMap;
+  typedef context::CDHashMap<Node, std::pair<Node, Node>> CDNode2PairMap;
   CDNode2PairMap d_pbBounds;
   theory::SubstitutionMap d_subCache;
 
   typedef std::unordered_set<Node> NodeSet;
   NodeSet d_learningCache;
 
-  cvc5::context::CDO<unsigned> d_pbs;
+  context::CDO<unsigned> d_pbs;
 
   // decompose into \sum pos >= neg + off
   std::optional<Rational> d_off;

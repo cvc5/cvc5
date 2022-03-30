@@ -143,7 +143,7 @@ class CDProof : public ProofGenerator
    * on policy documented above.
    */
   CDProof(ProofNodeManager* pnm,
-          cvc5::context::Context* c = nullptr,
+          context::Context* c = nullptr,
           const std::string& name = "CDProof",
           bool autoSymm = true);
   virtual ~CDProof();
@@ -248,12 +248,11 @@ class CDProof : public ProofGenerator
   std::string identify() const override;
 
  protected:
-  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<ProofNode>>
-      NodeProofNodeMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
   /** A dummy context used by this class if none is provided */
-  cvc5::context::Context d_context;
+  context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
   /** Name identifier */

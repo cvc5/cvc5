@@ -228,9 +228,9 @@ public:
    * assertions from other theories.
    */
   /** The beginning iterator of facts for theory tid.*/
-  cvc5::context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
+  context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
-  cvc5::context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
+  context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
 };/* class Valuation */
 
 }  // namespace theory

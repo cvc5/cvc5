@@ -489,7 +489,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
 Node RemoveTermFormulas::getSkolemForNode(Node k) const
 {
-  cvc5::context::CDInsertHashMap<Node, Node>::const_iterator itk =
+  context::CDInsertHashMap<Node, Node>::const_iterator itk =
       d_skolem_cache.find(k);
   if (itk != d_skolem_cache.end())
   {

@@ -63,7 +63,7 @@ namespace sets {
  */
 class CardinalityExtension : protected EnvObj
 {
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   /**

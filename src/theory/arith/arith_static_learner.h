@@ -26,10 +26,11 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -39,12 +40,12 @@ private:
   /**
    * Map from a node to it's minimum and maximum.
    */
- typedef cvc5::context::CDHashMap<Node, DeltaRational> CDNodeToMinMaxMap;
+ typedef context::CDHashMap<Node, DeltaRational> CDNodeToMinMaxMap;
  CDNodeToMinMaxMap d_minMap;
  CDNodeToMinMaxMap d_maxMap;
 
 public:
- ArithStaticLearner(cvc5::context::Context* userContext);
+ ArithStaticLearner(context::Context* userContext);
  ~ArithStaticLearner();
  void staticLearning(TNode n, NodeBuilder& learned);
 

@@ -35,7 +35,7 @@ namespace passes {
 class FunDefFmf : public PreprocessingPass
 {
   /** The types for the recursive function definitions */
-  typedef cvc5::context::CDList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
 
  public:
   FunDefFmf(PreprocessingPassContext* preprocContext);

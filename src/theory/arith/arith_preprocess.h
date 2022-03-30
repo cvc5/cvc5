@@ -85,7 +85,7 @@ class ArithPreprocess : protected EnvObj
   /** The operator elimination utility */
   OperatorElim& d_opElim;
   /** The set of assertions that were reduced */
-  cvc5::context::CDHashMap<Node, bool> d_reduced;
+  context::CDHashMap<Node, bool> d_reduced;
 };
 
 }  // namespace arith

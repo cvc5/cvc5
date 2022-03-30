@@ -38,11 +38,11 @@ namespace cvc5::internal {
  */
 class TheoryEngineProofGenerator : public ProofGenerator
 {
-  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<LazyCDProof>>
+  typedef context::CDHashMap<Node, std::shared_ptr<LazyCDProof>>
       NodeLazyCDProofMap;
 
  public:
-  TheoryEngineProofGenerator(ProofNodeManager* pnm, cvc5::context::Context* c);
+  TheoryEngineProofGenerator(ProofNodeManager* pnm, context::Context* c);
   ~TheoryEngineProofGenerator() {}
   /**
    * Make trust explanation. Called when lpf has a proof of lit from free

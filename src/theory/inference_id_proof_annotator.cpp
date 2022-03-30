@@ -22,7 +22,7 @@ namespace cvc5::internal {
 namespace theory {
 
 InferenceIdProofAnnotator::InferenceIdProofAnnotator(ProofNodeManager* pnm,
-                                                     cvc5::context::Context* c)
+                                                     context::Context* c)
     : d_pnm(pnm), d_ids(c), d_list(c)
 {
 }

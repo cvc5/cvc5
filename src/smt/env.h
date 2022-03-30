@@ -27,6 +27,11 @@
 #include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5::internal {
 
 class NodeManager;
@@ -38,11 +43,6 @@ namespace options {
 enum class OutputTag;
 }
 using OutputTag = options::OutputTag;
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 namespace smt {
 class PfManager;
@@ -75,10 +75,10 @@ class Env
 
   /* Access to members------------------------------------------------------- */
   /** Get a pointer to the Context owned by this Env. */
-  cvc5::context::Context* getContext();
+  context::Context* getContext();
 
   /** Get a pointer to the UserContext owned by this Env. */
-  cvc5::context::UserContext* getUserContext();
+  context::UserContext* getUserContext();
 
   /** Get a pointer to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
@@ -271,9 +271,9 @@ class Env
   /* Members ---------------------------------------------------------------- */
 
   /** The SAT context owned by this Env */
-  std::unique_ptr<cvc5::context::Context> d_context;
+  std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
-  std::unique_ptr<cvc5::context::UserContext> d_userContext;
+  std::unique_ptr<context::UserContext> d_userContext;
   /**
    * A pointer to the node manager of this environment. A node manager is
    * not necessarily unique to an SolverEngine instance.

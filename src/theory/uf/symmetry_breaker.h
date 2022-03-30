@@ -58,7 +58,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-class SymmetryBreaker : protected EnvObj, public cvc5::context::ContextNotifyObj
+class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
 {
   class Template {
     Node d_template;
@@ -103,7 +103,7 @@ public:
    * round, then some symmetries that don't actually exist might be broken,
    * leading to unsound results!
    */
-  cvc5::context::CDList<Node> d_assertionsToRerun;
+  context::CDList<Node> d_assertionsToRerun;
   bool d_rerunningAssertions;
 
   std::vector<Node> d_phi;

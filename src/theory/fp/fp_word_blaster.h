@@ -274,7 +274,7 @@ class FpWordBlaster
 {
  public:
   /** Constructor. */
-  FpWordBlaster(cvc5::context::UserContext*);
+  FpWordBlaster(context::UserContext*);
   /** Destructor. */
   ~FpWordBlaster();
 
@@ -287,7 +287,7 @@ class FpWordBlaster
    */
   Node getValue(Valuation&, TNode);
 
-  cvc5::context::CDList<Node> d_additionalAssertions;
+  context::CDList<Node> d_additionalAssertions;
 
  protected:
   typedef symfpuSymbolic::traits traits;
@@ -298,11 +298,11 @@ class FpWordBlaster
   typedef symfpuSymbolic::traits::ubv ubv;
   typedef symfpuSymbolic::traits::sbv sbv;
 
-  typedef cvc5::context::CDHashMap<Node, uf> fpMap;
-  typedef cvc5::context::CDHashMap<Node, rm> rmMap;
-  typedef cvc5::context::CDHashMap<Node, prop> boolMap;
-  typedef cvc5::context::CDHashMap<Node, ubv> ubvMap;
-  typedef cvc5::context::CDHashMap<Node, sbv> sbvMap;
+  typedef context::CDHashMap<Node, uf> fpMap;
+  typedef context::CDHashMap<Node, rm> rmMap;
+  typedef context::CDHashMap<Node, prop> boolMap;
+  typedef context::CDHashMap<Node, ubv> ubvMap;
+  typedef context::CDHashMap<Node, sbv> sbvMap;
 
   fpMap d_fpMap;
   rmMap d_rmMap;

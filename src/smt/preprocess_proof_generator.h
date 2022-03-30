@@ -56,7 +56,7 @@ namespace smt {
  */
 class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
 {
-  typedef cvc5::context::CDHashMap<Node, TrustNode> NodeTrustNodeMap;
+  typedef context::CDHashMap<Node, TrustNode> NodeTrustNodeMap;
 
  public:
   /**
@@ -69,7 +69,7 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * preprocessing steps.
    */
   PreprocessProofGenerator(Env& env,
-                           cvc5::context::Context* c = nullptr,
+                           context::Context* c = nullptr,
                            std::string name = "PreprocessProofGenerator",
                            PfRule ra = PfRule::PREPROCESS_LEMMA,
                            PfRule rpp = PfRule::PREPROCESS);
@@ -114,9 +114,9 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    */
   void checkEagerPedantic(PfRule r);
   /** A dummy context used by this class if none is provided */
-  cvc5::context::Context d_context;
+  context::Context d_context;
   /** The context used here */
-  cvc5::context::Context* d_ctx;
+  context::Context* d_ctx;
   /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This

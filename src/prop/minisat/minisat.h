@@ -48,9 +48,9 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
-  void initialize(cvc5::context::Context* context,
+  void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
-                  cvc5::context::UserContext* userContext,
+                  context::UserContext* userContext,
                   ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -122,7 +122,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   Minisat::SimpSolver* d_minisat;
 
   /** Context we will be using to synchronize the sat solver */
-  cvc5::context::Context* d_context;
+  context::Context* d_context;
 
   /**
    * Stores assumptions passed via last solve() call.

@@ -94,14 +94,14 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
+namespace cvc5::context {
+class Context;
+}
 namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
 
-namespace context {
-class Context;
-}
 namespace theory {
 
 namespace arith {
@@ -152,7 +152,7 @@ enum ArithProofType
  */
 enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
-typedef cvc5::context::CDList<ConstraintCP> CDConstraintList;
+typedef context::CDList<ConstraintCP> CDConstraintList;
 
 typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
@@ -1012,7 +1012,7 @@ class ConstraintDatabase : protected EnvObj
    * ConstraintCP are pointers.
    * The elements of the queue do not require destruction.
    */
-  cvc5::context::CDQueue<ConstraintCP> d_toPropagate;
+  context::CDQueue<ConstraintCP> d_toPropagate;
 
   /**
    * Proofs are lists of valid constraints terminated by the first null
@@ -1033,15 +1033,13 @@ class ConstraintDatabase : protected EnvObj
    */
   CDConstraintList d_antecedents;
 
-  typedef cvc5::context::CDList<ConstraintRule,
-                                Constraint::ConstraintRuleCleanup>
+  typedef context::CDList<ConstraintRule, Constraint::ConstraintRuleCleanup>
       ConstraintRuleList;
-  typedef cvc5::context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup>
+  typedef context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup>
       CBPList;
-  typedef cvc5::context::CDList<ConstraintP, Constraint::AssertionOrderCleanup>
+  typedef context::CDList<ConstraintP, Constraint::AssertionOrderCleanup>
       AOList;
-  typedef cvc5::context::CDList<ConstraintP, Constraint::SplitCleanup>
-      SplitList;
+  typedef context::CDList<ConstraintP, Constraint::SplitCleanup> SplitList;
 
   /**
    * The watch lists are collected together as they need to be garbage collected
@@ -1074,8 +1072,7 @@ class ConstraintDatabase : protected EnvObj
      * d_varDatabases.
      */
     SplitList d_splitWatches;
-    Watches(cvc5::context::Context* satContext,
-            cvc5::context::Context* userContext);
+    Watches(context::Context* satContext, context::Context* userContext);
   };
   Watches* d_watches;
 

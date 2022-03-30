@@ -25,7 +25,7 @@ namespace cvc5::internal {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          ProofGenerator* dpg,
-                         cvc5::context::Context* c,
+                         context::Context* c,
                          const std::string& name,
                          bool autoSym,
                          bool doCache)

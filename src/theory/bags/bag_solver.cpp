@@ -263,9 +263,8 @@ void BagSolver::checkMap(Node n)
     Node y = d_state.getRepresentative(z);
     if (!d_mapCache.count(n))
     {
-      std::shared_ptr<cvc5::context::CDHashMap<Node, std::pair<Node, Node>>>
-          nMap = std::make_shared<
-              cvc5::context::CDHashMap<Node, std::pair<Node, Node>>>(
+      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
+          std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
               userContext());
       d_mapCache[n] = nMap;
     }
@@ -277,7 +276,7 @@ void BagSolver::checkMap(Node n)
       d_mapCache[n].get()->insert(y, yPair);
     }
 
-    cvc5::context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
+    context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
         d_mapCache[n].get()->find(y);
 
     auto [uf, preImageSize] = it->second;

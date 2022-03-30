@@ -219,15 +219,13 @@ bool Valuation::needCheck() const{
 
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
 
-cvc5::context::CDList<Assertion>::const_iterator Valuation::factsBegin(
-    TheoryId tid)
+context::CDList<Assertion>::const_iterator Valuation::factsBegin(TheoryId tid)
 {
   Theory* theory = d_engine->theoryOf(tid);
   Assert(theory != nullptr);
   return theory->facts_begin();
 }
-cvc5::context::CDList<Assertion>::const_iterator Valuation::factsEnd(
-    TheoryId tid)
+context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
 {
   Theory* theory = d_engine->theoryOf(tid);
   Assert(theory != nullptr);

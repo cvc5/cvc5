@@ -30,10 +30,10 @@
 #include "theory/substitutions.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -57,7 +57,7 @@ class UnconstrainedSimplifier : public PreprocessingPass
   TNodeMap d_visitedOnce;
   TNodeSet d_unconstrained;
 
-  cvc5::context::Context* d_context;
+  context::Context* d_context;
   theory::SubstitutionMap d_substitutions;
 
   /**

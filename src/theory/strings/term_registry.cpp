@@ -467,12 +467,12 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
 
 SkolemCache* TermRegistry::getSkolemCache() { return &d_skCache; }
 
-const cvc5::context::CDList<TNode>& TermRegistry::getFunctionTerms() const
+const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
 {
   return d_functionsTerms;
 }
 
-const cvc5::context::CDHashSet<Node>& TermRegistry::getInputVars() const
+const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 {
   return d_inputVars;
 }

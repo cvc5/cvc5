@@ -83,9 +83,8 @@ class EqualityEngine;
  */
 class ProofEqEngine : protected EnvObj, public EagerProofGenerator
 {
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
-  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<ProofNode>>
-      NodeProofMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
 
  public:
   /**

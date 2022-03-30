@@ -64,7 +64,7 @@ namespace theory {
  */
 class TheoryPreprocessor : protected EnvObj
 {
-  typedef cvc5::context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */
@@ -127,7 +127,7 @@ class TheoryPreprocessor : protected EnvObj
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
 
-  typedef cvc5::context::CDInsertHashMap<
+  typedef context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
       Node,
       PairHashFunction<Node, uint32_t, std::hash<Node>>>

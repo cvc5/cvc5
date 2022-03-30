@@ -62,8 +62,8 @@ namespace strings {
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
-  typedef cvc5::context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
 
  public:
   TheoryStrings(Env& env, OutputChannel& out, Valuation valuation);

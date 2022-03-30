@@ -54,7 +54,7 @@ struct SolverEngineStatistics;
 class ProcessAssertions : protected EnvObj
 {
   /** The types for the recursive function definitions */
-  typedef cvc5::context::CDList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
   typedef std::unordered_map<Node, bool> NodeToBoolHashMap;
 
  public:

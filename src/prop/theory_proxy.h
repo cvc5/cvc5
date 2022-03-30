@@ -52,7 +52,7 @@ class ZeroLevelLearner;
  */
 class TheoryProxy : protected EnvObj, public Registrar
 {
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   TheoryProxy(Env& env,
@@ -191,7 +191,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   TheoryEngine* d_theoryEngine;
 
   /** Queue of asserted facts */
-  cvc5::context::CDQueue<TNode> d_queue;
+  context::CDQueue<TNode> d_queue;
 
   /**
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,

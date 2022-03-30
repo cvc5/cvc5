@@ -34,7 +34,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithStaticLearner::ArithStaticLearner(cvc5::context::Context* userContext)
+ArithStaticLearner::ArithStaticLearner(context::Context* userContext)
     : d_minMap(userContext), d_maxMap(userContext), d_statistics()
 {
 }

@@ -82,7 +82,7 @@ class ExtfInfoTmp
  */
 class ExtfSolver : protected EnvObj
 {
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   ExtfSolver(Env& env,
@@ -216,7 +216,7 @@ class ExtfSolver : protected EnvObj
   /** map extended functions to the above information */
   std::map<Node, ExtfInfoTmp> d_extfInfoTmp;
   /** any non-reduced extended functions exist? */
-  cvc5::context::CDO<bool> d_hasExtf;
+  context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */
   NodeSet d_extfInferCache;
   /** The set of extended functions we have sent reduction lemmas for */

@@ -45,7 +45,7 @@ namespace strings {
  */
 class SolverState : public TheoryState
 {
-  typedef cvc5::context::CDList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
 
  public:
   SolverState(Env& env,
@@ -56,7 +56,7 @@ class SolverState : public TheoryState
    * Get the list of disequalities that are currently asserted to the equality
    * engine.
    */
-  const cvc5::context::CDList<Node>& getDisequalityList() const;
+  const context::CDList<Node>& getDisequalityList() const;
   /**
    * notify the state that disequality (not (= t1 t2)) holds in the current
    * context. This will be included in the return of the above method.
@@ -152,7 +152,7 @@ class SolverState : public TheoryState
    */
   NodeList d_eeDisequalities;
   /** The pending conflict if one exists */
-  cvc5::context::CDO<bool> d_pendingConflictSet;
+  context::CDO<bool> d_pendingConflictSet;
   /** The pending conflict, valid if the above flag is true */
   InferInfo d_pendingConflict;
   /** Map from representatives to their equivalence class information */

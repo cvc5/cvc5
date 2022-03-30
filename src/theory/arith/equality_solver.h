@@ -42,7 +42,7 @@ class InferenceManager;
  */
 class EqualitySolver : protected EnvObj
 {
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   EqualitySolver(Env& env, ArithState& astate, InferenceManager& aim);

@@ -79,7 +79,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_assumptions(d_env.getUserContext())
 {
   Trace("prop") << "Constructing the PropEngine" << std::endl;
-  cvc5::context::UserContext* userContext = d_env.getUserContext();
+  context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
 
   options::DecisionMode dmode = options().decision.decisionMode;
@@ -635,7 +635,7 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   return true;
 }
 
-void PropEngine::checkProof(const cvc5::context::CDList<Node>& assertions)
+void PropEngine::checkProof(const context::CDList<Node>& assertions)
 {
   if (!d_env.isSatProofProducing())
   {

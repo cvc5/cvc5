@@ -40,7 +40,7 @@ class CDCLTSatSolverInterface;
 class PropPfManager
 {
  public:
-  PropPfManager(cvc5::context::UserContext* userContext,
+  PropPfManager(context::UserContext* userContext,
                 ProofNodeManager* pnm,
                 CDCLTSatSolverInterface* satSolver,
                 ProofCnfStream* cnfProof);
@@ -73,7 +73,7 @@ class PropPfManager
    * engine's proof with the preprocessing proof) and these changes survive for
    * a next check-sat call.
    */
-  void checkProof(const cvc5::context::CDList<Node>& assertions);
+  void checkProof(const context::CDList<Node>& assertions);
 
  private:
   /** A node manager */
@@ -89,7 +89,7 @@ class PropPfManager
    * These are kept in a context-dependent manner since the prop engine's proof
    * is also kept in a context-dependent manner.
    */
-  cvc5::context::CDList<Node> d_assertions;
+  context::CDList<Node> d_assertions;
 }; /* class PropPfManager */
 
 }  // namespace prop

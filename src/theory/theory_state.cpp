@@ -159,13 +159,11 @@ bool TheoryState::hasSatValue(TNode n, bool& value) const
   return d_valuation.hasSatValue(n, value);
 }
 
-cvc5::context::CDList<Assertion>::const_iterator TheoryState::factsBegin(
-    TheoryId tid)
+context::CDList<Assertion>::const_iterator TheoryState::factsBegin(TheoryId tid)
 {
   return d_valuation.factsBegin(tid);
 }
-cvc5::context::CDList<Assertion>::const_iterator TheoryState::factsEnd(
-    TheoryId tid)
+context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 {
   return d_valuation.factsEnd(tid);
 }

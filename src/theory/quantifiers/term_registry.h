@@ -41,7 +41,7 @@ class FirstOrderModel;
  */
 class TermRegistry : protected EnvObj
 {
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
@@ -95,7 +95,7 @@ class TermRegistry : protected EnvObj
 
  private:
   /** has presolve been called */
-  cvc5::context::CDO<bool> d_presolve;
+  context::CDO<bool> d_presolve;
   /** Whether we are using the fmc model */
   bool d_useFmcModel;
   /** the set of terms we have seen before presolve */

@@ -22,7 +22,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
-FpExpandDefs::FpExpandDefs(cvc5::context::UserContext* u)
+FpExpandDefs::FpExpandDefs(context::UserContext* u)
     :
 
       d_minMap(u),

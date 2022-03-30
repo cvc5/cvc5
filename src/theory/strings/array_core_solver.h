@@ -132,9 +132,9 @@ class ArrayCoreSolver : protected EnvObj
    */
   std::map<Node, Node> d_connectedSeq;
   /** The set of lemmas been sent */
-  cvc5::context::CDHashSet<Node> d_lem;
+  context::CDHashSet<Node> d_lem;
   /** Set of updates that have been registered */
-  cvc5::context::CDHashSet<Node> d_registeredUpdates;
+  context::CDHashSet<Node> d_registeredUpdates;
 
   // ========= data structure =========
   /** Map sequence variable to indices that occurred in nth terms */

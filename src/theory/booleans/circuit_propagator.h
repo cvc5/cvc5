@@ -132,16 +132,16 @@ class CircuitPropagator : protected EnvObj
    * If parent is non-null, then it is responsible for the proofs provided
    * to this class.
    */
-  void enableProofs(cvc5::context::Context* ctx, ProofGenerator* defParent);
+  void enableProofs(context::Context* ctx, ProofGenerator* defParent);
 
  private:
   /** A context-notify object that clears out stale data. */
   template <class T>
-  class DataClearer : cvc5::context::ContextNotifyObj
+  class DataClearer : context::ContextNotifyObj
   {
    public:
-    DataClearer(cvc5::context::Context* context, T& data)
-        : cvc5::context::ContextNotifyObj(context), d_data(data)
+    DataClearer(context::Context* context, T& data)
+        : context::ContextNotifyObj(context), d_data(data)
     {
     }
 
@@ -161,7 +161,7 @@ class CircuitPropagator : protected EnvObj
   /**
    * Assignment status of each node.
    */
-  typedef cvc5::context::CDHashMap<TNode, AssignmentStatus> AssignmentMap;
+  typedef context::CDHashMap<TNode, AssignmentStatus> AssignmentMap;
 
   /**
    * Assign Node in circuit with the value and add it to the queue; note
@@ -197,7 +197,7 @@ class CircuitPropagator : protected EnvObj
   /** Are proofs enabled? */
   bool isProofEnabled() const;
 
-  cvc5::context::Context d_context;
+  context::Context d_context;
 
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
@@ -211,7 +211,7 @@ class CircuitPropagator : protected EnvObj
   DataClearer<std::vector<TNode>> d_propagationQueueClearer;
 
   /** Are we in conflict? */
-  cvc5::context::CDO<TrustNode> d_conflict;
+  context::CDO<TrustNode> d_conflict;
 
   /** Map of substitutions */
   std::vector<TrustNode> d_learnedLiterals;
@@ -233,7 +233,7 @@ class CircuitPropagator : protected EnvObj
 
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
-  cvc5::context::CDHashSet<Node> d_seen;
+  context::CDHashSet<Node> d_seen;
 
   AssignmentMap d_state;
 

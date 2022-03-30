@@ -53,7 +53,7 @@ class LazyCDProof : public CDProof
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
-              cvc5::context::Context* c = nullptr,
+              context::Context* c = nullptr,
               const std::string& name = "LazyCDProof",
               bool autoSym = true,
               bool doCache = true);
@@ -103,8 +103,8 @@ class LazyCDProof : public CDProof
   bool hasGenerator(Node fact) const;
 
  protected:
-  typedef cvc5::context::CDHashMap<Node, ProofGenerator*> NodeProofGeneratorMap;
-  typedef cvc5::context::CDHashSet<ProofNode*> ProofNodeSet;
+  typedef context::CDHashMap<Node, ProofGenerator*> NodeProofGeneratorMap;
+  typedef context::CDHashSet<ProofNode*> ProofNodeSet;
   /** Maps facts that can be proven to generators */
   NodeProofGeneratorMap d_gens;
   /** The default proof generator */

@@ -1076,8 +1076,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
   /**
    * Initialize the rewriter.
    */
-  TheoryFpRewriter::TheoryFpRewriter(cvc5::context::UserContext* u)
-      : d_fpExpDef(u)
+  TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   {
     /* Set up the pre-rewrite dispatch table */
     for (uint32_t i = 0; i < kind::LAST_KIND; ++i)

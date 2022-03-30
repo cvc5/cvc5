@@ -79,12 +79,12 @@ class RelevanceManager : protected EnvObj
 {
   using RlvPair = std::pair<Node, uint32_t>;
   using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
-  using NodeList = cvc5::context::CDList<Node>;
-  using NodeMap = cvc5::context::CDHashMap<Node, Node>;
-  using NodeListMap = cvc5::context::CDHashMap<Node, std::shared_ptr<NodeList>>;
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeList = context::CDList<Node>;
+  using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList>>;
+  using NodeSet = context::CDHashSet<Node>;
   using RlvPairIntMap =
-      cvc5::context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
+      context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
 
  public:
   /**

@@ -489,8 +489,7 @@ bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
     std::vector<Node> mset{ctf};
     // if this purifies another term, we set a bound on the term it
     // purifies as well
-    cvc5::context::CDHashMap<Node, Node>::const_iterator itp =
-        d_trPurifies.find(ctf);
+    context::CDHashMap<Node, Node>::const_iterator itp = d_trPurifies.find(ctf);
     if (itp != d_trPurifies.end() && itp->second != ctf)
     {
       mset.push_back(itp->second);

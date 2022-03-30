@@ -27,7 +27,7 @@ namespace theory {
 namespace quantifiers {
 
 DynamicRewriter::DynamicRewriter(Env& env,
-                                 cvc5::context::Context* c,
+                                 context::Context* c,
                                  const std::string& name)
     : d_equalityEngine(env, c, "DynamicRewriter::" + name, true), d_rewrites(c)
 {

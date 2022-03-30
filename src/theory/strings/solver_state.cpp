@@ -46,7 +46,7 @@ SolverState::~SolverState()
   }
 }
 
-const cvc5::context::CDList<Node>& SolverState::getDisequalityList() const
+const context::CDList<Node>& SolverState::getDisequalityList() const
 {
   return d_eeDisequalities;
 }

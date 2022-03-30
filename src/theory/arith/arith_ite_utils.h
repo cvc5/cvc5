@@ -64,8 +64,8 @@ class ArithIteUtils : protected EnvObj
 
   Integer d_one;
 
-  cvc5::context::CDO<uint64_t> d_subcount;
-  typedef cvc5::context::CDInsertHashMap<Node, Node> CDNodeMap;
+  context::CDO<uint64_t> d_subcount;
+  typedef context::CDInsertHashMap<Node, Node> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;

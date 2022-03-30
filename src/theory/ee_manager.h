@@ -78,7 +78,7 @@ class EqEngineManager : protected EnvObj
 
   /** Allocate equality engine that is context-dependent on c with info esi */
   eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
-                                             cvc5::context::Context* c);
+                                             context::Context* c);
   /**
    * Notify this class that we are about to terminate with a model. This method
    * is for debugging only.

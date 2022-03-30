@@ -186,7 +186,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   /** Blocked proofs.
    *
    * These are proof nodes added to this class by external generators. */
-  cvc5::context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
+  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
       d_blocked;
 
   /** The current propagation being processed via this class. */

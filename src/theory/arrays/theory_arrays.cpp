@@ -97,14 +97,14 @@ TheoryArrays::TheoryArrays(Env& env,
       d_sharedTerms(context(), false),
       d_reads(context()),
       d_constReadsList(context()),
-      d_constReadsContext(new cvc5::context::Context()),
+      d_constReadsContext(new context::Context()),
       d_contextPopper(context(), d_constReadsContext),
       d_decisionRequests(context()),
       d_permRef(context()),
       d_modelConstraints(context()),
       d_lemmasSaved(context()),
       d_defValues(context()),
-      d_readTableContext(new cvc5::context::Context()),
+      d_readTableContext(new context::Context()),
       d_arrayMerges(context()),
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
@@ -1190,8 +1190,8 @@ void TheoryArrays::postCheck(Effort level)
       && weakEquiv)
   {
     // Replay all array merges to update weak equivalence data structures
-    cvc5::context::CDList<Node>::iterator it = d_arrayMerges.begin(),
-                                          iend = d_arrayMerges.end();
+    context::CDList<Node>::iterator it = d_arrayMerges.begin(),
+                                    iend = d_arrayMerges.end();
     TNode a, b, eq;
     for (; it != iend; ++it) {
       eq = *it;

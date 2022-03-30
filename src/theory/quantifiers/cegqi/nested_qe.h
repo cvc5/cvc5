@@ -33,7 +33,7 @@ namespace quantifiers {
 
 class NestedQe
 {
-  using NodeNodeMap = cvc5::context::CDHashMap<Node, Node>;
+  using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   NestedQe(Env& env);

@@ -41,9 +41,9 @@ class QuantifiersRegistry;
 class DbList
 {
  public:
-  DbList(cvc5::context::Context* c) : d_list(c) {}
+  DbList(context::Context* c) : d_list(c) {}
   /** The list */
-  cvc5::context::CDList<Node> d_list;
+  context::CDList<Node> d_list;
 };
 
 /** Term Database
@@ -65,12 +65,12 @@ class DbList
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
-  using NodeBoolMap = cvc5::context::CDHashMap<Node, bool>;
-  using NodeList = cvc5::context::CDList<Node>;
-  using NodeSet = cvc5::context::CDHashSet<Node>;
+  using NodeBoolMap = context::CDHashMap<Node, bool>;
+  using NodeList = context::CDList<Node>;
+  using NodeSet = context::CDHashSet<Node>;
   using TypeNodeDbListMap =
-      cvc5::context::CDHashMap<TypeNode, std::shared_ptr<DbList>>;
-  using NodeDbListMap = cvc5::context::CDHashMap<Node, std::shared_ptr<DbList>>;
+      context::CDHashMap<TypeNode, std::shared_ptr<DbList>>;
+  using NodeDbListMap = context::CDHashMap<Node, std::shared_ptr<DbList>>;
 
  public:
   TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
@@ -217,9 +217,9 @@ class TermDb : public QuantifiersUtil {
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** A context for the data structures below, when not context-dependent */
-  cvc5::context::Context d_termsContext;
+  context::Context d_termsContext;
   /** The context we are using for the data structures below */
-  cvc5::context::Context* d_termsContextUse;
+  context::Context* d_termsContextUse;
   /** terms processed */
   NodeSet d_processed;
   /** map from types to ground terms for that type */

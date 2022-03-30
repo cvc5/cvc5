@@ -2019,8 +2019,8 @@ bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {
   return v < d_varDatabases.size();
 }
 
-ConstraintDatabase::Watches::Watches(cvc5::context::Context* satContext,
-                                     cvc5::context::Context* userContext)
+ConstraintDatabase::Watches::Watches(context::Context* satContext,
+                                     context::Context* userContext)
     : d_constraintProofs(satContext),
       d_canBePropagatedWatches(satContext),
       d_assertionOrderWatches(satContext),

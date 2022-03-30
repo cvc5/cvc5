@@ -189,7 +189,7 @@ CDInstMatchTrie::~CDInstMatchTrie()
   d_data.clear();
 }
 
-bool CDInstMatchTrie::existsInstMatch(cvc5::context::Context* context,
+bool CDInstMatchTrie::existsInstMatch(context::Context* context,
                                       quantifiers::QuantifiersState& qs,
                                       Node q,
                                       const std::vector<Node>& m,
@@ -199,7 +199,7 @@ bool CDInstMatchTrie::existsInstMatch(cvc5::context::Context* context,
   return !addInstMatch(context, qs, q, m, modEq, index, true);
 }
 
-bool CDInstMatchTrie::addInstMatch(cvc5::context::Context* context,
+bool CDInstMatchTrie::addInstMatch(context::Context* context,
                                    quantifiers::QuantifiersState& qs,
                                    Node f,
                                    const std::vector<Node>& m,

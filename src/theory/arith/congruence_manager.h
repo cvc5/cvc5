@@ -34,15 +34,15 @@
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
-
-namespace context {
-class Context;
-class UserContext;
-}
 
 namespace theory {
 struct EeSetupInfo;
@@ -59,7 +59,7 @@ class ArithVariables;
 class ArithCongruenceManager : protected EnvObj
 {
  private:
-  cvc5::context::CDRaised d_inConflict;
+  context::CDRaised d_inConflict;
   RaiseEqualityEngineConflict d_raiseConflict;
 
   /**
@@ -92,17 +92,17 @@ class ArithCongruenceManager : protected EnvObj
   };
   ArithCongruenceNotify d_notify;
 
-  cvc5::context::CDList<Node> d_keepAlive;
+  context::CDList<Node> d_keepAlive;
 
   /** Store the propagations. */
-  cvc5::context::CDTrailQueue<Node> d_propagatations;
+  context::CDTrailQueue<Node> d_propagatations;
 
   /* This maps the node a theory engine will request on an explain call to
    * to its corresponding PropUnit.
    * This is node is potentially both the propagation or
    * rewrite(propagation).
    */
-  typedef cvc5::context::CDHashMap<Node, size_t> ExplainMap;
+  typedef context::CDHashMap<Node, size_t> ExplainMap;
   ExplainMap d_explanationMap;
 
   ConstraintDatabase& d_constraintDatabase;

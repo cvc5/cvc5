@@ -104,13 +104,12 @@ preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
   return d_assertions;
 }
 
-const cvc5::context::CDList<Node>& Assertions::getAssertionList() const
+const context::CDList<Node>& Assertions::getAssertionList() const
 {
   return d_assertionList;
 }
 
-const cvc5::context::CDList<Node>& Assertions::getAssertionListDefinitions()
-    const
+const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 {
   return d_assertionListDefs;
 }

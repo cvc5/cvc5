@@ -2525,7 +2525,7 @@ void CoreSolver::checkNormalFormsDeq()
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   std::map< Node, std::map< Node, bool > > processed;
 
-  const cvc5::context::CDList<Node>& deqs = d_state.getDisequalityList();
+  const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();
   Trace("str-deq") << "Process disequalites..." << std::endl;

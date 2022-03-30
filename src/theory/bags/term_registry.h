@@ -37,7 +37,7 @@ class SolverState;
  */
 class TermRegistry : protected EnvObj
 {
-  typedef cvc5::context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   TermRegistry(Env& env, SolverState& state, InferenceManager& im);

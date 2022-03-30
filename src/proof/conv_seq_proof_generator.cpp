@@ -24,7 +24,7 @@ namespace cvc5::internal {
 TConvSeqProofGenerator::TConvSeqProofGenerator(
     ProofNodeManager* pnm,
     const std::vector<ProofGenerator*>& ts,
-    cvc5::context::Context* c,
+    context::Context* c,
     std::string name)
     : d_pnm(pnm), d_converted(c), d_name(name)
 {

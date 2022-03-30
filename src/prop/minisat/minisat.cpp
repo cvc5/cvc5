@@ -105,9 +105,9 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(cvc5::context::Context* context,
+void MinisatSatSolver::initialize(context::Context* context,
                                   TheoryProxy* theoryProxy,
-                                  cvc5::context::UserContext* userContext,
+                                  context::UserContext* userContext,
                                   ProofNodeManager* pnm)
 {
   d_context = context;

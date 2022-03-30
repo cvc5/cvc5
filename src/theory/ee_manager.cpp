@@ -35,8 +35,8 @@ const EeTheoryInfo* EqEngineManager::getEeTheoryInfo(TheoryId tid) const
   return nullptr;
 }
 
-eq::EqualityEngine* EqEngineManager::allocateEqualityEngine(
-    EeSetupInfo& esi, cvc5::context::Context* c)
+eq::EqualityEngine* EqEngineManager::allocateEqualityEngine(EeSetupInfo& esi,
+                                                            context::Context* c)
 {
   if (esi.d_notify != nullptr)
   {

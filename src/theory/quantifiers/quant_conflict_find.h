@@ -293,7 +293,7 @@ class QuantConflictFind : public QuantifiersModule
   /** Map from type -> list(eqc) of that type */
   std::map<TypeNode, std::vector<TNode> > d_eqcs;
   /** Are we in conflict? */
-  cvc5::context::CDO<bool> d_conflict;
+  context::CDO<bool> d_conflict;
   /** Zeros for (type, kind) pairs */
   std::map<std::pair<TypeNode, Kind>, Node> d_zero;
   // for storing nodes created during t-constraint solving (prevents memory

@@ -157,7 +157,7 @@ void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-ConjectureGenerator::EqcInfo::EqcInfo(cvc5::context::Context* c)
+ConjectureGenerator::EqcInfo::EqcInfo(context::Context* c)
     : d_rep(c, Node::null())
 {
 }

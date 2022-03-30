@@ -833,10 +833,10 @@ class CVC5_EXPORT SolverEngine
   const Options& getOptions() const;
 
   /** Get a pointer to the UserContext owned by this SolverEngine. */
-  cvc5::context::UserContext* getUserContext();
+  context::UserContext* getUserContext();
 
   /** Get a pointer to the Context owned by this SolverEngine. */
-  cvc5::context::Context* getContext();
+  context::Context* getContext();
 
   /** Get a pointer to the TheoryEngine owned by this SolverEngine. */
   TheoryEngine* getTheoryEngine();

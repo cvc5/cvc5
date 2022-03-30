@@ -32,13 +32,13 @@ struct sortTypeOrder {
   }
 };
 
-AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(cvc5::context::Context* c)
+AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(context::Context* c)
     : d_quant(c)
 {
 }
 
 Node AlphaEquivalenceTypeNode::registerNode(
-    cvc5::context::Context* c,
+    context::Context* c,
     Node q,
     Node t,
     std::vector<TypeNode>& typs,
@@ -78,7 +78,7 @@ Node AlphaEquivalenceTypeNode::registerNode(
   return q;
 }
 
-AlphaEquivalenceDb::AlphaEquivalenceDb(cvc5::context::Context* c,
+AlphaEquivalenceDb::AlphaEquivalenceDb(context::Context* c,
                                        expr::TermCanonize* tc,
                                        bool sortCommChildren)
     : d_context(c),

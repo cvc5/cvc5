@@ -26,7 +26,7 @@ namespace cvc5::internal {
 
 LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    bool cyclic,
-                                   cvc5::context::Context* c,
+                                   context::Context* c,
                                    ProofGenerator* defGen,
                                    bool defRec,
                                    const std::string& name)

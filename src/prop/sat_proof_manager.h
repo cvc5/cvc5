@@ -570,7 +570,7 @@ class SatProofManager : protected EnvObj
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
-  cvc5::context::CDHashSet<Node> d_assumptions;
+  context::CDHashSet<Node> d_assumptions;
   /**
    * A placeholder that may be used to store the literal with the final
    * conflict.
@@ -587,11 +587,11 @@ class SatProofManager : protected EnvObj
   void printClause(const Minisat::Clause& clause);
 
   /** The user context */
-  cvc5::context::UserContext* d_userContext;
+  context::UserContext* d_userContext;
 
   /** User-context dependent map from resolution conclusions to their assertion
       level. */
-  cvc5::context::CDHashMap<Node, int> d_optResLevels;
+  context::CDHashMap<Node, int> d_optResLevels;
   /** Maps assertion level to proof nodes.
    *
    * This map is used by d_optResManager to update the internal proof of this

@@ -85,12 +85,11 @@ class ProofNodeManager;
  */
 class EagerProofGenerator : public ProofGenerator
 {
-  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<ProofNode>>
-      NodeProofNodeMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   EagerProofGenerator(ProofNodeManager* pnm,
-                      cvc5::context::Context* c = nullptr,
+                      context::Context* c = nullptr,
                       std::string name = "EagerProofGenerator");
   ~EagerProofGenerator() {}
   /** Get the proof for formula f. */
@@ -197,7 +196,7 @@ class EagerProofGenerator : public ProofGenerator
   /** Name identifier */
   std::string d_name;
   /** A dummy context used by this class if none is provided */
-  cvc5::context::Context d_context;
+  context::Context d_context;
   /**
    * A user-context-dependent map from lemmas and conflicts to proofs provided
    * by calls to setProofForConflict and setProofForLemma above.

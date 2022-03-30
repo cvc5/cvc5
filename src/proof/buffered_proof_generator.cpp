@@ -20,7 +20,7 @@
 
 namespace cvc5::internal {
 
-BufferedProofGenerator::BufferedProofGenerator(cvc5::context::Context* c,
+BufferedProofGenerator::BufferedProofGenerator(context::Context* c,
                                                ProofNodeManager* pnm)
     : ProofGenerator(), d_facts(c), d_pnm(pnm)
 {

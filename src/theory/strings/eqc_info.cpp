@@ -26,7 +26,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-EqcInfo::EqcInfo(cvc5::context::Context* c)
+EqcInfo::EqcInfo(context::Context* c)
     : d_lengthTerm(c),
       d_codeTerm(c),
       d_cardinalityLemK(c),

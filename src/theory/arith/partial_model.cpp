@@ -27,7 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithVariables::ArithVariables(cvc5::context::Context* c,
+ArithVariables::ArithVariables(context::Context* c,
                                DeltaComputeCallback deltaComputingFunc)
     : d_vars(),
       d_safeAssignment(),

@@ -23,8 +23,8 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-TheoryEngineProofGenerator::TheoryEngineProofGenerator(
-    ProofNodeManager* pnm, cvc5::context::Context* c)
+TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
+                                                       context::Context* c)
     : d_pnm(pnm), d_proofs(c)
 {
   d_false = NodeManager::currentNM()->mkConst(false);

@@ -72,12 +72,11 @@ class CnfStream : protected EnvObj
 
  public:
   /** Cache of what nodes have been registered to a literal. */
-  typedef cvc5::context::
-      CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction>
-          LiteralToNodeMap;
+  typedef context::CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction>
+      LiteralToNodeMap;
 
   /** Cache of what literals have been registered to a node. */
-  typedef cvc5::context::CDInsertHashMap<Node, SatLiteral> NodeToLiteralMap;
+  typedef context::CDInsertHashMap<Node, SatLiteral> NodeToLiteralMap;
 
   /**
    * Constructs a CnfStream that performs equisatisfiable CNF transformations
@@ -96,7 +95,7 @@ class CnfStream : protected EnvObj
   CnfStream(Env& env,
             SatSolver* satSolver,
             Registrar* registrar,
-            cvc5::context::Context* c,
+            context::Context* c,
             FormulaLitPolicy flpol = FormulaLitPolicy::INTERNAL,
             std::string name = "");
   /**
@@ -213,10 +212,10 @@ class CnfStream : protected EnvObj
   SatSolver* d_satSolver;
 
   /** Boolean variables that we translated */
-  cvc5::context::CDList<TNode> d_booleanVariables;
+  context::CDList<TNode> d_booleanVariables;
 
   /** Formulas that we translated that we are notifying */
-  cvc5::context::CDHashSet<Node> d_notifyFormulas;
+  context::CDHashSet<Node> d_notifyFormulas;
 
   /** Map from nodes to literals */
   NodeToLiteralMap d_nodeToLiteralMap;

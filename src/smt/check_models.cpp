@@ -34,7 +34,7 @@ namespace smt {
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
 
 void CheckModels::checkModel(TheoryModel* m,
-                             const cvc5::context::CDList<Node>& al,
+                             const context::CDList<Node>& al,
                              bool hardFailure)
 {
   // Throughout, we use verbose(1) to give diagnostic output.

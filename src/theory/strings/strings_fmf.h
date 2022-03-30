@@ -38,7 +38,7 @@ namespace strings {
  */
 class StringsFmf : protected EnvObj
 {
-  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   StringsFmf(Env& env, Valuation valuation, TermRegistry& tr);
@@ -87,7 +87,7 @@ class StringsFmf : protected EnvObj
      * User-context-dependent node corresponding to the sum of the lengths of
      * input variables of type string
      */
-    cvc5::context::CDO<Node> d_inputVarLsum;
+    context::CDO<Node> d_inputVarLsum;
   };
   /** an instance of the above class */
   std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;

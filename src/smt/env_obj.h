@@ -79,10 +79,10 @@ class EnvObj
   const Options& options() const;
 
   /** Get a pointer to the Context via Env. */
-  cvc5::context::Context* context() const;
+  context::Context* context() const;
 
   /** Get a pointer to the UserContext via Env. */
-  cvc5::context::UserContext* userContext() const;
+  context::UserContext* userContext() const;
 
   /** Get the resource manager owned by this Env. */
   ResourceManager* resourceManager() const;

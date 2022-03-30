@@ -22,7 +22,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
-Info::Info(cvc5::context::Context* c)
+Info::Info(context::Context* c)
     : isNonLinear(c, false),
       rIntro1Applied(c, false),
       modelRep(c, TNode()),
@@ -43,7 +43,7 @@ Info::~Info() {
   in_stores->deleteSelf();
 }
 
-ArrayInfo::ArrayInfo(cvc5::context::Context* c, std::string statisticsPrefix)
+ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
     : ct(c),
       info_map(),
       d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(

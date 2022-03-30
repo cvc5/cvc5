@@ -49,7 +49,7 @@ typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
 
 RegExpElimination::RegExpElimination(bool isAgg,
                                      ProofNodeManager* pnm,
-                                     cvc5::context::Context* c)
+                                     context::Context* c)
     : d_isAggressive(isAgg),
       d_pnm(pnm),
       d_epg(pnm == nullptr

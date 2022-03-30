@@ -44,8 +44,7 @@ class PreRegisterVisitor : protected EnvObj
   /** The engine */
   TheoryEngine* d_engine;
 
-  typedef cvc5::context::CDHashMap<TNode, theory::TheoryIdSet>
-      TNodeToTheorySetMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet> TNodeToTheorySetMap;
 
   /**
    * Map from terms to the theories that have already had this term pre-registered.
@@ -129,8 +128,7 @@ class PreRegisterVisitor : protected EnvObj
 class SharedTermsVisitor : protected EnvObj
 {
   using TNodeVisitedMap = std::unordered_map<TNode, theory::TheoryIdSet>;
-  using TNodeToTheorySetMap =
-      cvc5::context::CDHashMap<TNode, theory::TheoryIdSet>;
+  using TNodeToTheorySetMap = context::CDHashMap<TNode, theory::TheoryIdSet>;
   /**
    * String representation of the visited map, for debugging purposes.
    */

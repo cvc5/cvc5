@@ -240,8 +240,8 @@ class ConjectureGenerator : public QuantifiersModule
   friend class SubsEqcIndex;
   friend class TermGenerator;
   friend class TermGenEnv;
-  typedef cvc5::context::CDHashMap<Node, Node> NodeMap;
-  typedef cvc5::context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
   // this class maintains a congruence closure for *universal* facts
  private:
   //notification class for equality engine
@@ -274,9 +274,9 @@ class ConjectureGenerator : public QuantifiersModule
   NotifyClass d_notify;
   class EqcInfo{
   public:
-   EqcInfo(cvc5::context::Context* c);
+   EqcInfo(context::Context* c);
    // representative
-   cvc5::context::CDO<Node> d_rep;
+   context::CDO<Node> d_rep;
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );

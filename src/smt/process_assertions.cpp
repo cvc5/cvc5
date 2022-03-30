@@ -477,7 +477,7 @@ void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
   // In summary, this means that define-fun-rec are expanded to
   // (declare-fun ...) + (assert (forall ...)) in the printing below, whereas
   // define-fun are preserved.
-  const cvc5::context::CDList<Node>& asld = as.getAssertionListDefinitions();
+  const context::CDList<Node>& asld = as.getAssertionListDefinitions();
   std::vector<Node> defs;
   for (const Node& d : asld)
   {

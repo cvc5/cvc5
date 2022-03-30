@@ -36,13 +36,13 @@ class FpExpandDefs
                                                     std::hash<TypeNode>,
                                                     std::hash<TypeNode>>;
   /** Uninterpreted functions for undefined cases of non-total operators. */
-  using ComparisonUFMap = cvc5::context::CDHashMap<TypeNode, Node>;
+  using ComparisonUFMap = context::CDHashMap<TypeNode, Node>;
   /** Uninterpreted functions for lazy handling of conversions. */
-  using ConversionUFMap = cvc5::context::
+  using ConversionUFMap = context::
       CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
 
  public:
-  FpExpandDefs(cvc5::context::UserContext* u);
+  FpExpandDefs(context::UserContext* u);
   /** expand definitions in node */
   TrustNode expandDefinition(Node node);
 

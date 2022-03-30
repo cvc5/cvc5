@@ -35,10 +35,10 @@ namespace quantifiers {
  * d_children[T1][2].d_children[T2][3].
  */
 class AlphaEquivalenceTypeNode {
-  using NodeMap = cvc5::context::CDHashMap<Node, Node>;
+  using NodeMap = context::CDHashMap<Node, Node>;
 
  public:
-  AlphaEquivalenceTypeNode(cvc5::context::Context* c);
+  AlphaEquivalenceTypeNode(context::Context* c);
   /** children of this node */
   std::map<std::pair<TypeNode, size_t>,
            std::unique_ptr<AlphaEquivalenceTypeNode>>
@@ -53,7 +53,7 @@ class AlphaEquivalenceTypeNode {
    * This registers term q to this trie. The term t is the canonical form of
    * q, typs/typCount represent a multi-set of types of free variables in t.
    */
-  Node registerNode(cvc5::context::Context* c,
+  Node registerNode(context::Context* c,
                     Node q,
                     Node t,
                     std::vector<TypeNode>& typs,
@@ -66,7 +66,7 @@ class AlphaEquivalenceTypeNode {
 class AlphaEquivalenceDb
 {
  public:
-  AlphaEquivalenceDb(cvc5::context::Context* c,
+  AlphaEquivalenceDb(context::Context* c,
                      expr::TermCanonize* tc,
                      bool sortCommChildren);
   /** adds quantified formula q to this database
@@ -93,7 +93,7 @@ class AlphaEquivalenceDb
    */
   Node addTermToTypeTrie(Node t, Node q);
   /** The context we depend on */
-  cvc5::context::Context* d_context;
+  context::Context* d_context;
   /** a trie per # of variables per type */
   AlphaEquivalenceTypeNode d_ae_typ_trie;
   /** pointer to the term canonize utility */

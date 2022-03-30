@@ -24,7 +24,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 
 CDProof::CDProof(ProofNodeManager* pnm,
-                 cvc5::context::Context* c,
+                 context::Context* c,
                  const std::string& name,
                  bool autoSymm)
     : d_manager(pnm),

@@ -118,7 +118,7 @@ class ModelManager : protected EnvObj
    * A dummy context for the model equality engine, so we can clear it
    * independently of search context.
    */
-  cvc5::context::Context d_modelEeContext;
+  context::Context d_modelEeContext;
   /** Pointer to the equality engine of the model */
   eq::EqualityEngine* d_modelEqualityEngine;
   /** The equality engine of the model, if we allocated it */
