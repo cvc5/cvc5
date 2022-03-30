@@ -1846,7 +1846,8 @@ bool GetInstantiationsCommand::isEnabled(cvc5::Solver* solver,
 {
   return (res.isSat()
           || (res.isUnknown()
-              && res.getUnknownExplanation() == cvc5::Result::INCOMPLETE))
+              && res.getUnknownExplanation()
+                     == cvc5::UnknownExplanation::INCOMPLETE))
          || res.isUnsat();
 }
 void GetInstantiationsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)

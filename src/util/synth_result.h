@@ -49,15 +49,15 @@ class SynthResult
   /** Default constructor */
   SynthResult();
   /** Constructor when the solution is not successful */
-  SynthResult(
-      Status s,
-      Result::UnknownExplanation unknownExplanation = Result::UNKNOWN_REASON);
+  SynthResult(Status s,
+              UnknownExplanation unknownExplanation =
+                  UnknownExplanation::UNKNOWN_REASON);
 
   /** Get the status */
   Status getStatus() const;
 
   /** Get the unknown explanation */
-  Result::UnknownExplanation getUnknownExplanation() const;
+  UnknownExplanation getUnknownExplanation() const;
 
   /** Get the string representation */
   std::string toString() const;
@@ -66,7 +66,7 @@ class SynthResult
   /** The status */
   Status d_status;
   /** The unknown explanation */
-  Result::UnknownExplanation d_unknownExplanation;
+  UnknownExplanation d_unknownExplanation;
 };
 
 std::ostream& operator<<(std::ostream& out, const SynthResult& r);

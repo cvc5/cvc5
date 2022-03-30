@@ -42,6 +42,7 @@ add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/BlockModelsMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/RoundingMode.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/UnknownExplanation.java"
 )
 add_custom_command(
   OUTPUT

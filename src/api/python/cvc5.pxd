@@ -9,7 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
-from cvc5types cimport RoundingMode
+from cvc5types cimport RoundingMode, UnknownExplanation
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -202,11 +202,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint hasNoSolution() except +
         bint isUnknown() except +
         string toString() except +
-
-    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result":
-        cdef cppclass UnknownExplanation:
-            pass
-
 
     cdef cppclass Solver:
         Solver() except +
@@ -533,16 +528,3 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
         size_t operator()(const Term & t) except +
-
-
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result::UnknownExplanation":
-    cdef UnknownExplanation REQUIRES_FULL_CHECK
-    cdef UnknownExplanation INCOMPLETE
-    cdef UnknownExplanation TIMEOUT
-    cdef UnknownExplanation RESOURCEOUT
-    cdef UnknownExplanation MEMOUT
-    cdef UnknownExplanation INTERRUPTED
-    cdef UnknownExplanation NO_STATUS
-    cdef UnknownExplanation UNSUPPORTED
-    cdef UnknownExplanation OTHER
-    cdef UnknownExplanation UNKNOWN_REASON
