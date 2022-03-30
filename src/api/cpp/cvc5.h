@@ -2734,10 +2734,12 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Provides access to options that can not be communicated via the regular
- * getOption() or getOptionInfo() methods. This class does not store the options
+ * \verbatim embed:rst:leading-asterisk
+ * Provides access to a few options that frontends may want to use, but that can not be communicated via the regular
+ * :cpp:func:`Solver::getOption() <cvc5::Solver::getOption()>` or :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` methods. This class does not store the options
  * itself, but only acts as a wrapper to the solver object. It can thus no
  * longer be used after the solver object has been destroyed.
+ * \endverbatim
  */
 class CVC5_EXPORT DriverOptions
 {

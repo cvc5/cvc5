@@ -17,6 +17,7 @@ For most applications, the :cpp:class:`Solver <cvc5::api::Solver>` class is the 
     datatypeconstructordecl
     datatypedecl
     datatypeselector
+    driveroptions
     grammar
     kind
     op
@@ -48,6 +49,7 @@ Class hierarchy
   * class :ref:`api/cpp/datatypeconstructordecl:datatypeconstructordecl`
   * class :ref:`api/cpp/datatypedecl:datatypedecl`
   * class :ref:`api/cpp/datatypeselector:datatypeselector`
+  * class :ref:`api/cpp/driveroptions:driveroptions`
   * class :ref:`api/cpp/grammar:grammar`
   * class :ref:`api/cpp/kind:kind`
   * class :ref:`api/cpp/op:op`
