@@ -26,8 +26,6 @@ namespace cvc5 {
 
 class Command;
 
-namespace internal {
-
 namespace main {
 
 class CommandExecutor
@@ -113,7 +111,6 @@ bool solverInvoke(cvc5::Solver* solver,
                   std::ostream& out);
 
 }  // namespace main
-}  // namespace internal
 }  // namespace cvc5
 
 #endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */

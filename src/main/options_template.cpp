@@ -44,7 +44,9 @@ extern int optreset;
 #include <iostream>
 #include <limits>
 
-namespace cvc5::internal::main {
+namespace cvc5::main {
+
+using namespace cvc5::internal;
 
 // clang-format off
 static const std::string commonOptionsDescription =
@@ -277,4 +279,4 @@ std::vector<std::string> parse(cvc5::Solver& solver,
   return nonoptions;
 }
 
-}  // namespace cvc5::internal::options
+}  // namespace cvc5::main
