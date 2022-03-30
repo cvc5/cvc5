@@ -1955,7 +1955,7 @@ enum class PfRule : uint32_t
    * Place holder for LFSC rules.
    *
    * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}}{Q}
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
    *
    * Note that the premises and arguments are arbitrary. It's expected that
    * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
@@ -1964,12 +1964,12 @@ enum class PfRule : uint32_t
   LFSC_RULE,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **External -- ALethe**
+   * **External -- Alethe**
    *
    * Place holder for Alethe rules.
    *
    * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}}{Q}
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
    *
    * Note that the premises and arguments are arbitrary. It's expected that
    * :math:`\texttt{id}` refer to a proof rule in the external Alethe calculus,
