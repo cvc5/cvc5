@@ -1010,7 +1010,7 @@ std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
 
 std::vector<Node> SolverEngine::getModelDomainElements(TypeNode tn) const
 {
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   TheoryModel* m = getAvailableModel("getModelDomainElements");
   return m->getDomainElements(tn);
 }

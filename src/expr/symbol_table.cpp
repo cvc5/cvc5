@@ -490,11 +490,13 @@ cvc5::Sort SymbolTable::Implementation::lookupType(
                         "expected parametric datatype");
     return p.second.instantiate(params);
   }
-  bool isSortConstructor = p.second.isUninterpretedSortConstructor();
+  bool isUninterpretedSortConstructor =
+      p.second.isUninterpretedSortConstructor();
   if (TraceIsOn("sort"))
   {
     Trace("sort") << "instantiating using a sort "
-                  << (isSortConstructor ? "constructor" : "substitution")
+                  << (isUninterpretedSortConstructor ? "constructor"
+                                                     : "substitution")
                   << std::endl;
     Trace("sort") << "have formals [";
     copy(p.first.begin(),
@@ -508,10 +510,9 @@ cvc5::Sort SymbolTable::Implementation::lookupType(
                   << "type ctor    " << name << std::endl
                   << "type is      " << p.second << std::endl;
   }
-  cvc5::Sort instantiation = isSortConstructor
+  cvc5::Sort instantiation = isUninterpretedSortConstructor
                                  ? p.second.instantiate(params)
                                  : p.second.substitute(p.first, params);
-
   Trace("sort") << "instance is  " << instantiation << std::endl;
 
   return instantiation;

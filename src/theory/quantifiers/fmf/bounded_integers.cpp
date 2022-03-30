@@ -438,7 +438,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && d_env.isFiniteType(tn))
+          if ((tn.isUninterpretedSort() && d_env.isFiniteType(tn))
               || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
