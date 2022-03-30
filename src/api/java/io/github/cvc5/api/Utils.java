@@ -130,6 +130,7 @@ public class Utils
     }
   }
 
+  @SuppressWarnings("unchecked")
   public static <K> Pair<K, Long>[] getPairs(Pair<K, ? extends AbstractPointer>[] abstractPointers)
   {
     Pair<K, Long>[] pointers = new Pair[abstractPointers.length];
