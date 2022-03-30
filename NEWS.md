@@ -50,6 +50,7 @@ cvc5 1.0
   - SyGuS-based quantifier instantiation
 
 * *Strings*
+  - Improved performance using new techniques, including model-based reductions, eager context-dependent simplification, and equality-based conflict finding.
   - Support for `str.indexof_re(s, r, n)`, which returns the index of the first
     occurrence of a regular expression `r` in a string `s` after index `n` or
     -1 if `r` does not match a substring after `n`.
