@@ -111,7 +111,8 @@ void TheoryDatatypes::finishInit()
   // this is not done.
   // Enable the sygus extension if we will introduce sygus datatypes. This
   // is the case for sygus problems and when using sygus-inst.
-  if (getQuantifiersEngine() && (options().quantifiers.sygus || options().quantifiers.sygusInst))
+  if (getQuantifiersEngine()
+      && (options().quantifiers.sygus || options().quantifiers.sygusInst))
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
