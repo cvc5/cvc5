@@ -36,6 +36,10 @@ namespace cvc5 {
 
 class Command;
 
+namespace main {
+class CommandExecutor;
+}  // namespace main
+
 namespace internal {
 
 #ifndef DOXYGEN_SKIP
@@ -56,10 +60,6 @@ class Rational;
 class Result;
 class SynthResult;
 class StatisticsRegistry;
-
-namespace main {
-class CommandExecutor;
-}  // namespace main
 }  // namespace internal
 
 class Solver;
@@ -3024,7 +3024,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class cvc5::Command;
-  friend class internal::main::CommandExecutor;
+  friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
 

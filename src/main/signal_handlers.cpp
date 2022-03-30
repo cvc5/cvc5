@@ -41,8 +41,8 @@
 using cvc5::internal::Exception;
 using namespace std;
 
-namespace cvc5::internal {
-namespace main {
+namespace cvc5::main {
+using namespace cvc5::internal;
 
 /**
  * If true, will not spin on segfault even when CVC5_DEBUG is on.
@@ -344,5 +344,4 @@ void cleanup() noexcept
 }
 
 }  // namespace signal_handlers
-}  // namespace main
-}  // namespace cvc5::internal
+}  // namespace cvc5::main

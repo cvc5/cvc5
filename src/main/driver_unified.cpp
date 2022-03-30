@@ -42,10 +42,9 @@
 using namespace std;
 using namespace cvc5::internal;
 using namespace cvc5::parser;
-using namespace cvc5::internal::main;
+using namespace cvc5::main;
 
-namespace cvc5::internal {
-namespace main {
+namespace cvc5::main {
 
 /** Full argv[0] */
 const char* progPath;
@@ -54,10 +53,9 @@ const char* progPath;
 std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
-std::unique_ptr<cvc5::internal::main::CommandExecutor> pExecutor;
+std::unique_ptr<CommandExecutor> pExecutor;
 
-}  // namespace main
-}  // namespace cvc5::internal
+}  // namespace cvc5::main
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 {
@@ -71,10 +69,10 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   cvc5::DriverOptions dopts = solver->getDriverOptions();
 
   // Parse the options
-  std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
+  std::vector<string> filenames = parse(*solver, argc, argv, progName);
   if (solver->getOptionInfo("help").boolValue())
   {
-    main::printUsage(progName, dopts.out());
+    printUsage(progName, dopts.out());
     exit(1);
   }
   for (const auto& name : {"show-config",
