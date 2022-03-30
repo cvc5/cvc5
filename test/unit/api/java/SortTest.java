@@ -411,6 +411,20 @@ class SortTest
   }
 
   @Test
+  void getUninterpretedSortConstructor() throws CVC5ApiException
+  {
+    Sort intSort = d_solver.getIntegerSort();
+    Sort realSort = d_solver.getRealSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort bvSort = d_solver.mkBitVectorSort(8);
+    Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 4);
+    assertThrows(CVC5ApiException.class, () -> sortConsSort.getUninterpretedSortConstructor());
+    Sort instSortConsSort =
+        sortConsSort.instantiate(new Sort[] {boolSort, intSort, bvSort, realSort});
+    assertEquals(sortConsSort, instSortConsSort.getUninterpretedSortConstructor());
+  }
+
+  @Test
   void getFunctionArity() throws CVC5ApiException
   {
     Sort funSort =
