@@ -27,7 +27,7 @@
 #include "prop/learned_db.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -123,6 +123,6 @@ class ZeroLevelLearner : protected EnvObj
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

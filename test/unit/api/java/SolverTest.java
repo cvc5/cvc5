@@ -1350,7 +1350,7 @@ class SolverTest
     Sort bsort = d_solver.getBooleanSort();
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
-    Term output2  = d_solver.getNullTerm();
+    Term output2 = d_solver.getNullTerm();
     Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
@@ -1372,7 +1372,7 @@ class SolverTest
     d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
     // Conjecture for abduction: y > 0
     Term conj = d_solver.mkTerm(GT, y, zero);
-    Term output  = d_solver.getNullTerm();
+    Term output = d_solver.getNullTerm();
     // Fails due to option not set
     assertThrows(CVC5ApiException.class, () -> d_solver.getAbduct(conj));
   }
@@ -1398,7 +1398,6 @@ class SolverTest
     // should produce a different output
     assertNotEquals(output, output2);
   }
-
 
   @Test void getInterpolant() throws CVC5ApiException
   {
@@ -1519,14 +1518,14 @@ class SolverTest
       assertions.add(() -> assertEquals("print-success", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(
-          () -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class));
-      OptionInfo.ValueInfo<Boolean> valInfo =
-          (OptionInfo.ValueInfo<Boolean>) info.getBaseInfo();
+      assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class));
+      OptionInfo.ValueInfo<Boolean> valInfo = (OptionInfo.ValueInfo<Boolean>) info.getBaseInfo();
       assertions.add(() -> assertEquals(false, valInfo.getDefaultValue().booleanValue()));
       assertions.add(() -> assertEquals(false, valInfo.getCurrentValue().booleanValue()));
       assertions.add(() -> assertEquals(info.booleanValue(), false));
-      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ print-success | bool | false | default false }"));
+      assertions.add(()
+                         -> assertEquals(info.toString(),
+                             "OptionInfo{ print-success | bool | false | default false }"));
     }
     {
       // int64 type with default
@@ -1543,14 +1542,14 @@ class SolverTest
       assertions.add(
           () -> assertTrue(numInfo.getMinimum() == null && numInfo.getMaximum() == null));
       assertions.add(() -> assertEquals(info.intValue().intValue(), 0));
-      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ verbosity | int64_t | 0 | default 0 }"));
+      assertions.add(
+          () -> assertEquals(info.toString(), "OptionInfo{ verbosity | int64_t | 0 | default 0 }"));
     }
     assertAll(assertions);
     {
       OptionInfo info = d_solver.getOptionInfo("rlimit");
       assertEquals(info.getName(), "rlimit");
-      assertEquals(
-          Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
+      assertEquals(Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
       assertTrue(info.getBaseInfo().getClass() == OptionInfo.NumberInfo.class);
       OptionInfo.NumberInfo<BigInteger> ni = (OptionInfo.NumberInfo<BigInteger>) info.getBaseInfo();
       assertEquals(ni.getCurrentValue().intValue(), 0);
@@ -1572,13 +1571,13 @@ class SolverTest
       assertEquals(ni.getMinimum(), 0.0);
       assertEquals(ni.getMaximum(), 1.0);
       assertEquals(info.doubleValue(), 0.0);
-      assertEquals(info.toString(), "OptionInfo{ random-freq, random-frequency | double | 0 | default 0 | 0 <= x <= 1 }");
+      assertEquals(info.toString(),
+          "OptionInfo{ random-freq, random-frequency | double | 0 | default 0 | 0 <= x <= 1 }");
     }
     {
       OptionInfo info = d_solver.getOptionInfo("force-logic");
       assertEquals(info.getName(), "force-logic");
-      assertEquals(
-          Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
+      assertEquals(Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
       assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class);
       OptionInfo.ValueInfo<String> ni = (OptionInfo.ValueInfo<String>) info.getBaseInfo();
       assertEquals(ni.getCurrentValue(), "");
@@ -1591,8 +1590,9 @@ class SolverTest
       OptionInfo info = d_solver.getOptionInfo("simplification");
       assertions.clear();
       assertions.add(() -> assertEquals("simplification", info.getName()));
-      assertions.add(
-          () -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}), Arrays.asList(info.getAliases())));
+      assertions.add(()
+                         -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}),
+                             Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
       assertions.add(() -> assertEquals("batch", modeInfo.getDefaultValue()));
@@ -1600,7 +1600,8 @@ class SolverTest
       assertions.add(() -> assertEquals(2, modeInfo.getModes().length));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
-      assertEquals(info.toString(), "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
+      assertEquals(info.toString(),
+          "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
     }
     assertAll(assertions);
   }
@@ -1630,11 +1631,14 @@ class SolverTest
       assertTrue(s.isInt());
       assertTrue(s.getInt() >= 0);
     }
-    for (Map.Entry<String, Stat> s : stats) {}
+    for (Map.Entry<String, Stat> s : stats)
+    {
+      assertFalse(s.getKey().isEmpty());
+    }
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Map.Entry<String, Stat> elem = it.next();
-      if (elem.getKey() == "api::CONSTANT")
+      if (elem.getKey() == "cvc5::CONSTANT")
       {
         assertFalse(elem.getValue().isInternal());
         assertFalse(elem.getValue().isDefault());
@@ -1774,8 +1778,8 @@ class SolverTest
     }
   }
 
-  @Test
-  void getLearnedLiterals() {
+  @Test void getLearnedLiterals()
+  {
     d_solver.setOption("produce-learned-literals", "true");
     // cannot ask before a check sat
     assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
@@ -1783,8 +1787,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
   }
 
-  @Test
-  void getLearnedLiterals2() {
+  @Test void getLearnedLiterals2()
+  {
     d_solver.setOption("produce-learned-literals", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
@@ -1792,8 +1796,7 @@ class SolverTest
     Term zero = d_solver.mkInteger(0);
     Term ten = d_solver.mkInteger(10);
     Term f0 = d_solver.mkTerm(GEQ, x, ten);
-    Term f1 = d_solver.mkTerm(
-        OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
+    Term f1 = d_solver.mkTerm(OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
@@ -2469,7 +2472,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.declareSygusVar(funSort, ""));
 
     assertThrows(CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort()));
-    assertThrows(CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort(), "a"));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort(), "a"));
 
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
@@ -2812,7 +2816,7 @@ class SolverTest
       assertEquals(elements[indices[i]], simplifiedTerm);
     }
 
-    assertEquals("((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" "
+    assertEquals("((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" "
             + "(set.singleton \"Z\")))",
         projection.toString());
   }

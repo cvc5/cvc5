@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -194,6 +194,6 @@ class SygusUnif : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

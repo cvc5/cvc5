@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
@@ -501,4 +501,4 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

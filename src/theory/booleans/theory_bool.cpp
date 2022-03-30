@@ -28,9 +28,9 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -79,4 +79,4 @@ std::string TheoryBool::identify() const { return std::string("TheoryBool"); }
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

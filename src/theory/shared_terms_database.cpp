@@ -20,9 +20,9 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
     : ContextNotifyObj(env.getContext()),
@@ -322,4 +322,4 @@ TrustNode SharedTermsDatabase::explain(TNode literal) const
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

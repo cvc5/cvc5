@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -1137,6 +1135,21 @@ TEST_F(TestApiBlackTerm, getSequenceValue)
   ASSERT_THROW(su.getSequenceValue(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackTerm, getCardinalityConstraint)
+{
+  Sort su = d_solver.mkUninterpretedSort("u");
+  Term t = d_solver.mkCardinalityConstraint(su, 3);
+  ASSERT_TRUE(t.isCardinalityConstraint());
+  std::pair<Sort, uint32_t> cc = t.getCardinalityConstraint();
+  ASSERT_EQ(cc.first, su);
+  ASSERT_EQ(cc.second, 3);
+  Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+  ASSERT_FALSE(x.isCardinalityConstraint());
+  ASSERT_THROW(x.getCardinalityConstraint(), CVC5ApiException);
+  Term nullt;
+  ASSERT_THROW(nullt.isCardinalityConstraint(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackTerm, termScopedToString)
 {
   Sort intsort = d_solver.getIntegerSort();
@@ -1148,4 +1161,4 @@ TEST_F(TestApiBlackTerm, termScopedToString)
 
 TEST_F(TestApiBlackTerm, toString) { ASSERT_NO_THROW(Term().toString()); }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

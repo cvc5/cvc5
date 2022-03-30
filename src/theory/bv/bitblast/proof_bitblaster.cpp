@@ -20,7 +20,7 @@
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -214,4 +214,4 @@ bool BBProof::isProofsEnabled() const { return d_pnm != nullptr; }
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

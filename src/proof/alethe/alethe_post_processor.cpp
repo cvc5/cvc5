@@ -24,9 +24,9 @@
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -1849,4 +1849,4 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

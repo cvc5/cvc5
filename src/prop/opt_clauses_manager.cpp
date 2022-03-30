@@ -17,7 +17,7 @@
 
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 OptimizedClausesManager::OptimizedClausesManager(
@@ -82,4 +82,4 @@ void OptimizedClausesManager::contextNotifyPop()
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -33,7 +33,7 @@
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 TheoryProxy::TheoryProxy(Env& env,
@@ -350,4 +350,4 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -30,7 +30,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -161,6 +161,6 @@ class SolverState : public TheoryState
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SOLVER_STATE_H */

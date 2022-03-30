@@ -630,7 +630,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   public Triplet<Long, Long, Term> getFloatingPointValue()
   {
     Triplet<Long, Long, Long> triplet = getFloatingPointValue(pointer);
-    return new Triplet(triplet.first, triplet.second, new Term(solver, triplet.third));
+    return new Triplet<>(triplet.first, triplet.second, new Term(solver, triplet.third));
   }
 
   private native Triplet<Long, Long, Long> getFloatingPointValue(long pointer);
@@ -681,6 +681,29 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native long[] getSequenceValue(long pointer);
+
+  /**
+   * @return true if the term is a cardinality constraint
+   */
+  public boolean isCardinalityConstraint()
+  {
+    return isCardinalityConstraint(pointer);
+  }
+
+  private native boolean isCardinalityConstraint(long pointer);
+
+  /**
+   * Asserts isCardinalityConstraint().
+   * @return the sort the cardinality constraint is for and its upper bound.
+   */
+  public Pair<Sort, BigInteger> getCardinalityConstraint()
+  {
+    Pair<Long, BigInteger> pair = getCardinalityConstraint(pointer);
+    Sort sort = new Sort(solver, pair.first);
+    return new Pair<Sort, BigInteger>(sort, pair.second);
+  }
+
+  private native Pair<Long, BigInteger> getCardinalityConstraint(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

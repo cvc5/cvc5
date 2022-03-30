@@ -15,7 +15,7 @@
 
 #include "expr/type_properties.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace kind {
 
 Node mkGroundTerm(TypeConstant tc)
@@ -48,4 +48,4 @@ ${type_groundterms}
 }
 
 }  // namespace kind
-}  // namespace cvc5
+}  // namespace cvc5::internal

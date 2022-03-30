@@ -25,7 +25,7 @@
 #include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 ZeroLevelLearner::ZeroLevelLearner(Env& env,
@@ -370,4 +370,4 @@ bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

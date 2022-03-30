@@ -21,7 +21,7 @@
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 // optimization: try to rewrite to constant
@@ -174,4 +174,4 @@ void getUnsatCoreFromSubsolver(SolverEngine& smt, std::vector<Node>& uasserts)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -27,7 +27,7 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 class Env;
@@ -137,6 +137,6 @@ class SmtSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SMT_SOLVER_H */

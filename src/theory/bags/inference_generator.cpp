@@ -28,10 +28,10 @@
 #include "theory/uf/equality_engine.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -634,4 +634,4 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

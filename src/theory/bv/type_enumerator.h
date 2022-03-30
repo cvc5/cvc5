@@ -25,7 +25,7 @@
 #include "util/bitvector.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -60,6 +60,6 @@ public:
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BV__TYPE_ENUMERATOR_H */

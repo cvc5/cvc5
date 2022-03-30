@@ -28,7 +28,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class EagerProofGenerator;
 
@@ -84,6 +84,6 @@ class TheoryArraysRewriter : public TheoryRewriter
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */

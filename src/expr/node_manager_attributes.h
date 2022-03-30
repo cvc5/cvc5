@@ -20,7 +20,7 @@
 
 #include "expr/attribute.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 // Definition of an attribute for the variable name.
@@ -38,4 +38,4 @@ typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -18,7 +18,7 @@
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
@@ -31,4 +31,4 @@ void ResourceOutListener::notify()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

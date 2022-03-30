@@ -18,8 +18,7 @@
 
 #include <cstdint>
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 
 /**
  * This class makes sure that the main thread signals back to the time
@@ -45,7 +44,6 @@ struct TimeLimit
  */
 TimeLimit install_time_limit(uint64_t ms);
 
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main
 
 #endif /* CVC5__MAIN__TIME_LIMIT_H */

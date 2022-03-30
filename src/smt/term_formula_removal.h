@@ -29,7 +29,7 @@
 #include "theory/skolem_lemma.h"
 #include "util/hash.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -227,4 +227,4 @@ class RemoveTermFormulas : protected EnvObj
   bool isProofEnabled() const;
 }; /* class RemoveTTE */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

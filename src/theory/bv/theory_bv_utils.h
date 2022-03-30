@@ -25,7 +25,7 @@
 #include "expr/node_manager.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -226,4 +226,4 @@ Node eliminateInt2Bv(TNode node);
 }
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -30,7 +30,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 
 /**
@@ -438,6 +438,6 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
 };
 
 }  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CONTEXT__CDLIST_H */

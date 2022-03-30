@@ -25,9 +25,9 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -363,4 +363,4 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
