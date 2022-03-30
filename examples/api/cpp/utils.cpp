@@ -19,7 +19,7 @@
 
 namespace utils {
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 /**
  * Get the string version of define-fun command.
