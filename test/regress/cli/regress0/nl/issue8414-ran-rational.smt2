@@ -1,6 +1,6 @@
 ; EXPECT: sat
+;; only triggers with UFNRA (instead of QF_UFNRA)
 (set-logic UFNRA)
-(set-option :produce-models true)
 (declare-fun r2 () Real)
 (declare-fun r5 () Real)
 (declare-fun r () Real)
