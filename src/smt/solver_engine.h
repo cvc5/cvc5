@@ -35,10 +35,10 @@ namespace cvc5 {
 
 class Solver;
 
-namespace context {
+namespace cvc5::context {
 class Context;
 class UserContext;
-}  // namespace context
+}  // namespace cvc5::context
 
 namespace internal {
 
