@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Identifiers for rewriters and substitutions, which we abstractly
@@ -105,6 +105,6 @@ void addMethodIds(std::vector<Node>& args,
                   MethodId ida,
                   MethodId idr);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__METHOD_ID_H */

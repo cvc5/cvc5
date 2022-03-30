@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SynthResult::SynthResult()
     : d_status(NONE), d_unknownExplanation(Result::UNKNOWN_REASON)
@@ -70,4 +70,4 @@ ostream& operator<<(ostream& out, SynthResult::Status s)
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

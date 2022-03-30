@@ -40,9 +40,9 @@
 #include "util/iand.h"
 #include "util/real_algebraic_number.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -305,7 +305,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                                    NodeManager::currentNM()->mkConstRealOrInt(
                                        t.getType(), Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
-            cvc5::Rational r(expr::NodeValue::MAX_CHILDREN);
+            cvc5::internal::Rational r(expr::NodeValue::MAX_CHILDREN);
             if (exp <= r)
             {
               unsigned num = exp.getNumerator().toUnsignedInt();
@@ -1080,4 +1080,4 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

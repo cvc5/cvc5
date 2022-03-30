@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "context/cdo.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace context {
   class Context;
@@ -135,6 +135,6 @@ inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /*CVC5__THEORY__ARRAYS__UNION_FIND_H */

@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::string Exception::toString() const
 {
@@ -189,4 +189,4 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
   delete [] buf;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

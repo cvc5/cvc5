@@ -24,7 +24,7 @@
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
@@ -219,6 +219,6 @@ class FirstOrderModel : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__FIRST_ORDER_MODEL_H */

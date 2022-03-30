@@ -28,7 +28,7 @@
 #include "context/context.h"
 #include "context/cdlist.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
@@ -156,6 +156,6 @@ public:
 };/* class CDQueue<> */
 
 }  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CONTEXT__CDQUEUE_H */

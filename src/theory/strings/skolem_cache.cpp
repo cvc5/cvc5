@@ -24,9 +24,9 @@
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -338,4 +338,4 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

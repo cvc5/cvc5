@@ -18,7 +18,7 @@
 #include "expr/node_self_iterator.h"
 #include "test_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace expr;
@@ -53,4 +53,4 @@ TEST_F(TestNodeBlackNodeSelfIterator, iteration)
   ASSERT_EQ(++i, x_and_y.end());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

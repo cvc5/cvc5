@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** SubstitutionMinimize
@@ -97,6 +97,6 @@ class SubstitutionMinimize : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SUBS_MINIMIZE_H */

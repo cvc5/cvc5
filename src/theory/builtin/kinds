@@ -198,7 +198,7 @@
 #     is with your type checker:
 #
 #       cardinality MY_TYPE \
-#           ::cvc5::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
+#           ::cvc5::internal::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
 #           "theory/foo/theory_foo_type_rules.h"
 #
 #   well-founded K wellfoundedness-computer ground-term-computer [header]
@@ -242,13 +242,13 @@
 # commands.
 #
 
-theory THEORY_BUILTIN ::cvc5::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
+theory THEORY_BUILTIN ::cvc5::internal::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
 typechecker "theory/builtin/theory_builtin_type_rules.h"
 
 properties stable-infinite
 
 # Rewriter responsible for all the terms of the theory
-rewriter ::cvc5::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
+rewriter ::cvc5::internal::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
 
 sort BUILTIN_OPERATOR_TYPE \
     Cardinality::INTEGERS \
@@ -261,18 +261,18 @@ parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpr
 # enough (for now) ?
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
-    "::cvc5::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
-    "::cvc5::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
+    "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
 constant UNINTERPRETED_SORT_VALUE \
     class \
     UninterpretedSortValue \
-    ::cvc5::UninterpretedSortValueHashFunction \
+    ::cvc5::internal::UninterpretedSortValueHashFunction \
     "util/uninterpreted_sort_value.h" \
-    "the kind of expressions representing uninterpreted sort values; payload is an instance of the cvc5::AbstractValue class (used in models)"
-typerule UNINTERPRETED_SORT_VALUE ::cvc5::theory::builtin::UninterpretedSortValueTypeRule
-enumerator SORT_TYPE ::cvc5::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
+    "the kind of expressions representing uninterpreted sort values; payload is an instance of the cvc5::internal::AbstractValue class (used in models)"
+typerule UNINTERPRETED_SORT_VALUE ::cvc5::internal::theory::builtin::UninterpretedSortValueTypeRule
+enumerator SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -281,7 +281,7 @@ enumerator SORT_TYPE ::cvc5::theory::builtin::UninterpretedSortEnumerator "theor
 constant BUILTIN \
     skip \
     Kind \
-    ::cvc5::kind::KindHashFunction \
+    ::cvc5::internal::kind::KindHashFunction \
     "expr/kind.h" \
     "the kind of expressions representing built-in operators"
 
@@ -297,7 +297,7 @@ operator WITNESS 2:3 "a witness expression; first parameter is a BOUND_VAR_LIST,
 constant TYPE_CONSTANT \
     skip \
     TypeConstant \
-    ::cvc5::TypeConstantHashFunction \
+    ::cvc5::internal::TypeConstantHashFunction \
     "expr/kind.h" \
     "a representation for basic types"
 sort SEXPR_TYPE \
@@ -305,9 +305,9 @@ sort SEXPR_TYPE \
     not-well-founded \
     "the type of a symbolic expression"
 
-typerule EQUAL ::cvc5::theory::builtin::EqualityTypeRule
-typerule DISTINCT ::cvc5::theory::builtin::DistinctTypeRule
-typerule SEXPR ::cvc5::theory::builtin::SExprTypeRule
-typerule WITNESS ::cvc5::theory::builtin::WitnessTypeRule
+typerule EQUAL ::cvc5::internal::theory::builtin::EqualityTypeRule
+typerule DISTINCT ::cvc5::internal::theory::builtin::DistinctTypeRule
+typerule SEXPR ::cvc5::internal::theory::builtin::SExprTypeRule
+typerule WITNESS ::cvc5::internal::theory::builtin::WitnessTypeRule
 
 endtheory

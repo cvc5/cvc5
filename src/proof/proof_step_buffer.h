@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 
@@ -127,6 +127,6 @@ class ProofStepBuffer
   std::unordered_set<Node> d_allSteps;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_STEP_BUFFER_H */

@@ -15,7 +15,7 @@
 
 #include "expr/variadic_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 bool VariadicTrie::add(Node n, const std::vector<Node>& i)
 {
@@ -52,4 +52,4 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

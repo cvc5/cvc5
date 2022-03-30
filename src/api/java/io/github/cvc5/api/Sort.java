@@ -368,7 +368,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * An instantiated sort is a sort that has been constructed from
    * instantiating a sort with sort arguments
-   * (see Sort.instantiate()).
+   * (see {@link Sort#instantiate(Sort[])}).
    *
    * @return true if this is an instantiated sort
    */
@@ -428,7 +428,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Get the sorts used to instantiate the sort parameters of a parametric
    * sort (parametric datatype or uninterpreted sort constructor sort,
-   * see Sort.instantiate()).
+   * see {@link Sort#instantiate(Sort[])}).
    *
    * @return the sorts used to instantiate the sort parameters of a
    *         parametric sort

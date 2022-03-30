@@ -49,9 +49,9 @@
 
 using namespace std;
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* -------------------------------------------------------------------------- */
 
@@ -64,19 +64,19 @@ namespace theory {
  */
 
 #define CVC5_FOR_EACH_THEORY                                     \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BUILTIN)   \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BOOL)      \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_UF)        \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_ARITH)     \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BV)        \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_FP)        \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_ARRAYS)    \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_DATATYPES) \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_SEP)       \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_SETS)      \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BAGS)      \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_STRINGS)   \
-  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_QUANTIFIERS)
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BUILTIN)   \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BOOL)      \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_UF)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_ARITH)     \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BV)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_FP)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_ARRAYS)    \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_DATATYPES) \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_SEP)       \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_SETS)      \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BAGS)      \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_STRINGS)   \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_QUANTIFIERS)
 
 }  // namespace theory
 
@@ -1981,4 +1981,4 @@ void TheoryEngine::initializeProofChecker(ProofChecker* pc)
 
 theory::Rewriter* TheoryEngine::getRewriter() { return d_env.getRewriter(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

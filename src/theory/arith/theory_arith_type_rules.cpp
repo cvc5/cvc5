@@ -17,7 +17,7 @@
 
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -211,4 +211,4 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

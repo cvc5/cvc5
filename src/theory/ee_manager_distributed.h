@@ -24,7 +24,7 @@
 #include "theory/ee_manager.h"
 #include "theory/quantifiers/master_eq_notify.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 namespace eq {
@@ -69,6 +69,6 @@ class EqEngineManagerDistributed : public EqEngineManager
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H */

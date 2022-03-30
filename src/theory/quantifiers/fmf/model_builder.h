@@ -22,7 +22,7 @@
 #include "theory/quantifiers/inst_match.h"
 #include "theory/theory_model_builder.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -82,6 +82,6 @@ class QModelBuilder : public TheoryEngineModelBuilder
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

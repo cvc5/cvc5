@@ -24,7 +24,7 @@
 
 #include <unordered_map>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 // ATTRIBUTE HASH FUNCTIONS ====================================================
@@ -498,6 +498,6 @@ const uint64_t Attribute<T, bool>::s_id =
     Attribute<T, bool>::registerAttribute();
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__ATTRIBUTE_INTERNALS_H */

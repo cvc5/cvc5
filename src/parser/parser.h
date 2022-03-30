@@ -118,7 +118,7 @@ private:
  /**
   * This current symbol table used by this parser, from symbol manager.
   */
- SymbolTable* d_symtab;
+ internal::SymbolTable* d_symtab;
 
  /**
   * The level of the assertions in the declaration scope.  Things declared
@@ -159,7 +159,7 @@ private:
  std::string d_forcedLogic;
 
  /** The set of operators available in the current logic. */
- std::set<api::Kind> d_logicOperators;
+ std::set<cvc5::Kind> d_logicOperators;
 
  /** The set of attributes already warned about. */
  std::set<std::string> d_attributesWarnedAbout;
@@ -171,7 +171,7 @@ private:
   * depend on mkMutualDatatypeTypes() to check everything and clear
   * this out.
   */
- std::set<api::Sort> d_unresolved;
+ std::set<cvc5::Sort> d_unresolved;
 
  /**
   * "Preemption commands": extra commands implied by subterms that
@@ -185,11 +185,11 @@ private:
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
- api::Term getSymbol(const std::string& var_name, SymbolType type);
+ cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
  /** The API Solver object. */
- api::Solver* d_solver;
+ cvc5::Solver* d_solver;
 
  /**
   * Create a parser state.
@@ -205,7 +205,7 @@ protected:
   * need not be performed, like those about unimplemented features, @see
   * unimplementedFeature())
   */
- Parser(api::Solver* solver,
+ Parser(cvc5::Solver* solver,
         SymbolManager* sm,
         bool strictMode = false,
         bool parseOnly = false);
@@ -215,13 +215,13 @@ public:
   virtual ~Parser();
 
   /** Get the associated solver. */
-  api::Solver* getSolver() const;
+  cvc5::Solver* getSolver() const;
 
   /** Get the associated input. */
   Input* getInput() const { return d_input.get(); }
 
   /** Get unresolved sorts */
-  inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
+  inline std::set<cvc5::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
@@ -279,7 +279,7 @@ public:
    * @return the variable expression
    * Only returns a variable if its name is not overloaded, returns null otherwise.
    */
-  api::Term getVariable(const std::string& name);
+  cvc5::Term getVariable(const std::string& name);
 
   /**
    * Gets the function currently bound to name.
@@ -288,7 +288,7 @@ public:
    * @return the variable expression
    * Only returns a function if its name is not overloaded, returns null otherwise.
    */
-  api::Term getFunction(const std::string& name);
+  cvc5::Term getFunction(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the current binding.
@@ -299,7 +299,7 @@ public:
    * a nullary constructor or a defined function.
    * Only returns an expression if its name is not overloaded, returns null otherwise.
    */
-  virtual api::Term getExpressionForName(const std::string& name);
+  virtual cvc5::Term getExpressionForName(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the
@@ -307,8 +307,8 @@ public:
    *
    * This is the same as above but where the name has been type cast to t.
    */
-  virtual api::Term getExpressionForNameAndType(const std::string& name,
-                                                api::Sort t);
+  virtual cvc5::Term getExpressionForNameAndType(const std::string& name,
+                                                 cvc5::Sort t);
 
   /**
    * If this method returns true, then name is updated with the tester name
@@ -324,7 +324,7 @@ public:
    * the above syntax if strict mode is disabled.
    * - In cvc, the syntax for testers is "is_cons".
    */
-  virtual bool getTesterName(api::Term cons, std::string& name);
+  virtual bool getTesterName(cvc5::Term cons, std::string& name);
 
   /**
    * Returns the kind that should be used for applications of expression fun.
@@ -336,19 +336,19 @@ public:
    *   APPLY_UF if fun has function type,
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
-  api::Kind getKindForFunction(api::Term fun);
+  cvc5::Kind getKindForFunction(cvc5::Term fun);
 
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */
-  api::Sort getSort(const std::string& sort_name);
+  cvc5::Sort getSort(const std::string& sort_name);
 
   /**
    * Returns a (parameterized) sort, given a name and args.
    */
-  api::Sort getSort(const std::string& sort_name,
-                    const std::vector<api::Sort>& params);
+  cvc5::Sort getSort(const std::string& sort_name,
+                     const std::vector<cvc5::Sort>& params);
 
   /**
    * Returns arity of a (parameterized) sort, given a name and args.
@@ -386,7 +386,7 @@ public:
    * @throws ParserException if checks are enabled and fun is not
    * a function
    */
-  void checkFunctionLike(api::Term fun);
+  void checkFunctionLike(cvc5::Term fun);
 
   /** Create a new cvc5 variable expression of the given type.
    *
@@ -395,9 +395,9 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  api::Term bindVar(const std::string& name,
-                    const api::Sort& type,
-                    bool doOverload = false);
+  cvc5::Term bindVar(const std::string& name,
+                     const cvc5::Sort& type,
+                     bool doOverload = false);
 
   /**
    * Create a set of new cvc5 variable expressions of the given type.
@@ -407,22 +407,22 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  std::vector<api::Term> bindVars(const std::vector<std::string> names,
-                                  const api::Sort& type,
-                                  bool doOverload = false);
+  std::vector<cvc5::Term> bindVars(const std::vector<std::string> names,
+                                   const cvc5::Sort& type,
+                                   bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  api::Term bindBoundVar(const std::string& name, const api::Sort& type);
+  cvc5::Term bindBoundVar(const std::string& name, const cvc5::Sort& type);
   /**
    * Create a new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
-  std::vector<api::Term> bindBoundVars(
-      std::vector<std::pair<std::string, api::Sort> >& sortedVarNames);
+  std::vector<cvc5::Term> bindBoundVars(
+      std::vector<std::pair<std::string, cvc5::Sort> >& sortedVarNames);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.
@@ -432,8 +432,8 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
-                                       const api::Sort& type);
+  std::vector<cvc5::Term> bindBoundVars(const std::vector<std::string> names,
+                                        const cvc5::Sort& type);
 
   /** Create a new variable definition (e.g., from a let binding).
    * If a symbol with name already exists,
@@ -442,7 +442,7 @@ public:
    * new expression.
    */
   void defineVar(const std::string& name,
-                 const api::Term& val,
+                 const cvc5::Term& val,
                  bool doOverload = false);
 
   /**
@@ -455,7 +455,7 @@ public:
    *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
-                  const api::Sort& type,
+                  const cvc5::Sort& type,
                   bool skipExisting = false);
 
   /**
@@ -466,47 +466,47 @@ public:
    * @param type The type that should be associated with the name
    */
   void defineType(const std::string& name,
-                  const std::vector<api::Sort>& params,
-                  const api::Sort& type);
+                  const std::vector<cvc5::Sort>& params,
+                  const cvc5::Sort& type);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
-                               const std::vector<api::Sort>& params,
-                               const api::Sort& type);
+                               const std::vector<cvc5::Sort>& params,
+                               const cvc5::Sort& type);
 
   /**
    * Creates a new sort with the given name.
    */
-  api::Sort mkSort(const std::string& name);
+  cvc5::Sort mkSort(const std::string& name);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  api::Sort mkSortConstructor(const std::string& name, size_t arity);
+  cvc5::Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
    */
-  api::Sort mkUnresolvedType(const std::string& name);
+  cvc5::Sort mkUnresolvedType(const std::string& name);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity.
    */
-  api::Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
+  cvc5::Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
   /**
    * Creates a new unresolved (parameterized) type constructor given the type
    * parameters.
    */
-  api::Sort mkUnresolvedTypeConstructor(const std::string& name,
-                                        const std::vector<api::Sort>& params);
+  cvc5::Sort mkUnresolvedTypeConstructor(const std::string& name,
+                                         const std::vector<cvc5::Sort>& params);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
    * depending on the arity.
    */
-  api::Sort mkUnresolvedType(const std::string& name, size_t arity);
+  cvc5::Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
    * Returns true IFF name is an unresolved type.
@@ -522,8 +522,8 @@ public:
    * doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
-  std::vector<api::Sort> bindMutualDatatypeTypes(
-      std::vector<api::DatatypeDecl>& datatypes, bool doOverload = false);
+  std::vector<cvc5::Sort> bindMutualDatatypeTypes(
+      std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload = false);
 
   /** make flat function type
    *
@@ -563,9 +563,9 @@ public:
    * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
-  api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts,
-                               api::Sort range,
-                               std::vector<api::Term>& flattenVars);
+  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
+                                cvc5::Sort range,
+                                std::vector<cvc5::Term>& flattenVars);
 
   /** make flat function type
    *
@@ -573,7 +573,8 @@ public:
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
-  api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort range);
+  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
+                                cvc5::Sort range);
 
   /** make higher-order apply
    *
@@ -588,7 +589,7 @@ public:
    * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  api::Term mkHoApply(api::Term expr, const std::vector<api::Term>& args);
+  cvc5::Term mkHoApply(cvc5::Term expr, const std::vector<cvc5::Term>& args);
 
   /** Apply type ascription
    *
@@ -613,14 +614,14 @@ public:
    * @param s The sort to ascribe
    * @return Term t with sort s ascribed.
    */
-  api::Term applyTypeAscription(api::Term t, api::Sort s);
+  cvc5::Term applyTypeAscription(cvc5::Term t, cvc5::Sort s);
 
   /**
    * Add an operator to the current legal set.
    *
    * @param kind the built-in operator to add
    */
-  void addOperator(api::Kind kind);
+  void addOperator(cvc5::Kind kind);
 
   /**
    * Preempt the next returned command with other ones; used to
@@ -637,7 +638,7 @@ public:
    * Currently this means its type is either a function, constructor, tester, or
    * selector.
    */
-  bool isFunctionLike(api::Term fun);
+  bool isFunctionLike(cvc5::Term fun);
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);
@@ -646,7 +647,7 @@ public:
   Command* nextCommand();
 
   /** Parse and return the next expression. */
-  api::Term nextExpression();
+  cvc5::Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) { d_input->warning(msg); }
@@ -716,7 +717,7 @@ public:
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(api::Term fun)
+  bool isOverloadedFunction(cvc5::Term fun)
   {
     return d_symtab->isOverloadedFunction(fun);
   }
@@ -725,7 +726,7 @@ public:
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
+  cvc5::Term getOverloadedConstantForType(const std::string& name, cvc5::Sort t)
   {
     return d_symtab->getOverloadedConstantForType(name, t);
   }
@@ -735,8 +736,8 @@ public:
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  api::Term getOverloadedFunctionForTypes(const std::string& name,
-                                          std::vector<api::Sort>& argTypes)
+  cvc5::Term getOverloadedFunctionForTypes(const std::string& name,
+                                           std::vector<cvc5::Sort>& argTypes)
   {
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
@@ -749,7 +750,7 @@ public:
    * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
    * the string.
    */
-  api::Term mkStringConstant(const std::string& s);
+  cvc5::Term mkStringConstant(const std::string& s);
 
   /**
    * Make string constant from a single character in hex representation
@@ -757,7 +758,7 @@ public:
    * This makes the string constant based on the character from the strings,
    * represented as a hexadecimal code point.
    */
-  api::Term mkCharConstant(const std::string& s);
+  cvc5::Term mkCharConstant(const std::string& s);
 
   /** ad-hoc string escaping
    *
