@@ -208,6 +208,12 @@ class ArithInstantiator : public Instantiator
                                     Node delta_coeff);
   /** Return the rewritten form of the negation of t */
   Node negate(const Node& t) const;
+  /**
+   * Make the node from base value, with infinity and delta coefficients.
+   */
+  Node mkVtsSum(const Node& val,
+                const Node& inf_coeff,
+                const Node& delta_coeff);
 };
 
 }  // namespace quantifiers

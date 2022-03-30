@@ -29,8 +29,7 @@
 #include "smt/command.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5::internal {
-namespace main {
+namespace cvc5::main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
 // This is used for competitions while a solution (proof or model)
@@ -140,7 +139,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
             || (res.isUnknown()
-                && res.getUnknownExplanation() == cvc5::Result::INCOMPLETE)))
+                && res.getUnknownExplanation()
+                       == cvc5::UnknownExplanation::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
@@ -220,5 +220,4 @@ void CommandExecutor::flushOutputStreams() {
   d_solver->getDriverOptions().err() << std::flush;
 }
 
-}  // namespace main
-}  // namespace cvc5::internal
+}  // namespace cvc5::main

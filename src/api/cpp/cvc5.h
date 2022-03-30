@@ -36,6 +36,10 @@ namespace cvc5 {
 
 class Command;
 
+namespace main {
+class CommandExecutor;
+}  // namespace main
+
 namespace internal {
 
 #ifndef DOXYGEN_SKIP
@@ -56,10 +60,6 @@ class Rational;
 class Result;
 class SynthResult;
 class StatisticsRegistry;
-
-namespace main {
-class CommandExecutor;
-}  // namespace main
 }  // namespace internal
 
 class Solver;
@@ -188,20 +188,6 @@ class CVC5_EXPORT Result
   friend class Solver;
 
  public:
-  enum UnknownExplanation
-  {
-    REQUIRES_FULL_CHECK,
-    INCOMPLETE,
-    TIMEOUT,
-    RESOURCEOUT,
-    MEMOUT,
-    INTERRUPTED,
-    NO_STATUS,
-    UNSUPPORTED,
-    OTHER,
-    UNKNOWN_REASON
-  };
-
   /** Constructor. */
   Result();
 
@@ -277,15 +263,6 @@ class CVC5_EXPORT Result
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
-
-/**
- * Serialize an UnknownExplanation to given stream.
- * @param out the output stream
- * @param e the explanation to be serialized to the given output stream
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out,
-                         enum Result::UnknownExplanation e) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
@@ -609,6 +586,14 @@ class CVC5_EXPORT Sort
   bool isInstantiated() const;
 
   /**
+   * Get the associated uninterpreted sort constructor of an instantiated
+   * uninterpreted sort.
+   *
+   * @return the uninterpreted sort constructor sort
+   */
+  Sort getUninterpretedSortConstructor() const;
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -781,7 +766,7 @@ class CVC5_EXPORT Sort
    */
   bool isUninterpretedSortParameterized() const;
 
-  /* Sort constructor sort ----------------------------------------------- */
+  /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
    * @return the arity of an uninterpreted sort constructor sort
@@ -3047,7 +3032,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class cvc5::Command;
-  friend class internal::main::CommandExecutor;
+  friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
 
@@ -3932,7 +3917,6 @@ class CVC5_EXPORT Solver
    * @param terms the list of function bodies of the functions
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
-   * @return the function
    */
   void defineFunsRec(const std::vector<Term>& funs,
                      const std::vector<std::vector<Term>>& bound_vars,

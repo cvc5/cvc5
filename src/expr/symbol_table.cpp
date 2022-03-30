@@ -511,8 +511,8 @@ cvc5::Sort SymbolTable::Implementation::lookupType(
                   << "type is      " << p.second << std::endl;
   }
   cvc5::Sort instantiation = isUninterpretedSortConstructor
-                                ? p.second.instantiate(params)
-                                : p.second.substitute(p.first, params);
+                                 ? p.second.instantiate(params)
+                                 : p.second.substitute(p.first, params);
   Trace("sort") << "instance is  " << instantiation << std::endl;
 
   return instantiation;

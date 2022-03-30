@@ -301,7 +301,7 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
   else
   {
     // otherwise, we return "unknown"
-    sr = SynthResult(SynthResult::UNKNOWN, Result::UNKNOWN_REASON);
+    sr = SynthResult(SynthResult::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   }
   return sr;
 }

@@ -21,7 +21,7 @@ runs:
         python3 -m pip install pyGithub
 
     - name: store to latest
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/main'
       shell: 'python3 {0}'
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
