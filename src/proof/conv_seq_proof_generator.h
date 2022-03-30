@@ -46,7 +46,7 @@ class TConvSeqProofGenerator : public ProofGenerator
    */
   TConvSeqProofGenerator(ProofNodeManager* pnm,
                          const std::vector<ProofGenerator*>& ts,
-                         context::Context* c = nullptr,
+                         cvc5::context::Context* c = nullptr,
                          std::string name = "TConvSeqProofGenerator");
   ~TConvSeqProofGenerator();
   /**
@@ -103,7 +103,7 @@ class TConvSeqProofGenerator : public ProofGenerator
  protected:
   using NodeIndexPairHashFunction =
       PairHashFunction<Node, size_t, std::hash<Node>>;
-  typedef context::
+  typedef cvc5::context::
       CDHashMap<std::pair<Node, size_t>, Node, NodeIndexPairHashFunction>
           NodeIndexNodeMap;
   /** The proof node manager */

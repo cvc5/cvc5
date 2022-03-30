@@ -38,10 +38,10 @@ namespace theory {
  */
 class TrustSubstitutionMap : public ProofGenerator
 {
-  using NodeUIntMap = context::CDHashMap<Node, size_t>;
+  using NodeUIntMap = cvc5::context::CDHashMap<Node, size_t>;
 
  public:
-  TrustSubstitutionMap(context::Context* c,
+  TrustSubstitutionMap(cvc5::context::Context* c,
                        ProofNodeManager* pnm = nullptr,
                        std::string name = "TrustSubstitutionMap",
                        PfRule trustId = PfRule::PREPROCESS_LEMMA,
@@ -107,11 +107,11 @@ class TrustSubstitutionMap : public ProofGenerator
    */
   Node getSubstitution(size_t index);
   /** The context used here */
-  context::Context* d_ctx;
+  cvc5::context::Context* d_ctx;
   /** The substitution map */
   SubstitutionMap d_subs;
   /** A context-dependent list of trust nodes */
-  context::CDList<TrustNode> d_tsubs;
+  cvc5::context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
   std::unique_ptr<TheoryProofStepBuffer> d_tspb;
   /** A lazy proof for substitution steps */

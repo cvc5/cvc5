@@ -82,7 +82,7 @@ class NlLemma;
  */
 class NonlinearExtension : EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
 
  public:
   NonlinearExtension(Env& env, TheoryArith& containing, ArithState& state);

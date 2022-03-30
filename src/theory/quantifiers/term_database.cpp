@@ -31,7 +31,7 @@
 #include "theory/uf/equality_engine.h"
 
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -637,7 +637,7 @@ bool TermDb::reset( Theory::Effort effort ){
       {
         continue;
       }
-      for (context::CDList<Assertion>::const_iterator
+      for (cvc5::context::CDList<Assertion>::const_iterator
                it = d_qstate.factsBegin(theoryId),
                it_end = d_qstate.factsEnd(theoryId);
            it != it_end;

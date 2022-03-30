@@ -52,7 +52,7 @@ EqEngineManagerCentral::~EqEngineManagerCentral() {}
 
 void EqEngineManagerCentral::initializeTheories()
 {
-  context::Context* c = context();
+  cvc5::context::Context* c = context();
   // initialize the shared solver
   EeSetupInfo esis;
   if (d_sharedSolver.needsEqualityEngine(esis))

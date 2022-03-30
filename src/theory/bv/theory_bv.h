@@ -116,7 +116,7 @@ class TheoryBV : public Theory
   TheoryEqNotifyClass d_notify;
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
-  context::CDO<bool> d_invalidateModelCache;
+  cvc5::context::CDO<bool> d_invalidateModelCache;
 
   /**
    * Cache for getValue() calls.

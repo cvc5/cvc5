@@ -36,7 +36,7 @@ namespace prop {
  * context pops, proofs of level no greater than the new one are reinserted in
  * the proof marked to be notified.
  */
-class OptimizedClausesManager : context::ContextNotifyObj
+class OptimizedClausesManager : cvc5::context::ContextNotifyObj
 {
  public:
   /** Constructor for OptimizedClausesManager
@@ -47,7 +47,7 @@ class OptimizedClausesManager : context::ContextNotifyObj
    * proof nodes to be reinserted at these levels
    */
   OptimizedClausesManager(
-      context::Context* context,
+      cvc5::context::Context* context,
       CDProof* parentProof,
       std::map<int, std::vector<std::shared_ptr<ProofNode>>>& optProofs);
 
@@ -61,7 +61,7 @@ class OptimizedClausesManager : context::ContextNotifyObj
   void contextNotifyPop() override;
 
   /** The context being tracked. */
-  context::Context* d_context;
+  cvc5::context::Context* d_context;
   /** Map from levels to proof nodes. */
   std::map<int, std::vector<std::shared_ptr<ProofNode>>>& d_optProofs;
   /** Proof to be updated when context pops. */

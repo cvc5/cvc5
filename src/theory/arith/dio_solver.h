@@ -47,7 +47,7 @@ class DioSolver : protected EnvObj
 
   std::vector<Variable> d_proofVariablePool;
   /** Sat context dependent. */
-  context::CDO<size_t> d_lastUsedProofVariable;
+  cvc5::context::CDO<size_t> d_lastUsedProofVariable;
 
   /**
    * The set of input constraints is stored in a CDList.
@@ -58,13 +58,12 @@ class DioSolver : protected EnvObj
     TrailIndex d_trailPos;
     InputConstraint(Node reason, TrailIndex pos) : d_reason(reason), d_trailPos(pos) {}
   };
-  context::CDList<InputConstraint> d_inputConstraints;
+  cvc5::context::CDList<InputConstraint> d_inputConstraints;
 
   /**
    * This is the next input constraint to handle.
    */
-  context::CDO<size_t> d_nextInputConstraintToEnqueue;
-
+  cvc5::context::CDO<size_t> d_nextInputConstraintToEnqueue;
 
   /**
    * We maintain a map from the variables associated with proofs to an input constraint.
@@ -104,12 +103,13 @@ class DioSolver : protected EnvObj
       d_eq(eq), d_proof(p), d_minimalMonomial(d_eq.getPolynomial().selectAbsMinimum())
     {}
   };
-  context::CDList<Constraint> d_trail;
+  cvc5::context::CDList<Constraint> d_trail;
 
   // /** Compare by d_minimal. */
   // struct TrailMinimalCoefficientOrder {
-  //   const context::CDList<Constraint>& d_trail;
-  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
+  //   const cvc5::context::CDList<Constraint>& d_trail;
+  //   TrailMinimalCoefficientOrder(const cvc5::context::CDList<Constraint>&
+  //   trail):
   //     d_trail(trail)
   //   {}
 
@@ -136,7 +136,7 @@ class DioSolver : protected EnvObj
       d_fresh(f), d_eliminated(e), d_constraint(c)
     {}
   };
-  context::CDList<Substitution> d_subs;
+  cvc5::context::CDList<Substitution> d_subs;
 
   /**
    * This is the queue of constraints to be processed in the current context level.
@@ -148,15 +148,15 @@ class DioSolver : protected EnvObj
    * - If the element is (+ constant (+ [(* coeff var)] )), then the gcd(coeff) = 1
    */
   std::deque<TrailIndex> d_currentF;
-  context::CDList<TrailIndex> d_savedQueue;
-  context::CDO<size_t> d_savedQueueIndex;
-  context::CDMaybe<TrailIndex> d_conflictIndex;
+  cvc5::context::CDList<TrailIndex> d_savedQueue;
+  cvc5::context::CDO<size_t> d_savedQueueIndex;
+  cvc5::context::CDMaybe<TrailIndex> d_conflictIndex;
 
   /**
    * Drop derived constraints with a coefficient length larger than
    * the maximum input constraints length than 2**MAX_GROWTH_RATE.
    */
-  context::CDO<uint32_t> d_maxInputCoefficientLength;
+  cvc5::context::CDO<uint32_t> d_maxInputCoefficientLength;
   static constexpr uint32_t MAX_GROWTH_RATE = 3;
 
   /** Returns true if the element on the trail should be dropped.*/
@@ -165,18 +165,17 @@ class DioSolver : protected EnvObj
   /**
    * Is true if decomposeIndex has been used in this context.
    */
-  context::CDO<bool> d_usedDecomposeIndex;
+  cvc5::context::CDO<bool> d_usedDecomposeIndex;
 
-  context::CDO<SubIndex> d_lastPureSubstitution;
-  context::CDO<SubIndex> d_pureSubstitionIter;
+  cvc5::context::CDO<SubIndex> d_lastPureSubstitution;
+  cvc5::context::CDO<SubIndex> d_pureSubstitionIter;
 
   /**
    * Decomposition lemma queue.
    */
-  context::CDQueue<TrailIndex> d_decompositionLemmaQueue;
+  cvc5::context::CDQueue<TrailIndex> d_decompositionLemmaQueue;
 
-public:
-
+ public:
   /** Construct a Diophantine equation solver with the given context. */
  DioSolver(Env& env);
 

@@ -18,8 +18,8 @@
 namespace cvc5::internal {
 namespace prop {
 
-SkolemDefManager::SkolemDefManager(context::Context* context,
-                                   context::UserContext* userContext)
+SkolemDefManager::SkolemDefManager(cvc5::context::Context* context,
+                                   cvc5::context::UserContext* userContext)
     : d_skDefs(userContext), d_skActive(context), d_hasSkolems(userContext)
 {
 }

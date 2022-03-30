@@ -49,10 +49,11 @@ namespace strings {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
+  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<InferInfo>>
+      NodeInferInfoMap;
 
  public:
-  InferProofCons(context::Context* c,
+  InferProofCons(cvc5::context::Context* c,
                  ProofNodeManager* pnm,
                  SequencesStatistics& statistics);
   ~InferProofCons() {}

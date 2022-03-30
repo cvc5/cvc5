@@ -41,8 +41,8 @@ class TheorySets;
 
 class TheorySetsPrivate : protected EnvObj
 {
-  typedef context::CDHashMap<Node, bool> NodeBoolMap;
-  typedef context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
 
  public:
   void eqNotifyNewClass(TNode t);
@@ -100,10 +100,10 @@ class TheorySetsPrivate : protected EnvObj
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    // singleton or emptyset equal to this eqc
-    context::CDO< Node > d_singleton;
+   EqcInfo(cvc5::context::Context* c);
+   ~EqcInfo() {}
+   // singleton or emptyset equal to this eqc
+   cvc5::context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;

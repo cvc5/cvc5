@@ -84,7 +84,7 @@ private:
   Node d_true;
 
   /** All the function terms that the theory has seen */
-  context::CDList<TNode> d_functionsTerms;
+  cvc5::context::CDList<TNode> d_functionsTerms;
 
   /** Symmetry analyzer */
   SymmetryBreaker d_symb;

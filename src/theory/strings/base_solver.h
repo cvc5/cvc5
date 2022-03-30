@@ -41,7 +41,7 @@ namespace strings {
  */
 class BaseSolver : protected EnvObj
 {
-  using NodeSet = context::CDHashSet<Node>;
+  using NodeSet = cvc5::context::CDHashSet<Node>;
 
  public:
   BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);

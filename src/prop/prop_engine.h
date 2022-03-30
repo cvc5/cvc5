@@ -275,7 +275,7 @@ class PropEngine : protected EnvObj
 
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
-  void checkProof(const context::CDList<Node>& assertions);
+  void checkProof(const cvc5::context::CDList<Node>& assertions);
 
   /**
    * Return the prop engine proof. This should be called only when proofs are
@@ -375,7 +375,7 @@ class PropEngine : protected EnvObj
    * Stores assumptions added via assertInternal() if assumption-based unsat
    * cores are enabled.
    */
-  context::CDList<Node> d_assumptions;
+  cvc5::context::CDList<Node> d_assumptions;
 };
 
 }  // namespace prop

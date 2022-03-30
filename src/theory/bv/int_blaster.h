@@ -93,7 +93,7 @@ namespace cvc5::internal {
 **/
 class IntBlaster : protected EnvObj
 {
-  using CDNodeMap = context::CDHashMap<Node, Node>;
+  using CDNodeMap = cvc5::context::CDHashMap<Node, Node>;
 
  public:
   /**
@@ -345,13 +345,13 @@ class IntBlaster : protected EnvObj
    * Range constraints of the form 0 <= x < 2^k
    * These are added for every new integer variable that we introduce.
    */
-  context::CDHashSet<Node> d_rangeAssertions;
+  cvc5::context::CDHashSet<Node> d_rangeAssertions;
 
   /**
    * A set of "bitwise" equalities over integers for BITVECTOR_AND
    *   used in for options::SolveBVAsIntMode::BITWISE
    */
-  context::CDHashSet<Node> d_bitwiseAssertions;
+  cvc5::context::CDHashSet<Node> d_bitwiseAssertions;
 
   /** Useful constants */
   Node d_zero;
@@ -367,8 +367,7 @@ class IntBlaster : protected EnvObj
   uint64_t d_granularity;
 
   /** an SolverEngine for context */
-  context::Context* d_context;
-
+  cvc5::context::Context* d_context;
 };
 
 }  // namespace cvc5::internal

@@ -92,7 +92,8 @@ class NonClausalSimp : public PreprocessingPass
    * A context-dependent list of trust substitution maps, which are required
    * for storing proofs.
    */
-  context::CDList<std::shared_ptr<theory::TrustSubstitutionMap> > d_tsubsList;
+  cvc5::context::CDList<std::shared_ptr<theory::TrustSubstitutionMap> >
+      d_tsubsList;
 };
 
 }  // namespace passes

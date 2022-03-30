@@ -42,11 +42,11 @@ namespace datatypes {
  */
 class InferProofCons : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<DatatypesInference>>
+  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<DatatypesInference>>
       NodeDatatypesInferenceMap;
 
  public:
-  InferProofCons(context::Context* c, ProofNodeManager* pnm);
+  InferProofCons(cvc5::context::Context* c, ProofNodeManager* pnm);
   ~InferProofCons() {}
   /**
    * This is called to notify that di is an inference that may need a proof
@@ -86,7 +86,7 @@ class InferProofCons : public ProofGenerator
    */
   void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
   /** A dummy context used by this class if none is provided */
-  context::Context d_context;
+  cvc5::context::Context d_context;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

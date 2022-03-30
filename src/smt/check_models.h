@@ -44,7 +44,7 @@ class CheckModels : protected EnvObj
    * given assertion list al based on the model checking policy.
    */
   void checkModel(theory::TheoryModel* m,
-                  const context::CDList<Node>& al,
+                  const cvc5::context::CDList<Node>& al,
                   bool hardFailure);
 };
 

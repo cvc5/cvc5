@@ -316,7 +316,7 @@ class OptimizationSolver
   std::unique_ptr<SolverEngine> d_optChecker;
 
   /** The objectives to optimize for **/
-  context::CDList<OptimizationObjective> d_objectives;
+  cvc5::context::CDList<OptimizationObjective> d_objectives;
 
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;

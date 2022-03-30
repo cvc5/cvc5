@@ -1351,7 +1351,7 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
 
 TrustNode TheoryArithPrivate::dioCutting()
 {
-  context::Context::ScopedPush speculativePush(context());
+  cvc5::context::Context::ScopedPush speculativePush(context());
   //DO NOT TOUCH THE OUTPUTSTREAM
 
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
@@ -1875,7 +1875,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   d_replayedLemmas = false;
 
   /* use the try block for the purpose of pushing the sat context */
-  context::Context::ScopedPush speculativePush(context());
+  cvc5::context::Context::ScopedPush speculativePush(context());
   d_cmEnabled = false;
   std::vector<ConstraintCPVec> res =
       replayLogRec(approx, tl.getRootId(), NullConstraint, 1);
@@ -2111,7 +2111,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
 
   ConstraintP bcneg = bc->getNegation();
   {
-    context::Context::ScopedPush speculativePush(context());
+    cvc5::context::Context::ScopedPush speculativePush(context());
     replayAssert(bcneg);
     if(conflictQueueEmpty()){
       TimerStat::CodeTimer codeTimer(d_statistics.d_replaySimplexTimer);
@@ -2256,7 +2256,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
   std::vector<ConstraintCPVec> res;
 
   { /* create a block for the purpose of pushing the sat context */
-    context::Context::ScopedPush speculativePush(context());
+    cvc5::context::Context::ScopedPush speculativePush(context());
     Assert(!anyConflict());
     Assert(conflictQueueEmpty());
     set<ConstraintCP> propagated;
@@ -3566,8 +3566,9 @@ void TheoryArithPrivate::debugPrintAssertions(std::ostream& out) const {
       out << uConstr << endl;
     }
   }
-  context::CDQueue<ConstraintP>::const_iterator it = d_diseqQueue.begin();
-  context::CDQueue<ConstraintP>::const_iterator it_end = d_diseqQueue.end();
+  cvc5::context::CDQueue<ConstraintP>::const_iterator it = d_diseqQueue.begin();
+  cvc5::context::CDQueue<ConstraintP>::const_iterator it_end =
+      d_diseqQueue.end();
   for(; it != it_end; ++ it) {
     out << *it << endl;
   }
@@ -3810,8 +3811,10 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
 Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   Rational min(2);
   std::set<DeltaRational> relevantDeltaValues;
-  context::CDQueue<ConstraintP>::const_iterator qiter = d_diseqQueue.begin();
-  context::CDQueue<ConstraintP>::const_iterator qiter_end = d_diseqQueue.end();
+  cvc5::context::CDQueue<ConstraintP>::const_iterator qiter =
+      d_diseqQueue.begin();
+  cvc5::context::CDQueue<ConstraintP>::const_iterator qiter_end =
+      d_diseqQueue.end();
 
   for(; qiter != qiter_end; ++qiter){
     ConstraintP curr = *qiter;

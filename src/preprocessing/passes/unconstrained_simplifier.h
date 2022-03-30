@@ -57,7 +57,7 @@ class UnconstrainedSimplifier : public PreprocessingPass
   TNodeMap d_visitedOnce;
   TNodeSet d_unconstrained;
 
-  context::Context* d_context;
+  cvc5::context::Context* d_context;
   theory::SubstitutionMap d_substitutions;
 
   /**

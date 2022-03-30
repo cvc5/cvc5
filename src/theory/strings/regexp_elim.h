@@ -42,7 +42,7 @@ class RegExpElimination
    */
   RegExpElimination(bool isAgg = false,
                     ProofNodeManager* pnm = nullptr,
-                    context::Context* c = nullptr);
+                    cvc5::context::Context* c = nullptr);
   /** eliminate membership
    *
    * This method takes as input a regular expression membership atom of the

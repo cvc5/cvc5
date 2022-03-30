@@ -119,7 +119,7 @@ Node DioSolver::nextPureSubstitution(){
 
 
 bool DioSolver::debugEqualityInInputEquations(Node eq){
-  typedef context::CDList<InputConstraint>::const_iterator const_iterator;
+  typedef cvc5::context::CDList<InputConstraint>::const_iterator const_iterator;
   const_iterator i=d_inputConstraints.begin(), end = d_inputConstraints.end();
   for(; i != end; ++i){
     Node reason_i = (*i).d_reason;

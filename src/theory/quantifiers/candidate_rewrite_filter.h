@@ -107,7 +107,7 @@ class CandidateRewriteFilter : protected EnvObj
 
   //----------------------------congruence filtering
   /** a (dummy) context, used for d_drewrite */
-  context::Context d_fakeContext;
+  cvc5::context::Context d_fakeContext;
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
   //----------------------------end congruence filtering

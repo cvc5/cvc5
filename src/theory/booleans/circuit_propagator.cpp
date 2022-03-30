@@ -771,7 +771,7 @@ TrustNode CircuitPropagator::propagate()
   return d_conflict;
 }
 
-void CircuitPropagator::enableProofs(context::Context* ctx,
+void CircuitPropagator::enableProofs(cvc5::context::Context* ctx,
                                      ProofGenerator* defParent)
 {
   d_pnm = d_env.getProofNodeManager();

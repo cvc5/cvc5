@@ -42,7 +42,7 @@ class PropEngine;
  */
 class ZeroLevelLearner : protected EnvObj
 {
-  using NodeSet = context::CDHashSet<Node>;
+  using NodeSet = cvc5::context::CDHashSet<Node>;
 
  public:
   ZeroLevelLearner(Env& env, PropEngine* propEngine);
@@ -74,7 +74,7 @@ class ZeroLevelLearner : protected EnvObj
   NodeSet d_levelZeroAssertsLearned;
 
   /** Whether we have seen an assertion level > 0 */
-  context::CDO<bool> d_nonZeroAssert;
+  cvc5::context::CDO<bool> d_nonZeroAssert;
 
   /** Preprocessed literals that are not learned */
   NodeSet d_ppnAtoms;

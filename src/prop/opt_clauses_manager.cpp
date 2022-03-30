@@ -21,10 +21,10 @@ namespace cvc5::internal {
 namespace prop {
 
 OptimizedClausesManager::OptimizedClausesManager(
-    context::Context* context,
+    cvc5::context::Context* context,
     CDProof* parentProof,
     std::map<int, std::vector<std::shared_ptr<ProofNode>>>& optProofs)
-    : context::ContextNotifyObj(context),
+    : cvc5::context::ContextNotifyObj(context),
       d_context(context),
       d_optProofs(optProofs),
       d_parentProof(parentProof)

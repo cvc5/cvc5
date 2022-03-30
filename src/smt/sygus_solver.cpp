@@ -421,7 +421,8 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
 {
   initializeSubsolver(se, d_env);
   // carry the ordinary define-fun definitions
-  const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
+  const cvc5::context::CDList<Node>& alistDefs =
+      as.getAssertionListDefinitions();
   std::unordered_set<Node> processed;
   for (const Node& def : alistDefs)
   {
@@ -441,7 +442,7 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
     }
   }
   // Also assert auxiliary assertions
-  const context::CDList<Node>& alist = as.getAssertionList();
+  const cvc5::context::CDList<Node>& alist = as.getAssertionList();
   for (size_t i = 0, asize = alist.size(); i < asize; ++i)
   {
     Node a = alist[i];

@@ -29,7 +29,7 @@
 #include "util/string.h"
 
 using namespace std;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -467,12 +467,12 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
 
 SkolemCache* TermRegistry::getSkolemCache() { return &d_skCache; }
 
-const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
+const cvc5::context::CDList<TNode>& TermRegistry::getFunctionTerms() const
 {
   return d_functionsTerms;
 }
 
-const context::CDHashSet<Node>& TermRegistry::getInputVars() const
+const cvc5::context::CDHashSet<Node>& TermRegistry::getInputVars() const
 {
   return d_inputVars;
 }

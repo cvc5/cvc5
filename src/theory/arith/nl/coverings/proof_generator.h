@@ -55,7 +55,7 @@ class CoveringsProofGenerator
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const CoveringsProofGenerator& proof);
-  CoveringsProofGenerator(context::Context* ctx, ProofNodeManager* pnm);
+  CoveringsProofGenerator(cvc5::context::Context* ctx, ProofNodeManager* pnm);
 
   /** Start a new proof in this proof generator */
   void startNewProof();

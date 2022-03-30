@@ -19,7 +19,7 @@
 #include "theory/quantifiers/term_database.h"
 
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {

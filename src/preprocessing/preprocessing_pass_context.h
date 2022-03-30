@@ -71,7 +71,7 @@ class PreprocessingPassContext : protected EnvObj
    * Get the (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.
    */
-  const context::CDHashSet<Node>& getSymsInAssertions() const
+  const cvc5::context::CDHashSet<Node>& getSymsInAssertions() const
   {
     return d_symsInAssertions;
   }
@@ -142,7 +142,7 @@ class PreprocessingPassContext : protected EnvObj
    * The (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.
    */
-  context::CDHashSet<Node> d_symsInAssertions;
+  cvc5::context::CDHashSet<Node> d_symsInAssertions;
 
 };  // class PreprocessingPassContext
 

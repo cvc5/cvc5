@@ -59,7 +59,7 @@ class AbstractValues
    * A context that never pushes/pops, for use by CD structures (like
    * SubstitutionMaps) that should be "global".
    */
-  context::Context d_fakeContext;
+  cvc5::context::Context d_fakeContext;
 
   /**
    * A map of AbsractValues to their actual constants.  Only used if

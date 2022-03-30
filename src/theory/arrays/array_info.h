@@ -31,7 +31,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
-typedef context::CDList<TNode> CTNodeList;
+typedef cvc5::context::CDList<TNode> CTNodeList;
 using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
 struct RowLemmaTypeHashFunction {
@@ -56,33 +56,34 @@ bool inList(const CTNodeList* l, const TNode el);
 
 class Info {
 public:
-  context::CDO<bool> isNonLinear;
-  context::CDO<bool> rIntro1Applied;
-  context::CDO<TNode> modelRep;
-  context::CDO<TNode> constArr;
-  context::CDO<TNode> weakEquivPointer;
-  context::CDO<TNode> weakEquivIndex;
-  context::CDO<TNode> weakEquivSecondary;
-  context::CDO<TNode> weakEquivSecondaryReason;
-  CTNodeList* indices;
-  CTNodeList* stores;
-  CTNodeList* in_stores;
+ cvc5::context::CDO<bool> isNonLinear;
+ cvc5::context::CDO<bool> rIntro1Applied;
+ cvc5::context::CDO<TNode> modelRep;
+ cvc5::context::CDO<TNode> constArr;
+ cvc5::context::CDO<TNode> weakEquivPointer;
+ cvc5::context::CDO<TNode> weakEquivIndex;
+ cvc5::context::CDO<TNode> weakEquivSecondary;
+ cvc5::context::CDO<TNode> weakEquivSecondaryReason;
+ CTNodeList* indices;
+ CTNodeList* stores;
+ CTNodeList* in_stores;
 
-  Info(context::Context* c);
-  ~Info();
+ Info(cvc5::context::Context* c);
+ ~Info();
 
-  /**
-   * prints the information
-   */
-  void print() const {
-    Assert(indices != NULL && stores != NULL && in_stores != NULL);
-    Trace("arrays-info")<<"  indices   ";
-    printList(indices);
-    Trace("arrays-info")<<"  stores ";
-    printList(stores);
-    Trace("arrays-info")<<"  in_stores ";
-    printList(in_stores);
-  }
+ /**
+  * prints the information
+  */
+ void print() const
+ {
+   Assert(indices != NULL && stores != NULL && in_stores != NULL);
+   Trace("arrays-info") << "  indices   ";
+   printList(indices);
+   Trace("arrays-info") << "  stores ";
+   printList(stores);
+   Trace("arrays-info") << "  in_stores ";
+   printList(in_stores);
+ }
 };/* class Info */
 
 typedef std::unordered_map<Node, Info*> CNodeInfoMap;
@@ -98,38 +99,38 @@ typedef std::unordered_map<Node, Info*> CNodeInfoMap;
  */
 class ArrayInfo {
 private:
-  context::Context* ct;
-  CNodeInfoMap info_map;
+ cvc5::context::Context* ct;
+ CNodeInfoMap info_map;
 
-  CTNodeList* emptyList;
+ CTNodeList* emptyList;
 
-  /* == STATISTICS == */
+ /* == STATISTICS == */
 
-  /** time spent in preregisterTerm() */
-  TimerStat d_mergeInfoTimer;
-  AverageStat d_avgIndexListLength;
-  AverageStat d_avgStoresListLength;
-  AverageStat d_avgInStoresListLength;
-  IntStat d_listsCount;
-  IntStat d_callsMergeInfo;
-  IntStat d_maxList;
-  SizeStat<CNodeInfoMap> d_tableSize;
+ /** time spent in preregisterTerm() */
+ TimerStat d_mergeInfoTimer;
+ AverageStat d_avgIndexListLength;
+ AverageStat d_avgStoresListLength;
+ AverageStat d_avgInStoresListLength;
+ IntStat d_listsCount;
+ IntStat d_callsMergeInfo;
+ IntStat d_maxList;
+ SizeStat<CNodeInfoMap> d_tableSize;
 
-  /**
-   * checks if a certain element is in the list l
-   * FIXME: better way to check for duplicates?
-   */
+ /**
+  * checks if a certain element is in the list l
+  * FIXME: better way to check for duplicates?
+  */
 
-  /**
-   * helper method that merges two lists into the first
-   * without adding duplicates
-   */
-  void mergeLists(CTNodeList* la, const CTNodeList* lb) const;
+ /**
+  * helper method that merges two lists into the first
+  * without adding duplicates
+  */
+ void mergeLists(CTNodeList* la, const CTNodeList* lb) const;
 
 public:
   const Info* emptyInfo;
 
-  ArrayInfo(context::Context* c, std::string statisticsPrefix = "");
+  ArrayInfo(cvc5::context::Context* c, std::string statisticsPrefix = "");
 
   ~ArrayInfo();
 

@@ -65,7 +65,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
 
   if (isProofEnabled())
   {
-    context::UserContext* u = userContext();
+    cvc5::context::UserContext* u = userContext();
     ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
         new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));

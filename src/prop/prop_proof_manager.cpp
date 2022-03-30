@@ -23,7 +23,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-PropPfManager::PropPfManager(context::UserContext* userContext,
+PropPfManager::PropPfManager(cvc5::context::UserContext* userContext,
                              ProofNodeManager* pnm,
                              CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
@@ -46,7 +46,7 @@ void PropPfManager::registerAssertion(Node assertion)
   d_assertions.push_back(assertion);
 }
 
-void PropPfManager::checkProof(const context::CDList<Node>& assertions)
+void PropPfManager::checkProof(const cvc5::context::CDList<Node>& assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";

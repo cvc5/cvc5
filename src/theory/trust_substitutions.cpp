@@ -20,7 +20,7 @@
 namespace cvc5::internal {
 namespace theory {
 
-TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
+TrustSubstitutionMap::TrustSubstitutionMap(cvc5::context::Context* c,
                                            ProofNodeManager* pnm,
                                            std::string name,
                                            PfRule trustId,

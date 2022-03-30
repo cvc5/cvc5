@@ -72,7 +72,7 @@ class ProofEqEngine;
  */
 class TheoryInferenceManager : protected EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
 
  public:
   /**

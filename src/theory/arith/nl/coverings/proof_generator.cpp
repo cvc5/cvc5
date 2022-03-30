@@ -91,8 +91,8 @@ Node mkIRP(const Node& var,
 
 }  // namespace
 
-CoveringsProofGenerator::CoveringsProofGenerator(context::Context* ctx,
-                                     ProofNodeManager* pnm)
+CoveringsProofGenerator::CoveringsProofGenerator(cvc5::context::Context* ctx,
+                                                 ProofNodeManager* pnm)
     : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);

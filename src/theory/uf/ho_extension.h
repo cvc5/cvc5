@@ -51,8 +51,8 @@ class LambdaLift;
  */
 class HoExtension : protected EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   HoExtension(Env& env,

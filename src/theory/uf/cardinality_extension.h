@@ -40,8 +40,8 @@ class TheoryUF;
 class CardinalityExtension : protected EnvObj
 {
  protected:
-  typedef context::CDHashMap<Node, bool> NodeBoolMap;
-  typedef context::CDHashMap<Node, int> NodeIntMap;
+  typedef cvc5::context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef cvc5::context::CDHashMap<Node, int> NodeIntMap;
 
  public:
   /**
@@ -69,8 +69,9 @@ class CardinalityExtension : protected EnvObj
         /** disequality list for node */
         class DiseqList {
         public:
-          DiseqList( context::Context* c )
-            : d_size( c, 0 ), d_disequalities( c ) {}
+         DiseqList(cvc5::context::Context* c) : d_size(c, 0), d_disequalities(c)
+         {
+         }
           ~DiseqList(){}
 
           void setDisequal( Node n, bool valid ){
@@ -93,13 +94,14 @@ class CardinalityExtension : protected EnvObj
           iterator end() { return d_disequalities.end(); }
 
         private:
-          context::CDO< int > d_size;
-          NodeBoolMap d_disequalities;
+         cvc5::context::CDO<int> d_size;
+         NodeBoolMap d_disequalities;
         }; /* class DiseqList */
        public:
         /** constructor */
-        RegionNodeInfo( context::Context* c )
-          : d_internal(c), d_external(c), d_valid(c, true) {
+        RegionNodeInfo(cvc5::context::Context* c)
+            : d_internal(c), d_external(c), d_valid(c, true)
+        {
           d_disequalities[0] = &d_internal;
           d_disequalities[1] = &d_external;
         }
@@ -123,7 +125,7 @@ class CardinalityExtension : protected EnvObj
        private:
         DiseqList d_internal;
         DiseqList d_external;
-        context::CDO< bool > d_valid;
+        cvc5::context::CDO<bool> d_valid;
         DiseqList* d_disequalities[2];
       }; /* class RegionNodeInfo */
 
@@ -131,28 +133,28 @@ class CardinalityExtension : protected EnvObj
       /** conflict find pointer */
       SortModel* d_cf;
 
-      context::CDO<size_t> d_testCliqueSize;
-      context::CDO< unsigned > d_splitsSize;
+      cvc5::context::CDO<size_t> d_testCliqueSize;
+      cvc5::context::CDO<unsigned> d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO<size_t> d_reps_size;
+      cvc5::context::CDO<size_t> d_reps_size;
       //total disequality size (external)
-      context::CDO< unsigned > d_total_diseq_external;
+      cvc5::context::CDO<unsigned> d_total_diseq_external;
       //total disequality size (internal)
-      context::CDO< unsigned > d_total_diseq_internal;
+      cvc5::context::CDO<unsigned> d_total_diseq_internal;
       /** set rep */
       void setRep( Node n, bool valid );
       //region node infomation
       std::map< Node, RegionNodeInfo* > d_nodes;
       //whether region is valid
-      context::CDO< bool > d_valid;
+      cvc5::context::CDO<bool> d_valid;
 
      public:
       //constructor
-      Region( SortModel* cf, context::Context* c );
+      Region(SortModel* cf, cvc5::context::Context* c);
       virtual ~Region();
 
       typedef std::map< Node, RegionNodeInfo* >::iterator iterator;
@@ -220,7 +222,7 @@ class CardinalityExtension : protected EnvObj
     /** Pointer to the cardinality extension that owns this. */
     CardinalityExtension* d_thss;
     /** regions used to d_region_index */
-    context::CDO<size_t> d_regions_index;
+    cvc5::context::CDO<size_t> d_regions_index;
     /** vector of regions */
     std::vector< Region* > d_regions;
     /** map from Nodes to index of d_regions they exist in, -1 means invalid */
@@ -228,11 +230,11 @@ class CardinalityExtension : protected EnvObj
     /** the score for each node for splitting */
     NodeIntMap d_split_score;
     /** number of valid disequalities in d_disequalities */
-    context::CDO< unsigned > d_disequalities_index;
+    cvc5::context::CDO<unsigned> d_disequalities_index;
     /** list of all disequalities */
     std::vector< Node > d_disequalities;
     /** number of representatives in all regions */
-    context::CDO< unsigned > d_reps;
+    cvc5::context::CDO<unsigned> d_reps;
 
     /** get number of disequalities from node n to region ri */
     int getNumDisequalitiesToRegion( Node n, int ri );
@@ -264,19 +266,19 @@ class CardinalityExtension : protected EnvObj
     /** add clique lemma */
     void addCliqueLemma(std::vector<Node>& clique);
     /** cardinality */
-    context::CDO<uint32_t> d_cardinality;
+    cvc5::context::CDO<uint32_t> d_cardinality;
     /** cardinality literals */
     std::map<uint32_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
-    context::CDO< bool > d_hasCard;
+    cvc5::context::CDO<bool> d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
     /** maximum negatively asserted cardinality */
-    context::CDO<uint32_t> d_maxNegCard;
+    cvc5::context::CDO<uint32_t> d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
-    context::CDO< bool > d_initialized;
+    cvc5::context::CDO<bool> d_initialized;
     /** simple check cardinality */
     void simpleCheckCardinality();
 
@@ -421,9 +423,9 @@ class CardinalityExtension : protected EnvObj
   std::map<TypeNode, SortModel*> d_rep_model;
 
   /** minimum positive combined cardinality */
-  context::CDO<uint32_t> d_min_pos_com_card;
+  cvc5::context::CDO<uint32_t> d_min_pos_com_card;
   /** Whether the field above has been set */
-  context::CDO<bool> d_min_pos_com_card_set;
+  cvc5::context::CDO<bool> d_min_pos_com_card_set;
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
@@ -443,7 +445,7 @@ class CardinalityExtension : protected EnvObj
   /** combined cardinality decision strategy */
   std::unique_ptr<CombinedCardinalityDecisionStrategy> d_cc_dec_strat;
   /** Have we initialized combined cardinality? */
-  context::CDO<bool> d_initializedCombinedCardinality;
+  cvc5::context::CDO<bool> d_initializedCombinedCardinality;
 
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
@@ -451,9 +453,9 @@ class CardinalityExtension : protected EnvObj
   TypeNode d_tn_mono_master;
   std::map<TypeNode, bool> d_tn_mono_slave;
   /** The minimum positive asserted master cardinality */
-  context::CDO<uint32_t> d_min_pos_tn_master_card;
+  cvc5::context::CDO<uint32_t> d_min_pos_tn_master_card;
   /** Whether the field above has been set */
-  context::CDO<bool> d_min_pos_tn_master_card_set;
+  cvc5::context::CDO<bool> d_min_pos_tn_master_card_set;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */

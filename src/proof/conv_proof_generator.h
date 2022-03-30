@@ -133,7 +133,7 @@ class TConvProofGenerator : public ProofGenerator
    * system. The rewrite steps should be given term context identifiers.
    */
   TConvProofGenerator(ProofNodeManager* pnm,
-                      context::Context* c = nullptr,
+                      cvc5::context::Context* c = nullptr,
                       TConvPolicy pol = TConvPolicy::FIXPOINT,
                       TConvCachePolicy cpol = TConvCachePolicy::NEVER,
                       std::string name = "TConvProofGenerator",
@@ -200,9 +200,9 @@ class TConvProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofForRewriting(Node n);
 
  protected:
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
   /** A dummy context used by this class if none is provided */
-  context::Context d_context;
+  cvc5::context::Context d_context;
   /** The (lazy) context dependent proof object. */
   LazyCDProof d_proof;
   /** map to rewritten forms */

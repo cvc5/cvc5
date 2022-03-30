@@ -29,8 +29,11 @@
 namespace cvc5::internal {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(
-    Env& env, context::Context* c, std::string name, PfRule ra, PfRule rpp)
+PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
+                                                   cvc5::context::Context* c,
+                                                   std::string name,
+                                                   PfRule ra,
+                                                   PfRule rpp)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),

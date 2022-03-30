@@ -33,10 +33,11 @@ class ProofStep;
  */
 class BufferedProofGenerator : public ProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>> NodeProofStepMap;
+  typedef cvc5::context::CDHashMap<Node, std::shared_ptr<ProofStep>>
+      NodeProofStepMap;
 
  public:
-  BufferedProofGenerator(context::Context* c, ProofNodeManager* pnm);
+  BufferedProofGenerator(cvc5::context::Context* c, ProofNodeManager* pnm);
   ~BufferedProofGenerator() {}
   /** add step
    * Unless the overwrite policy is ALWAYS it does not replace previously

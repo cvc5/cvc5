@@ -45,7 +45,7 @@ class Rewriter;
 class SubstitutionMap
 {
  public:
-  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeMap;
 
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;
@@ -59,7 +59,7 @@ class SubstitutionMap
  private:
   typedef std::unordered_map<Node, Node> NodeCache;
   /** A dummy context used by this class if none is provided */
-  context::Context d_context;
+  cvc5::context::Context d_context;
 
   /** The variables, in order of addition */
   NodeMap d_substitutions;
@@ -77,7 +77,7 @@ class SubstitutionMap
                           const ShouldTraverseCallback* stc);
 
   /** Helper class to invalidate cache on user pop */
-  class CacheInvalidator : public context::ContextNotifyObj
+  class CacheInvalidator : public cvc5::context::ContextNotifyObj
   {
     bool& d_cacheInvalidated;
 
@@ -85,8 +85,8 @@ class SubstitutionMap
     void contextNotifyPop() override { d_cacheInvalidated = true; }
 
    public:
-    CacheInvalidator(context::Context* context, bool& cacheInvalidated)
-        : context::ContextNotifyObj(context),
+    CacheInvalidator(cvc5::context::Context* context, bool& cacheInvalidated)
+        : cvc5::context::ContextNotifyObj(context),
           d_cacheInvalidated(cacheInvalidated)
     {
     }
@@ -100,7 +100,7 @@ class SubstitutionMap
   CacheInvalidator d_cacheInvalidator;
 
  public:
-  SubstitutionMap(context::Context* context = nullptr);
+  SubstitutionMap(cvc5::context::Context* context = nullptr);
 
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions();

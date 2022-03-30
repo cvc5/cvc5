@@ -175,7 +175,7 @@ class TheoryArrays : public Theory {
   eq::EqualityEngine d_ppEqualityEngine;
 
   // List of facts learned by preprocessor - needed for permanent ref for benefit of d_ppEqualityEngine
-  context::CDList<Node> d_ppFacts;
+  cvc5::context::CDList<Node> d_ppFacts;
 
   Node preprocessTerm(TNode term);
   Node recursivePreprocessTerm(TNode term);
@@ -200,16 +200,16 @@ class TheoryArrays : public Theory {
 
  private:
   /** Literals to propagate */
-  context::CDList<Node> d_literalsToPropagate;
+  cvc5::context::CDList<Node> d_literalsToPropagate;
 
   /** Index of the next literal to propagate */
-  context::CDO<unsigned> d_literalsToPropagateIndex;
+  cvc5::context::CDO<unsigned> d_literalsToPropagateIndex;
 
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
 
   /** For debugging only- checks invariants about when things are preregistered*/
-  context::CDHashSet<Node> d_isPreRegistered;
+  cvc5::context::CDHashSet<Node> d_isPreRegistered;
 
   /** Helper for preRegisterTerm, also used internally */
   void preRegisterTermInternal(TNode n);
@@ -364,20 +364,21 @@ class TheoryArrays : public Theory {
    */
   ArrayInfo d_infoMap;
 
-  context::CDQueue<Node> d_mergeQueue;
+  cvc5::context::CDQueue<Node> d_mergeQueue;
 
   bool d_mergeInProgress;
 
   using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
-  context::CDQueue<RowLemmaType> d_RowQueue;
-  context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;
+  cvc5::context::CDQueue<RowLemmaType> d_RowQueue;
+  cvc5::context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction>
+      d_RowAlreadyAdded;
 
-  typedef context::CDHashSet<Node> CDNodeSet;
+  typedef cvc5::context::CDHashSet<Node> CDNodeSet;
 
   CDNodeSet d_sharedArrays;
   CDNodeSet d_sharedOther;
-  context::CDO<bool> d_sharedTerms;
+  cvc5::context::CDO<bool> d_sharedTerms;
 
   // Map from constant values to read terms that read from that values equal to that constant value in the current model
   // When a new read term is created, we check the index to see if we know the model value.  If so, we add it to d_constReads (and d_constReadsList)
@@ -385,47 +386,53 @@ class TheoryArrays : public Theory {
   // d_constReadsList is used as a backup in case we can't compute the model at computeCareGraph time.
   typedef std::unordered_map<Node, CTNodeList*> CNodeNListMap;
   CNodeNListMap d_constReads;
-  context::CDList<TNode> d_reads;
-  context::CDList<TNode> d_constReadsList;
-  context::Context* d_constReadsContext;
+  cvc5::context::CDList<TNode> d_reads;
+  cvc5::context::CDList<TNode> d_constReadsList;
+  cvc5::context::Context* d_constReadsContext;
   /** Helper class to keep d_constReadsContext in sync with satContext */
-  class ContextPopper : public context::ContextNotifyObj {
-    context::Context* d_satContext;
-    context::Context* d_contextToPop;
-  protected:
-   void contextNotifyPop() override
-   {
-     if (d_contextToPop->getLevel() > d_satContext->getLevel())
-     {
-       d_contextToPop->pop();
-     }
-    }
-  public:
-    ContextPopper(context::Context* context, context::Context* contextToPop)
-      :context::ContextNotifyObj(context), d_satContext(context),
-       d_contextToPop(contextToPop)
-    {}
+  class ContextPopper : public cvc5::context::ContextNotifyObj
+  {
+    cvc5::context::Context* d_satContext;
+    cvc5::context::Context* d_contextToPop;
 
-  };/* class ContextPopper */
+   protected:
+    void contextNotifyPop() override
+    {
+      if (d_contextToPop->getLevel() > d_satContext->getLevel())
+      {
+        d_contextToPop->pop();
+      }
+    }
+
+   public:
+    ContextPopper(cvc5::context::Context* context,
+                  cvc5::context::Context* contextToPop)
+        : cvc5::context::ContextNotifyObj(context),
+          d_satContext(context),
+          d_contextToPop(contextToPop)
+    {
+    }
+
+  }; /* class ContextPopper */
   ContextPopper d_contextPopper;
 
   // The decision requests we have for the core
-  context::CDQueue<Node> d_decisionRequests;
+  cvc5::context::CDQueue<Node> d_decisionRequests;
 
   // List of nodes that need permanent references in this context
-  context::CDList<Node> d_permRef;
-  context::CDList<Node> d_modelConstraints;
-  context::CDHashSet<Node> d_lemmasSaved;
+  cvc5::context::CDList<Node> d_permRef;
+  cvc5::context::CDList<Node> d_modelConstraints;
+  cvc5::context::CDHashSet<Node> d_lemmasSaved;
   std::vector<Node> d_lemmas;
 
   // Default values for each mayEqual equivalence class
-  typedef context::CDHashMap<Node, Node> DefValMap;
+  typedef cvc5::context::CDHashMap<Node, Node> DefValMap;
   DefValMap d_defValues;
 
   typedef std::unordered_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
   ReadBucketMap d_readBucketTable;
-  context::Context* d_readTableContext;
-  context::CDList<Node> d_arrayMerges;
+  cvc5::context::Context* d_readTableContext;
+  cvc5::context::CDList<Node> d_arrayMerges;
   std::vector<CTNodeList*> d_readBucketAllocations;
 
   Node getSkolem(TNode ref);

@@ -25,7 +25,7 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -263,8 +263,9 @@ void BagSolver::checkMap(Node n)
     Node y = d_state.getRepresentative(z);
     if (!d_mapCache.count(n))
     {
-      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
-          std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
+      std::shared_ptr<cvc5::context::CDHashMap<Node, std::pair<Node, Node>>>
+          nMap = std::make_shared<
+              cvc5::context::CDHashMap<Node, std::pair<Node, Node>>>(
               userContext());
       d_mapCache[n] = nMap;
     }
@@ -276,7 +277,7 @@ void BagSolver::checkMap(Node n)
       d_mapCache[n].get()->insert(y, yPair);
     }
 
-    context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
+    cvc5::context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
         d_mapCache[n].get()->find(y);
 
     auto [uf, preImageSize] = it->second;

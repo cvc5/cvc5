@@ -62,7 +62,7 @@ class QuantifiersState : public TheoryState
 
  private:
   /** The number of instantiation rounds in this SAT context */
-  context::CDO<uint64_t> d_ierCounterc;
+  cvc5::context::CDO<uint64_t> d_ierCounterc;
   /** The number of total instantiation rounds (full effort) */
   uint64_t d_ierCounter;
   /** The number of total instantiation rounds (last call effort) */

@@ -63,7 +63,7 @@ class TBitblaster
   TermDefMap d_termCache;
   ModelCache d_modelCache;
   // sat solver used for bitblasting and associated CnfStream
-  std::unique_ptr<context::Context> d_nullContext;
+  std::unique_ptr<cvc5::context::Context> d_nullContext;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   void initAtomBBStrategies();
@@ -168,7 +168,7 @@ template <class T>
 TBitblaster<T>::TBitblaster()
     : d_termCache(),
       d_modelCache(),
-      d_nullContext(new context::Context()),
+      d_nullContext(new cvc5::context::Context()),
       d_cnfStream()
 {
   initAtomBBStrategies();

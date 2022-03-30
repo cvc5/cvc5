@@ -74,9 +74,9 @@ class InstantiationRewriter
 class InstLemmaList
 {
  public:
-  InstLemmaList(context::Context* c) : d_list(c) {}
+  InstLemmaList(cvc5::context::Context* c) : d_list(c) {}
   /** The list */
-  context::CDList<Node> d_list;
+  cvc5::context::CDList<Node> d_list;
 };
 
 /** Instantiate
@@ -101,7 +101,7 @@ class InstLemmaList
 class Instantiate : public QuantifiersUtil
 {
   using NodeInstListMap =
-      context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
+      cvc5::context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
 
  public:
   Instantiate(Env& env,
@@ -347,7 +347,7 @@ class Instantiate : public QuantifiersUtil
    * The list of quantified formulas for which the domain of d_c_inst_match_trie
    * is valid.
    */
-  context::CDHashSet<Node> d_c_inst_match_trie_dom;
+  cvc5::context::CDHashSet<Node> d_c_inst_match_trie_dom;
   /**
    * A CDProof storing instantiation steps.
    */

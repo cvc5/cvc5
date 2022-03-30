@@ -120,9 +120,10 @@ class BagSolver : protected EnvObj
    * mapped to each y
    *
    */
-  using BagElementsMap = context::CDHashMap<
+  using BagElementsMap = cvc5::context::CDHashMap<
       Node,
-      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node> > > >;
+      std::shared_ptr<
+          cvc5::context::CDHashMap<Node, std::pair<Node, Node> > > >;
   BagElementsMap d_mapCache;
 
   /** Commonly used constants */

@@ -798,7 +798,7 @@ void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 
 void SatProofManager::notifyPop()
 {
-  for (context::CDHashMap<Node, int>::const_iterator it =
+  for (cvc5::context::CDHashMap<Node, int>::const_iterator it =
            d_optResLevels.begin();
        it != d_optResLevels.end();
        ++it)

@@ -48,7 +48,7 @@ namespace theory {
  */
 class DecisionManager
 {
-  typedef context::CDList<DecisionStrategy*> DecisionStrategyList;
+  typedef cvc5::context::CDList<DecisionStrategy*> DecisionStrategyList;
 
  public:
   enum StrategyId
@@ -98,7 +98,7 @@ class DecisionManager
     // The strategy is context-independent.
     STRAT_SCOPE_CTX_INDEPENDENT,
   };
-  DecisionManager(context::Context* userContext);
+  DecisionManager(cvc5::context::Context* userContext);
   ~DecisionManager() {}
   /** presolve
    *

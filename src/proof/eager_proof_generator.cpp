@@ -22,7 +22,7 @@
 namespace cvc5::internal {
 
 EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c,
+                                         cvc5::context::Context* c,
                                          std::string name)
     : d_pnm(pnm), d_name(name), d_proofs(c == nullptr ? &d_context : c)
 {

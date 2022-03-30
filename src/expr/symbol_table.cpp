@@ -28,9 +28,9 @@
 
 namespace cvc5::internal {
 
-using ::cvc5::internal::context::CDHashMap;
-using ::cvc5::internal::context::CDHashSet;
-using ::cvc5::internal::context::Context;
+using ::cvc5::context::CDHashMap;
+using ::cvc5::context::CDHashSet;
+using ::cvc5::context::Context;
 using ::std::copy;
 using ::std::endl;
 using ::std::ostream_iterator;

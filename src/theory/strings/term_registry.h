@@ -51,9 +51,9 @@ class InferenceManager;
  */
 class TermRegistry : protected EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
-  typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   TermRegistry(Env& env,
@@ -152,12 +152,12 @@ class TermRegistry : protected EnvObj
   /** Get the skolem cache of this object */
   SkolemCache* getSkolemCache();
   /** Get all function terms that have been preregistered to this object */
-  const context::CDList<TNode>& getFunctionTerms() const;
+  const cvc5::context::CDList<TNode>& getFunctionTerms() const;
   /**
    * Get the "input variables", corresponding to the set of leaf nodes of
    * string-like type that have been preregistered as terms to this object.
    */
-  const context::CDHashSet<Node>& getInputVars() const;
+  const cvc5::context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
   /**
@@ -260,7 +260,7 @@ class TermRegistry : protected EnvObj
   /** arithmetic entailment */
   ArithEntail d_aent;
   /** All function terms that the theory has seen in the current SAT context */
-  context::CDList<TNode> d_functionsTerms;
+  cvc5::context::CDList<TNode> d_functionsTerms;
   /**
    * The set of terms of type string that are abstracted as leaf nodes.
    */

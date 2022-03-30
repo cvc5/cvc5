@@ -51,7 +51,7 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol)
 }
 
 TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c,
+                                         cvc5::context::Context* c,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,

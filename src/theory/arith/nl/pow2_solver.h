@@ -38,7 +38,7 @@ class NlModel;
  */
 class Pow2Solver : protected EnvObj
 {
-  using NodeSet = context::CDHashSet<Node>;
+  using NodeSet = cvc5::context::CDHashSet<Node>;
 
  public:
   Pow2Solver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);

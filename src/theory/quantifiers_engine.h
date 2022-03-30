@@ -58,8 +58,8 @@ class TermRegistry;
 class QuantifiersEngine : protected EnvObj
 {
   friend class ::cvc5::internal::TheoryEngine;
-  typedef context::CDHashMap<Node, bool> BoolMap;
-  typedef context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashMap<Node, bool> BoolMap;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
 
  public:
   QuantifiersEngine(Env& env,

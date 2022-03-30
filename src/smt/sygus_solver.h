@@ -58,7 +58,7 @@ class SmtSolver;
  */
 class SygusSolver : protected EnvObj
 {
-  using NodeList = context::CDList<Node>;
+  using NodeList = cvc5::context::CDList<Node>;
 
  public:
   SygusSolver(Env& env, SmtSolver& sms);
@@ -229,14 +229,14 @@ class SygusSolver : protected EnvObj
    * This flag should be set to true when new sygus constraints are asserted and
    * when functions-to-synthesize are declared.
    */
-  context::CDO<bool> d_sygusConjectureStale;
+  cvc5::context::CDO<bool> d_sygusConjectureStale;
   /**
    * The (context-dependent) pointer to the subsolver we have constructed.
    * This is used to verify if the current subsolver is current, in case
    * user-context dependent pop has a occurred. If this pointer does not match
    * d_subsolver, then d_subsolver must be reconstructed in this context.
    */
-  context::CDO<SolverEngine*> d_subsolverCd;
+  cvc5::context::CDO<SolverEngine*> d_subsolverCd;
   /**
    * The subsolver we are using. This is a separate copy of the SolverEngine
    * which has the asserted synthesis conjecture, i.e. a formula returned by

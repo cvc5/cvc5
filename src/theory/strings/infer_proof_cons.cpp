@@ -31,7 +31,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(context::Context* c,
+InferProofCons::InferProofCons(cvc5::context::Context* c,
                                ProofNodeManager* pnm,
                                SequencesStatistics& statistics)
     : d_pnm(pnm), d_lazyFactMap(c), d_statistics(statistics)

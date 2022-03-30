@@ -50,7 +50,7 @@ class LazyCDProofChain : public CDProof
    */
   LazyCDProofChain(ProofNodeManager* pnm,
                    bool cyclic = true,
-                   context::Context* c = nullptr,
+                   cvc5::context::Context* c = nullptr,
                    ProofGenerator* defGen = nullptr,
                    bool defRec = true,
                    const std::string& name = "LazyCDProofChain");
@@ -155,9 +155,9 @@ class LazyCDProofChain : public CDProof
   /** Whether we expand recursively (for the default generator) */
   bool d_defRec;
   /** A dummy context used by this class if none is provided */
-  context::Context d_context;
+  cvc5::context::Context d_context;
   /** Maps facts that can be proven to generators */
-  context::CDHashMap<Node, ProofGenerator*> d_gens;
+  cvc5::context::CDHashMap<Node, ProofGenerator*> d_gens;
   /** The default proof generator (if one exists) */
   ProofGenerator* d_defGen;
   /** Name (for debugging) */

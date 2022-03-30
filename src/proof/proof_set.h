@@ -35,7 +35,7 @@ class CDProofSet
 {
  public:
   CDProofSet(ProofNodeManager* pnm,
-             context::Context* c,
+             cvc5::context::Context* c,
              std::string namePrefix = "Proof")
       : d_pnm(pnm), d_proofs(c), d_namePrefix(namePrefix)
   {
@@ -66,7 +66,7 @@ class CDProofSet
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** A context-dependent list of lazy proofs. */
-  context::CDList<std::shared_ptr<T>> d_proofs;
+  cvc5::context::CDList<std::shared_ptr<T>> d_proofs;
   /** The name prefix of the lazy proofs */
   std::string d_namePrefix;
 };

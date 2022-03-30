@@ -49,7 +49,7 @@ public:
     size_t hash() const { return d_atom.getId(); }
   };
 
-  AtomRequests(context::Context* context);
+  AtomRequests(cvc5::context::Context* context);
 
   /** Mark the atom to be sent to a theory, when the trigger atom gets assigned */
   void add(TNode triggerAtom, TNode atomToSend, theory::TheoryId toTheory);
@@ -89,7 +89,7 @@ private:
   };
 
   /** Set of all requests so we don't add twice */
-  context::CDHashSet<Request, RequestHashFunction> d_allRequests;
+  cvc5::context::CDHashSet<Request, RequestHashFunction> d_allRequests;
 
   static const element_index null_index = -1;
 
@@ -103,9 +103,9 @@ private:
   };
 
   /** We index the requests in this vector, it's a list */
-  context::CDList<Element> d_requests;
+  cvc5::context::CDList<Element> d_requests;
 
-  typedef context::CDHashMap<Node, element_index> trigger_to_list_map;
+  typedef cvc5::context::CDHashMap<Node, element_index> trigger_to_list_map;
 
   /** Map from triggers, to the list of elements they trigger */
   trigger_to_list_map d_triggerToRequestMap;

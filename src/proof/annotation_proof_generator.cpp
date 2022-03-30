@@ -22,7 +22,7 @@
 namespace cvc5::internal {
 
 AnnotationProofGenerator::AnnotationProofGenerator(ProofNodeManager* pnm,
-                                                   context::Context* c,
+                                                   cvc5::context::Context* c,
                                                    std::string name)
     : d_pnm(pnm),
       d_name(name),

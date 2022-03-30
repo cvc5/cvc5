@@ -40,7 +40,7 @@ class NlModel;
  */
 class IAndSolver : protected EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
 
  public:
   IAndSolver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);

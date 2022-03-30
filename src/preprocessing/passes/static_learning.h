@@ -39,7 +39,7 @@ class StaticLearning : public PreprocessingPass
   void flattenAnd(TNode node, std::vector<TNode>& children);
 
   /** CD-cache for visiting nodes used by `flattenAnd`. */
-  context::CDHashSet<Node> d_cache;
+  cvc5::context::CDHashSet<Node> d_cache;
 };
 
 }  // namespace passes

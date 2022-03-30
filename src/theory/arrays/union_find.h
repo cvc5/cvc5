@@ -37,7 +37,8 @@ namespace arrays {
 
 // NodeType \in { Node, TNode }
 template <class NodeType, class NodeHash>
-class UnionFind : context::ContextNotifyObj {
+class UnionFind : cvc5::context::ContextNotifyObj
+{
   /** Our underlying map type. */
   typedef std::unordered_map<NodeType, NodeType, NodeHash> MapType;
 
@@ -52,12 +53,12 @@ class UnionFind : context::ContextNotifyObj {
   std::vector<std::pair<TNode, TNode> > d_trace;
 
   /** Our current offset in the d_trace stack (context-dependent). */
-  context::CDO<size_t> d_offset;
+  cvc5::context::CDO<size_t> d_offset;
 
  public:
-  UnionFind(context::Context* ctxt) :
-    context::ContextNotifyObj(ctxt),
-    d_offset(ctxt, 0) {
+  UnionFind(cvc5::context::Context* ctxt)
+      : cvc5::context::ContextNotifyObj(ctxt), d_offset(ctxt, 0)
+  {
   }
 
   /**
@@ -84,7 +85,7 @@ class UnionFind : context::ContextNotifyObj {
    */
   void notify();
 
-};/* class UnionFind<> */
+}; /* class UnionFind<> */
 
 template <class NodeType, class NodeHash>
 inline TNode UnionFind<NodeType, NodeHash>::debugFind(TNode n) const {

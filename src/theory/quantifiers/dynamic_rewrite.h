@@ -55,10 +55,10 @@ namespace quantifiers {
  */
 class DynamicRewriter
 {
-  typedef context::CDList<Node> NodeList;
+  typedef cvc5::context::CDList<Node> NodeList;
 
  public:
-  DynamicRewriter(Env& env, context::Context* c, const std::string& name);
+  DynamicRewriter(Env& env, cvc5::context::Context* c, const std::string& name);
   ~DynamicRewriter() {}
   /** inform this class that the equality a = b holds. */
   void addRewrite(Node a, Node b);

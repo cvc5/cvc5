@@ -36,7 +36,7 @@ namespace strings {
 class EqcInfo
 {
  public:
-  EqcInfo(context::Context* c);
+  EqcInfo(cvc5::context::Context* c);
   ~EqcInfo() {}
   /** add prefix constant
    *
@@ -53,14 +53,14 @@ class EqcInfo
    * If non-null, this is a term x from this eq class such that str.len( x )
    * occurs as a term in this SAT context.
    */
-  context::CDO<Node> d_lengthTerm;
+  cvc5::context::CDO<Node> d_lengthTerm;
   /**
    * If non-null, this is a term x from this eq class such that str.code( x )
    * occurs as a term in this SAT context.
    */
-  context::CDO<Node> d_codeTerm;
-  context::CDO<unsigned> d_cardinalityLemK;
-  context::CDO<Node> d_normalizedLength;
+  cvc5::context::CDO<Node> d_codeTerm;
+  cvc5::context::CDO<unsigned> d_cardinalityLemK;
+  cvc5::context::CDO<Node> d_normalizedLength;
   /**
    * If this is a string equivalence class, this is
    * a node that explains the longest constant prefix known of this
@@ -74,9 +74,9 @@ class EqcInfo
    * If this is an integer equivalence class, this is the lower bound
    * of the value of this equivalence class.
    */
-  context::CDO<Node> d_firstBound;
+  cvc5::context::CDO<Node> d_firstBound;
   /** same as above, for suffix and integer upper bounds. */
-  context::CDO<Node> d_secondBound;
+  cvc5::context::CDO<Node> d_secondBound;
   /**
    * Make merge conflict. Let "bound term" refer to a term that is set
    * as the data member of this class for d_firstBound or d_secondBound.

@@ -40,7 +40,8 @@ TrustNode ArithPreprocess::eliminate(TNode n,
 
 bool ArithPreprocess::reduceAssertion(TNode atom)
 {
-  context::CDHashMap<Node, bool>::const_iterator it = d_reduced.find(atom);
+  cvc5::context::CDHashMap<Node, bool>::const_iterator it =
+      d_reduced.find(atom);
   if (it != d_reduced.end())
   {
     // already computed
@@ -70,7 +71,8 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
 
 bool ArithPreprocess::isReduced(TNode atom) const
 {
-  context::CDHashMap<Node, bool>::const_iterator it = d_reduced.find(atom);
+  cvc5::context::CDHashMap<Node, bool>::const_iterator it =
+      d_reduced.find(atom);
   if (it == d_reduced.end())
   {
     return false;

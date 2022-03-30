@@ -142,7 +142,7 @@ class Theory : protected EnvObj
   /**
    * A list of shared terms that the theory has.
    */
-  context::CDList<TNode> d_sharedTerms;
+  cvc5::context::CDList<TNode> d_sharedTerms;
 
   /**
    * Construct a Theory.
@@ -698,7 +698,7 @@ class Theory : protected EnvObj
    */
   virtual std::string identify() const = 0;
 
-  typedef context::CDList<Assertion>::const_iterator assertions_iterator;
+  typedef cvc5::context::CDList<Assertion>::const_iterator assertions_iterator;
 
   /**
    * Provides access to the facts queue, primarily intended for theory
@@ -725,7 +725,7 @@ class Theory : protected EnvObj
   /** Return total number of facts asserted to this theory */
   size_t numAssertions() { return d_facts.size(); }
 
-  typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
+  typedef cvc5::context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
    * Provides access to the shared terms, primarily intended for theory
@@ -825,13 +825,13 @@ class Theory : protected EnvObj
    * These can not be TNodes as some atoms (such as equalities) are sent
    * across theories without being stored in a global map.
    */
-  context::CDList<Assertion> d_facts;
+  cvc5::context::CDList<Assertion> d_facts;
 
   /** Index into the head of the facts list */
-  context::CDO<unsigned> d_factsHead;
+  cvc5::context::CDO<unsigned> d_factsHead;
 
   /** Indices for splitting on the shared terms. */
-  context::CDO<unsigned> d_sharedTermsIndex;
+  cvc5::context::CDO<unsigned> d_sharedTermsIndex;
 
   /** The care graph the theory will use during combination. */
   CareGraph* d_careGraph;

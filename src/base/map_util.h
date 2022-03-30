@@ -16,8 +16,8 @@
  * Supports:
  * - std::map
  * - std::unordered_map
- * - cvc5::internal::context::CDHashmap
- * - cvc5::internal::context::CDInsertHashmap
+ * - cvc5::context::CDHashmap
+ * - cvc5::context::CDInsertHashmap
  * The ContainsKey function is also compatible with std::[unordered_]set.
  *
  * Currently implemented classes of functions:

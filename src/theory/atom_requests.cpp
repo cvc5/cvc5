@@ -20,10 +20,10 @@
 
 using namespace cvc5::internal;
 
-AtomRequests::AtomRequests(context::Context* context)
-: d_allRequests(context)
-, d_requests(context)
-, d_triggerToRequestMap(context)
+AtomRequests::AtomRequests(cvc5::context::Context* context)
+    : d_allRequests(context),
+      d_requests(context),
+      d_triggerToRequestMap(context)
 {}
 
 AtomRequests::element_index AtomRequests::getList(TNode trigger) const {

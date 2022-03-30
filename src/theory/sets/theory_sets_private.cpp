@@ -171,7 +171,9 @@ void TheorySetsPrivate::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
   }
 }
 
-TheorySetsPrivate::EqcInfo::EqcInfo(context::Context* c) : d_singleton(c) {}
+TheorySetsPrivate::EqcInfo::EqcInfo(cvc5::context::Context* c) : d_singleton(c)
+{
+}
 
 TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
                                                                 bool doMake)

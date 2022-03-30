@@ -35,6 +35,11 @@ namespace cvc5 {
 
 class Solver;
 
+namespace context {
+class Context;
+class UserContext;
+}  // namespace context
+
 namespace internal {
 
 template <bool ref_count>
@@ -51,15 +56,6 @@ class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -837,10 +833,10 @@ class CVC5_EXPORT SolverEngine
   const Options& getOptions() const;
 
   /** Get a pointer to the UserContext owned by this SolverEngine. */
-  context::UserContext* getUserContext();
+  cvc5::context::UserContext* getUserContext();
 
   /** Get a pointer to the Context owned by this SolverEngine. */
-  context::Context* getContext();
+  cvc5::context::Context* getContext();
 
   /** Get a pointer to the TheoryEngine owned by this SolverEngine. */
   TheoryEngine* getTheoryEngine();

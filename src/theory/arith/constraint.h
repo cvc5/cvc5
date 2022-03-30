@@ -152,8 +152,7 @@ enum ArithProofType
  */
 enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
-
-typedef context::CDList<ConstraintCP> CDConstraintList;
+typedef cvc5::context::CDList<ConstraintCP> CDConstraintList;
 
 typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
@@ -1013,7 +1012,7 @@ class ConstraintDatabase : protected EnvObj
    * ConstraintCP are pointers.
    * The elements of the queue do not require destruction.
    */
-  context::CDQueue<ConstraintCP> d_toPropagate;
+  cvc5::context::CDQueue<ConstraintCP> d_toPropagate;
 
   /**
    * Proofs are lists of valid constraints terminated by the first null
@@ -1034,12 +1033,15 @@ class ConstraintDatabase : protected EnvObj
    */
   CDConstraintList d_antecedents;
 
-  typedef context::CDList<ConstraintRule, Constraint::ConstraintRuleCleanup> ConstraintRuleList;
-  typedef context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup> CBPList;
-  typedef context::CDList<ConstraintP, Constraint::AssertionOrderCleanup> AOList;
-  typedef context::CDList<ConstraintP, Constraint::SplitCleanup> SplitList;
-
-
+  typedef cvc5::context::CDList<ConstraintRule,
+                                Constraint::ConstraintRuleCleanup>
+      ConstraintRuleList;
+  typedef cvc5::context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup>
+      CBPList;
+  typedef cvc5::context::CDList<ConstraintP, Constraint::AssertionOrderCleanup>
+      AOList;
+  typedef cvc5::context::CDList<ConstraintP, Constraint::SplitCleanup>
+      SplitList;
 
   /**
    * The watch lists are collected together as they need to be garbage collected
@@ -1072,7 +1074,8 @@ class ConstraintDatabase : protected EnvObj
      * d_varDatabases.
      */
     SplitList d_splitWatches;
-    Watches(context::Context* satContext, context::Context* userContext);
+    Watches(cvc5::context::Context* satContext,
+            cvc5::context::Context* userContext);
   };
   Watches* d_watches;
 

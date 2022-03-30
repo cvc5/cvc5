@@ -215,10 +215,10 @@ private:
     void operator()(AVCPair* restore);
   };
 
-  typedef context::CDList<AVCPair, LowerBoundCleanUp> LBReverts;
+  typedef cvc5::context::CDList<AVCPair, LowerBoundCleanUp> LBReverts;
   LBReverts d_lbRevertHistory;
 
-  typedef context::CDList<AVCPair, UpperBoundCleanUp> UBReverts;
+  typedef cvc5::context::CDList<AVCPair, UpperBoundCleanUp> UBReverts;
   UBReverts d_ubRevertHistory;
 
   void pushUpperBound(VarInfo&);
@@ -235,25 +235,26 @@ private:
 
 
 public:
+ ArithVariables(cvc5::context::Context* c,
+                DeltaComputeCallback deltaComputation);
 
-  ArithVariables(context::Context* c, DeltaComputeCallback deltaComputation);
+ /**
+  * This sets the lower bound for a variable in the current context.
+  * This must be stronger the previous constraint.
+  */
+ void setLowerBoundConstraint(ConstraintP lb);
 
-  /**
-   * This sets the lower bound for a variable in the current context.
-   * This must be stronger the previous constraint.
-   */
-  void setLowerBoundConstraint(ConstraintP lb);
+ /**
+  * This sets the upper bound for a variable in the current context.
+  * This must be stronger the previous constraint.
+  */
+ void setUpperBoundConstraint(ConstraintP ub);
 
-  /**
-   * This sets the upper bound for a variable in the current context.
-   * This must be stronger the previous constraint.
-   */
-  void setUpperBoundConstraint(ConstraintP ub);
-
-  /** Returns the constraint for the upper bound of a variable. */
-  inline ConstraintP getUpperBoundConstraint(ArithVar x) const{
-    return d_vars[x].d_ub;
-  }
+ /** Returns the constraint for the upper bound of a variable. */
+ inline ConstraintP getUpperBoundConstraint(ArithVar x) const
+ {
+   return d_vars[x].d_ub;
+ }
   /** Returns the constraint for the lower bound of a variable. */
   inline ConstraintP getLowerBoundConstraint(ArithVar x) const{
     return d_vars[x].d_lb;

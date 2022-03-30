@@ -33,7 +33,7 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -997,7 +997,7 @@ void TheoryStrings::computeCareGraph(){
   // since operators are polymorphic, taking strings/sequences.
   std::map<std::pair<TypeNode, Node>, TNodeTrie> index;
   std::map< Node, unsigned > arity;
-  const context::CDList<TNode>& fterms = d_termReg.getFunctionTerms();
+  const cvc5::context::CDList<TNode>& fterms = d_termReg.getFunctionTerms();
   size_t functionTerms = fterms.size();
   for (unsigned i = 0; i < functionTerms; ++ i) {
     TNode f1 = fterms[i];

@@ -31,7 +31,7 @@ namespace quantifiers {
 
 class SynthEngine : public QuantifiersModule
 {
-  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef cvc5::context::CDHashMap<Node, bool> NodeBoolMap;
 
  public:
   SynthEngine(Env& env,

@@ -27,7 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 
 DifficultyManager::DifficultyManager(RelevanceManager* rlv,
-                                     context::Context* c,
+                                     cvc5::context::Context* c,
                                      Valuation val)
     : d_rlv(rlv), d_input(c), d_val(val), d_dfmap(c)
 {

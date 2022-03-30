@@ -103,13 +103,13 @@ class DecisionStrategyFmf : public DecisionStrategy
    * of this class that is asserted true in the current context, according to
    * d_valuation.
    */
-  context::CDO<bool> d_has_curr_literal;
+  cvc5::context::CDO<bool> d_has_curr_literal;
   /**
    * The (SAT-context-dependent) index of the current literal of this strategy.
    * This corresponds to the first literal that is not asserted false in the
    * current context, according to d_valuation.
    */
-  context::CDO<unsigned> d_curr_literal;
+  cvc5::context::CDO<unsigned> d_curr_literal;
   /** the list of literals of this strategy */
   std::vector<Node> d_literals;
 };

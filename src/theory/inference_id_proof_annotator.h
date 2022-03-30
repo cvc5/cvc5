@@ -30,11 +30,11 @@ namespace theory {
 /** A class that tracks formulas to inference id annotations */
 class InferenceIdProofAnnotator : public Annotator
 {
-  typedef context::CDHashMap<Node, InferenceId> NodeInferenceIdMap;
-  typedef context::CDList<std::shared_ptr<ProofNode>> ProofNodeList;
+  typedef cvc5::context::CDHashMap<Node, InferenceId> NodeInferenceIdMap;
+  typedef cvc5::context::CDList<std::shared_ptr<ProofNode>> ProofNodeList;
 
  public:
-  InferenceIdProofAnnotator(ProofNodeManager* pnm, context::Context* c);
+  InferenceIdProofAnnotator(ProofNodeManager* pnm, cvc5::context::Context* c);
   /** Set annotation, that formula f should be annotated by id */
   void setAnnotation(Node f, InferenceId id);
   /**

@@ -41,11 +41,11 @@ namespace datatypes {
 
 class TheoryDatatypes : public Theory {
  private:
-  typedef context::CDList<Node> NodeList;
+  typedef cvc5::context::CDList<Node> NodeList;
   /** maps nodes to an index in a vector */
-  typedef context::CDHashMap<Node, size_t> NodeUIntMap;
-  typedef context::CDHashMap<Node, bool> BoolMap;
-  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef cvc5::context::CDHashMap<Node, size_t> NodeUIntMap;
+  typedef cvc5::context::CDHashMap<Node, bool> BoolMap;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeMap;
 
  private:
   //notification class for equality engine
@@ -78,14 +78,14 @@ private:
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    //whether we have instantiatied this eqc
-    context::CDO< bool > d_inst;
-    //constructor equal to this eqc
-    context::CDO< Node > d_constructor;
-    //all selectors whose argument is this eqc
-    context::CDO< bool > d_selectors;
+   EqcInfo(cvc5::context::Context* c);
+   ~EqcInfo() {}
+   // whether we have instantiatied this eqc
+   cvc5::context::CDO<bool> d_inst;
+   // constructor equal to this eqc
+   cvc5::context::CDO<Node> d_constructor;
+   // all selectors whose argument is this eqc
+   cvc5::context::CDO<bool> d_selectors;
   };
   /** does eqc of n have a label (do we know its constructor)? */
   bool hasLabel( EqcInfo* eqc, Node n );
@@ -149,7 +149,7 @@ private:
    */
   BoolMap d_collectTermsCacheU;
   /** All the function terms that the theory has seen */
-  context::CDList<TNode> d_functionTerms;
+  cvc5::context::CDList<TNode> d_functionTerms;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:

@@ -81,8 +81,8 @@ class CoreInferInfo
 class CoreSolver : protected EnvObj
 {
   friend class InferenceManager;
-  using NodeIntMap = context::CDHashMap<Node, int>;
-  using NodeSet = context::CDHashSet<Node>;
+  using NodeIntMap = cvc5::context::CDHashMap<Node, int>;
+  using NodeSet = cvc5::context::CDHashSet<Node>;
 
  public:
   CoreSolver(Env& env,

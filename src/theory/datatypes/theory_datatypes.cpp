@@ -43,7 +43,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -676,10 +676,8 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
   Trace("datatypes-debug") << "Finished Merge " << t1 << " " << t2 << std::endl;
 }
 
-TheoryDatatypes::EqcInfo::EqcInfo(context::Context* c)
-    : d_inst(c, false),
-      d_constructor(c, Node::null()),
-      d_selectors(c, false)
+TheoryDatatypes::EqcInfo::EqcInfo(cvc5::context::Context* c)
+    : d_inst(c, false), d_constructor(c, Node::null()), d_selectors(c, false)
 {}
 
 bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){

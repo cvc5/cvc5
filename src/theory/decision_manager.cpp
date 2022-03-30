@@ -23,7 +23,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-DecisionManager::DecisionManager(context::Context* userContext)
+DecisionManager::DecisionManager(cvc5::context::Context* userContext)
     : d_strategyCacheC(userContext)
 {
 }

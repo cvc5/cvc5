@@ -22,6 +22,12 @@
 #include <memory>
 
 #include "expr/node.h"
+
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5::internal {
 
 class Env;
@@ -30,10 +36,6 @@ class NodeManager;
 class Options;
 class StatisticsRegistry;
 
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 namespace options {
 enum class OutputTag;
 }
@@ -77,10 +79,10 @@ class EnvObj
   const Options& options() const;
 
   /** Get a pointer to the Context via Env. */
-  context::Context* context() const;
+  cvc5::context::Context* context() const;
 
   /** Get a pointer to the UserContext via Env. */
-  context::UserContext* userContext() const;
+  cvc5::context::UserContext* userContext() const;
 
   /** Get the resource manager owned by this Env. */
   ResourceManager* resourceManager() const;

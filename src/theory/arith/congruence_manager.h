@@ -59,7 +59,7 @@ class ArithVariables;
 class ArithCongruenceManager : protected EnvObj
 {
  private:
-  context::CDRaised d_inConflict;
+  cvc5::context::CDRaised d_inConflict;
   RaiseEqualityEngineConflict d_raiseConflict;
 
   /**
@@ -92,17 +92,17 @@ class ArithCongruenceManager : protected EnvObj
   };
   ArithCongruenceNotify d_notify;
 
-  context::CDList<Node> d_keepAlive;
+  cvc5::context::CDList<Node> d_keepAlive;
 
   /** Store the propagations. */
-  context::CDTrailQueue<Node> d_propagatations;
+  cvc5::context::CDTrailQueue<Node> d_propagatations;
 
   /* This maps the node a theory engine will request on an explain call to
    * to its corresponding PropUnit.
    * This is node is potentially both the propagation or
    * rewrite(propagation).
    */
-  typedef context::CDHashMap<Node, size_t> ExplainMap;
+  typedef cvc5::context::CDHashMap<Node, size_t> ExplainMap;
   ExplainMap d_explanationMap;
 
   ConstraintDatabase& d_constraintDatabase;

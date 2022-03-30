@@ -40,12 +40,12 @@ namespace strings {
 
 class RegExpSolver : protected EnvObj
 {
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, bool> NodeBoolMap;
-  typedef context::CDHashMap<Node, int> NodeIntMap;
-  typedef context::CDHashMap<Node, unsigned> NodeUIntMap;
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
-  typedef context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDList<Node> NodeList;
+  typedef cvc5::context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef cvc5::context::CDHashMap<Node, int> NodeIntMap;
+  typedef cvc5::context::CDHashMap<Node, unsigned> NodeUIntMap;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
 
  public:
   RegExpSolver(Env& env,

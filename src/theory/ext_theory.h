@@ -168,9 +168,9 @@ class ExtTheoryCallback
  */
 class ExtTheory : protected EnvObj
 {
-  using NodeBoolMap = context::CDHashMap<Node, bool>;
-  using NodeExtReducedIdMap = context::CDHashMap<Node, ExtReducedId>;
-  using NodeSet = context::CDHashSet<Node>;
+  using NodeBoolMap = cvc5::context::CDHashMap<Node, bool>;
+  using NodeExtReducedIdMap = cvc5::context::CDHashMap<Node, ExtReducedId>;
+  using NodeSet = cvc5::context::CDHashSet<Node>;
 
  public:
   /** constructor
@@ -313,7 +313,7 @@ class ExtTheory : protected EnvObj
    * Watched term for checking if any non-reduced extended functions exist.
    * This is an arbitrary active member of d_ext_func_terms.
    */
-  context::CDO<Node> d_has_extf;
+  cvc5::context::CDO<Node> d_has_extf;
   /** the set of kinds we are treated as extended functions */
   std::map<Kind, bool> d_extf_kind;
   /** information for each term in d_ext_func_terms */

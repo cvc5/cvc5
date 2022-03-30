@@ -39,34 +39,34 @@ private:
   /**
    * Map from a node to it's minimum and maximum.
    */
- typedef context::CDHashMap<Node, DeltaRational> CDNodeToMinMaxMap;
+ typedef cvc5::context::CDHashMap<Node, DeltaRational> CDNodeToMinMaxMap;
  CDNodeToMinMaxMap d_minMap;
  CDNodeToMinMaxMap d_maxMap;
 
 public:
-  ArithStaticLearner(context::Context* userContext);
-  ~ArithStaticLearner();
-  void staticLearning(TNode n, NodeBuilder& learned);
+ ArithStaticLearner(cvc5::context::Context* userContext);
+ ~ArithStaticLearner();
+ void staticLearning(TNode n, NodeBuilder& learned);
 
-  void addBound(TNode n);
+ void addBound(TNode n);
 
- private:
-  void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
+private:
+ void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
 
-  void iteMinMax(TNode n, NodeBuilder& learned);
-  void iteConstant(TNode n, NodeBuilder& learned);
+ void iteMinMax(TNode n, NodeBuilder& learned);
+ void iteConstant(TNode n, NodeBuilder& learned);
 
-  /**
-   * These fields are designed to be accessible to ArithStaticLearner methods.
-   */
-  class Statistics
-  {
-   public:
-    IntStat d_iteMinMaxApplications;
-    IntStat d_iteConstantApplications;
+ /**
+  * These fields are designed to be accessible to ArithStaticLearner methods.
+  */
+ class Statistics
+ {
+  public:
+   IntStat d_iteMinMaxApplications;
+   IntStat d_iteConstantApplications;
 
-    Statistics();
-  };
+   Statistics();
+ };
 
   Statistics d_statistics;
 

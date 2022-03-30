@@ -116,7 +116,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  context::Context* u = userContext();
+  cvc5::context::Context* u = userContext();
   Rewriter* rw = d_env.getRewriter();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();

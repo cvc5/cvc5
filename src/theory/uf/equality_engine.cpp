@@ -101,7 +101,7 @@ EqualityEngine::~EqualityEngine() {
 }
 
 EqualityEngine::EqualityEngine(Env& env,
-                               context::Context* c,
+                               cvc5::context::Context* c,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
@@ -131,7 +131,7 @@ EqualityEngine::EqualityEngine(Env& env,
 }
 
 EqualityEngine::EqualityEngine(Env& env,
-                               context::Context* c,
+                               cvc5::context::Context* c,
                                EqualityEngineNotify& notify,
                                std::string name,
                                bool constantsAreTriggers,

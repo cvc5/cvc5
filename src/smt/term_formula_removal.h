@@ -130,7 +130,7 @@ class RemoveTermFormulas : protected EnvObj
   TrustNode runCurrent(TNode node, bool inTerm, TrustNode& newLem);
 
  private:
-  typedef context::CDInsertHashMap<
+  typedef cvc5::context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
       Node,
       PairHashFunction<Node, uint32_t, std::hash<Node>>>
@@ -161,7 +161,7 @@ class RemoveTermFormulas : protected EnvObj
    *   d_skolem_cache[ite( G, a, b )] = k, and
    *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
    */
-  context::CDInsertHashMap<Node, Node> d_skolem_cache;
+  cvc5::context::CDInsertHashMap<Node, Node> d_skolem_cache;
 
   /** gets the skolem for node
    *

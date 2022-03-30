@@ -199,7 +199,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   // collect Boolean variables
   collectBooleanVariables(assertionsToPreprocess);
 
-  context::Context fakeContext;
+  cvc5::context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
   booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();

@@ -62,9 +62,9 @@ public:
  */
 class TheorySetsRels : protected EnvObj
 {
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashSet<Node> NodeSet;
-  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef cvc5::context::CDList<Node> NodeList;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeMap;
 
  public:
   TheorySetsRels(Env& env,

@@ -66,7 +66,7 @@ class TermRegistry;
  */
 class Skolemize : protected EnvObj
 {
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr);

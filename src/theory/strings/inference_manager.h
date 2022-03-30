@@ -72,8 +72,8 @@ namespace strings {
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node> NodeSet;
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef cvc5::context::CDHashSet<Node> NodeSet;
+  typedef cvc5::context::CDHashMap<Node, Node> NodeNodeMap;
   friend class InferInfo;
 
  public:

@@ -403,7 +403,7 @@ class TheoryEngine : protected EnvObj
   void checkTheoryAssertionsWithModel(bool hardFailure);
 
  private:
-  typedef context::
+  typedef cvc5::context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
           PropagationMap;
 
@@ -557,7 +557,7 @@ class TheoryEngine : protected EnvObj
   /**
    * Are we in conflict.
    */
-  context::CDO<bool> d_inConflict;
+  cvc5::context::CDO<bool> d_inConflict;
 
   /**
    * Are we in "SAT mode"? In this state, the user can query for the model.
@@ -570,10 +570,10 @@ class TheoryEngine : protected EnvObj
    * True if a theory has notified us of incompleteness (at this
    * context level or below).
    */
-  context::CDO<bool> d_incomplete;
+  cvc5::context::CDO<bool> d_incomplete;
   /** The theory and identifier that (most recently) set incomplete */
-  context::CDO<theory::TheoryId> d_incompleteTheory;
-  context::CDO<theory::IncompleteId> d_incompleteId;
+  cvc5::context::CDO<theory::TheoryId> d_incompleteTheory;
+  cvc5::context::CDO<theory::IncompleteId> d_incompleteId;
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -583,19 +583,19 @@ class TheoryEngine : protected EnvObj
   /**
    * Timestamp of propagations
    */
-  context::CDO<size_t> d_propagationMapTimestamp;
+  cvc5::context::CDO<size_t> d_propagationMapTimestamp;
 
   /**
    * Literals that are propagated by the theory. Note that these are TNodes.
    * The theory can only propagate nodes that have an assigned literal in the
    * SAT solver and are hence referenced in the SAT solver.
    */
-  context::CDList<TNode> d_propagatedLiterals;
+  cvc5::context::CDList<TNode> d_propagatedLiterals;
 
   /**
    * The index of the next literal to be propagated by a theory.
    */
-  context::CDO<unsigned> d_propagatedLiteralsIndex;
+  cvc5::context::CDO<unsigned> d_propagatedLiteralsIndex;
 
   /**
    * A variable to mark if we added any lemmas.
@@ -640,7 +640,7 @@ class TheoryEngine : protected EnvObj
    * Did the theories get any new facts since the last time we called
    * check()
    */
-  context::CDO<bool> d_factsAsserted;
+  cvc5::context::CDO<bool> d_factsAsserted;
 
 }; /* class TheoryEngine */
 

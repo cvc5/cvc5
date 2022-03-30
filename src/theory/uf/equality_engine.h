@@ -53,8 +53,8 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
-
+class EqualityEngine : public cvc5::context::ContextNotifyObj, protected EnvObj
+{
   friend class EqClassesIterator;
   friend class EqClassIterator;
 
@@ -82,7 +82,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
    * @param anyTermTriggers Whether we use any terms as triggers
    */
   EqualityEngine(Env& env,
-                 context::Context* c,
+                 cvc5::context::Context* c,
                  EqualityEngineNotify& notify,
                  std::string name,
                  bool constantTriggers,
@@ -92,7 +92,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
    * Initialize the equality engine with no notification class.
    */
   EqualityEngine(Env& env,
-                 context::Context* c,
+                 cvc5::context::Context* c,
                  std::string name,
                  bool constantsAreTriggers,
                  bool anyTermTriggers = true);
@@ -132,10 +132,10 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
 
  private:
   /** The context we are using */
-  context::Context* d_context;
+  cvc5::context::Context* d_context;
 
   /** If we are done, we don't except any new assertions */
-  context::CDO<bool> d_done;
+  cvc5::context::CDO<bool> d_done;
 
   /** The class to notify when a representative changes for a term */
   EqualityEngineNotify* d_notify;
@@ -165,7 +165,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   std::vector<FunctionApplication> d_applicationLookups;
 
   /** Number of application lookups, for backtracking.  */
-  context::CDO<DefaultSizeType> d_applicationLookupsCount;
+  cvc5::context::CDO<DefaultSizeType> d_applicationLookupsCount;
 
   /**
    * Store the application lookup, with enough information to backtrack
@@ -176,7 +176,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   std::vector<Node> d_nodes;
 
   /** A context-dependents count of nodes */
-  context::CDO<DefaultSizeType> d_nodesCount;
+  cvc5::context::CDO<DefaultSizeType> d_nodesCount;
 
   /** Map from ids to the applications */
   std::vector<FunctionApplicationPair> d_applications;
@@ -185,7 +185,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   std::vector<EqualityNode> d_equalityNodes;
 
   /** Number of asserted equalities we have so far */
-  context::CDO<DefaultSizeType> d_assertedEqualitiesCount;
+  cvc5::context::CDO<DefaultSizeType> d_assertedEqualitiesCount;
 
   /** Memory for the use-list nodes */
   std::vector<UseListNode> d_useListNodes;
@@ -326,7 +326,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   /**
    * Context dependent count of triggers
    */
-  context::CDO<DefaultSizeType> d_equalityTriggersCount;
+  cvc5::context::CDO<DefaultSizeType> d_equalityTriggersCount;
 
   /**
    * Trigger lists per node. The begin id changes as we merge, but the end always points to
@@ -361,7 +361,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   std::vector<EqualityNodeId> d_subtermEvaluates;
 
   /** Size of the nodes that evaluate vector. */
-  context::CDO<unsigned> d_subtermEvaluatesSize;
+  cvc5::context::CDO<unsigned> d_subtermEvaluatesSize;
 
   /** Set the node evaluate flag */
   void subtermEvaluates(EqualityNodeId id);
@@ -538,7 +538,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   }
 
   /** Used part of the trigger term database */
-  context::CDO<DefaultSizeType> d_triggerDatabaseSize;
+  cvc5::context::CDO<DefaultSizeType> d_triggerDatabaseSize;
 
   struct TriggerSetUpdate {
     EqualityNodeId d_classId;
@@ -558,7 +558,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   /**
    * Size of the individual triggers list.
    */
-  context::CDO<unsigned> d_triggerTermSetUpdatesSize;
+  cvc5::context::CDO<unsigned> d_triggerTermSetUpdatesSize;
 
   /**
    * Map from ids to the individual trigger set representatives.
@@ -580,7 +580,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   /**
    * Context dependent size of the deduced disequalities
    */
-  context::CDO<size_t> d_deducedDisequalitiesSize;
+  cvc5::context::CDO<size_t> d_deducedDisequalitiesSize;
 
   /**
    * For each disequality deduced, we add the pairs of equivalences needed to explain it.
@@ -590,12 +590,12 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
   /**
    * Size of the memory for disequality reasons.
    */
-  context::CDO<size_t> d_deducedDisequalityReasonsSize;
+  cvc5::context::CDO<size_t> d_deducedDisequalityReasonsSize;
 
   /**
    * Map from equalities to the tags that have received the notification.
    */
-  typedef context::
+  typedef cvc5::context::
       CDHashMap<EqualityPair, TheoryIdSet, EqualityPairHashFunction>
           PropagatedDisequalitiesMap;
   PropagatedDisequalitiesMap d_propagatedDisequalities;

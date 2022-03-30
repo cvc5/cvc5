@@ -731,7 +731,7 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 }
 }  // namespace symfpuSymbolic
 
-FpWordBlaster::FpWordBlaster(context::UserContext* user)
+FpWordBlaster::FpWordBlaster(cvc5::context::UserContext* user)
     : d_additionalAssertions(user),
       d_fpMap(user),
       d_rmMap(user),

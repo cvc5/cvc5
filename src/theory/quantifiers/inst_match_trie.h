@@ -120,7 +120,7 @@ class InstMatchTrie
 class CDInstMatchTrie
 {
  public:
-  CDInstMatchTrie(context::Context* c) : d_valid(c, false) {}
+  CDInstMatchTrie(cvc5::context::Context* c) : d_valid(c, false) {}
   ~CDInstMatchTrie();
 
   /** exists inst match
@@ -132,7 +132,7 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool existsInstMatch(context::Context* context,
+  bool existsInstMatch(cvc5::context::Context* context,
                        QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
@@ -147,7 +147,7 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool addInstMatch(context::Context* context,
+  bool addInstMatch(cvc5::context::Context* context,
                     QuantifiersState& qs,
                     Node q,
                     const std::vector<Node>& m,
@@ -181,7 +181,7 @@ class CDInstMatchTrie
   /** the data */
   std::map<Node, CDInstMatchTrie*> d_data;
   /** is valid */
-  context::CDO<bool> d_valid;
+  cvc5::context::CDO<bool> d_valid;
 };
 
 /** inst match trie ordered

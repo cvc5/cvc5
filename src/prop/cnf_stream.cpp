@@ -38,7 +38,7 @@ namespace prop {
 CnfStream::CnfStream(Env& env,
                      SatSolver* satSolver,
                      Registrar* registrar,
-                     context::Context* c,
+                     cvc5::context::Context* c,
                      FormulaLitPolicy flpol,
                      std::string name)
     : EnvObj(env),
@@ -220,7 +220,7 @@ const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
 }
 
 void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
-  context::CDList<TNode>::const_iterator it, it_end;
+  cvc5::context::CDList<TNode>::const_iterator it, it_end;
   for (it = d_booleanVariables.begin(); it != d_booleanVariables.end(); ++ it) {
     outputVariables.push_back(*it);
   }
