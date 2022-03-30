@@ -2,7 +2,7 @@ C++ API
 =====================
 
 The C++ API is the primary interface for cvc5 and exposes the full functionality of cvc5.
-The :doc:`quickstart guide <quickstart>` gives a short introduction, while the following class hierarchy of the ``cvc5::api`` namespace provides more details on the individual classes.
+The :doc:`quickstart guide <quickstart>` gives a short introduction, while the following class hierarchy of the ``cvc5`` namespace provides more details on the individual classes.
 For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main entry point to cvc5.
 
 
