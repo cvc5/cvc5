@@ -1266,19 +1266,6 @@ enum class PfRule : uint32_t
   SKOLEM_INTRO,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Existential introduction**
-   *
-   * .. math::
-   *
-   *   \inferrule{F[t]\mid \exists x.\> F[x]}{\exists x.\> F[x]}
-   *
-   * This rule verifies that :math:`F[x]` indeed matches :math:`F[t]` with a
-   * substitution over :math:`x`.
-   * \endverbatim
-   */
-  EXISTS_INTRO,
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Skolemization**
    *
    * .. math::
