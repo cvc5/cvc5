@@ -39,9 +39,9 @@ namespace cvc5::internal {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments). 
+ * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
- * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably. 
+ * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably.
  *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
@@ -1479,24 +1479,24 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
-   * 
+   *
    * An arithmetic literal is a term of the form :math:`p \diamond c` where
    * :math:`\diamond \in \{ <, \leq, =, \geq, > \}`, :math:`p` a
    * polynomial and :math:`c` a rational constant.
    *
    * .. math::
    *   \inferrule{l_1 \dots l_n \mid k_1 \dots k_n}{t_1 \diamond t_2}
-   * 
+   *
    * where :math:`k_i \in \mathbb{R}, k_i \neq 0`, :math:`\diamond` is the
    * fusion of the :math:`\diamond_i` (flipping each if its :math:`k_i` is
    * negative) such that :math:`\diamond_i \in \{ <, \leq \}` (this implies that
    * lower bounds have negative :math:`k_i` and upper bounds have positive
    * :math:`k_i`), :math:`t_1` is the sum of the scaled polynomials and
    * :math:`t_2` is the sum of the scaled constants:
-   * 
+   *
    * .. math::
    *   t_1 \colon= k_1 \cdot p_1 + \cdots + k_n \cdot p_n
-   *   
+   *
    *   t_2 \colon= k_1 \cdot c_1 + \cdots + k_n \cdot c_n
    *
    * \endverbatim
@@ -1505,10 +1505,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
-   * 
+   *
    * .. math::
    *   \inferrule{P_1 \dots P_n \mid -}{L \diamond R}
-   * 
+   *
    * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
    * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
    * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
@@ -1519,10 +1519,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Tighten strict integer upper bounds**
-   * 
+   *
    * .. math::
    *   \inferrule{i < c \mid -}{i \leq \lfloor c \rfloor}
-   * 
+   *
    * where :math:`i` has integer type.
    * \endverbatim
    */
@@ -1530,10 +1530,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Tighten strict integer lower bounds**
-   * 
+   *
    * .. math::
    *   \inferrule{i > c \mid -}{i \geq \lceil c \rceil}
-   * 
+   *
    * where :math:`i` has integer type.
    * \endverbatim
    */
@@ -1541,10 +1541,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Trichotomy of the reals**
-   * 
+   *
    * .. math::
    *   \inferrule{A, B \mid C}{C}
-   * 
+   *
    * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
    * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
    * \endverbatim
@@ -1553,7 +1553,7 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Operator elimination**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
    * \endverbatim
@@ -1562,10 +1562,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Polynomial normalization**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
-   * 
+   *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
    * \endverbatim
    */
@@ -1574,10 +1574,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
-   * 
+   *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
    * :math:`\diamond` is the comparison (less or equal) that results from the
@@ -1590,10 +1590,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication with positive factor**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
-   * 
+   *
    * where :math:`\diamond` is a relation symbol.
    * \endverbatim
    */
@@ -1601,10 +1601,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication with negative factor**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
-   * 
+   *
    * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
    * inverted relation symbol.
    * \endverbatim
@@ -1613,12 +1613,12 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication tangent plane**
-   * 
+   *
    * .. math::
    *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
-   * 
+   *
    *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
-   * 
+   *
    * where :math:`x,y` are real terms (variables or extended terms),
    * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
    * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
@@ -1948,21 +1948,35 @@ enum class PfRule : uint32_t
    */
   ARITH_NL_COVERING_RECURSIVE,
 
-  //================================================ Place holder for Lfsc rules
-  // ======== Lfsc rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- LFSC**
+   *
+   * Place holder for LFSC rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
+   * \endverbatim
+   */
   LFSC_RULE,
-  //================================================ Place holder for Alethe
-  // rules
-  // ======== Alethe rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, Q', A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
-  // where Q' is the representation of Q to be printed by the Alethe printer.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- Alethe**
+   *
+   * Place holder for Alethe rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external Alethe calculus,
+   * and that :math:`Q'` be the representation of Q to be printed by the Alethe
+   * printer.
+   * \endverbatim
+   */
   ALETHE_RULE,
 
   //================================================= Unknown rule
