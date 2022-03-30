@@ -370,7 +370,7 @@ private:
   }
 
   /**
-   * Very basic pretty printer for Node.
+   * Very basic pretty printer for TypeNode.
    *
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -604,6 +604,12 @@ private:
   bool isInstantiatedDatatype() const;
 
   /**
+   * Is this an uninterpreted sort constructed from instantiating an
+   * uninterpreted sort constructor?
+   */
+  bool isInstantiatedUninterpretedSort() const;
+
+  /**
    * Return true if this is an instantiated parametric datatype or
    * uninterpreted sort constructor type.
    */
@@ -613,17 +619,25 @@ private:
   bool isSygusDatatype() const;
 
   /**
-   * Get instantiated datatype type. The type on which this method is called
-   * should be a parametric datatype whose parameter list is the same size as
-   * argument params. This constructs the instantiated version of this
-   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
-   * method returns (List Int).
+   * Instantiate parametric type (parametric datatype or uninterpreted sort
+   * constructor type).
+   *
+   * The parameter list of this type must be the same size as the list of
+   * argument parameters `params`.
+   *
+   * If this TypeNode is a parametric datatype, this constructs the
+   * instantiated version of this parametric datatype. For example, passing
+   * (par (A) (List A)), { Int } ) to this method returns (List Int).
+   *
+   * If this is an uninterpreted sort constructor type, this constructs the
+   * instantiated version of this sort constructor. For example, for a sort
+   * constructor declared via (declare-sort U 2), passing { Int, Int } will
+   * generate the instantiated sort (U Int Int).
    */
-  TypeNode instantiateParametricDatatype(
-      const std::vector<TypeNode>& params) const;
+  TypeNode instantiate(const std::vector<TypeNode>& params) const;
 
   /** Is this an instantiated datatype parameter */
-  bool isParameterInstantiatedDatatype(unsigned n) const;
+  bool isParameterInstantiatedDatatype(size_t n) const;
 
   /** Is this a constructor type */
   bool isConstructor() const;
@@ -664,15 +678,12 @@ private:
   std::string getName() const;
 
   /**
-   * Instantiate a sort constructor type. The type on which this method is
-   * called should be a sort constructor type whose parameter list is the
-   * same size as argument params. This constructs the instantiated version of
-   * this sort constructor. For example, this is a sort constructor, e.g.
-   * declared via (declare-sort U 2), then calling this method with
-   * { Int, Int } will generate the instantiated sort (U Int Int).
+   * Get the uninterpreted sort constructor type this instantiated
+   * uninterpreted sort has been constructed from.
+   *
+   * Asserts that this is an instantiated uninterpreted sort.
    */
-  TypeNode instantiateSortConstructor(
-      const std::vector<TypeNode>& params) const;
+  TypeNode getUninterpretedSortConstructor() const;
 
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;

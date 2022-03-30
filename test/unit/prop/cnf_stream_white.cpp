@@ -29,7 +29,7 @@
 
 namespace cvc5::internal {
 
-using namespace context;
+using namespace cvc5::context;
 using namespace prop;
 using namespace smt;
 using namespace theory;
@@ -109,7 +109,7 @@ class TestPropWhiteCnfStream : public TestSmt
     TestSmt::SetUp();
     d_theoryEngine = d_slvEngine->getTheoryEngine();
     d_satSolver.reset(new FakeSatSolver());
-    d_cnfContext.reset(new context::Context());
+    d_cnfContext.reset(new Context());
     d_cnfRegistrar.reset(new prop::NullRegistrar);
     d_cnfStream.reset(new prop::CnfStream(d_slvEngine->getEnv(),
                                           d_satSolver.get(),

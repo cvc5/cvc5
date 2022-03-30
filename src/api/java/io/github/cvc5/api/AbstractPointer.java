@@ -41,7 +41,8 @@ abstract class AbstractPointer implements IPointer
     return solver;
   }
 
-  @Override public String toString()
+  @Override
+  public String toString()
   {
     return toString(pointer);
   }

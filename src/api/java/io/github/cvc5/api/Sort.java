@@ -39,7 +39,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * @param s the sort to compare to
    * @return true if the sorts are equal
    */
-  @Override public boolean equals(Object s)
+  @Override
+  public boolean equals(Object s)
   {
     if (this == s)
       return true;
@@ -62,7 +63,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * @return a negative integer, zero, or a positive integer as this sort
    * is less than, equal to, or greater than the specified sort.
    */
-  @Override public int compareTo(Sort s)
+  @Override
+  public int compareTo(Sort s)
   {
     return this.compareTo(pointer, s.getPointer());
   }
@@ -378,6 +380,20 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isInstantiated(long pointer);
+
+  /**
+   * Get the associated uninterpreted sort constructor of an instantiated
+   * uninterpreted sort.
+   *
+   * @return the uninterpreted sort constructor sort
+   */
+  public Sort getUninterpretedSortConstructor()
+  {
+    long sortPointer = getUninterpretedSortConstructor(pointer);
+    return new Sort(solver, sortPointer);
+  }
+
+  private native long getUninterpretedSortConstructor(long pointer);
 
   /**
    * @return the underlying datatype of a datatype sort

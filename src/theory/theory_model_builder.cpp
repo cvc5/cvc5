@@ -28,7 +28,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -527,8 +527,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           }
           else
           {
-            warning() << "Model values in the same equivalence class "
-                      << constRep << " " << n << std::endl;
+            // This is currently a trace message, as it often triggers for
+            // non-linear arithmetic before the model is refined enough to
+            // e.g. show transcendental function apps are not equal to rationals
+            Trace("model-warn") << "Model values in the same equivalence class "
+                                << constRep << " " << n << std::endl;
             if (!constRepBaseModelValue)
             {
               assignConstRep = isBaseValue;
