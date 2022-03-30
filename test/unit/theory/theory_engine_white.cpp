@@ -37,7 +37,7 @@ namespace cvc5::internal {
 
 using namespace theory;
 using namespace expr;
-using namespace context;
+using namespace cvc5::context;
 using namespace kind;
 using namespace theory::bv;
 

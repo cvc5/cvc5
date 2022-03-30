@@ -21,7 +21,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/uf/equality_engine_iterator.h"
 
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {

@@ -124,7 +124,7 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
-                          cvc5::internal::context::UserContext* userContext,
+                          context::UserContext* userContext,
                           ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;

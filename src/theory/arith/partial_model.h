@@ -33,10 +33,10 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -235,25 +235,25 @@ private:
 
 
 public:
+ ArithVariables(context::Context* c, DeltaComputeCallback deltaComputation);
 
-  ArithVariables(context::Context* c, DeltaComputeCallback deltaComputation);
+ /**
+  * This sets the lower bound for a variable in the current context.
+  * This must be stronger the previous constraint.
+  */
+ void setLowerBoundConstraint(ConstraintP lb);
 
-  /**
-   * This sets the lower bound for a variable in the current context.
-   * This must be stronger the previous constraint.
-   */
-  void setLowerBoundConstraint(ConstraintP lb);
+ /**
+  * This sets the upper bound for a variable in the current context.
+  * This must be stronger the previous constraint.
+  */
+ void setUpperBoundConstraint(ConstraintP ub);
 
-  /**
-   * This sets the upper bound for a variable in the current context.
-   * This must be stronger the previous constraint.
-   */
-  void setUpperBoundConstraint(ConstraintP ub);
-
-  /** Returns the constraint for the upper bound of a variable. */
-  inline ConstraintP getUpperBoundConstraint(ArithVar x) const{
-    return d_vars[x].d_ub;
-  }
+ /** Returns the constraint for the upper bound of a variable. */
+ inline ConstraintP getUpperBoundConstraint(ArithVar x) const
+ {
+   return d_vars[x].d_ub;
+ }
   /** Returns the constraint for the lower bound of a variable. */
   inline ConstraintP getLowerBoundConstraint(ArithVar x) const{
     return d_vars[x].d_lb;
