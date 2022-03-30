@@ -95,9 +95,9 @@ function theory {
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
   elif ! expr "$2" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::cvc5::theory::foo)" >&2
-  elif ! expr "$2" : '\(::cvc5::theory::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class not under ::cvc5::theory namespace" >&2
+    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::cvc5::internal::theory::foo)" >&2
+  elif ! expr "$2" : '\(::cvc5::internal::theory::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: theory class not under ::cvc5::internal::theory namespace" >&2
   fi
 }
 
@@ -229,7 +229,7 @@ template <> $2 const & Expr::getConst< $2 >() const;
 "
   getConst_implementations="${getConst_implementations}
 template <> $2 const & Expr::getConst() const {
-  PrettyCheckArgument(getKind() == ::cvc5::kind::$1, *this, \"Improper kind for getConst<$2>()\");
+  PrettyCheckArgument(getKind() == ::cvc5::internal::kind::$1, *this, \"Improper kind for getConst<$2>()\");
   return d_node->getConst< $2 >();
 }
 "

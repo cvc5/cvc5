@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols --interpols-mode=conjecture --sygus-enum=fast --check-interpols
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=conjecture --sygus-enum=fast --check-interpolants
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic ALL)
@@ -24,4 +24,4 @@
 (declare-fun op@2 () (_ BitVec 4))
 (declare-fun witness_0@2 () Bool)
 (assert (and (and (and (and true (= counter@0 (_ bv0 16))) witness_0@0) (= cfg@0 (_ bv1 1))) (and (and (and (and true (= witness_0@1 (not (= (bvand (ite (bvugt counter@0 ((_ zero_extend 15) (_ bv0 1))) (_ bv1 1) (_ bv0 1)) (bvnot (ite (bvugt counter@0 ((_ zero_extend 15) (_ bv0 1))) (bvcomp (ite (not (distinct op@0 (_ bv0 4))) (bvadd a@0 b@0) (bvsub a@0 b@0)) (bvadd a@0 b@0)) input14@0))) (_ bv1 1))))) (= op@1 (ite (= cfg@0 (_ bv1 1)) (_ bv0 4) op@0))) (= counter@1 (bvadd counter@0 ((_ zero_extend 15) (_ bv1 1))))) (= cfg@1 (_ bv0 1)))))
-(get-interpol I (not (and (and true (and (and (and (and true (= witness_0@2 (not (= (bvand (ite (bvugt counter@1 ((_ zero_extend 15) (_ bv0 1))) (_ bv1 1) (_ bv0 1)) (bvnot (ite (bvugt counter@1 ((_ zero_extend 15) (_ bv0 1))) (bvcomp (ite (not (distinct op@1 (_ bv0 4))) (bvadd a@1 b@1) (bvsub a@1 b@1)) (bvadd a@1 b@1)) input14@1))) (_ bv1 1))))) (= op@2 (ite (= cfg@1 (_ bv1 1)) (_ bv0 4) op@1))) (= counter@2 (bvadd counter@1 ((_ zero_extend 15) (_ bv1 1))))) (= cfg@2 (_ bv0 1)))) (not witness_0@2))))
+(get-interpolant I (not (and (and true (and (and (and (and true (= witness_0@2 (not (= (bvand (ite (bvugt counter@1 ((_ zero_extend 15) (_ bv0 1))) (_ bv1 1) (_ bv0 1)) (bvnot (ite (bvugt counter@1 ((_ zero_extend 15) (_ bv0 1))) (bvcomp (ite (not (distinct op@1 (_ bv0 4))) (bvadd a@1 b@1) (bvsub a@1 b@1)) (bvadd a@1 b@1)) input14@1))) (_ bv1 1))))) (= op@2 (ite (= cfg@1 (_ bv1 1)) (_ bv0 4) op@1))) (= counter@2 (bvadd counter@1 ((_ zero_extend 15) (_ bv1 1))))) (= cfg@2 (_ bv0 1)))) (not witness_0@2))))

@@ -33,7 +33,7 @@ namespace CMSat {
   class SATSolver;
 }
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class CryptoMinisatSolver : public SatSolver
@@ -115,7 +115,7 @@ class CryptoMinisatSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5_USE_CRYPTOMINISAT
 #endif  // CVC5__PROP__CRYPTOMINISAT_H

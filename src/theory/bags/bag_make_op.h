@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -58,6 +58,6 @@ struct BagMakeOpHashFunction
   size_t operator()(const BagMakeOp& op) const;
 }; /* struct BagMakeOpHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BAG_MAKE_OP_H */

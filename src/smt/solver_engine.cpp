@@ -74,13 +74,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace cvc5::smt;
-using namespace cvc5::preprocessing;
-using namespace cvc5::prop;
-using namespace cvc5::context;
-using namespace cvc5::theory;
+using namespace cvc5::internal::smt;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::prop;
+using namespace cvc5::internal::context;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
@@ -220,7 +220,7 @@ void SolverEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
-  if (d_env->getOptions().smt.interpols)
+  if (d_env->getOptions().smt.interpolants)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
@@ -1010,7 +1010,7 @@ std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
 
 std::vector<Node> SolverEngine::getModelDomainElements(TypeNode tn) const
 {
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   TheoryModel* m = getAvailableModel("getModelDomainElements");
   return m->getDomainElements(tn);
 }
@@ -1643,7 +1643,7 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   Node interpol;
   bool success =
       d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
-  // notify the state of whether the get-interpol call was successfuly, which
+  // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
   Assert(success == !interpol.isNull());
@@ -1657,12 +1657,13 @@ Node SolverEngine::getInterpolantNext()
   if (d_state->getMode() != SmtMode::INTERPOL)
   {
     throw RecoverableModalException(
-        "Cannot get-interpol-next unless immediately preceded by a successful "
-        "call to get-interpol(-next).");
+        "Cannot get-interpolant-next unless immediately preceded by a "
+        "successful "
+        "call to get-interpolant(-next).");
   }
   Node interpol;
   bool success = d_interpolSolver->getInterpolantNext(interpol);
-  // notify the state of whether the get-interpolant-next call was successful
+  // notify the state of whether the get-interpolantant-next call was successful
   d_state->notifyGetInterpol(success);
   Assert(success == !interpol.isNull());
   return interpol;
@@ -1883,4 +1884,4 @@ const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

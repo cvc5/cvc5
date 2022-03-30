@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "expr/node_converter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * This converts a node into one that does not involve annotations for
@@ -36,6 +36,6 @@ class AnnotationElimNodeConverter : public NodeConverter
   Node postConvert(Node n) override;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

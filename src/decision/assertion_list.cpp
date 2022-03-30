@@ -15,7 +15,7 @@
 
 #include "decision/assertion_list.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 const char* toString(DecisionStatus s)
@@ -132,4 +132,4 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
 }
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal

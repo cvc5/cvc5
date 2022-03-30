@@ -41,7 +41,7 @@
 #include "util/resource_manager.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 /** Keeps a boolean flag scoped */
@@ -364,7 +364,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
-    return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
+    return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
 
   // Reset the interrupted flag
@@ -388,14 +388,14 @@ Result PropEngine::checkSat() {
 
   if( result == SAT_VALUE_UNKNOWN ) {
     ResourceManager* rm = resourceManager();
-    Result::UnknownExplanation why = Result::INTERRUPTED;
+    UnknownExplanation why = UnknownExplanation::INTERRUPTED;
     if (rm->outOfTime())
     {
-      why = Result::TIMEOUT;
+      why = UnknownExplanation::TIMEOUT;
     }
     if (rm->outOfResources())
     {
-      why = Result::RESOURCEOUT;
+      why = UnknownExplanation::RESOURCEOUT;
     }
     return Result(Result::UNKNOWN, why);
   }
@@ -407,7 +407,7 @@ Result PropEngine::checkSat() {
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
-    return Result(Result::UNKNOWN, Result::INCOMPLETE);
+    return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
@@ -688,4 +688,4 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

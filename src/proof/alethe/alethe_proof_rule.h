@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -428,6 +428,6 @@ AletheRule getAletheRule(Node n);
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */

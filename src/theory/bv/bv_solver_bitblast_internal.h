@@ -24,7 +24,7 @@
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -85,6 +85,6 @@ class BVSolverBitblastInternal : public BVSolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

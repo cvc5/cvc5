@@ -17,7 +17,7 @@
 #include "expr/node.h"
 #include "theory/uf/equality_engine_types.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class CDProof;
 
@@ -354,4 +354,4 @@ class EqProof
 
 }  // Namespace eq
 }  // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

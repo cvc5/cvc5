@@ -19,10 +19,10 @@
 #include "smt/env.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 DifficultyPostprocessCallback::DifficultyPostprocessCallback()
@@ -74,4 +74,4 @@ void DifficultyPostprocessCallback::getDifficultyMap(
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

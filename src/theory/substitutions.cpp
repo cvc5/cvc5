@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SubstitutionMap::SubstitutionMap(context::Context* context)
@@ -255,4 +255,4 @@ std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::itera
   return out << "[CDMap-iterator]";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

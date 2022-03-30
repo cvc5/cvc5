@@ -111,10 +111,13 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native int getNumConstructors(long pointer);
 
   /**
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return the parameters of this datatype, if it is parametric. An exception
    * is thrown if this datatype is not parametric.
    */
-  public Sort[] getParameters() {
+  public Sort[] getParameters()
+  {
     long[] sortPointers = getParameters(pointer);
     Sort[] sorts = Utils.getSorts(solver, sortPointers);
     return sorts;
@@ -122,7 +125,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native long[] getParameters(long pointer);
 
-  /** @return true if this datatype is parametric */
+  /**
+   * @apiNote This method is experimental and may change in future versions.
+   *
+   * @return true if this datatype is parametric
+   */
   public boolean isParametric()
   {
     return isParametric(pointer);
@@ -146,7 +153,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isTuple(long pointer);
 
-  /** @return true if this datatype corresponds to a record */
+  /**
+   * @apiNote This method is experimental and may change in future versions.
+   *
+   * @return true if this datatype corresponds to a record
+   */
   public boolean isRecord()
   {
     return isRecord(pointer);

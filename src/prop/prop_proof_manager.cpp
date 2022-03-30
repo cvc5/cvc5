@@ -20,7 +20,7 @@
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 PropPfManager::PropPfManager(context::UserContext* userContext,
@@ -110,4 +110,4 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

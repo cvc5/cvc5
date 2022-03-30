@@ -22,8 +22,7 @@
 #ifndef CVC5__MAIN__MAIN_H
 #define CVC5__MAIN__MAIN_H
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 
 class CommandExecutor;
 
@@ -34,7 +33,7 @@ extern const char* progPath;
 extern std::string progName;
 
 /** A reference for use by the signal handlers to print statistics */
-extern std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
+extern std::unique_ptr<CommandExecutor> pExecutor;
 
 /**
  * If true, will not spin on segfault even when CVC5_DEBUG is on.
@@ -43,10 +42,9 @@ extern std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
  */
 extern bool segvSpin;
 
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main
 
 /** Actual cvc5 driver functions **/
-int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::api::Solver>&);
+int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>&);
 
 #endif /* CVC5__MAIN__MAIN_H */

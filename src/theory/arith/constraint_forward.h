@@ -26,7 +26,7 @@
 
 #include "cvc5_private.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -48,6 +48,6 @@ static constexpr RationalVectorP RationalVectorPSentinel = nullptr;
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H */

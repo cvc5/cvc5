@@ -23,7 +23,7 @@
 #include "theory/strings/rewrites.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -91,6 +91,6 @@ class SequencesStatistics
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SEQUENCES_STATS_H */

@@ -16,8 +16,7 @@
 #ifndef CVC5__MAIN__SIGNAL_HANDLERS_H
 #define CVC5__MAIN__SIGNAL_HANDLERS_H
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 namespace signal_handlers {
 
 /**
@@ -39,7 +38,6 @@ void install();
 void cleanup();
 
 }  // namespace signal_handlers
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main
 
 #endif /* CVC5__MAIN__SIGNAL_HANDLERS_H */

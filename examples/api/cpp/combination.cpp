@@ -22,7 +22,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 {

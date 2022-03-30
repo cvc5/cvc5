@@ -26,7 +26,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using SymFPUUnpackedFloatLiteral =
     ::symfpu::unpackedFloat<symfpuLiteral::traits>;
@@ -221,6 +221,6 @@ class FloatingPointLiteral
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
