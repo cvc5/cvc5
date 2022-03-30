@@ -20,7 +20,7 @@
 
 #include "context/context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 
 /**
@@ -170,6 +170,6 @@ public:
 };/* class CDO */
 
 }  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CONTEXT__CDO_H */

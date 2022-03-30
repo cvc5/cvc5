@@ -15,7 +15,7 @@
 
 #include "theory/care_pair_argument_callback.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 CarePairArgumentCallback::CarePairArgumentCallback(Theory& t) : d_theory(t) {}
@@ -32,4 +32,4 @@ void CarePairArgumentCallback::processData(TNode fa, TNode fb)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

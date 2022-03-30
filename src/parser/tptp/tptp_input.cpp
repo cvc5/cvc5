@@ -64,7 +64,7 @@ Command* TptpInput::parseCommand() {
   return d_pTptpParser->parseCommand(d_pTptpParser);
 }
 
-api::Term TptpInput::parseExpr()
+cvc5::Term TptpInput::parseExpr()
 {
   return d_pTptpParser->parseExpr(d_pTptpParser);
 }

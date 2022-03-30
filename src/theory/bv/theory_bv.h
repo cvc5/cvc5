@@ -23,7 +23,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofRuleChecker;
 
@@ -137,6 +137,6 @@ class TheoryBV : public Theory
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BV__THEORY_BV_H */

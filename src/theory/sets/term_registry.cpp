@@ -19,9 +19,9 @@
 #include "expr/skolem_manager.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -151,4 +151,4 @@ void TermRegistry::sendSimpleLemmaInternal(Node n, InferenceId id)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

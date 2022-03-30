@@ -19,7 +19,7 @@
 #include "base/exception.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackException : public TestInternal
@@ -51,4 +51,4 @@ TEST_F(TestUtilBlackException, exceptions)
   ASSERT_EQ(s3.str(), std::string("three of 'em!"));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

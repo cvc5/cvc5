@@ -25,7 +25,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofGenerator;
 namespace smt {
@@ -206,6 +206,6 @@ class AssertionPipeline : protected EnvObj
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__ASSERTION_PIPELINE_H */

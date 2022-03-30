@@ -35,7 +35,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -316,6 +316,6 @@ class CnfStream : protected EnvObj
 }; /* class CnfStream */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP__CNF_STREAM_H */

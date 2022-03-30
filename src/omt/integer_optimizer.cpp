@@ -18,8 +18,8 @@
 #include "options/smt_options.h"
 #include "smt/solver_engine.h"
 
-using namespace cvc5::smt;
-namespace cvc5::omt {
+using namespace cvc5::internal::smt;
+namespace cvc5::internal::omt {
 
 OptimizationResult OMTOptimizerInteger::optimize(SolverEngine* optChecker,
                                                  TNode target,
@@ -82,4 +82,4 @@ OptimizationResult OMTOptimizerInteger::maximize(SolverEngine* optChecker,
   return this->optimize(optChecker, target, false);
 }
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt

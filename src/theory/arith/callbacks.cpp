@@ -22,7 +22,7 @@
 #include "proof/proof_node.h"
 #include "theory/arith/theory_arith_private.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -209,4 +209,4 @@ BoundCounts BoundCountingLookup::hasBounds(ArithVar basic) const {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

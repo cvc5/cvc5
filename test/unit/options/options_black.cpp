@@ -20,9 +20,7 @@
 #include "options/options_public.h"
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -170,4 +168,4 @@ TEST_F(TestBlackOptions, set)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -21,7 +21,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -102,5 +102,5 @@ Node normalizePvEqual(Node pv,
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

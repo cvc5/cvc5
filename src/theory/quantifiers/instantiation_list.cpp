@@ -19,7 +19,7 @@
 #include "options/io_utils.h"
 #include "printer/printer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 InstantiationVec::InstantiationVec(const std::vector<Node>& vec,
                                    theory::InferenceId id,
@@ -43,4 +43,4 @@ std::ostream& operator<<(std::ostream& out, const SkolemList& skl)
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -27,7 +27,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace poly_utils {
 
 namespace {
@@ -353,6 +353,6 @@ void getVariableInformation(VariableInformation& vi,
 }
 
 }  // namespace poly_utils
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

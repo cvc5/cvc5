@@ -18,9 +18,9 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 const char* toString(LfscRule id)
@@ -88,4 +88,4 @@ bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

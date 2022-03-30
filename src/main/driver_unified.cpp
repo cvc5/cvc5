@@ -40,11 +40,11 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace cvc5;
+using namespace cvc5::internal;
 using namespace cvc5::parser;
-using namespace cvc5::main;
+using namespace cvc5::internal::main;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace main {
 
 /** Full argv[0] */
@@ -54,12 +54,12 @@ const char* progPath;
 std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
-std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
+std::unique_ptr<cvc5::internal::main::CommandExecutor> pExecutor;
 
 }  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
-int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
+int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 {
   // Initialize the signal handlers
   signal_handlers::install();
@@ -68,7 +68,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
-  api::DriverOptions dopts = solver->getDriverOptions();
+  cvc5::DriverOptions dopts = solver->getDriverOptions();
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
@@ -154,8 +154,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    TraceChannel.setStream(&cvc5::null_os);
-    WarningChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::internal::null_os);
+    WarningChannel.setStream(&cvc5::internal::null_os);
   }
 
   int returnValue = 0;
@@ -163,7 +163,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    std::unique_ptr<Command> cmd;
+    std::unique_ptr<cvc5::Command> cmd;
     bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
@@ -228,7 +228,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       while (status)
       {
         if (interrupted) {
-          dopts.out() << CommandInterrupted();
+          dopts.out() << cvc5::CommandInterrupted();
           pExecutor->reset();
           break;
         }
@@ -241,13 +241,14 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           break;
         }
 
-        if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
+        if (dynamic_cast<cvc5::QuitCommand*>(cmd.get()) != nullptr)
+        {
           break;
         }
       }
     }
 
-    api::Result result;
+    cvc5::Result result;
     if(status) {
       result = pExecutor->getResult();
       returnValue = 0;
