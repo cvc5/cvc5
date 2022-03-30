@@ -988,23 +988,9 @@ bool Result::operator!=(const Result& r) const
   return *d_result != *r.d_result;
 }
 
-Result::UnknownExplanation Result::getUnknownExplanation(void) const
+UnknownExplanation Result::getUnknownExplanation(void) const
 {
-  internal::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
-  switch (expl)
-  {
-    case internal::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
-    case internal::Result::INCOMPLETE: return INCOMPLETE;
-    case internal::Result::TIMEOUT: return TIMEOUT;
-    case internal::Result::RESOURCEOUT: return RESOURCEOUT;
-    case internal::Result::MEMOUT: return MEMOUT;
-    case internal::Result::INTERRUPTED: return INTERRUPTED;
-    case internal::Result::NO_STATUS: return NO_STATUS;
-    case internal::Result::UNSUPPORTED: return UNSUPPORTED;
-    case internal::Result::OTHER: return OTHER;
-    default: return UNKNOWN_REASON;
-  }
-  return UNKNOWN_REASON;
+  return d_result->getUnknownExplanation();
 }
 
 std::string Result::toString(void) const { return d_result->toString(); }
@@ -1012,25 +998,6 @@ std::string Result::toString(void) const { return d_result->toString(); }
 std::ostream& operator<<(std::ostream& out, const Result& r)
 {
   out << r.toString();
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
-{
-  switch (e)
-  {
-    case Result::REQUIRES_FULL_CHECK: out << "REQUIRES_FULL_CHECK"; break;
-    case Result::INCOMPLETE: out << "INCOMPLETE"; break;
-    case Result::TIMEOUT: out << "TIMEOUT"; break;
-    case Result::RESOURCEOUT: out << "RESOURCEOUT"; break;
-    case Result::MEMOUT: out << "MEMOUT"; break;
-    case Result::INTERRUPTED: out << "INTERRUPTED"; break;
-    case Result::NO_STATUS: out << "NO_STATUS"; break;
-    case Result::UNSUPPORTED: out << "UNSUPPORTED"; break;
-    case Result::OTHER: out << "OTHER"; break;
-    case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
-    default: Unhandled() << e;
-  }
   return out;
 }
 
@@ -1419,6 +1386,18 @@ bool Sort::isUninterpretedSortConstructor() const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Sort::getUninterpretedSortConstructor() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_type->isInstantiatedUninterpretedSort())
+      << "Expected instantiated uninterpreted sort.";
+  //////// all checks before this line
+  return Sort(d_solver, d_type->getUninterpretedSortConstructor());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1457,12 +1436,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
       << "Arity mismatch for instantiated sort constructor";
   //////// all checks before this line
   std::vector<internal::TypeNode> tparams = sortVectorToTypeNodes(params);
-  if (d_type->isDatatype())
-  {
-    return Sort(d_solver, d_type->instantiateParametricDatatype(tparams));
-  }
-  Assert(d_type->isUninterpretedSortConstructor());
-  return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
+  return Sort(d_solver, d_type->instantiate(tparams));
   ////////
   CVC5_API_TRY_CATCH_END;
 }

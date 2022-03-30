@@ -648,11 +648,10 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     if (paramTypes[i].getUninterpretedSortConstructorArity()
         == origChildren.size())
     {
-      TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
+      TypeNode tn = paramTypes[i].instantiate(origChildren);
       if (range == tn)
       {
-        TypeNode tret =
-            paramReplacements[i].instantiateParametricDatatype(children);
+        TypeNode tret = paramReplacements[i].instantiate(children);
         return tret;
       }
     }
