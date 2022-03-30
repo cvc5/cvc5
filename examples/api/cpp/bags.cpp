@@ -89,10 +89,10 @@ int main()
     Term b = slv.mkString("b");
     Term c = slv.mkString("c");
 
-    Term bag_a_2 = slv.mkTerm(MAKE_BAG, {a, two});
-    Term bag_b_3 = slv.mkTerm(MAKE_BAG, {b, three});
-    Term bag_b_1 = slv.mkTerm(MAKE_BAG, {b, one});
-    Term bag_c_2 = slv.mkTerm(MAKE_BAG, {b, two});
+    Term bag_a_2 = slv.mkTerm(BAG_MAKE, {a, two});
+    Term bag_b_3 = slv.mkTerm(BAG_MAKE, {b, three});
+    Term bag_b_1 = slv.mkTerm(BAG_MAKE, {b, one});
+    Term bag_c_2 = slv.mkTerm(BAG_MAKE, {b, two});
     Term bag_a_2_b_3 = slv.mkTerm(BAG_UNION_DISJOINT, {bag_a_2, bag_b_3});
     Term bag_b_1_c_2 =
         slv.mkTerm(BAG_UNION_DISJOINT, {bag_a_2_b_3, bag_b_1_c_2});
