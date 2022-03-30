@@ -265,8 +265,8 @@ int main(int argc, char* argv[])
     options.setInputLanguage(language::input::LANG_SMTLIB_V2);
     cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     // cout << Expr::dag(0);
-    std::unique_ptr<api::Solver> solver =
-        std::unique_ptr<api::Solver>(new api::Solver(&options));
+    std::unique_ptr<Solver> solver =
+        std::unique_ptr<Solver>(new Solver(&options));
 
     Mapper m(solver->getExprManager());
 

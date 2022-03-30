@@ -23,7 +23,7 @@
 
 #include "proof/proof_node_updater.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /**
@@ -83,6 +83,6 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
@@ -89,6 +89,6 @@ class DifficultyManager
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DIFFICULTY_MANAGER__H */

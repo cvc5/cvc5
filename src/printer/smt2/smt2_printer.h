@@ -20,7 +20,7 @@
 
 #include "printer/printer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LetBinding;
 
@@ -34,16 +34,16 @@ enum Variant
                    // support for the string standard
 };                 /* enum Variant */
 
-class Smt2Printer : public cvc5::Printer
+class Smt2Printer : public cvc5::internal::Printer
 {
  public:
   Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
-  using cvc5::Printer::toStream;
+  using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
                 size_t dag) const override;
-  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Writes the unsat core to the stream out.
@@ -248,11 +248,13 @@ class Smt2Printer : public cvc5::Printer
 
   /** Print command sequence command */
   void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
+      std::ostream& out,
+      const std::vector<cvc5::Command*>& sequence) const override;
 
   /** Print declaration sequence command */
   void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
+      std::ostream& out,
+      const std::vector<cvc5::Command*>& sequence) const override;
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in
@@ -318,6 +320,6 @@ class Smt2Printer : public cvc5::Printer
 
 }  // namespace smt2
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__SMT2_PRINTER_H */

@@ -18,7 +18,7 @@
 #include "test.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilWhiteInteger : public TestInternal
@@ -52,4 +52,4 @@ TEST_F(TestUtilWhiteInteger, construction)
   ASSERT_EQ(Integer(u), Integer(u));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

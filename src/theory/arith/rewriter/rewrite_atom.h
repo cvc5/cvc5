@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/arith/rewriter/addition.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -90,6 +90,6 @@ Node buildRealInequality(Sum&& sum, Kind k);
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

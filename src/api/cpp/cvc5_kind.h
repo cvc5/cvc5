@@ -20,7 +20,7 @@
 
 #include <ostream>
 
-namespace cvc5::api {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -32,12 +32,12 @@ namespace cvc5::api {
  *
  * \internal
  *
- * Note that the API type `cvc5::api::Kind` roughly corresponds to
- * `cvc5::Kind`, but is a different type. It hides internal kinds that should
+ * Note that the API type `cvc5::Kind` roughly corresponds to
+ * `cvc5::internal::Kind`, but is a different type. It hides internal kinds that should
  * not be exported to the API, and maps all kinds that we want to export to its
- * corresponding internal kinds. The underlying type of `cvc5::api::Kind` must
+ * corresponding internal kinds. The underlying type of `cvc5::Kind` must
  * be signed (to enable range checks for validity). The size of this type
- * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
+ * depends on the size of `cvc5::internal::Kind` (`NodeValue::NBITS_KIND`, currently 10
  * bits, see expr/node_value.h).
  */
 enum Kind : int32_t
@@ -1514,7 +1514,7 @@ enum Kind : int32_t
    * RoundingMode constant.
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkRoundingMode(RoundingMode rm) const
+   *   - Solver::mkRoundingMode(RoundingMode) const
    */
   CONST_ROUNDINGMODE,
   /**
@@ -2275,7 +2275,7 @@ enum Kind : int32_t
    * \rst
    * .. code:: smtlib
    *
-   *     ((_ tuple_project 1 2 2 3 1) (tuple 10 20 30 40))
+   *     ((_ tuple.project 1 2 2 3 1) (tuple 10 20 30 40))
    * \endrst
    * yields
    * \rst
@@ -2797,8 +2797,8 @@ enum Kind : int32_t
    *   - 1..2: Terms of bag sort (Bag E), [1] an element of sort E
    *
    * Create with:
-   *   - Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
-   *   - Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
+   *   - Solver::mkTerm(Kind, const Term&, const Term&) const
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    */
   BAG_COUNT,
   /**
@@ -4180,20 +4180,20 @@ std::string kindToString(Kind k) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace std {
 
 /**
  * Hash function for Kinds.
  */
-template<>
-struct CVC5_EXPORT hash<cvc5::api::Kind>
+template <>
+struct CVC5_EXPORT hash<cvc5::Kind>
 {
   /**
    * Hashes a Kind to a size_t.
    */
-  size_t operator()(cvc5::api::Kind k) const;
+  size_t operator()(cvc5::Kind k) const;
 };
 
 }

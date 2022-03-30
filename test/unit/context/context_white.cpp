@@ -17,7 +17,7 @@
 #include "context/cdo.h"
 #include "test_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace context;
 
@@ -179,4 +179,4 @@ TEST_F(TestContextWhite, simple)
   ASSERT_EQ(c.d_ppContextObjPrev, &s->d_pContextObjList);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

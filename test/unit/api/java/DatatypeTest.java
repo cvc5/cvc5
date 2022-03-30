@@ -28,17 +28,20 @@ class DatatypeTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void mkDatatypeSort() throws CVC5ApiException
+  @Test
+  void mkDatatypeSort() throws CVC5ApiException
   {
     DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
@@ -55,7 +58,8 @@ class DatatypeTest
     assertDoesNotThrow(() -> nilConstr.getConstructorTerm());
   }
 
-  @Test void mkDatatypeSorts() throws CVC5ApiException
+  @Test
+  void mkDatatypeSorts() throws CVC5ApiException
   {
     /* Create two mutual datatypes corresponding to this definition
      * block:
@@ -122,7 +126,8 @@ class DatatypeTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(dtdeclsBad));
   }
 
-  @Test void datatypeStructs() throws CVC5ApiException
+  @Test
+  void datatypeStructs() throws CVC5ApiException
   {
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
@@ -194,7 +199,8 @@ class DatatypeTest
     assertTrue(dtRecord.isWellFounded());
   }
 
-  @Test void datatypeNames() throws CVC5ApiException
+  @Test
+  void datatypeNames() throws CVC5ApiException
   {
     Sort intSort = d_solver.getIntegerSort();
 
@@ -231,7 +237,8 @@ class DatatypeTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getNullDatatypeDecl().getName());
   }
 
-  @Test void parametricDatatype() throws CVC5ApiException
+  @Test
+  void parametricDatatype() throws CVC5ApiException
   {
     List<Sort> v = new ArrayList<>();
     Sort t1 = d_solver.mkParamSort("T1");
@@ -276,7 +283,8 @@ class DatatypeTest
     assertNotEquals(pairIntReal, pairRealInt);
   }
 
-  @Test void datatypeIsFinite() throws CVC5ApiException
+  @Test
+  void datatypeIsFinite() throws CVC5ApiException
   {
     List<Sort> v = new ArrayList<>();
     DatatypeDecl dtypedecl = d_solver.mkDatatypeDecl("dt", v);
@@ -296,7 +304,8 @@ class DatatypeTest
     assertThrows(CVC5ApiException.class, () -> pdtype.getDatatype().isFinite());
   }
 
-  @Test void datatypeSimplyRec() throws CVC5ApiException
+  @Test
+  void datatypeSimplyRec() throws CVC5ApiException
   {
     /* Create mutual datatypes corresponding to this definition block:
      *
@@ -495,7 +504,8 @@ class DatatypeTest
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
   }
 
-  @Test void datatypeSpecializedCons() throws CVC5ApiException
+  @Test
+  void datatypeSpecializedCons() throws CVC5ApiException
   {
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -541,12 +551,10 @@ class DatatypeTest
 
     AtomicReference<Term> atomicTerm = new AtomicReference<>();
     // get the specialized constructor term for list[Int]
-    assertDoesNotThrow(
-        () -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
+    assertDoesNotThrow(() -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
     Term testConsTerm = atomicTerm.get();
     assertNotEquals(testConsTerm, nilc.getConstructorTerm());
     // error to get the specialized constructor term for Int
-    assertThrows(CVC5ApiException.class,
-        () -> nilc.getInstantiatedConstructorTerm(isort));
+    assertThrows(CVC5ApiException.class, () -> nilc.getInstantiatedConstructorTerm(isort));
   }
 }

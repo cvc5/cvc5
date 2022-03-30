@@ -13,39 +13,7 @@
  * A simple demonstration of the Sygus API.
  *
  * A simple demonstration of how to use the Sygus API to synthesize max and min
- * functions. Here is the same problem written in Sygus V2 format:
- *
- * (set-logic LIA)
- *
- * (synth-fun max ((x Int) (y Int)) Int
- *   ((Start Int) (StartBool Bool))
- *   ((Start Int (0 1 x y
- *                (+ Start Start)
- *                (- Start Start)
- *                (ite StartBool Start Start)))
- *    (StartBool Bool ((and StartBool StartBool)
- *                     (not StartBool)
- *                     (<= Start Start)))))
- *
- * (synth-fun min ((x Int) (y Int)) Int)
- *
- * (declare-var x Int)
- * (declare-var y Int)
- *
- * (constraint (>= (max x y) x))
- * (constraint (>= (max x y) y))
- * (constraint (or (= x (max x y))
- *                 (= y (max x y))))
- * (constraint (= (+ (max x y) (min x y))
- *                (+ x y)))
- *
- * (check-synth)
- *
- * The printed output for this example should be equivalent to:
- * (
- *   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
- *   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
- * )
+ * functions.
  */
 
 #include <cvc5/cvc5.h>
@@ -54,7 +22,7 @@
 
 #include "utils.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -137,7 +105,7 @@ int main()
     //   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
     // )
     std::vector<Term> terms = {max, min};
-    printSynthSolutions(terms, slv.getSynthSolutions(terms));
+    utils::printSynthSolutions(terms, slv.getSynthSolutions(terms));
   }
 
   return 0;

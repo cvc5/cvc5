@@ -26,10 +26,11 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -44,29 +45,29 @@ private:
  CDNodeToMinMaxMap d_maxMap;
 
 public:
-  ArithStaticLearner(context::Context* userContext);
-  ~ArithStaticLearner();
-  void staticLearning(TNode n, NodeBuilder& learned);
+ ArithStaticLearner(context::Context* userContext);
+ ~ArithStaticLearner();
+ void staticLearning(TNode n, NodeBuilder& learned);
 
-  void addBound(TNode n);
+ void addBound(TNode n);
 
- private:
-  void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
+private:
+ void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
 
-  void iteMinMax(TNode n, NodeBuilder& learned);
-  void iteConstant(TNode n, NodeBuilder& learned);
+ void iteMinMax(TNode n, NodeBuilder& learned);
+ void iteConstant(TNode n, NodeBuilder& learned);
 
-  /**
-   * These fields are designed to be accessible to ArithStaticLearner methods.
-   */
-  class Statistics
-  {
-   public:
-    IntStat d_iteMinMaxApplications;
-    IntStat d_iteConstantApplications;
+ /**
+  * These fields are designed to be accessible to ArithStaticLearner methods.
+  */
+ class Statistics
+ {
+  public:
+   IntStat d_iteMinMaxApplications;
+   IntStat d_iteConstantApplications;
 
-    Statistics();
-  };
+   Statistics();
+ };
 
   Statistics d_statistics;
 
@@ -74,6 +75,6 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H */

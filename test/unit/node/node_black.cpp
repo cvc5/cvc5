@@ -37,7 +37,7 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -811,4 +811,4 @@ TEST_F(TestNodeBlackNode, node_tnode_usage)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

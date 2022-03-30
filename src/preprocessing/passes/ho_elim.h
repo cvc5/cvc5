@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -151,6 +151,6 @@ class HoElim : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H */

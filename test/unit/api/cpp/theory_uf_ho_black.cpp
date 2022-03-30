@@ -16,9 +16,7 @@
 #include "base/configuration.h"
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -47,4 +45,4 @@ TEST_F(TestTheoryBlackUfHo, proj_issue361)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

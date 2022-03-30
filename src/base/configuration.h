@@ -14,7 +14,7 @@
  * about the cvc5 library.
  *
  * Eventually, the configuration methods will all be migrated to the
- * cvc5::configuration namespace below. This is cleaner and avoids a gcc/10.1.0
+ * cvc5::internal::configuration namespace below. This is cleaner and avoids a gcc/10.1.0
  * bug. See https://github.com/cvc5/cvc5/pull/7898 for details.
  */
 
@@ -28,7 +28,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace configuration {
   static constexpr bool isStatisticsBuild()
@@ -127,6 +127,6 @@ public:
 
 }; /* class Configuration */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CONFIGURATION_H */

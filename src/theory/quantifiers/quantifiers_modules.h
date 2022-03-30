@@ -32,7 +32,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus_inst.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class QuantifiersEngine;
@@ -47,7 +47,7 @@ namespace quantifiers {
  */
 class QuantifiersModules
 {
-  friend class ::cvc5::theory::QuantifiersEngine;
+  friend class theory::QuantifiersEngine;
 
  public:
   QuantifiersModules();
@@ -98,6 +98,6 @@ class QuantifiersModules
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */

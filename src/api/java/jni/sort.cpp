@@ -17,7 +17,7 @@
 #include "api_utilities.h"
 #include "io_github_cvc5_api_Sort.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 /*
  * Class:     io_github_cvc5_api_Sort
@@ -470,6 +470,47 @@ Java_io_github_cvc5_api_Sort_isInstantiated(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_api_Sort
+ * Method:    getInstantiatedParameters
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_api_Sort_getInstantiatedParameters(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  std::vector<Sort> sorts = current->getInstantiatedParameters();
+  std::vector<jlong> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
+  }
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Sort
+ * Method:    getUninterpretedSortConstructor
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructor(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  Sort* retPointer = new Sort(current->getUninterpretedSortConstructor());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */
@@ -842,30 +883,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSequenceElementSort(
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    getUninterpretedSortParamSorts
- * Signature: (J)[J
- */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Sort_getUninterpretedSortParamSorts(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  std::vector<Sort> sorts = current->getUninterpretedSortParamSorts();
-  std::vector<jlong> sortPointers(sorts.size());
-  for (size_t i = 0; i < sorts.size(); i++)
-  {
-    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
-  }
-  jlongArray ret = env->NewLongArray(sorts.size());
-  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
-  return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    getUninterpretedSortConstructorArity
  * Signature: (J)I
  */
@@ -924,28 +941,6 @@ Java_io_github_cvc5_api_Sort_getFloatingPointSignificandSize(JNIEnv* env,
   Sort* current = reinterpret_cast<Sort*>(pointer);
   return static_cast<jint>(current->getFloatingPointSignificandSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getDatatypeParamSorts
- * Signature: (J)[J
- */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Sort_getDatatypeParamSorts(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  std::vector<Sort> sorts = current->getDatatypeParamSorts();
-  std::vector<jlong> sortPointers(sorts.size());
-  for (size_t i = 0; i < sorts.size(); i++)
-  {
-    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
-  }
-  jlongArray ret = env->NewLongArray(sorts.size());
-  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
-  return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*

@@ -18,7 +18,7 @@
 #include "base/check.h"
 #include "theory/arith/rewriter/ordering.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -82,4 +82,4 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

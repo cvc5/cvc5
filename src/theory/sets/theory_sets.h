@@ -29,7 +29,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -121,6 +121,6 @@ class TheorySets : public Theory
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SETS__THEORY_SETS_H */

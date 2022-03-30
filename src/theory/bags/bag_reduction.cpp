@@ -21,10 +21,10 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "util/rational.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -208,4 +208,4 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

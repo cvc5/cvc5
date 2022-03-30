@@ -20,7 +20,7 @@
 #ifndef CVC5__UTIL__RANDOM_H
 #define CVC5__UTIL__RANDOM_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Random
 {
@@ -68,5 +68,5 @@ class Random
   uint64_t d_state;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 CodatatypeBoundVariable::CodatatypeBoundVariable(const TypeNode& type,
                                                  Integer index)
@@ -110,4 +110,4 @@ size_t CodatatypeBoundVariableHashFunction::operator()(
          * IntegerHashFunction()(cbv.getIndex());
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

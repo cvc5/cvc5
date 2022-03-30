@@ -20,7 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 bool hasSubterm(TNode n, TNode t, bool strict)
@@ -865,4 +865,4 @@ bool isBooleanConnective(TNode cur)
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

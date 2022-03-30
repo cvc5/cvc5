@@ -24,7 +24,7 @@
 #include "smt/env_obj.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -317,6 +317,6 @@ class TheoryEngineModelBuilder : protected EnvObj
 }; /* class TheoryEngineModelBuilder */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_MODEL_BUILDER_H */

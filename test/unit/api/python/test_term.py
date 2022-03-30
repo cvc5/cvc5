@@ -1296,6 +1296,22 @@ def test_const_sequence_elements(solver):
     with pytest.raises(RuntimeError):
         su.getSequenceValue()
 
+def test_get_cardinality_constraint(solver):
+  su = solver.mkUninterpretedSort("u")
+  t = solver.mkCardinalityConstraint(su, 3)
+  assert t.isCardinalityConstraint()
+  cc = t.getCardinalityConstraint()
+  assert cc[0] == su
+  assert cc[1] == 3
+  x = solver.mkConst(solver.getIntegerSort(), "x")
+  assert not x.isCardinalityConstraint()
+  with pytest.raises(RuntimeError):
+    x.getCardinalityConstraint()
+  nullt = cvc5.Term(solver)
+  with pytest.raises(RuntimeError):
+    nullt.isCardinalityConstraint()
+
+
 
 def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()

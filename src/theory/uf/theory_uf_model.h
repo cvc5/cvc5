@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
@@ -120,6 +120,6 @@ public:
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

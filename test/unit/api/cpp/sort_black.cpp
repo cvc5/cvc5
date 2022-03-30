@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -308,8 +306,7 @@ TEST_F(TestApiBlackSort, instantiate)
 {
   // instantiate parametric datatype, check should not fail
   Sort paramDtypeSort = create_param_datatype_sort();
-  ASSERT_NO_THROW(
-      paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
+  ASSERT_NO_THROW(paramDtypeSort.instantiate({d_solver.getIntegerSort()}));
   // instantiate non-parametric datatype sort, check should fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
@@ -318,13 +315,11 @@ TEST_F(TestApiBlackSort, instantiate)
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
-  ASSERT_THROW(
-      dtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}),
-      CVC5ApiException);
+  ASSERT_THROW(dtypeSort.instantiate({d_solver.getIntegerSort()}),
+               CVC5ApiException);
   // instantiate uninterpreted sort constructor
   Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
-  ASSERT_NO_THROW(
-      sortConsSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
+  ASSERT_NO_THROW(sortConsSort.instantiate({d_solver.getIntegerSort()}));
 }
 
 TEST_F(TestApiBlackSort, isInstantiated)
@@ -332,17 +327,77 @@ TEST_F(TestApiBlackSort, isInstantiated)
   Sort paramDtypeSort = create_param_datatype_sort();
   ASSERT_FALSE(paramDtypeSort.isInstantiated());
   Sort instParamDtypeSort =
-      paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()});
+      paramDtypeSort.instantiate({d_solver.getIntegerSort()});
   ASSERT_TRUE(instParamDtypeSort.isInstantiated());
 
   Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
   ASSERT_FALSE(sortConsSort.isInstantiated());
-  Sort instSortConsSort =
-      sortConsSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()});
+  Sort instSortConsSort = sortConsSort.instantiate({d_solver.getIntegerSort()});
   ASSERT_TRUE(instSortConsSort.isInstantiated());
 
   ASSERT_FALSE(d_solver.getIntegerSort().isInstantiated());
   ASSERT_FALSE(d_solver.mkBitVectorSort(32).isInstantiated());
+}
+
+TEST_F(TestApiBlackSort, getInstantiatedParameters)
+{
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort bvSort = d_solver.mkBitVectorSort(8);
+  std::vector<Sort> instSorts;
+
+  // parametric datatype instantiation
+  Sort p1 = d_solver.mkParamSort("p1");
+  Sort p2 = d_solver.mkParamSort("p2");
+  DatatypeDecl pspec = d_solver.mkDatatypeDecl("pdtype", {p1, p2});
+  DatatypeConstructorDecl pcons1 = d_solver.mkDatatypeConstructorDecl("cons1");
+  DatatypeConstructorDecl pcons2 = d_solver.mkDatatypeConstructorDecl("cons2");
+  DatatypeConstructorDecl pnil = d_solver.mkDatatypeConstructorDecl("nil");
+  pcons1.addSelector("sel", p1);
+  pcons2.addSelector("sel", p2);
+  pspec.addConstructor(pcons1);
+  pspec.addConstructor(pcons2);
+  pspec.addConstructor(pnil);
+  Sort paramDtypeSort = d_solver.mkDatatypeSort(pspec);
+
+  ASSERT_THROW(paramDtypeSort.getInstantiatedParameters(), CVC5ApiException);
+
+  Sort instParamDtypeSort = paramDtypeSort.instantiate({realSort, boolSort});
+
+  instSorts = instParamDtypeSort.getInstantiatedParameters();
+  ASSERT_EQ(instSorts[0], realSort);
+  ASSERT_EQ(instSorts[1], boolSort);
+
+  // uninterpreted sort constructor sort instantiation
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 4);
+  ASSERT_THROW(sortConsSort.getInstantiatedParameters(), CVC5ApiException);
+
+  Sort instSortConsSort =
+      sortConsSort.instantiate({boolSort, intSort, bvSort, realSort});
+
+  instSorts = instSortConsSort.getInstantiatedParameters();
+  ASSERT_EQ(instSorts[0], boolSort);
+  ASSERT_EQ(instSorts[1], intSort);
+  ASSERT_EQ(instSorts[2], bvSort);
+  ASSERT_EQ(instSorts[3], realSort);
+
+  ASSERT_THROW(intSort.getInstantiatedParameters(), CVC5ApiException);
+  ASSERT_THROW(bvSort.getInstantiatedParameters(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSort, getUninterpretedSortConstructor)
+{
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort bvSort = d_solver.mkBitVectorSort(8);
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 4);
+  ASSERT_THROW(sortConsSort.getUninterpretedSortConstructor(),
+               CVC5ApiException);
+  Sort instSortConsSort =
+      sortConsSort.instantiate({boolSort, intSort, bvSort, realSort});
+  ASSERT_EQ(sortConsSort, instSortConsSort.getUninterpretedSortConstructor());
 }
 
 TEST_F(TestApiBlackSort, getFunctionArity)
@@ -428,17 +483,6 @@ TEST_F(TestApiBlackSort, getSymbol)
   ASSERT_THROW(bvSort.getSymbol(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getUninterpretedSortParamSorts)
-{
-  Sort uSort = d_solver.mkUninterpretedSort("u");
-  ASSERT_NO_THROW(uSort.getUninterpretedSortParamSorts());
-  Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
-  Sort siSort = sSort.instantiate({uSort, uSort});
-  ASSERT_EQ(siSort.getUninterpretedSortParamSorts().size(), 2);
-  Sort bvSort = d_solver.mkBitVectorSort(32);
-  ASSERT_THROW(bvSort.getUninterpretedSortParamSorts(), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSort, getUninterpretedSortConstructorName)
 {
   Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
@@ -477,30 +521,6 @@ TEST_F(TestApiBlackSort, getFloatingPointSignificandSize)
   ASSERT_NO_THROW(fpSort.getFloatingPointSignificandSize());
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   ASSERT_THROW(setSort.getFloatingPointSignificandSize(), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSort, getDatatypeParamSorts)
-{
-  // create parametric datatype, check should not fail
-  Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl paramCons =
-      d_solver.mkDatatypeConstructorDecl("cons");
-  DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
-  paramCons.addSelector("head", sort);
-  paramDtypeSpec.addConstructor(paramCons);
-  paramDtypeSpec.addConstructor(paramNil);
-  Sort paramDtypeSort = d_solver.mkDatatypeSort(paramDtypeSpec);
-  ASSERT_NO_THROW(paramDtypeSort.getDatatypeParamSorts());
-  // create non-parametric datatype sort, check should fail
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", d_solver.getIntegerSort());
-  dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
-  dtypeSpec.addConstructor(nil);
-  Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
-  ASSERT_THROW(dtypeSort.getDatatypeParamSorts(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getDatatypeArity)
@@ -567,4 +587,4 @@ TEST_F(TestApiBlackSort, toString)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

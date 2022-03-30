@@ -25,9 +25,9 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -1053,4 +1053,4 @@ void SygusUnifStrategy::indent(const char* c, int ind)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

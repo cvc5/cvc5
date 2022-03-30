@@ -29,9 +29,9 @@
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -219,8 +219,6 @@ void ExponentialSolver::doTangentLemma(TNode e,
                         nm->mkNode(Kind::GEQ, e, poly_approx));
   Trace("nl-ext-exp") << "*** Tangent plane lemma (pre-rewrite): " << lem
                       << std::endl;
-  lem = rewrite(lem);
-  Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
   CDProof* proof = nullptr;
@@ -230,7 +228,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
     proof->addStep(lem,
                    PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
-                   {nm->mkConstInt(Rational(d)), e[0]});
+                   {nm->mkConstInt(Rational(d)), c, e[0]});
   }
   d_data->d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
@@ -279,4 +277,4 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

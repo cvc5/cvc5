@@ -94,14 +94,14 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::context {
+class Context;
+}
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
 
-namespace context {
-class Context;
-}
 namespace theory {
 
 namespace arith {
@@ -151,7 +151,6 @@ enum ArithProofType
  * and UpperBound.
  */
 enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
-
 
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
@@ -1034,12 +1033,13 @@ class ConstraintDatabase : protected EnvObj
    */
   CDConstraintList d_antecedents;
 
-  typedef context::CDList<ConstraintRule, Constraint::ConstraintRuleCleanup> ConstraintRuleList;
-  typedef context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup> CBPList;
-  typedef context::CDList<ConstraintP, Constraint::AssertionOrderCleanup> AOList;
+  typedef context::CDList<ConstraintRule, Constraint::ConstraintRuleCleanup>
+      ConstraintRuleList;
+  typedef context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup>
+      CBPList;
+  typedef context::CDList<ConstraintP, Constraint::AssertionOrderCleanup>
+      AOList;
   typedef context::CDList<ConstraintP, Constraint::SplitCleanup> SplitList;
-
-
 
   /**
    * The watch lists are collected together as they need to be garbage collected
@@ -1262,6 +1262,6 @@ class ConstraintDatabase : protected EnvObj
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__CONSTRAINT_H */

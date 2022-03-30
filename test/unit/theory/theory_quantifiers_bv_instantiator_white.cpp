@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace theory::bv;
@@ -451,4 +451,4 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_axax[1], a);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

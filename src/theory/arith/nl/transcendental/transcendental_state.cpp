@@ -23,9 +23,9 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -102,9 +102,11 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
       else
       {
+        // for others, if all arguments are variables or constants, we don't
+        // have to purify
         for (const Node& ac : a)
         {
-          if (isTranscendentalKind(ac.getKind()))
+          if (!ac.isVar() && !ac.isConst())
           {
             consider = false;
             break;
@@ -511,4 +513,4 @@ bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

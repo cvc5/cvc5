@@ -25,10 +25,10 @@
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -622,4 +622,4 @@ Node getExpandedDefinitionForm(Node op)
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

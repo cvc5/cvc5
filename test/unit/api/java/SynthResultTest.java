@@ -26,17 +26,20 @@ class SynthResultTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void isNull()
+  @Test
+  void isNull()
   {
     SynthResult res_null = d_solver.getNullSynthResult();
     assertTrue(res_null.isNull());
@@ -45,7 +48,8 @@ class SynthResultTest
     assertFalse(res_null.isUnknown());
   }
 
-  @Test void hasSolution()
+  @Test
+  void hasSolution()
   {
     d_solver.setOption("sygus", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
@@ -58,13 +62,15 @@ class SynthResultTest
     assertFalse(res.isUnknown());
   }
 
-  @Test void hasNoSolution()
+  @Test
+  void hasNoSolution()
   {
     SynthResult res_null = d_solver.getNullSynthResult();
     assertFalse(res_null.hasSolution());
   }
 
-  @Test void isUnknown()
+  @Test
+  void isUnknown()
   {
     d_solver.setOption("sygus", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
