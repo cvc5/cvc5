@@ -19,7 +19,7 @@
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 LearnedLiteralManager::LearnedLiteralManager(Env& env)
@@ -50,4 +50,4 @@ std::vector<Node> LearnedLiteralManager::getLearnedLiterals() const
 }
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

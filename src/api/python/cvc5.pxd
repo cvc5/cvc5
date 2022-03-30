@@ -52,7 +52,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         pass
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](size_t idx) except +
@@ -183,7 +183,7 @@ cdef extern from "<variant>" namespace "std":
     bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
     T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
@@ -203,7 +203,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isUnknown() except +
         string toString() except +
 
-    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
+    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result":
         cdef cppclass UnknownExplanation:
             pass
 
@@ -405,6 +405,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isInstantiated() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
+        vector[Sort] getInstantiatedParameters() except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
@@ -421,12 +422,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSetElementSort() except +
         Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
-        vector[Sort] getUninterpretedSortParamSorts() except +
         size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
         uint32_t getFloatingPointExponentSize() except +
         uint32_t getFloatingPointSignificandSize() except +
-        vector[Sort] getDatatypeParamSorts() except +
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +
         vector[Sort] getTupleSorts() except +
@@ -534,7 +533,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t operator()(const Term & t) except +
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result::UnknownExplanation":
     cdef UnknownExplanation REQUIRES_FULL_CHECK
     cdef UnknownExplanation INCOMPLETE
     cdef UnknownExplanation TIMEOUT

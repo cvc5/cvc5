@@ -24,7 +24,7 @@
 #include "smt/solver_engine_scope.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestEnv : public TestInternal
@@ -43,5 +43,5 @@ class TestEnv : public TestInternal
 };
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

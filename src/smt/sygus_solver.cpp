@@ -35,10 +35,10 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
@@ -512,4 +512,4 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -94,7 +94,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
@@ -1262,6 +1262,6 @@ class ConstraintDatabase : protected EnvObj
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__CONSTRAINT_H */

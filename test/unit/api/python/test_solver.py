@@ -1665,7 +1665,7 @@ def test_get_statistics(solver):
     solver.assertFormula(f1)
     solver.checkSat()
     s = solver.getStatistics()
-    assert s['api::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s['cvc5::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):
@@ -2614,7 +2614,7 @@ def test_tuple_project(solver):
         simplifiedTerm = solver.simplify(selectedTerm)
         assert elements[i] == simplifiedTerm
 
-        assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
+        assert "((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
             projection)
 
 

@@ -21,19 +21,19 @@
 #include "main/command_executor.h"
 #include "options/option_exception.h"
 
-using namespace cvc5;
+using namespace cvc5::internal;
 
 /**
  * cvc5's main() routine is just an exception-safe wrapper around runCvc5.
  */
 int main(int argc, char* argv[])
 {
-  std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
   try
   {
     return runCvc5(argc, argv, solver);
   }
-  catch (cvc5::api::CVC5ApiOptionException& e)
+  catch (cvc5::CVC5ApiOptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;

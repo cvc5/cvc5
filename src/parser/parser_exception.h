@@ -28,7 +28,7 @@
 namespace cvc5 {
 namespace parser {
 
-class CVC5_EXPORT ParserException : public Exception
+class CVC5_EXPORT ParserException : public internal::Exception
 {
  public:
   // Constructors

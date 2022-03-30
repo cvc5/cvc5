@@ -18,7 +18,7 @@
 #include "expr/array_store_all.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -411,4 +411,4 @@ Node FunctionConst::getArrayRepresentationForLambda(TNode n)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

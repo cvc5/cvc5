@@ -25,7 +25,7 @@
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -460,6 +460,6 @@ class CardinalityExtension : protected EnvObj
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY_UF_STRONG_SOLVER_H */

@@ -22,7 +22,7 @@
 
 #include "proof/proof.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 
@@ -164,6 +164,6 @@ class LazyCDProofChain : public CDProof
   std::string d_name;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__LAZY_PROOF_CHAIN_H */

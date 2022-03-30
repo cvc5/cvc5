@@ -18,7 +18,7 @@
 
 #include "theory/atom_requests.h"
 
-using namespace cvc5;
+using namespace cvc5::internal;
 
 AtomRequests::AtomRequests(context::Context* context)
 : d_allRequests(context)
