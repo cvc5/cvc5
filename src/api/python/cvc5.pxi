@@ -2944,9 +2944,6 @@ cdef class Sort:
             constructor sort.
             Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
-            .. warning:: This method is experimental and may change in future
-                         versions.
-
             :param params: the list of sort parameters to instantiate with
             :return: the instantiated sort
         """
