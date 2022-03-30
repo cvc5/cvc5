@@ -142,9 +142,9 @@ a ``cvc5::api::Solver solver`` object.
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 | Sequence reverse     | ``(seq.rev X)``                              | ``Term t = solver.mkTerm(Kind::SEQ_REV, X);``                      |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence prefix of   | ``(seq.prefixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_PREFIXOF, X, Y);``              |
+| Sequence prefix of   | ``(seq.prefixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_PREFIX, X, Y);``                |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence suffix of   | ``(seq.suffixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_SUFFIXOF, X, Y);``              |
+| Sequence suffix of   | ``(seq.suffixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_SUFFIX, X, Y);``                |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 
 Examples
