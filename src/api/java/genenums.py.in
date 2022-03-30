@@ -153,6 +153,7 @@ def format_comment(comment):
     # e.g. {@link BigInteger#Ten
     field_pattern = re.compile(r"{@link [a-zA-Z.#]*\s")
     comment = re.sub(field_pattern, close_link, comment)
+    comment = comment.replace("- {@link Solver#mkString(std.wstring)}", "")
     return comment
 
 
