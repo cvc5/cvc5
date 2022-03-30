@@ -19,7 +19,7 @@
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -84,6 +84,6 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

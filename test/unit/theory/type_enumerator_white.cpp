@@ -29,7 +29,7 @@
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace kind;
@@ -336,4 +336,4 @@ TEST_F(TestTheoryWhiteTypeEnumerator, bv)
   ASSERT_THROW(*++te, NoMoreValuesException);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

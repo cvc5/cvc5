@@ -15,10 +15,10 @@
 
 package io.github.cvc5.api;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Map;
 import java.util.AbstractMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
@@ -102,17 +102,12 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
         Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
         Stat stat = new Stat(solver, pair.second);
         this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
-        return new AbstractMap.SimpleImmutableEntry(pair.first, stat);
+        return new AbstractMap.SimpleImmutableEntry<>(pair.first, stat);
       }
       catch (CVC5ApiException e)
       {
         throw new NoSuchElementException(e.getMessage());
       }
-    }
-
-    @Override public void finalize()
-    {
-      deleteIteratorPointer(iteratorPointer);
     }
   }
 
@@ -124,4 +119,4 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
   {
     return new ConstIterator();
   }
-};
+}

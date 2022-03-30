@@ -20,14 +20,14 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects.
  * This documentation is target for the online documentation that can be found
- * at https://cvc5.github.io/docs/master/proofs/proof_rules.html.
+ * at https://cvc5.github.io/docs/main/proofs/proof_rules.html.
  *
  * All proof rules are given as inference rules, presented in the following
  * form:
@@ -53,8 +53,8 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open
- * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which
+ * (1) :cpp:enumerator:`ASSUME <cvc5::internal::PfRule::ASSUME>`, which represents an open
+ * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>`, which
  * encloses a scope (a subproof) with a set of scoped assumptions. The core rules additionally correspond to
  * generic operations that are done internally on nodes, e.g. calling
  * Rewriter::rewrite.
@@ -77,7 +77,7 @@ enum class PfRule : uint32_t
    * open leaf in a proof that is not (yet) justified. An assume leaf is
    * analogous to a free variable in a term, where we say "F is a free
    * assumption in proof P" if it contains an application of F that is not
-   * bound by :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>` (see below).
+   * bound by :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>` (see below).
    * \endverbatim
    */
   ASSUME,
@@ -92,7 +92,7 @@ enum class PfRule : uint32_t
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
    * This rule has a dual purpose with :cpp:enumerator:`ASSUME
-   * <cvc5::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
+   * <cvc5::internal::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
    * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
    * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
    * are bound by this application. For example, the proof node:
@@ -205,7 +205,7 @@ enum class PfRule : uint32_t
    * where :math:`ids` and :math:`idr` are method identifiers.
    *
    * We rewrite only on the Skolem form of :math:`F`, similar to
-   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::PfRule::MACRO_SR_EQ_INTRO>`.
+   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::internal::PfRule::MACRO_SR_EQ_INTRO>`.
    * \endverbatim
    */
   MACRO_SR_PRED_ELIM,
@@ -225,7 +225,7 @@ enum class PfRule : uint32_t
    * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
    * :math:`G'` are the result of each side of the equation above. Here,
    * original forms are used in a similar manner to
-   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::PfRule::MACRO_SR_PRED_INTRO>`
+   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::internal::PfRule::MACRO_SR_PRED_INTRO>`
    * above. \endverbatim
    */
   MACRO_SR_PRED_TRANSFORM,
@@ -510,11 +510,11 @@ enum class PfRule : uint32_t
    * where
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
    * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
@@ -530,7 +530,7 @@ enum class PfRule : uint32_t
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    *
    * Same as :cpp:enumerator:`MACRO_RESOLUTION
-   * <cvc5::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
+   * <cvc5::internal::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
    * checker. \endverbatim
    */
   MACRO_RESOLUTION_TRUST,
@@ -553,8 +553,8 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1, (F_1 = F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
-   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::PfRule::EQUIV_ELIM1>` +
-   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::internal::PfRule::EQUIV_ELIM1>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`.
    * \endverbatim
    */
   EQ_RESOLVE,
@@ -566,8 +566,8 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1, (F_1 \rightarrow F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
-   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::PfRule::IMPLIES_ELIM>` +
-   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::internal::PfRule::IMPLIES_ELIM>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`.
    * \endverbatim
    */
   MODUS_PONENS,
@@ -1936,7 +1936,7 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Coverings -- Recursive interval**
    *
    * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
-   * <cvc5::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   * <cvc5::internal::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
    *
    * .. math::
    *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
@@ -2009,6 +2009,6 @@ struct PfRuleHashFunction
   size_t operator()(PfRule id) const;
 }; /* struct PfRuleHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_RULE_H */

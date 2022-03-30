@@ -22,7 +22,7 @@
 #include "util/cardinality.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -347,4 +347,4 @@ TypeNode BitVectorAckermanizationUremTypeRule::computeType(
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

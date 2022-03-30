@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "infer_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -354,6 +354,6 @@ class InferenceGenerator
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H */

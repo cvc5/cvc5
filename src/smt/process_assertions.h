@@ -26,7 +26,7 @@
 #include "smt/env_obj.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace preprocessing {
 class AssertionPipeline;
@@ -121,6 +121,6 @@ class ProcessAssertions : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

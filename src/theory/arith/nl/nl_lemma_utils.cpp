@@ -18,7 +18,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -79,4 +79,4 @@ Node ArgTrie::add(Node d, const std::vector<Node>& args)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -19,7 +19,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
@@ -158,4 +158,4 @@ ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

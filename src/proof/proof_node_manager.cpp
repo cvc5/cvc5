@@ -24,9 +24,9 @@
 #include "proof/proof_node_algorithm.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNodeManager::ProofNodeManager(const Options& opts,
                                    theory::Rewriter* rr,
@@ -485,4 +485,4 @@ bool ProofNodeManager::updateNodeInternal(
   return true;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

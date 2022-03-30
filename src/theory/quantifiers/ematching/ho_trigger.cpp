@@ -27,9 +27,9 @@
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -525,4 +525,4 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

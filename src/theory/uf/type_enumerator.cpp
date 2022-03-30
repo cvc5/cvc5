@@ -17,7 +17,7 @@
 
 #include "theory/uf/function_const.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -48,4 +48,4 @@ FunctionEnumerator& FunctionEnumerator::operator++()
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

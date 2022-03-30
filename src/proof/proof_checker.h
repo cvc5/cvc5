@@ -24,7 +24,7 @@
 #include "proof/proof_rule.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 class ProofNode;
@@ -212,6 +212,6 @@ class ProofChecker
                      bool enableOutput);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_CHECKER_H */

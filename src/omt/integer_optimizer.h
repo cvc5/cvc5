@@ -18,7 +18,7 @@
 
 #include "omt/omt_optimizer.h"
 
-namespace cvc5::omt {
+namespace cvc5::internal::omt {
 
 /**
  * Optimizer for Integer type
@@ -44,6 +44,6 @@ class OMTOptimizerInteger : public OMTOptimizer
                                    bool isMinimize);
 };
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt
 
 #endif /* CVC5__OMT__INTEGER_OPTIMIZER_H */

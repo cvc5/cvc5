@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 const char* toString(CardinalityClass c)
 {
@@ -65,4 +65,4 @@ bool isCardinalityClassFinite(CardinalityClass c, bool fmfEnabled)
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

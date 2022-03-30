@@ -27,7 +27,7 @@
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -418,6 +418,6 @@ class CardinalityExtension : protected EnvObj
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
