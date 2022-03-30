@@ -24,7 +24,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 /**
@@ -91,6 +91,6 @@ class LearnedDb
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

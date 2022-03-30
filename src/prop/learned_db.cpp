@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 const char* toString(LearnedLitType ltype)
@@ -127,4 +127,4 @@ std::string LearnedDb::toStringDebugType(LearnedLitType ltype) const
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
