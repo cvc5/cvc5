@@ -196,7 +196,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(throwsDecls), CVC5ApiException);
 
   /* with unresolved sorts */
-  Sort unresList = d_solver.mkUnresolvedSort("ulist");
+  Sort unresList = d_solver.mkUnresolvedSort(0, "ulist");
   std::set<Sort> unresSorts = {unresList};
   DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
   DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
@@ -213,8 +213,8 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   /* mutually recursive with unresolved parameterized sorts */
   Sort p0 = d_solver.mkParamSort("p0");
   Sort p1 = d_solver.mkParamSort("p1");
-  Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
-  Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+  Sort u0 = d_solver.mkUnresolvedSort(1, "dt0");
+  Sort u1 = d_solver.mkUnresolvedSort(1, "dt1");
   DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
   DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
   DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
@@ -353,17 +353,17 @@ TEST_F(TestApiBlackSolver, mkUninterpretedSort)
 
 TEST_F(TestApiBlackSolver, mkUnresolvedSort)
 {
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u"));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u", 1));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(""));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(0, "u"));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(1, "u"));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(0, ""));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(1));
 }
 
 TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)
 {
-  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("s", 2));
-  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("", 2));
-  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort("", 0),
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort(2, "s"));
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort(2, ""));
+  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort(0),
                CVC5ApiException);
 }
 

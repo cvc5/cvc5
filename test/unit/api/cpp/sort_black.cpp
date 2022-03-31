@@ -242,13 +242,17 @@ TEST_F(TestApiBlackSort, isUninterpreted)
   Sort un_sort = d_solver.mkUninterpretedSort("asdf");
   ASSERT_TRUE(un_sort.isUninterpretedSort());
   ASSERT_NO_THROW(Sort().isUninterpretedSort());
+  Sort un_sort2 = d_solver.mkUninterpretedSort();
+  ASSERT_TRUE(un_sort2.isUninterpretedSort());
 }
 
 TEST_F(TestApiBlackSort, isUninterpretedSortConstructor)
 {
-  Sort sc_sort = d_solver.mkUninterpretedSortConstructorSort("asdf", 1);
+  Sort sc_sort = d_solver.mkUninterpretedSortConstructorSort(1, "asdf");
   ASSERT_TRUE(sc_sort.isUninterpretedSortConstructor());
   ASSERT_NO_THROW(Sort().isUninterpretedSortConstructor());
+  Sort sc_sort2 = d_solver.mkUninterpretedSortConstructorSort(2);
+  ASSERT_TRUE(sc_sort2.isUninterpretedSortConstructor());
 }
 
 TEST_F(TestApiBlackSort, getDatatype)
@@ -318,7 +322,7 @@ TEST_F(TestApiBlackSort, instantiate)
   ASSERT_THROW(dtypeSort.instantiate({d_solver.getIntegerSort()}),
                CVC5ApiException);
   // instantiate uninterpreted sort constructor
-  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort(1, "s");
   ASSERT_NO_THROW(sortConsSort.instantiate({d_solver.getIntegerSort()}));
 }
 
@@ -330,7 +334,7 @@ TEST_F(TestApiBlackSort, isInstantiated)
       paramDtypeSort.instantiate({d_solver.getIntegerSort()});
   ASSERT_TRUE(instParamDtypeSort.isInstantiated());
 
-  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort(1, "s");
   ASSERT_FALSE(sortConsSort.isInstantiated());
   Sort instSortConsSort = sortConsSort.instantiate({d_solver.getIntegerSort()});
   ASSERT_TRUE(instSortConsSort.isInstantiated());
@@ -370,7 +374,7 @@ TEST_F(TestApiBlackSort, getInstantiatedParameters)
   ASSERT_EQ(instSorts[1], boolSort);
 
   // uninterpreted sort constructor sort instantiation
-  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 4);
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort(4, "s");
   ASSERT_THROW(sortConsSort.getInstantiatedParameters(), CVC5ApiException);
 
   Sort instSortConsSort =
@@ -392,7 +396,7 @@ TEST_F(TestApiBlackSort, getUninterpretedSortConstructor)
   Sort realSort = d_solver.getRealSort();
   Sort boolSort = d_solver.getBooleanSort();
   Sort bvSort = d_solver.mkBitVectorSort(8);
-  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 4);
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort(4, "s");
   ASSERT_THROW(sortConsSort.getUninterpretedSortConstructor(),
                CVC5ApiException);
   Sort instSortConsSort =
@@ -402,7 +406,7 @@ TEST_F(TestApiBlackSort, getUninterpretedSortConstructor)
 
 TEST_F(TestApiBlackSort, getFunctionArity)
 {
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort(),
                                          d_solver.getIntegerSort());
   ASSERT_NO_THROW(funSort.getFunctionArity());
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -485,7 +489,7 @@ TEST_F(TestApiBlackSort, getSymbol)
 
 TEST_F(TestApiBlackSort, getUninterpretedSortConstructorName)
 {
-  Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
+  Sort sSort = d_solver.mkUninterpretedSortConstructorSort(2, "s");
   ASSERT_NO_THROW(sSort.getSymbol());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getSymbol(), CVC5ApiException);
@@ -493,7 +497,7 @@ TEST_F(TestApiBlackSort, getUninterpretedSortConstructorName)
 
 TEST_F(TestApiBlackSort, getUninterpretedSortConstructorArity)
 {
-  Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
+  Sort sSort = d_solver.mkUninterpretedSortConstructorSort(2, "s");
   ASSERT_NO_THROW(sSort.getUninterpretedSortConstructorArity());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getUninterpretedSortConstructorArity(), CVC5ApiException);
