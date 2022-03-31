@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
