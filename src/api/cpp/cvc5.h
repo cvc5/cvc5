@@ -3679,7 +3679,15 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the variable
    * @return the variable
    */
-  Term mkVar(const Sort& sort, const std::string& symbol = std::string()) const;
+  Term mkVar(const Sort& sort, const std::string& symbol) const;
+
+  /**
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
+   * @param sort the sort of the variable
+   * @return the variable
+   */
+  Term mkVar(const Sort& sort) const;
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
