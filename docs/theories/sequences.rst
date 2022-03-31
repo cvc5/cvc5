@@ -83,7 +83,7 @@ Semantics
 
    * (seq.rev (Seq S) (Seq S))
 
-    ⟦seq.rev⟧(s) is the sequence obtained by reverse s.
+    ⟦seq.rev⟧(s) is the sequence obtained by reversing s.
 
    * (seq.prefixof ((Seq S) (Seq S)) Bool)
 
