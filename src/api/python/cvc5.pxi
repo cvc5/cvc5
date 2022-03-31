@@ -926,7 +926,7 @@ cdef class Solver:
           sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
-    def mkUnresolvedSort(self, str name, size_t arity = 0):
+    def mkUnresolvedSort(self, size_t arity = 0, str name = None):
         """Create an unresolved sort.
 
         This is for creating yet unresolved sort placeholders for mutually
@@ -937,7 +937,10 @@ cdef class Solver:
         :return: the unresolved sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
+        if name is None:
+          sort.csort = self.csolver.mkUnresolvedSort(arity)
+        else:
+          sort.csort = self.csolver.mkUnresolvedSort(arity, name.encode())
         return sort
 
     def mkUninterpretedSortConstructorSort(self, str symbol, size_t arity):
