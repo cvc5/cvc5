@@ -1,0 +1,6 @@
+(set-logic QF_AX)
+(set-info :status sat)
+(declare-const x (Array Bool Bool))
+(declare-const _x Bool)
+(assert (select (store x _x false) false))
+(check-sat)
