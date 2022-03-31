@@ -218,7 +218,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
         vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
                                      const set[Sort]& unresolvedSorts) except +
-        Sort mkFunctionSort(Sort domain, Sort codomain) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort(const string& symbol) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
