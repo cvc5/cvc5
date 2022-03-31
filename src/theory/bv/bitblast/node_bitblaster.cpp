@@ -18,7 +18,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -178,4 +178,4 @@ Node NodeBitblaster::applyAtomBBStrategy(TNode node)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

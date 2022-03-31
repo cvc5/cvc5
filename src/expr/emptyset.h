@@ -24,7 +24,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -61,6 +61,6 @@ struct EmptySetHashFunction
   size_t operator()(const EmptySet& es) const;
 }; /* struct EmptySetHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EMPTY_SET_H */

@@ -102,9 +102,23 @@ CPP_JAVA_MAPPING = \
         r"\buint32_t\b": "int",
         r"\buint64_t\b": "long",
         r"\bunsigned char\b": "byte",
-        r"cvc5::api::": "cvc5.",
-        r"Term::Term\(\)": "Solver.getNullTerm()",
-        r"Solver::": "Solver.",
+        r"cvc5::": "cvc5.",
+        r"Term::Term\(\)": "{@link Solver#getNullTerm()",
+        r"Term::": "{@link Term#",
+        r"Solver::": "{@link Solver#",
+        r"Datatype::": "{@link Datatype#",
+        r"DatatypeConstructor::": "{@link DatatypeConstructor#",
+        r"DatatypeConstructorDecl::": "{@link DatatypeConstructorDecl#",
+        r"DatatypeDecl::": "{@link DatatypeDecl#",
+        r"DatatypeSelector::": "{@link DatatypeSelector#",
+        r"Grammar::": "{@link Grammar#",
+        r"Op::": "{@link Op#",
+        r"OptionInfo::": "{@link OptionInfo#",
+        r"Result::": "{@link Result#",
+        r"Sort::": "{@link Sort#",
+        r"Stat::": "{@link Stat#",
+        r"Statistics::": "{@link Statistics#",
+        r"SynthResult::": "{@link SynthResult#",
         r"std::vector<int>": "int[]",
         r"std::vector<Term>": "Term[]",
         r"std::string": "String",
@@ -122,14 +136,36 @@ CPP_JAVA_MAPPING = \
 def format_comment(comment):
     for pattern, replacement in CPP_JAVA_MAPPING.items():
         comment = re.sub(pattern, replacement, comment)
-    return """  /**\n{}\n   */""".format(textwrap.indent(comment, '   * '))
+    comment = """  /**\n{}\n   */""".format(textwrap.indent(comment, '   * '))
+
+    # e.g. {@link Solver#mkBitVector(int, long) becomes {@link Solver#mkBitVector(int,long)}
+    def close_link(match):
+        link = match.group()
+        link = link.replace(" ", "")
+        link = link.replace("@link", "@link ")
+        if "}" in link:
+            return link
+        return "{0}}} ".format(link)
+
+    # e.g. {@link Solver#mkBitVector(int, long)
+    function_pattern = re.compile(r"{@link (.*?\))")
+    comment = re.sub(function_pattern, close_link, comment)
+    # e.g. {@link BigInteger#Ten
+    field_pattern = re.compile(r"{@link [a-zA-Z.#]*\s")
+    comment = re.sub(field_pattern, close_link, comment)
+    comment = comment.replace("- {@link Solver#mkString(std.wstring)}", "")
+    return comment
 
 
 # Files generation
 def gen_java(parser: EnumParser, path):
     for namespace in parser.namespaces:
         for enum in namespace.enums:
-            subnamespace = namespace.name.split('::')[1]
+            subnamespace = namespace.name.split('::')[-1]
+            # Workaround to make it work without moving the java files. Will be
+            # done in a subsequent PR by Andres
+            if subnamespace == 'cvc5':
+                subnamespace = 'api'
             filedir = os.path.join(path, subnamespace)
             if not os.path.exists(filedir):
                 os.mkdir(filedir)

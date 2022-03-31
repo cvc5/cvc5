@@ -35,9 +35,9 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -146,6 +146,7 @@ void TermProperties::composeProperty(TermProperties& p)
 // push the substitution pv_prop.getModifiedTerm(pv) -> n
 void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
 {
+  Assert(n.getType().isSubtypeOf(pv.getType()));
   d_vars.push_back(pv);
   d_subs.push_back(n);
   d_props.push_back(pv_prop);
@@ -938,6 +939,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                                                 SolvedForm& sf,
                                                 bool revertOnSuccess)
 {
+  Assert(n.getType().isSubtypeOf(pv.getType()));
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -1675,4 +1677,4 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

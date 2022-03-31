@@ -20,14 +20,14 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects.
  * This documentation is target for the online documentation that can be found
- * at https://cvc5.github.io/docs/master/proofs/proof_rules.html.
+ * at https://cvc5.github.io/docs/main/proofs/proof_rules.html.
  *
  * All proof rules are given as inference rules, presented in the following
  * form:
@@ -39,9 +39,9 @@ namespace cvc5 {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments). 
+ * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
- * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably. 
+ * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably.
  *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
@@ -53,8 +53,8 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open
- * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which
+ * (1) :cpp:enumerator:`ASSUME <cvc5::internal::PfRule::ASSUME>`, which represents an open
+ * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>`, which
  * encloses a scope (a subproof) with a set of scoped assumptions. The core rules additionally correspond to
  * generic operations that are done internally on nodes, e.g. calling
  * Rewriter::rewrite.
@@ -77,7 +77,7 @@ enum class PfRule : uint32_t
    * open leaf in a proof that is not (yet) justified. An assume leaf is
    * analogous to a free variable in a term, where we say "F is a free
    * assumption in proof P" if it contains an application of F that is not
-   * bound by :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>` (see below).
+   * bound by :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>` (see below).
    * \endverbatim
    */
   ASSUME,
@@ -92,7 +92,7 @@ enum class PfRule : uint32_t
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
    * This rule has a dual purpose with :cpp:enumerator:`ASSUME
-   * <cvc5::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
+   * <cvc5::internal::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
    * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
    * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
    * are bound by this application. For example, the proof node:
@@ -205,7 +205,7 @@ enum class PfRule : uint32_t
    * where :math:`ids` and :math:`idr` are method identifiers.
    *
    * We rewrite only on the Skolem form of :math:`F`, similar to
-   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::PfRule::MACRO_SR_EQ_INTRO>`.
+   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::internal::PfRule::MACRO_SR_EQ_INTRO>`.
    * \endverbatim
    */
   MACRO_SR_PRED_ELIM,
@@ -225,7 +225,7 @@ enum class PfRule : uint32_t
    * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
    * :math:`G'` are the result of each side of the equation above. Here,
    * original forms are used in a similar manner to
-   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::PfRule::MACRO_SR_PRED_INTRO>`
+   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::internal::PfRule::MACRO_SR_PRED_INTRO>`
    * above. \endverbatim
    */
   MACRO_SR_PRED_TRANSFORM,
@@ -510,11 +510,11 @@ enum class PfRule : uint32_t
    * where
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
    * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
@@ -530,7 +530,7 @@ enum class PfRule : uint32_t
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    *
    * Same as :cpp:enumerator:`MACRO_RESOLUTION
-   * <cvc5::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
+   * <cvc5::internal::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
    * checker. \endverbatim
    */
   MACRO_RESOLUTION_TRUST,
@@ -553,8 +553,8 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1, (F_1 = F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
-   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::PfRule::EQUIV_ELIM1>` +
-   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::internal::PfRule::EQUIV_ELIM1>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`.
    * \endverbatim
    */
   EQ_RESOLVE,
@@ -566,8 +566,8 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1, (F_1 \rightarrow F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
-   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::PfRule::IMPLIES_ELIM>` +
-   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::internal::PfRule::IMPLIES_ELIM>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`.
    * \endverbatim
    */
   MODUS_PONENS,
@@ -1479,24 +1479,24 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
-   * 
+   *
    * An arithmetic literal is a term of the form :math:`p \diamond c` where
    * :math:`\diamond \in \{ <, \leq, =, \geq, > \}`, :math:`p` a
    * polynomial and :math:`c` a rational constant.
    *
    * .. math::
    *   \inferrule{l_1 \dots l_n \mid k_1 \dots k_n}{t_1 \diamond t_2}
-   * 
+   *
    * where :math:`k_i \in \mathbb{R}, k_i \neq 0`, :math:`\diamond` is the
    * fusion of the :math:`\diamond_i` (flipping each if its :math:`k_i` is
    * negative) such that :math:`\diamond_i \in \{ <, \leq \}` (this implies that
    * lower bounds have negative :math:`k_i` and upper bounds have positive
    * :math:`k_i`), :math:`t_1` is the sum of the scaled polynomials and
    * :math:`t_2` is the sum of the scaled constants:
-   * 
+   *
    * .. math::
    *   t_1 \colon= k_1 \cdot p_1 + \cdots + k_n \cdot p_n
-   *   
+   *
    *   t_2 \colon= k_1 \cdot c_1 + \cdots + k_n \cdot c_n
    *
    * \endverbatim
@@ -1505,10 +1505,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
-   * 
+   *
    * .. math::
    *   \inferrule{P_1 \dots P_n \mid -}{L \diamond R}
-   * 
+   *
    * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
    * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
    * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
@@ -1519,10 +1519,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Tighten strict integer upper bounds**
-   * 
+   *
    * .. math::
    *   \inferrule{i < c \mid -}{i \leq \lfloor c \rfloor}
-   * 
+   *
    * where :math:`i` has integer type.
    * \endverbatim
    */
@@ -1530,10 +1530,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Tighten strict integer lower bounds**
-   * 
+   *
    * .. math::
    *   \inferrule{i > c \mid -}{i \geq \lceil c \rceil}
-   * 
+   *
    * where :math:`i` has integer type.
    * \endverbatim
    */
@@ -1541,10 +1541,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Trichotomy of the reals**
-   * 
+   *
    * .. math::
    *   \inferrule{A, B \mid C}{C}
-   * 
+   *
    * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
    * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
    * \endverbatim
@@ -1553,7 +1553,7 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Operator elimination**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
    * \endverbatim
@@ -1562,10 +1562,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Polynomial normalization**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
-   * 
+   *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
    * \endverbatim
    */
@@ -1574,10 +1574,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
-   * 
+   *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
    * :math:`\diamond` is the comparison (less or equal) that results from the
@@ -1590,10 +1590,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication with positive factor**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
-   * 
+   *
    * where :math:`\diamond` is a relation symbol.
    * \endverbatim
    */
@@ -1601,10 +1601,10 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication with negative factor**
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
-   * 
+   *
    * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
    * inverted relation symbol.
    * \endverbatim
@@ -1613,12 +1613,12 @@ enum class PfRule : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication tangent plane**
-   * 
+   *
    * .. math::
    *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
-   * 
+   *
    *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
-   * 
+   *
    * where :math:`x,y` are real terms (variables or extended terms),
    * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
    * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
@@ -1734,12 +1734,12 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Transcendentals -- Exp is approximated from below**
    *
    * .. math::
-   *   \inferrule{- \mid d,t}{exp(t) \geq \texttt{maclaurin}(\exp, d, t)}
+   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
    * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
-   * :math:`\texttt{maclaurin}(\exp, d, t)` is the :math:`d`'th taylor
+   * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
-   * function evaluated at :math:`t`. The Maclaurin series for the exponential
+   * function evaluated at :math:`c`. The Maclaurin series for the exponential
    * function is the following:
    *
    * .. math::
@@ -1936,7 +1936,7 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Coverings -- Recursive interval**
    *
    * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
-   * <cvc5::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   * <cvc5::internal::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
    *
    * .. math::
    *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
@@ -1948,21 +1948,35 @@ enum class PfRule : uint32_t
    */
   ARITH_NL_COVERING_RECURSIVE,
 
-  //================================================ Place holder for Lfsc rules
-  // ======== Lfsc rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- LFSC**
+   *
+   * Place holder for LFSC rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
+   * \endverbatim
+   */
   LFSC_RULE,
-  //================================================ Place holder for Alethe
-  // rules
-  // ======== Alethe rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, Q', A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
-  // where Q' is the representation of Q to be printed by the Alethe printer.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- Alethe**
+   *
+   * Place holder for Alethe rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external Alethe calculus,
+   * and that :math:`Q'` be the representation of Q to be printed by the Alethe
+   * printer.
+   * \endverbatim
+   */
   ALETHE_RULE,
 
   //================================================= Unknown rule
@@ -1995,6 +2009,6 @@ struct PfRuleHashFunction
   size_t operator()(PfRule id) const;
 }; /* struct PfRuleHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_RULE_H */

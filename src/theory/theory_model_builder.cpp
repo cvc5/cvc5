@@ -27,10 +27,10 @@
 #include "util/uninterpreted_sort_value.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
@@ -282,7 +282,7 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
 
 bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     return true;
   }
@@ -316,7 +316,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
   {
     visited[v] = true;
     TypeNode tn = v.getType();
-    if (tn.isSort())
+    if (tn.isUninterpretedSort())
     {
       Trace("model-builder-debug") << "Is excluded usort value : " << v << " "
                                    << tn << std::endl;
@@ -513,12 +513,16 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // higher-order.
         if (tm->isValue(n))
         {
-          // In rare cases, it could be that multiple terms in the same
-          // equivalence class are considered values. We prefer the one that is
-          // a "base" model value (e.g. a constant) here. We throw a warning
-          // if there are 2 model values in the same equivalence class, and
-          // a debug failure if there are 2 base values in the same equivalence
-          // class.
+          // In some cases, there can be multiple terms in the same equivalence
+          // class are considered values, e.g., when real algebraic numbers did
+          // not simplify to rational values or real.pi was used as a model
+          // value. We distinguish three kinds of model values: constants,
+          // non-constant base values and non-base values, and we use them in
+          // this order of preference.
+          // We print a trace message if there is more than one model value in
+          // the same equivalence class. We throw a debug failure if there are
+          // at least two base model values in the same equivalence class that
+          // do not compare equal.
           bool assignConstRep = false;
           bool isBaseValue = tm->isBaseModelValue(n);
           if (constRep.isNull())
@@ -527,17 +531,28 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           }
           else
           {
-            warning() << "Model values in the same equivalence class "
-                      << constRep << " " << n << std::endl;
+            // This is currently a trace message, as it often triggers for
+            // non-linear arithmetic before the model is refined enough to
+            // e.g. show transcendental function apps are not equal to rationals
+            Trace("model-warn") << "Model values in the same equivalence class "
+                                << constRep << " " << n << std::endl;
             if (!constRepBaseModelValue)
             {
               assignConstRep = isBaseValue;
             }
             else if (isBaseValue)
             {
-              Assert(false)
-                  << "Base model values in the same equivalence class "
-                  << constRep << " " << n << std::endl;
+              Node isEqual = rewrite(constRep.eqNode(n));
+              if (isEqual.isConst() && isEqual.getConst<bool>())
+              {
+                assignConstRep = n.isConst();
+              }
+              else
+              {
+                Assert(false) << "Distinct base model values in the same "
+                                 "equivalence class "
+                              << constRep << " " << n << std::endl;
+              }
             }
           }
           if (assignConstRep)
@@ -608,7 +623,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // count the number of equivalence classes of sorts in finite model finding
     if (options().quantifiers.finiteModelFind)
     {
-      if (eqct.isSort())
+      if (eqct.isUninterpretedSort())
       {
         eqc_usort_count[eqct]++;
       }
@@ -889,7 +904,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       bool isUSortFiniteRestricted = false;
       if (options().quantifiers.finiteModelFind)
       {
-        isUSortFiniteRestricted = !t.isSort() && involvesUSort(t);
+        isUSortFiniteRestricted = !t.isUninterpretedSort() && involvesUSort(t);
       }
 #endif
 
@@ -960,7 +975,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !d_env.isFiniteType(t))
+          else if (t.isUninterpretedSort() || !d_env.isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.
@@ -1473,4 +1488,4 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

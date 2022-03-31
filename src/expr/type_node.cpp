@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
@@ -96,7 +96,7 @@ CardinalityClass TypeNode::getCardinalityClass()
         getAttribute(TypeCardinalityClassAttr()));
   }
   CardinalityClass ret = CardinalityClass::INFINITE;
-  if (isSort())
+  if (isUninterpretedSort())
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
@@ -217,7 +217,8 @@ bool TypeNode::isClosedEnumerable()
   if (!getAttribute(IsClosedEnumerableComputedAttr()))
   {
     bool ret = true;
-    if (isArray() || isSort() || isCodatatype() || isFunction() || isRegExp())
+    if (isArray() || isUninterpretedSort() || isCodatatype() || isFunction()
+        || isRegExp())
     {
       ret = false;
     }
@@ -341,7 +342,7 @@ TypeNode TypeNode::getBaseType() const {
     for(size_t i = 1; i < getNumChildren(); ++i) {
       v.push_back((*this)[i].getBaseType());
     }
-    return (*this)[0].getDType().getTypeNode().instantiateParametricDatatype(v);
+    return (*this)[0].getDType().getTypeNode().instantiate(v);
   }
   return *this;
 }
@@ -364,7 +365,9 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 {
   Assert(isInstantiated());
   vector<TypeNode> params;
-  for (uint32_t i = 1, i_end = getNumChildren(); i < i_end; ++i)
+  for (uint32_t i = isInstantiatedDatatype() ? 1 : 0, i_end = getNumChildren();
+       i < i_end;
+       ++i)
   {
     params.push_back((*this)[i]);
   }
@@ -419,52 +422,62 @@ bool TypeNode::isInstantiatedDatatype() const {
   return true;
 }
 
+bool TypeNode::isInstantiatedUninterpretedSort() const
+{
+  return isUninterpretedSort() && getNumChildren() > 0;
+}
+
 bool TypeNode::isInstantiated() const
 {
-  return isInstantiatedDatatype()
-         || (isSort() && getNumChildren() > 0);
+  return isInstantiatedDatatype() || isInstantiatedUninterpretedSort();
 }
 
-TypeNode TypeNode::instantiateParametricDatatype(
-    const std::vector<TypeNode>& params) const
+TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
 {
-  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
-  AssertArgument(params.size() == getNumChildren() - 1, *this);
   NodeManager* nm = NodeManager::currentNM();
-  TypeNode cons = nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
-  std::vector<TypeNode> paramsNodes;
-  paramsNodes.push_back(cons);
-  for (const TypeNode& t : params)
+  if (getKind() == kind::PARAMETRIC_DATATYPE)
   {
-    paramsNodes.push_back(t);
+    Assert(params.size() == getNumChildren() - 1);
+    TypeNode cons =
+        nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+    std::vector<TypeNode> paramsNodes;
+    paramsNodes.push_back(cons);
+    for (const TypeNode& t : params)
+    {
+      paramsNodes.push_back(t);
+    }
+    return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
   }
-  return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+  Assert(isUninterpretedSortConstructor());
+  return nm->mkSort(*this, params);
 }
 
-uint64_t TypeNode::getSortConstructorArity() const
+uint64_t TypeNode::getUninterpretedSortConstructorArity() const
 {
-  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
+  Assert(isUninterpretedSortConstructor()
+         && hasAttribute(expr::SortArityAttr()));
   return getAttribute(expr::SortArityAttr());
 }
 
 std::string TypeNode::getName() const
 {
-  Assert(isSort() || isSortConstructor());
+  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
-TypeNode TypeNode::instantiateSortConstructor(
-    const std::vector<TypeNode>& params) const
+TypeNode TypeNode::getUninterpretedSortConstructor() const
 {
-  Assert(isSortConstructor());
-  return NodeManager::currentNM()->mkSort(*this, params);
+  Assert(isInstantiatedUninterpretedSort());
+  NodeBuilder nb(kind::SORT_TYPE);
+  nb << NodeManager::operatorFromType(*this);
+  return nb.constructTypeNode();
 }
 
-/** Is this an instantiated datatype parameter */
-bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
-  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
+bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
+{
+  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   const DType& dt = (*this)[0].getDType();
-  AssertArgument(n < dt.getNumParameters(), *this);
+  Assert(n < dt.getNumParameters());
   return dt.getParameter(n) != (*this)[n + 1];
 }
 
@@ -568,12 +581,14 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
 }
 
 /** Is this a sort kind */
-bool TypeNode::isSort() const {
+bool TypeNode::isUninterpretedSort() const
+{
   return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
 }
 
 /** Is this a sort constructor kind */
-bool TypeNode::isSortConstructor() const {
+bool TypeNode::isUninterpretedSortConstructor() const
+{
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
@@ -675,11 +690,11 @@ TypeNode TypeNode::getRangeType() const
   return (*this)[getNumChildren() - 1];
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::TypeNode>::operator()(const cvc5::TypeNode& tn) const
+size_t hash<cvc5::internal::TypeNode>::operator()(const cvc5::internal::TypeNode& tn) const
 {
   return tn.getId();
 }

@@ -56,7 +56,7 @@
 #include "util/result.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class EagerProofGenerator;
 
@@ -719,10 +719,9 @@ private:
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
-  context::CDHashSet<ArithVar, std::hash<ArithVar> > d_cutInContext;
+  context::CDHashSet<ArithVar, std::hash<ArithVar>> d_cutInContext;
 
   context::CDO<bool> d_likelyIntegerInfeasible;
-
 
   context::CDO<bool> d_guessedCoeffSet;
   ArithRatPairVec d_guessedCoeffs;
@@ -878,4 +877,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

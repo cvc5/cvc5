@@ -15,7 +15,7 @@
 
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscListScNodeConverter::LfscListScNodeConverter(
@@ -125,4 +125,4 @@ Node LfscListScNodeConverter::mkOperatorFor(const std::string& name,
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

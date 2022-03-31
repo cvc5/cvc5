@@ -22,7 +22,7 @@
 #include "context/cdlist.h"
 #include "test_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace context;
 
@@ -178,4 +178,4 @@ TEST_F(TestContextBlackCDList, emplace_back)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

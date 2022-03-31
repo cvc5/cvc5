@@ -21,9 +21,9 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/indexed_root_predicate.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -92,7 +92,7 @@ Node mkIRP(const Node& var,
 }  // namespace
 
 CoveringsProofGenerator::CoveringsProofGenerator(context::Context* ctx,
-                                     ProofNodeManager* pnm)
+                                                 ProofNodeManager* pnm)
     : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -242,6 +242,6 @@ std::ostream& operator<<(std::ostream& os, const CoveringsProofGenerator& proof)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -29,7 +29,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -1567,4 +1567,4 @@ inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

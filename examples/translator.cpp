@@ -96,8 +96,7 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
   Options opts;
   opts.setInputLanguage(fromLang);
   ExprManager exprMgr(opts);
-  std::unique_ptr<api::Solver> solver =
-      std::unique_ptr<api::Solver>(new api::Solver(&opts));
+  std::unique_ptr<Solver> solver = std::unique_ptr<Solver>(new Solver(&opts));
   ParserBuilder parserBuilder(solver.get(), filename, opts);
   if(!strcmp(filename, "-")) {
     parserBuilder.withFilename("<stdin>");

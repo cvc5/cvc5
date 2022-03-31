@@ -22,7 +22,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -117,4 +117,4 @@ bool SygusEnumeratorCallbackDefault::addTermInternal(Node n, Node bn, Node bnr)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

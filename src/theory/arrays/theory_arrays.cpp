@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -1190,7 +1190,8 @@ void TheoryArrays::postCheck(Effort level)
       && weakEquiv)
   {
     // Replay all array merges to update weak equivalence data structures
-    context::CDList<Node>::iterator it = d_arrayMerges.begin(), iend = d_arrayMerges.end();
+    context::CDList<Node>::iterator it = d_arrayMerges.begin(),
+                                    iend = d_arrayMerges.end();
     TNode a, b, eq;
     for (; it != iend; ++it) {
       eq = *it;
@@ -2236,4 +2237,4 @@ void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

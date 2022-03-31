@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 // Note that this function is a simplified version of Theory::theoryOf for
@@ -489,4 +489,4 @@ bool Rewriter::hasRewrittenWithProofs(TNode n) const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -23,7 +23,7 @@
 #include "proof/proof_generator.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 
@@ -97,6 +97,6 @@ class AnnotationProofGenerator : public ProofGenerator
   NodeProofNodeMap d_proofs;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__ANNOTATION_PROOF_GENERATOR_H */

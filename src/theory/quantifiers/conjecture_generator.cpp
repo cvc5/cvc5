@@ -27,13 +27,13 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::theory::quantifiers;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::quantifiers;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 struct sortConjectureScore {
   std::vector< int > d_scores;
@@ -157,9 +157,9 @@ void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-
-ConjectureGenerator::EqcInfo::EqcInfo( context::Context* c ) : d_rep( c, Node::null() ){
-
+ConjectureGenerator::EqcInfo::EqcInfo(context::Context* c)
+    : d_rep(c, Node::null())
+{
 }
 
 ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bool doMake ) {
@@ -2290,4 +2290,4 @@ unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

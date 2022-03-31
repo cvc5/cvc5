@@ -18,7 +18,7 @@
 #ifndef CVC5__UTIL__STATISTICS_PUBLIC_H
 #define CVC5__UTIL__STATISTICS_PUBLIC_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class StatisticsRegistry;
 
@@ -27,6 +27,6 @@ class StatisticsRegistry;
  */
 void registerPublicStatistics(StatisticsRegistry& reg);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

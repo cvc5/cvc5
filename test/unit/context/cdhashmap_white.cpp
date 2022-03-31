@@ -17,7 +17,7 @@
 #include "context/cdhashmap.h"
 #include "test_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace context;
 
@@ -43,4 +43,4 @@ TEST_F(TestContextWhiteCDHashMap, unreachable_save_and_restore)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

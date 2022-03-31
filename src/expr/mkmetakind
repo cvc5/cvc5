@@ -94,9 +94,9 @@ function theory {
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
   elif ! expr "$2" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class \`$1' isn't fully-qualified (e.g., ::cvc5::theory::foo)" >&2
-  elif ! expr "$2" : '\(::cvc5::theory::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class not under ::cvc5::theory namespace" >&2
+    echo "$kf:$lineno: warning: theory class \`$1' isn't fully-qualified (e.g., ::cvc5::internal::theory::foo)" >&2
+  elif ! expr "$2" : '\(::cvc5::internal::theory::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: theory class not under ::cvc5::internal::theory namespace" >&2
   fi
 
   theory_class=$1
@@ -224,7 +224,7 @@ function constant {
   check_theory_seen
 
   if ! expr "$4" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: constant $1 hasher \`$4' isn't fully-qualified (e.g., ::cvc5::RationalHashFunction)" >&2
+    echo "$kf:$lineno: warning: constant $1 hasher \`$4' isn't fully-qualified (e.g., ::cvc5::internal::RationalHashFunction)" >&2
   fi
 
   if [[ "$3" =~ '+'$ ]]; then
@@ -265,7 +265,7 @@ $2 ${class};"
 
 template <>
 ${class} const& NodeValue::getConst< ${class} >() const {
-  AssertArgument(getKind() == ::cvc5::kind::$1, *this,
+  AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
                  \"Improper kind for getConst<${class}>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
@@ -286,13 +286,13 @@ ${class} const& NodeValue::getConst< ${class} >() const {
 template<>
 Node NodeManager::mkConst<${class}>(const ${class}& val)
 {
-  return mkConstInternal<Node, ${class}>(::cvc5::kind::$1, val);
+  return mkConstInternal<Node, ${class}>(::cvc5::internal::kind::$1, val);
 }
 
 template<>
 TypeNode NodeManager::mkTypeConst<${class}>(const ${class}& val)
 {
-  return mkConstInternal<TypeNode, ${class}>(::cvc5::kind::$1, val);
+  return mkConstInternal<TypeNode, ${class}>(::cvc5::internal::kind::$1, val);
 }
 "
     metakind_mkConst="${metakind_mkConst}

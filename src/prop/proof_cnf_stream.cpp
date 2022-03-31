@@ -20,7 +20,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 ProofCnfStream::ProofCnfStream(Env& env,
@@ -1111,4 +1111,4 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

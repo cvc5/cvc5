@@ -43,7 +43,8 @@ public class Solver implements IPointer, AutoCloseable
   // store pointers for terms, sorts, etc
   List<AbstractPointer> abstractPointers = new ArrayList<>();
 
-  @Override public void close()
+  @Override
+  public void close()
   {
     // delete heap memory for terms, sorts, etc
     for (int i = abstractPointers.size() - 1; i >= 0; i--)
@@ -712,7 +713,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create operator of kind:
    *   - RECORD_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
@@ -738,7 +739,7 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_SBV
    *   - FLOATINGPOINT_TO_SBV_TOTAL
    *   - TUPLE_UPDATE
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the unsigned int argument to this operator
    * @throws CVC5ApiException
@@ -760,7 +761,7 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_FP_FROM_REAL
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first unsigned int argument to this operator
    * @param arg2 the second unsigned int argument to this operator
@@ -779,7 +780,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create operator of Kind:
    *   - TUPLE_PROJECT
-   * See enum Kind for a description of the parameters.
+   * See enum {@link Kind} for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    * @throws CVC5ApiException
@@ -1790,7 +1791,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @return the list of learned literals
    */
-  public Term[] getLearnedLiterals() {
+  public Term[] getLearnedLiterals()
+  {
     long[] retPointers = getLearnedLiterals(pointer);
     return Utils.getTerms(this, retPointers);
   }
@@ -2509,26 +2511,6 @@ public class Solver implements IPointer, AutoCloseable
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * If needed, convert this term to a given sort.
-   *
-   * @apiNote The sort of the term must be convertible into the target sort.
-   *          Currently only Int to Real conversions are supported.
-   *
-   * @apiNote This method is experimental and may change in future versions.
-   *
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
-   */
-  public Term ensureTermSort(Term t, Sort s)
-  {
-    long termPointer = ensureTermSort(pointer, t.getPointer(), s.getPointer());
-    return new Term(this, termPointer);
-  }
-
-  private native long ensureTermSort(long pointer, long termPointer, long sortPointer);
-
-  /**
    * Append \p symbol to the current list of universal variables.
    * @param sort the sort of the universal variable
    * @return the universal variable
@@ -2722,7 +2704,8 @@ public class Solver implements IPointer, AutoCloseable
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
    */
-  public SynthResult checkSynth() {
+  public SynthResult checkSynth()
+  {
     long resultPointer = checkSynth(pointer);
     return new SynthResult(this, resultPointer);
   }
@@ -2743,7 +2726,8 @@ public class Solver implements IPointer, AutoCloseable
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
    */
-  public SynthResult checkSynthNext() {
+  public SynthResult checkSynthNext()
+  {
     long resultPointer = checkSynthNext(pointer);
     return new SynthResult(this, resultPointer);
   }

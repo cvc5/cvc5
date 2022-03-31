@@ -317,6 +317,67 @@ def test_is_instantiated(solver):
     assert not solver.getIntegerSort().isInstantiated()
     assert not solver.mkBitVectorSort(32).isInstantiated()
 
+def test_get_instantiated_parameters(solver):
+    intSort  = solver.getIntegerSort()
+    realSort = solver.getRealSort()
+    boolSort = solver.getBooleanSort()
+    bvSort = solver.mkBitVectorSort(8)
+
+    # parametric datatype instantiation
+    p1 = solver.mkParamSort("p1")
+    p2 = solver.mkParamSort("p2")
+    pspec = solver.mkDatatypeDecl("pdtype", [p1, p2])
+    pcons1 = solver.mkDatatypeConstructorDecl("cons1")
+    pcons2 = solver.mkDatatypeConstructorDecl("cons2")
+    pnil = solver.mkDatatypeConstructorDecl("nil")
+    pcons1.addSelector("sel", p1)
+    pcons2.addSelector("sel", p2)
+    pspec.addConstructor(pcons1)
+    pspec.addConstructor(pcons2)
+    pspec.addConstructor(pnil)
+    paramDtypeSort = solver.mkDatatypeSort(pspec)
+
+    with pytest.raises(RuntimeError):
+        paramDtypeSort.getInstantiatedParameters()
+
+    instParamDtypeSort = \
+        paramDtypeSort.instantiate([realSort, boolSort]);
+
+    instSorts = instParamDtypeSort.getInstantiatedParameters();
+    assert instSorts[0] == realSort
+    assert instSorts[1] == boolSort
+
+    # uninterpreted sort constructor sort instantiation
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 4)
+    with pytest.raises(RuntimeError):
+        sortConsSort.getInstantiatedParameters()
+
+    instSortConsSort = sortConsSort.instantiate(
+        [boolSort, intSort, bvSort, realSort]);
+
+    instSorts = instSortConsSort.getInstantiatedParameters()
+    assert instSorts[0] == boolSort
+    assert instSorts[1] == intSort
+    assert instSorts[2] == bvSort
+    assert instSorts[3] == realSort
+
+    with pytest.raises(RuntimeError):
+        intSort.getInstantiatedParameters()
+    with pytest.raises(RuntimeError):
+        bvSort.getInstantiatedParameters()
+
+def test_get_uninterpreted_sort_constructor(solver):
+    intSort = solver.getIntegerSort()
+    realSort = solver.getRealSort()
+    boolSort = solver.getBooleanSort()
+    bvSort = solver.mkBitVectorSort(8)
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 4)
+    with pytest.raises(RuntimeError):
+        sortConsSort.getUninterpretedSortConstructor()
+    instSortConsSort = \
+        sortConsSort.instantiate([boolSort, intSort, bvSort, realSort]);
+    assert sortConsSort == instSortConsSort.getUninterpretedSortConstructor()
+
 def test_get_function_arity(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
                                     solver.getIntegerSort())
@@ -400,17 +461,6 @@ def test_get_uninterpreted_sort_name(solver):
         bvSort.getSymbol()
 
 
-def test_get_uninterpreted_sort_paramsorts(solver):
-    uSort = solver.mkUninterpretedSort("u")
-    uSort.getUninterpretedSortParamSorts()
-    sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
-    siSort = sSort.instantiate([uSort, uSort])
-    assert len(siSort.getUninterpretedSortParamSorts()) == 2
-    bvSort = solver.mkBitVectorSort(32)
-    with pytest.raises(RuntimeError):
-        bvSort.getUninterpretedSortParamSorts()
-
-
 def test_get_uninterpreted_sort_constructor_name(solver):
     sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
     sSort.getSymbol()
@@ -449,29 +499,6 @@ def test_get_fp_significand_size(solver):
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
         setSort.getFloatingPointSignificandSize()
-
-
-def test_get_datatype_paramsorts(solver):
-    # create parametric datatype, check should not fail
-    sort = solver.mkParamSort("T")
-    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", sort)
-    paramCons = solver.mkDatatypeConstructorDecl("cons")
-    paramNil = solver.mkDatatypeConstructorDecl("nil")
-    paramCons.addSelector("head", sort)
-    paramDtypeSpec.addConstructor(paramCons)
-    paramDtypeSpec.addConstructor(paramNil)
-    paramDtypeSort = solver.mkDatatypeSort(paramDtypeSpec)
-    paramDtypeSort.getDatatypeParamSorts()
-    # create non-parametric datatype sort, check should fail
-    dtypeSpec = solver.mkDatatypeDecl("list")
-    cons = solver.mkDatatypeConstructorDecl("cons")
-    cons.addSelector("head", solver.getIntegerSort())
-    dtypeSpec.addConstructor(cons)
-    nil = solver.mkDatatypeConstructorDecl("nil")
-    dtypeSpec.addConstructor(nil)
-    dtypeSort = solver.mkDatatypeSort(dtypeSpec)
-    with pytest.raises(RuntimeError):
-        dtypeSort.getDatatypeParamSorts()
 
 
 def test_get_datatype_arity(solver):

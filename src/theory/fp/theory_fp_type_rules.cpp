@@ -21,7 +21,7 @@
 #include "util/floatingpoint.h"
 #include "util/roundingmode.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -781,4 +781,4 @@ Cardinality CardinalityComputer::computeCardinality(TypeNode type)
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

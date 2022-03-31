@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "proof/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -44,6 +44,6 @@ class BoolProofRuleChecker : public ProofRuleChecker
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H */

@@ -25,11 +25,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory_preprocessor.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 // TODO (project #42): note this preprocessing pass is deprecated
 IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
@@ -71,4 +71,4 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

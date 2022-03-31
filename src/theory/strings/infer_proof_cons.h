@@ -29,7 +29,7 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -279,6 +279,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H */

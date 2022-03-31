@@ -25,7 +25,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -274,9 +274,9 @@ class ConjectureGenerator : public QuantifiersModule
   NotifyClass d_notify;
   class EqcInfo{
   public:
-    EqcInfo( context::Context* c );
-    //representative
-    context::CDO< Node > d_rep;
+   EqcInfo(context::Context* c);
+   // representative
+   context::CDO<Node> d_rep;
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
@@ -469,6 +469,6 @@ private:  //information about ground equivalence classes
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

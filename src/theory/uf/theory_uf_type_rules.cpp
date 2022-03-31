@@ -23,7 +23,7 @@
 #include "util/cardinality.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -73,7 +73,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
-    if (!cc.getType().isSort())
+    if (!cc.getType().isUninterpretedSort())
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must apply to uninterpreted sort");
@@ -263,4 +263,4 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

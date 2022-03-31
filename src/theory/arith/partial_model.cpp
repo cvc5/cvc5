@@ -23,24 +23,25 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithVariables::ArithVariables(context::Context* c, DeltaComputeCallback deltaComputingFunc)
- : d_vars(),
-   d_safeAssignment(),
-   d_numberOfVariables(0),
-   d_pool(),
-   d_released(),
-   d_nodeToArithVarMap(),
-   d_boundsQueue(),
-   d_enqueueingBoundCounts(true),
-   d_lbRevertHistory(c, true, LowerBoundCleanUp(this)),
-   d_ubRevertHistory(c, true, UpperBoundCleanUp(this)),
-   d_deltaIsSafe(false),
-   d_delta(-1,1),
-   d_deltaComputingFunc(deltaComputingFunc)
+ArithVariables::ArithVariables(context::Context* c,
+                               DeltaComputeCallback deltaComputingFunc)
+    : d_vars(),
+      d_safeAssignment(),
+      d_numberOfVariables(0),
+      d_pool(),
+      d_released(),
+      d_nodeToArithVarMap(),
+      d_boundsQueue(),
+      d_enqueueingBoundCounts(true),
+      d_lbRevertHistory(c, true, LowerBoundCleanUp(this)),
+      d_ubRevertHistory(c, true, UpperBoundCleanUp(this)),
+      d_deltaIsSafe(false),
+      d_delta(-1, 1),
+      d_deltaComputingFunc(deltaComputingFunc)
 { }
 
 ArithVar ArithVariables::getNumberOfVariables() const {
@@ -687,4 +688,4 @@ void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

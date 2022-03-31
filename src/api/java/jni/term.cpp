@@ -17,7 +17,7 @@
 #include "api_utilities.h"
 #include "io_github_cvc5_api_Term.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 /*
  * Class:     io_github_cvc5_api_Term
@@ -902,6 +902,49 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Term_getSequenceValue(
   std::vector<Term> terms = current->getSequenceValue();
   jlongArray ret = getPointersFromObjects<Term>(env, terms);
   return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    isCardinalityConstraint
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isCardinalityConstraint(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isCardinalityConstraint());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    getCardinalityConstraint
+ * Signature: (J)Lio/github/cvc5/api/Pair;
+ */
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Term_getCardinalityConstraint(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  auto [sort, upperBound] = current->getCardinalityConstraint();
+  Sort* sortPointer = new Sort(sort);
+  jobject u = getBigIntegerObject<std::uint32_t>(env, upperBound);
+
+  // Long s = new Long(sortPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject s = env->NewObject(longClass, longConstructor, sortPointer);
+
+  // Pair pair = new Pair<Long, BigInteger>(s, u);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, s, u);
+
+  return pair;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

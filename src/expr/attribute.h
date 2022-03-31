@@ -31,7 +31,7 @@
 #include "expr/attribute_internals.h"
 #undef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 namespace attr {
 
@@ -611,6 +611,6 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
   d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__ATTRIBUTE_H */

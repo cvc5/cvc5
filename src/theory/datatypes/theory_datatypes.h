@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -78,14 +78,14 @@ private:
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    //whether we have instantiatied this eqc
-    context::CDO< bool > d_inst;
-    //constructor equal to this eqc
-    context::CDO< Node > d_constructor;
-    //all selectors whose argument is this eqc
-    context::CDO< bool > d_selectors;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // whether we have instantiatied this eqc
+   context::CDO<bool> d_inst;
+   // constructor equal to this eqc
+   context::CDO<Node> d_constructor;
+   // all selectors whose argument is this eqc
+   context::CDO<bool> d_selectors;
   };
   /** does eqc of n have a label (do we know its constructor)? */
   bool hasLabel( EqcInfo* eqc, Node n );
@@ -304,6 +304,6 @@ private:
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H */

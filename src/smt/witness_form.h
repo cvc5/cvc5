@@ -24,7 +24,7 @@
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -107,6 +107,6 @@ class WitnessFormGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

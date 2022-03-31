@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -170,6 +170,6 @@ class BitVectorAckermanizationUremTypeRule
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H */

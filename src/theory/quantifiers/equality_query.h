@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -74,7 +74,7 @@ class EqualityQuery : public QuantifiersUtil
   /** Pointer to the model */
   FirstOrderModel* d_model;
   /** quantifiers equality inference */
-  context::CDO< unsigned > d_eqi_counter;
+  context::CDO<unsigned> d_eqi_counter;
   /** internal representatives */
   std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
@@ -93,6 +93,6 @@ class EqualityQuery : public QuantifiersUtil
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS_EQUALITY_QUERY_H */

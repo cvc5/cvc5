@@ -29,7 +29,7 @@
 ${rewriter_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node)
@@ -84,7 +84,7 @@ Rewriter::Rewriter() : d_resourceManager(nullptr), d_tpg(nullptr) {}
 
 void Rewriter::clearCachesInternal()
 {
-  typedef cvc5::expr::attr::AttributeUniqueId AttributeUniqueId;
+  typedef cvc5::internal::expr::attr::AttributeUniqueId AttributeUniqueId;
   std::vector<AttributeUniqueId> preids;
   // clang-format off
   ${pre_rewrite_attribute_ids}  // clang-format on
@@ -108,4 +108,4 @@ void Rewriter::clearCachesInternal()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
