@@ -1083,7 +1083,8 @@ cdef class Solver:
 
             - ``Term mkTerm(Kind kind)``
             - ``Term mkTerm(Kind kind, List[Term] children)``
-            - ``Term mkTerm(Op child1, List[Term] children)``
+            - ``Term mkTerm(Op op)``
+            - ``Term mkTerm(Op op, List[Term] children)``
 
             where ``List[Term]`` can also be comma-separated arguments
         """
