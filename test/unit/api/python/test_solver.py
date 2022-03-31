@@ -235,28 +235,27 @@ def test_mk_param_sort(solver):
 
 
 def test_mk_predicate_sort(solver):
-    solver.mkPredicateSort([solver.getIntegerSort()])
+    solver.mkPredicateSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        solver.mkPredicateSort([])
+        solver.mkPredicateSort()
 
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
             solver.getIntegerSort())
     # functions as arguments are allowed
-    solver.mkPredicateSort([solver.getIntegerSort(), funSort])
+    solver.mkPredicateSort(solver.getIntegerSort(), funSort)
 
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
-        slv.mkPredicateSort([solver.getIntegerSort()])
+        slv.mkPredicateSort(solver.getIntegerSort())
 
 
 def test_mk_record_sort(solver):
     fields = [("b", solver.getBooleanSort()),\
               ("bv", solver.mkBitVectorSort(8)),\
               ("i", solver.getIntegerSort())]
-    empty = []
-    solver.mkRecordSort(fields)
-    solver.mkRecordSort(empty)
-    recSort = solver.mkRecordSort(fields)
+    solver.mkRecordSort(*fields)
+    solver.mkRecordSort()
+    recSort = solver.mkRecordSort(*fields)
     recSort.getDatatype()
 
 
@@ -307,15 +306,15 @@ def test_mk_sort_constructor_sort(solver):
 
 
 def test_mk_tuple_sort(solver):
-    solver.mkTupleSort([solver.getIntegerSort()])
+    solver.mkTupleSort(solver.getIntegerSort())
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
                                     solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        solver.mkTupleSort([solver.getIntegerSort(), funSort])
+        solver.mkTupleSort(solver.getIntegerSort(), funSort)
 
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
-        slv.mkTupleSort([solver.getIntegerSort()])
+        slv.mkTupleSort(solver.getIntegerSort())
 
 
 def test_mk_bit_vector(solver):
@@ -701,32 +700,18 @@ def test_mk_term(solver):
     bv32 = solver.mkBitVectorSort(32)
     a = solver.mkConst(bv32, "a")
     b = solver.mkConst(bv32, "b")
-    v1 = [a, b]
-    v2 = [a, cvc5.Term(solver)]
-    v3 = [a, solver.mkTrue()]
-    v4 = [solver.mkInteger(1), solver.mkInteger(2)]
-    v5 = [solver.mkInteger(1), cvc5.Term(solver)]
-    v6 = []
     slv = cvc5.Solver()
 
     # mkTerm(Kind kind) const
     solver.mkPi()
     solver.mkTerm(Kind.Pi)
-    solver.mkTerm(Kind.Pi, v6)
     solver.mkTerm(solver.mkOp(Kind.Pi))
-    solver.mkTerm(solver.mkOp(Kind.Pi), v6)
     solver.mkTerm(Kind.RegexpNone)
-    solver.mkTerm(Kind.RegexpNone, v6)
     solver.mkTerm(solver.mkOp(Kind.RegexpNone))
-    solver.mkTerm(solver.mkOp(Kind.RegexpNone), v6)
     solver.mkTerm(Kind.RegexpAllchar)
-    solver.mkTerm(Kind.RegexpAllchar, v6)
     solver.mkTerm(solver.mkOp(Kind.RegexpAllchar))
-    solver.mkTerm(solver.mkOp(Kind.RegexpAllchar), v6)
     solver.mkTerm(Kind.SepEmp)
-    solver.mkTerm(Kind.SepEmp, v6)
     solver.mkTerm(solver.mkOp(Kind.SepEmp))
-    solver.mkTerm(solver.mkOp(Kind.SepEmp), v6)
     with pytest.raises(RuntimeError):
         solver.mkTerm(Kind.ConstBV)
 
@@ -767,53 +752,49 @@ def test_mk_term(solver):
         slv.mkTerm(Kind.Ite, solver.mkTrue(), solver.mkTrue(),
                    solver.mkTrue())
 
-    solver.mkTerm(Kind.Equal, v1)
+    solver.mkTerm(Kind.Equal, a, b)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.Equal, v2)
+        solver.mkTerm(Kind.Equal, a, cvc5.Term(solver))
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.Equal, v3)
+        solver.mkTerm(Kind.Equal, a, solver.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.Distinct, v6)
+        solver.mkTerm(Kind.Distinct)
 
     # Test cases that are nary via the API but have arity = 2 internally
     s_bool = solver.getBooleanSort()
     t_bool = solver.mkConst(s_bool, "t_bool")
-    solver.mkTerm(Kind.Implies, [t_bool, t_bool, t_bool])
-    solver.mkTerm(Kind.Xor, [t_bool, t_bool, t_bool])
-    solver.mkTerm(solver.mkOp(Kind.Xor), [t_bool, t_bool, t_bool])
+    solver.mkTerm(Kind.Implies, t_bool, t_bool, t_bool)
+    solver.mkTerm(Kind.Xor, t_bool, t_bool, t_bool)
+    solver.mkTerm(solver.mkOp(Kind.Xor), t_bool, t_bool, t_bool)
     t_int = solver.mkConst(solver.getIntegerSort(), "t_int")
-    solver.mkTerm(Kind.Division, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Division), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.IntsDivision, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.IntsDivision), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Sub, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Sub), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Equal, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Equal), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Lt, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Lt), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Gt, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Gt), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Leq, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Leq), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Geq, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Geq), [t_int, t_int, t_int])
+    solver.mkTerm(Kind.Division, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Division), t_int, t_int, t_int)
+    solver.mkTerm(Kind.IntsDivision, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.IntsDivision), t_int, t_int, t_int)
+    solver.mkTerm(Kind.Sub, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Sub), t_int, t_int, t_int)
+    solver.mkTerm(Kind.Equal, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Equal), t_int, t_int, t_int)
+    solver.mkTerm(Kind.Lt, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Lt), t_int, t_int, t_int)
+    solver.mkTerm(Kind.Gt, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Gt), t_int, t_int, t_int)
+    solver.mkTerm(Kind.Leq, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Leq), t_int, t_int, t_int)
+    solver.mkTerm(Kind.Geq, t_int, t_int, t_int)
+    solver.mkTerm(solver.mkOp(Kind.Geq), t_int, t_int, t_int)
     t_reg = solver.mkConst(solver.getRegExpSort(), "t_reg")
-    solver.mkTerm(Kind.RegexpDiff, [t_reg, t_reg, t_reg])
-    solver.mkTerm(solver.mkOp(Kind.RegexpDiff), [t_reg, t_reg, t_reg])
+    solver.mkTerm(Kind.RegexpDiff, t_reg, t_reg, t_reg)
+    solver.mkTerm(solver.mkOp(Kind.RegexpDiff), t_reg, t_reg, t_reg)
     t_fun = solver.mkConst(solver.mkFunctionSort(
         [s_bool, s_bool, s_bool], s_bool))
-    solver.mkTerm(Kind.HoApply, [t_fun, t_bool, t_bool, t_bool])
-    solver.mkTerm(solver.mkOp(Kind.HoApply), [t_fun, t_bool, t_bool, t_bool])
+    solver.mkTerm(Kind.HoApply, t_fun, t_bool, t_bool, t_bool)
+    solver.mkTerm(solver.mkOp(Kind.HoApply), t_fun, t_bool, t_bool, t_bool)
 
 def test_mk_term_from_op(solver):
     bv32 = solver.mkBitVectorSort(32)
     a = solver.mkConst(bv32, "a")
     b = solver.mkConst(bv32, "b")
-    v1 = [solver.mkInteger(1), solver.mkInteger(2)]
-    v2 = [solver.mkInteger(1), cvc5.Term(solver)]
-    v3 = []
-    v4 = [solver.mkInteger(5)]
     slv = cvc5.Solver()
 
     # simple operator terms
@@ -901,15 +882,15 @@ def test_mk_term_from_op(solver):
         solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(1),
                       cvc5.Term(solver))
 
-    solver.mkTerm(opterm2, v4)
+    solver.mkTerm(opterm2, solver.mkInteger(5))
     with pytest.raises(RuntimeError):
-        solver.mkTerm(opterm2, v1)
+        solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(2))
     with pytest.raises(RuntimeError):
-        solver.mkTerm(opterm2, v2)
+        solver.mkTerm(opterm2, solver.mkInteger(1), cvc5.Term(solver))
     with pytest.raises(RuntimeError):
-        solver.mkTerm(opterm2, v3)
+        solver.mkTerm(opterm2)
     with pytest.raises(RuntimeError):
-        slv.mkTerm(opterm2, v4)
+        slv.mkTerm(opterm2, solver.mkInteger(5))
 
 
 def test_mk_true(solver):
@@ -1844,23 +1825,23 @@ def test_check_sat_assuming2(solver):
     # Assertions
     assertions =\
         solver.mkTerm(Kind.And,\
-                      [solver.mkTerm(Kind.Leq, zero, f_x),  # 0 <= f(x)
+                      solver.mkTerm(Kind.Leq, zero, f_x),  # 0 <= f(x)
                        solver.mkTerm(Kind.Leq, zero, f_y),  # 0 <= f(y)
                        solver.mkTerm(Kind.Leq, summ, one),  # f(x) + f(y) <= 1
                        p_0.notTerm(),                        # not p(0)
                        p_f_y                                 # p(f(y))
-                      ])
+                      )
 
     solver.checkSatAssuming(solver.mkTrue())
     solver.assertFormula(assertions)
     solver.checkSatAssuming(solver.mkTerm(Kind.Distinct, x, y))
     solver.checkSatAssuming(
-        [solver.mkFalse(),
-         solver.mkTerm(Kind.Distinct, x, y)])
+        solver.mkFalse(),
+         solver.mkTerm(Kind.Distinct, x, y))
     with pytest.raises(RuntimeError):
         solver.checkSatAssuming(n)
     with pytest.raises(RuntimeError):
-        solver.checkSatAssuming([n, solver.mkTerm(Kind.Distinct, x, y)])
+        solver.checkSatAssuming(n, solver.mkTerm(Kind.Distinct, x, y))
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.checkSatAssuming(solver.mkTrue())
@@ -1895,7 +1876,7 @@ def test_reset_assertions(solver):
     solver.push(4)
     slt = solver.mkTerm(Kind.BVSlt, srem, one)
     solver.resetAssertions()
-    solver.checkSatAssuming([slt, ule])
+    solver.checkSatAssuming(slt, ule)
 
 
 def test_mk_sygus_grammar(solver):
@@ -2620,9 +2601,9 @@ def test_tuple_project(solver):
 
 
 def test_get_data_type_arity(solver):
-  ctor1 = solver.mkDatatypeConstructorDecl("_x21");
-  ctor2 = solver.mkDatatypeConstructorDecl("_x31");
-  s3 = solver.declareDatatype("_x17", [ctor1, ctor2]);
+  ctor1 = solver.mkDatatypeConstructorDecl("_x21")
+  ctor2 = solver.mkDatatypeConstructorDecl("_x31")
+  s3 = solver.declareDatatype("_x17", ctor1, ctor2)
   assert s3.getDatatypeArity() == 0
 
 

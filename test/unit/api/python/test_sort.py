@@ -185,7 +185,7 @@ def test_is_tuple(solver):
 
 
 def test_is_record(solver):
-    rec_sort = solver.mkRecordSort([("asdf", solver.getRealSort())])
+    rec_sort = solver.mkRecordSort(("asdf", solver.getRealSort()))
     assert rec_sort.isRecord()
     Sort(solver).isRecord()
 
@@ -519,8 +519,8 @@ def test_get_datatype_arity(solver):
 
 def test_get_tuple_length(solver):
     tupleSort = solver.mkTupleSort(
-        [solver.getIntegerSort(),
-         solver.getIntegerSort()])
+        solver.getIntegerSort(),
+        solver.getIntegerSort())
     tupleSort.getTupleLength()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
@@ -529,8 +529,8 @@ def test_get_tuple_length(solver):
 
 def test_get_tuple_sorts(solver):
     tupleSort = solver.mkTupleSort(
-        [solver.getIntegerSort(),
-         solver.getIntegerSort()])
+        solver.getIntegerSort(),
+        solver.getIntegerSort())
     tupleSort.getTupleSorts()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
