@@ -73,13 +73,14 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
 bool NlExtTheoryCallback::isExtfReduced(
     int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
 {
-  Kind k = n.getKind();
-  if (k==PI)
+  if (on.getKind()==PI)
   {
+    // pi is never reduced.
     return false;
   }
   if (n != d_zero)
   {
+    Kind k = n.getKind();
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
         && k != POW2)
     {
