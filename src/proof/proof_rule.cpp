@@ -133,7 +133,6 @@ const char* toString(PfRule id)
     case PfRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
     case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
-    case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
