@@ -251,11 +251,6 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
     argTypes = t.getDatatypeConstructorDomainSorts();
     rangeType = t.getDatatypeConstructorCodomainSort();
   }
-  else if (t.isDatatypeTester())
-  {
-    argTypes.push_back(t.getDatatypeTesterDomainSort());
-    rangeType = t.getDatatypeTesterCodomainSort();
-  }
   else if (t.isDatatypeSelector())
   {
     argTypes.push_back(t.getDatatypeSelectorDomainSort());
