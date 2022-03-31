@@ -27,7 +27,7 @@ Semantics
 
     ⟦seq.nth⟧(s, i) is the n-th element in the sequence s,
                     denoted as nth(s, i).
-                    It is uninterpreted if i out of bound, 
+                    It is uninterpreted if i out of bounds, 
                     i.e. i < 0 or i >= |s|.
 
   * (seq.update ((Seq S) Int (Seq S)) (Seq S))
