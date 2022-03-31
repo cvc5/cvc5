@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst
+; COMMAND-LINE: -q --sygus-inst
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (declare-fun a () String)

@@ -248,11 +248,9 @@ void SygusInst::reset_round(Theory::Effort e)
 
 bool SygusInst::shouldProcess(Node q)
 {
-  if (!d_qreg.hasOwnership(q, this))
-  {
-    return false;
-  }
-  // also ignore internal quantifiers
+  // Note that we currently process quantified formulas that other modules
+  // e.g. CEGQI have taken full ownership over.
+  // ignore internal quantifiers
   QuantAttributes& qattr = d_qreg.getQuantAttributes();
   if (qattr.isQuantBounded(q))
   {
