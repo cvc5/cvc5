@@ -3659,35 +3659,21 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param sort the sort of the constant
-   * @param symbol the name of the constant
+   * @param symbol the name of the constant (optional)
    * @return the first-order constant
    */
-  Term mkConst(const Sort& sort, const std::string& symbol) const;
-  /**
-   * Create (first-order) constant (0-arity function symbol), with a default
-   * symbol name.
-   *
-   * @param sort the sort of the constant
-   * @return the first-order constant
-   */
-  Term mkConst(const Sort& sort) const;
+  Term mkConst(const Sort& sort,
+               const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
    * lambda, or a witness binder).
    * @param sort the sort of the variable
-   * @param symbol the name of the variable
+   * @param symbol the name of the variable (optional)
    * @return the variable
    */
-  Term mkVar(const Sort& sort, const std::string& symbol) const;
-
-  /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
-   * lambda, or a witness binder).
-   * @param sort the sort of the variable
-   * @return the variable
-   */
-  Term mkVar(const Sort& sort) const;
+  Term mkVar(const Sort& sort,
+             const std::optional<std::string>& symbol = std::nullopt) const;
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */

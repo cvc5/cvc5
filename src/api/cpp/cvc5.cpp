@@ -6037,25 +6037,14 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
 /* Create constants                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
+Term Solver::mkConst(const Sort& sort,
+                     const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkVar(symbol, *sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  increment_vars_consts_stats(sort, false);
-  return Term(this, res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkConst(const Sort& sort) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(sort);
-  //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkVar(*sort.d_type);
+  internal::Node res = symbol ? d_nodeMgr->mkVar(*symbol, *sort.d_type)
+                              : d_nodeMgr->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(this, res);
@@ -6066,25 +6055,14 @@ Term Solver::mkConst(const Sort& sort) const
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
+Term Solver::mkVar(const Sort& sort,
+                   const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkBoundVar(symbol, *sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  increment_vars_consts_stats(sort, true);
-  return Term(this, res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkVar(const Sort& sort) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(sort);
-  //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkBoundVar(*sort.d_type);
+  internal::Node res = symbol ? d_nodeMgr->mkBoundVar(*symbol, *sort.d_type)
+                              : d_nodeMgr->mkBoundVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, true);
   return Term(this, res);
