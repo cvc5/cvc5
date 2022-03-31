@@ -283,7 +283,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Is this a record sort?
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return true if the sort is a record sort
    */
@@ -426,7 +426,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * Create sorts parameter with Solver.mkParamSort().
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param params the list of sort parameters to instantiate with
    */
@@ -461,7 +461,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
@@ -486,7 +486,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
    * return (Array (Array C D) B).
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
