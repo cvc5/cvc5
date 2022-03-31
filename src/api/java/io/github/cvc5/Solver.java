@@ -450,6 +450,18 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkUninterpretedSort(long pointer, String symbol);
 
   /**
+   * Create an uninterpreted sort.
+   * @return the uninterpreted sort
+   */
+  public Sort mkUninterpretedSort()
+  {
+    long sortPointer = mkUninterpretedSort(pointer);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUninterpretedSort(long pointer);
+
+  /**
    * Create an unresolved sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually

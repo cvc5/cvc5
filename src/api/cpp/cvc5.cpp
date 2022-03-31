@@ -5625,11 +5625,13 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUninterpretedSort(const std::string& symbol) const
+Sort Solver::mkUninterpretedSort(const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  internal::TypeNode tn =
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
+  return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

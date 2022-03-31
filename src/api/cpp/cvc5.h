@@ -3284,7 +3284,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the uninterpreted sort
    */
-  Sort mkUninterpretedSort(const std::string& symbol) const;
+  Sort mkUninterpretedSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create an unresolved sort.

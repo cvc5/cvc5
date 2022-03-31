@@ -831,7 +831,7 @@ cdef class Solver:
                                                       codomain.csort)
         return sort
 
-    def mkParamSort(self, str symbolname = ""):
+    def mkParamSort(self, str symbolname = None):
         """ Create a sort parameter.
 
         .. warning:: This method is experimental and may change in future
@@ -841,7 +841,10 @@ cdef class Solver:
         :return: the sort parameter
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkParamSort(symbolname.encode())
+        if symbolname is None:
+          sort.csort = self.csolver.mkParamSort()
+        else:
+          sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
     @expand_list_arg(num_req_args=0)
@@ -910,14 +913,17 @@ cdef class Solver:
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
         return sort
 
-    def mkUninterpretedSort(self, str name):
+    def mkUninterpretedSort(self, str name = None):
         """Create an uninterpreted sort.
 
         :param symbol: the name of the sort
         :return: the uninterpreted sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUninterpretedSort(name.encode())
+        if name is None:
+          sort.csort = self.csolver.mkUninterpretedSort()
+        else:
+          sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
     def mkUnresolvedSort(self, str name, size_t arity = 0):

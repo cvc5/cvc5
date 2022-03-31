@@ -478,6 +478,23 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    mkUninterpretedSort
+ * Signature: (JL)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Sort* sort = new Sort(solver->mkUninterpretedSort());
+  return reinterpret_cast<jlong>(sort);
+
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    mkUnresolvedSort
  * Signature: (JLjava/lang/String;I)J
  */
