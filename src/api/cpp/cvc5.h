@@ -1597,19 +1597,20 @@ class CVC5_EXPORT Term
    * \rst
    * .. code:: lisp
    *
-   *     (SEQ_CONCAT (SEQ_UNIT CONST_RATIONAL_0) (SEQ_UNIT CONST_RATIONAL_1))
+   *     (SEQ_CONCAT (SEQ_UNIT 0) (SEQ_UNIT 1))
    * \endrst
    *
-   * or as the constant sequence value:
+   * where 0 and 1 are the terms corresponding to the integer constants 0 and 1.
+   * Alternatively, the above term is represented as the constant sequence
+   * value:
    *
    * \rst
    * .. code:: lisp
    *
-   *     CONST_SEQUENCE_{CONST_RATIONAL_0,1}
+   *     CONST_SEQUENCE_{0,1}
    * \endrst
    *
-   * where calling getSequenceValue() on the latter returns the vector
-   * {CONST_RATIONAL_0, CONST_RATIONAL_1}.
+   * where calling getSequenceValue() on the latter returns the vector {0, 1}.
    *
    * The former term is not a sequence value, but the latter term is. Calling
    * e.g. Solver::simplify() on the first term will result in the second term.
