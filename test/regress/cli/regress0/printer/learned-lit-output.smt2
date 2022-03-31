@@ -4,7 +4,6 @@
 ; EXPECT: learned-lit
 ; EXPECT: learned-lit
 ; EXPECT: learned-lit
-; EXPECT: learned-lit
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () Int)
