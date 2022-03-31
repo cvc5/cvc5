@@ -671,6 +671,9 @@ private:
 
   /** Get sort constructor arity. */
   uint64_t getUninterpretedSortConstructorArity() const;
+  
+  /** Is this an unresolved datatype? */
+  bool isUnresolvedDatatype() const;
 
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.

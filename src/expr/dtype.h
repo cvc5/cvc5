@@ -435,6 +435,14 @@ class DType
   void toStream(std::ostream& out) const;
 
  private:
+  /** 
+   * Get unresolved datatype types. This is called by NodeManager when
+   * constructing datatypes from datatype declarations. This adds all
+   * unresolved datatype types to unresTypes, which are then considered
+   * when constructing the datatype (for details, see 
+   * NodeManager::mkMutualDatatypeTypesInternal).
+   */
+  void getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes);
   /**
    * DTypes refer to themselves, recursively, and we have a
    * chicken-and-egg problem.  The TypeNode around the DType

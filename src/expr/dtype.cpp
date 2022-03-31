@@ -143,6 +143,21 @@ size_t DType::cindexOfInternal(Node item)
   return item.getAttribute(DTypeConsIndexAttr());
 }
 
+void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes)
+{
+  for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
+  {
+    for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
+    {
+      TypeNode arg = ctor->getArgType(i);
+      if (arg.isUnresolvedDatatype())
+      {
+        unresTypes.insert(arg);
+      }
+    }
+  }
+}
+
 bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                     const std::vector<TypeNode>& placeholders,
                     const std::vector<TypeNode>& replacements,

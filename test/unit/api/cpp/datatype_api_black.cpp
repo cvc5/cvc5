@@ -85,11 +85,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
    *   END;
    */
   // Make unresolved types as placeholders
-  std::set<Sort> unresTypes;
   Sort unresTree = d_solver.mkUnresolvedSort("tree");
   Sort unresList = d_solver.mkUnresolvedSort("list");
-  unresTypes.insert(unresTree);
-  unresTypes.insert(unresList);
 
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
   DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
@@ -114,7 +111,7 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   dtdecls.push_back(tree);
   dtdecls.push_back(list);
   std::vector<Sort> dtsorts;
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), dtdecls.size());
   for (size_t i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
   {
@@ -138,6 +135,54 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   dtdeclsBad.push_back(emptyD);
   ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC5ApiException);
 }
+
+
+TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
+{
+  // Same as above, without unresolved sorts
+
+  DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
+  DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
+  node.addSelectorUnresolved("left", "tree");
+  node.addSelectorUnresolved("right", "tree");
+  tree.addConstructor(node);
+
+  DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
+  leaf.addSelectorUnresolved("data", "list");
+  tree.addConstructor(leaf);
+
+  DatatypeDecl list = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  cons.addSelectorUnresolved("car", "tree");
+  cons.addSelectorUnresolved("cdr", "tree");
+  list.addConstructor(cons);
+
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+  list.addConstructor(nil);
+
+  std::vector<DatatypeDecl> dtdecls;
+  dtdecls.push_back(tree);
+  dtdecls.push_back(list);
+  std::vector<Sort> dtsorts;
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
+  ASSERT_EQ(dtsorts.size(), dtdecls.size());
+  for (size_t i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
+  {
+    ASSERT_TRUE(dtsorts[i].isDatatype());
+    ASSERT_FALSE(dtsorts[i].getDatatype().isFinite());
+    ASSERT_EQ(dtsorts[i].getDatatype().getName(), dtdecls[i].getName());
+  }
+  // verify the resolution was correct
+  Datatype dtTree = dtsorts[0].getDatatype();
+  DatatypeConstructor dtcTreeNode = dtTree[0];
+  ASSERT_EQ(dtcTreeNode.getName(), "node");
+  DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
+  ASSERT_EQ(dtsTreeNodeLeft.getName(), "left");
+  // argument type should have resolved to be recursive
+  ASSERT_TRUE(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+  ASSERT_EQ(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
+}
+
 
 TEST_F(TestApiBlackDatatype, datatypeStructs)
 {

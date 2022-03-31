@@ -3401,6 +3401,7 @@ void DatatypeConstructorDecl::addSelectorUnresolved(const std::string& name, con
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
+  // make the unresolved sort with the given name
   internal::TypeNode usort = getNodeManager()->mkSort(unresDataypeName);
   d_ctor->addArg(name, usort);
   ////////
@@ -5176,10 +5177,9 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
 }
 
 std::vector<Sort> Solver::mkDatatypeSortsInternal(
-    const std::vector<DatatypeDecl>& dtypedecls,
-    const std::set<Sort>& unresolvedSorts) const
+    const std::vector<DatatypeDecl>& dtypedecls) const
 {
-  // Note: dtypedecls and unresolvedSorts are checked in the caller to avoid
+  // Note: dtypedecls are checked in the caller to avoid
   //       double checks
   //////// all checks before this line
 
@@ -5188,11 +5188,8 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   {
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
-
-  std::set<internal::TypeNode> utypes =
-      Sort::sortSetToTypeNodes(unresolvedSorts);
   std::vector<internal::TypeNode> dtypes =
-      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
+      getNodeManager()->mkMutualDatatypeTypes(datatypes);
   std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
   return retTypes;
 }
