@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 public class Op extends AbstractPointer
 {
@@ -39,7 +39,8 @@ public class Op extends AbstractPointer
    * @param t the operator to compare to for equality
    * @return true if the operators are equal
    */
-  @Override public boolean equals(Object t)
+  @Override
+  public boolean equals(Object t)
   {
     if (this == t)
       return true;

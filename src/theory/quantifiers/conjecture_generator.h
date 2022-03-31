@@ -274,9 +274,9 @@ class ConjectureGenerator : public QuantifiersModule
   NotifyClass d_notify;
   class EqcInfo{
   public:
-    EqcInfo( context::Context* c );
-    //representative
-    context::CDO< Node > d_rep;
+   EqcInfo(context::Context* c);
+   // representative
+   context::CDO<Node> d_rep;
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );

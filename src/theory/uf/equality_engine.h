@@ -53,8 +53,8 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
-
+class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
+{
   friend class EqClassesIterator;
   friend class EqClassIterator;
 

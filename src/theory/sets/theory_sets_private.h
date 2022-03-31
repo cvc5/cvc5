@@ -100,10 +100,10 @@ class TheorySetsPrivate : protected EnvObj
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    // singleton or emptyset equal to this eqc
-    context::CDO< Node > d_singleton;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // singleton or emptyset equal to this eqc
+   context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
