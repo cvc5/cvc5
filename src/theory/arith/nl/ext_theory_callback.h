@@ -41,7 +41,7 @@ class NlExtTheoryCallback : public ExtTheoryCallback
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node>>& exp) override;
   /**
-   * Check whether the extended function on which can be simplified to on
+   * Check whether the extended function `on` which can be simplified to `n`
    * should be considered "reduced". Terms that are considered reduced are
    * guaranteed to have the correct value in models and thus can be ignored
    * if necessary by the theory solver. For example, if (= x 0) and
