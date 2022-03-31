@@ -1006,71 +1006,124 @@ enum class PfRule : uint32_t
    */
   CNF_ITE_NEG3,
 
-  //================================================= Equality rules
-  // ======== Reflexive
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= t t)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Reflexivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{t = t)}
+   * \endverbatim
+   */
   REFL,
-  // ======== Symmetric
-  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
-  // Arguments: none
-  // -----------------------
-  // Conclusion: (= t2 t1) or (not (= t2 t1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Symmetry**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1 = t_2\mid -}{t_2 = t_1}
+   *
+   * or
+   *
+   * .. math::
+   *
+   *   \inferrule{\neg (t_1 = t_2)\mid -}{\neg (t_2 = t_1)}
+   *
+   * \endverbatim
+   */
   SYMM,
-  // ======== Transitivity
-  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
-  // Arguments: none
-  // -----------------------
-  // Conclusion: (= t1 tn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Transitivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=t_2,\dots,t_{n-1}=t_n\mid -}{t_1 = t_n}
+   * \endverbatim
+   */
   TRANS,
-  // ======== Congruence
-  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-  // Arguments: (<kind> f?)
-  // ---------------------------------------------
-  // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
-  // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
-  // APPLY_UF. The actual node for <kind> is constructible via
-  // ProofRuleChecker::mkKindNode.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?)(t_1,\dots, t_n) =
+   *   k(f?)(s_1,\dots, s_n)}
+   *
+   * where :math:`k` is the application kind. Notice that :math:`f` must be
+   * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
+   * actual node for :math:`k` is constructible via
+   * ``ProofRuleChecker::mkKindNode``.
+   * \endverbatim
+   */
   CONG,
-  // ======== True intro
-  // Children: (P:F)
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (= F true)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- True intro**
+   *
+   * .. math::
+   *
+   *   \inferrule{F\mid -}{F = \top}
+   * \endverbatim
+   */
   TRUE_INTRO,
-  // ======== True elim
-  // Children: (P:(= F true))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: F
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- True elim**
+   *
+   * .. math::
+   *
+   *   \inferrule{F=\top\mid -}{F}
+   * \endverbatim
+   */
   TRUE_ELIM,
-  // ======== False intro
-  // Children: (P:(not F))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (= F false)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- False intro**
+   *
+   * .. math::
+   *
+   *   \inferrule{\neg F\mid -}{F = \bot}
+   * \endverbatim
+   */
   FALSE_INTRO,
-  // ======== False elim
-  // Children: (P:(= F false))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (not F)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- False elim**
+   *
+   * .. math::
+   *
+   *   \inferrule{F=\bot\mid -}{\neg F}
+   * \endverbatim
+   */
   FALSE_ELIM,
-  // ======== HO trust
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
-  // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Higher-order application encoding**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{t= \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
+   *
+   * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
+   * :math:`@` isthe ``HO_APPLY`` kind.
+   *  \endverbatim
+   */
   HO_APP_ENCODE,
-  // ======== Congruence
-  // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
-  // Arguments: ()
-  // ---------------------------------------------
-  // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
-  // Notice that this rule is only used when the application kinds are APPLY_UF.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Higher-order congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
+   *   g(s_1,\dots, s_n)}
+   *
+   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * \endverbatim
+   */
   HO_CONG,
 
   //================================================= Array rules
