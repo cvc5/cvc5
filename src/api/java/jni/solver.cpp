@@ -316,8 +316,11 @@ Java_io_github_cvc5_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
  * Method:    mkParamSort
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkParamSort(
-    JNIEnv* env, jobject, jlong pointer, jstring jSymbol)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkParamSort__JLjava_lang_String_2(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -334,9 +337,9 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkParamSort(
  * Method:    mkParamSort
  * Signature: (JL)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkParamSort(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkParamSort__J(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -462,7 +465,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSequenceSort(
  * Method:    mkUninterpretedSort
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkUninterpretedSort__JLjava_lang_String_2(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -481,7 +485,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
  * Method:    mkUninterpretedSort
  * Signature: (JL)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort__J(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -519,7 +523,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
  * Signature: (JLIjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(
+Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort__JILjava_lang_String_2(
     JNIEnv* env, jobject, jlong pointer, jint arity, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -541,10 +545,10 @@ Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(
  * Signature: (JLI)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer,
-                                                              jint arity)
+Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort__JI(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer,
+                                                                  jint arity)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
