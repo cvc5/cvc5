@@ -2735,23 +2735,26 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
 
 /**
  * \verbatim embed:rst:leading-asterisk
- * Provides access to a few options that frontends may want to use, but that can
- * not be communicated via the regular :cpp:func:`Solver::getOption()
- * <cvc5::Solver::getOption()>` or :cpp:func:`Solver::getOptionInfo()
- * <cvc5::Solver::getOptionInfo()>` methods. This class does not store the
- * options itself, but only acts as a wrapper to the solver object. It can thus
- * no longer be used after the solver object has been destroyed. \endverbatim
+ * This class provides type-safe access to a few options that frontends are
+ * likely to use, but can not be not be communicated appropriately via the
+ * regular :cpp:func:`Solver::getOption() <cvc5::Solver::getOption()>` or
+ * :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` methods.
+ * This includes, e.g., the input and output streams that can be configured via
+ * :ref:`err <lbl-option-err>`, :ref:`in <lbl-option-in>` and :ref:`out
+ * <lbl-option-out>`. This class does not store the options itself, but only
+ * acts as a wrapper to the solver object. It can thus no longer be used after
+ * the solver object has been destroyed. \endverbatim
  */
 class CVC5_EXPORT DriverOptions
 {
   friend class Solver;
 
  public:
-  /** Access the solvers input stream */
+  /** Access the solver's input stream */
   std::istream& in() const;
-  /** Access the solvers error output stream */
+  /** Access the solver's error output stream */
   std::ostream& err() const;
-  /** Access the solvers output stream */
+  /** Access the solver's output stream */
   std::ostream& out() const;
 
  private:
