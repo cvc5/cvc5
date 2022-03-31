@@ -79,11 +79,18 @@ bool NlExtTheoryCallback::isExtfReduced(
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
         && k != POW2)
     {
+      // we consider an extended function to be reduced if it simplifies to
+      // something that is not a non-linear term. For example, if we know
+      // that (= x 5), then (NONLINEAR_MULT x y) can be simplified to
+      // (MULT 5 y). We may consider (NONLINEAR_MULT x y) to be reduced.
       id = ExtReducedId::ARITH_SR_LINEAR;
       return true;
     }
     return false;
   }
+  // As an optimization, we minimize the explanation for why a term can be
+  // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
+  // we minimize the explanation to (= x 0) => (= (* x y) 0).
   Assert(n == d_zero);
   id = ExtReducedId::ARITH_SR_ZERO;
   if (on.getKind() == NONLINEAR_MULT)
