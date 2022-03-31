@@ -187,7 +187,7 @@ install_jar(cvc5jar DESTINATION share/java)
 
 install_jar_exports(
   TARGETS cvc5jar
-  NAMESPACE cvc5::internal::
+  NAMESPACE cvc5::
   FILE cvc5JavaTargets.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )
