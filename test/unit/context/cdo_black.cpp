@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of context::CDO<>.
+ * Black box testing of cvc5::context::CDO<>.
  */
 
 #include <iostream>

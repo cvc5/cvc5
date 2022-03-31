@@ -56,7 +56,7 @@ class LearnedLiteralManager : protected EnvObj
 
  private:
   /** Learned literal map */
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
   /** Learned literals */
   NodeSet d_learnedLits;
 };

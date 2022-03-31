@@ -5,10 +5,10 @@ cvc5 can be configured at runtime using a wide range of options.
 When cvc5 is used as a binary, options can be set on the command line.
 Also, options can be set and inspected using the respective commands of the input language and the corresponding API functions:
 
-- C++ API: :cpp:func:`setOption() <cvc5::api::Solver::setOption()>`,
-  :cpp:func:`getOption() <cvc5::api::Solver::getOption()>`,
-  :cpp:func:`getOptionNames() <cvc5::api::Solver::getOptionNames()>`,
-  :cpp:func:`getOptionInfo() <cvc5::api::Solver::getOptionInfo()>`
+- C++ API: :cpp:func:`setOption() <cvc5::Solver::setOption()>`,
+  :cpp:func:`getOption() <cvc5::Solver::getOption()>`,
+  :cpp:func:`getOptionNames() <cvc5::Solver::getOptionNames()>`,
+  :cpp:func:`getOptionInfo() <cvc5::Solver::getOptionInfo()>`
 - Java API: ``setOption()``, ``getOption()``, ``getOptionNames()``, ``getOptionInfo()``
 - Base Python API: :py:func:`setOption() <cvc5.Solver.setOption()>`,
   :py:func:`getOption() <cvc5.Solver.getOption()>`,

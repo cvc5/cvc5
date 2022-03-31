@@ -74,7 +74,7 @@ class EqualityQuery : public QuantifiersUtil
   /** Pointer to the model */
   FirstOrderModel* d_model;
   /** quantifiers equality inference */
-  context::CDO< unsigned > d_eqi_counter;
+  context::CDO<unsigned> d_eqi_counter;
   /** internal representatives */
   std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */

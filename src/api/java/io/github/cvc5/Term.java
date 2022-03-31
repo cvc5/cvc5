@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -48,7 +48,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @param t the term to compare to for equality
    * @return true if the terms are equal
    */
-  @Override public boolean equals(Object t)
+  @Override
+  public boolean equals(Object t)
   {
     if (this == t)
       return true;
@@ -71,7 +72,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @return a negative integer, zero, or a positive integer as this term
    * is less than, equal to, or greater than the specified term.
    */
-  @Override public int compareTo(Term t)
+  @Override
+  public int compareTo(Term t)
   {
     return this.compareTo(pointer, t.getPointer());
   }
@@ -716,12 +718,14 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
       size = getNumChildren();
     }
 
-    @Override public boolean hasNext()
+    @Override
+    public boolean hasNext()
     {
       return currentIndex < size - 1;
     }
 
-    @Override public Term next()
+    @Override
+    public Term next()
     {
       if (currentIndex >= size - 1)
       {
@@ -740,7 +744,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
     }
   }
 
-  @Override public Iterator<Term> iterator()
+  @Override
+  public Iterator<Term> iterator()
   {
     return new ConstIterator();
   }

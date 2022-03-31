@@ -133,7 +133,7 @@ mathjax3_config = {
 # -- extension:: breathe -----------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
-cpp_index_common_prefix = ["cvc5::api::"]
+cpp_index_common_prefix = ["cvc5::"]
 
 
 # -- extension:: sphinxcontrib.bibtex ----------------------------------------

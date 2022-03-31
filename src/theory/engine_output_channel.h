@@ -41,7 +41,7 @@ class Theory;
  */
 class EngineOutputChannel : public theory::OutputChannel
 {
-  friend class TheoryEngine;
+  friend class internal::TheoryEngine;
 
  public:
   EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory);

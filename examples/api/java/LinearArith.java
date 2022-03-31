@@ -14,7 +14,7 @@
  * the push pop of cvc5. This also gives an example option.
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 public class LinearArith
 {
   public static void main(String args[]) throws CVC5ApiException

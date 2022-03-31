@@ -16,10 +16,10 @@
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.cvc5.api.CVC5ApiException;
-import io.github.cvc5.api.Kind;
-import io.github.cvc5.api.Sort;
-import io.github.cvc5.api.Term;
+import io.github.cvc5.CVC5ApiException;
+import io.github.cvc5.Kind;
+import io.github.cvc5.Sort;
+import io.github.cvc5.Term;
 
 public class Utils
 {
