@@ -1577,31 +1577,31 @@ class CVC5_EXPORT Term
 
   /**
    * @return true if the term is a sequence value.
-   * 
+   *
    * A term is a sequence value if it has kind CONST_SEQUENCE. In contrast to
    * values for the set sort (as described in isSetValue()), sequence values
    * are represented as a Term with no children.
    *
    * Semantically, a sequence value is a concatentation of unit sequences
    * whose elements are themselves values. For example:
-   * 
+   *
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
    *     (seq.++ (seq.unit 0) (seq.unit 1))
    * \endverbatim
-   * 
+   *
    * The above term has two representations in Term, either as the sequence
    * concatenation term:
-   * 
+   *
    * \rst
    * .. code:: lisp
    *
    *     (SEQ_CONCAT (SEQ_UNIT CONST_RATIONAL_0) (SEQ_UNIT CONST_RATIONAL_1))
    * \endrst
-   * 
+   *
    * or as the constant sequence value:
-   * 
+   *
    * \rst
    * .. code:: lisp
    *
@@ -1609,8 +1609,8 @@ class CVC5_EXPORT Term
    * \endrst
    *
    * where calling getSequenceValue() on the latter returns the vector
-   * {CONST_RATIONAL_0, CONST_RATIONAL_1}. 
-   * 
+   * {CONST_RATIONAL_0, CONST_RATIONAL_1}.
+   *
    * The former term is not a sequence value, but the latter term is. Calling
    * e.g. Solver::simplify() on the first term will result in the second term.
    */
