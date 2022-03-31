@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -174,12 +174,14 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
       size = getNumSelectors();
     }
 
-    @Override public boolean hasNext()
+    @Override
+    public boolean hasNext()
     {
       return currentIndex < size - 1;
     }
 
-    @Override public DatatypeSelector next()
+    @Override
+    public DatatypeSelector next()
     {
       if (currentIndex >= size - 1)
       {
@@ -191,7 +193,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     }
   }
 
-  @Override public Iterator<DatatypeSelector> iterator()
+  @Override
+  public Iterator<DatatypeSelector> iterator()
   {
     return new ConstIterator();
   }

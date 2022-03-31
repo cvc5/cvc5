@@ -719,10 +719,9 @@ private:
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
-  context::CDHashSet<ArithVar, std::hash<ArithVar> > d_cutInContext;
+  context::CDHashSet<ArithVar, std::hash<ArithVar>> d_cutInContext;
 
   context::CDO<bool> d_likelyIntegerInfeasible;
-
 
   context::CDO<bool> d_guessedCoeffSet;
   ArithRatPairVec d_guessedCoeffs;

@@ -28,9 +28,9 @@
 
 namespace cvc5::internal {
 
-using context::CDHashMap;
-using context::CDInsertHashMap;
-using context::Context;
+using cvc5::context::CDHashMap;
+using cvc5::context::CDInsertHashMap;
+using cvc5::context::Context;
 
 namespace test {
 

@@ -134,28 +134,5 @@ const std::unordered_set<Node>& WitnessFormGenerator::getWitnessFormEqs() const
   return d_eqs;
 }
 
-ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
-{
-  Assert(exists.getKind() == kind::EXISTS);
-  if (exists[0].getNumChildren() == 1 && exists[1].getKind() == kind::EQUAL
-      && exists[1][0] == exists[0][0])
-  {
-    Node tpurified = exists[1][1];
-    Trace("witness-form") << "convertExistsInternal: infer purification "
-                          << exists << " for " << tpurified << std::endl;
-    // ------ REFL
-    // t = t
-    // ---------------- EXISTS_INTRO
-    // exists x. x = t
-    // The concluded existential is then used to construct the witness term
-    // via witness intro.
-    Node teq = tpurified.eqNode(tpurified);
-    d_pskPf.addStep(teq, PfRule::REFL, {}, {tpurified});
-    d_pskPf.addStep(exists, PfRule::EXISTS_INTRO, {teq}, {exists});
-    return &d_pskPf;
-  }
-  return nullptr;
-}
-
 }  // namespace smt
 }  // namespace cvc5::internal
