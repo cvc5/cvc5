@@ -1,10 +1,10 @@
 RoundingMode
 ============
 
-.. doxygenenum:: cvc5::api::RoundingMode
+.. doxygenenum:: cvc5::RoundingMode
     :project: cvc5
 
-.. doxygenstruct:: std::hash< cvc5::api::RoundingMode >
+.. doxygenstruct:: std::hash< cvc5::RoundingMode >
     :project: std
     :members:
     :undoc-members:
