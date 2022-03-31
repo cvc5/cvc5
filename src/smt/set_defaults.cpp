@@ -696,7 +696,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     // cannot use minisat variable elimination for logics where a theory solver
     // introduces new literals into the search, or for parametric theories
-    // which may require non-trivial preprocessing. This includes quantifiers
+    // which may introduce Boolean term variables. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
     if (logic.isTheoryEnabled(THEORY_SETS) || logic.isTheoryEnabled(THEORY_BAGS)
