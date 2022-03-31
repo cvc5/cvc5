@@ -14,6 +14,7 @@
 ##
 
 set(EXAMPLES_API_JAVA
+   Bags
    BitVectors
    BitVectorsAndArrays
    Combination
