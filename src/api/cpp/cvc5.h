@@ -415,16 +415,21 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
-   * Does the sort have a symbol, i.e. a name? For example, uninterpreted sorts
-   * and uninterpreted sort constructors have symbols.
+   * Does the sort have a symbol, i.e., a name?
+   *
+   * For example, uninterpreted sorts and uninterpreted sort constructors have symbols.
    * @return true if the sort has a symbol.
    */
   bool hasSymbol() const;
 
   /**
-   * Asserts hasSymbol(). The symbol of the sort is the string that was
-   * provided when constructing it via mkUninterpretedSort, mkUnresolvedSort or
-   * mkUninterpretedSortConstructorSort.
+   * Get the symbol of this Sort.
+   *
+   * Asserts hasSymbol(). The symbol of this sort is the string that was
+   * provided when constructing it via
+   * Solver::mkUninterpretedSort(const std::string&) const,
+   * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
+   * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
    * @return the raw symbol of the sort.
    */
   std::string getSymbol() const;
@@ -1175,15 +1180,18 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
-   * Does the term have a symbol, i.e. a name? For example, free constants
-   * and variables have symbols.
+   * Does the term have a symbol, i.e., a name?
+   *
+   * For example, free constants and variables have symbols.
    * @return true if the term has a symbol.
    */
   bool hasSymbol() const;
 
   /**
+   * Get the symbol of this Term.
+   *
    * Asserts hasSymbol(). The symbol of the term is the string that was
-   * provided when constructing it via mkConst or mkVar.
+   * provided when constructing it via Solver::mkConst() or Solver::mkVar().
    * @return the raw symbol of the term.
    */
   std::string getSymbol() const;
@@ -1576,13 +1584,13 @@ class CVC5_EXPORT Term
   std::set<Term> getSetValue() const;
 
   /**
-   * @return true if the term is a sequence value.
+   * Determine if this term is a sequence value.
    *
-   * A term is a sequence value if it has kind CONST_SEQUENCE. In contrast to
-   * values for the set sort (as described in isSetValue()), sequence values
-   * are represented as a Term with no children.
+   * A term is a sequence value if it has kind #CONST_SEQUENCE. In contrast to
+   * values for the set sort (as described in isSetValue()), a sequence value
+   * is represented as a Term with no children.
    *
-   * Semantically, a sequence value is a concatentation of unit sequences
+   * Semantically, a sequence value is a concatenation of unit sequences
    * whose elements are themselves values. For example:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1591,7 +1599,7 @@ class CVC5_EXPORT Term
    *     (seq.++ (seq.unit 0) (seq.unit 1))
    * \endverbatim
    *
-   * The above term has two representations in Term, either as the sequence
+   * The above term has two representations in Term. One is as the sequence
    * concatenation term:
    *
    * \rst
@@ -1601,6 +1609,7 @@ class CVC5_EXPORT Term
    * \endrst
    *
    * where 0 and 1 are the terms corresponding to the integer constants 0 and 1.
+   *
    * Alternatively, the above term is represented as the constant sequence
    * value:
    *
@@ -1610,13 +1619,15 @@ class CVC5_EXPORT Term
    *     CONST_SEQUENCE_{0,1}
    * \endrst
    *
-   * where calling getSequenceValue() on the latter returns the vector {0, 1}.
+   * where calling getSequenceValue() on the latter returns the vector `{0, 1}`.
    *
    * The former term is not a sequence value, but the latter term is.
    *
    * Constant sequences cannot be constructed directly via the API. They are
-   * returned in response to API calls such Solver::getValue and
-   * Solver::simplify.
+   * returned in response to API calls such Solver::getValue() and
+   * Solver::simplify().
+   *
+   * @return true if the term is a sequence value.
    */
   bool isSequenceValue() const;
   /**
@@ -3286,8 +3297,10 @@ class CVC5_EXPORT Solver
   Sort mkParamSort(const std::string& symbol) const;
 
   /**
-   * Create a predicate sort. This is equivalent to calling mkFunctionSort with
-   * the Boolean sort as the codomain.
+   * Create a predicate sort.
+   *
+   * This is equivalent to calling mkFunctionSort() with the Boolean sort as the
+   * codomain.
    * @param sorts the list of sorts of the predicate
    * @return the predicate sort
    */
