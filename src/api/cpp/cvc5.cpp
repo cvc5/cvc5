@@ -5658,13 +5658,17 @@ Sort Solver::mkUnresolvedSort(size_t arity,
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                                size_t arity) const
+Sort Solver::mkUninterpretedSortConstructorSort(
+    size_t arity, const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   //////// all checks before this line
-  return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
+  if (symbol)
+  {
+    return Sort(this, getNodeManager()->mkSortConstructor(*symbol, arity));
+  }
+  return Sort(this, getNodeManager()->mkSortConstructor("", arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }

@@ -533,11 +533,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkUninterpretedSortConstructorSort
- * Signature: (JLjava/lang/String;I)J
+ * Signature: (JLIjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(
-    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
+    JNIEnv* env, jobject, jlong pointer, jint arity, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
@@ -545,8 +545,29 @@ Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
   Sort* retPointer = new Sort(
-      solver->mkUninterpretedSortConstructorSort(cSymbol, (size_t)arity));
+      solver->mkUninterpretedSortConstructorSort((size_t)arity, cSymbol));
   env->ReleaseStringUTFChars(jSymbol, s);
+  return reinterpret_cast<jlong>(retPointer);
+
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    mkUninterpretedSortConstructorSort
+ * Signature: (JLI)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer,
+                                                              jint arity)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Sort* retPointer =
+      new Sort(solver->mkUninterpretedSortConstructorSort((size_t)arity));
   return reinterpret_cast<jlong>(retPointer);
 
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);

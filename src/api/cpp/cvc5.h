@@ -3310,8 +3310,9 @@ class CVC5_EXPORT Solver
    * @param arity the arity of the sort (must be > 0)
    * @return the uninterpreted sort constructor sort
    */
-  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                          size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(
+      size_t arity,
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a tuple sort.

@@ -943,7 +943,7 @@ cdef class Solver:
           sort.csort = self.csolver.mkUnresolvedSort(arity, name.encode())
         return sort
 
-    def mkUninterpretedSortConstructorSort(self, str symbol, size_t arity):
+    def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
         """Create a sort constructor sort.
 
         An uninterpreted sort constructor is an uninterpreted sort with
@@ -954,8 +954,11 @@ cdef class Solver:
         :return: the sort constructor sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
-            symbol.encode(), arity)
+        if symbol is None:
+          sort.csort = self.csolver.mkUninterpretedSortConstructorSort(arity)
+        else:
+          sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
+              arity, symbol.encode())
         return sort
 
     @expand_list_arg(num_req_args=0)
