@@ -343,6 +343,11 @@ enum Kind : int32_t
    * - Arity: `0`
    * - Create Term of this Kind with:
    *   - Solver::mkCardinalityConstraint(const Sort&, uint32_t) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   CARDINALITY_CONSTRAINT,
   /**
@@ -2263,11 +2268,6 @@ enum Kind : int32_t
    * An operator mapping a datatype term to an integer denoting the number of
    * non-nullary applications of constructors it contains.
    *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   *
    * - Arity: `1`
    *   - `1:` Term of datatype Sort
    *
@@ -2277,6 +2277,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   DT_SIZE,
   /**
