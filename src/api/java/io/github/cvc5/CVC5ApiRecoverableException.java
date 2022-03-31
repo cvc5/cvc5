@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mudathir Mohamed
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -13,11 +13,11 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
-public class CVC5ApiOptionException extends CVC5ApiRecoverableException
+public class CVC5ApiRecoverableException extends CVC5ApiException
 {
-  public CVC5ApiOptionException(String message)
+  public CVC5ApiRecoverableException(String message)
   {
     super(message);
   }

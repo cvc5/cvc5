@@ -29,7 +29,6 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
   pc->registerChecker(PfRule::SKOLEM_INTRO, this);
-  pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
   pc->registerChecker(PfRule::ALPHA_EQUIV, this);
@@ -42,33 +41,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  // compute what was proven
-  if (id == PfRule::EXISTS_INTRO)
-  {
-    Assert(children.size() == 1);
-    Assert(args.size() == 1);
-    Node p = children[0];
-    Node exists = args[0];
-    if (exists.getKind() != kind::EXISTS || exists[0].getNumChildren() != 1)
-    {
-      return Node::null();
-    }
-    std::unordered_map<Node, Node> subs;
-    if (!expr::match(exists[1], p, subs))
-    {
-      return Node::null();
-    }
-    // substitution must contain only the variable of the existential
-    for (const std::pair<const Node, Node>& s : subs)
-    {
-      if (s.first != exists[0][0])
-      {
-        return Node::null();
-      }
-    }
-    return exists;
-  }
-  else if (id == PfRule::SKOLEM_INTRO)
+  if (id == PfRule::SKOLEM_INTRO)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
