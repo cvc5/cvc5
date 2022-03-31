@@ -21,7 +21,7 @@ Semantics
 
   * (seq.len (Seq S) Int)
 
-    ⟦seq.len⟧(s) is the number of elements in the sequence s, denoted as |s|.
+    ⟦seq.len⟧(s) is the length of the sequence s, denoted as |s|.
 
   * (seq.nth ((Seq S) Int) S)
 
