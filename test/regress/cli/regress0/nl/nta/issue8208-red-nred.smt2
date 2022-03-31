@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE: -q --no-nl-ext-rewrite
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
