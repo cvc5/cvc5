@@ -50,7 +50,7 @@ class NlExtTheoryCallback : public ExtTheoryCallback
    *
    * This method returns true if
    * (1) the extended term on is not a transcendental function,
-   * (2) n is not a symbol of non-linear arithmetic.
+   * (2) the top symobl of n does not belong to non-linear arithmetic.
    *
    * For example,
    * if on, n = (* x y), (* 5 y), we return true
