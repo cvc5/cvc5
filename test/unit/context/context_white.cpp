@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * White box testing of context::Context.
+ * White box testing of cvc5::context::Context.
  */
 
 #include "base/check.h"

@@ -759,13 +759,6 @@ class CVC5_EXPORT Sort
    */
   Sort getSequenceElementSort() const;
 
-  /* Uninterpreted sort -------------------------------------------------- */
-
-  /**
-   * @return true if an uninterpreted sort is parameterized
-   */
-  bool isUninterpretedSortParameterized() const;
-
   /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
