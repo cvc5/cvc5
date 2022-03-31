@@ -33,7 +33,7 @@
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 namespace prop {
 
 TheoryProxy::TheoryProxy(Env& env,
@@ -136,7 +136,8 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         break;
       }
-      else if (!d_zll->notifyAsserted(assertion))
+      int32_t alevel = d_propEngine->getDecisionLevel(assertion);
+      if (!d_zll->notifyAsserted(assertion, alevel))
       {
         d_deepRestart = true;
         break;
@@ -350,4 +351,4 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
 }
 
 }  // namespace prop
-}  // namespace cvc5::internal
+}  // namespace cvc5

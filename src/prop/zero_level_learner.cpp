@@ -19,7 +19,6 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
-#include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
@@ -29,10 +28,8 @@ namespace cvc5::internal {
 namespace prop {
 
 ZeroLevelLearner::ZeroLevelLearner(Env& env,
-                                   PropEngine* propEngine,
                                    TheoryEngine* theoryEngine)
     : EnvObj(env),
-      d_propEngine(propEngine),
       d_theoryEngine(theoryEngine),
       d_levelZeroAsserts(userContext()),
       d_ldb(userContext()),
@@ -172,7 +169,7 @@ void ZeroLevelLearner::notifyInputFormulas(
                       << std::endl;
 }
 
-bool ZeroLevelLearner::notifyAsserted(TNode assertion)
+bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
 {
   // check if at level zero
   if (d_nonZeroAssert.get())
@@ -181,7 +178,6 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   }
   else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
   {
-    int32_t alevel = d_propEngine->getDecisionLevel(assertion);
     if (alevel == 0)
     {
       // remember we've processed this

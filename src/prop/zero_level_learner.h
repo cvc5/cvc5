@@ -33,8 +33,6 @@ class TheoryEngine;
 
 namespace prop {
 
-class PropEngine;
-
 /**
  * The module for processing literals that are learned at decision level zero.
  *
@@ -51,7 +49,6 @@ class ZeroLevelLearner : protected EnvObj
 
  public:
   ZeroLevelLearner(Env& env,
-                   PropEngine* propEngine,
                    TheoryEngine* theoryEngine);
 
   ~ZeroLevelLearner();
@@ -59,9 +56,9 @@ class ZeroLevelLearner : protected EnvObj
   void notifyInputFormulas(const std::vector<Node>& assertions,
                            const std::unordered_map<size_t, Node>& skolemMap);
   /**
-   * Notify the given literal was asserted
+   * Notify the given literal was asserted at the given assertion level.
    */
-  bool notifyAsserted(TNode assertion);
+  bool notifyAsserted(TNode assertion, int32_t alevel);
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype) const;
@@ -82,9 +79,6 @@ class ZeroLevelLearner : protected EnvObj
   bool getSolved(const Node& lit, Subs& subs);
   /** has learned literal */
   bool hasLearnedLiteralForRestart() const;
-
-  /** The prop engine we are using. */
-  PropEngine* d_propEngine;
 
   /** The theory engine we are using */
   TheoryEngine* d_theoryEngine;
