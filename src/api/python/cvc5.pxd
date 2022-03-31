@@ -238,8 +238,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
         Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
-        Term declareSygusVar(Sort sort, const string& symbol) except +
-        Term declareSygusVar(Sort sort) except +
+        Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
         void addSygusAssume(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +

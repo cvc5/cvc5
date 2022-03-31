@@ -2540,15 +2540,14 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   Sort intSort = d_solver.getIntegerSort();
   Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
 
-  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort));
-  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort));
-  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort, std::string("b")));
-  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort, ""));
-  ASSERT_THROW(d_solver.declareSygusVar(Sort()), CVC5ApiException);
-  ASSERT_THROW(d_solver.declareSygusVar(d_solver.getNullSort(), "a"),
+  ASSERT_NO_THROW(d_solver.declareSygusVar("", boolSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar("", funSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(std::string("b"), boolSort));
+  ASSERT_THROW(d_solver.declareSygusVar("", Sort()), CVC5ApiException);
+  ASSERT_THROW(d_solver.declareSygusVar("a", d_solver.getNullSort()),
                CVC5ApiException);
   Solver slv;
-  ASSERT_THROW(slv.declareSygusVar(boolSort), CVC5ApiException);
+  ASSERT_THROW(slv.declareSygusVar("", boolSort), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkSygusGrammar)

@@ -2512,15 +2512,6 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Append \p symbol to the current list of universal variables.
-   * @param sort the sort of the universal variable
-   * @return the universal variable
-   */
-  public Term declareSygusVar(Sort sort)
-  {
-    return declareSygusVar(sort, "");
-  }
-  /**
-   * Append \p symbol to the current list of universal variables.
    * SyGuS v2:
    * {@code
    *   ( declare-var <symbol> <sort> )
@@ -2529,13 +2520,13 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  public Term declareSygusVar(Sort sort, String symbol)
+  public Term declareSygusVar(String symbol, Sort sort)
   {
-    long termPointer = declareSygusVar(pointer, sort.getPointer(), symbol);
+    long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
     return new Term(this, termPointer);
   }
 
-  private native long declareSygusVar(long pointer, long sortPointer, String symbol);
+  private native long declareSygusVar(long pointer, String symbol, long sortPointer);
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting

@@ -516,7 +516,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      cvc5::Term var = SOLVER->declareSygusVar(t, name);
+      cvc5::Term var = SOLVER->declareSygusVar(name, t);
       PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }

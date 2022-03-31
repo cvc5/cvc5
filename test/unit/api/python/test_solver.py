@@ -2514,18 +2514,17 @@ def test_mk_sygus_var(solver):
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort(intSort, boolSort)
 
-    solver.declareSygusVar(boolSort)
-    solver.declareSygusVar(funSort)
-    solver.declareSygusVar(boolSort, "b")
-    solver.declareSygusVar(funSort, "")
+    solver.declareSygusVar("", boolSort)
+    solver.declareSygusVar("", funSort)
+    solver.declareSygusVar("b", boolSort)
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar(cvc5.Sort(solver))
+        solver.declareSygusVar("", cvc5.Sort(solver))
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar(solver.getNullSort(), "a")
+        solver.declareSygusVar("a", solver.getNullSort())
     slv = cvc5.Solver()
     solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
-        slv.declareSygusVar(boolSort)
+        slv.declareSygusVar("", boolSort)
 
 
 def test_synth_fun(solver):
