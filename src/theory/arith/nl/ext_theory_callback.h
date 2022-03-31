@@ -32,7 +32,7 @@ class NlExtTheoryCallback : public ExtTheoryCallback
  public:
   NlExtTheoryCallback(eq::EqualityEngine* ee);
   ~NlExtTheoryCallback() {}
-  /** 
+  /**
    * Gets the current substitution, which maps v in vars to a constant c
    * if there is a constant in its equivalence class, or to v itself otherwise.
    */
@@ -47,11 +47,11 @@ class NlExtTheoryCallback : public ExtTheoryCallback
    * if necessary by the theory solver. For example, if (= x 0) and
    * (= (* x y) 0), then (* x y) may be considered reduced. The motivation is
    * to minimize the number of terms that the non-linear solver must consider.
-   * 
+   *
    * This method returns true if
    * (1) the extended term on is not a transcendental function,
    * (2) n is not a symbol of non-linear arithmetic.
-   * 
+   *
    * For example,
    * if on, n = (* x y), (* 5 y), we return true
    * if on, n = (* x y), 6, we return true
