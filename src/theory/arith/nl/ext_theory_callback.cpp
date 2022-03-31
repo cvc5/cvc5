@@ -37,12 +37,9 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
     std::map<Node, std::vector<Node>>& exp)
 {
   // get the constant equivalence classes
-  std::map<Node, std::vector<int>> rep_to_subs_index;
-
   bool retVal = false;
-  for (unsigned i = 0; i < vars.size(); i++)
+  for (const Node& n : vars)
   {
-    Node n = vars[i];
     if (d_ee->hasTerm(n))
     {
       Node nr = d_ee->getRepresentative(n);
@@ -56,7 +53,6 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
       }
       else
       {
-        rep_to_subs_index[nr].push_back(i);
         subs.push_back(n);
       }
     }
@@ -65,7 +61,6 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
       subs.push_back(n);
     }
   }
-
   // return true if the substitution is non-trivial
   return retVal;
 }
@@ -73,9 +68,9 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
 bool NlExtTheoryCallback::isExtfReduced(
     int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
 {
-  if (on.getKind()==PI)
+  if (isTranscendentalKind(on.getKind()))
   {
-    // pi is never reduced.
+    // we do not handle reductions of transcendental functions here
     return false;
   }
   if (n != d_zero)
