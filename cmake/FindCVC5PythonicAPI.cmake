@@ -24,12 +24,12 @@ endif()
 
 include(ExternalProject)
 
-set(CVC5PythonicAPI_VERSION "57d8c9d67e030a13296a94cf6ad7241f59192574")
+set(CVC5PythonicAPI_VERSION "02b244e2631e696d4ca0a20d6c80ead3cd2850c0")
 ExternalProject_Add(
   CVC5PythonicAPI
   ${COMMON_EP_CONFIG}
   URL https://github.com/cvc5/cvc5_pythonic_api/archive/${CVC5PythonicAPI_VERSION}.zip
-  URL_HASH SHA1=ebf2799dd202819645dab357b20ebd6efc1750bb
+  URL_HASH SHA1=d6678ce30f43ac812cc2097d54873e37aee17405
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
