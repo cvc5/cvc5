@@ -13,30 +13,26 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
-public class Triplet<A, B, C>
+public class Pair<K, V>
 {
-  public A first;
-  public B second;
-  public C third;
-  public Triplet(A first, B second, C third)
+  public K first;
+  public V second;
+  public Pair(K first, V second)
   {
     this.first = first;
     this.second = second;
-    this.third = third;
   }
 
   @Override
-  public boolean equals(Object object)
+  public boolean equals(Object pair)
   {
-    if (this == object)
+    if (this == pair)
       return true;
-    if (object == null || getClass() != object.getClass())
+    if (pair == null || getClass() != pair.getClass())
       return false;
 
-    return this.first.equals(((Triplet<?, ?, ?>) object).first)
-        && this.second.equals(((Triplet<?, ?, ?>) object).second)
-        && this.third.equals(((Triplet<?, ?, ?>) object).third);
+    return first.equals(((Pair<?, ?>) pair).first) && second.equals(((Pair<?, ?>) pair).second);
   }
 }

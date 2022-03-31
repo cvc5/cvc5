@@ -17,7 +17,7 @@
  * The model is displayed using getValue().
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.Iterator;
 
 public class Combination
