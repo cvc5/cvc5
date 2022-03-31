@@ -35,6 +35,8 @@ class NlExtTheoryCallback : public ExtTheoryCallback
   /**
    * Gets the current substitution, which maps v in vars to a constant c
    * if there is a constant in its equivalence class, or to v itself otherwise.
+   * In this case, it adds (= v c) as the explanation for the substitution of v.
+   * Returns true if the substitution is non-trivial.
    */
   bool getCurrentSubstitution(int effort,
                               const std::vector<Node>& vars,
