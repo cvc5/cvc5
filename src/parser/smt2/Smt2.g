@@ -1370,11 +1370,12 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           // f should be a constructor
           type = f.getSort();
           Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
-          if (!type.isConstructor())
+          if (!type.isDatatypeConstructor())
           {
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
-          cvc5::Datatype dt = type.getConstructorCodomainSort().getDatatype();
+          cvc5::Datatype dt =
+              type.getDatatypeConstructorCodomainSort().getDatatype();
           if (dt.isParametric())
           {
             // lookup constructor by name
@@ -1383,7 +1384,7 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }
-          argTypes = type.getConstructorDomainSorts();
+          argTypes = type.getDatatypeConstructorDomainSorts();
         }
         // arguments of the pattern
         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
@@ -1415,8 +1416,8 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           {
             f = PARSER_STATE->getVariable(name);
             type = f.getSort();
-            if (!type.isConstructor() ||
-                !type.getConstructorDomainSorts().empty())
+            if (!type.isDatatypeConstructor() ||
+                !type.getDatatypeConstructorDomainSorts().empty())
             {
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
@@ -1596,6 +1597,7 @@ identifier[cvc5::ParseOp& p]
   cvc5::Term f;
   cvc5::Term f2;
   std::vector<uint32_t> numerals;
+  std::string opName;
 }
 : functionName[p.d_name, CHECK_NONE]
 
@@ -1609,13 +1611,13 @@ identifier[cvc5::ParseOp& p]
           // for nullary constructors, must get the operator
           f = f[0];
         }
-        if (!f.getSort().isConstructor())
+        if (!f.getSort().isDatatypeConstructor())
         {
           PARSER_STATE->parseError(
               "Bad syntax for (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getConstructorCodomainSort();
+        cvc5::Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
         cvc5::Datatype d = sf.getDatatype();
         // lookup by name
         cvc5::DatatypeConstructor dc = d.getConstructor(f.toString());
@@ -1623,14 +1625,14 @@ identifier[cvc5::ParseOp& p]
       }
     | UPDATE_TOK term[f, f2]
       {
-        if (!f.getSort().isSelector())
+        if (!f.getSort().isDatatypeSelector())
         {
           PARSER_STATE->parseError(
               "Bad syntax for (_ update X), X must be a selector.");
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getSelectorDomainSort();
+        cvc5::Sort sf = f.getSort().getDatatypeSelectorDomainSort();
         cvc5::Datatype d = sf.getDatatype();
         // find the selector
         cvc5::DatatypeSelector ds = d.getSelector(f.toString());
@@ -1644,9 +1646,8 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
-    | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
+    | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
-        std::string opName = AntlrInput::tokenText($sym);
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
         if (k == cvc5::UNDEFINED_KIND)
         {

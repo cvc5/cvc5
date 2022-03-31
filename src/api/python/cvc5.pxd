@@ -383,10 +383,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isBitVector() except +
         bint isFloatingPoint() except +
         bint isDatatype() except +
-        bint isConstructor() except +
-        bint isSelector() except +
-        bint isTester() except +
-        bint isUpdater() except +
+        bint isDatatypeConstructor() except +
+        bint isDatatypeSelector() except +
+        bint isDatatypeTester() except +
+        bint isDatatypeUpdater() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
@@ -403,13 +403,13 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort instantiate(const vector[Sort]& params) except +
         vector[Sort] getInstantiatedParameters() except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
-        size_t getConstructorArity() except +
-        vector[Sort] getConstructorDomainSorts() except +
-        Sort getConstructorCodomainSort() except +
-        Sort getSelectorDomainSort() except +
-        Sort getSelectorCodomainSort() except +
-        Sort getTesterDomainSort() except +
-        Sort getTesterCodomainSort() except +
+        size_t getDatatypeConstructorArity() except +
+        vector[Sort] getDatatypeConstructorDomainSorts() except +
+        Sort getDatatypeConstructorCodomainSort() except +
+        Sort getDatatypeSelectorDomainSort() except +
+        Sort getDatatypeSelectorCodomainSort() except +
+        Sort getDatatypeTesterDomainSort() except +
+        Sort getDatatypeTesterCodomainSort() except +
         size_t getFunctionArity() except +
         vector[Sort] getFunctionDomainSorts() except +
         Sort getFunctionCodomainSort() except +

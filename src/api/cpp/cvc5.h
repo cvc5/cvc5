@@ -485,27 +485,27 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a constructor sort?
-   * @return true if the sort is a constructor sort
+   * Is this a datatype constructor sort?
+   * @return true if the sort is a datatype constructor sort
    */
-  bool isConstructor() const;
+  bool isDatatypeConstructor() const;
 
   /**
-   * Is this a selector sort?
-   * @return true if the sort is a selector sort
+   * Is this a datatype selector sort?
+   * @return true if the sort is a datatype selector sort
    */
-  bool isSelector() const;
+  bool isDatatypeSelector() const;
 
   /**
-   * Is this a tester sort?
-   * @return true if the sort is a tester sort
+   * Is this a datatype tester sort?
+   * @return true if the sort is a datatype tester sort
    */
-  bool isTester() const;
+  bool isDatatypeTester() const;
   /**
    * Is this a datatype updater sort?
    * @return true if the sort is a datatype updater sort
    */
-  bool isUpdater() const;
+  bool isDatatypeUpdater() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -604,8 +604,6 @@ class CVC5_EXPORT Sort
    *
    * Create sort parameters with Solver::mkParamSort().
    *
-   * @warning This method is experimental and may change in future versions.
-   *
    * @param params the list of sort parameters to instantiate with
    * @return the instantiated sort
    */
@@ -665,49 +663,50 @@ class CVC5_EXPORT Sort
    */
   std::string toString() const;
 
-  /* Constructor sort ------------------------------------------------------- */
+  /* Datatype constructor sort ------------------------------------------- */
 
   /**
-   * @return the arity of a constructor sort
+   * @return the arity of a datatype constructor sort
    */
-  size_t getConstructorArity() const;
+  size_t getDatatypeConstructorArity() const;
 
   /**
-   * @return the domain sorts of a constructor sort
+   * @return the domain sorts of a datatype constructor sort
    */
-  std::vector<Sort> getConstructorDomainSorts() const;
+  std::vector<Sort> getDatatypeConstructorDomainSorts() const;
 
   /**
    * @return the codomain sort of a constructor sort
    */
-  Sort getConstructorCodomainSort() const;
+  Sort getDatatypeConstructorCodomainSort() const;
 
   /* Selector sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a selector sort
+   * @return the domain sort of a datatype selector sort
    */
-  Sort getSelectorDomainSort() const;
+  Sort getDatatypeSelectorDomainSort() const;
 
   /**
-   * @return the codomain sort of a selector sort
+   * @return the codomain sort of a datatype selector sort
    */
-  Sort getSelectorCodomainSort() const;
+  Sort getDatatypeSelectorCodomainSort() const;
 
   /* Tester sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a tester sort
+   * @return the domain sort of a datatype tester sort
    */
-  Sort getTesterDomainSort() const;
+  Sort getDatatypeTesterDomainSort() const;
 
   /**
-   * @return the codomain sort of a tester sort, which is the Boolean sort
+   * @return the codomain sort of a datatype tester sort, which is the Boolean
+   *         sort
    *
    * @note We mainly need this for the symbol table, which doesn't have
    *       access to the solver object.
    */
-  Sort getTesterCodomainSort() const;
+  Sort getDatatypeTesterCodomainSort() const;
 
   /* Function sort ------------------------------------------------------- */
 
