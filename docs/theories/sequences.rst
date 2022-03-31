@@ -55,7 +55,7 @@ Semantics
    * (seq.at ((Seq S) Int) (Seq S))
 
     ⟦seq.at⟧(s, i) is a unit sequence that contains the i-th element of s as
-                   the only element.
+                   the only element, or is the empty sequence if i < 0 or i > |s|.
 
    * (seq.contains ((Seq S) (Seq S)) Bool)
 
