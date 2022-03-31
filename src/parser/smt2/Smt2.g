@@ -1597,6 +1597,7 @@ identifier[cvc5::ParseOp& p]
   cvc5::Term f;
   cvc5::Term f2;
   std::vector<uint32_t> numerals;
+  std::string opName;
 }
 : functionName[p.d_name, CHECK_NONE]
 
@@ -1645,9 +1646,8 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
-    | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
+    | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
-        std::string opName = AntlrInput::tokenText($sym);
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
         if (k == cvc5::UNDEFINED_KIND)
         {
