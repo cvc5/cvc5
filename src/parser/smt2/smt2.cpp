@@ -132,7 +132,6 @@ void Smt2::addDatatypesOperators()
   if (!strictModeEnabled())
   {
     Parser::addOperator(cvc5::APPLY_UPDATER);
-    addOperator(cvc5::DT_SIZE, "dt.size");
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
