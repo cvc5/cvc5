@@ -45,23 +45,6 @@ cdef extern from "Python.h":
     object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
     void PyMem_Free(void*)
 
-################################## DECORATORS #################################
-def expand_list_arg(num_req_args=0):
-    """
-    Creates a decorator that looks at index num_req_args of the args,
-    if it's a list, it expands it before calling the function.
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(owner, *args):
-            if len(args) == num_req_args + 1 and \
-               isinstance(args[num_req_args], list):
-                args = list(args[:num_req_args]) + args[num_req_args]
-            return func(owner, *args)
-        return wrapper
-    return decorator
-###############################################################################
-
 # Style Guidelines
 ### Using PEP-8 spacing recommendations
 ### Limit linewidth to 79 characters
@@ -844,11 +827,10 @@ cdef class Solver:
         sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkPredicateSort(self, *sorts):
         """Create a predicate sort.
 
-        :param sorts: the list of sorts of the predicate, as a list or as distinct arguments.
+        :param sorts: the list of sorts of the predicate
         :return: the predicate sort
         """
         cdef Sort sort = Sort(self)
@@ -858,14 +840,13 @@ cdef class Solver:
         sort.csort = self.csolver.mkPredicateSort(<const vector[c_Sort]&> v)
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """Create a record sort
 
         .. warning:: This method is experimental and may change in future
                      versions.
 
-        :param fields: the list of fields of the record, as a list or as distinct arguments
+        :param fields: the list of fields of the record
         :return: the record sort
         """
         cdef Sort sort = Sort(self)
@@ -949,11 +930,10 @@ cdef class Solver:
             symbol.encode(), arity)
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
         """Create a tuple sort.
 
-        :param sorts: of the elements of the tuple, as a list or as distinct arguments
+        :param sorts: of the elements of the tuple
         :return: the tuple sort
         """
         cdef Sort sort = Sort(self)
@@ -963,7 +943,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkTupleSort(v)
         return sort
 
-    @expand_list_arg(num_req_args=1)
     def mkTerm(self, kind_or_op, *args):
         """
         Supports the following arguments:
@@ -1007,7 +986,6 @@ cdef class Solver:
         result.cterm = self.csolver.mkTuple(csorts, cterms)
         return result
 
-    @expand_list_arg(num_req_args=0)
     def mkOp(self, k, *args):
         """
         Supports the following uses:
@@ -1226,7 +1204,6 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-    @expand_list_arg(num_req_args=0)
     def mkBitVector(self, *args):
         """
         Supports the following arguments:
@@ -1730,7 +1707,6 @@ cdef class Solver:
             term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
         return term
 
-    @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
         """ Check satisfiability assuming the given formula.
 
@@ -1740,7 +1716,7 @@ cdef class Solver:
 
             ( check-sat-assuming ( <prop_literal> ) )
 
-        :param assumptions: the formulas to assume, as a list or as distinct arguments
+        :param assumptions: the formulas to assume
         :return: the result of the satisfiability check.
         """
         cdef Result r = Result()
@@ -1751,7 +1727,6 @@ cdef class Solver:
         r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
         return r
 
-    @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         """
         Create datatype sort.
@@ -1763,7 +1738,7 @@ cdef class Solver:
             ( declare-datatype <symbol> <datatype_decl> )
 
         :param symbol: the name of the datatype sort
-        :param ctors: the constructor declarations of the datatype sort, as a list or as distinct arguments
+        :param ctors: the constructor declarations of the datatype sort
         :return: the datatype sort
         """
         cdef Sort sort = Sort(self)
