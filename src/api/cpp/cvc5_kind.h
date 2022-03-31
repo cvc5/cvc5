@@ -2263,28 +2263,6 @@ enum Kind : int32_t
    */
   MATCH_BIND_CASE,
   /**
-   * Datatypes size operator.
-   *
-   * An operator mapping a datatype term to an integer denoting the number of
-   * non-nullary applications of constructors it contains.
-   *
-   * - Arity: `1`
-   *   - `1:` Term of datatype Sort
-   *
-   * - Create Term of this Kind with:
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  DT_SIZE,
-  /**
    * Tuple projection.
    *
    * This operator takes a tuple as an argument and returns a tuple obtained by
