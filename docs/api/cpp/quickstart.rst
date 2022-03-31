@@ -1,7 +1,7 @@
 Quickstart Guide
 ================
 
-First, create a cvc5 :cpp:class:`Solver <cvc5::api::Solver>` instance:
+First, create a cvc5 :cpp:class:`Solver <cvc5::Solver>` instance:
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
@@ -63,9 +63,9 @@ the constraints.
 The result we get from this satisfiability check is either ``sat``, ``unsat``
 or ``unknown``.
 It's status can be queried via
-:cpp:func:`cvc5::api::Result::isSat`,
-:cpp:func:`cvc5::api::Result::isUnsat` and
-:cpp:func:`cvc5::api::Result::isSatUnknown`.
+:cpp:func:`cvc5::Result::isSat`,
+:cpp:func:`cvc5::Result::isUnsat` and
+:cpp:func:`cvc5::Result::isSatUnknown`.
 Alternatively, it can also be printed.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
