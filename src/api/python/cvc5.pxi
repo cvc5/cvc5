@@ -831,7 +831,7 @@ cdef class Solver:
                                                       codomain.csort)
         return sort
 
-    def mkParamSort(self, symbolname):
+    def mkParamSort(self, str symbolname = ""):
         """ Create a sort parameter.
 
         .. warning:: This method is experimental and may change in future

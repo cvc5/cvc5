@@ -355,6 +355,21 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkParamSort(long pointer, String symbol);
 
   /**
+   * Create a sort parameter.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
+   * @return the sort parameter
+   */
+  public Sort mkParamSort()
+  {
+    long sortPointer = mkParamSort(pointer);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkParamSort(long pointer);
+
+  /**
    * Create a predicate sort.
    * @param sorts the list of sorts of the predicate
    * @return the predicate sort

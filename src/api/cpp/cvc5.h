@@ -3237,7 +3237,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the sort parameter
    */
-  Sort mkParamSort(const std::string& symbol) const;
+  Sort mkParamSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a predicate sort.

@@ -5545,13 +5545,17 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkParamSort(const std::string& symbol) const
+Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this,
-              getNodeManager()->mkSort(
-                  symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER));
+
+  internal::TypeNode tn =
+      symbol ? getNodeManager()->mkSort(
+          *symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER)
+             : getNodeManager()->mkSort(
+                 internal::NodeManager::SORT_FLAG_PLACEHOLDER);
+  return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
