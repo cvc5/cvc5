@@ -37,7 +37,7 @@ Semantics
                             The updated sequence has the same length as |s|.
                             If i + |sub| > |s|,
                             the out of bound part of sub is ignored.
-                            If i out of bound, i.e. i < 0 or i >= |s|,
+                            If i out of bounds, i.e. i < 0 or i >= |s|,
                             the updated sequence remains same with s.
   
   * (seq.extract ((Seq S) Int Int) (Seq S))
