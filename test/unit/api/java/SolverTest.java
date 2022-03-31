@@ -370,9 +370,9 @@ class SolverTest
   @Test
   void mkUninterpretedSortConstructorSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort("s", 2));
-    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort("", 2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkUninterpretedSortConstructorSort("", 0));
+    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort(2, "s"));
+    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort(2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkUninterpretedSortConstructorSort(0));
   }
 
   @Test

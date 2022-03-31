@@ -300,10 +300,10 @@ def test_mk_unresolved_sort(solver):
 
 
 def test_mk_sort_constructor_sort(solver):
-    solver.mkUninterpretedSortConstructorSort("s", 2)
-    solver.mkUninterpretedSortConstructorSort("", 2)
+    solver.mkUninterpretedSortConstructorSort(2, "s")
+    solver.mkUninterpretedSortConstructorSort(2)
     with pytest.raises(RuntimeError):
-        solver.mkUninterpretedSortConstructorSort("", 0)
+        solver.mkUninterpretedSortConstructorSort(0)
 
 
 def test_mk_tuple_sort(solver):
