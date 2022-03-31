@@ -45,11 +45,11 @@ int main()
     cout << "cvc5 reports: " << guess.notTerm() << " is "
          << slv.checkSatAssuming(guess.notTerm()) << "." << endl;
 
-    cout << A << ": " << slv.getValue({A}) << endl;
-    cout << B << ": " << slv.getValue({B}) << endl;
-    cout << C << ": " << slv.getValue({C}) << endl;
-    cout << lhs << ": " << slv.getValue({lhs}) << endl;
-    cout << rhs << ": " << slv.getValue({rhs}) << endl;
+    cout << A << ": " << slv.getValue(A) << endl;
+    cout << B << ": " << slv.getValue(B) << endl;
+    cout << C << ": " << slv.getValue(C) << endl;
+    cout << lhs << ": " << slv.getValue(lhs) << endl;
+    cout << rhs << ": " << slv.getValue(rhs) << endl;
   }
 
   // union max distributes over intersection
