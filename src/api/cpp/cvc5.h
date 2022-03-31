@@ -1768,7 +1768,8 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * @param unresDataypeName the name of the unresolved datatype. The codomain
    * of this selector will be the resolved datatype with the given name.
    */
-  void addSelectorUnresolved(const std::string& name, const std::string& unresDataypeName);
+  void addSelectorUnresolved(const std::string& name,
+                             const std::string& unresDataypeName);
 
   /**
    * @return true if this DatatypeConstructorDecl is a null declaration.

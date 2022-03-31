@@ -395,8 +395,8 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
 TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
                                                  std::set<TypeNode>& unres)
 {
-  TypeNode unresolved = NodeManager::currentNM()->mkUnresolvedDatatypeSort(
-      name);
+  TypeNode unresolved =
+      NodeManager::currentNM()->mkUnresolvedDatatypeSort(name);
   unres.insert(unresolved);
   return unresolved;
 }

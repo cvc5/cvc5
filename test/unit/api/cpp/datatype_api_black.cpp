@@ -136,7 +136,6 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC5ApiException);
 }
 
-
 TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
 {
   // Same as above, without unresolved sorts
@@ -182,7 +181,6 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   ASSERT_TRUE(dtsTreeNodeLeft.getCodomainSort().isDatatype());
   ASSERT_EQ(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
 }
-
 
 TEST_F(TestApiBlackDatatype, datatypeStructs)
 {

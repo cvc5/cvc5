@@ -759,17 +759,13 @@ class NodeManager
   TypeNode mkSort(const std::string& name);
 
   /** Make a new sort by parameterizing the given sort constructor. */
-  TypeNode mkSort(TypeNode constructor,
-                  const std::vector<TypeNode>& children);
+  TypeNode mkSort(TypeNode constructor, const std::vector<TypeNode>& children);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name,
-                             size_t arity);
+  TypeNode mkSortConstructor(const std::string& name, size_t arity);
 
   /** Make an unresolved datatype sort */
-  TypeNode mkUnresolvedDatatypeSort(const std::string& name,
-                             size_t arity = 0);
-
+  TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
 
  private:
   /**

@@ -3396,7 +3396,8 @@ void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
-void DatatypeConstructorDecl::addSelectorUnresolved(const std::string& name, const std::string& unresDataypeName)
+void DatatypeConstructorDecl::addSelectorUnresolved(
+    const std::string& name, const std::string& unresDataypeName)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
