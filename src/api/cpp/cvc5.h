@@ -1612,8 +1612,11 @@ class CVC5_EXPORT Term
    *
    * where calling getSequenceValue() on the latter returns the vector {0, 1}.
    *
-   * The former term is not a sequence value, but the latter term is. Calling
-   * e.g. Solver::simplify() on the first term will result in the second term.
+   * The former term is not a sequence value, but the latter term is.
+   *
+   * Constant sequences cannot be constructed directly via the API. They are
+   * returned in response to API calls such Solver::getValue and
+   * Solver::simplify.
    */
   bool isSequenceValue() const;
   /**
