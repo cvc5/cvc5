@@ -2450,18 +2450,19 @@ cdef class Solver:
                          versions.
 
             :param q: A quantified formula of the form
-                      :math:`QX_1... QX_n. P( x_1...x_i, y_1...y_j)`
+                      :math:`Q\\bar{x_1}... Q\\bar{x}_n. P( x_1...x_i,
+                              y_1...y_j)`
                       where
-                      :math:`QX` is a set of quantified variables of the
+                      :math:`Q\\bar{x}` is a set of quantified variables of the
                       form :math:`Q x_1...x_k` and
                       :math:`P( x_1...x_i, y_1...y_j )` is a quantifier-free
                       formula
-            :return: A formula :math:`\phi` such that, given the current set
+            :return: A formula :math:`\\phi` such that, given the current set
                      of formulas :math:`A` asserted to this solver:
 
-                     - :math:`(A \wedge q)` :math:`(A \wedge \phi)` are
+                     - :math:`(A \\wedge q)` :math:`(A \\wedge \\phi)` are
                        equivalent
-                     - :math:`\phi` is quantifier-free formula containing only
+                     - :math:`\\phi` is quantifier-free formula containing only
                        free variables in :math:`y_1...y_n`.
         """
         cdef Term result = Term(self)
@@ -2487,39 +2488,34 @@ cdef class Solver:
                          versions.
 
             :param q: A quantified formula of the form
-                      :math:`QX_1... QX_n. P( x_1...x_i, y_1...y_j)`
-                      where
-                      :math:`QX` is a set of quantified variables of the
-                      form :math:`Q x_1...x_k` and
-                      :math:`P( x_1...x_i, y_1...y_j )` is a quantifier-free
-                      formula.
+                 :math:`Q\\bar{x_1} ... Q\\bar{x_n}. P( x_1...x_i, y_1...y_j)`
+                 where :math:`Q\\bar{x}` is a set of quantified variables of
+                 the form :math:`Q x_1...x_k` and
+                 :math:`P( x_1...x_i, y_1...y_j )` is a quantifier-free formula.
 
-            :return: A formula :math:`\phi` such that, given the current set of
-                     formulas :math:`A` asserted to this solver:
+            :return: A formula :math:`\\phi` such that, given the current set
+                 of formulas :math:`A` asserted to this solver:
 
-                     - :math:`(A \wedge q \implies A \wedge \phi)` if :math:`Q`
-                       is :math:`\forall`, and :math:`(A \wedge \phi \implies A
-                       \wedge q)` if :math:`Q` is :math:`\exists`
-                     - :math:`\phi` is quantifier-free formula containing only
-                       free variables in :math:`y_1...y_n`
-                     - If :math:`Q` is :math:`\exists`,
-                       let :math:`(A \wedge Q_n)` be the formula
-                       :math:`(A \wedge \neg (\phi \wedge Q_1) \wedge ...
-                               \wedge \neg (\phi \wedge Q_n))`
-                       where for each :math:`i = 1...n`,
-                       formula :math:`(\phi \wedge Q_i)` is the result of
-                       calling
-                       :py:meth:`Solver.:getQuantifierEliminationDisjunct()`
-                       for :math:`q` with the
-                       set of assertions :math:`(A \wedge Q_{i-1})`.
-                       Similarly, if :math:`Q` is :math:`\forall`, then let
-                       :math:`(A \wedge Q_n)` be
-                       :math:`(A \wedge (\phi \wedge Q_1) \wedge ... \wedge
-                               (\phi \wedge Q_n))`
-                       where :math:`(\phi \wedge Q_i)` is the same as above.
-                       In either case, we have that
-                       :math:`(\phi \wedge Q_j)` will eventually be true or
-                       false, for some finite :math:`j`.
+                 - :math:`(A \\wedge q \\implies A \\wedge \\phi)` if :math:`Q`
+                   is :math:`\\forall`, and
+                   :math:`(A \\wedge \\phi \\implies A \\wedge q)` if
+                   :math:`Q` is :math:`\\exists`
+                 - :math:`\\phi` is quantifier-free formula containing only
+                   free variables in :math:`y_1...y_n`
+                 - If :math:`Q` is :math:`\\exists`, let :math:`(A \\wedge Q_n)`
+                   be the formula
+                   :math:`(A \\wedge \\neg (\\phi \wedge Q_1) \\wedge ... \\wedge \\neg (\\phi \\wedge Q_n))`
+                   where for each :math:`i = 1...n`, formula
+                   :math:`(\\phi \\wedge Q_i)` is the result of calling
+                   :py:meth:`getQuantifierEliminationDisjunct()`
+                   for :math:`q` with the set of assertions
+                   :math:`(A \\wedge Q_{i-1})`.
+                   Similarly, if :math:`Q` is :math:`\\forall`, then let
+                   :math:`(A \\wedge Q_n)` be
+                   :math:`(A \\wedge (\\phi \\wedge Q_1) \\wedge ... \\wedge (\\phi \\wedge Q_n))`
+                   where :math:`(\\phi \\wedge Q_i)` is the same as above.
+                   In either case, we have that :math:`(\\phi \\wedge Q_j)`
+                   will eventually be true or false, for some finite :math:`j`.
         """
         cdef Term result = Term(self)
         result.cterm = self.csolver.getQuantifierEliminationDisjunct(term.cterm)
