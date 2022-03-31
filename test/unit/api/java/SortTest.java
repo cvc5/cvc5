@@ -161,33 +161,33 @@ class SortTest
   }
 
   @Test
-  void isConstructor() throws CVC5ApiException
+  void isDatatypeConstructor() throws CVC5ApiException
   {
     Sort dt_sort = create_datatype_sort();
     Datatype dt = dt_sort.getDatatype();
     Sort cons_sort = dt.getConstructor(0).getConstructorTerm().getSort();
-    assertTrue(cons_sort.isConstructor());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isConstructor());
+    assertTrue(cons_sort.isDatatypeConstructor());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeConstructor());
   }
 
   @Test
-  void isSelector() throws CVC5ApiException
+  void isDatatypeSelector() throws CVC5ApiException
   {
     Sort dt_sort = create_datatype_sort();
     Datatype dt = dt_sort.getDatatype();
     Sort cons_sort = dt.getConstructor(0).getSelector(1).getSelectorTerm().getSort();
-    assertTrue(cons_sort.isSelector());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isSelector());
+    assertTrue(cons_sort.isDatatypeSelector());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeSelector());
   }
 
   @Test
-  void isTester() throws CVC5ApiException
+  void isDatatypeTester() throws CVC5ApiException
   {
     Sort dt_sort = create_datatype_sort();
     Datatype dt = dt_sort.getDatatype();
     Sort cons_sort = dt.getConstructor(0).getTesterTerm().getSort();
-    assertTrue(cons_sort.isTester());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isTester());
+    assertTrue(cons_sort.isDatatypeTester());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeTester());
   }
 
   @Test
@@ -287,41 +287,41 @@ class SortTest
     Sort intSort = d_solver.getIntegerSort();
     Sort dtypeSort = create_datatype_sort();
     Datatype dt = dtypeSort.getDatatype();
-    assertFalse(dtypeSort.isConstructor());
-    assertThrows(CVC5ApiException.class, () -> dtypeSort.getConstructorCodomainSort());
-    assertThrows(CVC5ApiException.class, () -> dtypeSort.getConstructorDomainSorts());
-    assertThrows(CVC5ApiException.class, () -> dtypeSort.getConstructorArity());
+    assertFalse(dtypeSort.isDatatypeConstructor());
+    assertThrows(CVC5ApiException.class, () -> dtypeSort.getDatatypeConstructorCodomainSort());
+    assertThrows(CVC5ApiException.class, () -> dtypeSort.getDatatypeConstructorDomainSorts());
+    assertThrows(CVC5ApiException.class, () -> dtypeSort.getDatatypeConstructorArity());
 
     // get constructor
     DatatypeConstructor dcons = dt.getConstructor(0);
     Term consTerm = dcons.getConstructorTerm();
     Sort consSort = consTerm.getSort();
-    assertTrue(consSort.isConstructor());
-    assertFalse(consSort.isTester());
-    assertFalse(consSort.isSelector());
-    assertEquals(consSort.getConstructorArity(), 2);
-    Sort[] consDomSorts = consSort.getConstructorDomainSorts();
+    assertTrue(consSort.isDatatypeConstructor());
+    assertFalse(consSort.isDatatypeTester());
+    assertFalse(consSort.isDatatypeSelector());
+    assertEquals(consSort.getDatatypeConstructorArity(), 2);
+    Sort[] consDomSorts = consSort.getDatatypeConstructorDomainSorts();
     assertEquals(consDomSorts[0], intSort);
     assertEquals(consDomSorts[1], dtypeSort);
-    assertEquals(consSort.getConstructorCodomainSort(), dtypeSort);
+    assertEquals(consSort.getDatatypeConstructorCodomainSort(), dtypeSort);
 
     // get tester
     Term isConsTerm = dcons.getTesterTerm();
-    assertTrue(isConsTerm.getSort().isTester());
-    assertEquals(isConsTerm.getSort().getTesterDomainSort(), dtypeSort);
+    assertTrue(isConsTerm.getSort().isDatatypeTester());
+    assertEquals(isConsTerm.getSort().getDatatypeTesterDomainSort(), dtypeSort);
     Sort booleanSort = d_solver.getBooleanSort();
-    assertEquals(isConsTerm.getSort().getTesterCodomainSort(), booleanSort);
-    assertThrows(CVC5ApiException.class, () -> booleanSort.getTesterDomainSort());
-    assertThrows(CVC5ApiException.class, () -> booleanSort.getTesterCodomainSort());
+    assertEquals(isConsTerm.getSort().getDatatypeTesterCodomainSort(), booleanSort);
+    assertThrows(CVC5ApiException.class, () -> booleanSort.getDatatypeTesterDomainSort());
+    assertThrows(CVC5ApiException.class, () -> booleanSort.getDatatypeTesterCodomainSort());
 
     // get selector
     DatatypeSelector dselTail = dcons.getSelector(1);
     Term tailTerm = dselTail.getSelectorTerm();
-    assertTrue(tailTerm.getSort().isSelector());
-    assertEquals(tailTerm.getSort().getSelectorDomainSort(), dtypeSort);
-    assertEquals(tailTerm.getSort().getSelectorCodomainSort(), dtypeSort);
-    assertThrows(CVC5ApiException.class, () -> booleanSort.getSelectorDomainSort());
-    assertThrows(CVC5ApiException.class, () -> booleanSort.getSelectorCodomainSort());
+    assertTrue(tailTerm.getSort().isDatatypeSelector());
+    assertEquals(tailTerm.getSort().getDatatypeSelectorDomainSort(), dtypeSort);
+    assertEquals(tailTerm.getSort().getDatatypeSelectorCodomainSort(), dtypeSort);
+    assertThrows(CVC5ApiException.class, () -> booleanSort.getDatatypeSelectorDomainSort());
+    assertThrows(CVC5ApiException.class, () -> booleanSort.getDatatypeSelectorCodomainSort());
   }
 
   @Test
