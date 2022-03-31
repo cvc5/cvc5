@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of context::ContextMemoryManager.
+ * Black box testing of cvc5::context::ContextMemoryManager.
  */
 
 #include <cstring>

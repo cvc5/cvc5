@@ -1787,12 +1787,12 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Transcendentals -- Exp is approximated from below**
    *
    * .. math::
-   *   \inferrule{- \mid d,t}{exp(t) \geq \texttt{maclaurin}(\exp, d, t)}
+   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
    * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
-   * :math:`\texttt{maclaurin}(\exp, d, t)` is the :math:`d`'th taylor
+   * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
-   * function evaluated at :math:`t`. The Maclaurin series for the exponential
+   * function evaluated at :math:`c`. The Maclaurin series for the exponential
    * function is the following:
    *
    * .. math::

@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& out, cvc5::internal::Kind k)
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
 /* TODO: This could be generated. */
-bool isAssociative(::cvc5::internal::Kind k)
+bool isAssociative(cvc5::internal::Kind k)
 {
   switch(k) {
   case kind::AND:
@@ -63,7 +63,7 @@ bool isAssociative(::cvc5::internal::Kind k)
   }
 }
 
-std::string kindToString(::cvc5::internal::Kind k) { return toString(k); }
+std::string kindToString(cvc5::internal::Kind k) { return toString(k); }
 
 }  // namespace kind
 
@@ -84,7 +84,7 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant)
 
 namespace theory {
 
-TheoryId kindToTheoryId(::cvc5::internal::Kind k)
+TheoryId kindToTheoryId(cvc5::internal::Kind k)
 {
   switch (k)
   {
@@ -99,7 +99,7 @@ ${kind_to_theory_id}
   throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }
 
-TheoryId typeConstantToTheoryId(::cvc5::internal::TypeConstant typeConstant)
+TheoryId typeConstantToTheoryId(cvc5::internal::TypeConstant typeConstant)
 {
   switch (typeConstant)
   {

@@ -27,7 +27,8 @@ public class Triplet<A, B, C>
     this.third = third;
   }
 
-  @Override public boolean equals(Object object)
+  @Override
+  public boolean equals(Object object)
   {
     if (this == object)
       return true;
