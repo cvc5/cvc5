@@ -36,7 +36,7 @@ Semantics
                             sub-sequence of s starting at index i by sub.
                             The updated sequence has the same length as |s|.
                             If i + |sub| > |s|,
-                            the out of bound part of sub is ignored.
+                            the out of bounds part of sub is ignored.
                             If i out of bounds, i.e. i < 0 or i >= |s|,
                             the updated sequence remains same with s.
   
