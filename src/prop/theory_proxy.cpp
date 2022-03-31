@@ -33,7 +33,7 @@
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 TheoryProxy::TheoryProxy(Env& env,
@@ -59,7 +59,7 @@ TheoryProxy::TheoryProxy(Env& env,
       || options().smt.produceLearnedLiterals;
   if (trackZeroLevel)
   {
-    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine, theoryEngine);
+    d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
 }
 
@@ -351,4 +351,4 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
