@@ -115,6 +115,8 @@ jobs:
         continue-on-error: true
         run: |
           if [ "$ISRELEASE" = true ]; then
+            python3 -m pip install beautifulsoup4 lxml
+
             eval $(ssh-agent -s)
             ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
 
