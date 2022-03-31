@@ -15,16 +15,16 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_Solver.h"
+#include "io_github_cvc5_Solver.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    newSolver
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_newSolver(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*,
                                                                  jobject)
 {
   Solver* solver = new Solver();
@@ -32,23 +32,23 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_newSolver(JNIEnv*,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    deletePointer
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_Solver_deletePointer(JNIEnv*, jclass, jlong pointer)
+Java_io_github_cvc5_Solver_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete (reinterpret_cast<Solver*>(pointer));
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getNullSort
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getNullSort(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Solver_getNullSort(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -58,11 +58,11 @@ Java_io_github_cvc5_api_Solver_getNullSort(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getBooleanSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getBooleanSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getBooleanSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -73,11 +73,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getBooleanSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getIntegerSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getIntegerSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getIntegerSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -88,12 +88,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getIntegerSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getRealSort
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getRealSort(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Solver_getRealSort(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -103,11 +103,11 @@ Java_io_github_cvc5_api_Solver_getRealSort(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getRegExpSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getRegExpSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getRegExpSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -118,11 +118,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getRegExpSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getRoundingModeSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getRoundingModeSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getRoundingModeSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -133,11 +133,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getRoundingModeSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getStringSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getStringSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getStringSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -148,12 +148,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getStringSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkArraySort
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkArraySort(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkArraySort(JNIEnv* env,
                                            jobject,
                                            jlong pointer,
                                            jlong indexSortPointer,
@@ -169,11 +169,11 @@ Java_io_github_cvc5_api_Solver_mkArraySort(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkBitVectorSort
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBitVectorSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBitVectorSort(
     JNIEnv* env, jobject, jlong pointer, jint size)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -184,11 +184,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBitVectorSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPointSort
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPointSort(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -200,11 +200,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkDatatypeSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkDatatypeSort(
     JNIEnv* env, jobject, jlong pointer, jlong datatypeDeclPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -216,12 +216,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkDatatypeSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeSorts
  * Signature: (J[J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jlongArray jDecls)
@@ -245,12 +245,12 @@ Java_io_github_cvc5_api_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeSorts
  * Signature: (J[J[J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
                                                         jobject,
                                                         jlong pointer,
                                                         jlongArray jDecls,
@@ -270,12 +270,12 @@ Java_io_github_cvc5_api_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFunctionSort
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkFunctionSort__JJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkFunctionSort__JJJ(JNIEnv* env,
                                                    jobject,
                                                    jlong pointer,
                                                    jlong domainPointer,
@@ -291,12 +291,12 @@ Java_io_github_cvc5_api_Solver_mkFunctionSort__JJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFunctionSort
  * Signature: (J[JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jlongArray sortPointers,
@@ -312,11 +312,11 @@ Java_io_github_cvc5_api_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkParamSort
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkParamSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkParamSort(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -330,11 +330,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkParamSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkPredicateSort
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkPredicateSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkPredicateSort(
     JNIEnv* env, jobject, jlong pointer, jlongArray sortPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -346,18 +346,18 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkPredicateSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkRecordSort
- * Signature: (J[Lio/github/cvc5/api/Pair;)J
+ * Signature: (J[Lio/github/cvc5/Pair;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRecordSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkRecordSort(
     JNIEnv* env, jobject, jlong pointer, jobjectArray jFields)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   jsize size = env->GetArrayLength(jFields);
-  // Lio/github/cvc5/api/Pair; is signature of cvc5.Pair<String, Long>
-  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
+  // Lio/github/cvc5/Pair; is signature of cvc5.Pair<String, Long>
+  jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   // Ljava/lang/Object; is the signature of cvc5.Pair.first field
   jfieldID firstFieldId =
@@ -394,11 +394,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRecordSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkSetSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSetSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSetSort(
     JNIEnv* env, jobject, jlong pointer, jlong elemSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -410,11 +410,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSetSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkBagSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBagSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBagSort(
     JNIEnv* env, jobject, jlong pointer, jlong elemSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -426,11 +426,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBagSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkSequenceSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSequenceSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSequenceSort(
     JNIEnv* env, jobject, jlong pointer, jlong elemSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -442,11 +442,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSequenceSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkUninterpretedSort
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUninterpretedSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -461,11 +461,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUninterpretedSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkUnresolvedSort
  * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUnresolvedSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -481,12 +481,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUnresolvedSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkUninterpretedSortConstructorSort
  * Signature: (JLjava/lang/String;I)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkUninterpretedSortConstructorSort(
+Java_io_github_cvc5_Solver_mkUninterpretedSortConstructorSort(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -503,11 +503,11 @@ Java_io_github_cvc5_api_Solver_mkUninterpretedSortConstructorSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTupleSort
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTupleSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTupleSort(
     JNIEnv* env, jobject, jlong pointer, jlongArray sortPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -519,11 +519,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTupleSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JI(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTerm__JI(
     JNIEnv* env, jobject, jlong pointer, jint kindValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -535,11 +535,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JI(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JIJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JIJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTerm__JIJ(
     JNIEnv* env, jobject, jlong pointer, jint kindValue, jlong childPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -552,12 +552,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JIJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JIJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTerm__JIJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTerm__JIJJ(JNIEnv* env,
                                             jobject,
                                             jlong pointer,
                                             jint kindValue,
@@ -575,12 +575,12 @@ Java_io_github_cvc5_api_Solver_mkTerm__JIJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JIJJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTerm__JIJJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTerm__JIJJJ(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
                                              jint kindValue,
@@ -601,12 +601,12 @@ Java_io_github_cvc5_api_Solver_mkTerm__JIJJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JI[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTerm__JI_3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTerm__JI_3J(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
                                              jint kindValue,
@@ -623,11 +623,11 @@ Java_io_github_cvc5_api_Solver_mkTerm__JI_3J(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTerm__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong opPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -639,11 +639,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JJJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTerm__JJJ(
     JNIEnv* env, jobject, jlong pointer, jlong opPointer, jlong childPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -656,12 +656,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTerm__JJJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTerm__JJJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTerm__JJJJ(JNIEnv* env,
                                             jobject,
                                             jlong pointer,
                                             jlong opPointer,
@@ -679,12 +679,12 @@ Java_io_github_cvc5_api_Solver_mkTerm__JJJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJJJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTerm__JJJJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTerm__JJJJJ(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
                                              jlong opPointer,
@@ -704,12 +704,12 @@ Java_io_github_cvc5_api_Solver_mkTerm__JJJJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJ[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTerm__JJ_3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
                                              jlong opPointer,
@@ -726,12 +726,12 @@ Java_io_github_cvc5_api_Solver_mkTerm__JJ_3J(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTuple
  * Signature: (J[J[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkTuple(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
                                        jobject,
                                        jlong pointer,
                                        jlongArray sortPointers,
@@ -747,11 +747,11 @@ Java_io_github_cvc5_api_Solver_mkTuple(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkOp
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JI(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkOp__JI(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer,
                                                                 jint kindValue)
@@ -765,12 +765,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JI(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkOp
  * Signature: (JILjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkOp__JILjava_lang_String_2(
+Java_io_github_cvc5_Solver_mkOp__JILjava_lang_String_2(
     JNIEnv* env, jobject, jlong pointer, jint kindValue, jstring jArg)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -787,11 +787,11 @@ Java_io_github_cvc5_api_Solver_mkOp__JILjava_lang_String_2(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkOp
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JII(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkOp__JII(
     JNIEnv* env, jobject, jlong pointer, jint kindValue, jint arg)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -803,11 +803,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JII(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkOp
  * Signature: (JIII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JIII(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkOp__JIII(
     JNIEnv* env, jobject, jlong pointer, jint kindValue, jint arg1, jint arg2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -819,11 +819,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JIII(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkOp
  * Signature: (JI[I)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JI_3I(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkOp__JI_3I(
     JNIEnv* env, jobject, jlong pointer, jint kindValue, jintArray jArgs)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -846,11 +846,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JI_3I(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkTrue
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTrue(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTrue(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -862,11 +862,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkTrue(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFalse
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFalse(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFalse(JNIEnv* env,
                                                                jobject,
                                                                jlong pointer)
 {
@@ -878,11 +878,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFalse(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkBoolean
  * Signature: (JZ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBoolean(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBoolean(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer,
                                                                  jboolean val)
@@ -895,11 +895,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBoolean(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkPi
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkPi(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkPi(JNIEnv* env,
                                                             jobject,
                                                             jlong pointer)
 {
@@ -911,12 +911,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkPi(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkInteger
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkInteger__JLjava_lang_String_2(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkInteger__JLjava_lang_String_2(JNIEnv* env,
                                                                jobject,
                                                                jlong pointer,
                                                                jstring jS)
@@ -932,11 +932,11 @@ Java_io_github_cvc5_api_Solver_mkInteger__JLjava_lang_String_2(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkInteger
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkInteger__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkInteger__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong val)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -947,12 +947,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkInteger__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkReal
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkReal__JLjava_lang_String_2(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkReal__JLjava_lang_String_2(JNIEnv* env,
                                                             jobject,
                                                             jlong pointer,
                                                             jstring jS)
@@ -968,11 +968,11 @@ Java_io_github_cvc5_api_Solver_mkReal__JLjava_lang_String_2(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkRealValue
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRealValue(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkRealValue(
     JNIEnv* env, jobject, jlong pointer, jlong val)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -983,11 +983,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRealValue(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkReal
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkReal__JJJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkReal__JJJ(
     JNIEnv* env, jobject, jlong pointer, jlong num, jlong den)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -998,11 +998,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkReal__JJJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkRegexpNone
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpNone(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkRegexpNone(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1013,12 +1013,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpNone(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkRegexpAll
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkRegexpAll(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Solver_mkRegexpAll(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -1028,11 +1028,11 @@ Java_io_github_cvc5_api_Solver_mkRegexpAll(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkRegexpAllchar
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpAllchar(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkRegexpAllchar(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1043,11 +1043,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpAllchar(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkEmptySet
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptySet(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkEmptySet(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1059,11 +1059,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptySet(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkEmptyBag
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptyBag(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkEmptyBag(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1075,11 +1075,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptyBag(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkSepEmp
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSepEmp(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSepEmp(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -1091,11 +1091,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSepEmp(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkSepNil
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSepNil(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSepNil(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1107,12 +1107,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSepNil(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkString
  * Signature: (JLjava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkString__JLjava_lang_String_2Z(
+Java_io_github_cvc5_Solver_mkString__JLjava_lang_String_2Z(
     JNIEnv* env, jobject, jlong pointer, jstring jS, jboolean useEscSequences)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1126,11 +1126,11 @@ Java_io_github_cvc5_api_Solver_mkString__JLjava_lang_String_2Z(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkEmptySequence
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptySequence(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkEmptySequence(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1142,11 +1142,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptySequence(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkUniverseSet
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUniverseSet(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUniverseSet(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1158,11 +1158,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUniverseSet(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkBitVector
  * Signature: (JIJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBitVector__JIJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBitVector__JIJ(
     JNIEnv* env, jobject, jlong pointer, jint size, jlong val)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1174,12 +1174,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkBitVector__JIJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkBitVector
  * Signature: (JILjava/lang/String;I)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkBitVector__JILjava_lang_String_2I(
+Java_io_github_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
     JNIEnv* env, jobject, jlong pointer, jint size, jstring jS, jint base)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1194,11 +1194,11 @@ Java_io_github_cvc5_api_Solver_mkBitVector__JILjava_lang_String_2I(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkConstArray
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkConstArray(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkConstArray(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jlong valPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1211,11 +1211,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkConstArray(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPointPosInf
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointPosInf(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPointPosInf(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1227,11 +1227,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointPosInf(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPointNegInf
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNegInf(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPointNegInf(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1243,11 +1243,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNegInf(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPointNaN
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNaN(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPointNaN(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1259,11 +1259,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNaN(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPointPosZero
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointPosZero(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPointPosZero(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1275,11 +1275,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointPosZero(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPointNegZero
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNegZero(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPointNegZero(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1291,11 +1291,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNegZero(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkRoundingMode
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRoundingMode(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkRoundingMode(
     JNIEnv* env, jobject, jlong pointer, jint rm)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1306,11 +1306,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRoundingMode(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkFloatingPoint
  * Signature: (JIIJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPoint(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPoint(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig, jlong valPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1323,11 +1323,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPoint(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkCardinalityConstraint
  * Signature: (JJI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkCardinalityConstraint(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkCardinalityConstraint(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jint upperBound)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1340,12 +1340,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkCardinalityConstraint(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkConst
  * Signature: (JJLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkConst__JJLjava_lang_String_2(
+Java_io_github_cvc5_Solver_mkConst__JJLjava_lang_String_2(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1360,11 +1360,11 @@ Java_io_github_cvc5_api_Solver_mkConst__JJLjava_lang_String_2(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkConst
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkConst__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkConst__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1376,11 +1376,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkConst__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkVar
  * Signature: (JJLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkVar(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkVar(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1396,12 +1396,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkVar(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeConstructorDecl
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkDatatypeConstructorDecl(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkDatatypeConstructorDecl(JNIEnv* env,
                                                          jobject,
                                                          jlong pointer,
                                                          jstring jName)
@@ -1419,12 +1419,12 @@ Java_io_github_cvc5_api_Solver_mkDatatypeConstructorDecl(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeDecl
  * Signature: (JLjava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkDatatypeDecl__JLjava_lang_String_2Z(
+Java_io_github_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2Z(
     JNIEnv* env, jobject, jlong pointer, jstring jName, jboolean isCoDatatype)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1439,12 +1439,12 @@ Java_io_github_cvc5_api_Solver_mkDatatypeDecl__JLjava_lang_String_2Z(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeDecl
  * Signature: (JLjava/lang/String;JZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(
+Java_io_github_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(
     JNIEnv* env,
     jobject,
     jlong pointer,
@@ -1465,12 +1465,12 @@ Java_io_github_cvc5_api_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeDecl
  * Signature: (JLjava/lang/String;[JZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(
+Java_io_github_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(
     JNIEnv* env,
     jobject,
     jlong pointer,
@@ -1491,11 +1491,11 @@ Java_io_github_cvc5_api_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    simplify
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_simplify(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1507,11 +1507,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_simplify(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    assertFormula
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_assertFormula(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_assertFormula(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1522,11 +1522,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_assertFormula(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    checkSat
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSat(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_checkSat(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -1538,11 +1538,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSat(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    checkSatAssuming
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSatAssuming__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_checkSatAssuming__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong assumptionPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1554,11 +1554,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSatAssuming__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    checkSatAssuming
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSatAssuming__J_3J(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_checkSatAssuming__J_3J(
     JNIEnv* env, jobject, jlong pointer, jlongArray jAssumptions)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1571,11 +1571,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSatAssuming__J_3J(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    declareDatatype
  * Signature: (JLjava/lang/String;[J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareDatatype(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareDatatype(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlongArray jCtors)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1591,12 +1591,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareDatatype(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    declareFun
  * Signature: (JLjava/lang/String;[JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_declareFun(JNIEnv* env,
+Java_io_github_cvc5_Solver_declareFun(JNIEnv* env,
                                           jobject,
                                           jlong pointer,
                                           jstring jSymbol,
@@ -1616,11 +1616,11 @@ Java_io_github_cvc5_api_Solver_declareFun(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    declareSort
  * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSort(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1633,12 +1633,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    defineFun
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_defineFun(JNIEnv* env,
+Java_io_github_cvc5_Solver_defineFun(JNIEnv* env,
                                          jobject,
                                          jlong pointer,
                                          jstring jSymbol,
@@ -1662,12 +1662,12 @@ Java_io_github_cvc5_api_Solver_defineFun(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    defineFunRec
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(
+Java_io_github_cvc5_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(
     JNIEnv* env,
     jobject,
     jlong pointer,
@@ -1692,12 +1692,12 @@ Java_io_github_cvc5_api_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    defineFunRec
  * Signature: (JJ[JJZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_defineFunRec__JJ_3JJZ(JNIEnv* env,
+Java_io_github_cvc5_Solver_defineFunRec__JJ_3JJZ(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jlong funPointer,
@@ -1717,12 +1717,12 @@ Java_io_github_cvc5_api_Solver_defineFunRec__JJ_3JJZ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    defineFunsRec
  * Signature: (J[J[[J[JZ)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_Solver_defineFunsRec(JNIEnv* env,
+Java_io_github_cvc5_Solver_defineFunsRec(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
                                              jlongArray jFuns,
@@ -1754,11 +1754,11 @@ Java_io_github_cvc5_api_Solver_defineFunsRec(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getLearnedLiterals
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getLearnedLiterals(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1770,11 +1770,11 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getLearnedLiterals(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getAssertions
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getAssertions(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getAssertions(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1786,11 +1786,11 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getAssertions(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getInfo
  * Signature: (JLjava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Solver_getInfo(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getInfo(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer,
                                                                  jstring jFlag)
@@ -1805,11 +1805,11 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Solver_getInfo(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getOption
  * Signature: (JLjava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Solver_getOption(
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getOption(
     JNIEnv* env, jobject, jlong pointer, jstring jOption)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1822,11 +1822,11 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Solver_getOption(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getOptionNames
  * Signature: (J)[Ljava/lang/String;
  */
-JNIEXPORT jobjectArray JNICALL Java_io_github_cvc5_api_Solver_getOptionNames(
+JNIEXPORT jobjectArray JNICALL Java_io_github_cvc5_Solver_getOptionNames(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1838,11 +1838,11 @@ JNIEXPORT jobjectArray JNICALL Java_io_github_cvc5_api_Solver_getOptionNames(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getOptionInfo
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getOptionInfo(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getOptionInfo(
     JNIEnv* env, jobject, jlong pointer, jstring jOption)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1854,11 +1854,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getOptionInfo(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getDriverOptions
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getDriverOptions(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getDriverOptions(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1869,11 +1869,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getDriverOptions(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getUnsatAssumptions
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getUnsatAssumptions(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getUnsatAssumptions(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1885,12 +1885,12 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getUnsatAssumptions(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getUnsatCore
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Solver_getUnsatCore(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Solver_getUnsatCore(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -1901,11 +1901,11 @@ Java_io_github_cvc5_api_Solver_getUnsatCore(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getDifficulty
  * Signature: (J)Ljava/util/Map;
  */
-JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Solver_getDifficulty(
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_Solver_getDifficulty(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1940,11 +1940,11 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Solver_getDifficulty(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getProof
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Solver_getProof(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -1956,11 +1956,11 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Solver_getProof(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getValue
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValue__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getValue__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1972,11 +1972,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValue__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getValue
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getValue__J_3J(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getValue__J_3J(
     JNIEnv* env, jobject, jlong pointer, jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1989,12 +1989,12 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getValue__J_3J(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getModelDomainElements
  * Signature: (JJ)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Solver_getModelDomainElements(JNIEnv* env,
+Java_io_github_cvc5_Solver_getModelDomainElements(JNIEnv* env,
                                                       jobject,
                                                       jlong pointer,
                                                       jlong sortPointer)
@@ -2009,11 +2009,11 @@ Java_io_github_cvc5_api_Solver_getModelDomainElements(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    isModelCoreSymbol
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_isModelCoreSymbol(
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Solver_isModelCoreSymbol(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2024,12 +2024,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_isModelCoreSymbol(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getModel
  * Signature: (J[J[J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_api_Solver_getModel(JNIEnv* env,
+Java_io_github_cvc5_Solver_getModel(JNIEnv* env,
                                         jobject,
                                         jlong pointer,
                                         jlongArray sortPointers,
@@ -2045,11 +2045,11 @@ Java_io_github_cvc5_api_Solver_getModel(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getQuantifierElimination
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getQuantifierElimination(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getQuantifierElimination(
     JNIEnv* env, jobject, jlong pointer, jlong qPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2061,12 +2061,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getQuantifierElimination(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getQuantifierEliminationDisjunct
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getQuantifierEliminationDisjunct(JNIEnv* env,
+Java_io_github_cvc5_Solver_getQuantifierEliminationDisjunct(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer,
                                                                 jlong qPointer)
@@ -2080,12 +2080,12 @@ Java_io_github_cvc5_api_Solver_getQuantifierEliminationDisjunct(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    declareSepHeap
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_Solver_declareSepHeap(JNIEnv* env,
+Java_io_github_cvc5_Solver_declareSepHeap(JNIEnv* env,
                                               jobject,
                                               jlong pointer,
                                               jlong locSortPointer,
@@ -2100,11 +2100,11 @@ Java_io_github_cvc5_api_Solver_declareSepHeap(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getValueSepHeap
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValueSepHeap(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getValueSepHeap(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2115,11 +2115,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValueSepHeap(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getValueSepNil
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValueSepNil(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getValueSepNil(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2130,11 +2130,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValueSepNil(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    pop
  * Signature: (JI)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_pop(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_pop(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer,
                                                           jint nscopes)
@@ -2146,11 +2146,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_pop(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getInterpolant
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getInterpolant__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2162,12 +2162,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getInterpolant
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_getInterpolant__JJJ(JNIEnv* env,
                                                    jobject,
                                                    jlong pointer,
                                                    jlong conjPointer,
@@ -2183,11 +2183,11 @@ Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getInterpolantNext
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getInterpolantNext(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2198,11 +2198,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getAbduct
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getAbduct__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2214,12 +2214,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getAbduct
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getAbduct__JJJ(JNIEnv* env,
+Java_io_github_cvc5_Solver_getAbduct__JJJ(JNIEnv* env,
                                               jobject,
                                               jlong pointer,
                                               jlong conjPointer,
@@ -2235,11 +2235,11 @@ Java_io_github_cvc5_api_Solver_getAbduct__JJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getAbductNext
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getAbductNext(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2250,11 +2250,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    blockModel
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_blockModel(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_blockModel(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -2265,11 +2265,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_blockModel(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    blockModelValues
  * Signature: (J[J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_blockModelValues(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_blockModelValues(
     JNIEnv* env, jobject, jlong pointer, jlongArray jTerms)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2280,12 +2280,12 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_blockModelValues(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getInstantiations
  * Signature: (J[J[J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_api_Solver_getInstantiations(JNIEnv* env,
+Java_io_github_cvc5_Solver_getInstantiations(JNIEnv* env,
                                         jobject,
                                         jlong pointer)
 {
@@ -2297,11 +2297,11 @@ Java_io_github_cvc5_api_Solver_getInstantiations(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    push
  * Signature: (JI)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_push(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_push(JNIEnv* env,
                                                            jobject,
                                                            jlong pointer,
                                                            jint nscopes)
@@ -2313,11 +2313,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_push(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    resetAssertions
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_resetAssertions(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_resetAssertions(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2327,11 +2327,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_resetAssertions(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    setInfo
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_setInfo(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setInfo(
     JNIEnv* env, jobject, jlong pointer, jstring jKeyword, jstring jValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2347,11 +2347,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_setInfo(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    setLogic
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_setLogic(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setLogic(JNIEnv* env,
                                                                jobject,
                                                                jlong pointer,
                                                                jstring jLogic)
@@ -2366,11 +2366,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_setLogic(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    setOption
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_setOption(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setOption(
     JNIEnv* env, jobject, jlong pointer, jstring jOption, jstring jValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2386,11 +2386,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_setOption(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    declareSygusVar
  * Signature: (JJLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSygusVar(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSygusVar(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2405,12 +2405,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSygusVar(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    mkSygusGrammar
  * Signature: (J[J[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkSygusGrammar(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkSygusGrammar(JNIEnv* env,
                                               jobject,
                                               jlong pointer,
                                               jlongArray jBoundVars,
@@ -2427,12 +2427,12 @@ Java_io_github_cvc5_api_Solver_mkSygusGrammar(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    synthFun
  * Signature: (JLjava/lang/String;[JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_synthFun__JLjava_lang_String_2_3JJ(
+Java_io_github_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJ(
     JNIEnv* env,
     jobject,
     jlong pointer,
@@ -2453,12 +2453,12 @@ Java_io_github_cvc5_api_Solver_synthFun__JLjava_lang_String_2_3JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    synthFun
  * Signature: (JLjava/lang/String;[JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_synthFun__JLjava_lang_String_2_3JJJ(
+Java_io_github_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(
     JNIEnv* env,
     jobject,
     jlong pointer,
@@ -2482,12 +2482,12 @@ Java_io_github_cvc5_api_Solver_synthFun__JLjava_lang_String_2_3JJJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    synthInv
  * Signature: (JLjava/lang/String;[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_synthInv__JLjava_lang_String_2_3J(
+Java_io_github_cvc5_Solver_synthInv__JLjava_lang_String_2_3J(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlongArray jVars)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2502,12 +2502,12 @@ Java_io_github_cvc5_api_Solver_synthInv__JLjava_lang_String_2_3J(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    synthInv
  * Signature: (JLjava/lang/String;[JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_synthInv__JLjava_lang_String_2_3JJ(
+Java_io_github_cvc5_Solver_synthInv__JLjava_lang_String_2_3JJ(
     JNIEnv* env,
     jobject,
     jlong pointer,
@@ -2528,11 +2528,11 @@ Java_io_github_cvc5_api_Solver_synthInv__JLjava_lang_String_2_3JJ(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    addSygusConstraint
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_addSygusConstraint(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addSygusConstraint(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2543,11 +2543,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_addSygusConstraint(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    addSygusAssume
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_addSygusAssume(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addSygusAssume(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2558,12 +2558,12 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_addSygusAssume(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    addSygusInvConstraint
  * Signature: (JJJJJ)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_Solver_addSygusInvConstraint(JNIEnv* env,
+Java_io_github_cvc5_Solver_addSygusInvConstraint(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jlong invPointer,
@@ -2582,11 +2582,11 @@ Java_io_github_cvc5_api_Solver_addSygusInvConstraint(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    checkSynth
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynth(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_checkSynth(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -2598,11 +2598,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynth(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    checkSynthNext
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_checkSynthNext(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2613,11 +2613,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getSynthSolution
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getSynthSolution(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getSynthSolution(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2629,11 +2629,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getSynthSolution(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getSynthSolutions
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getSynthSolutions(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSynthSolutions(
     JNIEnv* env, jobject, jlong pointer, jlongArray jTerms)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2646,11 +2646,11 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getSynthSolutions(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getStatistics
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getStatistics(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getStatistics(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2661,11 +2661,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getStatistics(
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getNullTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getNullTerm(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullTerm(JNIEnv* env,
                                                                    jobject,
                                                                    jlong)
 {
@@ -2676,12 +2676,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getNullTerm(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getNullResult
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getNullResult(JNIEnv* env, jobject, jlong)
+Java_io_github_cvc5_Solver_getNullResult(JNIEnv* env, jobject, jlong)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Result* ret = new Result();
@@ -2690,12 +2690,12 @@ Java_io_github_cvc5_api_Solver_getNullResult(JNIEnv* env, jobject, jlong)
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getNullSynthResult
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
+Java_io_github_cvc5_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* ret = new SynthResult();
@@ -2704,11 +2704,11 @@ Java_io_github_cvc5_api_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getNullOp
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getNullOp(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullOp(JNIEnv* env,
                                                                  jobject,
                                                                  jlong)
 {
@@ -2719,12 +2719,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getNullOp(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Solver
+ * Class:     io_github_cvc5_Solver
  * Method:    getNullDatatypeDecl
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getNullDatatypeDecl(JNIEnv* env, jobject, jlong)
+Java_io_github_cvc5_Solver_getNullDatatypeDecl(JNIEnv* env, jobject, jlong)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeDecl* ret = new DatatypeDecl();

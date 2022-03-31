@@ -25,7 +25,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace theory::bv;
@@ -62,4 +62,4 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -507,4 +507,4 @@ inline Node RewriteRule<EvalEagerAtom>::apply(TNode node)
 }
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

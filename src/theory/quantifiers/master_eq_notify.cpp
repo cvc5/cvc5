@@ -17,7 +17,7 @@
 
 #include "theory/quantifiers_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -31,4 +31,4 @@ void MasterNotifyClass::eqNotifyNewClass(TNode t)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

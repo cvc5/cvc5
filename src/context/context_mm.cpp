@@ -28,8 +28,7 @@
 #include "base/output.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 #ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 
@@ -173,5 +172,4 @@ unsigned ContextMemoryManager::getMaxAllocationSize()
 
 #endif /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

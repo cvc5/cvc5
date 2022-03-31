@@ -27,7 +27,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -57,7 +57,7 @@ class TermRegistry;
  */
 class QuantifiersEngine : protected EnvObj
 {
-  friend class ::cvc5::TheoryEngine;
+  friend class internal::TheoryEngine;
   typedef context::CDHashMap<Node, bool> BoolMap;
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -207,6 +207,6 @@ class QuantifiersEngine : protected EnvObj
 }; /* class QuantifiersEngine */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS_ENGINE_H */

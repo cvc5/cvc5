@@ -21,9 +21,10 @@
 #include <iosfwd>
 #include <string>
 
+#include "api/cpp/cvc5_types.h"
 #include "options/language.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Result;
 
@@ -45,20 +46,6 @@ class Result
     SAT,
     // the status is "unknown"
     UNKNOWN
-  };
-
-  enum UnknownExplanation
-  {
-    REQUIRES_FULL_CHECK,
-    INCOMPLETE,
-    TIMEOUT,
-    RESOURCEOUT,
-    MEMOUT,
-    INTERRUPTED,
-    NO_STATUS,
-    UNSUPPORTED,
-    OTHER,
-    UNKNOWN_REASON
   };
 
  public:
@@ -123,8 +110,7 @@ class Result
 }; /* class Result */
 
 std::ostream& operator<<(std::ostream& out, enum Result::Status s);
-std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESULT_H */

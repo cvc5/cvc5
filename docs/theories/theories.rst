@@ -1,9 +1,13 @@
 Theory References
 =================
 
-cvc5 implements all theories that are currently standardized in SMT-LIB, as well as several theories that are not (yet) standardized, or
-that extend beyond the respective standardized theory.
-Furthermore, cvc5 supports all combinations of those theories as well as combinations with `datatypes, quantifiers, and uninterpreted functions (as defined in the SMT-LIB standard) <https://smtlib.cs.uiowa.edu/language.shtml>`_.
+cvc5 supports all theories that are currently standardized in SMT-LIB.
+Additionally, it also implements several theories that are not (yet)
+standardized, or that extend beyond the respective standardized theory.
+Furthermore, cvc5 supports all combinations of all implemented theories as well
+as combinations with `datatypes, quantifiers, and uninterpreted functions (as
+defined in the SMT-LIB standard)
+<https://smtlib.cs.uiowa.edu/language.shtml>`_.
 
 Standardized theories
 ---------------------
@@ -25,6 +29,7 @@ Non-standard or extended theories
 .. toctree::
    :maxdepth: 1
 
+   bags
    datatypes
    separation-logic
    sets-and-relations

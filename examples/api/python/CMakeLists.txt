@@ -14,6 +14,7 @@
 ##
 
 set(EXAMPLES_API_PYTHON
+  bags
   bitvectors_and_arrays
   bitvectors
   combination

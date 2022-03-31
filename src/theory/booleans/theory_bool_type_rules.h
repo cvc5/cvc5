@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace boolean {
 
@@ -39,6 +39,6 @@ class IteTypeRule
 
 }  // namespace boolean
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY_BOOL_TYPE_RULES_H */

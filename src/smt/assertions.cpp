@@ -28,10 +28,10 @@
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 Assertions::Assertions(Env& env, AbstractValues& absv)
@@ -77,7 +77,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions)
   /* Assume: BIGAND assumptions  */
   d_assumptions = assumptions;
 
-  Result r(Result::UNKNOWN, Result::UNKNOWN_REASON);
+  Result r(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
@@ -221,4 +221,4 @@ bool Assertions::isProofEnabled() const
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

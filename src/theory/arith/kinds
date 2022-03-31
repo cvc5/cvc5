@@ -4,13 +4,13 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_ARITH ::cvc5::theory::arith::TheoryArith "theory/arith/theory_arith.h"
+theory THEORY_ARITH ::cvc5::internal::theory::arith::TheoryArith "theory/arith/theory_arith.h"
 typechecker "theory/arith/theory_arith_type_rules.h"
 
 properties stable-infinite
 properties check propagate ppStaticLearn presolve notifyRestart
 
-rewriter ::cvc5::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
+rewriter ::cvc5::internal::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 
 operator ADD 2: "arithmetic addition (N-ary)"
 operator MULT 2: "arithmetic multiplication (N-ary)"
@@ -47,9 +47,9 @@ operator SQRT 1 "square root"
 constant DIVISIBLE_OP \
   struct \
   Divisible \
-  ::cvc5::DivisibleHashFunction \
+  ::cvc5::internal::DivisibleHashFunction \
   "util/divisible.h" \
-  "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::Divisible class"
+  "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::internal::Divisible class"
 
 sort REAL_TYPE \
     Cardinality::REALS \
@@ -67,30 +67,30 @@ sort INTEGER_TYPE \
 constant CONST_RATIONAL \
     class \
     Rational+ \
-    ::cvc5::RationalHashFunction \
+    ::cvc5::internal::RationalHashFunction \
     "util/rational.h" \
-    "a multiple-precision rational constant; payload is an instance of the cvc5::Rational class"
+    "a multiple-precision rational constant; payload is an instance of the cvc5::internal::Rational class"
 
 constant CONST_INTEGER \
     class \
     Rational+ \
-    ::cvc5::RationalHashFunction \
+    ::cvc5::internal::RationalHashFunction \
     "util/rational.h" \
-    "a multiple-precision integer constant; payload is an instance of the cvc5::Rational class"
+    "a multiple-precision integer constant; payload is an instance of the cvc5::internal::Rational class"
 
 constant REAL_ALGEBRAIC_NUMBER_OP \
     class \
     RealAlgebraicNumber+ \
-    ::cvc5::RealAlgebraicNumberHashFunction \
+    ::cvc5::internal::RealAlgebraicNumberHashFunction \
     "util/real_algebraic_number.h" \
-    "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
-parameterized REAL_ALGEBRAIC_NUMBER REAL_ALGEBRAIC_NUMBER_OP 0 "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
+    "a real algebraic number constant; payload is an instance of the cvc5::internal::RealAlgebraicNumber class"
+parameterized REAL_ALGEBRAIC_NUMBER REAL_ALGEBRAIC_NUMBER_OP 0 "a real algebraic number constant; payload is an instance of the cvc5::internal::RealAlgebraicNumber class"
 
 enumerator REAL_TYPE \
-    "::cvc5::theory::arith::RationalEnumerator" \
+    "::cvc5::internal::theory::arith::RationalEnumerator" \
     "theory/arith/type_enumerator.h"
 enumerator INTEGER_TYPE \
-    "::cvc5::theory::arith::IntegerEnumerator" \
+    "::cvc5::internal::theory::arith::IntegerEnumerator" \
     "theory/arith/type_enumerator.h"
 
 operator LT 2 "less than, x < y"
@@ -102,9 +102,9 @@ operator GEQ 2 "greater than or equal, x >= y"
 constant INDEXED_ROOT_PREDICATE_OP \
   struct \
   IndexedRootPredicate \
-  ::cvc5::IndexedRootPredicateHashFunction \
+  ::cvc5::internal::IndexedRootPredicateHashFunction \
   "util/indexed_root_predicate.h" \
-  "operator for the indexed root predicate; payload is an instance of the cvc5::IndexedRootPredicate class"
+  "operator for the indexed root predicate; payload is an instance of the cvc5::internal::IndexedRootPredicate class"
 parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
@@ -118,40 +118,40 @@ operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this
 # This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
 operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
 
-typerule ADD ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule MULT ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule NONLINEAR_MULT ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule SUB ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule NEG ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule DIVISION ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule ADD ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule NONLINEAR_MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule SUB ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule NEG ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule DIVISION ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule POW ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 
-typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
-typerule CONST_INTEGER ::cvc5::theory::arith::ArithConstantTypeRule
+typerule CONST_RATIONAL ::cvc5::internal::theory::arith::ArithConstantTypeRule
+typerule CONST_INTEGER ::cvc5::internal::theory::arith::ArithConstantTypeRule
 
-typerule REAL_ALGEBRAIC_NUMBER_OP ::cvc5::theory::arith::ArithRealAlgebraicNumberOpTypeRule
-typerule REAL_ALGEBRAIC_NUMBER ::cvc5::theory::arith::ArithRealAlgebraicNumberTypeRule
+typerule REAL_ALGEBRAIC_NUMBER_OP ::cvc5::internal::theory::arith::ArithRealAlgebraicNumberOpTypeRule
+typerule REAL_ALGEBRAIC_NUMBER ::cvc5::internal::theory::arith::ArithRealAlgebraicNumberTypeRule
 
-typerule LT ::cvc5::theory::arith::ArithRelationTypeRule
-typerule LEQ ::cvc5::theory::arith::ArithRelationTypeRule
-typerule GT ::cvc5::theory::arith::ArithRelationTypeRule
-typerule GEQ ::cvc5::theory::arith::ArithRelationTypeRule
+typerule LT ::cvc5::internal::theory::arith::ArithRelationTypeRule
+typerule LEQ ::cvc5::internal::theory::arith::ArithRelationTypeRule
+typerule GT ::cvc5::internal::theory::arith::ArithRelationTypeRule
+typerule GEQ ::cvc5::internal::theory::arith::ArithRelationTypeRule
 
 typerule INDEXED_ROOT_PREDICATE_OP "SimpleTypeRule<RBuiltinOperator>"
-typerule INDEXED_ROOT_PREDICATE ::cvc5::theory::arith::IndexedRootPredicateTypeRule
+typerule INDEXED_ROOT_PREDICATE ::cvc5::internal::theory::arith::IndexedRootPredicateTypeRule
 
-typerule TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule CAST_TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule TO_INTEGER ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule CAST_TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule TO_INTEGER ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
 
-typerule ABS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule ABS ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"
 typerule DIVISIBLE_OP "SimpleTypeRule<RBuiltinOperator>"
 
-typerule DIVISION_TOTAL ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule DIVISION_TOTAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 
@@ -174,7 +174,7 @@ typerule SQRT "SimpleTypeRule<RReal, AReal>"
 
 nullaryoperator PI "pi"
 
-typerule PI ::cvc5::theory::arith::RealNullaryOperatorTypeRule
+typerule PI ::cvc5::internal::theory::arith::RealNullaryOperatorTypeRule
 
 # Integer AND, which is parameterized by a (positive) bitwidth k.
 # ((_ iand k) i1 i2) is equivalent to:
@@ -183,12 +183,12 @@ typerule PI ::cvc5::theory::arith::RealNullaryOperatorTypeRule
 constant IAND_OP \
   struct \
   IntAnd \
-  "::cvc5::UnsignedHashFunction< ::cvc5::IntAnd >" \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntAnd >" \
   "util/iand.h" \
-  "operator for integer AND; payload is an instance of the cvc5::IntAnd class"
+  "operator for integer AND; payload is an instance of the cvc5::internal::IntAnd class"
 parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
 
-typerule IAND_OP ::cvc5::theory::arith::IAndOpTypeRule
-typerule IAND ::cvc5::theory::arith::IAndTypeRule
+typerule IAND_OP ::cvc5::internal::theory::arith::IAndOpTypeRule
+typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
 
 endtheory

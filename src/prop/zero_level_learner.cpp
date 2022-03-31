@@ -24,7 +24,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/trust_substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
@@ -177,4 +177,4 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals() const
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

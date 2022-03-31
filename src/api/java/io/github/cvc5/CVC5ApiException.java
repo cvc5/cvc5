@@ -13,9 +13,12 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
-interface IPointer
+public class CVC5ApiException extends Exception
 {
-  long getPointer();
+  public CVC5ApiException(String message)
+  {
+    super(message);
+  }
 }

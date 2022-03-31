@@ -78,7 +78,7 @@ class Smt2Input : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  api::Term parseExpr() override;
+  cvc5::Term parseExpr() override;
 
 };/* class Smt2Input */
 

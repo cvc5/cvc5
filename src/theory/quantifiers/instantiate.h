@@ -28,7 +28,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LazyCDProof;
 
@@ -356,6 +356,6 @@ class Instantiate : public QuantifiersUtil
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATE_H */

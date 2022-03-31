@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,51 +34,6 @@ public class Result extends AbstractPointer
   }
 
   // endregion
-
-  public enum UnknownExplanation {
-    REQUIRES_FULL_CHECK(0),
-    INCOMPLETE(1),
-    TIMEOUT(2),
-    RESOURCEOUT(3),
-    MEMOUT(4),
-    INTERRUPTED(5),
-    NO_STATUS(6),
-    UNSUPPORTED(7),
-    OTHER(8),
-    UNKNOWN_REASON(9);
-
-    /* the int value of the UnknownExplanation */
-    private int value;
-    private static Map<Integer, UnknownExplanation> explanationMap = new HashMap<>();
-    private UnknownExplanation(int value)
-    {
-      this.value = value;
-    }
-
-    static
-    {
-      for (UnknownExplanation explanation : UnknownExplanation.values())
-      {
-        explanationMap.put(explanation.getValue(), explanation);
-      }
-    }
-
-    public static UnknownExplanation fromInt(int value) throws CVC5ApiException
-    {
-      if (value < REQUIRES_FULL_CHECK.value || value > UNKNOWN_REASON.value)
-      {
-        throw new CVC5ApiException("UnknownExplanation value " + value
-            + " is outside the valid range [" + REQUIRES_FULL_CHECK.value + ","
-            + UNKNOWN_REASON.value + "]");
-      }
-      return explanationMap.get(value);
-    }
-
-    public int getValue()
-    {
-      return value;
-    }
-  }
 
   /**
    * @return true if Result is empty, i.e., a nullary Result, and not an actual
@@ -117,7 +72,8 @@ public class Result extends AbstractPointer
    * @return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  public boolean isUnknown() {
+  public boolean isUnknown()
+  {
     return isUnknown(pointer);
   }
 
@@ -128,7 +84,8 @@ public class Result extends AbstractPointer
    * @param r the result to compare to for equality
    * @return true if the results are equal
    */
-  @Override public boolean equals(Object r)
+  @Override
+  public boolean equals(Object r)
   {
     if (this == r)
       return true;

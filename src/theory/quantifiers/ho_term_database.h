@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -115,6 +115,6 @@ class HoTermDb : public TermDb
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__HO_TERM_DATABASE_H */

@@ -27,10 +27,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
@@ -111,7 +111,7 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
 std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 {
   // must be an uninterpreted sort
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   std::vector<Node> elements;
   const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
   if (type_refs == nullptr || type_refs->empty())
@@ -171,7 +171,7 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
 Cardinality TheoryModel::getCardinality(TypeNode tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
     Trace("model-getvalue-debug")
         << "Get cardinality other sort, unknown." << std::endl;
@@ -892,4 +892,4 @@ bool TheoryModel::isValue(TNode n) const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

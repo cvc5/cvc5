@@ -27,7 +27,7 @@
 #include "util/gmp_util.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A multi-precision rational constant.
@@ -324,11 +324,11 @@ class CVC5_EXPORT Rational
 
 struct RationalHashFunction
 {
-  inline size_t operator()(const cvc5::Rational& r) const { return r.hash(); }
+  inline size_t operator()(const cvc5::internal::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RATIONAL_H */

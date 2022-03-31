@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Common cvc5 types.
+ * Common cvc5 types. These types are used internally as well as externally and
+ * the language bindings are generated automatically.
  */
 
 #include "cvc5_export.h"
@@ -18,7 +19,34 @@
 #ifndef CVC5__API__CVC5_TYPES_H
 #define CVC5__API__CVC5_TYPES_H
 
-namespace cvc5::api {
+#include <iosfwd>
+
+namespace cvc5 {
+
+/**
+ * The different reasons for returning an "unknown" result.
+ */
+enum UnknownExplanation
+{
+  REQUIRES_FULL_CHECK,
+  INCOMPLETE,
+  TIMEOUT,
+  RESOURCEOUT,
+  MEMOUT,
+  INTERRUPTED,
+  NO_STATUS,
+  UNSUPPORTED,
+  OTHER,
+  UNKNOWN_REASON
+};
+
+/**
+ * Serialize an UnknownExplanation to given stream.
+ * @param out the output stream
+ * @param e the explanation to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, UnknownExplanation e) CVC5_EXPORT;
 
 /**
  * Rounding modes for floating-point numbers.
@@ -70,7 +98,7 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
-}  // namespace cvc5::api
+}  // namespace cvc5
 
 namespace cvc5::modes {
 

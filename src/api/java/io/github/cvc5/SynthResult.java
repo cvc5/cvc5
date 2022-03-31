@@ -13,10 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
-
-import java.util.HashMap;
-import java.util.Map;
+package io.github.cvc5;
 
 public class SynthResult extends AbstractPointer
 {

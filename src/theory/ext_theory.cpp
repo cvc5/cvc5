@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 const char* toString(ExtReducedId id)
@@ -547,4 +547,4 @@ std::vector<Node> ExtTheory::getActive(Kind k) const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

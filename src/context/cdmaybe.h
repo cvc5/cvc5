@@ -24,8 +24,7 @@
 #include "context/cdo.h"
 #include "context/context.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 class CDRaised {
 private:
@@ -73,5 +72,4 @@ public:
   }
 };/* class CDMaybe<T> */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

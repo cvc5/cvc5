@@ -20,7 +20,7 @@
 
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 class JustifyStatistics
@@ -43,6 +43,6 @@ class JustifyStatistics
 };
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__JUSTIFY_STATS_H */

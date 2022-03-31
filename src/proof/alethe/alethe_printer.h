@@ -20,7 +20,7 @@
 
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -77,6 +77,6 @@ class AletheProofPrinter
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__PROOF__ALETHE_PROOF_PRINTER_H */

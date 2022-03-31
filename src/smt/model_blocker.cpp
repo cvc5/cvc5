@@ -21,9 +21,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
@@ -302,4 +302,4 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   return blocker;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

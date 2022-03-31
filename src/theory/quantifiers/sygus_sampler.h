@@ -24,7 +24,7 @@
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/term_enumeration.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -328,6 +328,6 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H */

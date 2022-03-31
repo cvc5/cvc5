@@ -30,8 +30,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Generic context-dependent dynamic array.  Note that for efficiency,
@@ -437,7 +436,6 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
                 "Cannot create a CDList with a ContextMemoryAllocator.");
 };
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDLIST_H */

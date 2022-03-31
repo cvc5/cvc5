@@ -23,7 +23,7 @@
 #include "base/exception.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 struct IntAnd
 {
@@ -42,6 +42,6 @@ inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
   return os << "(_ iand " << ia.d_size << ")";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__IAND_H */

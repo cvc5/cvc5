@@ -23,7 +23,7 @@
 #include "theory/theory_id.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -41,7 +41,7 @@ class Theory;
  */
 class EngineOutputChannel : public theory::OutputChannel
 {
-  friend class TheoryEngine;
+  friend class internal::TheoryEngine;
 
  public:
   EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory);
@@ -104,6 +104,6 @@ class EngineOutputChannel : public theory::OutputChannel
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H */

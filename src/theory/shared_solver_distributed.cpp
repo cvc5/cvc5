@@ -17,7 +17,7 @@
 
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SharedSolverDistributed::SharedSolverDistributed(Env& env, TheoryEngine& te)
@@ -93,4 +93,4 @@ void SharedSolverDistributed::assertShared(TNode n, bool polarity, TNode reason)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

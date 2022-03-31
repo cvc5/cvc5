@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.math.BigInteger;
 
@@ -206,4 +206,4 @@ public class OptionInfo extends AbstractPointer
   }
 
   private native double doubleValue(long pointer);
-};
+}

@@ -1,7 +1,7 @@
 SynthResult
 ===========
 
-.. doxygenclass:: cvc5::api::SynthResult
+.. doxygenclass:: cvc5::SynthResult
     :project: cvc5
     :members:
     :undoc-members:
