@@ -140,8 +140,10 @@ jobs:
     if: github.repository == 'cvc5/cvc5' && github.event_name == 'push'
     steps:
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.5.1
+        uses: adRise/update-pr-branch@v0.6.0
         with:
           token: ${{ secrets.ACTION_USER_TOKEN }}
           base: 'main'
+          sort: 'created'
+          direction: 'asc'
           required_approval_count: 1
