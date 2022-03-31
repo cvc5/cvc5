@@ -3396,6 +3396,17 @@ void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
+void DatatypeConstructorDecl::addSelectorUnresolved(const std::string& name, const std::string& unresDataypeName)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  internal::TypeNode usort = getNodeManager()->mkSort(unresDataypeName);
+  d_ctor->addArg(name, usort);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool DatatypeConstructorDecl::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;

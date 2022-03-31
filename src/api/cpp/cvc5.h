@@ -1762,6 +1762,15 @@ class CVC5_EXPORT DatatypeConstructorDecl
   void addSelectorSelf(const std::string& name);
 
   /**
+   * Add datatype selector declaration whose codomain type is an unresolved
+   * datatype with the given name.
+   * @param name the name of the datatype selector declaration to add
+   * @param unresDataypeName the name of the unresolved datatype. The codomain
+   * of this selector will be the resolved datatype with the given name.
+   */
+  void addSelectorUnresolved(const std::string& name, const std::string& unresDataypeName);
+
+  /**
    * @return true if this DatatypeConstructorDecl is a null declaration.
    */
   bool isNull() const;
