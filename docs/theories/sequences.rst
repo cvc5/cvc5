@@ -79,7 +79,7 @@ Semantics
     ⟦seq.replace_all⟧(s, src, dst) is the sequence obtained by replacing all
                                    the occurrences of src by dst in s,
                                    in the order from left to right.
-                                   It equals to s if there is no occurrence.
+                                   It is s if there is no occurrence.
 
    * (seq.rev (Seq S) (Seq S))
 
