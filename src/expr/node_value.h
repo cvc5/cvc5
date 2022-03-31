@@ -44,7 +44,7 @@ namespace expr {
 namespace kind {
   namespace metakind {
 
-  template < ::cvc5::internal::Kind k, class T, bool pool>
+  template <cvc5::internal::Kind k, class T, bool pool>
   struct NodeValueConstCompare;
 
   struct NodeValueCompare;
@@ -60,10 +60,10 @@ namespace expr {
 class NodeValue
 {
   template <bool>
-  friend class ::cvc5::internal::NodeTemplate;
-  friend class ::cvc5::internal::TypeNode;
-  friend class ::cvc5::internal::NodeBuilder;
-  friend class ::cvc5::internal::NodeManager;
+  friend class cvc5::internal::NodeTemplate;
+  friend class cvc5::internal::TypeNode;
+  friend class cvc5::internal::NodeBuilder;
+  friend class cvc5::internal::NodeManager;
 
   template <Kind k, class T, bool pool>
   friend struct kind::metakind::NodeValueConstCompare;

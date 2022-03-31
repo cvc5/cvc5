@@ -1519,7 +1519,7 @@ enum Kind : int32_t
    * RoundingMode constant.
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkRoundingMode(RoundingMode rm) const
+   *   - Solver::mkRoundingMode(RoundingMode) const
    */
   CONST_ROUNDINGMODE,
   /**
@@ -2861,8 +2861,8 @@ enum Kind : int32_t
    *   - 1..2: Terms of bag sort (Bag E), [1] an element of sort E
    *
    * Create with:
-   *   - Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
-   *   - Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
+   *   - Solver::mkTerm(Kind, const Term&, const Term&) const
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    */
   BAG_COUNT,
   /**

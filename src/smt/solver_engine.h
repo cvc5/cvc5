@@ -31,6 +31,11 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5 {
 
 class Solver;
@@ -51,15 +56,6 @@ class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 

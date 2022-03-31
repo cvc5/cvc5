@@ -35,7 +35,8 @@ namespace cvc5::internal {
 class Env;
 class TheoryEngine;
 
-class SharedTermsDatabase : public context::ContextNotifyObj {
+class SharedTermsDatabase : public context::ContextNotifyObj
+{
  public:
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;

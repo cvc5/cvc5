@@ -31,10 +31,10 @@
 #include "util/rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -64,7 +64,6 @@ class DioSolver : protected EnvObj
    * This is the next input constraint to handle.
    */
   context::CDO<size_t> d_nextInputConstraintToEnqueue;
-
 
   /**
    * We maintain a map from the variables associated with proofs to an input constraint.
@@ -109,7 +108,8 @@ class DioSolver : protected EnvObj
   // /** Compare by d_minimal. */
   // struct TrailMinimalCoefficientOrder {
   //   const context::CDList<Constraint>& d_trail;
-  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
+  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>&
+  //   trail):
   //     d_trail(trail)
   //   {}
 
@@ -175,8 +175,7 @@ class DioSolver : protected EnvObj
    */
   context::CDQueue<TrailIndex> d_decompositionLemmaQueue;
 
-public:
-
+ public:
   /** Construct a Diophantine equation solver with the given context. */
  DioSolver(Env& env);
 
