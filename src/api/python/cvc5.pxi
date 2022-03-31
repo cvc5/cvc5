@@ -100,7 +100,7 @@ cdef class Datatype:
     """
         A cvc5 datatype.
 
-        Wrapper class for the C++ class :cpp:class`cvc5::Datatype`.
+        Wrapper class for the C++ class :cpp:class:`cvc5::Datatype`.
     """
     cdef c_Datatype cd
     cdef Solver solver
@@ -1082,8 +1082,8 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Term mkTerm(Kind kind)``
-            - ``Term mkTerm(Kind kind, Op child1, List[Term] children)``
             - ``Term mkTerm(Kind kind, List[Term] children)``
+            - ``Term mkTerm(Op child1, List[Term] children)``
 
             where ``List[Term]`` can also be comma-separated arguments
         """
