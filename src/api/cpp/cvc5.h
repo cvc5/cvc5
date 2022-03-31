@@ -2952,8 +2952,8 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
  * Once obtained via :cpp:func:`Solver::getStatistics()
  * <cvc5::Solver::getStatistics()>`, an instance of this class is independent of
  * the :cpp:class:`Solver <cvc5::Solver>` object: it will not change when the
- * solvers internal statistics do, it will not be invalidated if the solver is
- * destroyed. Iterating on this class (via :cpp:func:`begin()
+ * solvers internal statistics do, and it will not be invalidated if the solver
+ * is destroyed. Iterating over this class (via :cpp:func:`begin()
  * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
  * shows only public statistics that have been changed. By passing appropriate
  * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
