@@ -795,6 +795,7 @@ set(regress_0_tests
   regress0/nl/issue8135-icp-candidates.smt2
   regress0/nl/issue8161-var-elim.smt2
   regress0/nl/issue8226-ran-refinement.smt2
+  regress0/nl/issue8414-ran-rational.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -816,6 +817,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8183-tc-pi.smt2
   regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
+  regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
@@ -1047,6 +1049,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8001-mem-leak.smt2
   regress0/quantifiers/issue8159-3-qext-nterm.smt2
   regress0/quantifiers/issue8227-subs-shadow.smt2
+  regress0/quantifiers/issue8466-syqi-bool.smt2 
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2542,6 +2545,7 @@ set(regress_1_tests
   regress1/strings/issue7677-test-const-rv.smt2
   regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/issue8094-witness-model.smt2
+  regress1/strings/issue8434-nterm-str-rw.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

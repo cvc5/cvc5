@@ -398,6 +398,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isUninterpretedSort() except +
         bint isUninterpretedSortConstructor() except +
         bint isInstantiated() except +
+        Sort getUninterpretedSortConstructor() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         vector[Sort] getInstantiatedParameters() except +

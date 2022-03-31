@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 abstract class AbstractPointer implements IPointer
 {
@@ -41,7 +41,8 @@ abstract class AbstractPointer implements IPointer
     return solver;
   }
 
-  @Override public String toString()
+  @Override
+  public String toString()
   {
     return toString(pointer);
   }

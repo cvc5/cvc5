@@ -137,6 +137,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SEXPR,
   /**
@@ -1514,7 +1519,7 @@ enum Kind : int32_t
    * RoundingMode constant.
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkRoundingMode(RoundingMode rm) const
+   *   - Solver::mkRoundingMode(RoundingMode) const
    */
   CONST_ROUNDINGMODE,
   /**
@@ -2086,6 +2091,10 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   EQ_RANGE,
 
@@ -2305,6 +2314,11 @@ enum Kind : int32_t
    *
    * - Create Term of this Kind with:
    *   - Solver::mkSepNil(const Sort&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SEP_NIL,
   /**
@@ -2312,6 +2326,11 @@ enum Kind : int32_t
    *
    * - Create Term of this Kind with:
    *   - Solver::mkSepEmp() const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SEP_EMP,
   /**
@@ -2327,6 +2346,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SEP_PTO,
   /**
@@ -2342,6 +2366,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SEP_STAR,
   /**
@@ -2359,6 +2388,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SEP_WAND,
 
@@ -2547,6 +2581,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SET_COMPREHENSION,
   /**
@@ -2566,6 +2605,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SET_CHOOSE,
   /**
@@ -2580,6 +2624,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SET_IS_SINGLETON,
   /**
@@ -2600,6 +2649,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
    SET_MAP,
 
@@ -2673,6 +2727,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   RELATION_JOIN_IMAGE,
   /**
@@ -2687,6 +2746,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   RELATION_IDEN,
 
@@ -2797,8 +2861,8 @@ enum Kind : int32_t
    *   - 1..2: Terms of bag sort (Bag E), [1] an element of sort E
    *
    * Create with:
-   *   - Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
-   *   - Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
+   *   - Solver::mkTerm(Kind, const Term&, const Term&) const
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    */
   BAG_COUNT,
   /**
@@ -2832,6 +2896,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_DUPLICATE_REMOVAL,
   /**
@@ -2863,6 +2932,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_CARD,
   /**
@@ -2884,6 +2958,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_CHOOSE,
   /**
@@ -2898,6 +2977,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_IS_SINGLETON,
   /**
@@ -2912,6 +2996,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_FROM_SET,
   /**
@@ -2926,6 +3015,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_TO_SET,
   /**
@@ -2946,6 +3040,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_MAP,
   /**
@@ -2968,6 +3067,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
    BAG_FILTER,
   /**
@@ -2988,6 +3092,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   BAG_FOLD,
   /**
@@ -3002,6 +3111,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   TABLE_PRODUCT,
 
@@ -4052,26 +4166,31 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   INST_POOL,
   /**
    * A instantantiation-add-to-pool annotation.
    *
    * @note Should only be used as a child of #INST_PATTERN_LIST.
-   * 
+   *
    * An instantantiation-add-to-pool annotation indicates that when a quantified
    * formula is instantiated, the instantiated version of a term should be
    * added to the given pool.
-   * 
+   *
    * For example, consider a quantified formula:
-   * 
+   *
    * \rst
    * .. code:: lisp
    *
    *     (FORALL (VARIABLE_LIST x) F 
    *             (INST_PATTERN_LIST (INST_ADD_TO_POOL (ADD x 1) p)))
    * \endrst
-   * 
+   *
    * where assume that @f$x@f$ has type Int. When this quantified formula is
    * instantiated with, e.g., the term @f$t@f$, the term `(ADD t 1)` is added to pool @f$p@f$.
    *
@@ -4086,6 +4205,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   INST_ADD_TO_POOL,
   /**
@@ -4121,6 +4245,11 @@ enum Kind : int32_t
    *
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
    */
   SKOLEM_ADD_TO_POOL,
   /**

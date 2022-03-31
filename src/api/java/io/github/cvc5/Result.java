@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,7 +84,8 @@ public class Result extends AbstractPointer
    * @param r the result to compare to for equality
    * @return true if the results are equal
    */
-  @Override public boolean equals(Object r)
+  @Override
+  public boolean equals(Object r)
   {
     if (this == r)
       return true;

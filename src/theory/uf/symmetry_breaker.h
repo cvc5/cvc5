@@ -170,7 +170,7 @@ public:
 
 std::ostream& operator<<(
     std::ostream& out,
-    const ::cvc5::internal::theory::uf::SymmetryBreaker::Permutation& p);
+    const cvc5::internal::theory::uf::SymmetryBreaker::Permutation& p);
 
 }  // namespace cvc5::internal
 

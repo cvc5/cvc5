@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package io.github.cvc5;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -90,12 +90,14 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
       iteratorPointer = getIterator(pointer);
     }
 
-    @Override public boolean hasNext()
+    @Override
+    public boolean hasNext()
     {
       return Statistics.this.hasNext(pointer, iteratorPointer);
     }
 
-    @Override public Map.Entry<String, Stat> next()
+    @Override
+    public Map.Entry<String, Stat> next()
     {
       try
       {
@@ -115,7 +117,8 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
   {
     return new ConstIterator(internal, defaulted);
   }
-  @Override public ConstIterator iterator()
+  @Override
+  public ConstIterator iterator()
   {
     return new ConstIterator();
   }

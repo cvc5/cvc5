@@ -28,7 +28,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -513,12 +513,16 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // higher-order.
         if (tm->isValue(n))
         {
-          // In rare cases, it could be that multiple terms in the same
-          // equivalence class are considered values. We prefer the one that is
-          // a "base" model value (e.g. a constant) here. We throw a warning
-          // if there are 2 model values in the same equivalence class, and
-          // a debug failure if there are 2 base values in the same equivalence
-          // class.
+          // In some cases, there can be multiple terms in the same equivalence
+          // class are considered values, e.g., when real algebraic numbers did
+          // not simplify to rational values or real.pi was used as a model
+          // value. We distinguish three kinds of model values: constants,
+          // non-constant base values and non-base values, and we use them in
+          // this order of preference.
+          // We print a trace message if there is more than one model value in
+          // the same equivalence class. We throw a debug failure if there are
+          // at least two base model values in the same equivalence class that
+          // do not compare equal.
           bool assignConstRep = false;
           bool isBaseValue = tm->isBaseModelValue(n);
           if (constRep.isNull())
@@ -527,17 +531,28 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           }
           else
           {
-            warning() << "Model values in the same equivalence class "
-                      << constRep << " " << n << std::endl;
+            // This is currently a trace message, as it often triggers for
+            // non-linear arithmetic before the model is refined enough to
+            // e.g. show transcendental function apps are not equal to rationals
+            Trace("model-warn") << "Model values in the same equivalence class "
+                                << constRep << " " << n << std::endl;
             if (!constRepBaseModelValue)
             {
               assignConstRep = isBaseValue;
             }
             else if (isBaseValue)
             {
-              Assert(false)
-                  << "Base model values in the same equivalence class "
-                  << constRep << " " << n << std::endl;
+              Node isEqual = rewrite(constRep.eqNode(n));
+              if (isEqual.isConst() && isEqual.getConst<bool>())
+              {
+                assignConstRep = n.isConst();
+              }
+              else
+              {
+                Assert(false) << "Distinct base model values in the same "
+                                 "equivalence class "
+                              << constRep << " " << n << std::endl;
+              }
             }
           }
           if (assignConstRep)
