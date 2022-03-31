@@ -72,7 +72,7 @@ Semantics
 
     ⟦seq.replace⟧(s, src, dst) is the sequence obtained by replacing the
                                first occurrence of src by dst in s.
-                               It equals to s if there is no occurrence.
+                               It is s if there is no occurrence.
 
    * (seq.replace_all ((Seq S) (Seq S) (Seq S)) (Seq S))
 
