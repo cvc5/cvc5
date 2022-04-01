@@ -180,7 +180,7 @@ TEST_F(TestApiBlackSort, isUpdater)
 
 TEST_F(TestApiBlackSort, isFunction)
 {
-  Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(),
+  Sort fun_sort = d_solver.mkFunctionSort({d_solver.getRealSort()},
                                           d_solver.getIntegerSort());
   ASSERT_TRUE(fun_sort.isFunction());
   ASSERT_NO_THROW(Sort().isFunction());
@@ -407,7 +407,7 @@ TEST_F(TestApiBlackSort, getUninterpretedSortConstructor)
 
 TEST_F(TestApiBlackSort, getFunctionArity)
 {
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort(),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   ASSERT_NO_THROW(funSort.getFunctionArity());
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -416,7 +416,7 @@ TEST_F(TestApiBlackSort, getFunctionArity)
 
 TEST_F(TestApiBlackSort, getFunctionDomainSorts)
 {
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   ASSERT_NO_THROW(funSort.getFunctionDomainSorts());
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -425,7 +425,7 @@ TEST_F(TestApiBlackSort, getFunctionDomainSorts)
 
 TEST_F(TestApiBlackSort, getFunctionCodomainSort)
 {
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   ASSERT_NO_THROW(funSort.getFunctionCodomainSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);

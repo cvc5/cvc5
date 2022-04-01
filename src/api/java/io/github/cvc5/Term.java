@@ -202,7 +202,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return the Op used to create this term
-   * @apiNote This is safe to call when hasOp() returns true.
+   * @api.note This is safe to call when hasOp() returns true.
    */
   public Op getOp()
   {
@@ -395,7 +395,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * Asserts isString().
    *
-   * @apiNote This method is not to be confused with toString() which returns
+   * @api.note This method is not to be confused with toString() which returns
    *          the term in some string representation, whatever data it may hold.
    */
   public String getStringValue()
@@ -671,7 +671,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isSequenceValue().
-   * @apiNote It is usually necessary for sequences to call
+   * @api.note It is usually necessary for sequences to call
    *          `Solver::simplify()` to turn a sequence that is constructed by,
    *          e.g., concatenation of unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.

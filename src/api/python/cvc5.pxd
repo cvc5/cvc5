@@ -9,7 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
-from cvc5types cimport RoundingMode, UnknownExplanation
+from cvc5types cimport BlockModelsMode, RoundingMode, UnknownExplanation
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -218,7 +218,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
         vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
                                      const set[Sort]& unresolvedSorts) except +
-        Sort mkFunctionSort(Sort domain, Sort codomain) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
@@ -353,6 +352,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term getAbduct(const Term& conj, Grammar& grammar) except +
         Term getAbductNext() except +
         void blockModel() except +
+        void blockModel(BlockModelsMode mode) except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
         Statistics getStatistics() except +

@@ -272,35 +272,14 @@ Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkFunctionSort
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkFunctionSort__JJJ(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer,
-                                                   jlong domainPointer,
-                                                   jlong codomainPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Sort* domain = reinterpret_cast<Sort*>(domainPointer);
-  Sort* codomain = reinterpret_cast<Sort*>(codomainPointer);
-  Sort* sortPointer = new Sort(solver->mkFunctionSort(*domain, *codomain));
-  return reinterpret_cast<jlong>(sortPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    mkFunctionSort
  * Signature: (J[JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer,
-                                                     jlongArray sortPointers,
-                                                     jlong codomainPointer)
+Java_io_github_cvc5_Solver_mkFunctionSort(JNIEnv* env,
+                                          jobject,
+                                          jlong pointer,
+                                          jlongArray sortPointers,
+                                          jlong codomainPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2310,15 +2289,17 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getAbductNext(
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    blockModel
- * Signature: (J)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_blockModel(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jint modeValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  solver->blockModel();
+  modes::BlockModelsMode mode = static_cast<modes::BlockModelsMode>(modeValue);
+  solver->blockModel(mode);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
