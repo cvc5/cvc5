@@ -147,8 +147,8 @@ TEST_F(TestApiBlackSort, isConstructor)
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
   Sort cons_sort = dt[0].getConstructorTerm().getSort();
-  ASSERT_TRUE(cons_sort.isConstructor());
-  ASSERT_NO_THROW(Sort().isConstructor());
+  ASSERT_TRUE(cons_sort.isDatatypeConstructor());
+  ASSERT_NO_THROW(Sort().isDatatypeConstructor());
 }
 
 TEST_F(TestApiBlackSort, isSelector)
@@ -156,8 +156,8 @@ TEST_F(TestApiBlackSort, isSelector)
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
   Sort cons_sort = dt[0][1].getSelectorTerm().getSort();
-  ASSERT_TRUE(cons_sort.isSelector());
-  ASSERT_NO_THROW(Sort().isSelector());
+  ASSERT_TRUE(cons_sort.isDatatypeSelector());
+  ASSERT_NO_THROW(Sort().isDatatypeSelector());
 }
 
 TEST_F(TestApiBlackSort, isTester)
@@ -165,8 +165,8 @@ TEST_F(TestApiBlackSort, isTester)
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
   Sort testerSort = dt[0].getTesterTerm().getSort();
-  ASSERT_TRUE(testerSort.isTester());
-  ASSERT_NO_THROW(Sort().isTester());
+  ASSERT_TRUE(testerSort.isDatatypeTester());
+  ASSERT_NO_THROW(Sort().isDatatypeTester());
 }
 
 TEST_F(TestApiBlackSort, isUpdater)
@@ -174,8 +174,8 @@ TEST_F(TestApiBlackSort, isUpdater)
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
   Sort updaterSort = dt[0][0].getUpdaterTerm().getSort();
-  ASSERT_TRUE(updaterSort.isUpdater());
-  ASSERT_NO_THROW(Sort().isUpdater());
+  ASSERT_TRUE(updaterSort.isDatatypeUpdater());
+  ASSERT_NO_THROW(Sort().isDatatypeUpdater());
 }
 
 TEST_F(TestApiBlackSort, isFunction)
@@ -269,41 +269,42 @@ TEST_F(TestApiBlackSort, datatypeSorts)
   Sort intSort = d_solver.getIntegerSort();
   Sort dtypeSort = create_datatype_sort();
   Datatype dt = dtypeSort.getDatatype();
-  ASSERT_FALSE(dtypeSort.isConstructor());
-  ASSERT_THROW(dtypeSort.getConstructorCodomainSort(), CVC5ApiException);
-  ASSERT_THROW(dtypeSort.getConstructorDomainSorts(), CVC5ApiException);
-  ASSERT_THROW(dtypeSort.getConstructorArity(), CVC5ApiException);
+  ASSERT_FALSE(dtypeSort.isDatatypeConstructor());
+  ASSERT_THROW(dtypeSort.getDatatypeConstructorCodomainSort(),
+               CVC5ApiException);
+  ASSERT_THROW(dtypeSort.getDatatypeConstructorDomainSorts(), CVC5ApiException);
+  ASSERT_THROW(dtypeSort.getDatatypeConstructorArity(), CVC5ApiException);
 
   // get constructor
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
   Sort consSort = consTerm.getSort();
-  ASSERT_TRUE(consSort.isConstructor());
-  ASSERT_FALSE(consSort.isTester());
-  ASSERT_FALSE(consSort.isSelector());
-  ASSERT_EQ(consSort.getConstructorArity(), 2);
-  std::vector<Sort> consDomSorts = consSort.getConstructorDomainSorts();
+  ASSERT_TRUE(consSort.isDatatypeConstructor());
+  ASSERT_FALSE(consSort.isDatatypeTester());
+  ASSERT_FALSE(consSort.isDatatypeSelector());
+  ASSERT_EQ(consSort.getDatatypeConstructorArity(), 2);
+  std::vector<Sort> consDomSorts = consSort.getDatatypeConstructorDomainSorts();
   ASSERT_EQ(consDomSorts[0], intSort);
   ASSERT_EQ(consDomSorts[1], dtypeSort);
-  ASSERT_EQ(consSort.getConstructorCodomainSort(), dtypeSort);
+  ASSERT_EQ(consSort.getDatatypeConstructorCodomainSort(), dtypeSort);
 
   // get tester
   Term isConsTerm = dcons.getTesterTerm();
-  ASSERT_TRUE(isConsTerm.getSort().isTester());
-  ASSERT_EQ(isConsTerm.getSort().getTesterDomainSort(), dtypeSort);
+  ASSERT_TRUE(isConsTerm.getSort().isDatatypeTester());
+  ASSERT_EQ(isConsTerm.getSort().getDatatypeTesterDomainSort(), dtypeSort);
   Sort booleanSort = d_solver.getBooleanSort();
-  ASSERT_EQ(isConsTerm.getSort().getTesterCodomainSort(), booleanSort);
-  ASSERT_THROW(booleanSort.getTesterDomainSort(), CVC5ApiException);
-  ASSERT_THROW(booleanSort.getTesterCodomainSort(), CVC5ApiException);
+  ASSERT_EQ(isConsTerm.getSort().getDatatypeTesterCodomainSort(), booleanSort);
+  ASSERT_THROW(booleanSort.getDatatypeTesterDomainSort(), CVC5ApiException);
+  ASSERT_THROW(booleanSort.getDatatypeTesterCodomainSort(), CVC5ApiException);
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
   Term tailTerm = dselTail.getSelectorTerm();
-  ASSERT_TRUE(tailTerm.getSort().isSelector());
-  ASSERT_EQ(tailTerm.getSort().getSelectorDomainSort(), dtypeSort);
-  ASSERT_EQ(tailTerm.getSort().getSelectorCodomainSort(), dtypeSort);
-  ASSERT_THROW(booleanSort.getSelectorDomainSort(), CVC5ApiException);
-  ASSERT_THROW(booleanSort.getSelectorCodomainSort(), CVC5ApiException);
+  ASSERT_TRUE(tailTerm.getSort().isDatatypeSelector());
+  ASSERT_EQ(tailTerm.getSort().getDatatypeSelectorDomainSort(), dtypeSort);
+  ASSERT_EQ(tailTerm.getSort().getDatatypeSelectorCodomainSort(), dtypeSort);
+  ASSERT_THROW(booleanSort.getDatatypeSelectorDomainSort(), CVC5ApiException);
+  ASSERT_THROW(booleanSort.getDatatypeSelectorCodomainSort(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, instantiate)

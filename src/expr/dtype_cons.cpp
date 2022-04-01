@@ -237,7 +237,7 @@ const DTypeSelector& DTypeConstructor::operator[](size_t index) const
 TypeNode DTypeConstructor::getArgType(size_t index) const
 {
   Assert(index < getNumArgs());
-  return (*this)[index].getType().getSelectorRangeType();
+  return (*this)[index].getType().getDatatypeSelectorRangeType();
 }
 
 Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
@@ -260,7 +260,7 @@ Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 {
   Assert(isResolved());
-  Assert(sel.getType().isSelector());
+  Assert(sel.getType().isDatatypeSelector());
   // might be a builtin selector
   if (sel.hasAttribute(DTypeIndexAttr()))
   {
@@ -271,7 +271,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
     }
   }
   // otherwise, check shared selector
-  TypeNode domainType = sel.getType().getSelectorDomainType();
+  TypeNode domainType = sel.getType().getDatatypeSelectorDomainType();
   computeSharedSelectors(domainType);
   std::map<Node, unsigned>::iterator its =
       d_sharedSelectorIndex[domainType].find(sel);
@@ -471,7 +471,7 @@ void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
     {
       ctype = d_constructor.getType();
     }
-    Assert(ctype.isConstructor());
+    Assert(ctype.isDatatypeConstructor());
     Assert(ctype.getNumChildren() - 1 == getNumArgs());
     // compute the shared selectors
     const DType& dt = DType::datatypeOf(d_constructor);
@@ -614,7 +614,7 @@ bool DTypeConstructor::resolve(
                                     nm->mkConstructorType(argTypes, self),
                                     "is a constructor",
                                     SkolemManager::SKOLEM_EXACT_NAME);
-  Assert(d_constructor.getType().isConstructor());
+  Assert(d_constructor.getType().isDatatypeConstructor());
   // associate constructor with all selectors
   for (std::shared_ptr<DTypeSelector> sel : d_args)
   {

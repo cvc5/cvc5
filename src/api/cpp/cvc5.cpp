@@ -273,7 +273,6 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(APPLY_CONSTRUCTOR, internal::Kind::APPLY_CONSTRUCTOR),
         KIND_ENUM(APPLY_TESTER, internal::Kind::APPLY_TESTER),
         KIND_ENUM(APPLY_UPDATER, internal::Kind::APPLY_UPDATER),
-        KIND_ENUM(DT_SIZE, internal::Kind::DT_SIZE),
         KIND_ENUM(MATCH, internal::Kind::MATCH),
         KIND_ENUM(MATCH_CASE, internal::Kind::MATCH_CASE),
         KIND_ENUM(MATCH_BIND_CASE, internal::Kind::MATCH_BIND_CASE),
@@ -589,7 +588,6 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {internal::Kind::APPLY_TESTER, APPLY_TESTER},
         {internal::Kind::APPLY_UPDATER, APPLY_UPDATER},
-        {internal::Kind::DT_SIZE, DT_SIZE},
         {internal::Kind::MATCH, MATCH},
         {internal::Kind::MATCH_CASE, MATCH_CASE},
         {internal::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
@@ -1260,38 +1258,38 @@ bool Sort::isDatatype() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isConstructor() const
+bool Sort::isDatatypeConstructor() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isConstructor();
+  return d_type->isDatatypeConstructor();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isSelector() const
+bool Sort::isDatatypeSelector() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isSelector();
+  return d_type->isDatatypeSelector();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isTester() const
+bool Sort::isDatatypeTester() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isTester();
+  return d_type->isDatatypeTester();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isUpdater() const
+bool Sort::isDatatypeUpdater() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isUpdater();
+  return d_type->isDatatypeUpdater();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1501,81 +1499,88 @@ const internal::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */
 
-size_t Sort::getConstructorArity() const
+size_t Sort::getDatatypeConstructorArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeConstructor())
+      << "Not a constructor sort: " << (*this);
   //////// all checks before this line
   return d_type->getNumChildren() - 1;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<Sort> Sort::getConstructorDomainSorts() const
+std::vector<Sort> Sort::getDatatypeConstructorDomainSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeConstructor())
+      << "Not a constructor sort: " << (*this);
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getArgTypes());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Sort::getConstructorCodomainSort() const
+Sort Sort::getDatatypeConstructorCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeConstructor())
+      << "Not a constructor sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getConstructorRangeType());
+  return Sort(d_solver, d_type->getDatatypeConstructorRangeType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
 /* Selector sort ------------------------------------------------------- */
 
-Sort Sort::getSelectorDomainSort() const
+Sort Sort::getDatatypeSelectorDomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeSelector())
+      << "Not a selector sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getSelectorDomainType());
+  return Sort(d_solver, d_type->getDatatypeSelectorDomainType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Sort::getSelectorCodomainSort() const
+Sort Sort::getDatatypeSelectorCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeSelector())
+      << "Not a selector sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getSelectorRangeType());
+  return Sort(d_solver, d_type->getDatatypeSelectorRangeType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
 /* Tester sort ------------------------------------------------------- */
 
-Sort Sort::getTesterDomainSort() const
+Sort Sort::getDatatypeTesterDomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeTester())
+      << "Not a tester sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getTesterDomainType());
+  return Sort(d_solver, d_type->getDatatypeTesterDomainType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Sort::getTesterCodomainSort() const
+Sort Sort::getDatatypeTesterCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeTester())
+      << "Not a tester sort: " << (*this);
   //////// all checks before this line
   return d_solver->getBooleanSort();
   ////////

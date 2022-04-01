@@ -37,12 +37,9 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
     std::map<Node, std::vector<Node>>& exp)
 {
   // get the constant equivalence classes
-  std::map<Node, std::vector<int>> rep_to_subs_index;
-
   bool retVal = false;
-  for (unsigned i = 0; i < vars.size(); i++)
+  for (const Node& n : vars)
   {
-    Node n = vars[i];
     if (d_ee->hasTerm(n))
     {
       Node nr = d_ee->getRepresentative(n);
@@ -56,7 +53,6 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
       }
       else
       {
-        rep_to_subs_index[nr].push_back(i);
         subs.push_back(n);
       }
     }
@@ -65,7 +61,6 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
       subs.push_back(n);
     }
   }
-
   // return true if the substitution is non-trivial
   return retVal;
 }
@@ -73,17 +68,29 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
 bool NlExtTheoryCallback::isExtfReduced(
     int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
 {
+  if (isTranscendentalKind(on.getKind()))
+  {
+    // we do not handle reductions of transcendental functions here
+    return false;
+  }
   if (n != d_zero)
   {
     Kind k = n.getKind();
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
         && k != POW2)
     {
+      // we consider an extended function to be reduced if it simplifies to
+      // something that is not a non-linear term. For example, if we know
+      // that (= x 5), then (NONLINEAR_MULT x y) can be simplified to
+      // (MULT 5 y). We may consider (NONLINEAR_MULT x y) to be reduced.
       id = ExtReducedId::ARITH_SR_LINEAR;
       return true;
     }
     return false;
   }
+  // As an optimization, we minimize the explanation for why a term can be
+  // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
+  // we minimize the explanation to (= x 0) => (= (* x y) 0).
   Assert(n == d_zero);
   id = ExtReducedId::ARITH_SR_ZERO;
   if (on.getKind() == NONLINEAR_MULT)
@@ -129,7 +136,7 @@ bool NlExtTheoryCallback::isExtfReduced(
       }
     }
   }
-  return false;
+  return true;
 }
 
 }  // namespace nl
