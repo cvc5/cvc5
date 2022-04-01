@@ -354,7 +354,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a sort parameter.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return the sort parameter
    */
