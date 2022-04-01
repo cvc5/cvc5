@@ -16,9 +16,9 @@
  * functions. This is a direct translation of sygus-fun.cpp.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class SygusFun
 {
@@ -69,8 +69,8 @@ public class SygusFun
       Term min = slv.synthFun("min", new Term[] {x, y}, integer);
 
       // declare universal variables.
-      Term varX = slv.declareSygusVar(integer, "x");
-      Term varY = slv.declareSygusVar(integer, "y");
+      Term varX = slv.declareSygusVar("x", integer);
+      Term varY = slv.declareSygusVar("y", integer);
 
       Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
       Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);

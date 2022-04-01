@@ -17,7 +17,7 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class ResultTest
   @Test
   void eq()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
+    Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res;
@@ -81,7 +81,7 @@ class ResultTest
   @Test
   void isUnsat()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
+    Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();

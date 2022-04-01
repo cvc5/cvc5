@@ -14,6 +14,7 @@
 ##
 
 set(CVC5_EXAMPLES_API
+  bags
   bitvectors
   bitvectors_and_arrays
   combination

@@ -15,16 +15,16 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_Sort.h"
+#include "io_github_cvc5_Sort.h"
 
 using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Sort_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Sort_deletePointer(JNIEnv*,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -32,11 +32,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Sort_deletePointer(JNIEnv*,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    equals
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_equals(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_equals(JNIEnv* env,
                                                                jobject,
                                                                jlong pointer1,
                                                                jlong pointer2)
@@ -49,11 +49,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_equals(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    compareTo
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_compareTo(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_compareTo(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer1,
                                                               jlong pointer2)
@@ -74,11 +74,11 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_compareTo(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    hasSymbol
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_hasSymbol(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_hasSymbol(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -89,11 +89,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_hasSymbol(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getSymbol
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_getSymbol(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Sort_getSymbol(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -104,11 +104,11 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_getSymbol(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isNull(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isNull(JNIEnv* env,
                                                                jobject,
                                                                jlong pointer)
 {
@@ -119,11 +119,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isBoolean
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isBoolean(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isBoolean(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -134,11 +134,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isBoolean(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isInteger
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isInteger(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isInteger(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -149,11 +149,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isInteger(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isReal
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isReal(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isReal(JNIEnv* env,
                                                                jobject,
                                                                jlong pointer)
 {
@@ -164,11 +164,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isReal(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isString
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isString(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isString(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -179,11 +179,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isString(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isRegExp
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isRegExp(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isRegExp(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -194,12 +194,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isRegExp(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isRoundingMode
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isRoundingMode(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isRoundingMode(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -208,12 +208,12 @@ Java_io_github_cvc5_api_Sort_isRoundingMode(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isBitVector
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isBitVector(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isBitVector(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -222,11 +222,11 @@ Java_io_github_cvc5_api_Sort_isBitVector(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isFloatingPoint
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isFloatingPoint(
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isFloatingPoint(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -236,12 +236,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isFloatingPoint(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isDatatype
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isDatatype(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isDatatype(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -250,70 +250,68 @@ Java_io_github_cvc5_api_Sort_isDatatype(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    isConstructor
+ * Class:     io_github_cvc5_Sort
+ * Method:    isDatatypeConstructor
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isDatatypeConstructor(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isDatatypeConstructor());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    isDatatypeSelector
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isConstructor(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isDatatypeSelector(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isConstructor());
+  return static_cast<jboolean>(current->isDatatypeSelector());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    isSelector
+ * Class:     io_github_cvc5_Sort
+ * Method:    isDatatypeTester
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isSelector(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isDatatypeTester(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isSelector());
+  return static_cast<jboolean>(current->isDatatypeTester());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    isTester
+ * Class:     io_github_cvc5_Sort
+ * Method:    isDatatypeUpdater
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isTester(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_Sort_isDatatypeUpdater(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isTester());
+  return static_cast<jboolean>(current->isDatatypeUpdater());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    isUpdater
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isUpdater(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isUpdater());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isFunction
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isFunction(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isFunction(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -322,12 +320,12 @@ Java_io_github_cvc5_api_Sort_isFunction(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isPredicate
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isPredicate(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isPredicate(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -336,11 +334,11 @@ Java_io_github_cvc5_api_Sort_isPredicate(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isTuple
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isTuple(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isTuple(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -351,11 +349,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isTuple(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isRecord
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isRecord(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isRecord(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -366,11 +364,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isRecord(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isArray
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isArray(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isArray(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -381,11 +379,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isArray(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isSet
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isSet(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isSet(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -396,11 +394,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isSet(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isBag
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isBag(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isBag(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -411,12 +409,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isBag(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isSequence
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isSequence(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isSequence(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -425,11 +423,11 @@ Java_io_github_cvc5_api_Sort_isSequence(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isUninterpretedSort
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isUninterpretedSort(
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isUninterpretedSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -439,12 +437,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isUninterpretedSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isUninterpretedSortConstructor
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isUninterpretedSortConstructor(JNIEnv* env,
+Java_io_github_cvc5_Sort_isUninterpretedSortConstructor(JNIEnv* env,
                                                             jobject,
                                                             jlong pointer)
 {
@@ -455,12 +453,12 @@ Java_io_github_cvc5_api_Sort_isUninterpretedSortConstructor(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    isInstantiated
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isInstantiated(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isInstantiated(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -469,12 +467,12 @@ Java_io_github_cvc5_api_Sort_isInstantiated(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getInstantiatedParameters
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Sort_getInstantiatedParameters(JNIEnv* env,
+Java_io_github_cvc5_Sort_getInstantiatedParameters(JNIEnv* env,
                                                        jobject,
                                                        jlong pointer)
 {
@@ -493,12 +491,12 @@ Java_io_github_cvc5_api_Sort_getInstantiatedParameters(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getUninterpretedSortConstructor
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructor(JNIEnv* env,
+Java_io_github_cvc5_Sort_getUninterpretedSortConstructor(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer)
 {
@@ -510,11 +508,11 @@ Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructor(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getDatatype(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatype(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -526,11 +524,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getDatatype(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    instantiate
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_instantiate(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_instantiate(
     JNIEnv* env, jobject, jlong pointer, jlongArray paramsPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -557,12 +555,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_instantiate(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    substitute
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Sort_substitute__JJJ(JNIEnv* env,
+Java_io_github_cvc5_Sort_substitute__JJJ(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
                                              jlong sortPointer,
@@ -578,12 +576,12 @@ Java_io_github_cvc5_api_Sort_substitute__JJJ(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    substitute
  * Signature: (J[J[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Sort_substitute__J_3J_3J(JNIEnv* env,
+Java_io_github_cvc5_Sort_substitute__J_3J_3J(JNIEnv* env,
                                                  jobject,
                                                  jlong pointer,
                                                  jlongArray sortPointers,
@@ -626,11 +624,11 @@ Java_io_github_cvc5_api_Sort_substitute__J_3J_3J(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_toString(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Sort_toString(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -641,32 +639,32 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_toString(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getConstructorArity
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeConstructorArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getConstructorArity(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getDatatypeConstructorArity(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getConstructorArity());
+  return static_cast<jint>(current->getDatatypeConstructorArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getConstructorDomainSorts
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeConstructorDomainSorts
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Sort_getConstructorDomainSorts(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer)
+Java_io_github_cvc5_Sort_getDatatypeConstructorDomainSorts(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  std::vector<Sort> sorts = current->getConstructorDomainSorts();
+  std::vector<Sort> sorts = current->getDatatypeConstructorDomainSorts();
   std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
@@ -679,86 +677,90 @@ Java_io_github_cvc5_api_Sort_getConstructorDomainSorts(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getConstructorCodomainSort
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeConstructorCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getConstructorCodomainSort(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Sort_getDatatypeConstructorCodomainSort(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getConstructorCodomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeConstructorCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getSelectorDomainSort
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeSelectorDomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSelectorDomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatypeSelectorDomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getSelectorDomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeSelectorDomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getSelectorCodomainSort
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeSelectorCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSelectorCodomainSort(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Sort_getDatatypeSelectorCodomainSort(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getSelectorCodomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeSelectorCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getTesterDomainSort
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeTesterDomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getTesterDomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatypeTesterDomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getTesterDomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeTesterDomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getTesterCodomainSort
+ * Class:     io_github_cvc5_Sort
+ * Method:    getDatatypeTesterCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getTesterCodomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatypeTesterCodomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getTesterCodomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeTesterCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getFunctionArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getFunctionArity(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getFunctionArity(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -768,12 +770,12 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getFunctionArity(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getFunctionDomainSorts
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Sort_getFunctionDomainSorts(JNIEnv* env,
+Java_io_github_cvc5_Sort_getFunctionDomainSorts(JNIEnv* env,
                                                     jobject,
                                                     jlong pointer)
 {
@@ -792,11 +794,11 @@ Java_io_github_cvc5_api_Sort_getFunctionDomainSorts(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getFunctionCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getFunctionCodomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getFunctionCodomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -807,11 +809,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getFunctionCodomainSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getArrayIndexSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getArrayIndexSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getArrayIndexSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -822,11 +824,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getArrayIndexSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getArrayElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getArrayElementSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getArrayElementSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -837,11 +839,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getArrayElementSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getSetElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSetElementSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSetElementSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -852,11 +854,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSetElementSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getBagElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getBagElementSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getBagElementSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -867,11 +869,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getBagElementSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getSequenceElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSequenceElementSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSequenceElementSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -882,12 +884,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSequenceElementSort(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getUninterpretedSortConstructorArity
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL
-Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructorArity(JNIEnv* env,
+Java_io_github_cvc5_Sort_getUninterpretedSortConstructorArity(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -898,11 +900,11 @@ Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructorArity(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getBitVectorSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getBitVectorSize(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getBitVectorSize(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -912,12 +914,12 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getBitVectorSize(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getFloatingPointExponentSize
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL
-Java_io_github_cvc5_api_Sort_getFloatingPointExponentSize(JNIEnv* env,
+Java_io_github_cvc5_Sort_getFloatingPointExponentSize(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer)
 {
@@ -928,12 +930,12 @@ Java_io_github_cvc5_api_Sort_getFloatingPointExponentSize(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getFloatingPointSignificandSize
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL
-Java_io_github_cvc5_api_Sort_getFloatingPointSignificandSize(JNIEnv* env,
+Java_io_github_cvc5_Sort_getFloatingPointSignificandSize(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer)
 {
@@ -944,11 +946,11 @@ Java_io_github_cvc5_api_Sort_getFloatingPointSignificandSize(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getDatatypeArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getDatatypeArity(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getDatatypeArity(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -958,12 +960,12 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getDatatypeArity(
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getTupleLength
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL
-Java_io_github_cvc5_api_Sort_getTupleLength(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_getTupleLength(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
@@ -972,12 +974,12 @@ Java_io_github_cvc5_api_Sort_getTupleLength(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Sort
+ * Class:     io_github_cvc5_Sort
  * Method:    getTupleSorts
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Sort_getTupleSorts(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_getTupleSorts(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);

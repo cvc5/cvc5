@@ -15,7 +15,7 @@
  *
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.*;
 
 public class BitVectors
@@ -88,8 +88,7 @@ public class BitVectors
 
       System.out.println(" Check sat assuming: " + new_x_eq_new_x_.notTerm());
       System.out.println(" Expect UNSAT. ");
-      System.out.println(
-          " cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
+      System.out.println(" cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
       System.out.println(" Popping context. ");
       slv.pop();
 
@@ -105,8 +104,7 @@ public class BitVectors
 
       System.out.println(" Check sat assuming: " + new_x_eq_new_x_.notTerm());
       System.out.println(" Expect UNSAT. ");
-      System.out.println(
-          " cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
+      System.out.println(" cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
 
       Term x_neq_x = slv.mkTerm(Kind.EQUAL, x, x).notTerm();
       Term[] v = new Term[] {new_x_eq_new_x_, x_neq_x};

@@ -15,11 +15,11 @@
 
 package tests;
 
-import static io.github.cvc5.api.Kind.*;
-import static io.github.cvc5.api.RoundingMode.*;
+import static io.github.cvc5.Kind.*;
+import static io.github.cvc5.RoundingMode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -370,9 +370,9 @@ class SolverTest
   @Test
   void mkUninterpretedSortConstructorSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort("s", 2));
-    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort("", 2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkUninterpretedSortConstructorSort("", 0));
+    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort(2, "s"));
+    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort(2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkUninterpretedSortConstructorSort(0));
   }
 
   @Test
@@ -2607,18 +2607,18 @@ class SolverTest
     Sort intSort = d_solver.getIntegerSort();
     Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
 
-    assertDoesNotThrow(() -> d_solver.declareSygusVar(boolSort));
-    assertDoesNotThrow(() -> d_solver.declareSygusVar(funSort));
-    assertDoesNotThrow(() -> d_solver.declareSygusVar(boolSort, ("b")));
-    assertDoesNotThrow(() -> d_solver.declareSygusVar(funSort, ""));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar("", boolSort));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar("", funSort));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar(("b"), boolSort));
 
-    assertThrows(CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort()));
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort(), "a"));
+        CVC5ApiException.class, () -> d_solver.declareSygusVar("", d_solver.getNullSort()));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.declareSygusVar("a", d_solver.getNullSort()));
 
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
-    assertThrows(CVC5ApiException.class, () -> slv.declareSygusVar(boolSort));
+    assertThrows(CVC5ApiException.class, () -> slv.declareSygusVar("", boolSort));
     slv.close();
   }
 

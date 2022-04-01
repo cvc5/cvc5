@@ -485,27 +485,27 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a constructor sort?
-   * @return true if the sort is a constructor sort
+   * Is this a datatype constructor sort?
+   * @return true if the sort is a datatype constructor sort
    */
-  bool isConstructor() const;
+  bool isDatatypeConstructor() const;
 
   /**
-   * Is this a selector sort?
-   * @return true if the sort is a selector sort
+   * Is this a datatype selector sort?
+   * @return true if the sort is a datatype selector sort
    */
-  bool isSelector() const;
+  bool isDatatypeSelector() const;
 
   /**
-   * Is this a tester sort?
-   * @return true if the sort is a tester sort
+   * Is this a datatype tester sort?
+   * @return true if the sort is a datatype tester sort
    */
-  bool isTester() const;
+  bool isDatatypeTester() const;
   /**
    * Is this a datatype updater sort?
    * @return true if the sort is a datatype updater sort
    */
-  bool isUpdater() const;
+  bool isDatatypeUpdater() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -604,8 +604,6 @@ class CVC5_EXPORT Sort
    *
    * Create sort parameters with Solver::mkParamSort().
    *
-   * @warning This method is experimental and may change in future versions.
-   *
    * @param params the list of sort parameters to instantiate with
    * @return the instantiated sort
    */
@@ -665,49 +663,50 @@ class CVC5_EXPORT Sort
    */
   std::string toString() const;
 
-  /* Constructor sort ------------------------------------------------------- */
+  /* Datatype constructor sort ------------------------------------------- */
 
   /**
-   * @return the arity of a constructor sort
+   * @return the arity of a datatype constructor sort
    */
-  size_t getConstructorArity() const;
+  size_t getDatatypeConstructorArity() const;
 
   /**
-   * @return the domain sorts of a constructor sort
+   * @return the domain sorts of a datatype constructor sort
    */
-  std::vector<Sort> getConstructorDomainSorts() const;
+  std::vector<Sort> getDatatypeConstructorDomainSorts() const;
 
   /**
    * @return the codomain sort of a constructor sort
    */
-  Sort getConstructorCodomainSort() const;
+  Sort getDatatypeConstructorCodomainSort() const;
 
   /* Selector sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a selector sort
+   * @return the domain sort of a datatype selector sort
    */
-  Sort getSelectorDomainSort() const;
+  Sort getDatatypeSelectorDomainSort() const;
 
   /**
-   * @return the codomain sort of a selector sort
+   * @return the codomain sort of a datatype selector sort
    */
-  Sort getSelectorCodomainSort() const;
+  Sort getDatatypeSelectorCodomainSort() const;
 
   /* Tester sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a tester sort
+   * @return the domain sort of a datatype tester sort
    */
-  Sort getTesterDomainSort() const;
+  Sort getDatatypeTesterDomainSort() const;
 
   /**
-   * @return the codomain sort of a tester sort, which is the Boolean sort
+   * @return the codomain sort of a datatype tester sort, which is the Boolean
+   *         sort
    *
    * @note We mainly need this for the symbol table, which doesn't have
    *       access to the solver object.
    */
-  Sort getTesterCodomainSort() const;
+  Sort getDatatypeTesterCodomainSort() const;
 
   /* Function sort ------------------------------------------------------- */
 
@@ -758,13 +757,6 @@ class CVC5_EXPORT Sort
    * @return the element sort of a sequence sort
    */
   Sort getSequenceElementSort() const;
-
-  /* Uninterpreted sort -------------------------------------------------- */
-
-  /**
-   * @return true if an uninterpreted sort is parameterized
-   */
-  bool isUninterpretedSortParameterized() const;
 
   /* Uninterpreted sort constructor sort --------------------------------- */
 
@@ -2734,21 +2726,27 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Provides access to options that can not be communicated via the regular
- * getOption() or getOptionInfo() methods. This class does not store the options
- * itself, but only acts as a wrapper to the solver object. It can thus no
- * longer be used after the solver object has been destroyed.
+ * \verbatim embed:rst:leading-asterisk
+ * This class provides type-safe access to a few options that frontends are
+ * likely to use, but can not be not be communicated appropriately via the
+ * regular :cpp:func:`Solver::getOption() <cvc5::Solver::getOption()>` or
+ * :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` methods.
+ * This includes, e.g., the input and output streams that can be configured via
+ * :ref:`err <lbl-option-err>`, :ref:`in <lbl-option-in>` and :ref:`out
+ * <lbl-option-out>`. This class does not store the options itself, but only
+ * acts as a wrapper to the solver object. It can thus no longer be used after
+ * the solver object has been destroyed. \endverbatim
  */
 class CVC5_EXPORT DriverOptions
 {
   friend class Solver;
 
  public:
-  /** Access the solvers input stream */
+  /** Access the solver's input stream */
   std::istream& in() const;
-  /** Access the solvers error output stream */
+  /** Access the solver's error output stream */
   std::ostream& err() const;
-  /** Access the solvers output stream */
+  /** Access the solver's output stream */
   std::ostream& out() const;
 
  private:
@@ -2757,48 +2755,80 @@ class CVC5_EXPORT DriverOptions
 };
 
 /**
+ * \verbatim embed:rst:leading-asterisk
  * Holds some description about a particular option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
- * concerning its value. The `valueInfo` member holds any of the following
- * alternatives:
- * - `VoidInfo` if the option holds no value (or the value has no native type)
- * - `ValueInfo<T>` if the option is of type `bool` or `std::string`, holds the
- *   current value and the default value.
- * - `NumberInfo<T>` if the option is of type `int64_t`, `uint64_t` or `double`, holds
- *   the current and default value, as well as the minimum and maximum.
- * - `ModeInfo` if the option is a mode option, holds the current and default
- *   values, as well as a list of valid modes.
+ * concerning its value. It can be obtained via
+ * :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` and
+ * allows for a more detailed inspection of options than
+ * :cpp:func:`Solver::getOption() <cvc5::Solver::getOption()>`. The
+ * :cpp:member:`valueInfo <cvc5::OptionInfo::valueInfo>` member holds any of the
+ * following alternatives:
+ *
+ * - :cpp:class:`VoidInfo <cvc5::OptionInfo::VoidInfo>` if the option holds no
+ *   value (or the value has no native type)
+ * - :cpp:class:`ValueInfo <cvc5::OptionInfo::ValueInfo>` if the option is of
+ *   type ``bool`` or ``std::string``, holds the current value and the default
+ *   value.
+ * - :cpp:class:`NumberInfo <cvc5::OptionInfo::NumberInfo>` if the option is of
+ *   type ``int64_t``, ``uint64_t`` or ``double``, holds the current and default
+ *   value, as well as the minimum and maximum.
+ * - :cpp:class:`ModeInfo <cvc5::OptionInfo::ModeInfo>` if the option is a mode
+ *   option, holds the current and default values, as well as a list of valid
+ *   modes.
  *
  * Additionally, this class provides convenience functions to obtain the
- * current value of an option in a type-safe manner using boolValue(),
- * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
- * the option has the respective type and return the current value.
+ * current value of an option in a type-safe manner using :cpp:func:`boolValue()
+ * <cvc5::OptionInfo::boolValue()>`, :cpp:func:`stringValue()
+ * <cvc5::OptionInfo::stringValue()>`, :cpp:func:`intValue()
+ * <cvc5::OptionInfo::intValue()>`, :cpp:func:`uintValue()
+ * <cvc5::OptionInfo::uintValue()>` and :cpp:func:`doubleValue()
+ * <cvc5::OptionInfo::doubleValue()>`. They assert that the option has the
+ * respective type and return the current value.
+ *
+ * If the option has a special type that is not covered by the above
+ * alternatives, the :cpp:member:`valueInfo <cvc5::OptionInfo::valueInfo>` holds
+ * a :cpp:class:`VoidInfo <cvc5::OptionInfo::VoidInfo>`. Some options, that are
+ * expected to be used by frontends (e.g., input and output streams) can also
+ * be accessed using :cpp:func:`Solver::getDriverOptions()
+ * <cvc5::Solver::getDriverOptions()>`. \endverbatim
  */
 struct CVC5_EXPORT OptionInfo
 {
-  /** Has no value information */
+  /** Has no value information. */
   struct VoidInfo {};
-  /** Has the current and the default value */
+  /** Basic information for option values. ``T`` can be ``bool`` or
+   * ``std::string``. */
   template <typename T>
   struct ValueInfo
   {
+    /** The default value. */
     T defaultValue;
+    /** The current value. */
     T currentValue;
   };
-  /** Default value, current value, minimum and maximum of a numeric value */
+  /** Information for numeric values. ``T`` can be ``int64_t``, ``uint64_t`` or
+   * ``double``. */
   template <typename T>
   struct NumberInfo
   {
+    /** The default value. */
     T defaultValue;
+    /** The current value. */
     T currentValue;
+    /** The optional minimum value. */
     std::optional<T> minimum;
+    /** The optional maximum value. */
     std::optional<T> maximum;
   };
-  /** Default value, current value and choices of a mode option */
+  /** Information for mode option values. */
   struct ModeInfo
   {
+    /** The default value. */
     std::string defaultValue;
+    /** The current value. */
     std::string currentValue;
+    /** The possible modes. */
     std::vector<std::string> modes;
   };
 
@@ -2808,7 +2838,7 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> aliases;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /** The option value information */
+  /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
                                          ValueInfo<std::string>,
@@ -2816,26 +2846,30 @@ struct CVC5_EXPORT OptionInfo
                                          NumberInfo<uint64_t>,
                                          NumberInfo<double>,
                                          ModeInfo>;
+  /** The option value information */
   OptionInfoVariant valueInfo;
-  /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
+  /** Obtain the current value as a `bool`. Asserts that `valueInfo` holds a
+   * `bool`.
    */
   bool boolValue() const;
-  /** Obtain the current value as a string. Asserts that valueInfo holds a
-   * string. */
+  /** Obtain the current value as a `std::string`. Asserts that `valueInfo`
+   * holds a `std::string`. */
   std::string stringValue() const;
-  /** Obtain the current value as as int. Asserts that valueInfo holds an int.
+  /** Obtain the current value as an `int64_t`. Asserts that `valueInfo` holds
+   * an `int64_t`.
    */
   int64_t intValue() const;
-  /** Obtain the current value as a uint. Asserts that valueInfo holds a uint.
+  /** Obtain the current value as a `uint64_t`. Asserts that `valueInfo` holds a
+   * `uint64_t`.
    */
   uint64_t uintValue() const;
-  /** Obtain the current value as a double. Asserts that valueInfo holds a
-   * double. */
+  /** Obtain the current value as a `double`. Asserts that `valueInfo` holds a
+   * `double`. */
   double doubleValue() const;
 };
 
 /**
- * Print a `OptionInfo` object to an ``std::ostream``.
+ * Print an `OptionInfo` object to an ``std::ostream``.
  */
 std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
 
@@ -2844,13 +2878,18 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Represents a snapshot of a single statistic value.
- * A value can be of type `int64_t`, `double`, `std::string` or a histogram
- * (`std::map<std::string, uint64_t>`).
- * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
- * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
+ * \verbatim embed:rst:leading-asterisk
+ * Represents a snapshot of a single statistic value. See :doc:`/statistics` for
+ * how statistics can be used.
+ * A value can be of type ``int64_t``, ``double``, ``std::string`` or a
+ * histogram
+ * (``std::map<std::string, uint64_t>``).
+ * The value type can be queried (using ``isInt()``, ``isDouble()``, etc.) and
+ * the stored value can be accessed (using ``getInt()``, ``getDouble()``, etc.).
  * It is possible to query whether this statistic is an internal statistic by
- * `isInternal()` and whether its value is the default value by `isDefault()`.
+ * :cpp:func:`isInternal() <cvc5::Stat::isInternal()>` and whether its value is
+ * the default value by :cpp:func:`isDefault() <cvc5::Stat::isDefault()>`.
+ * \endverbatim
  */
 class CVC5_EXPORT Stat
 {
@@ -2941,14 +2980,19 @@ class CVC5_EXPORT Stat
 std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
 
 /**
- * Represents a snapshot of the solver statistics.
- * Once obtained, an instance of this class is independent of the `Solver`
- * object: it will not change when the solvers internal statistics do, it
- * will not be invalidated if the solver is destroyed.
- * Iterating on this class (via `begin()` and `end()`) shows only public
- * statistics that have been changed. By passing appropriate flags to
- * `begin()`, statistics that are internal, defaulted, or both, can be
- * included as well. A single statistic value is represented as `Stat`.
+ * \verbatim embed:rst:leading-asterisk
+ * Represents a snapshot of the solver statistics. See :doc:`/statistics` for
+ * how statistics can be used.
+ * Once obtained via :cpp:func:`Solver::getStatistics()
+ * <cvc5::Solver::getStatistics()>`, an instance of this class is independent of
+ * the :cpp:class:`Solver <cvc5::Solver>` object: it will not change when the
+ * solvers internal statistics do, and it will not be invalidated if the solver
+ * is destroyed. Iterating over this class (via :cpp:func:`begin()
+ * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
+ * shows only public statistics that have been changed. By passing appropriate
+ * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
+ * internal, defaulted, or both, can be included as well. A single statistic
+ * value is represented as :cpp:class:`Stat <cvc5::Stat>`. \endverbatim
  */
 class CVC5_EXPORT Statistics
 {
@@ -3192,7 +3236,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the sort parameter
    */
-  Sort mkParamSort(const std::string& symbol) const;
+  Sort mkParamSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a predicate sort.
@@ -3238,7 +3283,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the uninterpreted sort
    */
-  Sort mkUninterpretedSort(const std::string& symbol) const;
+  Sort mkUninterpretedSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create an unresolved sort.
@@ -3261,8 +3307,9 @@ class CVC5_EXPORT Solver
    * @param arity the arity of the sort (must be > 0)
    * @return the uninterpreted sort constructor sort
    */
-  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                          size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(
+      size_t arity,
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a tuple sort.
@@ -3614,27 +3661,21 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param sort the sort of the constant
-   * @param symbol the name of the constant
+   * @param symbol the name of the constant (optional)
    * @return the first-order constant
    */
-  Term mkConst(const Sort& sort, const std::string& symbol) const;
-  /**
-   * Create (first-order) constant (0-arity function symbol), with a default
-   * symbol name.
-   *
-   * @param sort the sort of the constant
-   * @return the first-order constant
-   */
-  Term mkConst(const Sort& sort) const;
+  Term mkConst(const Sort& sort,
+               const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
    * lambda, or a witness binder).
    * @param sort the sort of the variable
-   * @param symbol the name of the variable
+   * @param symbol the name of the variable (optional)
    * @return the variable
    */
-  Term mkVar(const Sort& sort, const std::string& symbol = std::string()) const;
+  Term mkVar(const Sort& sort,
+             const std::optional<std::string>& symbol = std::nullopt) const;
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
@@ -4595,8 +4636,7 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term declareSygusVar(const Sort& sort,
-                       const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
