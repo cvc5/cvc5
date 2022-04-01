@@ -29,7 +29,7 @@ ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
-                                   options::BlockModelsMode mode,
+                                   modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -38,7 +38,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  if (mode == options::BlockModelsMode::LITERALS)
+  if (mode == modes::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());
     // optimization: filter out top-level unit assertions, as they cannot
@@ -229,7 +229,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   }
   else
   {
-    Assert(mode == options::BlockModelsMode::VALUES);
+    Assert(mode == modes::BlockModelsMode::VALUES);
     std::vector<Node> blockers;
     // if specific terms were not specified, block all variables of
     // the model
