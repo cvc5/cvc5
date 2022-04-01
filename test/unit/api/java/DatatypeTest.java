@@ -362,13 +362,9 @@ class DatatypeTest
      *   END;
      */
     // Make unresolved types as placeholders
-    Set<Sort> unresTypes = new HashSet<>();
     Sort unresWList = d_solver.mkUnresolvedSort("wlist", 0);
     Sort unresList = d_solver.mkUnresolvedSort("list", 0);
     Sort unresNs = d_solver.mkUnresolvedSort("ns", 0);
-    unresTypes.add(unresWList);
-    unresTypes.add(unresList);
-    unresTypes.add(unresNs);
 
     DatatypeDecl wlist = d_solver.mkDatatypeDecl("wlist");
     DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
@@ -397,7 +393,7 @@ class DatatypeTest
     dtdecls.add(ns);
     // this is well-founded and has no nested recursion
     AtomicReference<List<Sort>> atomic = new AtomicReference<>();
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     List<Sort> dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 3);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
@@ -409,9 +405,7 @@ class DatatypeTest
      *     ns2 = elem2(ndata: array(int,ns2)) | nil2
      *   END;
      */
-    unresTypes.clear();
     Sort unresNs2 = d_solver.mkUnresolvedSort("ns2", 0);
-    unresTypes.add(unresNs2);
 
     DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
     DatatypeConstructorDecl elem2 = d_solver.mkDatatypeConstructorDecl("elem2");
@@ -425,7 +419,7 @@ class DatatypeTest
 
     // dtsorts.clear();
     // this is not well-founded due to non-simple recursion
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     assertTrue(
@@ -445,11 +439,8 @@ class DatatypeTest
      *     ns3 = elem3(ndata: set(list3))
      *   END;
      */
-    unresTypes.clear();
     Sort unresNs3 = d_solver.mkUnresolvedSort("ns3", 0);
-    unresTypes.add(unresNs3);
     Sort unresList3 = d_solver.mkUnresolvedSort("list3", 0);
-    unresTypes.add(unresList3);
 
     DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
     DatatypeConstructorDecl cons3 = d_solver.mkDatatypeConstructorDecl("cons3");
@@ -470,7 +461,7 @@ class DatatypeTest
 
     // dtsorts.clear();
     // both are well-founded and have nested recursion
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 2);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
@@ -482,11 +473,8 @@ class DatatypeTest
      *     ns4 = elem(ndata: list4)
      *   END;
      */
-    unresTypes.clear();
     Sort unresNs4 = d_solver.mkUnresolvedSort("ns4", 0);
-    unresTypes.add(unresNs4);
     Sort unresList4 = d_solver.mkUnresolvedSort("list4", 0);
-    unresTypes.add(unresList4);
 
     DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
     DatatypeConstructorDecl cons4 = d_solver.mkDatatypeConstructorDecl("cons4");
@@ -507,7 +495,7 @@ class DatatypeTest
 
     // dtsorts.clear();
     // both are well-founded and have nested recursion
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 2);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
@@ -518,9 +506,7 @@ class DatatypeTest
      *     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
      *   END;
      */
-    unresTypes.clear();
     Sort unresList5 = d_solver.mkUninterpretedSortConstructorSort(1, "list5");
-    unresTypes.add(unresList5);
 
     List<Sort> v = new ArrayList<>();
     Sort x = d_solver.mkParamSort("X");
@@ -544,7 +530,7 @@ class DatatypeTest
     dtdecls.add(list5);
 
     // well-founded and has nested recursion
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
@@ -559,9 +545,7 @@ class DatatypeTest
      *   END;
      */
     // Make unresolved types as placeholders
-    Set<Sort> unresTypes = new HashSet<>();
     Sort unresList = d_solver.mkUninterpretedSortConstructorSort(1, "plist");
-    unresTypes.add(unresList);
 
     List<Sort> v = new ArrayList<>();
     Sort x = d_solver.mkParamSort("X");
@@ -584,7 +568,7 @@ class DatatypeTest
 
     // make the datatype sorts
     AtomicReference<List<Sort>> atomic = new AtomicReference<>();
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     List<Sort> dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     Datatype d = dtsorts.get(0).getDatatype();

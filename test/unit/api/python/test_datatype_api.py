@@ -85,7 +85,6 @@ def test_mk_datatype_sorts(solver):
     #
 
     #Make unresolved types as placeholders
-    unresTypes = set([])
     unresTree = solver.mkUnresolvedDatatypeSort("tree")
     unresList = solver.mkUnresolvedDatatypeSort("list")
 
@@ -367,13 +366,9 @@ def test_datatype_simply_rec(solver):
     #   END
 
     # Make unresolved types as placeholders
-    unresTypes = set([])
     unresWList = solver.mkUnresolvedDatatypeSort("wlist")
     unresList = solver.mkUnresolvedDatatypeSort("list")
     unresNs = solver.mkUnresolvedDatatypeSort("ns")
-    unresTypes.add(unresWList)
-    unresTypes.add(unresList)
-    unresTypes.add(unresNs)
 
     wlist = solver.mkDatatypeDecl("wlist")
     leaf = solver.mkDatatypeConstructorDecl("leaf")
@@ -398,7 +393,7 @@ def test_datatype_simply_rec(solver):
 
     dtdecls = [wlist, llist, ns]
     # this is well-founded and has no nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 3
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
@@ -409,9 +404,7 @@ def test_datatype_simply_rec(solver):
     #     ns2 = elem2(ndata: array(int,ns2)) | nil2
     #   END
 
-    unresTypes.clear()
     unresNs2 = solver.mkUnresolvedDatatypeSort("ns2")
-    unresTypes.add(unresNs2)
 
     ns2 = solver.mkDatatypeDecl("ns2")
     elem2 = solver.mkDatatypeConstructorDecl("elem2")
@@ -425,7 +418,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(ns2)
 
     # this is not well-founded due to non-simple recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 1
     assert dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray()
     assert dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort() \
@@ -438,11 +431,8 @@ def test_datatype_simply_rec(solver):
     #     ns3 = elem3(ndata: set(list3))
     #   END
 
-    unresTypes.clear()
     unresNs3 = solver.mkUnresolvedDatatypeSort("ns3")
-    unresTypes.add(unresNs3)
     unresList3 = solver.mkUnresolvedDatatypeSort("list3")
-    unresTypes.add(unresList3)
 
     list3 = solver.mkDatatypeDecl("list3")
     cons3 = solver.mkDatatypeConstructorDecl("cons3")
@@ -462,7 +452,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(ns3)
 
     # both are well-founded and have nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 2
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
@@ -472,11 +462,8 @@ def test_datatype_simply_rec(solver):
     #     list4 = cons(car: set(ns4), cdr: list4) | nil,
     #     ns4 = elem(ndata: list4)
     #   END
-    unresTypes.clear()
     unresNs4 = solver.mkUnresolvedDatatypeSort("ns4")
-    unresTypes.add(unresNs4)
     unresList4 = solver.mkUnresolvedDatatypeSort("list4")
-    unresTypes.add(unresList4)
 
     list4 = solver.mkDatatypeDecl("list4")
     cons4 = solver.mkDatatypeConstructorDecl("cons4")
@@ -496,7 +483,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(ns4)
 
     # both are well-founded and have nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 2
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
@@ -505,9 +492,7 @@ def test_datatype_simply_rec(solver):
     #   DATATYPE
     #     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
     #   END
-    unresTypes.clear()
     unresList5 = solver.mkUninterpretedSortConstructorSort(1, "list5")
-    unresTypes.add(unresList5)
 
     v = []
     x = solver.mkParamSort("X")
@@ -530,7 +515,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(list5)
 
     # well-founded and has nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 1
     assert dtsorts[0].getDatatype().isWellFounded()
 
@@ -542,10 +527,7 @@ def test_datatype_specialized_cons(solver):
     #   END
 
     # Make unresolved types as placeholders
-    unresTypes = set([])
     unresList = solver.mkUninterpretedSortConstructorSort(1, "plist")
-    unresTypes.add(unresList)
-
     v = []
     x = solver.mkParamSort("X")
     v.append(x)
@@ -564,7 +546,7 @@ def test_datatype_specialized_cons(solver):
     dtdecls = [plist]
 
     # make the datatype sorts
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 1
     d = dtsorts[0].getDatatype()
     nilc = d[0]
