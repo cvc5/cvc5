@@ -133,13 +133,13 @@ to the assertion command.
 
 .. literalinclude:: ../../../../examples/api/python/quickstart.py
      :language: python
-     :lines: 135-139
+     :lines: 135-140
 
 Now, we check whether the revised assertion is satisfiable.
 
 .. literalinclude:: ../../../../examples/api/python/quickstart.py
      :language: python
-     :lines: 142, 145-146
+     :lines: 143, 146-147
 
 This time the asserted formula is unsatisfiable:
 
@@ -153,7 +153,7 @@ of the assertions that is already unsatisfiable.
 
 .. literalinclude:: ../../../../examples/api/python/quickstart.py
      :language: python
-     :lines: 150-152
+     :lines: 151-153
 
 This will print:
 
