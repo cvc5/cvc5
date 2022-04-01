@@ -221,7 +221,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkDatatypeSort(
  * Signature: (J[J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkDatatypeSorts(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jlongArray jDecls)
