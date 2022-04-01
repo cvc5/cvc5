@@ -342,7 +342,7 @@ cvc5::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-//   cvc5::Sort unresolved =
+  cvc5::Sort unresolved =
       d_solver->mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
   cvc5::Sort t = getSort(name, params);
