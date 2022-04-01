@@ -2224,45 +2224,34 @@ TEST_F(TestApiBlackSolver, pop3)
 
 TEST_F(TestApiBlackSolver, blockModel1)
 {
-  d_solver.setOption("produce-models", "true");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModel(), CVC5ApiException);
+  ASSERT_THROW(d_solver.blockModel(modes::BlockModelsMode::LITERALS),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, blockModel2)
 {
-  d_solver.setOption("block-models", "literals");
+  d_solver.setOption("produce-models", "true");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
-  d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModel(), CVC5ApiException);
+  ASSERT_THROW(d_solver.blockModel(modes::BlockModelsMode::LITERALS),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, blockModel3)
 {
   d_solver.setOption("produce-models", "true");
-  d_solver.setOption("block-models", "literals");
-  Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
-  d_solver.assertFormula(x.eqTerm(x));
-  ASSERT_THROW(d_solver.blockModel(), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, blockModel4)
-{
-  d_solver.setOption("produce-models", "true");
-  d_solver.setOption("block-models", "literals");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
-  ASSERT_NO_THROW(d_solver.blockModel());
+  ASSERT_NO_THROW(d_solver.blockModel(modes::BlockModelsMode::LITERALS));
 }
 
 TEST_F(TestApiBlackSolver, blockModelValues1)
 {
   d_solver.setOption("produce-models", "true");
-  d_solver.setOption("block-models", "literals");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
@@ -2283,7 +2272,6 @@ TEST_F(TestApiBlackSolver, blockModelValues2)
 
 TEST_F(TestApiBlackSolver, blockModelValues3)
 {
-  d_solver.setOption("block-models", "literals");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
@@ -2293,7 +2281,6 @@ TEST_F(TestApiBlackSolver, blockModelValues3)
 TEST_F(TestApiBlackSolver, blockModelValues4)
 {
   d_solver.setOption("produce-models", "true");
-  d_solver.setOption("block-models", "literals");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   ASSERT_THROW(d_solver.blockModelValues({x}), CVC5ApiException);
@@ -2302,7 +2289,6 @@ TEST_F(TestApiBlackSolver, blockModelValues4)
 TEST_F(TestApiBlackSolver, blockModelValues5)
 {
   d_solver.setOption("produce-models", "true");
-  d_solver.setOption("block-models", "literals");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();

@@ -59,13 +59,12 @@ if __name__ == "__main__":
 
     # Construct the assertions
     assertions = slv.mkTerm(Kind.And,
-                            [
-                                slv.mkTerm(Kind.Leq, zero, f_x), # 0 <= f(x)
-                                slv.mkTerm(Kind.Leq, zero, f_y), # 0 <= f(y)
-                                slv.mkTerm(Kind.Leq, sum_, one), # f(x) + f(y) <= 1
-                                p_0.notTerm(), # not p(0)
-                                p_f_y # p(f(y))
-                            ])
+                            slv.mkTerm(Kind.Leq, zero, f_x), # 0 <= f(x)
+                            slv.mkTerm(Kind.Leq, zero, f_y), # 0 <= f(y)
+                            slv.mkTerm(Kind.Leq, sum_, one), # f(x) + f(y) <= 1
+                            p_0.notTerm(), # not p(0)
+                            p_f_y # p(f(y))
+                            )
 
     slv.assertFormula(assertions)
 

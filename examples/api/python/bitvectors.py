@@ -106,8 +106,7 @@ if __name__ == "__main__":
 
 
     x_neq_x = slv.mkTerm(Kind.Equal, x, x).notTerm()
-    v = [new_x_eq_new_x_, x_neq_x]
-    query = slv.mkTerm(Kind.And, v)
+    query = slv.mkTerm(Kind.And, new_x_eq_new_x_, x_neq_x)
     print("Check sat assuming: ", query.notTerm())
     print("Expect SAT.")
     print("cvc5:", slv.checkSatAssuming(query.notTerm()))

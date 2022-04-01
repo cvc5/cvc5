@@ -574,7 +574,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   // scan the list of datatypes to find unresolved datatypes
   for (const DType& dt : datatypes)
   {
-    dt.getUnresolvedDatatypeTypes(unresolvedTypes);
+    dt.collectUnresolvedDatatypeTypes(unresolvedTypes);
   }
   return mkMutualDatatypeTypesInternal(datatypes, unresolvedTypes, flags);
 }
