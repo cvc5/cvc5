@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # union max distributes over intersection
     unionMaxAB = slv.mkTerm(Kind.BAG_UNION_MAX, A, B)
-    lhs = slv.mkTerm(Kind.BAG_INTER_MIND, unionMaxAB, C)
+    lhs = slv.mkTerm(Kind.BAG_INTER_MIN, unionMaxAB, C)
     rhs = slv.mkTerm(Kind.BAG_UNION_MAX, intersectionAC, intersectionBC)
     theorem = slv.mkTerm(Kind.Equal, lhs, rhs)
     print("cvc5 reports: {} is {}.".format(
