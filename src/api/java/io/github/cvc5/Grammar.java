@@ -15,6 +15,11 @@
 
 package io.github.cvc5;
 
+/**
+ * A Sygus Grammar. This class can be used to define a context-free grammar
+ * of terms. Its interface coincides with the definition of grammars
+ * (``GrammarDef``) in the SyGuS IF 2.1 standard.
+ */
 public class Grammar extends AbstractPointer
 {
   // region construction and destruction

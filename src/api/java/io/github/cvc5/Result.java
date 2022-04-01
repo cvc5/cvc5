@@ -18,6 +18,9 @@ package io.github.cvc5;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Encapsulation of a three-valued solver result, with explanations.
+ */
 public class Result extends AbstractPointer
 {
   // region construction and destruction

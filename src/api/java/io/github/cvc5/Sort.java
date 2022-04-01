@@ -17,6 +17,9 @@ package io.github.cvc5;
 
 import java.util.List;
 
+/**
+ * The sort of a cvc5 term.
+ */
 public class Sort extends AbstractPointer implements Comparable<Sort>
 {
   // region construction and destruction
