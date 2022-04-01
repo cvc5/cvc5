@@ -4419,7 +4419,9 @@ Sort Grammar::resolve()
     // make the unresolved type, used for referencing the final version of
     // the ntsymbol's datatype
     ntsToUnres[ntsymbol] =
-        Sort(d_solver, d_solver->getNodeManager()->mkUnresolvedDatatypeSort(ntsymbol.toString()));
+        Sort(d_solver,
+             d_solver->getNodeManager()->mkUnresolvedDatatypeSort(
+                 ntsymbol.toString()));
   }
 
   std::vector<internal::DType> datatypes;
@@ -5541,9 +5543,7 @@ Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
   //////// all checks before this line
 
   internal::TypeNode tn =
-      symbol ? getNodeManager()->mkSort(
-          *symbol)
-             : getNodeManager()->mkSort();
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
   return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
