@@ -5522,18 +5522,6 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_DOMAIN_SORT(domain);
-  CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(codomain);
-  //////// all checks before this line
-  return Sort(
-      this, getNodeManager()->mkFunctionType(*domain.d_type, *codomain.d_type));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
                             const Sort& codomain) const
 {
