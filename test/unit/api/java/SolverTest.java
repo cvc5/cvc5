@@ -20,6 +20,7 @@ import static io.github.cvc5.RoundingMode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
+import io.github.cvc5.modes.BlockModelsMode;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -2264,49 +2265,35 @@ class SolverTest
   @Test
   void blockModel1()
   {
-    d_solver.setOption("produce-models", "true");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.blockModel());
+    assertThrows(CVC5ApiException.class, () -> d_solver.blockModel(BlockModelsMode.LITERALS));
   }
 
   @Test
   void blockModel2() throws CVC5ApiException
   {
-    d_solver.setOption("block-models", "literals");
+    d_solver.setOption("produce-models", "true");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
-    d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.blockModel());
+    assertThrows(CVC5ApiException.class, () -> d_solver.blockModel(BlockModelsMode.LITERALS));
   }
 
   @Test
   void blockModel3() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
-    d_solver.setOption("block-models", "literals");
-    Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
-    d_solver.assertFormula(x.eqTerm(x));
-    assertThrows(CVC5ApiException.class, () -> d_solver.blockModel());
-  }
-
-  @Test
-  void blockModel4() throws CVC5ApiException
-  {
-    d_solver.setOption("produce-models", "true");
-    d_solver.setOption("block-models", "literals");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.blockModel());
+    assertDoesNotThrow(() -> d_solver.blockModel(BlockModelsMode.LITERALS));
   }
 
   @Test
   void blockModelValues1() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
-    d_solver.setOption("block-models", "literals");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
@@ -2332,7 +2319,6 @@ class SolverTest
   @Test
   void blockModelValues3() throws CVC5ApiException
   {
-    d_solver.setOption("block-models", "literals");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
@@ -2343,7 +2329,6 @@ class SolverTest
   void blockModelValues4() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
-    d_solver.setOption("block-models", "literals");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     assertThrows(CVC5ApiException.class, () -> d_solver.blockModelValues(new Term[] {x}));
@@ -2353,7 +2338,6 @@ class SolverTest
   void blockModelValues5() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
-    d_solver.setOption("block-models", "literals");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();

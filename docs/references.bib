@@ -1,3 +1,9 @@
+@string{cade   = "Conference on Automated Deduction (CADE)"}
+@string{cpp = "Certified Programs and Proofs (CPP)"}
+@string{cav    = "Computer Aided Verification (CAV)"}
+@string{jar    = "Journal of Automated Reasoning"}
+@string{lncs   = "Lecture Notes in Computer Science"}
+
 @article{DBLP:journals/tocl/CimattiGIRS18,
   author    = {Alessandro Cimatti and
                Alberto Griggio and
@@ -140,9 +146,105 @@
 }
 
 @TECHREPORT{BarFT-RR-17,
-  author =	 {Clark Barrett and Pascal Fontaine and Cesare Tinelli},
-  title =	 {{The SMT-LIB Standard: Version 2.6}},
-  institution =	 {Department of Computer Science, The University of Iowa},
-  year =	 2017,
-  note =	 {Available at {\tt www.SMT-LIB.org}}
+  author =   {Clark Barrett and Pascal Fontaine and Cesare Tinelli},
+  title =  {{The SMT-LIB Standard: Version 2.6}},
+  institution =  {Department of Computer Science, The University of Iowa},
+  year =   2017,
+  note =   {Available at {\tt www.SMT-LIB.org}}
+}
+
+@inproceedings{Bouton2009,
+  author    = {Thomas Bouton and
+               Diego Caminha B. de Oliveira and
+               David D{\'{e}}harbe and
+               Pascal Fontaine},
+  title     = {{veriT}: {A}n {O}pen, {T}rustable and {E}fficient {SMT-S}olver},
+  booktitle = cade,
+  pages     = {151--156},
+  year      = {2009},
+  url       = {http://dx.doi.org/10.1007/978-3-642-02959-2_12},
+  doi       = {10.1007/978-3-642-02959-2_12},
+  editor    = {Renate A. Schmidt},
+  series    = lncs,
+  volume    = {5663},
+  publisher = {Springer},
+}
+
+@inproceedings{Armand2011,
+  author    = {Micha{\"e}l Armand and
+               Germain Faure and
+               Benjamin Gr{\'e}goire and
+               Chantal Keller and
+               Laurent Th{\'e}ry and
+               Benjamin Werner},
+  title     = {A~Modular Integration of {SAT}\slash{SMT} Solvers to {Coq} through
+               Proof Witnesses},
+  booktitle = cpp,
+  pages     = {135--150},
+  editor    = {Jean-Pierre Jouannaud and
+               Zhong Shao},
+  publisher = {Springer},
+  series    = lncs,
+  volume    = {7086},
+  year      = {2011},
+  doi       = {10.1007/978-3-642-25379-9_12}
+}
+
+@inproceedings{Ekici2017,
+  author    = {Burak Ekici and
+               Alain Mebsout and
+               Cesare Tinelli and
+               Chantal Keller and
+               Guy Katz and
+               Andrew Reynolds and
+               Clark W. Barrett},
+  title     = {SMTCoq: {A} Plug-In for Integrating {SMT} Solvers into Coq},
+  booktitle = cav,
+  pages     = {126--133},
+  year      = {2017},
+  url       = {https://doi.org/10.1007/978-3-319-63390-9_7},
+  doi       = {10.1007/978-3-319-63390-9_7},
+  editor    = {Rupak Majumdar and
+               Viktor Kuncak},
+  series    = lncs,
+  volume    = {10427},
+  publisher = {Springer},
+}
+
+@article{Barbosa2020,
+  author    = {Haniel Barbosa and
+               Jasmin Christian Blanchette and
+               Mathias Fleury and
+               Pascal Fontaine},
+  title     = {Scalable Fine-Grained Proofs for Formula Processing},
+  journal   = jar,
+  volume    = {64},
+  number    = {3},
+  pages     = {485--510},
+  year      = {2020},
+  url       = {https://doi.org/10.1007/s10817-018-09502-y},
+  doi       = {10.1007/s10817-018-09502-y},
+  timestamp = {Thu, 19 Mar 2020 10:23:41 +0100},
+  biburl    = {https://dblp.org/rec/journals/jar/BarbosaBFF20.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{Schurr2021,
+  author    = {Hans{-}J{\"{o}}rg Schurr and
+               Mathias Fleury and
+               Martin Desharnais},
+  editor    = {Andr{\'{e}} Platzer and
+               Geoff Sutcliffe},
+  title     = {Reliable Reconstruction of Fine-grained Proofs in a Proof Assistant},
+  booktitle = cade,
+  series    = lncs,
+  volume    = {12699},
+  pages     = {450--467},
+  publisher = {Springer},
+  year      = {2021},
+  url       = {https://doi.org/10.1007/978-3-030-79876-5\_26},
+  doi       = {10.1007/978-3-030-79876-5\_26},
+  timestamp = {Mon, 12 Jul 2021 14:18:46 +0200},
+  biburl    = {https://dblp.org/rec/conf/cade/SchurrFD21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
