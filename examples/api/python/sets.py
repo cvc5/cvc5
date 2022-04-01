@@ -46,7 +46,7 @@ if __name__ == "__main__":
     intersectionBC = slv.mkTerm(Kind.SET_INTER, B, C)
     rhs = slv.mkTerm(Kind.SET_UNION, intersectionAC, intersectionBC)
 
-    theorem = slv.mkTerm(Kind.EQUAL, LHs, rhs)
+    theorem = slv.mkTerm(Kind.EQUAL, lhs, rhs)
 
     print("cvc5 reports: {} is {}".format(
         theorem.notTerm(), slv.checkSatAssuming(theorem.notTerm())))
