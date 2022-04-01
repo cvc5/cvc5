@@ -1097,30 +1097,23 @@ cdef class Solver:
             term.cterm = self.csolver.mkInteger((<int?> val))
         return term
 
-    def mkReal(self, val, den=None):
-        """Create a real constant.
+    def mkReal(self, numerator, denominator=None):
+        """Create a real constant from a numerator and an optional denominator.
+        First converts the arguments to a temporary string, either ``"<numerator>"`` or
+        ``"<numerator>/<denominator>"``.
+        This temporary string is forwarded to :cpp:func:`cvc5::Solver::mkReal(const std::string&)`
+        and should thus represent an integer, a decimal number or a fraction.
 
-        :param val: the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
-        :param den: if not None, the value is `val`/`den`
+
+        :param numerator: The numerator.
+        :param denominator: The denominator, or ``None``.
         :return: a real term with literal value
-
-        Can be used in various forms:
-
-        - Given a string ``"N/D"`` constructs the corresponding rational.
-        - Given a string ``"W.D"`` constructs the reduction of ``(W * P + D)/P``, where ``P`` is the appropriate power of 10.
-        - Given a float ``f``, constructs the rational matching ``f``'s string representation. This means that ``mkReal(0.3)`` gives ``3/10`` and not the IEEE-754 approximation of ``3/10``.
-        - Given a string ``"W"`` or an integer, constructs that integer.
-        - Given two strings and/or integers ``N`` and ``D``, constructs ``N/D``.
         """
         cdef Term term = Term(self)
-        if den is None:
-            term.cterm = self.csolver.mkReal(str(val).encode())
+        if denominator is None:
+            term.cterm = self.csolver.mkReal(str(numerator).encode())
         else:
-            if not isinstance(val, int) or not isinstance(den, int):
-                raise ValueError("Expecting integers when"
-                                 " constructing a rational"
-                                 " but got: {}".format((val, den)))
-            term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
+            term.cterm = self.csolver.mkReal("{}/{}".format(numerator, denominator).encode())
         return term
 
     def mkRegexpAll(self):
