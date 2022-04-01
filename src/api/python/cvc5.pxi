@@ -1220,7 +1220,7 @@ cdef class Solver:
             :param val: The value of the term. Can be an integer, float, or
                         string. It will be formatted as a string before the
                         term is built.
-            :param den: If not None, the value is `val`/`den`.
+            :param den: If not None, the value is ``val``/``den``.
             :return: A real term with literal value.
 
             Can be used in various forms:
