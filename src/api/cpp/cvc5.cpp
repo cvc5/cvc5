@@ -5542,9 +5542,8 @@ Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
 
   internal::TypeNode tn =
       symbol ? getNodeManager()->mkSort(
-          *symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER)
-             : getNodeManager()->mkSort(
-                 internal::NodeManager::SORT_FLAG_PLACEHOLDER);
+          *symbol)
+             : getNodeManager()->mkSort();
   return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
