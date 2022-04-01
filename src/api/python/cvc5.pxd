@@ -58,7 +58,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeConstructor operator[](size_t idx) except +
         DatatypeConstructor operator[](const string& name) except +
         DatatypeConstructor getConstructor(const string& name) except +
-        Term getConstructorTerm(const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
         string getName() except +
         size_t getNumConstructors() except +

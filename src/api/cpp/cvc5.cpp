@@ -3943,16 +3943,6 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Datatype::getConstructorTerm(const std::string& name) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return getConstructorForName(name).getConstructorTerm();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 DatatypeSelector Datatype::getSelector(const std::string& name) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

@@ -187,8 +187,8 @@ def test_get_op(solver):
     c = solver.mkConst(intListSort, "c")
     list1 = listSort.getDatatype()
     # list datatype constructor and selector operator terms
-    consOpTerm = list1.getConstructorTerm("cons")
-    nilOpTerm = list1.getConstructorTerm("nil")
+    consOpTerm = list1.getConstructor("cons").getConstructorTerm()
+    nilOpTerm = list1.getConstructor("nil").getConstructorTerm()
     headOpTerm = list1["cons"].getSelectorTerm("head")
     tailOpTerm = list1["cons"].getSelectorTerm("tail")
 

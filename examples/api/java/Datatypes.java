@@ -35,13 +35,13 @@ public class Datatypes
     // "nil" is a constructor too, so it needs to be applied with
     // APPLY_CONSTRUCTOR, even though it has no arguments.
     Term t = slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
-        consList.getConstructorTerm("cons"),
+        consList.getConstructor("cons").getConstructorTerm(),
         slv.mkInteger(0),
-        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
+        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, consList.getConstructor("nil").getConstructorTerm()));
 
     System.out.println("t is " + t + "\n"
-        + "sort of cons is " + consList.getConstructorTerm("cons").getSort() + "\n"
-        + "sort of nil is " + consList.getConstructorTerm("nil").getSort());
+        + "sort of cons is " + consList.getConstructor("cons").getConstructorTerm().getSort() + "\n"
+        + "sort of nil is " + consList.getConstructor("nil").getConstructorTerm().getSort());
 
     // t2 = head(cons 0 nil), and of course this can be evaluated
     //
@@ -126,7 +126,8 @@ public class Datatypes
     Term head_a = slv.mkTerm(
         Kind.APPLY_SELECTOR, paramConsList.getConstructor("cons").getSelectorTerm("head"), a);
     System.out.println("head_a is " + head_a + " of sort " + head_a.getSort() + "\n"
-        + "sort of cons is " + paramConsList.getConstructorTerm("cons").getSort() + "\n");
+        + "sort of cons is " + paramConsList.getConstructor("cons").getConstructorTerm().getSort()
+        + "\n");
     Term assertion = slv.mkTerm(Kind.GT, head_a, slv.mkInteger(50));
     System.out.println("Assert " + assertion);
     slv.assertFormula(assertion);

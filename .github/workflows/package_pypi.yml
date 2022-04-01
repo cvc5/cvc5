@@ -1,6 +1,6 @@
 on:
   release:
-    types: [created, published]
+    types: [published]
   schedule:
     - cron: '0 1 * * *'
 

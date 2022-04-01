@@ -92,6 +92,16 @@ cdef class Datatype:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype constructor with the given index, where index can
+            be either a numeric id starting with zero, or the name of the
+            constructor. In the latter case, this is a linear search through the
+            constructors, so in case of multiple, similarly-named constructors,
+            the first is returned.
+
+            :param index: The id or name of the datatype constructor.
+            :return: The matching datatype constructor.
+        """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
@@ -109,16 +119,6 @@ cdef class Datatype:
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
-
-    def getConstructorTerm(self, str name):
-        """
-            :param name: The name of the constructor.
-            :return: The term representing the datatype constructor with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cd.getConstructorTerm(name.encode())
-        return term
 
     def getSelector(self, str name):
         """
@@ -211,6 +211,7 @@ cdef class Datatype:
         return self.cd.toString().decode()
 
     def __iter__(self):
+        """Iterate over all constructors."""
         for ci in self.cd:
             dc = DatatypeConstructor(self.solver)
             dc.cdc = ci
@@ -230,6 +231,16 @@ cdef class DatatypeConstructor:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype selector with the given index, where index can be
+            either a numeric id starting with zero, or the name of the selector.
+            In the latter case, this is a linear search through the selectors,
+            so in case of multiple, similarly-named selectors, the first is
+            returned.
+
+            :param index: The id or name of the datatype selector.
+            :return: The matching datatype selector.
+        """
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         if isinstance(index, int) and index >= 0:
             ds.cds = self.cdc[(<int?> index)]
@@ -345,6 +356,7 @@ cdef class DatatypeConstructor:
         return self.cdc.toString().decode()
 
     def __iter__(self):
+        """Iterate over all datatype selectors."""
         for ci in self.cdc:
             ds = DatatypeSelector(self.solver)
             ds.cds = ci
@@ -556,7 +568,7 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def __getitem__(self, i):
+    def __getitem__(self, int i):
         """
             Get the index at position ``i``.
 
@@ -3506,6 +3518,12 @@ cdef class Term:
         return self.cterm >= other.cterm
 
     def __getitem__(self, int index):
+        """
+            Get the child term at a given index.
+
+            :param index: The index of the child term to return.
+            :return: The child term with the given index.
+        """
         cdef Term term = Term(self.solver)
         if index >= 0:
             term.cterm = self.cterm[index]
@@ -3520,6 +3538,7 @@ cdef class Term:
         return self.cterm.toString().decode()
 
     def __iter__(self):
+        """Iterate over all child terms."""
         for ci in self.cterm:
             term = Term(self.solver)
             term.cterm = ci
