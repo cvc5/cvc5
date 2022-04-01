@@ -394,6 +394,18 @@ cdef class DatatypeConstructorDecl:
         """
         self.cddc.addSelectorSelf(name.encode())
 
+    def addSelectorUnresolved(self, str name, str unresDatatypeName):
+        """
+            Add datatype selector declaration whose codomain sort is an 
+            unresolved datatype with the given name.
+
+            :param name: The name of the datatype selector declaration to add.
+            :param unresDataypeName: The name of the unresolved datatype. The
+                                     codomain of the selector will be the
+                                     resolved datatype with the given name.
+        """
+        self.cddc.addSelectorUnresolved(name.encode(), unresDatatypeName.encode())
+
     def isNull(self):
         """
             :return: True if this DatatypeConstructorDecl is a null object.
@@ -857,17 +869,10 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
+    def mkDatatypeSorts(self, list dtypedecls):
         """
             Create a vector of datatype sorts using unresolved sorts. The names
             of the datatype declarations in dtypedecls must be distinct.
-
-            This method is called when the DatatypeDecl objects dtypedecls have
-            been built using "unresolved" sorts.
-
-            We associate each sort in unresolvedSorts with exacly one datatype
-            from dtypedecls. In particular, it must have the same name as
-            exactly one datatype declaration in dtypedecls.
 
             When constructing datatypes, unresolved sorts are replaced by the
             datatype sort constructed for the datatype declaration it is
@@ -875,25 +880,15 @@ cdef class Solver:
 
             :param dtypedecls: The datatype declarations from which the sort is
                                created.
-            :param unresolvedSorts: The list of unresolved sorts.
             :return: The datatype sorts.
         """
-        if unresolvedSorts == None:
-            unresolvedSorts = set([])
-        else:
-            assert isinstance(unresolvedSorts, set)
-
         sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
 
-        cdef c_set[c_Sort] usorts
-        for usort in unresolvedSorts:
-            usorts.insert((<Sort?> usort).csort)
-
         csorts = self.csolver.mkDatatypeSorts(
-            <const vector[c_DatatypeDecl]&> decls, <const c_set[c_Sort]&> usorts)
+            <const vector[c_DatatypeDecl]&> decls)
         for csort in csorts:
           sort = Sort(self)
           sort.csort = csort
@@ -1023,9 +1018,9 @@ cdef class Solver:
           sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
-    def mkUnresolvedSort(self, str name, size_t arity = 0):
+    def mkUnresolvedDatatypeSort(self, str name, size_t arity = 0):
         """
-            Create an unresolved sort.
+            Create an unresolved datatype sort.
 
             This is for creating yet unresolved sort placeholders for mutually
             recursive datatypes.
@@ -1035,7 +1030,7 @@ cdef class Solver:
             :return: The unresolved sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
+        sort.csort = self.csolver.mkUnresolvedDatatypeSort(name.encode(), arity)
         return sort
 
     def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
