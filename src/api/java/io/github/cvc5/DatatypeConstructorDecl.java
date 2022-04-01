@@ -63,12 +63,12 @@ public class DatatypeConstructorDecl extends AbstractPointer
    * @param unresDataypeName the name of the unresolved datatype. The codomain
    * of the selector will be the resolved datatype with the given name.
    */
-  public void addSelectorUnresolved(String name, String unresDataypeName) {
+  public void addSelectorUnresolved(String name, String unresDataypeName)
+  {
     addSelectorUnresolved(pointer, name, unresDataypeName);
   }
 
-  private native void addSelectorUnresolved(
-      long pointer, String name, String unresDataypeName);
+  private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
 
   /**
    * @return true if this DatatypeConstructorDecl is a null declaration.

@@ -405,15 +405,14 @@ public class Solver implements IPointer, AutoCloseable
    * @return the unresolved sort
    * @throws CVC5ApiException
    */
-  public Sort mkUnresolvedDatatypeSort(String symbol, int arity)
-      throws CVC5ApiException {
+  public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
+  {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = mkUnresolvedDatatypeSort(pointer, symbol, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkUnresolvedDatatypeSort(
-      long pointer, String symbol, int arity);
+  private native long mkUnresolvedDatatypeSort(long pointer, String symbol, int arity);
 
   /**
    * Create an unresolved datatype sort.
@@ -425,7 +424,8 @@ public class Solver implements IPointer, AutoCloseable
    * @return the unresolved sort
    * @throws CVC5ApiException
    */
-  public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException {
+  public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException
+  {
     return mkUnresolvedDatatypeSort(symbol, 0);
   }
 
