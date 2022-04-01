@@ -25,7 +25,6 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
