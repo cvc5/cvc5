@@ -140,7 +140,7 @@ add_custom_target(
   cvc5_python_api
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory
-    "${CVC5PythonicAPI_BASEDIR}/cvc5_z3py_compat"
+    "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
     "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
   DEPENDS cvc5_python_base CVC5PythonicAPI
 )
