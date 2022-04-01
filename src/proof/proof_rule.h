@@ -1610,8 +1610,8 @@ enum class PfRule : uint32_t
    * \dots)`.  In other words, :math:`R` is the reduction predicate for extended
    * term :math:`t`, and :math:`w` is :math:`skolem(t)`.
    *
-   *  Notice that the free variables of :math:`R` are :math:`w` and the free
-   *  variables of :math:`t`.
+   * Notice that the free variables of :math:`R` are :math:`w` and the free
+   * variables of :math:`t`.
    * \endverbatim
    */
   STRING_REDUCTION,
