@@ -96,25 +96,25 @@ class DatatypeTest
     dtdecls.add(tree);
     dtdecls.add(list);
 
-    AtomicReference<List<Sort>> atomic = new AtomicReference<>();
+    AtomicReference<Sort[]> atomic = new AtomicReference<>();
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
-    List<Sort> dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), dtdecls.size());
+    Sort[] dtsorts = atomic.get();
+    assertEquals(dtsorts.length, dtdecls.size());
     for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
     {
-      assertTrue(dtsorts.get(i).isDatatype());
-      assertFalse(dtsorts.get(i).getDatatype().isFinite());
-      assertEquals(dtsorts.get(i).getDatatype().getName(), dtdecls.get(i).getName());
+      assertTrue(dtsorts[i].isDatatype());
+      assertFalse(dtsorts[i].getDatatype().isFinite());
+      assertEquals(dtsorts[i].getDatatype().getName(), dtdecls.get(i).getName());
     }
     // verify the resolution was correct
-    Datatype dtTree = dtsorts.get(0).getDatatype();
+    Datatype dtTree = dtsorts[0].getDatatype();
     DatatypeConstructor dtcTreeNode = dtTree.getConstructor(0);
     assertEquals(dtcTreeNode.getName(), "node");
     DatatypeSelector dtsTreeNodeLeft = dtcTreeNode.getSelector(0);
     assertEquals(dtsTreeNodeLeft.getName(), "left");
     // argument type should have resolved to be recursive
     assertTrue(dtsTreeNodeLeft.getCodomainSort().isDatatype());
-    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts.get(0));
+    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
 
     // fails due to empty datatype
     List<DatatypeDecl> dtdeclsBad = new ArrayList<>();
@@ -150,26 +150,26 @@ class DatatypeTest
     dtdecls.add(tree);
     dtdecls.add(list);
 
-    AtomicReference<List<Sort>> atomic = new AtomicReference<>();
+    AtomicReference<Sort[]> atomic = new AtomicReference<>();
     assertDoesNotThrow(
         () -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
-    List<Sort> dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), dtdecls.size());
+    Sort[] dtsorts = atomic.get();
+    assertEquals(dtsorts.length, dtdecls.size());
     for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++) {
-      assertTrue(dtsorts.get(i).isDatatype());
-      assertFalse(dtsorts.get(i).getDatatype().isFinite());
+      assertTrue(dtsorts[i].isDatatype());
+      assertFalse(dtsorts[i].getDatatype().isFinite());
       assertEquals(
-          dtsorts.get(i).getDatatype().getName(), dtdecls.get(i).getName());
+          dtsorts[i].getDatatype().getName(), dtdecls.get(i).getName());
     }
     // verify the resolution was correct
-    Datatype dtTree = dtsorts.get(0).getDatatype();
+    Datatype dtTree = dtsorts[0].getDatatype();
     DatatypeConstructor dtcTreeNode = dtTree.getConstructor(0);
     assertEquals(dtcTreeNode.getName(), "node");
     DatatypeSelector dtsTreeNodeLeft = dtcTreeNode.getSelector(0);
     assertEquals(dtsTreeNodeLeft.getName(), "left");
     // argument type should have resolved to be recursive
     assertTrue(dtsTreeNodeLeft.getCodomainSort().isDatatype());
-    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts.get(0));
+    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
   }
 
   @Test
@@ -392,13 +392,13 @@ class DatatypeTest
     dtdecls.add(list);
     dtdecls.add(ns);
     // this is well-founded and has no nested recursion
-    AtomicReference<List<Sort>> atomic = new AtomicReference<>();
+    AtomicReference<Sort[]> atomic = new AtomicReference<>();
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
-    List<Sort> dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), 3);
-    assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(2).getDatatype().isWellFounded());
+    Sort[] dtsorts = atomic.get();
+    assertEquals(dtsorts.length, 3);
+    assertTrue(dtsorts[0].getDatatype().isWellFounded());
+    assertTrue(dtsorts[1].getDatatype().isWellFounded());
+    assertTrue(dtsorts[2].getDatatype().isWellFounded());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -421,17 +421,17 @@ class DatatypeTest
     // this is not well-founded due to non-simple recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), 1);
+    assertEquals(dtsorts.length, 1);
     assertTrue(
-        dtsorts.get(0).getDatatype().getConstructor(0).getSelector(0).getCodomainSort().isArray());
-    assertEquals(dtsorts.get(0)
+        dtsorts[0].getDatatype().getConstructor(0).getSelector(0).getCodomainSort().isArray());
+    assertEquals(dtsorts[0]
                      .getDatatype()
                      .getConstructor(0)
                      .getSelector(0)
                      .getCodomainSort()
                      .getArrayElementSort(),
-        dtsorts.get(0));
-    assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
+        dtsorts[0]);
+    assertTrue(dtsorts[0].getDatatype().isWellFounded());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -463,9 +463,9 @@ class DatatypeTest
     // both are well-founded and have nested recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), 2);
-    assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
+    assertEquals(dtsorts.length, 2);
+    assertTrue(dtsorts[0].getDatatype().isWellFounded());
+    assertTrue(dtsorts[1].getDatatype().isWellFounded());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -497,9 +497,9 @@ class DatatypeTest
     // both are well-founded and have nested recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), 2);
-    assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
+    assertEquals(dtsorts.length, 2);
+    assertTrue(dtsorts[0].getDatatype().isWellFounded());
+    assertTrue(dtsorts[1].getDatatype().isWellFounded());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -532,8 +532,8 @@ class DatatypeTest
     // well-founded and has nested recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), 1);
-    assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
+    assertEquals(dtsorts.length, 1);
+    assertTrue(dtsorts[0].getDatatype().isWellFounded());
   }
 
   @Test
@@ -567,17 +567,17 @@ class DatatypeTest
     dtdecls.add(plist);
 
     // make the datatype sorts
-    AtomicReference<List<Sort>> atomic = new AtomicReference<>();
+    AtomicReference<Sort[]> atomic = new AtomicReference<>();
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
-    List<Sort> dtsorts = atomic.get();
-    assertEquals(dtsorts.size(), 1);
-    Datatype d = dtsorts.get(0).getDatatype();
+    Sort[] dtsorts = atomic.get();
+    assertEquals(dtsorts.length, 1);
+    Datatype d = dtsorts[0].getDatatype();
     DatatypeConstructor nilc = d.getConstructor(0);
 
     Sort isort = d_solver.getIntegerSort();
     List<Sort> iargs = new ArrayList<>();
     iargs.add(isort);
-    Sort listInt = dtsorts.get(0).instantiate(iargs);
+    Sort listInt = dtsorts[0].instantiate(iargs);
 
     AtomicReference<Term> atomicTerm = new AtomicReference<>();
     // get the specialized constructor term for list[Int]
