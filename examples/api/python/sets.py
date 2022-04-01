@@ -49,7 +49,7 @@ if __name__ == "__main__":
     theorem = slv.mkTerm(Kind.EQUAL, LHs, rhs)
 
     print("cvc5 reports: {} is {}".format(
-        theorem, slv.checkSatAssuming(theorem.notTerm())))
+        theorem.notTerm(), slv.checkSatAssuming(theorem.notTerm())))
 
     # Verify emptset is a subset of any set
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     theorem = slv.mkTerm(Kind.SET_SUBSET, emptyset, A)
 
     print("cvc5 reports: {} is {}".format(
-        theorem, slv.checkSatAssuming(theorem.notTerm())))
+        theorem.notTerm(), slv.checkSatAssuming(theorem.notTerm())))
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
 

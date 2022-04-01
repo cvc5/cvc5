@@ -32,11 +32,11 @@ if __name__ == "__main__":
     x = slv.mkConst(slv.getStringSort(), "x")
 
     intersectionAC = slv.mkTerm(Kind.BAG_INTER_MIND, A, C)
-    intersectionBC = slv.mkTerm(Kind.BAG_INTER_MIND, B, C)
+    intersectionBC = slv.mkTerm(Kind.BAG_INTER_MIN, B, C)
 
     # union disjoint does not distribute over intersection
     unionDisjointAB = slv.mkTerm(Kind.BAG_UNION_DISJOINT, A, B)
-    lhs = slv.mkTerm(Kind.BAG_INTER_MIND, unionDisjointAB, C)
+    lhs = slv.mkTerm(Kind.BAG_INTER_MIN, unionDisjointAB, C)
     rhs = slv.mkTerm(Kind.BAG_UNION_DISJOINT, intersectionAC, intersectionBC)
     guess = slv.mkTerm(Kind.EQUAL, lhs, rhs)
     print("cvc5 reports: {} is {}".format(
