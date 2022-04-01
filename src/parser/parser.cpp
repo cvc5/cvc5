@@ -324,16 +324,19 @@ cvc5::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 
 cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 {
-  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name);
+  cvc5::Sort unresolved = d_solver->mkUninterpretedSort(name);
   defineType(name, unresolved);
+  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
 cvc5::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                size_t arity)
 {
-  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
+  cvc5::Sort unresolved =
+      d_solver->mkUninterpretedSortConstructorSort(arity, name);
   defineType(name, vector<cvc5::Sort>(arity), unresolved);
+  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
@@ -343,9 +346,10 @@ cvc5::Sort Parser::mkUnresolvedTypeConstructor(
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
   cvc5::Sort unresolved =
-      d_solver->mkUnresolvedDatatypeSort(name, params.size());
+      d_solver->mkUninterpretedSortConstructorSort(params.size(), name);
   defineType(name, params, unresolved);
   cvc5::Sort t = getSort(name, params);
+  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
@@ -358,11 +362,19 @@ cvc5::Sort Parser::mkUnresolvedType(const std::string& name, size_t arity)
   return mkUnresolvedTypeConstructor(name, arity);
 }
 
+bool Parser::isUnresolvedType(const std::string& name) {
+  if (!isDeclared(name, SYM_SORT)) {
+    return false;
+  }
+  return d_unresolved.find(getSort(name)) != d_unresolved.end();
+}
+
 std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
     std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload)
 {
   try {
-    std::vector<cvc5::Sort> types = d_solver->mkDatatypeSorts(datatypes);
+    std::vector<cvc5::Sort> types =
+        d_solver->mkDatatypeSorts(datatypes, d_unresolved);
 
     Assert(datatypes.size() == types.size());
 
@@ -429,6 +441,11 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         }
       }
     }
+
+    // These are no longer used, and the ExprManager would have
+    // complained of a bad substitution if anything is left unresolved.
+    // Clear out the set.
+    d_unresolved.clear();
 
     // throw exception if any datatype is not well-founded
     for (unsigned i = 0; i < datatypes.size(); ++i) {
