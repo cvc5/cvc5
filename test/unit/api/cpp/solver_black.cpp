@@ -19,9 +19,7 @@
 #include "base/output.h"
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -239,22 +237,23 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
 
 TEST_F(TestApiBlackSolver, mkFunctionSort)
 {
-  ASSERT_NO_THROW(d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  ASSERT_NO_THROW(d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                           d_solver.getIntegerSort()));
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   // function arguments are allowed
-  ASSERT_NO_THROW(d_solver.mkFunctionSort(funSort, d_solver.getIntegerSort()));
+  ASSERT_NO_THROW(
+      d_solver.mkFunctionSort({funSort}, d_solver.getIntegerSort()));
   // non-first-class arguments are not allowed
   Sort reSort = d_solver.getRegExpSort();
-  ASSERT_THROW(d_solver.mkFunctionSort(reSort, d_solver.getIntegerSort()),
+  ASSERT_THROW(d_solver.mkFunctionSort({reSort}, d_solver.getIntegerSort()),
                CVC5ApiException);
-  ASSERT_THROW(d_solver.mkFunctionSort(d_solver.getIntegerSort(), funSort),
+  ASSERT_THROW(d_solver.mkFunctionSort({d_solver.getIntegerSort()}, funSort),
                CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkFunctionSort(
       {d_solver.mkUninterpretedSort("u"), d_solver.getIntegerSort()},
       d_solver.getIntegerSort()));
-  Sort funSort2 = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort2 = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                           d_solver.getIntegerSort());
   // function arguments are allowed
   ASSERT_NO_THROW(
@@ -266,10 +265,10 @@ TEST_F(TestApiBlackSolver, mkFunctionSort)
                CVC5ApiException);
 
   Solver slv;
-  ASSERT_THROW(slv.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  ASSERT_THROW(slv.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                   d_solver.getIntegerSort()),
                CVC5ApiException);
-  ASSERT_THROW(slv.mkFunctionSort(slv.mkUninterpretedSort("u"),
+  ASSERT_THROW(slv.mkFunctionSort({slv.mkUninterpretedSort("u")},
                                   d_solver.getIntegerSort()),
                CVC5ApiException);
   std::vector<Sort> sorts1 = {d_solver.getBooleanSort(),
@@ -293,7 +292,7 @@ TEST_F(TestApiBlackSolver, mkPredicateSort)
 {
   ASSERT_NO_THROW(d_solver.mkPredicateSort({d_solver.getIntegerSort()}));
   ASSERT_THROW(d_solver.mkPredicateSort({}), CVC5ApiException);
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   // functions as arguments are allowed
   ASSERT_NO_THROW(
@@ -363,16 +362,16 @@ TEST_F(TestApiBlackSolver, mkUnresolvedSort)
 
 TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)
 {
-  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("s", 2));
-  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("", 2));
-  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort("", 0),
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort(2, "s"));
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort(2, ""));
+  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort(0),
                CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkTupleSort)
 {
   ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort()}));
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   ASSERT_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}),
                CVC5ApiException);
@@ -433,7 +432,7 @@ TEST_F(TestApiBlackSolver, mkVar)
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
-  Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
+  Sort funSort = d_solver.mkFunctionSort({intSort}, boolSort);
   ASSERT_NO_THROW(d_solver.mkVar(boolSort));
   ASSERT_NO_THROW(d_solver.mkVar(funSort));
   ASSERT_NO_THROW(d_solver.mkVar(boolSort, std::string("b")));
@@ -965,7 +964,7 @@ TEST_F(TestApiBlackSolver, mkConst)
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
-  Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
+  Sort funSort = d_solver.mkFunctionSort({intSort}, boolSort);
   ASSERT_NO_THROW(d_solver.mkConst(boolSort));
   ASSERT_NO_THROW(d_solver.mkConst(funSort));
   ASSERT_NO_THROW(d_solver.mkConst(boolSort, std::string("b")));
@@ -1037,7 +1036,7 @@ TEST_F(TestApiBlackSolver, declareDatatype)
 TEST_F(TestApiBlackSolver, declareFun)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   ASSERT_NO_THROW(d_solver.declareFun("f1", {}, bvSort));
   ASSERT_NO_THROW(
@@ -1075,7 +1074,7 @@ TEST_F(TestApiBlackSolver, defineSort)
 TEST_F(TestApiBlackSolver, defineFun)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
   Term b1 = d_solver.mkVar(bvSort, "b1");
   Term b2 = d_solver.mkVar(d_solver.getIntegerSort(), "b2");
@@ -1130,7 +1129,7 @@ TEST_F(TestApiBlackSolver, defineFunRec)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort1 = d_solver.mkFunctionSort({bvSort, bvSort}, bvSort);
-  Sort funSort2 = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+  Sort funSort2 = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                           d_solver.getIntegerSort());
   Term b1 = d_solver.mkVar(bvSort, "b1");
   Term b11 = d_solver.mkVar(bvSort, "b1");
@@ -1193,7 +1192,7 @@ TEST_F(TestApiBlackSolver, defineFunRecWrongLogic)
 TEST_F(TestApiBlackSolver, defineFunRecGlobal)
 {
   Sort bSort = d_solver.getBooleanSort();
-  Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
+  Sort fSort = d_solver.mkFunctionSort({bSort}, bSort);
 
   d_solver.push();
   Term bTrue = d_solver.mkBoolean(true);
@@ -1220,7 +1219,7 @@ TEST_F(TestApiBlackSolver, defineFunsRec)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort1 = d_solver.mkFunctionSort({bvSort, bvSort}, bvSort);
-  Sort funSort2 = d_solver.mkFunctionSort(uSort, d_solver.getIntegerSort());
+  Sort funSort2 = d_solver.mkFunctionSort({uSort}, d_solver.getIntegerSort());
   Term b1 = d_solver.mkVar(bvSort, "b1");
   Term b11 = d_solver.mkVar(bvSort, "b1");
   Term b2 = d_solver.mkVar(d_solver.getIntegerSort(), "b2");
@@ -1250,7 +1249,7 @@ TEST_F(TestApiBlackSolver, defineFunsRec)
   Sort uSort2 = slv.mkUninterpretedSort("u");
   Sort bvSort2 = slv.mkBitVectorSort(32);
   Sort funSort12 = slv.mkFunctionSort({bvSort2, bvSort2}, bvSort2);
-  Sort funSort22 = slv.mkFunctionSort(uSort2, slv.getIntegerSort());
+  Sort funSort22 = slv.mkFunctionSort({uSort2}, slv.getIntegerSort());
   Term b12 = slv.mkVar(bvSort2, "b1");
   Term b112 = slv.mkVar(bvSort2, "b1");
   Term b42 = slv.mkVar(uSort2, "b4");
@@ -1282,7 +1281,7 @@ TEST_F(TestApiBlackSolver, defineFunsRecWrongLogic)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort1 = d_solver.mkFunctionSort({bvSort, bvSort}, bvSort);
-  Sort funSort2 = d_solver.mkFunctionSort(uSort, d_solver.getIntegerSort());
+  Sort funSort2 = d_solver.mkFunctionSort({uSort}, d_solver.getIntegerSort());
   Term b = d_solver.mkVar(bvSort, "b");
   Term u = d_solver.mkVar(uSort, "u");
   Term v1 = d_solver.mkConst(bvSort, "v1");
@@ -1296,7 +1295,7 @@ TEST_F(TestApiBlackSolver, defineFunsRecWrongLogic)
 TEST_F(TestApiBlackSolver, defineFunsRecGlobal)
 {
   Sort bSort = d_solver.getBooleanSort();
-  Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
+  Sort fSort = d_solver.mkFunctionSort({bSort}, bSort);
 
   d_solver.push();
   Term bTrue = d_solver.mkBoolean(true);
@@ -1540,7 +1539,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
   }
   {
-    api::OptionInfo info = d_solver.getOptionInfo("verbose");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("verbose");
     EXPECT_EQ("verbose", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
@@ -1550,7 +1549,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // bool type with default
-    api::OptionInfo info = d_solver.getOptionInfo("print-success");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("print-success");
     EXPECT_EQ("print-success", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(
@@ -1566,7 +1565,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // int64 type with default
-    api::OptionInfo info = d_solver.getOptionInfo("verbosity");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("verbosity");
     EXPECT_EQ("verbosity", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
@@ -1582,7 +1581,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // uint64 type with default
-    api::OptionInfo info = d_solver.getOptionInfo("rlimit");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("rlimit");
     EXPECT_EQ("rlimit", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
@@ -1600,9 +1599,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto info = d_solver.getOptionInfo("random-freq");
     ASSERT_EQ(info.name, "random-freq");
     ASSERT_EQ(info.aliases, std::vector<std::string>{"random-frequency"});
-    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::NumberInfo<double>>(
+    ASSERT_TRUE(std::holds_alternative<cvc5::OptionInfo::NumberInfo<double>>(
         info.valueInfo));
-    auto ni = std::get<api::OptionInfo::NumberInfo<double>>(info.valueInfo);
+    auto ni = std::get<cvc5::OptionInfo::NumberInfo<double>>(info.valueInfo);
     ASSERT_EQ(ni.currentValue, 0.0);
     ASSERT_EQ(ni.defaultValue, 0.0);
     ASSERT_TRUE(ni.minimum && ni.maximum);
@@ -1617,7 +1616,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // string type with default
-    api::OptionInfo info = d_solver.getOptionInfo("force-logic");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("force-logic");
     EXPECT_EQ("force-logic", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
@@ -1633,7 +1632,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // mode option
-    api::OptionInfo info = d_solver.getOptionInfo("simplification");
+    cvc5::OptionInfo info = d_solver.getOptionInfo("simplification");
     EXPECT_EQ("simplification", info.name);
     EXPECT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
@@ -1672,7 +1671,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
     Term t3 = d_solver.mkTerm(Kind::SELECT, {t2, t1});
     d_solver.checkSat();
   }
-  cvc5::api::Statistics stats = d_solver.getStatistics();
+  cvc5::Statistics stats = d_solver.getStatistics();
   {
     std::stringstream ss;
     ss << stats;
@@ -1712,7 +1711,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
     // check some basic utility methods
     EXPECT_TRUE(!(it == stats.end()));
     EXPECT_EQ(s.first, it->first);
-    if (s.first == "api::CONSTANT")
+    if (s.first == "cvc5::CONSTANT")
     {
       EXPECT_FALSE(s.second.isInternal());
       EXPECT_FALSE(s.second.isDefault());
@@ -1783,8 +1782,8 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
   Sort boolSort = d_solver.getBooleanSort();
-  Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
-  Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+  Sort uToIntSort = d_solver.mkFunctionSort({uSort}, intSort);
+  Sort intPredSort = d_solver.mkFunctionSort({intSort}, boolSort);
   std::vector<Term> uc;
 
   Term x = d_solver.mkConst(uSort, "x");
@@ -1815,7 +1814,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   {
     d_solver.assertFormula(t);
   }
-  cvc5::api::Result res = d_solver.checkSat();
+  cvc5::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
   ASSERT_NO_THROW(d_solver.getProof());
 }
@@ -1908,8 +1907,8 @@ TEST_F(TestApiBlackSolver, getValue3)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
   Sort boolSort = d_solver.getBooleanSort();
-  Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
-  Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+  Sort uToIntSort = d_solver.mkFunctionSort({uSort}, intSort);
+  Sort intPredSort = d_solver.mkFunctionSort({intSort}, boolSort);
   std::vector<Term> unsat_core;
 
   Term x = d_solver.mkConst(uSort, "x");
@@ -2083,7 +2082,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   solver->declareSepHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
-  Term heap = solver->mkTerm(cvc5::api::Kind::SEP_PTO, {p, x});
+  Term heap = solver->mkTerm(cvc5::Kind::SEP_PTO, {p, x});
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
   solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
@@ -2345,7 +2344,7 @@ TEST_F(TestApiBlackSolver, simplify)
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort funSort1 = d_solver.mkFunctionSort({bvSort, bvSort}, bvSort);
-  Sort funSort2 = d_solver.mkFunctionSort(uSort, d_solver.getIntegerSort());
+  Sort funSort2 = d_solver.mkFunctionSort({uSort}, d_solver.getIntegerSort());
   DatatypeDecl consListSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
@@ -2460,8 +2459,8 @@ TEST_F(TestApiBlackSolver, checkSatAssuming2)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
   Sort boolSort = d_solver.getBooleanSort();
-  Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
-  Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+  Sort uToIntSort = d_solver.mkFunctionSort({uSort}, intSort);
+  Sort intPredSort = d_solver.mkFunctionSort({intSort}, boolSort);
 
   Term n = Term();
   // Constants
@@ -2540,17 +2539,16 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   d_solver.setOption("sygus", "true");
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
-  Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
+  Sort funSort = d_solver.mkFunctionSort({intSort}, boolSort);
 
-  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort));
-  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort));
-  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort, std::string("b")));
-  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort, ""));
-  ASSERT_THROW(d_solver.declareSygusVar(Sort()), CVC5ApiException);
-  ASSERT_THROW(d_solver.declareSygusVar(d_solver.getNullSort(), "a"),
+  ASSERT_NO_THROW(d_solver.declareSygusVar("", boolSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar("", funSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(std::string("b"), boolSort));
+  ASSERT_THROW(d_solver.declareSygusVar("", Sort()), CVC5ApiException);
+  ASSERT_THROW(d_solver.declareSygusVar("a", d_solver.getNullSort()),
                CVC5ApiException);
   Solver slv;
-  ASSERT_THROW(slv.declareSygusVar(boolSort), CVC5ApiException);
+  ASSERT_THROW(slv.declareSygusVar("", boolSort), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkSygusGrammar)
@@ -2759,7 +2757,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
 
   ASSERT_THROW(d_solver.getSynthSolution(f), CVC5ApiException);
 
-  cvc5::api::SynthResult sr = d_solver.checkSynth();
+  cvc5::SynthResult sr = d_solver.checkSynth();
   ASSERT_EQ(sr.hasSolution(), true);
 
   ASSERT_NO_THROW(d_solver.getSynthSolution(f));
@@ -2803,7 +2801,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
-  cvc5::api::SynthResult sr = d_solver.checkSynth();
+  cvc5::SynthResult sr = d_solver.checkSynth();
   ASSERT_EQ(sr.hasSolution(), true);
   ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
   sr = d_solver.checkSynthNext();
@@ -2882,7 +2880,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
   }
 
   ASSERT_EQ(
-      "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton "
+      "((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton "
       "\"Z\")))",
       projection.toString());
 }
@@ -2892,16 +2890,16 @@ TEST_F(TestApiBlackSolver, Output)
   ASSERT_THROW(d_solver.isOutputOn("foo-invalid"), CVC5ApiException);
   ASSERT_THROW(d_solver.getOutput("foo-invalid"), CVC5ApiException);
   ASSERT_FALSE(d_solver.isOutputOn("inst"));
-  ASSERT_EQ(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  ASSERT_EQ(null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
   d_solver.setOption("output", "inst");
   ASSERT_TRUE(d_solver.isOutputOn("inst"));
-  ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  ASSERT_NE(null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
 }
 
 TEST_F(TestApiBlackSolver, issue7000)
 {
   Sort s1 = d_solver.getIntegerSort();
-  Sort s2 = d_solver.mkFunctionSort(s1, s1);
+  Sort s2 = d_solver.mkFunctionSort({s1}, s1);
   Sort s3 = d_solver.getRealSort();
   Term t4 = d_solver.mkPi();
   Term t7 = d_solver.mkConst(s3, "_x5");
@@ -3161,7 +3159,8 @@ TEST_F(TestApiBlackSolver, proj_issue420)
   Sort s5 = slv.mkSequenceSort(s2);
   Term t3 = slv.mkConst(s5, "_x18");
   Term t7 = slv.mkConst(s4, "_x22");
-  Term t13 = slv.mkTerm(Kind::DT_SIZE, {t7});
+  // was initially a dt size application
+  Term t13 = slv.mkConst(slv.getIntegerSort(), "t13");
   Term t53 = slv.mkTerm(Kind::SEQ_NTH, {t3, t13});
   ASSERT_NO_THROW(slv.checkSat());
   ASSERT_NO_THROW(slv.blockModelValues({t53, t7}));
@@ -3380,4 +3379,4 @@ TEST_F(TestApiBlackSolver, projIssue337)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

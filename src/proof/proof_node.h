@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class ProofNode;
@@ -143,6 +143,6 @@ inline size_t ProofNodeHashFunction::operator()(
  */
 std::ostream& operator<<(std::ostream& out, const ProofNode& pn);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_NODE_H */

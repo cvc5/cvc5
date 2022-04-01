@@ -28,17 +28,14 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-
-ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
-  d_minMap(userContext),
-  d_maxMap(userContext),
-  d_statistics()
+ArithStaticLearner::ArithStaticLearner(context::Context* userContext)
+    : d_minMap(userContext), d_maxMap(userContext), d_statistics()
 {
 }
 
@@ -271,4 +268,4 @@ void ArithStaticLearner::addBound(TNode n) {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -16,6 +16,6 @@
 (assert (bag.member y B))
 (assert (bag.member z C))
 
-(assert (distinct x y ((_ tuple_project 0 1 2) z) ((_ tuple_project 3 4 5) z)))
+(assert (distinct x y ((_ tuple.project 0 1 2) z) ((_ tuple.project 3 4 5) z)))
 
 (check-sat)

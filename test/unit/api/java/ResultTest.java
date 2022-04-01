@@ -17,7 +17,7 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,17 +26,20 @@ class ResultTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void isNull()
+  @Test
+  void isNull()
   {
     Result res_null = d_solver.getNullResult();
     assertTrue(res_null.isNull());
@@ -50,9 +53,10 @@ class ResultTest
     assertFalse(res.isNull());
   }
 
-  @Test void eq()
+  @Test
+  void eq()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
+    Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res;
@@ -63,7 +67,8 @@ class ResultTest
     assertEquals(res3, res2);
   }
 
-  @Test void isSat()
+  @Test
+  void isSat()
   {
     Sort u_sort = d_solver.mkUninterpretedSort("u");
     Term x = d_solver.mkConst(u_sort, "x");
@@ -73,9 +78,10 @@ class ResultTest
     assertFalse(res.isUnknown());
   }
 
-  @Test void isUnsat()
+  @Test
+  void isUnsat()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
+    Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
@@ -84,7 +90,8 @@ class ResultTest
   }
 
   @Test
-  void isUnknown() throws CVC5ApiException {
+  void isUnknown() throws CVC5ApiException
+  {
     d_solver.setLogic("QF_NIA");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("solve-int-as-bv", "32");

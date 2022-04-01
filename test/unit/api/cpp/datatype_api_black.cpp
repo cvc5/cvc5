@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -483,7 +481,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresList5 = d_solver.mkUninterpretedSortConstructorSort("list5", 1);
+  Sort unresList5 = d_solver.mkUninterpretedSortConstructorSort(1, "list5");
   unresTypes.insert(unresList5);
 
   std::vector<Sort> v;
@@ -522,7 +520,7 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
    */
   // Make unresolved types as placeholders
   std::set<Sort> unresTypes;
-  Sort unresList = d_solver.mkUninterpretedSortConstructorSort("plist", 1);
+  Sort unresList = d_solver.mkUninterpretedSortConstructorSort(1, "plist");
   unresTypes.insert(unresList);
 
   std::vector<Sort> v;
@@ -568,4 +566,4 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   ASSERT_THROW(nilc.getInstantiatedConstructorTerm(isort), CVC5ApiException);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

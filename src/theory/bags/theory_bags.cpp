@@ -25,9 +25,9 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -117,7 +117,13 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node, "bagChoose");
+  // the skolem will occur in a term context, thus we give it Boolean
+  // term variable kind immediately.
+  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
+                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                         : SkolemManager::SKOLEM_DEFAULT;
+  Node x = sm->mkPurifySkolem(
+      node, "bagChoose", "a variable used to eliminate bag choose", flags);
   Node A = node[0];
   TypeNode bagType = A.getType();
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
@@ -598,4 +604,4 @@ void TheoryBags::NotifyClass::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

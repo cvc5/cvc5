@@ -31,7 +31,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofGenerator;
 class ProofNode;
@@ -261,6 +261,6 @@ class CircuitPropagator : protected EnvObj
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

@@ -26,10 +26,10 @@
 #include "util/random.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -144,6 +144,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
                                          Node alit,
                                          CegInstEffort effort)
 {
+  Trace("cegqi-arith-debug") << "Process assertion " << lit << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
@@ -828,9 +829,10 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     return CEG_TT_INVALID;
   }
   // if its type is integer but the substitution is not integer
+  Node vval = mkVtsSum(val, vts_coeff[0], vts_coeff[1]);
   if (pvtn.isInteger()
       && ((!veq_c.isNull() && !veq_c.getType().isInteger())
-          || !val.getType().isInteger()))
+          || !vval.getType().isInteger()))
   {
     // redo, split integer/non-integer parts
     bool useCoeff = false;
@@ -985,20 +987,28 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     val = rewrite(val);
     Trace("cegqi-arith-bound2") << "(after rho) : " << val << std::endl;
   }
+  return mkVtsSum(val, inf_coeff, delta_coeff);
+}
+
+Node ArithInstantiator::mkVtsSum(const Node& val,
+                                 const Node& inf_coeff,
+                                 const Node& delta_coeff)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node vval = val;
   if (!inf_coeff.isNull())
   {
     Assert(!d_vts_sym[0].isNull());
-    val = nm->mkNode(ADD, val, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
-    val = rewrite(val);
+    vval = nm->mkNode(ADD, vval, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
   }
   if (!delta_coeff.isNull())
   {
     // create delta here if necessary
-    val = nm->mkNode(
-        ADD, val, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
-    val = rewrite(val);
+    vval = nm->mkNode(
+        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
   }
-  return val;
+  vval = rewrite(vval);
+  return vval;
 }
 
 Node ArithInstantiator::negate(const Node& t) const
@@ -1010,4 +1020,4 @@ Node ArithInstantiator::negate(const Node& t) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -22,9 +22,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
@@ -453,4 +453,4 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   return n;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

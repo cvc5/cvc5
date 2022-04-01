@@ -13,7 +13,7 @@
  * A very simple CVC5 tutorial example.
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class HelloWorld
 {
@@ -23,8 +23,7 @@ public class HelloWorld
     {
       Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
 
-      System.out.println(
-          helloworld + " is " + slv.checkSatAssuming(helloworld));
+      System.out.println(helloworld + " is " + slv.checkSatAssuming(helloworld));
     }
   }
 }

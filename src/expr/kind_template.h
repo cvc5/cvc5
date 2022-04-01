@@ -23,7 +23,7 @@
 #include "base/exception.h"
 #include "theory/theory_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace kind {
 
 enum Kind_t
@@ -40,7 +40,7 @@ enum Kind_t
 
 // import Kind into the "cvc5" namespace but keep the individual kind
 // constants under kind::
-typedef ::cvc5::kind::Kind_t Kind;
+typedef cvc5::internal::kind::Kind_t Kind;
 
 namespace kind {
 
@@ -53,7 +53,7 @@ namespace kind {
  * @param k The kind
  * @return The name of the kind
  */
-const char* toString(cvc5::Kind k);
+const char* toString(cvc5::internal::Kind k);
 
 /**
  * Writes a kind name to a stream.
@@ -62,18 +62,18 @@ const char* toString(cvc5::Kind k);
  * @param k The kind to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream&, cvc5::Kind);
+std::ostream& operator<<(std::ostream&, cvc5::internal::Kind);
 
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
 /* TODO: This could be generated. */
-bool isAssociative(::cvc5::Kind k);
-std::string kindToString(::cvc5::Kind k);
+bool isAssociative(cvc5::internal::Kind k);
+std::string kindToString(cvc5::internal::Kind k);
 
 struct KindHashFunction
 {
-  inline size_t operator()(::cvc5::Kind k) const { return k; }
+  inline size_t operator()(cvc5::internal::Kind k) const { return k; }
 }; /* struct KindHashFunction */
 
 }  // namespace kind
@@ -101,11 +101,11 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-::cvc5::theory::TheoryId kindToTheoryId(::cvc5::Kind k);
-::cvc5::theory::TheoryId typeConstantToTheoryId(
-    ::cvc5::TypeConstant typeConstant);
+cvc5::internal::theory::TheoryId kindToTheoryId(cvc5::internal::Kind k);
+cvc5::internal::theory::TheoryId typeConstantToTheoryId(
+    cvc5::internal::TypeConstant typeConstant);
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__KIND_H */

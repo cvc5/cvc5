@@ -22,7 +22,7 @@
 #include "theory/sets/singleton_op.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -526,4 +526,4 @@ Node SetsProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

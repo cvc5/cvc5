@@ -26,7 +26,7 @@
 #include "theory/quantifiers/quant_bound_inference.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class RepSetIterator;
@@ -51,7 +51,8 @@ class BoundedIntegers : public QuantifiersModule
   typedef context::CDHashMap<Node, int> NodeIntMap;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
   typedef context::CDHashMap<int, bool> IntBoolMap;
-private:
+
+ private:
   //for determining bounds
   bool hasNonBoundVar( Node f, Node b, std::map< Node, bool >& visited );
   bool hasNonBoundVar( Node f, Node b );
@@ -254,6 +255,6 @@ private:
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

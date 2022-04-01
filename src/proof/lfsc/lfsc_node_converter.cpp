@@ -39,9 +39,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscNodeConverter::LfscNodeConverter()
@@ -118,8 +118,8 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester()
-        || tn.isUpdater())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // note these are not converted to their user named (cvc.) symbols here,
       // to avoid type errors when constructing terms for postConvert
@@ -562,7 +562,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       std::stringstream ss;
       options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
       tn.toStream(ss);
-      if (tn.isSort() || (tn.isDatatype() && !tn.isTuple()))
+      if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
@@ -728,12 +728,12 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
       // a skolem corresponding to shared selector should print in
       // LFSC as (sel T n) where T is the type and n is the index of the
       // shared selector.
-      TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(),
-                                          tn.getSelectorRangeType());
+      TypeNode fselt = nm->mkFunctionType(tn.getDatatypeSelectorDomainType(),
+                                          tn.getDatatypeSelectorRangeType());
       TypeNode intType = nm->integerType();
       TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
       Node sel = getSymbolInternal(k.getKind(), selt, "sel");
-      Node kn = typeAsNode(convertType(tn.getSelectorRangeType()));
+      Node kn = typeAsNode(convertType(tn.getDatatypeSelectorRangeType()));
       Assert(!cacheVal.isNull() && cacheVal.getKind() == CONST_RATIONAL);
       return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
     }
@@ -1200,4 +1200,4 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

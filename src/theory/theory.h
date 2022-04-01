@@ -39,7 +39,7 @@
 #include "theory/valuation.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class TheoryEngine;
@@ -99,7 +99,7 @@ namespace eq {
 class Theory : protected EnvObj
 {
   friend class CarePairArgumentCallback;
-  friend class ::cvc5::TheoryEngine;
+  friend class internal::TheoryEngine;
 
  protected:
   /** Name of this theory instance. Along with the TheoryId this should
@@ -843,7 +843,7 @@ class Theory : protected EnvObj
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
 
 inline std::ostream& operator<<(std::ostream& out,
-                                const cvc5::theory::Theory& theory)
+                                const cvc5::internal::theory::Theory& theory)
 {
   return out << theory.identify();
 }
@@ -863,6 +863,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_H */

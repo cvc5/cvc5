@@ -20,7 +20,7 @@
 
 #include "proof/proof_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 
@@ -41,6 +41,6 @@ class AssumptionProofGenerator : public ProofGenerator
   ProofNodeManager* d_pnm;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__ASSUMPTION_PROOF_GENERATOR_H */

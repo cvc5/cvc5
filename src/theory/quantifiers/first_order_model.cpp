@@ -24,10 +24,10 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -157,7 +157,7 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
 bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
 {
   RepSet* rs = d_model->getRepSetPtr();
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     // must ensure uninterpreted type is non-empty.
     if (!rs->hasType(tn))
@@ -383,4 +383,4 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

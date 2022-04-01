@@ -300,10 +300,10 @@ def test_mk_unresolved_sort(solver):
 
 
 def test_mk_sort_constructor_sort(solver):
-    solver.mkUninterpretedSortConstructorSort("s", 2)
-    solver.mkUninterpretedSortConstructorSort("", 2)
+    solver.mkUninterpretedSortConstructorSort(2, "s")
+    solver.mkUninterpretedSortConstructorSort(2)
     with pytest.raises(RuntimeError):
-        solver.mkUninterpretedSortConstructorSort("", 0)
+        solver.mkUninterpretedSortConstructorSort(0)
 
 
 def test_mk_tuple_sort(solver):
@@ -1600,6 +1600,7 @@ def test_block_model3(solver):
     with pytest.raises(RuntimeError):
         solver.blockModel()
 
+
 def test_block_model4(solver):
     solver.setOption("produce-models", "true")
     solver.setOption("block-models", "literals")
@@ -1664,7 +1665,7 @@ def test_get_statistics(solver):
     solver.assertFormula(f1)
     solver.checkSat()
     s = solver.getStatistics()
-    assert s['api::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s['cvc5::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):
@@ -1966,6 +1967,20 @@ def test_add_sygus_constraint(solver):
     with pytest.raises(RuntimeError):
         slv.addSygusConstraint(boolTerm)
 
+def test_add_sygus_assume(solver):
+    solver.setOption("sygus", "true")
+    nullTerm = cvc5.Term(solver)
+    boolTerm = solver.mkBoolean(False)
+    intTerm = solver.mkInteger(1)
+    solver.addSygusAssume(boolTerm)
+    with pytest.raises(RuntimeError):
+        solver.addSygusAssume(nullTerm)
+    with pytest.raises(RuntimeError):
+        solver.addSygusAssume(intTerm)
+    slv = cvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.addSygusAssume(boolTerm)
+
 
 def test_add_sygus_inv_constraint(solver):
     solver.setOption("sygus", "true")
@@ -2265,6 +2280,20 @@ def test_get_model_domain_elements(solver):
     with pytest.raises(RuntimeError):
         solver.getModelDomainElements(intSort)
 
+def test_get_model_domain_elements2(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("finite-model-find", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkVar(uSort, "x")
+    y = solver.mkVar(uSort, "y")
+    eq = solver.mkTerm(Kind.Equal, x, y)
+    bvl = solver.mkTerm(Kind.VariableList, x, y)
+    f = solver.mkTerm(Kind.Forall, bvl, eq)
+    solver.assertFormula(f)
+    solver.checkSat()
+    solver.getModelDomainElements(uSort)
+    assert len(solver.getModelDomainElements(uSort)) == 1
+
 
 def test_get_synth_solutions(solver):
     solver.setOption("sygus", "true")
@@ -2485,18 +2514,17 @@ def test_mk_sygus_var(solver):
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort(intSort, boolSort)
 
-    solver.declareSygusVar(boolSort)
-    solver.declareSygusVar(funSort)
-    solver.declareSygusVar(boolSort, "b")
-    solver.declareSygusVar(funSort, "")
+    solver.declareSygusVar("", boolSort)
+    solver.declareSygusVar("", funSort)
+    solver.declareSygusVar("b", boolSort)
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar(cvc5.Sort(solver))
+        solver.declareSygusVar("", cvc5.Sort(solver))
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar(solver.getNullSort(), "a")
+        solver.declareSygusVar("a", solver.getNullSort())
     slv = cvc5.Solver()
     solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
-        slv.declareSygusVar(boolSort)
+        slv.declareSygusVar("", boolSort)
 
 
 def test_synth_fun(solver):
@@ -2585,5 +2613,104 @@ def test_tuple_project(solver):
         simplifiedTerm = solver.simplify(selectedTerm)
         assert elements[i] == simplifiedTerm
 
-        assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
+        assert "((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
             projection)
+
+
+
+def test_get_data_type_arity(solver):
+  ctor1 = solver.mkDatatypeConstructorDecl("_x21");
+  ctor2 = solver.mkDatatypeConstructorDecl("_x31");
+  s3 = solver.declareDatatype("_x17", [ctor1, ctor2]);
+  assert s3.getDatatypeArity() == 0
+
+
+def test_get_difficulty(solver):
+  solver.setOption("produce-difficulty", "true")
+  # cannot ask before a check sat
+  with pytest.raises(RuntimeError):
+      solver.getDifficulty()
+  solver.checkSat()
+  solver.getDifficulty()
+
+def test_get_difficulty2(solver):
+  solver.checkSat()
+  with pytest.raises(RuntimeError):
+  # option is not set
+      solver.getDifficulty()
+
+def test_get_difficulty3(solver):
+  solver.setOption("produce-difficulty", "true")
+  intSort = solver.getIntegerSort()
+  x = solver.mkConst(intSort, "x")
+  zero = solver.mkInteger(0)
+  ten = solver.mkInteger(10)
+  f0 = solver.mkTerm(Kind.Geq, x, ten)
+  f1 = solver.mkTerm(Kind.Geq, zero, x)
+  solver.checkSat()
+  dmap = solver.getDifficulty()
+  # difficulty should map assertions to integer values
+  for key, value in dmap.items():
+    assert key == f0 or key == f1
+    assert value.getKind() == Kind.CONST_RATIONAL
+
+def test_get_model(solver):
+    solver.setOption("produce-models", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    z = solver.mkConst(uSort, "z")
+    f = solver.mkTerm(Kind.Not, solver.mkTerm(Kind.Equal, x, y));
+    solver.assertFormula(f)
+    solver.checkSat()
+    sorts = [uSort]
+    terms = [x, y]
+    solver.getModel(sorts, terms)
+    null = cvc5.Term(solver)
+    terms += [null]
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+def test_get_model2(solver):
+    solver.setOption("produce-models", "true")
+    sorts = []
+    terms = []
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+def test_get_model_3(solver):
+    solver.setOption("produce-models", "true")
+    sorts = []
+    terms = []
+    solver.checkSat()
+    solver.getModel(sorts, terms)
+    integer = solver.getIntegerSort()
+    sorts += [integer]
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+def test_get_option_names(solver):
+    names = solver.getOptionNames()
+    assert len(names) > 100
+    assert "verbose" in names
+    assert "foobar" not in names
+
+def test_get_quantifier_elimination(solver):
+    x = solver.mkVar(solver.getBooleanSort(), "x")
+    forall = solver.mkTerm(Kind.Forall, solver.mkTerm(Kind.VariableList, x), solver.mkTerm(Kind.Or, x, solver.mkTerm(Kind.Not, x)))
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierElimination(cvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierElimination(cvc5.Solver().mkBoolean(False))
+    solver.getQuantifierElimination(forall)
+
+def test_get_quantifier_elimination_disjunct(solver):
+    x = solver.mkVar(solver.getBooleanSort(), "x")
+    forall = solver.mkTerm(Kind.Forall, solver.mkTerm(Kind.VariableList, x), solver.mkTerm(Kind.Or, x, solver.mkTerm(Kind.Not, x)))
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierEliminationDisjunct(cvc5.Term(solver))
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierEliminationDisjunct(cvc5.Solver().mkBoolean(False))
+    solver.getQuantifierEliminationDisjunct(forall)
+    
+

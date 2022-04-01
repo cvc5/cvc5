@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -30,7 +28,7 @@ TEST_F(TestApiWhiteTerm, getOp)
   Sort intsort = d_solver.getIntegerSort();
   Sort bvsort = d_solver.mkBitVectorSort(8);
   Sort arrsort = d_solver.mkArraySort(bvsort, intsort);
-  Sort funsort = d_solver.mkFunctionSort(intsort, bvsort);
+  Sort funsort = d_solver.mkFunctionSort({intsort}, bvsort);
 
   Term x = d_solver.mkConst(intsort, "x");
   Term a = d_solver.mkConst(arrsort, "a");
@@ -82,4 +80,4 @@ TEST_F(TestApiWhiteTerm, getOp)
   ASSERT_EQ(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -30,12 +30,13 @@
 #include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class TheoryEngine;
 
-class SharedTermsDatabase : public context::ContextNotifyObj {
+class SharedTermsDatabase : public context::ContextNotifyObj
+{
  public:
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
@@ -276,4 +277,4 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   ProofNodeManager* d_pnm;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

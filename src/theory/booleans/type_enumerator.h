@@ -22,7 +22,7 @@
 #include "expr/type_node.h"
 #include "expr/kind.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -64,6 +64,6 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BOOLEANS__TYPE_ENUMERATOR_H */

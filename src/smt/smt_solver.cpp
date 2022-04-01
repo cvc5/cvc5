@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
@@ -134,8 +134,9 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     ResourceManager* rm = d_env.getResourceManager();
     if (rm->out())
     {
-      Result::UnknownExplanation why =
-          rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
+      UnknownExplanation why = rm->outOfResources()
+                                   ? UnknownExplanation::RESOURCEOUT
+                                   : UnknownExplanation::TIMEOUT;
       result = Result(Result::UNKNOWN, why);
     }
     else
@@ -163,7 +164,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
            || d_env.getOptions().smt.solveIntAsBV > 0)
           && result.getStatus() == Result::UNSAT)
       {
-        result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
+        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
       }
       // flipped if we did a global negation
       if (as.isGlobalNegated())
@@ -188,7 +189,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
           }
           else
           {
-            result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
+            result =
+                Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
           }
         }
         Trace("smt") << "SmtSolver::global negate returned " << result
@@ -265,4 +267,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

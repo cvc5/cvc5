@@ -102,8 +102,8 @@ autosectionlabel_prefix_document = True
 # -- core extension:: sphinx.ext.extlinks ------------------------------------
 
 extlinks = {
-        'cvc5src': ('https://github.com/cvc5/cvc5/blob/master/src/%s', '%s'),
-        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/master/%s', '%s'),
+        'cvc5src': ('https://github.com/cvc5/cvc5/blob/main/src/%s', '%s'),
+        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/main/%s', '%s'),
 }
 
 
@@ -133,7 +133,7 @@ mathjax3_config = {
 # -- extension:: breathe -----------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
-cpp_index_common_prefix = ["cvc5::api::"]
+cpp_index_common_prefix = ["cvc5::"]
 
 
 # -- extension:: sphinxcontrib.bibtex ----------------------------------------
@@ -147,6 +147,11 @@ bibtex_bibfiles = ['references.bib']
 examples_types = {
         '\.cpp$': {
                 'title': 'C++',
+                'lang': 'c++',
+                'group': 'c++'
+        },
+        '\.h$': {
+                'title': 'C++ (header)',
                 'lang': 'c++',
                 'group': 'c++'
         },
@@ -180,7 +185,7 @@ examples_types = {
 examples_file_patterns = {
         '^<examples>(.*)': {
                 'local': '/../examples{}',
-                'url': 'https://github.com/cvc5/cvc5/tree/master/examples{}',
+                'url': 'https://github.com/cvc5/cvc5/tree/main/examples{}',
                 'urlname': 'examples{}',
         },
         '<z3pycompat>(.*)': {

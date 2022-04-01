@@ -24,7 +24,7 @@
 #include "options/smt_options.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace theory {
 class TheoryModel;
@@ -72,6 +72,6 @@ class ModelBlocker : protected EnvObj
       const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* __CVC5__THEORY__MODEL_BLOCKER_H */

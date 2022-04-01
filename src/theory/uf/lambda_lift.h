@@ -26,7 +26,7 @@
 #include "smt/env_obj.h"
 #include "theory/skolem_lemma.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -94,6 +94,6 @@ class LambdaLift : protected EnvObj
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__UF__LAMBDA_LIFT_H */

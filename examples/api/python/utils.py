@@ -28,8 +28,7 @@ def define_fun_to_string(f, params, body):
     sort = f.getSort()
     if sort.isFunction():
         sort = f.getSort().getFunctionCodomainSort()
-    result = ""
-    result += "(define-fun " + str(f) + " ("
+    result = "(define-fun " + str(f) + " ("
     for i in range(0, len(params)):
         if i > 0:
             result += " "
@@ -44,11 +43,13 @@ def define_fun_to_string(f, params, body):
 
 
 def print_synth_solutions(terms, sols):
-    result = ""
+    result = "(\n"
     for i in range(0, len(terms)):
         params = []
+        body = sols[i]
         if sols[i].getKind() == Kind.Lambda:
             params += sols[i][0]
             body = sols[i][1]
         result += "  " + define_fun_to_string(terms[i], params, body) + "\n"
+    result += ")"
     print(result)

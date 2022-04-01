@@ -23,7 +23,7 @@
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class SkolemLemma;
@@ -90,6 +90,6 @@ class ArithPreprocess : protected EnvObj
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -19,9 +19,9 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -146,4 +146,4 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

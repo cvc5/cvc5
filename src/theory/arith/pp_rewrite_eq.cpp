@@ -20,7 +20,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -58,4 +58,4 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

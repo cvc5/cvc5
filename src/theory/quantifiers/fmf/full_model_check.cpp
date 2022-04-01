@@ -31,10 +31,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -65,7 +65,8 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
         return true;
       }
     }
-    if( c[index].getType().isSort() ){
+    if (c[index].getType().isUninterpretedSort())
+    {
       //for star: check if all children are defined and have generalizations
       if (c[index] == st)
       {  /// option fmfFmcCoverSimplify
@@ -371,7 +372,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
        it != rs->d_type_reps.end();
        ++it)
   {
-    if( it->first.isSort() ){
+    if (it->first.isUninterpretedSort())
+    {
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
         Node r = m->getRepresentative(it->second[a]);
@@ -613,13 +615,16 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
   else
   {
     TypeNode tn = n.getType();
-    if( tn.isSort() && d_rep_ids.find(tn)!=d_rep_ids.end() ){
+    if (tn.isUninterpretedSort() && d_rep_ids.find(tn) != d_rep_ids.end())
+    {
       if (d_rep_ids[tn].find(n)!=d_rep_ids[tn].end()) {
         Trace(tr) << d_rep_ids[tn][n];
       }else{
         Trace(tr) << n;
       }
-    }else{
+    }
+    else
+    {
       Trace(tr) << n;
     }
   }
@@ -1059,7 +1064,8 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
     d.addEntry(fm, mkCond(cond), d_true);
   }else{
     TypeNode tn = eq[0].getType();
-    if( tn.isSort() ){
+    if (tn.isUninterpretedSort())
+    {
       int j = fm->getVariableId(f, eq[0]);
       int k = fm->getVariableId(f, eq[1]);
       const RepSet* rs = fm->getRepSet();
@@ -1076,7 +1082,9 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
         d.addEntry( fm, mkCond(cond), d_true);
       }
       d.addEntry( fm, mkCondDefault(fm, f), d_false);
-    }else{
+    }
+    else
+    {
       d.addEntry( fm, mkCondDefault(fm, f), Node::null());
     }
   }
@@ -1414,4 +1422,4 @@ bool FullModelChecker::isHandled(Node q) const
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

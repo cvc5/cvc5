@@ -36,9 +36,9 @@
 #include "util/cardinality.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -922,9 +922,9 @@ void TheorySep::conflict(TNode a, TNode b) {
   d_im.conflictEqConstantMerge(a, b);
 }
 
-
-TheorySep::HeapAssertInfo::HeapAssertInfo( context::Context* c ) : d_pto(c), d_has_neg_pto(c,false) {
-
+TheorySep::HeapAssertInfo::HeapAssertInfo(context::Context* c)
+    : d_pto(c), d_has_neg_pto(c, false)
+{
 }
 
 TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
@@ -1197,10 +1197,13 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
 
     //check whether monotonic (elements can be added to tn without effecting satisfiability)
     bool tn_is_monotonic = true;
-    if( tn.isSort() ){
+    if (tn.isUninterpretedSort())
+    {
       //TODO: use monotonicity inference
       tn_is_monotonic = !logicInfo().isQuantified();
-    }else{
+    }
+    else
+    {
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }
     //add a reference type for maximum occurrences of empty in a constraint
@@ -1819,4 +1822,4 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

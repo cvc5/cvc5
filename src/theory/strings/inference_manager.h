@@ -36,7 +36,7 @@
 #include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -266,6 +266,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -17,7 +17,7 @@
 
 #include "options/option_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, Language lang)
 {
@@ -64,4 +64,4 @@ Language toLanguage(const std::string& language)
 }
 
 }  // namespace language
-}  // namespace cvc5
+}  // namespace cvc5::internal

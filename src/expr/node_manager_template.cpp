@@ -44,9 +44,9 @@ ${metakind_includes}
 // clang-format off
 
 using namespace std;
-using namespace cvc5::expr;
+using namespace cvc5::internal::expr;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace {
 
@@ -407,7 +407,7 @@ void NodeManager::reclaimZombies()
       {
         // Destroy (call the destructor for) the C++ type representing
         // the constant in this NodeValue.  This is needed for
-        // e.g. cvc5::Rational, since it has a gmp internal
+        // e.g. cvc5::internal::Rational, since it has a gmp internal
         // representation that mallocs memory and should be cleaned
         // up.  (This won't delete a pointer value if used as a
         // constant, but then, you should probably use a smart-pointer
@@ -645,14 +645,14 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
     // first step, above).
-    if (ut.isSort())
+    if (ut.isUninterpretedSort())
     {
       placeholders.push_back(ut);
       replacements.push_back((*resolver).second);
     }
     else
     {
-      Assert(ut.isSortConstructor());
+      Assert(ut.isUninterpretedSortConstructor());
       paramTypes.push_back(ut);
       paramReplacements.push_back((*resolver).second);
     }
@@ -675,10 +675,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
+      Assert(c.isResolved() && testerType.isDatatypeTester()
+             && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
-      Assert(ctorType.isConstructor()
+      Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
              && ctorType.getRangeType() == ut)
           << "malformed constructor in datatype post-resolution";
@@ -687,12 +688,12 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
       {
         const DTypeSelector& a = c[j];
         TypeNode selectorType = a.getType();
-        Assert(a.isResolved() && selectorType.isSelector()
+        Assert(a.isResolved() && selectorType.isDatatypeSelector()
                && selectorType[0] == ut)
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
-        // cvc5::DType class, but this actually needs to be checked.
+        // cvc5::internal::DType class, but this actually needs to be checked.
         if (!selectorType.getRangeType().isFirstClass())
         {
           throw Exception(
@@ -1258,17 +1259,21 @@ Kind NodeManager::getKindForFunction(TNode fun)
   {
     return kind::APPLY_UF;
   }
-  else if (tn.isConstructor())
+  else if (tn.isDatatypeConstructor())
   {
     return kind::APPLY_CONSTRUCTOR;
   }
-  else if (tn.isSelector())
+  else if (tn.isDatatypeSelector())
   {
     return kind::APPLY_SELECTOR;
   }
-  else if (tn.isTester())
+  else if (tn.isDatatypeTester())
   {
     return kind::APPLY_TESTER;
+  }
+  else if (tn.isDatatypeUpdater())
+  {
+    return kind::APPLY_UPDATER;
   }
   return kind::UNDEFINED_KIND;
 }
@@ -1337,4 +1342,4 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
   return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

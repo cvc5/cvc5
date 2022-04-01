@@ -34,7 +34,7 @@ runs:
       run: |
         if [[ "${{ inputs.check-install }}" != "true" ]]; then exit 0; fi
         make -j${{ env.num_proc }} install
-        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
+        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::Solver s; return 0; }" > /tmp/test.cpp
         g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
       working-directory: ${{ inputs.build-dir }}
 

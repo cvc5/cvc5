@@ -25,9 +25,9 @@
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
@@ -123,8 +123,8 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
-    if (st.isConstructor() || st.isSelector() || st.isTester()
-        || st.isUpdater())
+    if (st.isDatatypeConstructor() || st.isDatatypeSelector()
+        || st.isDatatypeTester() || st.isDatatypeUpdater())
     {
       // constructors, selector, testers, updaters are defined by the datatype
       continue;
@@ -242,7 +242,7 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     os << "(declare ";
     printType(os, tn);
@@ -783,4 +783,4 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

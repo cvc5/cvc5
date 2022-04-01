@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -234,6 +234,6 @@ public:
 };/* class Valuation */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__VALUATION_H */
