@@ -1190,7 +1190,7 @@ cdef class Solver:
         """
             Create a constant representing the number Pi.
 
-            :return: A constant representing `Pi <cvc5.Kind.Pi>`.
+            :return: A constant representing :py:obj:`Pi <cvc5.Kind.Pi>`.
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPi()
