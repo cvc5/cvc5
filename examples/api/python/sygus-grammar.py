@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
   # add semantic constraints
   # (constraint (= (id1 x) (id2 x) (id3 x) (id4 x) x))
-  slv.addSygusConstraint(slv.mkTerm(Kind.And, [slv.mkTerm(Kind.Equal, id1_x, id2_x), slv.mkTerm(Kind.Equal, id1_x, id3_x), slv.mkTerm(Kind.Equal, id1_x, id4_x), slv.mkTerm(Kind.Equal, id1_x, varX)]))
+  slv.addSygusConstraint(slv.mkTerm(Kind.And, slv.mkTerm(Kind.Equal, id1_x, id2_x), slv.mkTerm(Kind.Equal, id1_x, id3_x), slv.mkTerm(Kind.Equal, id1_x, id4_x), slv.mkTerm(Kind.Equal, id1_x, varX)))
 
   # print solutions if available
   if (slv.checkSynth().hasSolution()):
