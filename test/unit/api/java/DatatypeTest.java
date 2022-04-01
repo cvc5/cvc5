@@ -70,8 +70,8 @@ class DatatypeTest
      *   END;
      */
     // Make unresolved types as placeholders
-    Sort unresTree = d_solver.mkUnresolvedSort("tree", 0);
-    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
+    Sort unresTree = d_solver.mkUnresolvedDatatypeSort("tree", 0);
+    Sort unresList = d_solver.mkUnresolvedDatatypeSort("list", 0);
 
     DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
     DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
@@ -362,9 +362,9 @@ class DatatypeTest
      *   END;
      */
     // Make unresolved types as placeholders
-    Sort unresWList = d_solver.mkUnresolvedSort("wlist", 0);
-    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
-    Sort unresNs = d_solver.mkUnresolvedSort("ns", 0);
+    Sort unresWList = d_solver.mkUnresolvedDatatypeSort("wlist", 0);
+    Sort unresList = d_solver.mkUnresolvedDatatypeSort("list", 0);
+    Sort unresNs = d_solver.mkUnresolvedDatatypeSort("ns", 0);
 
     DatatypeDecl wlist = d_solver.mkDatatypeDecl("wlist");
     DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
@@ -405,7 +405,7 @@ class DatatypeTest
      *     ns2 = elem2(ndata: array(int,ns2)) | nil2
      *   END;
      */
-    Sort unresNs2 = d_solver.mkUnresolvedSort("ns2", 0);
+    Sort unresNs2 = d_solver.mkUnresolvedDatatypeSort("ns2", 0);
 
     DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
     DatatypeConstructorDecl elem2 = d_solver.mkDatatypeConstructorDecl("elem2");
@@ -439,8 +439,8 @@ class DatatypeTest
      *     ns3 = elem3(ndata: set(list3))
      *   END;
      */
-    Sort unresNs3 = d_solver.mkUnresolvedSort("ns3", 0);
-    Sort unresList3 = d_solver.mkUnresolvedSort("list3", 0);
+    Sort unresNs3 = d_solver.mkUnresolvedDatatypeSort("ns3", 0);
+    Sort unresList3 = d_solver.mkUnresolvedDatatypeSort("list3", 0);
 
     DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
     DatatypeConstructorDecl cons3 = d_solver.mkDatatypeConstructorDecl("cons3");
@@ -473,8 +473,8 @@ class DatatypeTest
      *     ns4 = elem(ndata: list4)
      *   END;
      */
-    Sort unresNs4 = d_solver.mkUnresolvedSort("ns4", 0);
-    Sort unresList4 = d_solver.mkUnresolvedSort("list4", 0);
+    Sort unresNs4 = d_solver.mkUnresolvedDatatypeSort("ns4", 0);
+    Sort unresList4 = d_solver.mkUnresolvedDatatypeSort("list4", 0);
 
     DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
     DatatypeConstructorDecl cons4 = d_solver.mkDatatypeConstructorDecl("cons4");

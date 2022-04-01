@@ -184,8 +184,6 @@ class SolverTest
 
     /* with unresolved sorts */
     Sort unresList = d_solver.mkUnresolvedDatatypeSort("ulist", 1);
-    Set<Sort> unresSorts = new HashSet<>();
-    unresSorts.add(unresList);
     DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
     DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
     ucons.addSelector("car", unresList);
@@ -194,10 +192,10 @@ class SolverTest
     DatatypeConstructorDecl unil = d_solver.mkDatatypeConstructorDecl("unil");
     ulist.addConstructor(unil);
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
-    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(Arrays.asList(udecls)));
 
     assertThrows(
-        CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+        CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls)));
     slv.close();
 
     /* mutually recursive with unresolved parameterized sorts */
@@ -214,7 +212,7 @@ class SolverTest
     dtdecl0.addConstructor(ctordecl0);
     dtdecl1.addConstructor(ctordecl1);
     Sort[] dt_sorts =
-        d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1}, new Sort[] {u0, u1});
+        d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1});
     Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
     Term t1 = d_solver.mkConst(isort1, "t");
     Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
