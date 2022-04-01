@@ -22,7 +22,7 @@ cvc5 1.0
 * *New Java language bindings*
 
 * *Theory of Bags (Multisets)*
-  A new theory of bags, which are collections that allow duplicates. It supports basic operators like union disjoint, union max, intersection, difference subtract, difference remove, duplicate removal, and multiplicity of an element in a bag. 
+  - A new theory of bags, which are collections that allow duplicates. It supports basic operators like union disjoint, union max, intersection, difference subtract, difference remove, duplicate removal, and multiplicity of an element in a bag. 
 
 * *Theory of Sequences*
   - A new parametric theory of sequences whose syntax is compatible with the
@@ -158,5 +158,6 @@ cvc5 1.0
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
+* The SMT-LIB syntax for some extensions has been changed. Notably, set operators are now prefixed by `set.`. For example, `union` is now written `set.union`.
 * Removed support for redundant logics `ALL_SUPPORTED` and `QF_ALL_SUPPORTED`,
   use `ALL` and `QF_ALL` instead.
