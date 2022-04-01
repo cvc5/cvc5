@@ -371,27 +371,27 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkUninterpretedSort(long pointer, String symbol);
 
   /**
-   * Create an unresolved sort.
+   * Create an unresolved datatype sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
-   * recursive datatypes.
+   * recursive parametric datatypes.
    *
    * @param symbol the symbol of the sort
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
    * @throws CVC5ApiException
    */
-  public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
+  public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUnresolvedSort(pointer, symbol, arity);
+    long sortPointer = mkUnresolvedDatatypeSort(pointer, symbol, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkUnresolvedSort(long pointer, String symbol, int arity);
+  private native long mkUnresolvedDatatypeSort(long pointer, String symbol, int arity);
 
   /**
-   * Create an unresolved sort.
+   * Create an unresolved datatype sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
    * recursive datatypes without sort parameters.
@@ -400,9 +400,9 @@ public class Solver implements IPointer, AutoCloseable
    * @return the unresolved sort
    * @throws CVC5ApiException
    */
-  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException
   {
-    return mkUnresolvedSort(symbol, 0);
+    return mkUnresolvedDatatypeSort(symbol, 0);
   }
 
   /**

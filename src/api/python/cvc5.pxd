@@ -227,7 +227,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
-        Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
+        Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +

@@ -442,7 +442,7 @@ class DType
    * when constructing the datatype (for details, see
    * NodeManager::mkMutualDatatypeTypesInternal).
    */
-  void getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes);
+  void getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const;
   /**
    * DTypes refer to themselves, recursively, and we have a
    * chicken-and-egg problem.  The TypeNode around the DType

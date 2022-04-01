@@ -143,8 +143,9 @@ size_t DType::cindexOfInternal(Node item)
   return item.getAttribute(DTypeConsIndexAttr());
 }
 
-void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes)
+void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
 {
+  // scan the arguments of all constructors
   for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
   {
     for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)

@@ -437,7 +437,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    mkUnresolvedSort
+ * Method:    mkUnresolvedDatatypeSort
  * Signature: (JLjava/lang/String;I)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
@@ -448,7 +448,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Sort* retPointer = new Sort(solver->mkUnresolvedSort(cSymbol, (size_t)arity));
+  Sort* retPointer = new Sort(solver->mkUnresolvedDatatypeSort(cSymbol, (size_t)arity));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
 
