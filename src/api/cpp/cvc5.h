@@ -2032,7 +2032,7 @@ class CVC5_EXPORT DatatypeConstructor
    *         (par (T) ((nil) (cons (head T) (tail (List T))))))
    * \endverbatim
    *
-   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * The type of nil terms must be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
    *
    * \verbatim embed:rst:leading-asterisk
