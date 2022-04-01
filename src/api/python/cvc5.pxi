@@ -120,16 +120,6 @@ cdef class Datatype:
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
 
-    def getConstructorTerm(self, str name):
-        """
-            :param name: The name of the constructor.
-            :return: The term representing the datatype constructor with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cd.getConstructorTerm(name.encode())
-        return term
-
     def getSelector(self, str name):
         """
             :param name: The name of the selector..
