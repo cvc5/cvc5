@@ -38,7 +38,7 @@ TEST_F(TestApiWhiteSolver, getOp)
 
   Term nilTerm = consList.getConstructor("nil").getConstructorTerm();
   Term consTerm = consList.getConstructor("cons").getConstructorTerm();
-  Term headTerm = consList["cons"].getSelectorTerm("head");
+  Term headTerm = consList["cons"].getSelector("head").getSelectorTerm();
 
   Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
   Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,

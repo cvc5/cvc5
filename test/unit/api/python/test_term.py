@@ -189,8 +189,8 @@ def test_get_op(solver):
     # list datatype constructor and selector operator terms
     consOpTerm = list1.getConstructor("cons").getConstructorTerm()
     nilOpTerm = list1.getConstructor("nil").getConstructorTerm()
-    headOpTerm = list1["cons"].getSelectorTerm("head")
-    tailOpTerm = list1["cons"].getSelectorTerm("tail")
+    headOpTerm = list1["cons"].getSelector("head").getSelectorTerm()
+    tailOpTerm = list1["cons"].getSelector("tail").getSelectorTerm()
 
     nilTerm = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilOpTerm)
     consTerm = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consOpTerm,

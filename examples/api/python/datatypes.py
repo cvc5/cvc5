@@ -38,8 +38,9 @@ def test(slv, consListSort):
             Kind.APPLY_CONSTRUCTOR,
             consList.getConstructor("cons").getConstructorTerm(),
             slv.mkInteger(0),
-            slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
-            consList.getConstructor("nil").getConstructorTerm()))
+            slv.mkTerm(
+                Kind.APPLY_CONSTRUCTOR,
+                consList.getConstructor("nil").getConstructorTerm()))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
@@ -53,7 +54,9 @@ def test(slv, consListSort):
     # to apply.
 
     t2 = slv.mkTerm(
-            Kind.APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t)
+            Kind.APPLY_SELECTOR,
+            consList["cons"].getSelector("head").getSelectorTerm(),
+            t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -99,7 +102,7 @@ def test(slv, consListSort):
 
     head_a = slv.mkTerm(
             Kind.APPLY_SELECTOR,
-            paramConsList["cons"].getSelectorTerm("head"),
+            paramConsList["cons"].getSelector("head").getSelectorTerm(),
             a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is",

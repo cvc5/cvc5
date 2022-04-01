@@ -48,8 +48,9 @@ public class Datatypes
     // Here we first get the DatatypeConstructor for cons (with
     // consList["cons"]) in order to get the "head" selector symbol
     // to apply.
-    Term t2 =
-        slv.mkTerm(Kind.APPLY_SELECTOR, consList.getConstructor("cons").getSelectorTerm("head"), t);
+    Term t2 = slv.mkTerm(Kind.APPLY_SELECTOR,
+        consList.getConstructor("cons").getSelector("head").getSelectorTerm(),
+        t);
 
     System.out.println("t2 is " + t2 + "\n"
         + "simplify(t2) is " + slv.simplify(t2) + "\n");
@@ -123,8 +124,9 @@ public class Datatypes
     Term a = slv.mkConst(paramConsIntListSort, "a");
     System.out.println("term " + a + " is of sort " + a.getSort());
 
-    Term head_a = slv.mkTerm(
-        Kind.APPLY_SELECTOR, paramConsList.getConstructor("cons").getSelectorTerm("head"), a);
+    Term head_a = slv.mkTerm(Kind.APPLY_SELECTOR,
+        paramConsList.getConstructor("cons").getSelector("head").getSelectorTerm(),
+        a);
     System.out.println("head_a is " + head_a + " of sort " + head_a.getSort() + "\n"
         + "sort of cons is " + paramConsList.getConstructor("cons").getConstructorTerm().getSort()
         + "\n");

@@ -333,16 +333,6 @@ cdef class DatatypeConstructor:
         ds.cds = self.cdc.getSelector(name.encode())
         return ds
 
-    def getSelectorTerm(self, str name):
-        """
-            :param name: The name of the datatype selector.
-            :return: A term representing the firstdatatype selector with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getSelectorTerm(name.encode())
-        return term
-
     def isNull(self):
         """
             :return: True if this DatatypeConstructor is a null object.
