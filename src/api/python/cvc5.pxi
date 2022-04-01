@@ -1236,7 +1236,7 @@ cdef class Solver:
         return term
 
     @expand_list_arg(num_req_args=0)
-    def mkBitVector(self, *args):
+    def mkBitVector(self, int size, *args):
         """
         Supports the following arguments:
 
@@ -1250,25 +1250,18 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         if len(args) == 0:
-            raise ValueError("Missing arguments to mkBitVector")
-        size = args[0]
-        if not isinstance(size, int):
-            raise ValueError(
-                "Invalid first argument to mkBitVector '{}', "
-                "expected bit-vector size".format(size))
-        if len(args) == 1:
             term.cterm = self.csolver.mkBitVector(<uint32_t> size)
-        elif len(args) == 2:
-            val = args[1]
+        elif len(args) == 1:
+            val = args[0]
             if not isinstance(val, int):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
                 <uint32_t> size, <uint32_t> val)
-        elif len(args) == 3:
-            val = args[1]
-            base = args[2]
+        elif len(args) == 2:
+            val = args[0]
+            base = args[1]
             if not isinstance(val, str):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
