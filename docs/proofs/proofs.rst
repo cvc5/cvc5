@@ -13,3 +13,6 @@ external formats:
 
    Alethe <output_alethe>
    LFSC <output_lfsc>
+   DOT <output_dot>
+
+where note that the DOT format is only meant for visualization.
