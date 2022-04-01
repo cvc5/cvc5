@@ -1197,16 +1197,17 @@ cdef class Solver:
         return term
 
     def mkReal(self, numerator, denominator=None):
-        """Create a real constant from a numerator and an optional denominator.
-        First converts the arguments to a temporary string, either ``"<numerator>"`` or
-        ``"<numerator>/<denominator>"``.
-        This temporary string is forwarded to :cpp:func:`cvc5::Solver::mkReal(const std::string&)`
-        and should thus represent an integer, a decimal number or a fraction.
+        """
+            Create a real constant from a numerator and an optional denominator.
+            First converts the arguments to a temporary string, either
+            ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
+            string is forwarded to
+	    :cpp:func:`cvc5::Solver::mkReal(const std::string&)` and should thus
+	    represent an integer, a decimal number or a fraction.
 
-
-        :param numerator: The numerator.
-        :param denominator: The denominator, or ``None``.
-        :return: a real term with literal value
+            :param numerator: The numerator.
+            :param denominator: The denominator, or ``None``.
+            :return: a real term with literal value
         """
         cdef Term term = Term(self)
         if denominator is None:
