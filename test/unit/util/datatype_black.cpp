@@ -277,10 +277,10 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
    */
   std::set<TypeNode> unresolvedTypes;
   TypeNode unresList =
-      d_nodeManager->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
+      d_nodeManager->mkSort("list");
   unresolvedTypes.insert(unresList);
   TypeNode unresTree =
-      d_nodeManager->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
+      d_nodeManager->mkSort("tree");
   unresolvedTypes.insert(unresTree);
 
   DType tree("tree");
@@ -347,10 +347,10 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
 {
   std::set<TypeNode> unresolvedTypes;
   TypeNode unresList =
-      d_nodeManager->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
+      d_nodeManager->mkSort("list");
   unresolvedTypes.insert(unresList);
   TypeNode unresTree =
-      d_nodeManager->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
+      d_nodeManager->mkSort("tree");
   unresolvedTypes.insert(unresTree);
 
   DType tree("tree");

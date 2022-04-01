@@ -4419,7 +4419,7 @@ Sort Grammar::resolve()
     // make the unresolved type, used for referencing the final version of
     // the ntsymbol's datatype
     ntsToUnres[ntsymbol] =
-        Sort(d_solver, d_solver->getNodeManager()->mkSort(ntsymbol.toString()));
+        Sort(d_solver, d_solver->getNodeManager()->mkUnresolvedDatatypeSort(ntsymbol.toString()));
   }
 
   std::vector<internal::DType> datatypes;
@@ -4461,7 +4461,6 @@ Sort Grammar::resolve()
   std::vector<internal::TypeNode> datatypeTypes =
       d_solver->getNodeManager()->mkMutualDatatypeTypes(
           datatypes,
-          unresTypes,
           internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
 
   // return is the first datatype
@@ -5178,10 +5177,8 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
 
-  std::set<internal::TypeNode> utypes =
-      Sort::sortSetToTypeNodes(unresolvedSorts);
   std::vector<internal::TypeNode> dtypes =
-      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
+      getNodeManager()->mkMutualDatatypeTypes(datatypes);
   std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
   return retTypes;
 }
@@ -5633,11 +5630,7 @@ Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity)
-  {
-    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-  }
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  return Sort(this, getNodeManager()->mkUnresolvedDatatypeSort(symbol, arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
