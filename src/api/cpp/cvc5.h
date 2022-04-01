@@ -2655,8 +2655,6 @@ class CVC5_EXPORT Grammar
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
-   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
-   *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
    * @param ntsToUnres mapping from non-terminals to their unresolved sorts
@@ -3274,11 +3272,13 @@ class CVC5_EXPORT Solver
    * Create an unresolved datatype sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
-   * recursive datatypes.
+   * recursive parametric datatypes.
    *
    * @param symbol the symbol of the sort
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   Sort mkUnresolvedDatatypeSort(const std::string& symbol,
                                 size_t arity = 0) const;

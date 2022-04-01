@@ -150,9 +150,16 @@ void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
   {
     for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
     {
-      // the selector has not been initialized to a variable of selector type,
-      // which is done during resolve. Instead, we get the raw type.
-      TypeNode arg = (*ctor)[i].getSelectorTerm().getType();
+      Node sel = (*ctor)[i].d_selector;
+      if (sel.isNull())
+      {
+        // currently permit null selector for representing self selectors,
+        // skip these.
+        continue;
+      }
+      // The selector has *not* been initialized to a variable of selector type,
+      // which is done during resolve. Instead, we get the raw type of sel.
+      TypeNode arg = sel.getType();
       if (arg.isUnresolvedDatatype())
       {
         unresTypes.insert(arg);
