@@ -3403,7 +3403,8 @@ void DatatypeConstructorDecl::addSelectorUnresolved(
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   // make the unresolved sort with the given name
-  internal::TypeNode usort = d_solver->getNodeManager()->mkUnresolvedDatatypeSort(unresDataypeName);
+  internal::TypeNode usort =
+      d_solver->getNodeManager()->mkUnresolvedDatatypeSort(unresDataypeName);
   d_ctor->addArg(name, usort);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5641,7 +5642,8 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity) const
+Sort Solver::mkUnresolvedDatatypeSort(const std::string& symbol,
+                                      size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
