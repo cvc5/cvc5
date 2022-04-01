@@ -2446,17 +2446,17 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setOption(
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    declareSygusVar
- * Signature: (JJLjava/lang/String;)J
+ * Signature: (JJjava/lang/String;L)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSygusVar(
-    JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol)
+    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Term* retPointer = new Term(solver->declareSygusVar(*sort, cSymbol));
+  Term* retPointer = new Term(solver->declareSygusVar(cSymbol, *sort));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
