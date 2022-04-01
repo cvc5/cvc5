@@ -2091,15 +2091,6 @@ cdef class Solver:
             res['modes'] = [s.decode() for s in mi.modes]
         return res
 
-    def getOptionNames(self):
-       """Get all option names that can be used with `setOption`, `getOption` and `getOptionInfo`.
-       :return: all option names
-       """
-       result = []
-       for n in self.csolver.getOptionNames():
-           result += [n.decode()]
-       return result
-
     def getUnsatAssumptions(self):
         """
         Get the set of unsat ("failed") assumptions.
