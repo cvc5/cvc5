@@ -122,7 +122,7 @@ if __name__ == "__main__":
     member = solver.mkTerm(Kind.SET_MEMBER, xxTuple, ancestor)
     notMember = solver.mkTerm(Kind.NOT, member)
 
-    quantifiedVariables = solver.mkTerm(Kind.VARIABLELIST, x)
+    quantifiedVariables = solver.mkTerm(Kind.VARIABLE_LIST, x)
     noSelfAncestor = solver.mkTerm(Kind.FORALL, quantifiedVariables, notMember)
 
     # formulas
