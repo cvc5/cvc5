@@ -17,13 +17,13 @@
 ##
 
 import cvc5
-from cvc5 import Kind. RoundingMode
+from cvc5 import Kind, RoundingMode
 
 if __name__ == "__main__":
     slv = cvc5.Solver()
 
     slv.setOption("produce-models", "true")
-    slv.setLogic("QF_FLOATINGPOINT_")
+    slv.setLogic("QF_FP")
 
     # single 32-bit precision
     fp32 = slv.mkFloatingPointSort(8, 24)
@@ -52,13 +52,13 @@ if __name__ == "__main__":
 
     # disallow NaNs and Infinities
     slv.assertFormula(slv.mkTerm(
-        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_ISNAN, x)))
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_NAN, x)))
     slv.assertFormula(slv.mkTerm(
-        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_ISINF, x)))
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_INF, x)))
     slv.assertFormula(slv.mkTerm(
-        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_ISNAN, y)))
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_NAN, y)))
     slv.assertFormula(slv.mkTerm(
-        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_ISINF, y)))
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_INF, y)))
 
     print("Checking floating-point commutativity assuming x and y are not NaN or Infinity")
     print("Expect UNSAT.")

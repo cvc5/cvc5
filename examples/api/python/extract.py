@@ -20,7 +20,7 @@ from cvc5 import Solver, Kind
 
 if __name__ == "__main__":
     slv = Solver()
-    slv.setLogic("QF_BITVECTOR_")
+    slv.setLogic("QF_BV")
 
     bitvector32 = slv.mkBitVectorSort(32)
 

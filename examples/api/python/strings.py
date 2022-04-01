@@ -47,26 +47,26 @@ if __name__ == "__main__":
     # String concatenation: abc.z
     rhs = slv.mkTerm(Kind.STRING_CONCAT, abc, z)
     # x.ab.y = abc.z
-    formula1 = slv.mkTerm(Kind.EQUAL, LHS, Rhs)
+    formula1 = slv.mkTerm(Kind.EQUAL, lhs, rhs)
 
     # Length of y: |y|
     leny = slv.mkTerm(Kind.STRING_LENGTH, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(Kind.GEQ, LENY, SLv.mkInteger(0))
+    formula2 = slv.mkTerm(Kind.GEQ, leny, slv.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
     r = slv.mkTerm(Kind.REGEXP_UNION,
                    slv.mkTerm(Kind.REGEXP_CONCAT,
-                              slv.mkTerm(Kind.STRING_TOREGEXp,
+                              slv.mkTerm(Kind.STRING_TO_REGEXP,
                                          slv.mkString("ab")),
                               slv.mkTerm(Kind.REGEXP_STAR,
                                          slv.mkTerm(Kind.REGEXP_RANGE,
                                          slv.mkString("c"),
                                          slv.mkString("e"))),
-                            slv.mkTerm(Kind.STRING_TOREGEXP_,
+                            slv.mkTerm(Kind.STRING_TO_REGEXP,
                                        slv.mkString("f"))),
-                 slv.mkTerm(Kind.STRING_TOREGEXP_, slv.mkString("g")),
-                 slv.mkTerm(Kind.STRING_TOREGEXP_, slv.mkString("h")))
+                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("g")),
+                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("h")))
 
     # String variables
     s1 = slv.mkConst(string, "s1")
