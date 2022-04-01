@@ -102,6 +102,17 @@ void NonlinearExtension::preRegisterTerm(TNode n)
       throw LogicException(ss.str());
     }
   }
+  if (isTranscendentalKind(k) || k == Kind::IAND || k == Kind::POW2)
+  {
+    if (options().arith.nlCov && !options().arith.nlCovForce)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " is not compatible with using the coverings-based solver. If you know what you are doing, "
+          "you can try --nl-cov-force, but expect crashes or incorrect results.";
+      throw LogicException(ss.str());
+    }
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
