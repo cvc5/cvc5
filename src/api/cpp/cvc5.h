@@ -3198,30 +3198,6 @@ class CVC5_EXPORT Solver
       const std::vector<DatatypeDecl>& dtypedecls) const;
 
   /**
-   * Create a vector of datatype sorts using unresolved sorts. The names of
-   * the datatype declarations in dtypedecls must be distinct.
-   *
-   * This method is called when the DatatypeDecl objects dtypedecls have been
-   * built using "unresolved" sorts.
-   *
-   * We associate each sort in unresolvedSorts with exactly one datatype from
-   * dtypedecls. In particular, it must have the same name as exactly one
-   * datatype declaration in dtypedecls.
-   *
-   * When constructing datatypes, unresolved sorts are replaced by the datatype
-   * sort constructed for the datatype declaration it is associated with.
-   *
-   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
-   *
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @param unresolvedSorts the list of unresolved sorts
-   * @return the datatype sorts
-   */
-  std::vector<Sort> mkDatatypeSorts(
-      const std::vector<DatatypeDecl>& dtypedecls,
-      const std::set<Sort>& unresolvedSorts) const;
-
-  /**
    * Create function sort.
    * @param domain the sort of the function argument
    * @param codomain the sort of the function return value
@@ -3295,7 +3271,7 @@ class CVC5_EXPORT Solver
   Sort mkUninterpretedSort(const std::string& symbol) const;
 
   /**
-   * Create an unresolved sort.
+   * Create an unresolved datatype sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
    * recursive datatypes.
@@ -3304,7 +3280,7 @@ class CVC5_EXPORT Solver
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
    */
-  Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
+  Sort mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity = 0) const;
 
   /**
    * Create an uninterpreted sort constructor sort.
@@ -4944,16 +4920,6 @@ class CVC5_EXPORT Solver
    * @return the Term
    */
   Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
-
-  /**
-   * Create a vector of datatype sorts, using unresolved sorts.
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @param unresolvedSorts the list of unresolved sorts
-   * @return the datatype sorts
-   */
-  std::vector<Sort> mkDatatypeSortsInternal(
-      const std::vector<DatatypeDecl>& dtypedecls,
-      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.

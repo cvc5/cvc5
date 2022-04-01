@@ -5175,24 +5175,6 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   return Term(this, res);
 }
 
-std::vector<Sort> Solver::mkDatatypeSortsInternal(
-    const std::vector<DatatypeDecl>& dtypedecls) const
-{
-  // Note: dtypedecls are checked in the caller to avoid
-  //       double checks
-  //////// all checks before this line
-
-  std::vector<internal::DType> datatypes;
-  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
-  {
-    datatypes.push_back(dtypedecls[i].getDatatype());
-  }
-  std::vector<internal::TypeNode> dtypes =
-      getNodeManager()->mkMutualDatatypeTypes(datatypes);
-  std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
-  return retTypes;
-}
-
 Term Solver::synthFunHelper(const std::string& symbol,
                             const std::vector<Term>& boundVars,
                             const Sort& sort,
@@ -5511,20 +5493,15 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   CVC5_API_SOLVER_CHECK_DTDECLS(dtypedecls);
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return mkDatatypeSortsInternal(dtypedecls, {});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-std::vector<Sort> Solver::mkDatatypeSorts(
-    const std::vector<DatatypeDecl>& dtypedecls,
-    const std::set<Sort>& unresolvedSorts) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_DTDECLS(dtypedecls);
-  CVC5_API_SOLVER_CHECK_SORTS(unresolvedSorts);
-  //////// all checks before this line
-  return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
+  std::vector<internal::DType> datatypes;
+  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
+  {
+    datatypes.push_back(dtypedecls[i].getDatatype());
+  }
+  std::vector<internal::TypeNode> dtypes =
+      getNodeManager()->mkMutualDatatypeTypes(datatypes);
+  std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
+  return retTypes;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5563,7 +5540,7 @@ Sort Solver::mkParamSort(const std::string& symbol) const
   //////// all checks before this line
   return Sort(this,
               getNodeManager()->mkSort(
-                  symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER));
+                  symbol));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
