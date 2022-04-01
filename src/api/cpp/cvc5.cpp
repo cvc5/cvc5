@@ -3403,7 +3403,7 @@ void DatatypeConstructorDecl::addSelectorUnresolved(
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   // make the unresolved sort with the given name
-  internal::TypeNode usort = getNodeManager()->mkSort(unresDataypeName);
+  internal::TypeNode usort = d_solver->getNodeManager()->mkUnresolvedDatatypeSort(unresDataypeName);
   d_ctor->addArg(name, usort);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -4436,7 +4436,6 @@ Sort Grammar::resolve()
   }
 
   std::vector<internal::DType> datatypes;
-  std::set<internal::TypeNode> unresTypes;
 
   datatypes.reserve(d_ntSyms.size());
 
@@ -4468,13 +4467,11 @@ Sort Grammar::resolve()
         << " produced an empty rule list";
 
     datatypes.push_back(*dtDecl.d_dtype);
-    unresTypes.insert(*ntsToUnres[ntSym].d_type);
   }
 
   std::vector<internal::TypeNode> datatypeTypes =
       d_solver->getNodeManager()->mkMutualDatatypeTypes(
           datatypes,
-          unresTypes,
           internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
 
   // return is the first datatype
@@ -5644,15 +5641,11 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
+Sort Solver::mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity)
-  {
-    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-  }
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  return Sort(this, getNodeManager()->mkUnresolvedDatatypeSort(symbol, arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }

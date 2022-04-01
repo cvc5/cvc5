@@ -766,23 +766,16 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
+    def mkDatatypeSorts(self, list dtypedeclse):
         """
         Create a vector of datatype sorts using unresolved sorts. The names of
         the datatype declarations in dtypedecls must be distinct.
 
-        This method is called when the DatatypeDecl objects dtypedecls have been
-        built using "unresolved" sorts.
-
-        We associate each sort in unresolvedSorts with exacly one datatype from
-        dtypedecls. In particular, it must have the same name as exactly one
-        datatype declaration in dtypedecls.
-
-        When constructing datatypes, unresolved sorts are replaced by the datatype
-        sort constructed for the datatype declaration it is associated with.
+        When constructing datatypes, unresolved datatype sorts are replaced by
+        the datatype sort constructed for the datatype declaration it is
+        associated with.
 
         :param dtypedecls: the datatype declarations from which the sort is created
-        :param unresolvedSorts: the list of unresolved sorts
         :return: the datatype sorts
         """
         if unresolvedSorts == None:
@@ -795,12 +788,8 @@ cdef class Solver:
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
 
-        cdef c_set[c_Sort] usorts
-        for usort in unresolvedSorts:
-            usorts.insert((<Sort?> usort).csort)
-
         csorts = self.csolver.mkDatatypeSorts(
-            <const vector[c_DatatypeDecl]&> decls, <const c_set[c_Sort]&> usorts)
+            <const vector[c_DatatypeDecl]&> decls)
         for csort in csorts:
           sort = Sort(self)
           sort.csort = csort

@@ -246,31 +246,6 @@ Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    mkDatatypeSorts
- * Signature: (J[J[J)[J
- */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer,
-                                                        jlongArray jDecls,
-                                                        jlongArray jUnresolved)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<DatatypeDecl> decls =
-      getObjectsFromPointers<DatatypeDecl>(env, jDecls);
-  std::vector<Sort> cUnresolved =
-      getObjectsFromPointers<Sort>(env, jUnresolved);
-  std::set<Sort> unresolved(cUnresolved.begin(), cUnresolved.end());
-  std::vector<Sort> sorts = solver->mkDatatypeSorts(decls, unresolved);
-  jlongArray ret = getPointersFromObjects<Sort>(env, sorts);
-  return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
  * Method:    mkFunctionSort
  * Signature: (JJJ)J
  */
