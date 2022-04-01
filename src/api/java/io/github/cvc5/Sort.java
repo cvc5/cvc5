@@ -202,48 +202,48 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatype(long pointer);
 
   /**
-   * Is this a constructor sort?
-   * @return true if the sort is a constructor sort
+   * Is this a datatype constructor sort?
+   * @return true if the sort is a datatype constructor sort
    */
-  public boolean isConstructor()
+  public boolean isDatatypeConstructor()
   {
-    return isConstructor(pointer);
+    return isDatatypeConstructor(pointer);
   }
 
-  private native boolean isConstructor(long pointer);
+  private native boolean isDatatypeConstructor(long pointer);
 
   /**
-   * Is this a selector sort?
-   * @return true if the sort is a selector sort
+   * Is this a datatype selector sort?
+   * @return true if the sort is a datatype selector sort
    */
-  public boolean isSelector()
+  public boolean isDatatypeSelector()
   {
-    return isSelector(pointer);
+    return isDatatypeSelector(pointer);
   }
 
-  private native boolean isSelector(long pointer);
+  private native boolean isDatatypeSelector(long pointer);
 
   /**
-   * Is this a tester sort?
-   * @return true if the sort is a tester sort
+   * Is this a datatype tester sort?
+   * @return true if the sort is a datatype tester sort
    */
-  public boolean isTester()
+  public boolean isDatatypeTester()
   {
-    return isTester(pointer);
+    return isDatatypeTester(pointer);
   }
 
-  private native boolean isTester(long pointer);
+  private native boolean isDatatypeTester(long pointer);
 
   /**
    * Is this a datatype updater sort?
    * @return true if the sort is a datatype updater sort
    */
-  public boolean isUpdater()
+  public boolean isDatatypeUpdater()
   {
-    return isUpdater(pointer);
+    return isDatatypeUpdater(pointer);
   }
 
-  private native boolean isUpdater(long pointer);
+  private native boolean isDatatypeUpdater(long pointer);
 
   /**
    * Is this a function sort?
@@ -283,7 +283,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Is this a record sort?
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return true if the sort is a record sort
    */
@@ -412,8 +412,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * Create sorts parameter with Solver.mkParamSort().
    *
-   * @apiNote This method is experimental and may change in future versions.
-   *
    * @param params the list of sort parameters to instantiate with
    * @return the instantiated sort
    */
@@ -428,7 +426,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * Create sorts parameter with Solver.mkParamSort().
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param params the list of sort parameters to instantiate with
    */
@@ -463,7 +461,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
@@ -488,7 +486,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
    * return (Array (Array C D) B).
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
@@ -518,84 +516,85 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Constructor sort ------------------------------------------------------- */
 
   /**
-   * @return the arity of a constructor sort
+   * @return the arity of a datatype constructor sort
    */
-  public int getConstructorArity()
+  public int getDatatypeConstructorArity()
   {
-    return getConstructorArity(pointer);
+    return getDatatypeConstructorArity(pointer);
   }
 
-  private native int getConstructorArity(long pointer);
+  private native int getDatatypeConstructorArity(long pointer);
 
   /**
-   * @return the domain sorts of a constructor sort
+   * @return the domain sorts of a datatype constructor sort
    */
-  public Sort[] getConstructorDomainSorts()
+  public Sort[] getDatatypeConstructorDomainSorts()
   {
-    long[] pointers = getConstructorDomainSorts(pointer);
+    long[] pointers = getDatatypeConstructorDomainSorts(pointer);
     return Utils.getSorts(solver, pointers);
   }
 
-  private native long[] getConstructorDomainSorts(long pointer);
+  private native long[] getDatatypeConstructorDomainSorts(long pointer);
 
   /**
-   * @return the codomain sort of a constructor sort
+   * @return the codomain sort of a datatype constructor sort
    */
-  public Sort getConstructorCodomainSort()
+  public Sort getDatatypeConstructorCodomainSort()
   {
-    long sortPointer = getConstructorCodomainSort(pointer);
+    long sortPointer = getDatatypeConstructorCodomainSort(pointer);
     return new Sort(solver, sortPointer);
   }
 
-  private native long getConstructorCodomainSort(long pointer);
+  private native long getDatatypeConstructorCodomainSort(long pointer);
 
   /* Selector sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a selector sort
+   * @return the domain sort of a datatype selector sort
    */
-  public Sort getSelectorDomainSort()
+  public Sort getDatatypeSelectorDomainSort()
   {
-    long sortPointer = getSelectorDomainSort(pointer);
+    long sortPointer = getDatatypeSelectorDomainSort(pointer);
     return new Sort(solver, sortPointer);
   }
 
-  private native long getSelectorDomainSort(long pointer);
+  private native long getDatatypeSelectorDomainSort(long pointer);
 
   /**
-   * @return the codomain sort of a selector sort
+   * @return the codomain sort of a datatype selector sort
    */
-  public Sort getSelectorCodomainSort()
+  public Sort getDatatypeSelectorCodomainSort()
   {
-    long sortPointer = getSelectorCodomainSort(pointer);
+    long sortPointer = getDatatypeSelectorCodomainSort(pointer);
     return new Sort(solver, sortPointer);
   }
 
-  private native long getSelectorCodomainSort(long pointer);
+  private native long getDatatypeSelectorCodomainSort(long pointer);
 
   /* Tester sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a tester sort
+   * @return the domain sort of a datatype tester sort
    */
-  public Sort getTesterDomainSort()
+  public Sort getDatatypeTesterDomainSort()
   {
-    long sortPointer = getTesterDomainSort(pointer);
+    long sortPointer = getDatatypeTesterDomainSort(pointer);
     return new Sort(solver, sortPointer);
   }
 
-  private native long getTesterDomainSort(long pointer);
+  private native long getDatatypeTesterDomainSort(long pointer);
 
   /**
-   * @return the codomain sort of a tester sort, which is the Boolean sort
+   * @return the codomain sort of a datatype tester sort, which is the Boolean
+   *         sort
    */
-  public Sort getTesterCodomainSort()
+  public Sort getDatatypeTesterCodomainSort()
   {
-    long sortPointer = getTesterCodomainSort(pointer);
+    long sortPointer = getDatatypeTesterCodomainSort(pointer);
     return new Sort(solver, sortPointer);
   }
 
-  private native long getTesterCodomainSort(long pointer);
+  private native long getDatatypeTesterCodomainSort(long pointer);
 
   /* Function sort ------------------------------------------------------- */
 

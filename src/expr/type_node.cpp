@@ -173,7 +173,7 @@ CardinalityClass TypeNode::getCardinalityClass()
       // else, function types whose range type is INFINITE, ONE, or
       // INTERPRETED_ONE have the same cardinality class as their range.
     }
-    else if (isConstructor())
+    else if (isDatatypeConstructor())
     {
       // notice that we require computing the cardinality class of the
       // constructor type, which is equivalent to asking how many
@@ -321,9 +321,9 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   return false;
 }
 
-TypeNode TypeNode::getTesterDomainType() const
+TypeNode TypeNode::getDatatypeTesterDomainType() const
 {
-  Assert(isTester());
+  Assert(isDatatypeTester());
   return (*this)[0];
 }
 
@@ -349,12 +349,17 @@ TypeNode TypeNode::getBaseType() const {
 
 std::vector<TypeNode> TypeNode::getArgTypes() const {
   vector<TypeNode> args;
-  if(isTester()) {
+  if (isDatatypeTester())
+  {
     Assert(getNumChildren() == 1);
     args.push_back((*this)[0]);
-  } else {
-    Assert(isFunction() || isConstructor() || isSelector());
-    for(unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
+  }
+  else
+  {
+    Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector()
+           || isDatatypeUpdater());
+    for (uint32_t i = 0, i_end = getNumChildren() - 1; i < i_end; ++i)
+    {
       args.push_back((*this)[i]);
     }
   }
@@ -457,6 +462,11 @@ uint64_t TypeNode::getUninterpretedSortConstructorArity() const
   Assert(isUninterpretedSortConstructor()
          && hasAttribute(expr::SortArityAttr()));
   return getAttribute(expr::SortArityAttr());
+}
+
+bool TypeNode::isUnresolvedDatatype() const
+{
+  return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
 std::string TypeNode::getName() const
@@ -610,16 +620,25 @@ bool TypeNode::isParametricDatatype() const
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
-bool TypeNode::isConstructor() const
+bool TypeNode::isDatatypeConstructor() const
 {
   return getKind() == kind::CONSTRUCTOR_TYPE;
 }
 
-bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
+bool TypeNode::isDatatypeSelector() const
+{
+  return getKind() == kind::SELECTOR_TYPE;
+}
 
-bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
+bool TypeNode::isDatatypeTester() const
+{
+  return getKind() == kind::TESTER_TYPE;
+}
 
-bool TypeNode::isUpdater() const { return getKind() == kind::UPDATER_TYPE; }
+bool TypeNode::isDatatypeUpdater() const
+{
+  return getKind() == kind::UPDATER_TYPE;
+}
 
 bool TypeNode::isCodatatype() const
 {
@@ -681,11 +700,12 @@ uint32_t TypeNode::getBitVectorSize() const
 
 TypeNode TypeNode::getRangeType() const
 {
-  if (isTester())
+  if (isDatatypeTester())
   {
     return NodeManager::currentNM()->booleanType();
   }
-  Assert(isFunction() || isConstructor() || isSelector())
+  Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector()
+         || isDatatypeUpdater())
       << "Cannot get range type of " << *this;
   return (*this)[getNumChildren() - 1];
 }

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --produce-models --block-models=values
+; COMMAND-LINE: --incremental --produce-models
 ; EXPECT: sat
 ; EXPECT: sat
 ; if we only block models restricted to (a,b), then there are only 2 models
@@ -14,7 +14,7 @@
 (assert (distinct a b))
 (assert (and (>= a 0) (>= b 0) (< a 2) (< b 2)))
 (check-sat)
-(block-model)
+(block-model :values)
 (check-sat)
-(block-model)
+(block-model :values)
 (check-sat)

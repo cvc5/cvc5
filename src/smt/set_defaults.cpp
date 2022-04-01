@@ -695,12 +695,16 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       && opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
     // cannot use minisat variable elimination for logics where a theory solver
-    // introduces new literals into the search. This includes quantifiers
+    // introduces new literals into the search, or for parametric theories
+    // which may introduce Boolean term variables. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
     if (logic.isTheoryEnabled(THEORY_SETS) || logic.isTheoryEnabled(THEORY_BAGS)
-        || logic.isQuantified() || opts.smt.produceModels
-        || opts.smt.produceAssignments || opts.smt.checkModels
+        || logic.isTheoryEnabled(THEORY_ARRAYS)
+        || logic.isTheoryEnabled(THEORY_STRINGS)
+        || logic.isTheoryEnabled(THEORY_DATATYPES) || logic.isQuantified()
+        || opts.smt.produceModels || opts.smt.produceAssignments
+        || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
       opts.prop.minisatSimpMode = options::MinisatSimpMode::CLAUSE_ELIM;
@@ -811,7 +815,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
-           && logic.areRealsUsed() && !logic.areIntegersUsed())
+           && logic.areRealsUsed() && !logic.areIntegersUsed()
+           && !logic.areTranscendentalsUsed())
   {
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {

@@ -273,7 +273,6 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(APPLY_CONSTRUCTOR, internal::Kind::APPLY_CONSTRUCTOR),
         KIND_ENUM(APPLY_TESTER, internal::Kind::APPLY_TESTER),
         KIND_ENUM(APPLY_UPDATER, internal::Kind::APPLY_UPDATER),
-        KIND_ENUM(DT_SIZE, internal::Kind::DT_SIZE),
         KIND_ENUM(MATCH, internal::Kind::MATCH),
         KIND_ENUM(MATCH_CASE, internal::Kind::MATCH_CASE),
         KIND_ENUM(MATCH_BIND_CASE, internal::Kind::MATCH_BIND_CASE),
@@ -589,7 +588,6 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {internal::Kind::APPLY_TESTER, APPLY_TESTER},
         {internal::Kind::APPLY_UPDATER, APPLY_UPDATER},
-        {internal::Kind::DT_SIZE, DT_SIZE},
         {internal::Kind::MATCH, MATCH},
         {internal::Kind::MATCH_CASE, MATCH_CASE},
         {internal::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
@@ -1260,38 +1258,38 @@ bool Sort::isDatatype() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isConstructor() const
+bool Sort::isDatatypeConstructor() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isConstructor();
+  return d_type->isDatatypeConstructor();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isSelector() const
+bool Sort::isDatatypeSelector() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isSelector();
+  return d_type->isDatatypeSelector();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isTester() const
+bool Sort::isDatatypeTester() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isTester();
+  return d_type->isDatatypeTester();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isUpdater() const
+bool Sort::isDatatypeUpdater() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isUpdater();
+  return d_type->isDatatypeUpdater();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1501,81 +1499,88 @@ const internal::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */
 
-size_t Sort::getConstructorArity() const
+size_t Sort::getDatatypeConstructorArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeConstructor())
+      << "Not a constructor sort: " << (*this);
   //////// all checks before this line
   return d_type->getNumChildren() - 1;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<Sort> Sort::getConstructorDomainSorts() const
+std::vector<Sort> Sort::getDatatypeConstructorDomainSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeConstructor())
+      << "Not a constructor sort: " << (*this);
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getArgTypes());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Sort::getConstructorCodomainSort() const
+Sort Sort::getDatatypeConstructorCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeConstructor())
+      << "Not a constructor sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getConstructorRangeType());
+  return Sort(d_solver, d_type->getDatatypeConstructorRangeType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
 /* Selector sort ------------------------------------------------------- */
 
-Sort Sort::getSelectorDomainSort() const
+Sort Sort::getDatatypeSelectorDomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeSelector())
+      << "Not a selector sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getSelectorDomainType());
+  return Sort(d_solver, d_type->getDatatypeSelectorDomainType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Sort::getSelectorCodomainSort() const
+Sort Sort::getDatatypeSelectorCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeSelector())
+      << "Not a selector sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getSelectorRangeType());
+  return Sort(d_solver, d_type->getDatatypeSelectorRangeType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
 /* Tester sort ------------------------------------------------------- */
 
-Sort Sort::getTesterDomainSort() const
+Sort Sort::getDatatypeTesterDomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeTester())
+      << "Not a tester sort: " << (*this);
   //////// all checks before this line
-  return Sort(d_solver, d_type->getTesterDomainType());
+  return Sort(d_solver, d_type->getDatatypeTesterDomainType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Sort::getTesterCodomainSort() const
+Sort Sort::getDatatypeTesterCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  CVC5_API_CHECK(d_type->isDatatypeTester())
+      << "Not a tester sort: " << (*this);
   //////// all checks before this line
   return d_solver->getBooleanSort();
   ////////
@@ -3938,16 +3943,6 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Datatype::getConstructorTerm(const std::string& name) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return getConstructorForName(name).getConstructorTerm();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 DatatypeSelector Datatype::getSelector(const std::string& name) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4414,7 +4409,9 @@ Sort Grammar::resolve()
     // make the unresolved type, used for referencing the final version of
     // the ntsymbol's datatype
     ntsToUnres[ntsymbol] =
-        Sort(d_solver, d_solver->getNodeManager()->mkSort(ntsymbol.toString()));
+        Sort(d_solver,
+             d_solver->getNodeManager()->mkUnresolvedDatatypeSort(
+                 ntsymbol.toString()));
   }
 
   std::vector<internal::DType> datatypes;
@@ -4456,7 +4453,6 @@ Sort Grammar::resolve()
   std::vector<internal::TypeNode> datatypeTypes =
       d_solver->getNodeManager()->mkMutualDatatypeTypes(
           datatypes,
-          unresTypes,
           internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
 
   // return is the first datatype
@@ -5173,10 +5169,8 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
 
-  std::set<internal::TypeNode> utypes =
-      Sort::sortSetToTypeNodes(unresolvedSorts);
   std::vector<internal::TypeNode> dtypes =
-      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
+      getNodeManager()->mkMutualDatatypeTypes(datatypes);
   std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
   return retTypes;
 }
@@ -5517,18 +5511,6 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_DOMAIN_SORT(domain);
-  CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(codomain);
-  //////// all checks before this line
-  return Sort(
-      this, getNodeManager()->mkFunctionType(*domain.d_type, *codomain.d_type));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
                             const Sort& codomain) const
 {
@@ -5545,13 +5527,14 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkParamSort(const std::string& symbol) const
+Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this,
-              getNodeManager()->mkSort(
-                  symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER));
+
+  internal::TypeNode tn =
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
+  return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5621,11 +5604,13 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUninterpretedSort(const std::string& symbol) const
+Sort Solver::mkUninterpretedSort(const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  internal::TypeNode tn =
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
+  return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5634,22 +5619,22 @@ Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity)
-  {
-    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-  }
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  return Sort(this, getNodeManager()->mkUnresolvedDatatypeSort(symbol, arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                                size_t arity) const
+Sort Solver::mkUninterpretedSortConstructorSort(
+    size_t arity, const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   //////// all checks before this line
-  return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
+  if (symbol)
+  {
+    return Sort(this, getNodeManager()->mkSortConstructor(*symbol, arity));
+  }
+  return Sort(this, getNodeManager()->mkSortConstructor("", arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6037,25 +6022,14 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
 /* Create constants                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
+Term Solver::mkConst(const Sort& sort,
+                     const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkVar(symbol, *sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  increment_vars_consts_stats(sort, false);
-  return Term(this, res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkConst(const Sort& sort) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(sort);
-  //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkVar(*sort.d_type);
+  internal::Node res = symbol ? d_nodeMgr->mkVar(*symbol, *sort.d_type)
+                              : d_nodeMgr->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(this, res);
@@ -6066,14 +6040,14 @@ Term Solver::mkConst(const Sort& sort) const
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
+Term Solver::mkVar(const Sort& sort,
+                   const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = symbol.empty()
-                           ? d_nodeMgr->mkBoundVar(*sort.d_type)
-                           : d_nodeMgr->mkBoundVar(symbol, *sort.d_type);
+  internal::Node res = symbol ? d_nodeMgr->mkBoundVar(*symbol, *sort.d_type)
+                              : d_nodeMgr->mkBoundVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, true);
   return Term(this, res);
@@ -7290,7 +7264,7 @@ Term Solver::getAbductNext() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::blockModel() const
+void Solver::blockModel(modes::BlockModelsMode mode) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
@@ -7299,7 +7273,7 @@ void Solver::blockModel() const
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model after SAT or UNKNOWN response.";
   //////// all checks before this line
-  d_slv->blockModel();
+  d_slv->blockModel(mode);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7422,7 +7396,7 @@ void Solver::setOption(const std::string& option,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::declareSygusVar(const Sort& sort, const std::string& symbol) const
+Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);

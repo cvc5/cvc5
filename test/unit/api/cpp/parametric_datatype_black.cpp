@@ -28,8 +28,8 @@ TEST_F(TestApiBlackParametricDatatype, proj_issue387)
 {
   Sort s1 = d_solver.getBooleanSort();
 
-  Sort u1 = d_solver.mkUninterpretedSortConstructorSort("_x0", 1);
-  Sort u2 = d_solver.mkUninterpretedSortConstructorSort("_x1", 1);
+  Sort u1 = d_solver.mkUninterpretedSortConstructorSort(1, "_x0");
+  Sort u2 = d_solver.mkUninterpretedSortConstructorSort(1);
   Sort p1 = d_solver.mkParamSort("_x4");
   Sort p2 = d_solver.mkParamSort("_x27");
   Sort p3 = d_solver.mkParamSort("_x3");

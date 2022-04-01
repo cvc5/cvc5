@@ -28,15 +28,26 @@ namespace cvc5 {
  */
 enum UnknownExplanation
 {
+  /**
+   * Full satisfiability check required (e.g., if only preprocessing was
+   * performed).
+   */
   REQUIRES_FULL_CHECK,
+  /** Incomplete theory solver. */
   INCOMPLETE,
+  /** Time limit reached. */
   TIMEOUT,
+  /** Resource limit reached. */
   RESOURCEOUT,
+  /** Memory limit reached. */
   MEMOUT,
+  /** Solver was interrupted. */
   INTERRUPTED,
-  NO_STATUS,
+  /** Unsupported feature encountered. */
   UNSUPPORTED,
+  /** Other reason. */
   OTHER,
+  /** No specific reason given. */
   UNKNOWN_REASON
 };
 
@@ -102,6 +113,12 @@ enum RoundingMode
 
 namespace cvc5::modes {
 
+/**
+ * Mode for blocking models.
+ *
+ * Specifies how models are blocked in Solver::blockModel and
+ * Solver::blockModelValues.
+ */
 enum BlockModelsMode
 {
   /** Block models based on the SAT skeleton. */

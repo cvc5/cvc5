@@ -571,10 +571,15 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     const std::vector<DType>& datatypes, uint32_t flags)
 {
   std::set<TypeNode> unresolvedTypes;
-  return mkMutualDatatypeTypes(datatypes, unresolvedTypes, flags);
+  // scan the list of datatypes to find unresolved datatypes
+  for (const DType& dt : datatypes)
+  {
+    dt.collectUnresolvedDatatypeTypes(unresolvedTypes);
+  }
+  return mkMutualDatatypeTypesInternal(datatypes, unresolvedTypes, flags);
 }
 
-std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
+std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     const std::vector<DType>& datatypes,
     const std::set<TypeNode>& unresolvedTypes,
     uint32_t flags)
@@ -675,10 +680,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
+      Assert(c.isResolved() && testerType.isDatatypeTester()
+             && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
-      Assert(ctorType.isConstructor()
+      Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
              && ctorType.getRangeType() == ut)
           << "malformed constructor in datatype post-resolution";
@@ -687,7 +693,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
       {
         const DTypeSelector& a = c[j];
         TypeNode selectorType = a.getType();
-        Assert(a.isResolved() && selectorType.isSelector()
+        Assert(a.isResolved() && selectorType.isDatatypeSelector()
                && selectorType[0] == ut)
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
@@ -879,7 +885,7 @@ void NodeManager::reclaimZombiesUntil(uint32_t k)
 
 size_t NodeManager::poolSize() const { return d_nodeValuePool.size(); }
 
-TypeNode NodeManager::mkSort(uint32_t flags)
+TypeNode NodeManager::mkSort()
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
@@ -887,7 +893,7 @@ TypeNode NodeManager::mkSort(uint32_t flags)
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags)
+TypeNode NodeManager::mkSort(const std::string& name)
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
@@ -898,8 +904,7 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags)
 }
 
 TypeNode NodeManager::mkSort(TypeNode constructor,
-                             const std::vector<TypeNode>& children,
-                             uint32_t flags)
+                             const std::vector<TypeNode>& children)
 {
   Assert(constructor.getKind() == kind::SORT_TYPE
          && constructor.getNumChildren() == 0)
@@ -921,9 +926,7 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return type;
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name,
-                                        size_t arity,
-                                        uint32_t flags)
+TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
 {
   Assert(arity > 0);
   NodeBuilder nb(this, kind::SORT_TYPE);
@@ -933,6 +936,15 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
   return type;
+}
+
+TypeNode NodeManager::mkUnresolvedDatatypeSort(const std::string& name,
+                                               size_t arity)
+{
+  TypeNode usort = arity > 0 ? mkSortConstructor(name, arity) : mkSort(name);
+  // mark that it is an unresolved sort
+  setAttribute(usort, expr::UnresolvedDatatypeAttr(), true);
+  return usort;
 }
 
 Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
@@ -1258,17 +1270,21 @@ Kind NodeManager::getKindForFunction(TNode fun)
   {
     return kind::APPLY_UF;
   }
-  else if (tn.isConstructor())
+  else if (tn.isDatatypeConstructor())
   {
     return kind::APPLY_CONSTRUCTOR;
   }
-  else if (tn.isSelector())
+  else if (tn.isDatatypeSelector())
   {
     return kind::APPLY_SELECTOR;
   }
-  else if (tn.isTester())
+  else if (tn.isDatatypeTester())
   {
     return kind::APPLY_TESTER;
+  }
+  else if (tn.isDatatypeUpdater())
+  {
+    return kind::APPLY_UPDATER;
   }
   return kind::UNDEFINED_KIND;
 }

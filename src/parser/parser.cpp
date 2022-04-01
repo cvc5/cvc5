@@ -119,7 +119,7 @@ cvc5::Term Parser::getExpressionForNameAndType(const std::string& name,
   // now, post-process the expression
   Assert(!expr.isNull());
   cvc5::Sort te = expr.getSort();
-  if (te.isConstructor() && te.getConstructorArity() == 0)
+  if (te.isDatatypeConstructor() && te.getDatatypeConstructorArity() == 0)
   {
     // nullary constructors have APPLY_CONSTRUCTOR kind with no children
     expr = d_solver->mkTerm(cvc5::APPLY_CONSTRUCTOR, {expr});
@@ -136,19 +136,19 @@ cvc5::Kind Parser::getKindForFunction(cvc5::Term fun)
   {
     return cvc5::APPLY_UF;
   }
-  else if (t.isConstructor())
+  else if (t.isDatatypeConstructor())
   {
     return cvc5::APPLY_CONSTRUCTOR;
   }
-  else if (t.isSelector())
+  else if (t.isDatatypeSelector())
   {
     return cvc5::APPLY_SELECTOR;
   }
-  else if (t.isTester())
+  else if (t.isDatatypeTester())
   {
     return cvc5::APPLY_TESTER;
   }
-  else if (t.isUpdater())
+  else if (t.isDatatypeUpdater())
   {
     return cvc5::APPLY_UPDATER;
   }
@@ -190,8 +190,8 @@ bool Parser::isFunctionLike(cvc5::Term fun)
     return false;
   }
   cvc5::Sort type = fun.getSort();
-  return type.isFunction() || type.isConstructor() || type.isTester() ||
-         type.isSelector();
+  return type.isFunction() || type.isDatatypeConstructor()
+         || type.isDatatypeTester() || type.isDatatypeSelector();
 }
 
 /* Returns true if name is bound to a function returning boolean. */
@@ -317,26 +317,23 @@ cvc5::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  cvc5::Sort type = d_solver->mkUninterpretedSortConstructorSort(name, arity);
+  cvc5::Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
   defineType(name, vector<cvc5::Sort>(arity), type);
   return type;
 }
 
 cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 {
-  cvc5::Sort unresolved = d_solver->mkUninterpretedSort(name);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedSort(name);
   defineType(name, unresolved);
-  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
 cvc5::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                size_t arity)
 {
-  cvc5::Sort unresolved =
-      d_solver->mkUninterpretedSortConstructorSort(name, arity);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedSort(name, arity);
   defineType(name, vector<cvc5::Sort>(arity), unresolved);
-  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
@@ -346,10 +343,9 @@ cvc5::Sort Parser::mkUnresolvedTypeConstructor(
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
   cvc5::Sort unresolved =
-      d_solver->mkUninterpretedSortConstructorSort(name, params.size());
+      d_solver->mkUnresolvedSort(name, params.size());
   defineType(name, params, unresolved);
   cvc5::Sort t = getSort(name, params);
-  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
@@ -362,19 +358,11 @@ cvc5::Sort Parser::mkUnresolvedType(const std::string& name, size_t arity)
   return mkUnresolvedTypeConstructor(name, arity);
 }
 
-bool Parser::isUnresolvedType(const std::string& name) {
-  if (!isDeclared(name, SYM_SORT)) {
-    return false;
-  }
-  return d_unresolved.find(getSort(name)) != d_unresolved.end();
-}
-
 std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
     std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload)
 {
   try {
-    std::vector<cvc5::Sort> types =
-        d_solver->mkDatatypeSorts(datatypes, d_unresolved);
+    std::vector<cvc5::Sort> types = d_solver->mkDatatypeSorts(datatypes);
 
     Assert(datatypes.size() == types.size());
 
@@ -441,11 +429,6 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         }
       }
     }
-
-    // These are no longer used, and the ExprManager would have
-    // complained of a bad substitution if anything is left unresolved.
-    // Clear out the set.
-    d_unresolved.clear();
 
     // throw exception if any datatype is not well-founded
     for (unsigned i = 0; i < datatypes.size(); ++i) {
@@ -567,12 +550,12 @@ cvc5::Term Parser::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
   }
   // !!! temporary until datatypes are refactored in the new API
   cvc5::Sort etype = t.getSort();
-  if (etype.isConstructor())
+  if (etype.isDatatypeConstructor())
   {
     // Type ascriptions only have an effect on the node structure if this is a
     // parametric datatype.
     // get the datatype that t belongs to
-    cvc5::Sort etyped = etype.getConstructorCodomainSort();
+    cvc5::Sort etyped = etype.getDatatypeConstructorCodomainSort();
     cvc5::Datatype d = etyped.getDatatype();
     // Note that we check whether the datatype is parametric, and not whether
     // etyped is a parametric datatype, since e.g. the smt2 parser constructs
@@ -588,7 +571,7 @@ cvc5::Term Parser::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
-    if (t.getSort().getConstructorCodomainSort() != s)
+    if (t.getSort().getDatatypeConstructorCodomainSort() != s)
     {
       std::stringstream ss;
       ss << "Type ascription on constructor not satisfied, term " << t

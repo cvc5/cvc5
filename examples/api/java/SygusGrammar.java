@@ -72,7 +72,7 @@ public class SygusGrammar
       Term id4 = slv.synthFun("id4", new Term[] {x}, integer, g1);
 
       // declare universal variables.
-      Term varX = slv.declareSygusVar(integer, "x");
+      Term varX = slv.declareSygusVar("x", integer);
 
       Term id1_x = slv.mkTerm(APPLY_UF, id1, varX);
       Term id2_x = slv.mkTerm(APPLY_UF, id2, varX);

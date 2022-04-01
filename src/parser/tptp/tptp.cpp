@@ -487,11 +487,11 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
   if (d_rtu_op.isNull()) {
     cvc5::Sort t;
     // Conversion from rational to unsorted
-    t = d_solver->mkFunctionSort(d_solver->getRealSort(), d_unsorted);
+    t = d_solver->mkFunctionSort({d_solver->getRealSort()}, d_unsorted);
     d_rtu_op = d_solver->mkConst(t, "$$rtu");
     preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
     // Conversion from unsorted to rational
-    t = d_solver->mkFunctionSort(d_unsorted, d_solver->getRealSort());
+    t = d_solver->mkFunctionSort({d_unsorted}, d_solver->getRealSort());
     d_utr_op = d_solver->mkConst(t, "$$utr");
     preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
   }

@@ -246,20 +246,15 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
     argTypes = t.getFunctionDomainSorts();
     rangeType = t.getFunctionCodomainSort();
   }
-  else if (t.isConstructor())
+  else if (t.isDatatypeConstructor())
   {
-    argTypes = t.getConstructorDomainSorts();
-    rangeType = t.getConstructorCodomainSort();
+    argTypes = t.getDatatypeConstructorDomainSorts();
+    rangeType = t.getDatatypeConstructorCodomainSort();
   }
-  else if (t.isTester())
+  else if (t.isDatatypeSelector())
   {
-    argTypes.push_back(t.getTesterDomainSort());
-    rangeType = t.getTesterCodomainSort();
-  }
-  else if (t.isSelector())
-  {
-    argTypes.push_back(t.getSelectorDomainSort());
-    rangeType = t.getSelectorCodomainSort();
+    argTypes.push_back(t.getDatatypeSelectorDomainSort());
+    rangeType = t.getDatatypeSelectorCodomainSort();
   }
   // add to the trie
   TypeArgTrie* tat = &d_overload_type_arg_trie[name];

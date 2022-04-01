@@ -483,16 +483,16 @@ private:
   TypeNode getArrayConstituentType() const;
 
   /** Get the return type (for constructor types) */
-  TypeNode getConstructorRangeType() const;
+  TypeNode getDatatypeConstructorRangeType() const;
 
   /** Get the domain type (for selector types) */
-  TypeNode getSelectorDomainType() const;
+  TypeNode getDatatypeSelectorDomainType() const;
 
   /** Get the return type (for selector types) */
-  TypeNode getSelectorRangeType() const;
+  TypeNode getDatatypeSelectorRangeType() const;
 
   /** Get the domain type (for tester types) */
-  TypeNode getTesterDomainType() const;
+  TypeNode getDatatypeTesterDomainType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -639,38 +639,41 @@ private:
   /** Is this an instantiated datatype parameter */
   bool isParameterInstantiatedDatatype(size_t n) const;
 
-  /** Is this a constructor type */
-  bool isConstructor() const;
+  /** Is this a datatype constructor type? */
+  bool isDatatypeConstructor() const;
 
-  /** Is this a selector type */
-  bool isSelector() const;
+  /** Is this a datatype selector type? */
+  bool isDatatypeSelector() const;
 
-  /** Is this a tester type */
-  bool isTester() const;
+  /** Is this a datatype tester type? */
+  bool isDatatypeTester() const;
 
-  /** Is this a datatype updater type */
-  bool isUpdater() const;
+  /** Is this a datatype updater type? */
+  bool isDatatypeUpdater() const;
 
-  /** Get the internal Datatype specification from a datatype type */
+  /** Get the internal Datatype specification from a datatype type. */
   const DType& getDType() const;
 
-  /** Get the exponent size of this floating-point type */
+  /** Get the exponent size of this floating-point type. */
   unsigned getFloatingPointExponentSize() const;
 
-  /** Get the significand size of this floating-point type */
+  /** Get the significand size of this floating-point type. */
   unsigned getFloatingPointSignificandSize() const;
 
-  /** Get the size of this bit-vector type */
+  /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
 
-  /** Is this a sort kind */
+  /** Is this a sort kind? */
   bool isUninterpretedSort() const;
 
-  /** Is this a sort constructor kind */
+  /** Is this a sort constructor kind? */
   bool isUninterpretedSortConstructor() const;
 
-  /** Get sort constructor arity */
+  /** Get sort constructor arity. */
   uint64_t getUninterpretedSortConstructorArity() const;
+
+  /** Is this an unresolved datatype? */
+  bool isUnresolvedDatatype() const;
 
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
@@ -917,20 +920,21 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
   return (*this)[1];
 }
 
-inline TypeNode TypeNode::getConstructorRangeType() const {
-  Assert(isConstructor());
+inline TypeNode TypeNode::getDatatypeConstructorRangeType() const
+{
+  Assert(isDatatypeConstructor());
   return (*this)[getNumChildren()-1];
 }
 
-inline TypeNode TypeNode::getSelectorDomainType() const
+inline TypeNode TypeNode::getDatatypeSelectorDomainType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[0];
 }
 
-inline TypeNode TypeNode::getSelectorRangeType() const
+inline TypeNode TypeNode::getDatatypeSelectorRangeType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[1];
 }
 

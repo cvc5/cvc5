@@ -32,43 +32,32 @@ class NlExtTheoryCallback : public ExtTheoryCallback
  public:
   NlExtTheoryCallback(eq::EqualityEngine* ee);
   ~NlExtTheoryCallback() {}
-  /** Get current substitution
-   *
-   * This function and the one below are
-   * used for context-dependent
-   * simplification, see Section 3.1 of
-   * "Designing Theory Solvers with Extensions"
-   * by Reynolds et al. FroCoS 2017.
-   *
-   * effort : an identifier indicating the stage where
-   *          we are performing context-dependent simplification,
-   * vars : a set of arithmetic variables.
-   *
-   * This function populates subs and exp, such that for 0 <= i < vars.size():
-   *   ( exp[vars[i]] ) => vars[i] = subs[i]
-   * where exp[vars[i]] is a set of assertions
-   * that hold in the current context. We call { vars -> subs } a "derivable
-   * substituion" (see Reynolds et al. FroCoS 2017).
+  /**
+   * Gets the current substitution, which maps v in vars to a constant c
+   * if there is a constant in its equivalence class, or to v itself otherwise.
+   * In this case, it adds (= v c) as the explanation for the substitution of v.
+   * Returns true if the substitution is non-trivial.
    */
   bool getCurrentSubstitution(int effort,
                               const std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node>>& exp) override;
-  /** Is the term n in reduced form?
+  /**
+   * Check whether the extended function `on` which can be simplified to `n`
+   * should be considered "reduced". Terms that are considered reduced are
+   * guaranteed to have the correct value in models and thus can be ignored
+   * if necessary by the theory solver. For example, if (= x 0) and
+   * (= (* x y) 0), then (* x y) may be considered reduced. The motivation is
+   * to minimize the number of terms that the non-linear solver must consider.
    *
-   * Used for context-dependent simplification.
+   * This method returns true if
+   * (1) the extended term on is not a transcendental function,
+   * (2) the top symobl of n does not belong to non-linear arithmetic.
    *
-   * effort : an identifier indicating the stage where
-   *          we are performing context-dependent simplification,
-   * on : the original term that we reduced to n,
-   * exp : an explanation such that ( exp => on = n ).
-   *
-   * We return a pair ( b, exp' ) such that
-   *   if b is true, then:
-   *     n is in reduced form
-   *     if exp' is non-null, then ( exp' => on = n )
-   * The second part of the pair is used for constructing
-   * minimal explanations for context-dependent simplifications.
+   * For example,
+   * if on, n = (* x y), (* 5 y), we return true
+   * if on, n = (* x y), 6, we return true
+   * if on, n = (* x y z), (* y z), we return false
    */
   bool isExtfReduced(int effort,
                      Node n,

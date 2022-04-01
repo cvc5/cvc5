@@ -34,14 +34,17 @@ def test(slv, consListSort):
     # which is equivalent to consList["cons"].getConstructor().  Note that
     # "nil" is a constructor too
 
-    t = slv.mkTerm(Kind.ApplyConstructor, consList.getConstructorTerm("cons"),
-                   slv.mkInteger(0),
-                   slv.mkTerm(Kind.ApplyConstructor, consList.getConstructorTerm("nil")))
+    t = slv.mkTerm(
+            Kind.APPLY_CONSTRUCTOR,
+            consList.getConstructor("cons").getConstructorTerm(),
+            slv.mkInteger(0),
+            slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
+            consList.getConstructor("nil").getConstructorTerm()))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
-        consList.getConstructorTerm("cons").getSort(),
-        consList.getConstructorTerm("nil").getSort()))
+        consList.getConstructor("cons").getConstructorTerm().getSort(),
+        consList.getConstructor("nil").getConstructorTerm().getSort()))
 
     # t2 = head(cons 0 nil), and of course this can be evaluated
     #
@@ -49,7 +52,8 @@ def test(slv, consListSort):
     # consList["cons"]) in order to get the "head" selector symbol
     # to apply.
 
-    t2 = slv.mkTerm(Kind.ApplySelector, consList["cons"].getSelectorTerm("head"), t)
+    t2 = slv.mkTerm(
+            Kind.APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -63,16 +67,16 @@ def test(slv, consListSort):
 
     # You can also define a tester term for constructor 'cons': (_ is cons)
     t_is_cons = slv.mkTerm(
-            Kind.ApplyTester, consList["cons"].getTesterTerm(), t)
+            Kind.APPLY_TESTER, consList["cons"].getTesterTerm(), t)
     print("t_is_cons is {}\n\n".format(t_is_cons))
     slv.assertFormula(t_is_cons)
     # Updating t at 'head' with value 1 is defined as follows:
-    t_updated = slv.mkTerm(Kind.ApplyUpdater,
+    t_updated = slv.mkTerm(Kind.APPLY_UPDATER,
                            consList["cons"]["head"].getUpdaterTerm(),
                            t,
                            slv.mkInteger(1))
     print("t_updated is {}\n\n".format(t_updated))
-    slv.assertFormula(slv.mkTerm(Kind.Distinct, t, t_updated))
+    slv.assertFormula(slv.mkTerm(Kind.DISTINCT, t, t_updated))
 
     # You can also define parameterized datatypes.
     # This example builds a simple parameterized list of sort T, with one
@@ -93,11 +97,15 @@ def test(slv, consListSort):
     a = slv.mkConst(paramConsIntListSort, "a")
     print("term {} is of sort {}".format(a, a.getSort()))
 
-    head_a = slv.mkTerm(Kind.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)
+    head_a = slv.mkTerm(
+            Kind.APPLY_SELECTOR,
+            paramConsList["cons"].getSelectorTerm("head"),
+            a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
-    print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
+    print("sort of cons is",
+          paramConsList.getConstructor("cons").getConstructorTerm().getSort())
 
-    assertion = slv.mkTerm(Kind.Gt, head_a, slv.mkInteger(50))
+    assertion = slv.mkTerm(Kind.GT, head_a, slv.mkInteger(50))
     print("Assert", assertion)
     slv.assertFormula(assertion)
     print("Expect sat.")
@@ -140,6 +148,5 @@ if __name__ == "__main__":
     cons2.addSelector("head", slv.getIntegerSort())
     cons2.addSelectorSelf("tail")
     nil2 = slv.mkDatatypeConstructorDecl("nil")
-    ctors = [cons2, nil2]
-    consListSort2 = slv.declareDatatype("list2", ctors)
+    consListSort2 = slv.declareDatatype("list2", cons2, nil2)
     test(slv, consListSort2)

@@ -20,8 +20,8 @@
 
 #include <vector>
 
+#include "api/cpp/cvc5_types.h"
 #include "expr/node.h"
-#include "options/smt_options.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -68,7 +68,7 @@ class ModelBlocker : protected EnvObj
   Node getModelBlocker(
       const std::vector<Node>& assertions,
       theory::TheoryModel* m,
-      options::BlockModelsMode mode,
+      modes::BlockModelsMode mode,
       const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 

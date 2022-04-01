@@ -251,59 +251,57 @@ Java_io_github_cvc5_Sort_isDatatype(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    isConstructor
+ * Method:    isDatatypeConstructor
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isDatatypeConstructor(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isDatatypeConstructor());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    isDatatypeSelector
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_Sort_isConstructor(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isDatatypeSelector(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isConstructor());
+  return static_cast<jboolean>(current->isDatatypeSelector());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    isSelector
+ * Method:    isDatatypeTester
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_Sort_isSelector(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Sort_isDatatypeTester(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isSelector());
+  return static_cast<jboolean>(current->isDatatypeTester());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    isTester
+ * Method:    isDatatypeUpdater
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isTester(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_Sort_isDatatypeUpdater(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isTester());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_Sort
- * Method:    isUpdater
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isUpdater(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isUpdater());
+  return static_cast<jboolean>(current->isDatatypeUpdater());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
@@ -642,31 +640,31 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Sort_toString(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getConstructorArity
+ * Method:    getDatatypeConstructorArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getConstructorArity(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getDatatypeConstructorArity(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getConstructorArity());
+  return static_cast<jint>(current->getDatatypeConstructorArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getConstructorDomainSorts
+ * Method:    getDatatypeConstructorDomainSorts
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Sort_getConstructorDomainSorts(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer)
+Java_io_github_cvc5_Sort_getDatatypeConstructorDomainSorts(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  std::vector<Sort> sorts = current->getConstructorDomainSorts();
+  std::vector<Sort> sorts = current->getDatatypeConstructorDomainSorts();
   std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
@@ -680,75 +678,79 @@ Java_io_github_cvc5_Sort_getConstructorDomainSorts(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getConstructorCodomainSort
+ * Method:    getDatatypeConstructorCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getConstructorCodomainSort(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Sort_getDatatypeConstructorCodomainSort(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getConstructorCodomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeConstructorCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getSelectorDomainSort
+ * Method:    getDatatypeSelectorDomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSelectorDomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatypeSelectorDomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getSelectorDomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeSelectorDomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getSelectorCodomainSort
+ * Method:    getDatatypeSelectorCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSelectorCodomainSort(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Sort_getDatatypeSelectorCodomainSort(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getSelectorCodomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeSelectorCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getTesterDomainSort
+ * Method:    getDatatypeTesterDomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getTesterDomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatypeTesterDomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getTesterDomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeTesterDomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getTesterCodomainSort
+ * Method:    getDatatypeTesterCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getTesterCodomainSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getDatatypeTesterCodomainSort(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* retPointer = new Sort(current->getTesterCodomainSort());
+  Sort* retPointer = new Sort(current->getDatatypeTesterCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

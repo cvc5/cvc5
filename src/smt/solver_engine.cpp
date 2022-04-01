@@ -1089,7 +1089,7 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   return ssm.str();
 }
 
-void SolverEngine::blockModel()
+void SolverEngine::blockModel(modes::BlockModelsMode mode)
 {
   Trace("smt") << "SMT blockModel()" << endl;
   SolverEngineScope smts(this);
@@ -1098,18 +1098,10 @@ void SolverEngine::blockModel()
 
   TheoryModel* m = getAvailableModel("block model");
 
-  if (d_env->getOptions().smt.blockModelsMode == options::BlockModelsMode::NONE)
-  {
-    std::stringstream ss;
-    ss << "Cannot block model when block-models is set to none.";
-    throw RecoverableModalException(ss.str().c_str());
-  }
-
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   ModelBlocker mb(*d_env.get());
-  Node eblocker = mb.getModelBlocker(
-      eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
+  Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
   assertFormulaInternal(eblocker);
 }
@@ -1133,7 +1125,7 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   // we always do block model values mode here
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
-      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
+      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);
   assertFormulaInternal(eblocker);
 }
 

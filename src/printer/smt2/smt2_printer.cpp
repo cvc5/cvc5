@@ -1691,9 +1691,17 @@ void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const
   out << "(get-model)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdBlockModel(std::ostream& out) const
+void Smt2Printer::toStreamCmdBlockModel(std::ostream& out,
+                                        modes::BlockModelsMode mode) const
 {
-  out << "(block-model)" << std::endl;
+  out << "(block-model :";
+  switch (mode)
+  {
+    case modes::BlockModelsMode::LITERALS: out << "literals"; break;
+    case modes::BlockModelsMode::VALUES: out << "values"; break;
+    default: Unreachable() << "Invalid block models mode " << mode;
+  }
+  out << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdBlockModelValues(

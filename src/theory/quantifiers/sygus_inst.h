@@ -111,6 +111,9 @@ class SygusInst : public QuantifiersModule
    */
   bool sendEvalUnfoldLemmas(const std::vector<Node>& lemmas);
 
+  /** Return true if this module should process quantified formula q */
+  bool shouldProcess(Node q);
+
   /* Maps quantifiers to a vector of instantiation constants. */
   std::unordered_map<Node, std::vector<Node>> d_inst_constants;
 

@@ -219,7 +219,10 @@ void SygusInst::reset_round(Theory::Effort e)
   for (uint32_t i = 0; i < nasserted; ++i)
   {
     Node q = model->getAssertedQuantifier(i);
-
+    if (!shouldProcess(q))
+    {
+      continue;
+    }
     if (model->isQuantifierActive(q))
     {
       d_active_quant.insert(q);
@@ -241,6 +244,19 @@ void SygusInst::reset_round(Theory::Effort e)
       }
     }
   }
+}
+
+bool SygusInst::shouldProcess(Node q)
+{
+  // Note that we currently process quantified formulas that other modules
+  // e.g. CEGQI have taken full ownership over.
+  // ignore internal quantifiers
+  QuantAttributes& qattr = d_qreg.getQuantAttributes();
+  if (qattr.isQuantBounded(q))
+  {
+    return false;
+  }
+  return true;
 }
 
 void SygusInst::check(Theory::Effort e, QEffort quant_e)

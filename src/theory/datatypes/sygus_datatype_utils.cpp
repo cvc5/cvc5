@@ -457,7 +457,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 
   // must convert all constructors to version with variables in "vars"
   std::vector<SygusDatatype> sdts;
-  std::set<TypeNode> unres;
 
   Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
   Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
@@ -469,9 +468,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   dtToProcess.push_back(sdt);
   std::stringstream ssutn0;
   ssutn0 << sdtd.getName() << "_s";
-  TypeNode abdTNew =
-      nm->mkSort(ssutn0.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert(abdTNew);
+  TypeNode abdTNew = nm->mkUnresolvedDatatypeSort(ssutn0.str());
   dtProcessed[sdt] = abdTNew;
 
   // We must convert all symbols in the sygus datatype type sdt to
@@ -511,11 +508,9 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
           {
             std::stringstream ssutn;
             ssutn << argt.getDType().getName() << "_s";
-            argtNew =
-                nm->mkSort(ssutn.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
+            argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
-            unres.insert(argtNew);
             dtProcessed[argt] = argtNew;
             dtNextToProcess.push_back(argt);
           }
@@ -552,7 +547,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   }
   // make the datatype types
   std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
-      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   TypeNode sdtS = datatypeTypes[0];
   if (TraceIsOn("dtsygus-gen-debug"))
   {

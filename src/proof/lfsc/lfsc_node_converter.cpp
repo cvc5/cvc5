@@ -118,8 +118,8 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester()
-        || tn.isUpdater())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // note these are not converted to their user named (cvc.) symbols here,
       // to avoid type errors when constructing terms for postConvert
@@ -728,12 +728,12 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
       // a skolem corresponding to shared selector should print in
       // LFSC as (sel T n) where T is the type and n is the index of the
       // shared selector.
-      TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(),
-                                          tn.getSelectorRangeType());
+      TypeNode fselt = nm->mkFunctionType(tn.getDatatypeSelectorDomainType(),
+                                          tn.getDatatypeSelectorRangeType());
       TypeNode intType = nm->integerType();
       TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
       Node sel = getSymbolInternal(k.getKind(), selt, "sel");
-      Node kn = typeAsNode(convertType(tn.getSelectorRangeType()));
+      Node kn = typeAsNode(convertType(tn.getDatatypeSelectorRangeType()));
       Assert(!cacheVal.isNull() && cacheVal.getKind() == CONST_RATIONAL);
       return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
     }

@@ -476,9 +476,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node bvl;
       std::string veName("_virtual_enum_grammar");
       SygusDatatype sdt(veName);
-      TypeNode u = nm->mkSort(veName, NodeManager::SORT_FLAG_PLACEHOLDER);
-      std::set<TypeNode> unresolvedTypes;
-      unresolvedTypes.insert(u);
+      TypeNode u = nm->mkUnresolvedDatatypeSort(veName);
       std::vector<TypeNode> cargsEmpty;
       Node cr = nm->mkConstInt(Rational(1));
       sdt.addConstructor(cr, "1", cargsEmpty);
@@ -490,7 +488,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());
       std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
-          datatypes, unresolvedTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+          datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
       d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);

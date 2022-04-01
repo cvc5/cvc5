@@ -1831,7 +1831,7 @@ AletheProofPostprocess::~AletheProofPostprocess() {}
 void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb, true, false);
+  ProofNodeUpdater updater(d_pnm, d_cb, false, false);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after

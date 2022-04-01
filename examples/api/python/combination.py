@@ -51,27 +51,26 @@ if __name__ == "__main__":
     one = slv.mkInteger(1)
 
     # Terms
-    f_x = slv.mkTerm(Kind.ApplyUf, f, x)
-    f_y = slv.mkTerm(Kind.ApplyUf, f, y)
-    sum_ = slv.mkTerm(Kind.Add, f_x, f_y)
-    p_0 = slv.mkTerm(Kind.ApplyUf, p, zero)
-    p_f_y = slv.mkTerm(Kind.ApplyUf, p, f_y)
+    f_x = slv.mkTerm(Kind.APPLY_UF, f, x)
+    f_y = slv.mkTerm(Kind.APPLY_UF, f, y)
+    sum_ = slv.mkTerm(Kind.ADD, f_x, f_y)
+    p_0 = slv.mkTerm(Kind.APPLY_UF, p, zero)
+    p_f_y = slv.mkTerm(Kind.APPLY_UF, p, f_y)
 
     # Construct the assertions
-    assertions = slv.mkTerm(Kind.And,
-                            [
-                                slv.mkTerm(Kind.Leq, zero, f_x), # 0 <= f(x)
-                                slv.mkTerm(Kind.Leq, zero, f_y), # 0 <= f(y)
-                                slv.mkTerm(Kind.Leq, sum_, one), # f(x) + f(y) <= 1
-                                p_0.notTerm(), # not p(0)
-                                p_f_y # p(f(y))
-                            ])
+    assertions = slv.mkTerm(Kind.AND,
+                            slv.mkTerm(Kind.LEQ, zero, f_x), # 0 <= f(x)
+                            slv.mkTerm(Kind.LEQ, zero, f_y), # 0 <= f(y)
+                            slv.mkTerm(Kind.LEQ, sum_, one), # f(x) + f(y) <= 1
+                            p_0.notTerm(), # not p(0)
+                            p_f_y # p(f(y))
+                            )
 
     slv.assertFormula(assertions)
 
     print("Given the following assertions:", assertions, "\n")
     print("Prove x /= y is entailed.\ncvc5: ",
-          slv.checkSatAssuming(slv.mkTerm(Kind.Equal, x, y)), "\n")
+          slv.checkSatAssuming(slv.mkTerm(Kind.EQUAL, x, y)), "\n")
 
     print("Call checkSat to show that the assertions are satisfiable")
     print("cvc5:", slv.checkSat(), "\n")

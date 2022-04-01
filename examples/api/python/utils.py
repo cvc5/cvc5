@@ -47,7 +47,7 @@ def print_synth_solutions(terms, sols):
     for i in range(0, len(terms)):
         params = []
         body = sols[i]
-        if sols[i].getKind() == Kind.Lambda:
+        if sols[i].getKind() == Kind.LAMBDA:
             params += sols[i][0]
             body = sols[i][1]
         result += "  " + define_fun_to_string(terms[i], params, body) + "\n"

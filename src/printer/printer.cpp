@@ -376,7 +376,8 @@ void Printer::toStreamCmdGetModel(std::ostream& out) const
   printUnknownCommand(out, "ge-model");
 }
 
-void Printer::toStreamCmdBlockModel(std::ostream& out) const
+void Printer::toStreamCmdBlockModel(std::ostream& out,
+                                    modes::BlockModelsMode mode) const
 {
   printUnknownCommand(out, "block-model");
 }
