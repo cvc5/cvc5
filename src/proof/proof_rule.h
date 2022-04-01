@@ -1694,12 +1694,12 @@ enum class PfRule : uint32_t
   RE_ELIM,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Code points**
+   * **Strings -- Code points**
    *
    * .. math::
    *
-   *   \inferrule{-\mid t,s}{\mathit{code}(t) = -1 \vee \mathit{code}(t) \neq
-   *   \mathit{code}(s) \vee t\neq s}
+   *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
+   *   \mathit{to\_code}(s) \vee t\neq s}
    * \endverbatim
    */
   STRING_CODE_INJ,
