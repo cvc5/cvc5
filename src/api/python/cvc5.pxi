@@ -227,6 +227,16 @@ cdef class DatatypeConstructor:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype selector with the given index, where index can be
+            either a numeric id starting with zero, or the name of the selector.
+            In the latter case, this is a linear search through the selectors,
+            so in case of multiple, similarly-named selectors, the first is
+            returned.
+
+            :param index: the id or name of the datatype selector
+            :return: the matching datatype selector
+        """
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         if isinstance(index, int) and index >= 0:
             ds.cds = self.cdc[(<int?> index)]
@@ -309,6 +319,7 @@ cdef class DatatypeConstructor:
         return self.cdc.toString().decode()
 
     def __iter__(self):
+        """Iterate over all datatype selectors."""
         for ci in self.cdc:
             ds = DatatypeSelector(self.solver)
             ds.cds = ci
