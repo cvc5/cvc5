@@ -123,8 +123,8 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
-    if (st.isConstructor() || st.isSelector() || st.isTester()
-        || st.isUpdater())
+    if (st.isDatatypeConstructor() || st.isDatatypeSelector()
+        || st.isDatatypeTester() || st.isDatatypeUpdater())
     {
       // constructors, selector, testers, updaters are defined by the datatype
       continue;

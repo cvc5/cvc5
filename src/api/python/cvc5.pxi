@@ -829,7 +829,7 @@ cdef class Solver:
                                                  codomain.csort)
         return sort
 
-    def mkParamSort(self, symbolname):
+    def mkParamSort(self, str symbolname = None):
         """ Create a sort parameter.
 
         .. warning:: This method is experimental and may change in future
@@ -839,7 +839,10 @@ cdef class Solver:
         :return: the sort parameter
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkParamSort(symbolname.encode())
+        if symbolname is None:
+          sort.csort = self.csolver.mkParamSort()
+        else:
+          sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
     @expand_list_arg(num_req_args=0)
@@ -908,14 +911,17 @@ cdef class Solver:
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
         return sort
 
-    def mkUninterpretedSort(self, str name):
+    def mkUninterpretedSort(self, str name = None):
         """Create an uninterpreted sort.
 
         :param symbol: the name of the sort
         :return: the uninterpreted sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUninterpretedSort(name.encode())
+        if name is None:
+          sort.csort = self.csolver.mkUninterpretedSort()
+        else:
+          sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
     def mkUnresolvedSort(self, str name, size_t arity = 0):
@@ -932,7 +938,7 @@ cdef class Solver:
         sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
         return sort
 
-    def mkUninterpretedSortConstructorSort(self, str symbol, size_t arity):
+    def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
         """Create a sort constructor sort.
 
         An uninterpreted sort constructor is an uninterpreted sort with
@@ -943,8 +949,11 @@ cdef class Solver:
         :return: the sort constructor sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
-            symbol.encode(), arity)
+        if symbol is None:
+          sort.csort = self.csolver.mkUninterpretedSortConstructorSort(arity)
+        else:
+          sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
+              arity, symbol.encode())
         return sort
 
     @expand_list_arg(num_req_args=0)
@@ -1539,7 +1548,7 @@ cdef class Solver:
         grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
-    def declareSygusVar(self, Sort sort, str symbol=""):
+    def declareSygusVar(self, str symbol, Sort sort):
         """Append symbol to the current list of universal variables.
 
         SyGuS v2:
@@ -1553,7 +1562,7 @@ cdef class Solver:
         :return: the universal variable
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.declareSygusVar(sort.csort, symbol.encode())
+        term.cterm = self.csolver.declareSygusVar(symbol.encode(), sort.csort)
         return term
 
     def addSygusConstraint(self, Term t):
@@ -2784,37 +2793,37 @@ cdef class Sort:
         """
         return self.csort.isDatatype()
 
-    def isConstructor(self):
+    def isDatatypeConstructor(self):
         """
-            Is this a constructor sort?
+            Is this a datatype constructor sort?
 
-            :return: True if the sort is a constructor sort.
+            :return: True if the sort is a datatype constructor sort.
         """
-        return self.csort.isConstructor()
+        return self.csort.isDatatypeConstructor()
 
-    def isSelector(self):
+    def isDatatypeSelector(self):
         """
-            Is this a selector sort?
+            Is this a datatype selector sort?
 
-            :return: True if the sort is a selector sort.
+            :return: True if the sort is a datatype selector sort.
         """
-        return self.csort.isSelector()
+        return self.csort.isDatatypeSelector()
 
-    def isTester(self):
+    def isDatatypeTester(self):
         """
             Is this a tester sort?
 
             :return: True if the sort is a selector sort.
         """
-        return self.csort.isTester()
+        return self.csort.isDatatypeTester()
 
-    def isUpdater(self):
+    def isDatatypeUpdater(self):
         """
             Is this a datatype updater sort?
 
             :return: True if the sort is a datatype updater sort.
         """
-        return self.csort.isUpdater()
+        return self.csort.isDatatypeUpdater()
 
     def isFunction(self):
         """
@@ -3018,61 +3027,62 @@ cdef class Sort:
         return sort
 
 
-    def getConstructorArity(self):
+    def getDatatypeConstructorArity(self):
         """
-            :return: the arity of a constructor sort.
+            :return: the arity of a datatype constructor sort.
         """
-        return self.csort.getConstructorArity()
+        return self.csort.getDatatypeConstructorArity()
 
-    def getConstructorDomainSorts(self):
+    def getDatatypeConstructorDomainSorts(self):
         """
-            :return: the domain sorts of a constructor sort
+            :return: the domain sorts of a datatype constructor sort
         """
         domain_sorts = []
-        for s in self.csort.getConstructorDomainSorts():
+        for s in self.csort.getDatatypeConstructorDomainSorts():
             sort = Sort(self.solver)
             sort.csort = s
             domain_sorts.append(sort)
         return domain_sorts
 
-    def getConstructorCodomainSort(self):
+    def getDatatypeConstructorCodomainSort(self):
         """
-            :return: the codomain sort of a constructor sort
+            :return: the codomain sort of a datatype constructor sort
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.csort.getConstructorCodomainSort()
+        sort.csort = self.csort.getDatatypeConstructorCodomainSort()
         return sort
 
-    def getSelectorDomainSort(self):
+    def getDatatypeSelectorDomainSort(self):
         """
-            :return: the domain sort of a selector sort
+            :return: the domain sort of a datatype selector sort
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.csort.getSelectorDomainSort()
+        sort.csort = self.csort.getDatatypeSelectorDomainSort()
         return sort
 
-    def getSelectorCodomainSort(self):
+    def getDatatypeSelectorCodomainSort(self):
         """
-            :return: the codomain sort of a selector sort
+            :return: the codomain sort of a datatype selector sort
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.csort.getSelectorCodomainSort()
+        sort.csort = self.csort.getDatatypeSelectorCodomainSort()
         return sort
 
-    def getTesterDomainSort(self):
+    def getDatatypeTesterDomainSort(self):
         """
-            :return: the domain sort of a tester sort
+            :return: the domain sort of a datatype tester sort
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.csort.getTesterDomainSort()
+        sort.csort = self.csort.getDatatypeTesterDomainSort()
         return sort
 
-    def getTesterCodomainSort(self):
+    def getDatatypeTesterCodomainSort(self):
         """
-            :return: the codomain sort of a tester sort, which is the Boolean sort
+            :return: the codomain sort of a datatype tester sort, which is the
+                     Boolean sort
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.csort.getTesterCodomainSort()
+        sort.csort = self.csort.getDatatypeTesterCodomainSort()
         return sort
 
     def getFunctionArity(self):

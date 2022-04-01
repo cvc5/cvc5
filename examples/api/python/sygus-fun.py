@@ -66,8 +66,8 @@ if __name__ == "__main__":
   min = slv.synthFun("min", [x, y], integer)
 
   # declare universal variables.
-  varX = slv.declareSygusVar(integer, "x")
-  varY = slv.declareSygusVar(integer, "y")
+  varX = slv.declareSygusVar("x", integer)
+  varY = slv.declareSygusVar("y", integer)
 
   max_x_y = slv.mkTerm(Kind.ApplyUf, max, varX, varY)
   min_x_y = slv.mkTerm(Kind.ApplyUf, min, varX, varY)
