@@ -1443,21 +1443,19 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r_t)
-   *   \vee (s_1 = t_1\cdot r_s)}
+   *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
+   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\bot$}
    *
    * where :math:`r_t` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))` and
    * :math:`r_s` is :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
    *
-   * or alternatively for the reverse:
-   *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid \top}{(t_1 = s_1\cdot r_t)
-   *   \vee (s_1 = t_1\cdot r_s)}
+   *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
+   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\top$}
    *
    * where :math:`r_t` is
    * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
