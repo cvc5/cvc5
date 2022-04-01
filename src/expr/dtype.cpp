@@ -158,7 +158,7 @@ void DType::collectUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
       Node sel = (*ctor)[i].d_selector;
       if (sel.isNull())
       {
-        // currently permit null selector for representing self selectors,
+        // we currently permit null selector for representing self selectors,
         // skip these.
         continue;
       }
