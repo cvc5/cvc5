@@ -30,14 +30,14 @@ if __name__ == "__main__":
     # Helper terms
     two = slv.mkReal(2)
     pi = slv.mkPi()
-    twopi = slv.mkTerm(Kind.Mult, two, pi)
-    ysq = slv.mkTerm(Kind.Mult, y, y)
-    sinx = slv.mkTerm(Kind.Sine, x)
+    twopi = slv.mkTerm(Kind.MULT, two, pi)
+    ysq = slv.mkTerm(Kind.MULT, y, y)
+    sinx = slv.mkTerm(Kind.SINE, x)
 
     # Formulas
-    x_gt_pi = slv.mkTerm(Kind.Gt, x, pi)
-    x_lt_tpi = slv.mkTerm(Kind.Lt, x, twopi)
-    ysq_lt_sinx = slv.mkTerm(Kind.Lt, ysq, sinx)
+    x_gt_pi = slv.mkTerm(Kind.GT, x, pi)
+    x_lt_tpi = slv.mkTerm(Kind.LT, x, twopi)
+    ysq_lt_sinx = slv.mkTerm(Kind.LT, ysq, sinx)
     
     slv.assertFormula(x_gt_pi)
     slv.assertFormula(x_lt_tpi)

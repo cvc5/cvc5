@@ -68,7 +68,7 @@ jobs:
 
     # cancel already running jobs for the same branch/pr/tag
     concurrency:
-      group: build-${{ github.ref }}-${{ matrix.name }}
+      group: build-${{ github.ref }}-${{ matrix.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
       cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
     steps:
@@ -133,7 +133,9 @@ jobs:
       with:
         binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
         binary-name: ${{ matrix.binary-name }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # when using GITHUB_TOKEN, no further workflows are triggered
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
 
   update-pr:
     runs-on: ubuntu-latest
