@@ -275,11 +275,8 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
    *     list = cons(car: tree, cdr: list) | nil
    *   END;
    */
-  std::set<TypeNode> unresolvedTypes;
   TypeNode unresList = d_nodeManager->mkSort("list");
-  unresolvedTypes.insert(unresList);
   TypeNode unresTree = d_nodeManager->mkSort("tree");
-  unresolvedTypes.insert(unresTree);
 
   DType tree("tree");
   std::shared_ptr<DTypeConstructor> node =
@@ -314,8 +311,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   std::vector<DType> dts;
   dts.push_back(tree);
   dts.push_back(list);
-  std::vector<TypeNode> dtts =
-      d_nodeManager->mkMutualDatatypeTypes(dts, unresolvedTypes);
+  std::vector<TypeNode> dtts = d_nodeManager->mkMutualDatatypeTypes(dts);
 
   ASSERT_TRUE(dtts[0].getDType().isResolved());
   ASSERT_TRUE(dtts[1].getDType().isResolved());
@@ -343,11 +339,8 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
 
 TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
 {
-  std::set<TypeNode> unresolvedTypes;
   TypeNode unresList = d_nodeManager->mkSort("list");
-  unresolvedTypes.insert(unresList);
   TypeNode unresTree = d_nodeManager->mkSort("tree");
-  unresolvedTypes.insert(unresTree);
 
   DType tree("tree");
   std::shared_ptr<DTypeConstructor> node =
@@ -382,8 +375,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
   dts.push_back(tree);
   dts.push_back(list);
   // remake the types
-  std::vector<TypeNode> dtts2 =
-      d_nodeManager->mkMutualDatatypeTypes(dts, unresolvedTypes);
+  std::vector<TypeNode> dtts2 = d_nodeManager->mkMutualDatatypeTypes(dts);
 
   ASSERT_FALSE(dtts2[0].getDType().isFinite());
   ASSERT_TRUE(
