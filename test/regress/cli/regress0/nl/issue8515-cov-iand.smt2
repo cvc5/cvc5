@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; SCRUBBER: grep -o "Term of kind iand is not compatible"
 ; EXPECT: Term of kind iand is not compatible
 ; EXIT: 1
