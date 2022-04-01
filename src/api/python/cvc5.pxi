@@ -2538,7 +2538,7 @@ cdef class Solver:
         result.cterm = self.csolver.getInterpolantNext()
         return result
         
-    def getAbduct(self, Term conj, *args):
+    def getAbduct(self, Term conj, Grammar grammar=None):
         """Get an abduct.
 
         SMT-LIB:
@@ -2550,26 +2550,18 @@ cdef class Solver:
 
         Requires to enable option :ref:`produce-abducts <lbl-option-produce-abducts>`.
 
-        Supports the following variants:
-
-        - ``Term getAbduct(Term conj)``
-        - ``Term getAbduct(Term conj, Grammar grammar)``
-
         .. warning:: This method is experimental and may change in future
                      versions.
         
         :param conj: the conjecture term
-        :param output: the term where the result will be stored
         :param grammar: a grammar for the abduct 
-        :return: True iff an abduct was found
+        :return: The abduct. See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getAbduct(conj.cterm, grammar.cgrammar)
         return result
 
     def getAbductNext(self):
