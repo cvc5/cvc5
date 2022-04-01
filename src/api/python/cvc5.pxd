@@ -218,17 +218,19 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
         vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
                                      const set[Sort]& unresolvedSorts) except +
-        Sort mkFunctionSort(Sort domain, Sort codomain) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
+        Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
         Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
+        Sort mkUninterpretedSort() except +
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
-        Sort mkUninterpretedSortConstructorSort(const string& symbol, size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
@@ -238,8 +240,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
         Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
-        Term declareSygusVar(Sort sort, const string& symbol) except +
-        Term declareSygusVar(Sort sort) except +
+        Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
         void addSygusAssume(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
@@ -383,10 +384,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isBitVector() except +
         bint isFloatingPoint() except +
         bint isDatatype() except +
-        bint isConstructor() except +
-        bint isSelector() except +
-        bint isTester() except +
-        bint isUpdater() except +
+        bint isDatatypeConstructor() except +
+        bint isDatatypeSelector() except +
+        bint isDatatypeTester() except +
+        bint isDatatypeUpdater() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
@@ -398,17 +399,18 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isUninterpretedSort() except +
         bint isUninterpretedSortConstructor() except +
         bint isInstantiated() except +
+        Sort getUninterpretedSortConstructor() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         vector[Sort] getInstantiatedParameters() except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
-        size_t getConstructorArity() except +
-        vector[Sort] getConstructorDomainSorts() except +
-        Sort getConstructorCodomainSort() except +
-        Sort getSelectorDomainSort() except +
-        Sort getSelectorCodomainSort() except +
-        Sort getTesterDomainSort() except +
-        Sort getTesterCodomainSort() except +
+        size_t getDatatypeConstructorArity() except +
+        vector[Sort] getDatatypeConstructorDomainSorts() except +
+        Sort getDatatypeConstructorCodomainSort() except +
+        Sort getDatatypeSelectorDomainSort() except +
+        Sort getDatatypeSelectorCodomainSort() except +
+        Sort getDatatypeTesterDomainSort() except +
+        Sort getDatatypeTesterCodomainSort() except +
         size_t getFunctionArity() except +
         vector[Sort] getFunctionDomainSorts() except +
         Sort getFunctionCodomainSort() except +

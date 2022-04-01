@@ -51,6 +51,15 @@ bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return pn->getRule() != PfRule::ALETHE_RULE;
 }
 
+bool AletheProofPostprocessCallback::shouldUpdatePost(
+    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
+{
+  Assert(!pn->getArguments().empty());
+  AletheRule rule = getAletheRule(pn->getArguments()[0]);
+  return rule == AletheRule::RESOLUTION || rule == AletheRule::REORDERING
+         || rule == AletheRule::CONTRACTION;
+}
+
 bool AletheProofPostprocessCallback::update(Node res,
                                             PfRule id,
                                             const std::vector<Node>& children,
@@ -1710,17 +1719,18 @@ bool AletheProofPostprocessCallback::update(Node res,
   return false;
 }
 
-// Adds OR rule to the premises of a step if the premise is not a clause and
-// should not be a singleton. Since FACTORING and REORDERING always take
-// non-singletons, this adds an OR step to their premise if it was formerly
-// printed as (cl (or F1 ... Fn)). For resolution, it is necessary to check all
-// children to find out whether they're singleton before determining if they are
-// already printed correctly.
-bool AletheProofPostprocessCallback::finalize(Node res,
-                                              PfRule id,
-                                              const std::vector<Node>& children,
-                                              const std::vector<Node>& args,
-                                              CDProof* cdp)
+// Adds an OR rule to the premises of a step if the premise is not a clause and
+// should not be a singleton. Since CONTRACTION and REORDERING always take
+// non-singletons, this function adds an OR step to their premise if it was
+// formerly printed as (cl (or F1 ... Fn)). For resolution, it is necessary to
+// check all children to find out whether they're singleton before determining
+// if they are already printed correctly.
+bool AletheProofPostprocessCallback::updatePost(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
   AletheRule rule = getAletheRule(args[0]);
@@ -1912,7 +1922,11 @@ bool AletheProofPostprocessCallback::finalize(Node res,
       }
       return false;
     }
-    default: return false;
+    default:
+    {
+      Unreachable();
+      return false;
+    }
   }
   return false;
 }

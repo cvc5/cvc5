@@ -15,16 +15,16 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_Op.h"
+#include "io_github_cvc5_Op.h"
 
 using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Op_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Op_deletePointer(JNIEnv*,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -32,11 +32,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Op_deletePointer(JNIEnv*,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    equals
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_equals(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Op_equals(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer1,
                                                              jlong pointer2)
@@ -50,11 +50,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_equals(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    getKind
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getKind(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Op_getKind(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer)
 {
@@ -65,11 +65,11 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getKind(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isNull(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Op_isNull(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer)
 {
@@ -80,11 +80,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    isIndexed
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isIndexed(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Op_isIndexed(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -95,11 +95,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isIndexed(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    getNumIndices
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getNumIndices(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Op_getNumIndices(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -110,11 +110,11 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getNumIndices(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    get
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Op_get(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Op_get(JNIEnv* env,
                                                        jobject,
                                                        jlong pointer,
                                                        jint i)
@@ -127,11 +127,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Op_get(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Op_toString(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Op_toString(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {
