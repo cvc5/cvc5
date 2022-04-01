@@ -317,7 +317,7 @@ cvc5::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  cvc5::Sort type = d_solver->mkUninterpretedSortConstructorSort(name, arity);
+  cvc5::Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
   defineType(name, vector<cvc5::Sort>(arity), type);
   return type;
 }

@@ -529,7 +529,7 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresList5 = d_solver.mkUninterpretedSortConstructorSort("list5", 1);
+    Sort unresList5 = d_solver.mkUninterpretedSortConstructorSort(1, "list5");
     unresTypes.add(unresList5);
 
     List<Sort> v = new ArrayList<>();
@@ -570,7 +570,7 @@ class DatatypeTest
      */
     // Make unresolved types as placeholders
     Set<Sort> unresTypes = new HashSet<>();
-    Sort unresList = d_solver.mkUninterpretedSortConstructorSort("plist", 1);
+    Sort unresList = d_solver.mkUninterpretedSortConstructorSort(1, "plist");
     unresTypes.add(unresList);
 
     List<Sort> v = new ArrayList<>();
