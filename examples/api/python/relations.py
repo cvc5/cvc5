@@ -96,12 +96,12 @@ if __name__ == "__main__":
     # fathers are males
     # (assert (set.subset (rel.join father people) males))
     fathers = solver.mkTerm(Kind.RELATION_JOIN, father, people)
-    fathersAreMales = solver.mkTerm(Kind.SET_SUBSET_, fathers, males)
+    fathersAreMales = solver.mkTerm(Kind.SET_SUBSET, fathers, males)
 
     # mothers are females
     # (assert (set.subset (rel.join mother people) females))
     mothers = solver.mkTerm(Kind.RELATION_JOIN, mother, people)
-    mothersAreFemales = solver.mkTerm(Kind.SET_SUBSET_, mothers, females)
+    mothersAreFemales = solver.mkTerm(Kind.SET_SUBSET, mothers, females)
 
     # (assert (= parent (set.union father mother)))
     unionFatherMother = solver.mkTerm(Kind.SET_UNION, father, mother)
