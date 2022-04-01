@@ -2289,15 +2289,17 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getAbductNext(
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    blockModel
- * Signature: (J)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_blockModel(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jint modeValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  solver->blockModel();
+  modes::BlockModelsMode mode = static_cast<modes::BlockModelsMode>(modeValue);
+  solver->blockModel(mode);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
