@@ -51,7 +51,7 @@ public class DatatypeDecl extends AbstractPointer
   private native int getNumConstructors(long pointer);
 
   /**
-   * @return true if this datatype is parametric
+   * @return true if this DatatypeDecl is parametric
    *
    * @api.note This method is experimental and may change in future versions.
    */
