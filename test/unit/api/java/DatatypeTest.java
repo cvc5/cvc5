@@ -127,8 +127,7 @@ class DatatypeTest
   }
 
   @Test
-  void mkDatatypeSortsSelUnres() throws CVC5ApiException
-  {
+  void mkDatatypeSortsSelUnres() throws CVC5ApiException {
     /* Same as above, using unresolved selectors
      */
     // Make unresolved types as placeholders
@@ -162,14 +161,15 @@ class DatatypeTest
     dtdecls.add(list);
 
     AtomicReference<List<Sort>> atomic = new AtomicReference<>();
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(
+        () -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
     List<Sort> dtsorts = atomic.get();
     assertEquals(dtsorts.size(), dtdecls.size());
-    for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
-    {
+    for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++) {
       assertTrue(dtsorts.get(i).isDatatype());
       assertFalse(dtsorts.get(i).getDatatype().isFinite());
-      assertEquals(dtsorts.get(i).getDatatype().getName(), dtdecls.get(i).getName());
+      assertEquals(
+          dtsorts.get(i).getDatatype().getName(), dtdecls.get(i).getName());
     }
     // verify the resolution was correct
     Datatype dtTree = dtsorts.get(0).getDatatype();
