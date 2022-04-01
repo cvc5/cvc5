@@ -1073,11 +1073,13 @@ class TermTest
 
     // incorrect substitution due to arity
     rs.remove(rs.size() - 1);
-    assertThrows(CVC5ApiException.class, () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
+    assertThrows(CVC5ApiException.class,
+        () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
 
     // incorrect substitution due to types
     rs.add(ttrue);
-    assertThrows(CVC5ApiException.class, () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
+    assertThrows(CVC5ApiException.class,
+        () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
 
     // null cannot substitute
     Term tnull = d_solver.getNullTerm();
@@ -1086,15 +1088,18 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> xpx.substitute(x, tnull));
     rs.remove(rs.size() - 1);
     rs.add(tnull);
-    assertThrows(CVC5ApiException.class, () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
+    assertThrows(CVC5ApiException.class,
+        () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
     es.clear();
     rs.clear();
     es.add(x);
     rs.add(y);
-    assertThrows(CVC5ApiException.class, () -> tnull.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
+    assertThrows(CVC5ApiException.class,
+        () -> tnull.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
     es.add(tnull);
     rs.add(one);
-    assertThrows(CVC5ApiException.class, () -> xpx.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
+    assertThrows(CVC5ApiException.class,
+        () -> xpx.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
   }
 
   @Test
