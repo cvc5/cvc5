@@ -355,6 +355,21 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkParamSort(long pointer, String symbol);
 
   /**
+   * Create a sort parameter.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
+   * @return the sort parameter
+   */
+  public Sort mkParamSort()
+  {
+    long sortPointer = mkParamSort(pointer);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkParamSort(long pointer);
+
+  /**
    * Create a predicate sort.
    * @param sorts the list of sorts of the predicate
    * @return the predicate sort
@@ -435,6 +450,18 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkUninterpretedSort(long pointer, String symbol);
 
   /**
+   * Create an uninterpreted sort.
+   * @return the uninterpreted sort
+   */
+  public Sort mkUninterpretedSort()
+  {
+    long sortPointer = mkUninterpretedSort(pointer);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUninterpretedSort(long pointer);
+
+  /**
    * Create an unresolved sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
@@ -475,19 +502,38 @@ public class Solver implements IPointer, AutoCloseable
    * An uninterpreted sort constructor is an uninterpreted sort with
    * arity &gt; 0.
    *
+   * @param arity the arity of the sort (must be &gt; 0)
    * @param symbol the symbol of the sort
+   * @return the sort constructor sort
+   * @throws CVC5ApiException
+   */
+  public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity, symbol);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUninterpretedSortConstructorSort(long pointer, int arity, String symbol);
+
+  /**
+   * Create a sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with
+   * arity &gt; 0.
+   *
    * @param arity the arity of the sort (must be &gt; 0)
    * @return the sort constructor sort
    * @throws CVC5ApiException
    */
-  public Sort mkUninterpretedSortConstructorSort(String symbol, int arity) throws CVC5ApiException
+  public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUninterpretedSortConstructorSort(pointer, symbol, arity);
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkUninterpretedSortConstructorSort(long pointer, String symbol, int arity);
+  private native long mkUninterpretedSortConstructorSort(long pointer, int arity);
 
   /**
    * Create a tuple sort.
@@ -2512,15 +2558,6 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Append \p symbol to the current list of universal variables.
-   * @param sort the sort of the universal variable
-   * @return the universal variable
-   */
-  public Term declareSygusVar(Sort sort)
-  {
-    return declareSygusVar(sort, "");
-  }
-  /**
-   * Append \p symbol to the current list of universal variables.
    * SyGuS v2:
    * {@code
    *   ( declare-var <symbol> <sort> )
@@ -2529,13 +2566,13 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  public Term declareSygusVar(Sort sort, String symbol)
+  public Term declareSygusVar(String symbol, Sort sort)
   {
-    long termPointer = declareSygusVar(pointer, sort.getPointer(), symbol);
+    long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
     return new Term(this, termPointer);
   }
 
-  private native long declareSygusVar(long pointer, long sortPointer, String symbol);
+  private native long declareSygusVar(long pointer, String symbol, long sortPointer);
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
