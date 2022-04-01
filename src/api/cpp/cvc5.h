@@ -3197,14 +3197,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Create function sort.
-   * @param domain the sort of the function argument
-   * @param codomain the sort of the function return value
-   * @return the function sort
-   */
-  Sort mkFunctionSort(const Sort& domain, const Sort& codomain) const;
-
-  /**
-   * Create function sort.
    * @param sorts the sort of the function arguments
    * @param codomain the sort of the function return value
    * @return the function sort
@@ -4494,9 +4486,9 @@ class CVC5_EXPORT Solver
    *     (block-model)
    *
    * Requires enabling option
-   * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models' and setting option
-   * :ref:`block-models <lbl-option-block-models>`.
+   * :ref:`produce-models <lbl-option-produce-models>`
+   * and setting option
+   * :ref:`block-models <lbl-option-block-models>`
    * to a mode other than ``none``.
    * \endverbatim
    *
@@ -4517,7 +4509,6 @@ class CVC5_EXPORT Solver
    *
    * Requires enabling option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models'.
    * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.

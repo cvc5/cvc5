@@ -254,11 +254,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Sort mkFunctionSort(Sort domain, Sort codomain)
   {
-    long sortPointer = mkFunctionSort(pointer, domain.getPointer(), codomain.getPointer());
-    return new Sort(this, sortPointer);
+    return mkFunctionSort(new Sort[] {domain}, codomain);
   }
-
-  private native long mkFunctionSort(long pointer, long domainPointer, long codomainPointer);
 
   /**
    * Create function sort.
