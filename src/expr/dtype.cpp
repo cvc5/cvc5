@@ -143,7 +143,7 @@ size_t DType::cindexOfInternal(Node item)
   return item.getAttribute(DTypeConsIndexAttr());
 }
 
-void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
+void DType::collectUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
 {
   // Scan the arguments of all constructors and collect their types. To be
   // robust to datatypes with nested recursion, we collect the *component*
