@@ -70,11 +70,8 @@ class DatatypeTest
      *   END;
      */
     // Make unresolved types as placeholders
-    Set<Sort> unresTypes = new HashSet<>();
     Sort unresTree = d_solver.mkUnresolvedSort("tree", 0);
     Sort unresList = d_solver.mkUnresolvedSort("list", 0);
-    unresTypes.add(unresTree);
-    unresTypes.add(unresList);
 
     DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
     DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
@@ -100,7 +97,7 @@ class DatatypeTest
     dtdecls.add(list);
 
     AtomicReference<List<Sort>> atomic = new AtomicReference<>();
-    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     List<Sort> dtsorts = atomic.get();
     assertEquals(dtsorts.size(), dtdecls.size());
     for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
@@ -128,29 +125,22 @@ class DatatypeTest
 
   @Test
   void mkDatatypeSortsSelUnres() throws CVC5ApiException {
-    /* Same as above, using unresolved selectors
-     */
-    // Make unresolved types as placeholders
-    Set<Sort> unresTypes = new HashSet<>();
-    Sort unresTree = d_solver.mkUnresolvedSort("tree", 0);
-    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
-    unresTypes.add(unresTree);
-    unresTypes.add(unresList);
+    // Same as above, using unresolved selectors
 
     DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
     DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
-    node.addSelectorUnresolved("left", unresTree);
-    node.addSelectorUnresolved("right", unresTree);
+    node.addSelectorUnresolved("left", "tree");
+    node.addSelectorUnresolved("right", "tree");
     tree.addConstructor(node);
 
     DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
-    leaf.addSelectorUnresolved("data", unresList);
+    leaf.addSelectorUnresolved("data", "list");
     tree.addConstructor(leaf);
 
     DatatypeDecl list = d_solver.mkDatatypeDecl("list");
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
-    cons.addSelectorUnresolved("car", unresTree);
-    cons.addSelectorUnresolved("cdr", unresTree);
+    cons.addSelectorUnresolved("car", "tree");
+    cons.addSelectorUnresolved("cdr", "tree");
     list.addConstructor(cons);
 
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
@@ -162,7 +152,7 @@ class DatatypeTest
 
     AtomicReference<List<Sort>> atomic = new AtomicReference<>();
     assertDoesNotThrow(
-        () -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+        () -> atomic.set(d_solver.mkDatatypeSorts(dtdecls)));
     List<Sort> dtsorts = atomic.get();
     assertEquals(dtsorts.size(), dtdecls.size());
     for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++) {
