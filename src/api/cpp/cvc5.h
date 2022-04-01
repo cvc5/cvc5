@@ -1762,6 +1762,17 @@ class CVC5_EXPORT DatatypeConstructorDecl
   void addSelectorSelf(const std::string& name);
 
   /**
+   * Add datatype selector declaration whose codomain sort is an unresolved
+   * datatype with the given name.
+   * @param name the name of the datatype selector declaration to add
+   * @param unresDataypeName the name of the unresolved datatype. The codomain
+   *                         of the selector will be the resolved datatype with
+   *                         the given name.
+   */
+  void addSelectorUnresolved(const std::string& name,
+                             const std::string& unresDataypeName);
+
+  /**
    * @return true if this DatatypeConstructorDecl is a null declaration.
    */
   bool isNull() const;
@@ -2032,7 +2043,7 @@ class CVC5_EXPORT DatatypeConstructor
    *         (par (T) ((nil) (cons (head T) (tail (List T))))))
    * \endverbatim
    *
-   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * The type of nil terms must be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2282,16 +2293,6 @@ class CVC5_EXPORT Datatype
    */
   DatatypeConstructor operator[](const std::string& name) const;
   DatatypeConstructor getConstructor(const std::string& name) const;
-
-  /**
-   * Get a term representing the datatype constructor with the given name.
-   * This is a linear search through the constructors, so in case of multiple,
-   * similarly-named constructors, the
-   * first is returned.
-   * @param name the name of the datatype constructor
-   * @return a Term representing the datatype constructor with the given name
-   */
-  Term getConstructorTerm(const std::string& name) const;
 
   /**
    * Get the datatype constructor with the given name.
@@ -2644,8 +2645,6 @@ class CVC5_EXPORT Grammar
    * each occurrence of non-terminal symbols from the domain of \p ntsToUnres
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
-   *
-   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
    *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
@@ -3188,30 +3187,6 @@ class CVC5_EXPORT Solver
       const std::vector<DatatypeDecl>& dtypedecls) const;
 
   /**
-   * Create a vector of datatype sorts using unresolved sorts. The names of
-   * the datatype declarations in dtypedecls must be distinct.
-   *
-   * This method is called when the DatatypeDecl objects dtypedecls have been
-   * built using "unresolved" sorts.
-   *
-   * We associate each sort in unresolvedSorts with exactly one datatype from
-   * dtypedecls. In particular, it must have the same name as exactly one
-   * datatype declaration in dtypedecls.
-   *
-   * When constructing datatypes, unresolved sorts are replaced by the datatype
-   * sort constructed for the datatype declaration it is associated with.
-   *
-   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
-   *
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @param unresolvedSorts the list of unresolved sorts
-   * @return the datatype sorts
-   */
-  std::vector<Sort> mkDatatypeSorts(
-      const std::vector<DatatypeDecl>& dtypedecls,
-      const std::set<Sort>& unresolvedSorts) const;
-
-  /**
    * Create function sort.
    * @param sorts the sort of the function arguments
    * @param codomain the sort of the function return value
@@ -3279,16 +3254,19 @@ class CVC5_EXPORT Solver
       const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
-   * Create an unresolved sort.
+   * Create an unresolved datatype sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
-   * recursive datatypes.
+   * recursive parametric datatypes.
    *
    * @param symbol the symbol of the sort
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
+   *
+   * @warning This method is experimental and may change in future versions.
    */
-  Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
+  Sort mkUnresolvedDatatypeSort(const std::string& symbol,
+                                size_t arity = 0) const;
 
   /**
    * Create an uninterpreted sort constructor sort.
@@ -4923,16 +4901,6 @@ class CVC5_EXPORT Solver
    * @return the Term
    */
   Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
-
-  /**
-   * Create a vector of datatype sorts, using unresolved sorts.
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @param unresolvedSorts the list of unresolved sorts
-   * @return the datatype sorts
-   */
-  std::vector<Sort> mkDatatypeSortsInternal(
-      const std::vector<DatatypeDecl>& dtypedecls,
-      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.

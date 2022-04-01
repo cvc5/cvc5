@@ -57,7 +57,7 @@ class DTypeConstructor
    * to this constructor.  Selector names need not be unique;
    * they are for convenience and pretty-printing only.
    */
-  void addArg(std::string selectorName, TypeNode selectorType);
+  void addArg(std::string selectorName, TypeNode rangeType);
   /**
    * Add an argument, given a pointer to a selector object.
    */

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     fp32 = slv.mkFloatingPointSort(8, 24)
 
     # the standard rounding mode
-    rm = slv.mkRoundingMode(RoundingMode.RoundNearestTiesToEven)
+    rm = slv.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN)
 
     # create a few single-precision variables
     x = slv.mkConst(fp32, 'x')
@@ -37,10 +37,13 @@ if __name__ == "__main__":
     z = slv.mkConst(fp32, 'z')
 
     # check floating-point arithmetic is commutative, i.e. x + y == y + x
-    commutative = slv.mkTerm(Kind.FPEq, slv.mkTerm(Kind.FPAdd, rm, x, y), slv.mkTerm(Kind.FPAdd, rm, y, x))
+    commutative = slv.mkTerm(
+            Kind.FLOATINGPOINT_EQ,
+            slv.mkTerm(Kind.FLOATINGPOINT_ADD, rm, x, y),
+            slv.mkTerm(Kind.FLOATINGPOINT_ADD, rm, y, x))
 
     slv.push()
-    slv.assertFormula(slv.mkTerm(Kind.Not, commutative))
+    slv.assertFormula(slv.mkTerm(Kind.NOT, commutative))
     print("Checking floating-point commutativity")
     print("Expect SAT (property does not hold for NaN and Infinities).")
     print("cvc5:", slv.checkSat())
@@ -48,10 +51,14 @@ if __name__ == "__main__":
     print("Model for y:", slv.getValue(y))
 
     # disallow NaNs and Infinities
-    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsNan, x)))
-    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsInf, x)))
-    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsNan, y)))
-    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsInf, y)))
+    slv.assertFormula(slv.mkTerm(
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_NAN, x)))
+    slv.assertFormula(slv.mkTerm(
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_INF, x)))
+    slv.assertFormula(slv.mkTerm(
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_NAN, y)))
+    slv.assertFormula(slv.mkTerm(
+        Kind.NOT, slv.mkTerm(Kind.FLOATINGPOINT_IS_INF, y)))
 
     print("Checking floating-point commutativity assuming x and y are not NaN or Infinity")
     print("Expect UNSAT.")
@@ -70,15 +77,35 @@ if __name__ == "__main__":
             24,
             slv.mkBitVector(32, "01000000010010001111010111000011", 2))  # 3.14
 
-    bounds_x = slv.mkTerm(Kind.And, slv.mkTerm(Kind.FPLeq, a, x), slv.mkTerm(Kind.FPLeq, x, b))
-    bounds_y = slv.mkTerm(Kind.And, slv.mkTerm(Kind.FPLeq, a, y), slv.mkTerm(Kind.FPLeq, y, b))
-    bounds_z = slv.mkTerm(Kind.And, slv.mkTerm(Kind.FPLeq, a, z), slv.mkTerm(Kind.FPLeq, z, b))
-    slv.assertFormula(slv.mkTerm(Kind.And, slv.mkTerm(Kind.And, bounds_x, bounds_y), bounds_z))
+    bounds_x = slv.mkTerm(
+            Kind.AND,
+            slv.mkTerm(Kind.FLOATINGPOINT_LEQ, a, x),
+            slv.mkTerm(Kind.FLOATINGPOINT_LEQ, x, b))
+    bounds_y = slv.mkTerm(
+            Kind.AND,
+            slv.mkTerm(Kind.FLOATINGPOINT_LEQ, a, y),
+            slv.mkTerm(Kind.FLOATINGPOINT_LEQ, y, b))
+    bounds_z = slv.mkTerm(
+            Kind.AND,
+            slv.mkTerm(Kind.FLOATINGPOINT_LEQ, a, z),
+            slv.mkTerm(Kind.FLOATINGPOINT_LEQ, z, b))
+    slv.assertFormula(slv.mkTerm(
+        Kind.AND, slv.mkTerm(Kind.AND, bounds_x, bounds_y), bounds_z))
 
     # (x + y) + z == x + (y + z)
-    lhs = slv.mkTerm(Kind.FPAdd, rm, slv.mkTerm(Kind.FPAdd, rm, x, y), z)
-    rhs = slv.mkTerm(Kind.FPAdd, rm, x, slv.mkTerm(Kind.FPAdd, rm, y, z))
-    associative = slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPEq, lhs, rhs))
+    lhs = slv.mkTerm(
+            Kind.FLOATINGPOINT_ADD,
+            rm,
+            slv.mkTerm(Kind.FLOATINGPOINT_ADD, rm, x, y),
+            z)
+    rhs = slv.mkTerm(
+            Kind.FLOATINGPOINT_ADD,
+            rm,
+            x,
+            slv.mkTerm(Kind.FLOATINGPOINT_ADD, rm, y, z))
+    associative = slv.mkTerm(
+            Kind.NOT,
+            slv.mkTerm(Kind.FLOATINGPOINT_EQ, lhs, rhs))
 
     slv.assertFormula(associative)
 

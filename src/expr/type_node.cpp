@@ -464,6 +464,11 @@ uint64_t TypeNode::getUninterpretedSortConstructorArity() const
   return getAttribute(expr::SortArityAttr());
 }
 
+bool TypeNode::isUnresolvedDatatype() const
+{
+  return getAttribute(expr::UnresolvedDatatypeAttr());
+}
+
 std::string TypeNode::getName() const
 {
   Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
