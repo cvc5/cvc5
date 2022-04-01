@@ -13,10 +13,11 @@ cvc5 1.0
 **New Features**
 
 * *Streamlined C++ API*
+  Please refer to the documentation for details.
 
 * *Two new Python language bindings*
   - Base module: Feature complete with C++ API
-  - Pythonic module: More pythonic bindings based on the base module
+  - Pythonic module: A pythonic wrapper around the base module
 
 * *New Java language bindings*
 
@@ -33,6 +34,8 @@ cvc5 1.0
     cylindrical algebraic coverings. Includes full support for non-rational
     models and a number of options `--nl-cov-*` for, e.g., different projection
     operators, Lazard's lifting or variable elimination.
+    The new solver requires the libpoly library, and Lazard's lifting
+    additionally requires CoCoALib.
 
 * *Arrays*
   - Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
@@ -131,27 +134,27 @@ cvc5 1.0
 
 **Changes**
 
-* CaDiCaL and SymFPU are now required dependencies.
+* CaDiCaL and SymFPU are now required dependencies. CaDiCaL 1.4.1 is now the version used by default.
 * Options have been extensively refactored, please refer to the cvc5
   documentation for further information.
 * Removed support for the CVC language.
 * SyGuS: Removed support for SyGuS-IF 1.0.
 * Removed support for the (non-standard) `define` command.
-* Removed Java and Python bindings for the legacy API.
+* Removed the legacy API along with the Java and Python bindings for it.
 * Interactive shell: the GPL-licensed Readline library has been replaced the
   BSD-licensed Editline. Compiling with `--best` now enables Editline, instead
   of Readline. Without selecting optional GPL components, Editline-enabled CVC4
   builds will be BSD licensed.
 * The `competition` build type includes the dependencies used for SMT-COMP by
   default. Note that this makes this build type produce GPL-licensed binaries.
-* Bit-vector operator bvxnor was previously mistakenly marked as
+* Bit-vector operator `bvxnor` was previously mistakenly marked as
   left-assoicative in SMT-LIB. This has recently been corrected in SMT-LIB. We
-  now restrict bvxnor to only allow two operands in order to avoid confusion
-  about the semantics, since the behavior of n-ary operands to bvxnor is now
+  now restrict `bvxnor` to only allow two operands in order to avoid confusion
+  about the semantics, since the behavior of n-ary operands to `bvxnor` is now
   undefined in SMT-LIB.
 * SMT-LIB output for `get-model` command now conforms with the standard,
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
-* Removed support for redundant logics ALL_SUPPORTED and QF_ALL_SUPPORTED,
-  use ALL and QF_ALL instead.
+* Removed support for redundant logics `ALL_SUPPORTED` and `QF_ALL_SUPPORTED`,
+  use `ALL` and `QF_ALL` instead.
