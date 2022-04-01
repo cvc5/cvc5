@@ -1,7 +1,7 @@
 Proof production
 ================
 
-cvc5 produces proofs in an internal proof reflecting faithfully reflecting its
+cvc5 produces proofs in an internal proof calculus that faithfully reflects its
 reasoning. Here is a comprehensive description of the :doc:`proof rules
 <proof_rules>`.
 
