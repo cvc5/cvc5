@@ -30,6 +30,7 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
     statistics
     synthresult
     term
+    unknownexplanation
 
 
 Class hierarchy
@@ -52,14 +53,9 @@ Class hierarchy
   * class :ref:`api/cpp/datatypeselector:datatypeselector`
   * class :ref:`api/cpp/driveroptions:driveroptions`
   * class :ref:`api/cpp/grammar:grammar`
-  * class :ref:`api/cpp/kind:kind`
   * class :ref:`api/cpp/op:op`
   * class :ref:`api/cpp/optioninfo:optioninfo`
   * class :ref:`api/cpp/result:result`
-
-    * enum :cpp:enum:`UnknownExplanation <cvc5::Result::UnknownExplanation>`
-
-  * class :ref:`api/cpp/roundingmode:roundingmode`
   * class :ref:`api/cpp/solver:solver`
   * class :ref:`api/cpp/sort:sort`
   * class :cpp:class:`Stat <cvc5::Stat>`
@@ -69,6 +65,9 @@ Class hierarchy
 
     * class :cpp:class:`const_iterator <cvc5::Term::const_iterator>`
 
+  * enum :ref:`api/cpp/kind:kind`
+  * enum :ref:`api/cpp/roundingmode:roundingmode`
+  * enum :ref:`api/cpp/unknownexplanation:unknownexplanation`
   * modes enums :ref:`api/cpp/modes:modes`
 
 ``}``
