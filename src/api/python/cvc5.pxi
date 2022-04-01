@@ -1201,13 +1201,12 @@ cdef class Solver:
             Create a real constant from a numerator and an optional denominator.
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
-            string is forwarded to
-	    :cpp:func:`cvc5::Solver::mkReal()` and should thus
-	    represent an integer, a decimal number or a fraction.
+            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            thus represent an integer, a decimal number or a fraction.
 
             :param numerator: The numerator.
             :param denominator: The denominator, or ``None``.
-            :return: a real term with literal value
+            :return: A real term with literal value.
         """
         cdef Term term = Term(self)
         if denominator is None:
@@ -2668,7 +2667,6 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                         versions.
-            
             :param conj: The conjecture term.
             :param grammar: A grammar for the inteprolant.
             :return: The interpolant. 
@@ -2709,7 +2707,6 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.getInterpolantNext()
         return result
-        
     def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
@@ -2726,7 +2723,6 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
-        
             :param conj: The conjecture term.
             :param grammar: A grammar for the abduct.
             :return: The abduct.
