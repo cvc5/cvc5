@@ -99,8 +99,8 @@ cdef class Datatype:
             constructors, so in case of multiple, similarly-named constructors,
             the first is returned.
 
-            :param index: the id or name of the datatype constructor
-            :return: the matching datatype constructor
+            :param index: The id or name of the datatype constructor.
+            :return: The matching datatype constructor.
         """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
@@ -248,8 +248,8 @@ cdef class DatatypeConstructor:
             so in case of multiple, similarly-named selectors, the first is
             returned.
 
-            :param index: the id or name of the datatype selector
-            :return: the matching datatype selector
+            :param index: The id or name of the datatype selector.
+            :return: The matching datatype selector.
         """
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         if isinstance(index, int) and index >= 0:
@@ -3531,8 +3531,8 @@ cdef class Term:
         """
             Get the child term at a given index.
 
-            :param index: the index of the child term to return
-            :return: the child term with the given index
+            :param index: The index of the child term to return.
+            :return: The child term with the given index.
         """
         cdef Term term = Term(self.solver)
         if index >= 0:
