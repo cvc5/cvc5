@@ -643,13 +643,13 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator uses model values at this effort or
     //   if we are solving for a subfield of a datatype (is_sv), and
     // - the instantiator allows model values.
+    // Furthermore, we only permit the value if it is constant, since the model
+    // may contain internal-only expressions, e.g. RANs.
     if ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
       Node mv = getModelValue( pv );
-      // we only permit the value if it is constant, since the model may
-      // contain internal-only expressions, e.g. RANs
       if (mv.isConst())
       {
         TermProperties pv_prop_m;
