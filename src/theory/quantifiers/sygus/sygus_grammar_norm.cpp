@@ -58,8 +58,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
     {
       ss << "_" << std::to_string(op_pos[i]);
     }
-    d_unres_tn = NodeManager::currentNM()->mkSort(
-        ss.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
+    d_unres_tn = NodeManager::currentNM()->mkUnresolvedDatatypeSort(ss.str());
     Trace("sygus-grammar-normalize-trie")
         << "\tCreating type " << d_unres_tn << "\n";
     unres_tn = d_unres_tn;
@@ -528,7 +527,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   }
   Assert(d_dt_all.size() == d_unres_t_all.size());
   std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
-      d_dt_all, d_unres_t_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      d_dt_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

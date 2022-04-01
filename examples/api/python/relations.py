@@ -42,12 +42,12 @@ if __name__ == "__main__":
     personSort = solver.mkUninterpretedSort("Person")
 
     # (Tuple Person)
-    tupleArity1 = solver.mkTupleSort([personSort])
+    tupleArity1 = solver.mkTupleSort(personSort)
     # (Set (Tuple Person))
     relationArity1 = solver.mkSetSort(tupleArity1)
 
     # (Tuple Person Person)
-    tupleArity2 = solver.mkTupleSort([personSort, personSort])
+    tupleArity2 = solver.mkTupleSort(personSort, personSort)
     # (Set (Tuple Person Person))
     relationArity2 = solver.mkSetSort(tupleArity2)
 
@@ -70,58 +70,60 @@ if __name__ == "__main__":
     ancestor = solver.mkConst(relationArity2, "ancestor")
     descendant = solver.mkConst(relationArity2, "descendant")
 
-    isEmpty1 = solver.mkTerm(Kind.Equal, males, emptySetTerm)
-    isEmpty2 = solver.mkTerm(Kind.Equal, females, emptySetTerm)
+    isEmpty1 = solver.mkTerm(Kind.EQUAL, males, emptySetTerm)
+    isEmpty2 = solver.mkTerm(Kind.EQUAL, females, emptySetTerm)
 
     # (assert (= people (as set.universe (Set (Tuple Person)))))
-    peopleAreTheUniverse = solver.mkTerm(Kind.Equal, people, universeSet)
+    peopleAreTheUniverse = solver.mkTerm(Kind.EQUAL, people, universeSet)
     # (assert (not (= males (as set.empty (Set (Tuple Person))))))
-    maleSetIsNotEmpty = solver.mkTerm(Kind.Not, isEmpty1)
+    maleSetIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty1)
     # (assert (not (= females (as set.empty (Set (Tuple Person))))))
-    femaleSetIsNotEmpty = solver.mkTerm(Kind.Not, isEmpty2)
+    femaleSetIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty2)
 
     # (assert (= (set.inter males females)
     #            (as set.empty (Set (Tuple Person)))))
-    malesFemalesIntersection = solver.mkTerm(Kind.SetInter, males, females)
-    malesAndFemalesAreDisjoint = solver.mkTerm(Kind.Equal, malesFemalesIntersection, emptySetTerm)
+    malesFemalesIntersection = solver.mkTerm(Kind.SET_INTER, males, females)
+    malesAndFemalesAreDisjoint = \
+            solver.mkTerm(Kind.EQUAL, malesFemalesIntersection, emptySetTerm)
 
     # (assert (not (= father (as set.empty (Set (Tuple Person Person))))))
     # (assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
-    isEmpty3 = solver.mkTerm(Kind.Equal, father, emptyRelationTerm)
-    isEmpty4 = solver.mkTerm(Kind.Equal, mother, emptyRelationTerm)
-    fatherIsNotEmpty = solver.mkTerm(Kind.Not, isEmpty3)
-    motherIsNotEmpty = solver.mkTerm(Kind.Not, isEmpty4)
+    isEmpty3 = solver.mkTerm(Kind.EQUAL, father, emptyRelationTerm)
+    isEmpty4 = solver.mkTerm(Kind.EQUAL, mother, emptyRelationTerm)
+    fatherIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty3)
+    motherIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty4)
 
     # fathers are males
     # (assert (set.subset (rel.join father people) males))
-    fathers = solver.mkTerm(Kind.RelationJoin, father, people)
-    fathersAreMales = solver.mkTerm(Kind.SetSubset, fathers, males)
+    fathers = solver.mkTerm(Kind.RELATION_JOIN, father, people)
+    fathersAreMales = solver.mkTerm(Kind.SET_SUBSET, fathers, males)
 
     # mothers are females
     # (assert (set.subset (rel.join mother people) females))
-    mothers = solver.mkTerm(Kind.RelationJoin, mother, people)
-    mothersAreFemales = solver.mkTerm(Kind.SetSubset, mothers, females)
+    mothers = solver.mkTerm(Kind.RELATION_JOIN, mother, people)
+    mothersAreFemales = solver.mkTerm(Kind.SET_SUBSET, mothers, females)
 
     # (assert (= parent (set.union father mother)))
-    unionFatherMother = solver.mkTerm(Kind.SetUnion, father, mother)
-    parentIsFatherOrMother = solver.mkTerm(Kind.Equal, parent, unionFatherMother)
+    unionFatherMother = solver.mkTerm(Kind.SET_UNION, father, mother)
+    parentIsFatherOrMother = \
+            solver.mkTerm(Kind.EQUAL, parent, unionFatherMother)
 
     # (assert (= ancestor (rel.tclosure parent)))
-    transitiveClosure = solver.mkTerm(Kind.RelationTclosure, parent)
-    ancestorFormula = solver.mkTerm(Kind.Equal, ancestor, transitiveClosure)
+    transitiveClosure = solver.mkTerm(Kind.RELATION_TCLOSURE, parent)
+    ancestorFormula = solver.mkTerm(Kind.EQUAL, ancestor, transitiveClosure)
 
     # (assert (= descendant (rel.transpose ancestor)))
-    transpose = solver.mkTerm(Kind.RelationTranspose, ancestor)
-    descendantFormula = solver.mkTerm(Kind.Equal, descendant, transpose)
+    transpose = solver.mkTerm(Kind.RELATION_TRANSPOSE, ancestor)
+    descendantFormula = solver.mkTerm(Kind.EQUAL, descendant, transpose)
 
     # (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
     x = solver.mkVar(personSort, "x")
     xxTuple = solver.mkTuple([personSort, personSort], [x, x])
-    member = solver.mkTerm(Kind.SetMember, xxTuple, ancestor)
-    notMember = solver.mkTerm(Kind.Not, member)
+    member = solver.mkTerm(Kind.SET_MEMBER, xxTuple, ancestor)
+    notMember = solver.mkTerm(Kind.NOT, member)
 
-    quantifiedVariables = solver.mkTerm(Kind.VariableList, x)
-    noSelfAncestor = solver.mkTerm(Kind.Forall, quantifiedVariables, notMember)
+    quantifiedVariables = solver.mkTerm(Kind.VARIABLE_LIST, x)
+    noSelfAncestor = solver.mkTerm(Kind.FORALL, quantifiedVariables, notMember)
 
     # formulas
     solver.assertFormula(peopleAreTheUniverse)

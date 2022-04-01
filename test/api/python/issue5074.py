@@ -18,8 +18,8 @@ from cvc5 import Kind
 
 slv = cvc5.Solver()
 c1 = slv.mkConst(slv.getIntegerSort())
-t6 = slv.mkTerm(Kind.StringFromCode, c1)
-t12 = slv.mkTerm(Kind.StringToRegexp, t6)
-t14 = slv.mkTerm(Kind.StringReplaceRe, [t6, t12, t6])
-t16 = slv.mkTerm(Kind.StringContains, [t14, t14])
+t6 = slv.mkTerm(Kind.STRING_FROM_CODE, c1)
+t12 = slv.mkTerm(Kind.STRING_TO_REGEXP, t6)
+t14 = slv.mkTerm(Kind.STRING_REPLACE_RE, t6, t12, t6)
+t16 = slv.mkTerm(Kind.STRING_CONTAINS, t14, t14)
 slv.checkSatAssuming(t16.notTerm())

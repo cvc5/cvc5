@@ -132,6 +132,7 @@ set(regress_0_tests
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/issue8103-1-weak-equiv-models.smt2
   regress0/arrays/issue8276-arith-getModelValue.smt2
+  regress0/arrays/proj-issue506-ms-var-elim.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -951,6 +952,7 @@ set(regress_0_tests
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/lfsc-test-1.smt2
+  regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
@@ -1051,7 +1053,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8001-mem-leak.smt2
   regress0/quantifiers/issue8159-3-qext-nterm.smt2
   regress0/quantifiers/issue8227-subs-shadow.smt2
-  regress0/quantifiers/issue8466-syqi-bool.smt2 
+  regress0/quantifiers/issue8466-syqi-bool.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1097,6 +1099,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/quantifiers/veqt-delta.smt2
+  regress0/quoted-symbols.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc.smt2
   regress0/rels/atom_univ2.cvc.smt2
@@ -2223,6 +2226,7 @@ set(regress_1_tests
   regress1/quantifiers/issue8410-vts-subtypes.smt2
   regress1/quantifiers/issue8456-2-syqi-ic.smt2
   regress1/quantifiers/issue8456-syqi-ic.smt2
+  regress1/quantifiers/issue8497-syqi-str-fmf.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2

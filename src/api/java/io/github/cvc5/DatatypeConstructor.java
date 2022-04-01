@@ -75,7 +75,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
    * (nullary) application of nil.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param retSort the desired return sort of the constructor
    * @return the constructor term

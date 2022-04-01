@@ -503,40 +503,6 @@ class NodeManager
       const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
-   * Make a set of types representing the given datatypes, which may
-   * be mutually recursive.  unresolvedTypes is a set of SortTypes
-   * that were used as placeholders in the Datatypes for the Datatypes
-   * of the same name.  This is just a more complicated version of the
-   * above mkMutualDatatypeTypes() function, but is required to handle
-   * complex types.
-   *
-   * For example, unresolvedTypes might contain the single sort "list"
-   * (with that name reported from SortType::getName()).  The
-   * datatypes list might have the single datatype
-   *
-   *   DATATYPE
-   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
-   *   END;
-   *
-   * To represent the Type of the array, the user had to create a
-   * placeholder type (an uninterpreted sort) to stand for "list" in
-   * the type of "car".  It is this placeholder sort that should be
-   * passed in unresolvedTypes.  If the datatype was of the simpler
-   * form:
-   *
-   *   DATATYPE
-   *     list = cons(car:list, cdr:list) | nil;
-   *   END;
-   *
-   * then no complicated Type needs to be created, and the above,
-   * simpler form of mkMutualDatatypeTypes() is enough.
-   */
-  std::vector<TypeNode> mkMutualDatatypeTypes(
-      const std::vector<DType>& datatypes,
-      const std::set<TypeNode>& unresolvedTypes,
-      uint32_t flags = DATATYPE_FLAG_NONE);
-
-  /**
    * Make a type representing a constructor with the given argument (subfield)
    * types and return type range.
    */
@@ -787,22 +753,55 @@ class NodeManager
   TypeNode mkTypeNode(Kind kind, const std::vector<TypeNode>& children);
 
   /** Make a new (anonymous) sort of arity 0. */
-  TypeNode mkSort(uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSort();
 
   /** Make a new sort with the given name of arity 0. */
-  TypeNode mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSort(const std::string& name);
 
   /** Make a new sort by parameterizing the given sort constructor. */
-  TypeNode mkSort(TypeNode constructor,
-                  const std::vector<TypeNode>& children,
-                  uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSort(TypeNode constructor, const std::vector<TypeNode>& children);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name,
-                             size_t arity,
-                             uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSortConstructor(const std::string& name, size_t arity);
+
+  /** Make an unresolved datatype sort */
+  TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
 
  private:
+  /**
+   * Make a set of types representing the given datatypes, which may
+   * be mutually recursive.  unresolvedTypes is a set of SortTypes
+   * that were used as placeholders in the Datatypes for the Datatypes
+   * of the same name.  This is just a more complicated version of the
+   * above mkMutualDatatypeTypes() function, but is required to handle
+   * complex types.
+   *
+   * For example, unresolvedTypes might contain the single sort "list"
+   * (with that name reported from SortType::getName()).  The
+   * datatypes list might have the single datatype
+   *
+   *   DATATYPE
+   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
+   *   END;
+   *
+   * To represent the Type of the array, the user had to create a
+   * placeholder type (an uninterpreted sort) to stand for "list" in
+   * the type of "car".  It is this placeholder sort that should be
+   * passed in unresolvedTypes.  If the datatype was of the simpler
+   * form:
+   *
+   *   DATATYPE
+   *     list = cons(car:list, cdr:list) | nil;
+   *   END;
+   *
+   * then no complicated Type needs to be created, and the above,
+   * simpler form of mkMutualDatatypeTypes() is enough.
+   */
+  std::vector<TypeNode> mkMutualDatatypeTypesInternal(
+      const std::vector<DType>& datatypes,
+      const std::set<TypeNode>& unresolvedTypes,
+      uint32_t flags = DATATYPE_FLAG_NONE);
+
   typedef std::unordered_set<expr::NodeValue*,
                              expr::NodeValuePoolHashFunction,
                              expr::NodeValuePoolEq>

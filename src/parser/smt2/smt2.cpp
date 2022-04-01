@@ -132,7 +132,6 @@ void Smt2::addDatatypesOperators()
   if (!strictModeEnabled())
   {
     Parser::addOperator(cvc5::APPLY_UPDATER);
-    addOperator(cvc5::DT_SIZE, "dt.size");
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
@@ -298,6 +297,20 @@ cvc5::Kind Smt2::getOperatorKind(const std::string& name) const
 
 bool Smt2::isOperatorEnabled(const std::string& name) const {
   return d_operatorKindMap.find(name) != d_operatorKindMap.end();
+}
+
+modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
+{
+  if (mode == "literals")
+  {
+    return modes::BlockModelsMode::LITERALS;
+  }
+  else if (mode == "values")
+  {
+    return modes::BlockModelsMode::VALUES;
+  }
+  parseError(std::string("Unknown block models mode `") + mode + "'");
+  return modes::BlockModelsMode::LITERALS;
 }
 
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const

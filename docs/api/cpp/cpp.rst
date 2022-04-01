@@ -20,6 +20,7 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
     driveroptions
     grammar
     kind
+    modes
     op
     optioninfo
     result
@@ -67,5 +68,7 @@ Class hierarchy
   * class :ref:`api/cpp/term:term`
 
     * class :cpp:class:`const_iterator <cvc5::Term::const_iterator>`
+
+  * modes enums :ref:`api/cpp/modes:modes`
 
 ``}``
