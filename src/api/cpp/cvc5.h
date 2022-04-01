@@ -3213,14 +3213,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Create function sort.
-   * @param domain the sort of the function argument
-   * @param codomain the sort of the function return value
-   * @return the function sort
-   */
-  Sort mkFunctionSort(const Sort& domain, const Sort& codomain) const;
-
-  /**
-   * Create function sort.
    * @param sorts the sort of the function arguments
    * @param codomain the sort of the function return value
    * @return the function sort
