@@ -15,6 +15,7 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.modes.BlockModelsMode;
 import java.io.IOException;
 import java.util.*;
 
@@ -261,7 +262,7 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
-   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   * @api.note Create unresolved sorts with Solver::mkUnresolvedSort().
    *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
@@ -318,11 +319,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Sort mkFunctionSort(Sort domain, Sort codomain)
   {
-    long sortPointer = mkFunctionSort(pointer, domain.getPointer(), codomain.getPointer());
-    return new Sort(this, sortPointer);
+    return mkFunctionSort(new Sort[] {domain}, codomain);
   }
-
-  private native long mkFunctionSort(long pointer, long domainPointer, long codomainPointer);
 
   /**
    * Create function sort.
@@ -341,7 +339,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a sort parameter.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param symbol the name of the sort
    * @return the sort parameter
@@ -353,6 +351,21 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long mkParamSort(long pointer, String symbol);
+
+  /**
+   * Create a sort parameter.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return the sort parameter
+   */
+  public Sort mkParamSort()
+  {
+    long sortPointer = mkParamSort(pointer);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkParamSort(long pointer);
 
   /**
    * Create a predicate sort.
@@ -370,7 +383,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a record sort
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param fields the list of fields of the record
    * @return the record sort
@@ -435,6 +448,18 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkUninterpretedSort(long pointer, String symbol);
 
   /**
+   * Create an uninterpreted sort.
+   * @return the uninterpreted sort
+   */
+  public Sort mkUninterpretedSort()
+  {
+    long sortPointer = mkUninterpretedSort(pointer);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUninterpretedSort(long pointer);
+
+  /**
    * Create an unresolved sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
@@ -475,19 +500,38 @@ public class Solver implements IPointer, AutoCloseable
    * An uninterpreted sort constructor is an uninterpreted sort with
    * arity &gt; 0.
    *
+   * @param arity the arity of the sort (must be &gt; 0)
    * @param symbol the symbol of the sort
+   * @return the sort constructor sort
+   * @throws CVC5ApiException
+   */
+  public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity, symbol);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUninterpretedSortConstructorSort(long pointer, int arity, String symbol);
+
+  /**
+   * Create a sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with
+   * arity &gt; 0.
+   *
    * @param arity the arity of the sort (must be &gt; 0)
    * @return the sort constructor sort
    * @throws CVC5ApiException
    */
-  public Sort mkUninterpretedSortConstructorSort(String symbol, int arity) throws CVC5ApiException
+  public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUninterpretedSortConstructorSort(pointer, symbol, arity);
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkUninterpretedSortConstructorSort(long pointer, String symbol, int arity);
+  private native long mkUninterpretedSortConstructorSort(long pointer, int arity);
 
   /**
    * Create a tuple sort.
@@ -697,7 +741,7 @@ public class Solver implements IPointer, AutoCloseable
    * The Kind may not be the Kind for an indexed operator
    *   (e.g. BITVECTOR_EXTRACT).
    *
-   * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
+   * @api.note In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
    *
    * @param kind the kind to wrap
@@ -975,7 +1019,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a separation logic empty term.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return the separation logic empty term
    */
@@ -990,7 +1034,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a separation logic nil term.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sort the sort of the nil term
    * @return the separation logic nil term
@@ -1085,7 +1129,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a bit-vector constant of given size and value.
    *
-   * @apiNote The given value must fit into a bit-vector of the given size.
+   * @api.note The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -1106,7 +1150,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
    *
-   * @apiNote The given value must fit into a bit-vector of the given size.
+   * @api.note The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
@@ -1254,7 +1298,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a cardinality constraint for an uninterpreted sort.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
@@ -1461,7 +1505,7 @@ public class Solver implements IPointer, AutoCloseable
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param t the formula to simplify
    * @return the simplified formula
@@ -1586,7 +1630,7 @@ public class Solver implements IPointer, AutoCloseable
    *   ( declare-sort <symbol> <numeral> )
    * }
    *
-   * @apiNote This corresponds to mkUninterpretedSort() const if arity = 0, and
+   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
    *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
    *
    * @param symbol the name of the sort
@@ -1787,7 +1831,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-learned-literals )
    * }
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return the list of learned literals
    */
@@ -1893,7 +1937,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires to enable option 'produce-unsat-cores'.
    *
-   * @apiNote In contrast to SMT-LIB, the API does not distinguish between
+   * @api.note In contrast to SMT-LIB, the API does not distinguish between
    *          named and unnamed assertions when producing an unsatisfiable
    *          core. Additionally, the API allows this option to be called after
    *          a check with assumptions. A subset of those assumptions may be
@@ -1913,7 +1957,7 @@ public class Solver implements IPointer, AutoCloseable
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return a map from (a subset of) the input assertions to a real value that
    * is an estimate of how difficult each assertion was to solve. Unmentioned
@@ -1942,7 +1986,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires to enable option 'produce-proofs'.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
@@ -2011,7 +2055,7 @@ public class Solver implements IPointer, AutoCloseable
    * current model. This method will only return false (for any v) if
    * the model-cores option has been set.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param v The term in question
    * @return true if v is a model core symbol
@@ -2031,7 +2075,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires to enable option 'produce-models'.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
@@ -2057,7 +2101,7 @@ public class Solver implements IPointer, AutoCloseable
    * Quantifier Elimination is is only complete for logics such as LRA,
    * LIA and BV.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
@@ -2086,7 +2130,7 @@ public class Solver implements IPointer, AutoCloseable
    * Quantifier Elimination is is only complete for logics such as LRA,
    * LIA and BV.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
@@ -2119,7 +2163,7 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort to the given ones. This method should be invoked exactly
    * once, before any separation logic constraints are provided.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
@@ -2134,7 +2178,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * When using separation logic, obtain the term for the heap.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return The term for the heap
    */
@@ -2149,7 +2193,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * When using separation logic, obtain the term for nil.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return The term for nil
    */
@@ -2168,7 +2212,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( declare-pool <symbol> <sort> ( <term>* ) )
    * }
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
@@ -2222,7 +2266,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires 'produce-interpolants' to be set to a mode different from 'none'.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
    * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
@@ -2245,7 +2289,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires 'produce-interpolants' to be set to a mode different from 'none'.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
@@ -2278,7 +2322,7 @@ public class Solver implements IPointer, AutoCloseable
    * set to a mode different from 'none'.
    * \endverbatim
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return a Term I such that {@code A->I} and {@code I->B} are valid,
    *        where A is the current set of assertions and B is given in the input
@@ -2301,7 +2345,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling option 'produce-abducts'
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
    * @return a term C such that A^C is satisfiable, and A^~B^C is
@@ -2324,7 +2368,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling option 'produce-abducts'
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
@@ -2351,7 +2395,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling incremental mode and option 'produce-abducts'
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return a term C such that A^C is satisfiable, and A^~B^C is
    *         unsatisfiable, where A is the current set of assertions and B is
@@ -2376,14 +2420,16 @@ public class Solver implements IPointer, AutoCloseable
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param mode The mode to use for blocking
    */
-  public void blockModel()
+  public void blockModel(BlockModelsMode mode)
   {
-    blockModel(pointer);
+    blockModel(pointer, mode.getValue());
   }
 
-  private native void blockModel(long pointer);
+  private native void blockModel(long pointer, int modeValue);
 
   /**
    * Block the current model values of (at least) the values in terms. Can be
@@ -2394,7 +2440,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling 'produce-models' option.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2408,7 +2454,7 @@ public class Solver implements IPointer, AutoCloseable
    * Return a string that contains information about all instantiations made by
    * the quantifiers module.
    *
-   * @apiNote This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    */
   public String getInstantiations()
   {
@@ -2512,15 +2558,6 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Append \p symbol to the current list of universal variables.
-   * @param sort the sort of the universal variable
-   * @return the universal variable
-   */
-  public Term declareSygusVar(Sort sort)
-  {
-    return declareSygusVar(sort, "");
-  }
-  /**
-   * Append \p symbol to the current list of universal variables.
    * SyGuS v2:
    * {@code
    *   ( declare-var <symbol> <sort> )
@@ -2529,13 +2566,13 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  public Term declareSygusVar(Sort sort, String symbol)
+  public Term declareSygusVar(String symbol, Sort sort)
   {
-    long termPointer = declareSygusVar(pointer, sort.getPointer(), symbol);
+    long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
     return new Term(this, termPointer);
   }
 
-  private native long declareSygusVar(long pointer, long sortPointer, String symbol);
+  private native long declareSygusVar(long pointer, String symbol, long sortPointer);
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting

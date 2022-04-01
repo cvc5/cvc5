@@ -34,7 +34,6 @@ enum UnknownExplanation
   RESOURCEOUT,
   MEMOUT,
   INTERRUPTED,
-  NO_STATUS,
   UNSUPPORTED,
   OTHER,
   UNKNOWN_REASON
@@ -102,6 +101,12 @@ enum RoundingMode
 
 namespace cvc5::modes {
 
+/**
+ * Mode for blocking models.
+ *
+ * Specifies how models are blocked in Solver::blockModel and
+ * Solver::blockModelValues.
+ */
 enum BlockModelsMode
 {
   /** Block models based on the SAT skeleton. */

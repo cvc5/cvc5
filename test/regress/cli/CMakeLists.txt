@@ -1098,6 +1098,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/quantifiers/veqt-delta.smt2
+  regress0/quoted-symbols.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc.smt2
   regress0/rels/atom_univ2.cvc.smt2
@@ -2224,6 +2225,7 @@ set(regress_1_tests
   regress1/quantifiers/issue8410-vts-subtypes.smt2
   regress1/quantifiers/issue8456-2-syqi-ic.smt2
   regress1/quantifiers/issue8456-syqi-ic.smt2
+  regress1/quantifiers/issue8497-syqi-str-fmf.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
