@@ -44,8 +44,9 @@ Node DTypeSelector::getConstructor() const
   return d_constructor;
 }
 
-TypeNode DTypeSelector::getType() const {
-  Assert (!d_selector.isNull());
+TypeNode DTypeSelector::getType() const
+{
+  Assert(!d_selector.isNull());
   return d_selector.getType();
 }
 
