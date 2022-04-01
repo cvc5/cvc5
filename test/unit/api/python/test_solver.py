@@ -1565,21 +1565,21 @@ def test_block_model1(solver):
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.blockModel(BlockModelsMode.Literals)
+        solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model2(solver):
     solver.setOption("produce-models", "true")
     x = solver.mkConst(solver.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     with pytest.raises(RuntimeError):
-        solver.blockModel(BlockModelsMode.Literals)
+        solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model3(solver):
     solver.setOption("produce-models", "true")
     x = solver.mkConst(solver.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
-    solver.blockModel(BlockModelsMode.Literals)
+    solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model_values1(solver):
     solver.setOption("produce-models", "true")
