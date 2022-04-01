@@ -175,7 +175,7 @@ def test_get_op(solver):
 
     # Test Datatypes Ops
     sort = solver.mkParamSort("T")
-    listDecl = solver.mkDatatypeDecl("paramlist", sort)
+    listDecl = solver.mkDatatypeDecl("paramlist", [sort])
     cons = solver.mkDatatypeConstructorDecl("cons")
     nil = solver.mkDatatypeConstructorDecl("nil")
     cons.addSelector("head", sort)
