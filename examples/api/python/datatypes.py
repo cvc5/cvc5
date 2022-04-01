@@ -140,6 +140,5 @@ if __name__ == "__main__":
     cons2.addSelector("head", slv.getIntegerSort())
     cons2.addSelectorSelf("tail")
     nil2 = slv.mkDatatypeConstructorDecl("nil")
-    ctors = [cons2, nil2]
-    consListSort2 = slv.declareDatatype("list2", ctors)
+    consListSort2 = slv.declareDatatype("list2", cons2, nil2)
     test(slv, consListSort2)

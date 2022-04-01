@@ -4506,8 +4506,10 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
+   *
+   * @param mode The mode to use for blocking
    */
-  void blockModel() const;
+  void blockModel(modes::BlockModelsMode mode) const;
 
   /**
    * Block the current model values of (at least) the values in terms. Can be

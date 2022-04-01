@@ -171,7 +171,7 @@ def test_get_op(solver):
     assert fx.hasOp()
     children = [c for c in fx]
     # testing rebuild from op and children
-    assert fx == solver.mkTerm(fx.getOp(), children)
+    assert fx == solver.mkTerm(fx.getOp(), *children)
 
     # Test Datatypes Ops
     sort = solver.mkParamSort("T")
@@ -205,7 +205,7 @@ def test_get_op(solver):
 
     # Test rebuilding
     children = [c for c in headTerm]
-    assert headTerm == solver.mkTerm(headTerm.getOp(), children)
+    assert headTerm == solver.mkTerm(headTerm.getOp(), *children)
 
 
 def test_has_get_symbol(solver):
