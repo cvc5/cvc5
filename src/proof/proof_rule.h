@@ -1562,14 +1562,14 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{w_1\cdot w_2 = t \wedge
+   *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
    * or alternatively for the reverse:
    *
    * .. math::
    *
-   *   \inferrule{\mathit{len}(t) \geq n\mid \top}{w_1\cdot w_2 = t \wedge
+   *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
    * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
