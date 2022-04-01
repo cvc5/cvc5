@@ -3236,7 +3236,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the sort parameter
    */
-  Sort mkParamSort(const std::string& symbol) const;
+  Sort mkParamSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a predicate sort.
@@ -3282,7 +3283,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the uninterpreted sort
    */
-  Sort mkUninterpretedSort(const std::string& symbol) const;
+  Sort mkUninterpretedSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create an unresolved sort.
@@ -3305,8 +3307,9 @@ class CVC5_EXPORT Solver
    * @param arity the arity of the sort (must be > 0)
    * @return the uninterpreted sort constructor sort
    */
-  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                          size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(
+      size_t arity,
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a tuple sort.
@@ -3658,27 +3661,21 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param sort the sort of the constant
-   * @param symbol the name of the constant
+   * @param symbol the name of the constant (optional)
    * @return the first-order constant
    */
-  Term mkConst(const Sort& sort, const std::string& symbol) const;
-  /**
-   * Create (first-order) constant (0-arity function symbol), with a default
-   * symbol name.
-   *
-   * @param sort the sort of the constant
-   * @return the first-order constant
-   */
-  Term mkConst(const Sort& sort) const;
+  Term mkConst(const Sort& sort,
+               const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
    * lambda, or a witness binder).
    * @param sort the sort of the variable
-   * @param symbol the name of the variable
+   * @param symbol the name of the variable (optional)
    * @return the variable
    */
-  Term mkVar(const Sort& sort, const std::string& symbol = std::string()) const;
+  Term mkVar(const Sort& sort,
+             const std::optional<std::string>& symbol = std::nullopt) const;
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
@@ -4639,8 +4636,7 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term declareSygusVar(const Sort& sort,
-                       const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
