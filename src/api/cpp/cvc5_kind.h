@@ -2533,7 +2533,7 @@ enum Kind : int32_t
    *
    * - Arity: ``n > 0``
    *
-   *   - ``1:`` DatatypeConstructor Term (see DatatypeConstructor::getConstructorTerm() const, Datatype::getConstructorTerm(const std::string&) const)
+   *   - ``1:`` DatatypeConstructor Term (see DatatypeConstructor::getConstructorTerm() const)
    *   - ``2..n:`` Terms of the Sorts of the selectors of the constructor (the arguments to the constructor)
    *
    * - Create Term of this Kind with:
