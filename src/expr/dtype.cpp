@@ -150,7 +150,9 @@ void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
   {
     for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
     {
-      TypeNode arg = ctor->getArgType(i);
+      // the selector has not been initialized to a variable of selector type,
+      // which is done during resolve. Instead, we get the raw type.
+      TypeNode arg = (*ctor)[i].getSelectorTerm().getType();
       if (arg.isUnresolvedDatatype())
       {
         unresTypes.insert(arg);

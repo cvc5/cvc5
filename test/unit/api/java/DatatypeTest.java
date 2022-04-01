@@ -127,6 +127,62 @@ class DatatypeTest
   }
 
   @Test
+  void mkDatatypeSortsSelUnres() throws CVC5ApiException
+  {
+    /* Same as above, using unresolved selectors
+     */
+    // Make unresolved types as placeholders
+    Set<Sort> unresTypes = new HashSet<>();
+    Sort unresTree = d_solver.mkUnresolvedSort("tree", 0);
+    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
+    unresTypes.add(unresTree);
+    unresTypes.add(unresList);
+
+    DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
+    DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
+    node.addSelectorUnresolved("left", unresTree);
+    node.addSelectorUnresolved("right", unresTree);
+    tree.addConstructor(node);
+
+    DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
+    leaf.addSelectorUnresolved("data", unresList);
+    tree.addConstructor(leaf);
+
+    DatatypeDecl list = d_solver.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+    cons.addSelectorUnresolved("car", unresTree);
+    cons.addSelectorUnresolved("cdr", unresTree);
+    list.addConstructor(cons);
+
+    DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+    list.addConstructor(nil);
+
+    List<DatatypeDecl> dtdecls = new ArrayList<>();
+    dtdecls.add(tree);
+    dtdecls.add(list);
+
+    AtomicReference<List<Sort>> atomic = new AtomicReference<>();
+    assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
+    List<Sort> dtsorts = atomic.get();
+    assertEquals(dtsorts.size(), dtdecls.size());
+    for (int i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
+    {
+      assertTrue(dtsorts.get(i).isDatatype());
+      assertFalse(dtsorts.get(i).getDatatype().isFinite());
+      assertEquals(dtsorts.get(i).getDatatype().getName(), dtdecls.get(i).getName());
+    }
+    // verify the resolution was correct
+    Datatype dtTree = dtsorts.get(0).getDatatype();
+    DatatypeConstructor dtcTreeNode = dtTree.getConstructor(0);
+    assertEquals(dtcTreeNode.getName(), "node");
+    DatatypeSelector dtsTreeNodeLeft = dtcTreeNode.getSelector(0);
+    assertEquals(dtsTreeNodeLeft.getName(), "left");
+    // argument type should have resolved to be recursive
+    assertTrue(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts.get(0));
+  }
+
+  @Test
   void datatypeStructs() throws CVC5ApiException
   {
     Sort intSort = d_solver.getIntegerSort();

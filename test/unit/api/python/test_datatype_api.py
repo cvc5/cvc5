@@ -88,8 +88,6 @@ def test_mk_datatype_sorts(solver):
     unresTypes = set([])
     unresTree = solver.mkUnresolvedDatatypeSort("tree")
     unresList = solver.mkUnresolvedDatatypeSort("list")
-    unresTypes.add(unresTree)
-    unresTypes.add(unresList)
 
     tree = solver.mkDatatypeDecl("tree")
     node = solver.mkDatatypeConstructorDecl("node")
@@ -114,7 +112,7 @@ def test_mk_datatype_sorts(solver):
     dtdecls.append(tree)
     dtdecls.append(llist)
     dtsorts = []
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == len(dtdecls)
     for i in range(0, len(dtdecls)):
         assert dtsorts[i].isDatatype()
@@ -137,6 +135,48 @@ def test_mk_datatype_sorts(solver):
     with pytest.raises(RuntimeError):
         solver.mkDatatypeSorts(dtdeclsBad)
 
+
+def test_mk_datatype_sorts_sel_unres(solver):
+    # Same as above, using unresolved selectors
+
+    tree = solver.mkDatatypeDecl("tree")
+    node = solver.mkDatatypeConstructorDecl("node")
+    node.addSelectorUnresolved("left", "tree")
+    node.addSelectorUnresolved("right", "tree")
+    tree.addConstructor(node)
+
+    leaf = solver.mkDatatypeConstructorDecl("leaf")
+    leaf.addSelectorUnresolved("data", "list")
+    tree.addConstructor(leaf)
+
+    llist = solver.mkDatatypeDecl("list")
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    cons.addSelectorUnresolved("car", "tree")
+    cons.addSelectorUnresolved("cdr", "tree")
+    llist.addConstructor(cons)
+
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    llist.addConstructor(nil)
+
+    dtdecls = []
+    dtdecls.append(tree)
+    dtdecls.append(llist)
+    dtsorts = []
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
+    assert len(dtsorts) == len(dtdecls)
+    for i in range(0, len(dtdecls)):
+        assert dtsorts[i].isDatatype()
+        assert not dtsorts[i].getDatatype().isFinite()
+        assert dtsorts[i].getDatatype().getName() == dtdecls[i].getName()
+    # verify the resolution was correct
+    dtTree = dtsorts[0].getDatatype()
+    dtcTreeNode = dtTree[0]
+    assert dtcTreeNode.getName() == "node"
+    dtsTreeNodeLeft = dtcTreeNode[0]
+    assert dtsTreeNodeLeft.getName() == "left"
+    # argument type should have resolved to be recursive
+    assert dtsTreeNodeLeft.getCodomainSort().isDatatype()
+    assert dtsTreeNodeLeft.getCodomainSort() == dtsorts[0]
 
 def test_datatype_structs(solver):
     intSort = solver.getIntegerSort()

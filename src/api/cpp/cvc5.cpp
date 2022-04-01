@@ -3391,6 +3391,7 @@ void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
+  // FIXME
   d_ctor->addArgSelf(name);
   ////////
   CVC5_API_TRY_CATCH_END;
