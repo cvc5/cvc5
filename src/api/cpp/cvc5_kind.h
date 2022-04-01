@@ -2555,7 +2555,7 @@ enum Kind : int32_t
    *
    * - Arity: ``2``
    *
-   *   - ``1:`` DatatypeSelector Term (see DatatypeSelector::getSelectorTerm() const, DatatypeConstructor::getSelectorTerm(const std::string&) const)
+   *   - ``1:`` DatatypeSelector Term (see DatatypeSelector::getSelectorTerm() const)
    *   - ``2:`` Term of the codomain Sort of the selector
    *
    * - Create Term of this Kind with:
