@@ -217,8 +217,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
-        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
-                                     const set[Sort]& unresolvedSorts) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
