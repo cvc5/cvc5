@@ -817,24 +817,22 @@ def test_mk_term_from_op(solver):
     lis = listSort.getDatatype()
 
     # list datatype constructor and selector operator terms
-    consTerm1 = lis.getConstructorTerm("cons")
-    consTerm2 = lis.getConstructor("cons").getConstructorTerm()
-    nilTerm1 = lis.getConstructorTerm("nil")
-    nilTerm2 = lis.getConstructor("nil").getConstructorTerm()
+    consTerm = lis.getConstructor("cons").getConstructorTerm()
+    nilTerm = lis.getConstructor("nil").getConstructorTerm()
     headTerm1 = lis["cons"].getSelectorTerm("head")
     headTerm2 = lis["cons"].getSelector("head").getSelectorTerm()
     tailTerm1 = lis["cons"].getSelectorTerm("tail")
     tailTerm2 = lis["cons"]["tail"].getSelectorTerm()
 
     # mkTerm(Op op, Term term) const
-    solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm1)
-    solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm2)
+    solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
+    solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.APPLY_SELECTOR, nilTerm1)
+        solver.mkTerm(Kind.APPLY_SELECTOR, nilTerm)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.APPLY_SELECTOR, consTerm1)
+        solver.mkTerm(Kind.APPLY_SELECTOR, consTerm)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm2)
+        solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm)
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1)
     with pytest.raises(RuntimeError):
@@ -842,7 +840,7 @@ def test_mk_term_from_op(solver):
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1)
     with pytest.raises(RuntimeError):
-        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm1)
+        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
 
     # mkTerm(Op op, Term child) const
     solver.mkTerm(opterm1, a)
@@ -854,13 +852,13 @@ def test_mk_term_from_op(solver):
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1, cvc5.Term(solver))
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm1, solver.mkInteger(0))
+        solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm, solver.mkInteger(0))
     with pytest.raises(RuntimeError):
         slv.mkTerm(opterm1, a)
 
     # mkTerm(Op op, Term child1, Term child2) const
-    solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm1, solver.mkInteger(0),
-                  solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm1))
+    solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm, solver.mkInteger(0),
+                  solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm))
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm2, solver.mkInteger(1), solver.mkInteger(2))
     with pytest.raises(RuntimeError):
@@ -871,9 +869,9 @@ def test_mk_term_from_op(solver):
         solver.mkTerm(opterm2, cvc5.Term(solver), solver.mkInteger(1))
     with pytest.raises(RuntimeError):
         slv.mkTerm(Kind.APPLY_CONSTRUCTOR,\
-                        consTerm1,\
+                        consTerm,\
                         solver.mkInteger(0),\
-                        solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm1))
+                        solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm))
 
     # mkTerm(Op op, Term child1, Term child2, Term child3) const
     with pytest.raises(RuntimeError):
@@ -1151,8 +1149,8 @@ def test_get_op(solver):
     consListSort = solver.mkDatatypeSort(consListSpec)
     consList = consListSort.getDatatype()
 
-    consTerm = consList.getConstructorTerm("cons")
-    nilTerm = consList.getConstructorTerm("nil")
+    consTerm = consList.getConstructor("cons").getConstructorTerm()
+    nilTerm = consList.getConstructor("nil").getConstructorTerm()
     headTerm = consList["cons"].getSelectorTerm("head")
 
     listnil = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
@@ -1716,14 +1714,15 @@ def test_simplify(solver):
     assert i1 == solver.simplify(i3)
 
     consList = consListSort.getDatatype()
-    dt1 = solver.mkTerm(\
-        Kind.APPLY_CONSTRUCTOR,\
-        consList.getConstructorTerm("cons"),\
-        solver.mkInteger(0),\
+    dt1 = solver.mkTerm(
+        Kind.APPLY_CONSTRUCTOR,
+        consList.getConstructor("cons").getConstructorTerm(),
+        solver.mkInteger(0),
         solver.mkTerm(
-            Kind.APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")))
+            Kind.APPLY_CONSTRUCTOR,
+            consList.getConstructor("nil").getConstructorTerm()))
     solver.simplify(dt1)
-    dt2 = solver.mkTerm(\
+    dt2 = solver.mkTerm(
       Kind.APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), dt1)
     solver.simplify(dt2)
 
