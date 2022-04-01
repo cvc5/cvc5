@@ -361,9 +361,9 @@ TEST_F(TestApiBlackSolver, mkUnresolvedSort)
 
 TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)
 {
-  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("s", 2));
-  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("", 2));
-  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort("", 0),
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort(2, "s"));
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort(2, ""));
+  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort(0),
                CVC5ApiException);
 }
 
