@@ -17,15 +17,15 @@ package io.github.cvc5;
 
 /**
  * A cvc5 datatype declaration. A datatype declaration is not itself a datatype
- * (see Datatype), but a specification for creating a datatype sort.
+ * (see {@link Datatype}), but a specification for creating a datatype sort.
  *
  * The interface for a datatype declaration coincides with the syntax for the
  * SMT-LIB 2.6 command `declare-datatype`, or a single datatype within the
  * `declare-datatypes` command.
  *
  * Datatype sorts can be constructed from DatatypeDecl using the methods:
- *   - Solver::mkDatatypeSort()
- *   - Solver::mkDatatypeSorts()
+ *   - {@link Solver#mkDatatypeSort(DatatypeDecl)}
+ *   - {@link Solver#mkDatatypeSorts(DatatypeDecl[])}
  */
 public class DatatypeDecl extends AbstractPointer
 {

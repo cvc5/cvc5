@@ -399,14 +399,16 @@ cdef class DatatypeConstructorDecl:
 cdef class DatatypeDecl:
     """
         A cvc5 datatype declaration. A datatype declaration is not itself a
-        datatype (see Datatype), but a specification for creating a datatype
+        datatype (see :py:class:`cvc5.Datatype`), but a specification for creating a datatype
         sort.
 
         The interface for a datatype declaration coincides with the syntax for
         the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
         the `declare-datatypes` command.
 
-        Datatype sorts can be constructed from DatatypeDecl using the methods:
+        Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
+        the methods:
+        
             - :py:meth:`Solver::mkDatatypeSort`
             - :py:meth:`Solver::mkDatatypeSorts`
 
