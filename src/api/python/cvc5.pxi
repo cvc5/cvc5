@@ -435,6 +435,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :return: True if this datatype declaration is parametric.
         """
         return self.cdd.isParametric()

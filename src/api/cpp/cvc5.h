@@ -1835,7 +1835,11 @@ class CVC5_EXPORT DatatypeDecl
   /** Get the number of constructors (so far) for this Datatype declaration. */
   size_t getNumConstructors() const;
 
-  /** Is this Datatype declaration parametric? */
+  /**
+   * Is this Datatype declaration parametric?
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
   bool isParametric() const;
 
   /**

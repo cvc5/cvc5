@@ -1442,6 +1442,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @return the DatatypeDecl
