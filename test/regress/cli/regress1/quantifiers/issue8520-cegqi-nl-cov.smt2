@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; COMMAND-LINE: --nl-cov
 ; EXPECT: unknown
 (set-logic ALL)
