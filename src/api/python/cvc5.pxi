@@ -1248,7 +1248,7 @@ cdef class Solver:
 
     def mkRegexpAll(self):
         """
-            Create a regular expression all (re.all) term.
+            Create a regular expression all (``re.all``) term.
 
             :return: The all term.
         """
