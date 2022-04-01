@@ -2468,7 +2468,7 @@ cdef class Solver:
         self.csolver.setOption(option.encode(), value.encode())
 
 
-    def getInterpolant(self, Term conj, *args):
+    def getInterpolant(self, Term conj, Grammar grammar=None):
         """Get an interpolant.
 
         SMT-LIB:
@@ -2480,26 +2480,18 @@ cdef class Solver:
 
         Requires option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
 
-        Supports the following variants:
-
-        - ``Term getInteprolant(Term conj)``
-        - ``Term getInteprolant(Term conj, Grammar grammar)``
-
         .. warning:: This method is experimental and may change in future
                      versions.
         
         :param conj: the conjecture term
-        :param output: the term where the result will be stored
         :param grammar: a grammar for the inteprolant
-        :return: True iff an interpolant was found
+        :return: The interpolant. See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getInterpolant(conj.cterm, grammar.cgrammar)
         return result
 
 
