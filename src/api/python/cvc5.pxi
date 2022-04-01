@@ -409,8 +409,8 @@ cdef class DatatypeDecl:
         Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
         the methods:
         
-            - :py:meth:`Solver::mkDatatypeSort`
-            - :py:meth:`Solver::mkDatatypeSorts`
+            - :py:meth:`Solver.mkDatatypeSort()`
+            - :py:meth:`Solver.mkDatatypeSorts()`
 
         Wrapper class for :cpp:class:`cvc5::DatatypeDecl`.
     """
