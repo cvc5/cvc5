@@ -661,7 +661,7 @@ def test_mk_real(solver):
     solver.mkReal("-1", "2")
     solver.mkReal(-1, "2")
     solver.mkReal("-1", 2)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TypeError):
         solver.mkReal(1, 2, 3)
     with pytest.raises(RuntimeError):
         solver.mkReal("1.0", 2)
