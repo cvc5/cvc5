@@ -345,6 +345,18 @@ cdef class DatatypeConstructorDecl:
         """
         self.cddc.addSelectorSelf(name.encode())
 
+    def addSelectorUnresolved(self, str name, str unresDatatypeName):
+        """
+            Add datatype selector declaration whose codomain sort is an 
+            unresolved datatype with the given name.
+
+            :param name: the name of the datatype selector declaration to add.
+            :param unresDataypeName: the name of the unresolved datatype. The
+                                    codomain of the selector will be the
+                                    resolved datatype with the given name.
+        """
+        self.cddc.addSelectorUnresolved(name.encode(), unresDatatypeName.encode())
+
     def isNull(self):
         """:return: True if this DatatypeConstructorDecl is a null object."""
         return self.cddc.isNull()
