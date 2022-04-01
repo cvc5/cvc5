@@ -1398,12 +1398,14 @@ enum class PfRule : uint32_t
    * if the direction is reversed.
    *
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
-   * implicit in the concatenation above. For example, if the premise is a proof
-   * ``P`` conluding :math:`x\cdot z = x`, then ``(CONCAT_EQ P :args false)``
-   * concludes :math:`z = ''`.
+   * implicit in the concatenation above. For example, if the premise is
+   * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
+   * :math:`z = ''`.
    *
-   * Also note that constants are split, such that for :math:`(\mathsf{'abc'} \cdot x) = (y \cdot \mathsf{'a'})`, this rule concludes :math:`(\mathsf{'bc'} \cdot x) = y`.  This splitting is
-   * done only for constants such that ``Word::splitConstant`` returns non-null.
+   * Also note that constants are split, such that for :math:`(\mathsf{'abc'}
+   * \cdot x) = (\mathsf{'a'} \cdot y)`, this rule, with argument :math:`\bot`,
+   * concludes :math:`(\mathsf{'bc'} \cdot x) = y`.  This splitting is done only
+   * for constants such that ``Word::splitConstant`` returns non-null.
    * \endverbatim
    */
   CONCAT_EQ,
