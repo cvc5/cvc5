@@ -68,6 +68,8 @@ cvc5 1.0
     -1 if `r` does not match a substring after `n`.
 
 * *Proofs*
+  * Documentation available at:
+    https://cvc5.github.io/docs/cvc5-1.0.0/proofs/proofs.html
   * When used after an unsatisfiable response to checkSat, getProof
     returns a representation of the refutation proof for the current set of
     assertions (get-proof in SMT-LIB).
