@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, RoundingMode
+from cvc5 import Kind, BlockModelsMode, RoundingMode
 
 
 @pytest.fixture
@@ -299,10 +299,10 @@ def test_mk_unresolved_sort(solver):
 
 
 def test_mk_sort_constructor_sort(solver):
-    solver.mkUninterpretedSortConstructorSort("s", 2)
-    solver.mkUninterpretedSortConstructorSort("", 2)
+    solver.mkUninterpretedSortConstructorSort(2, "s")
+    solver.mkUninterpretedSortConstructorSort(2)
     with pytest.raises(RuntimeError):
-        solver.mkUninterpretedSortConstructorSort("", 0)
+        solver.mkUninterpretedSortConstructorSort(0)
 
 
 def test_mk_tuple_sort(solver):
@@ -1558,41 +1558,28 @@ def test_pop3(solver):
         solver.pop(1)
 
 def test_block_model1(solver):
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModel(BlockModelsMode.Literals)
+
+def test_block_model2(solver):
     solver.setOption("produce-models", "true")
     x = solver.mkConst(solver.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
-    solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.blockModel()
-
-def test_block_model2(solver):
-    solver.setOption("block-models", "literals")
-    x = solver.mkConst(solver.getBooleanSort(), "x")
-    solver.assertFormula(x.eqTerm(x))
-    solver.checkSat()
-    with pytest.raises(RuntimeError):
-        solver.blockModel()
+        solver.blockModel(BlockModelsMode.Literals)
 
 def test_block_model3(solver):
     solver.setOption("produce-models", "true")
-    solver.setOption("block-models", "literals")
-    x = solver.mkConst(solver.getBooleanSort(), "x")
-    solver.assertFormula(x.eqTerm(x))
-    with pytest.raises(RuntimeError):
-        solver.blockModel()
-
-
-def test_block_model4(solver):
-    solver.setOption("produce-models", "true")
-    solver.setOption("block-models", "literals")
     x = solver.mkConst(solver.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
-    solver.blockModel()
+    solver.blockModel(BlockModelsMode.Literals)
 
 def test_block_model_values1(solver):
     solver.setOption("produce-models", "true")
-    solver.setOption("block-models", "literals")
     x = solver.mkConst(solver.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
@@ -1611,7 +1598,6 @@ def test_block_model_values2(solver):
     solver.blockModelValues([x])
 
 def test_block_model_values3(solver):
-    solver.setOption("block-models", "literals")
     x = solver.mkConst(solver.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
@@ -1620,7 +1606,6 @@ def test_block_model_values3(solver):
 
 def test_block_model_values4(solver):
     solver.setOption("produce-models", "true")
-    solver.setOption("block-models", "literals")
     x = solver.mkConst(solver.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     with pytest.raises(RuntimeError):
@@ -1628,7 +1613,6 @@ def test_block_model_values4(solver):
 
 def test_block_model_values5(solver):
     solver.setOption("produce-models", "true")
-    solver.setOption("block-models", "literals")
     x = solver.mkConst(solver.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
@@ -2495,18 +2479,17 @@ def test_mk_sygus_var(solver):
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort(intSort, boolSort)
 
-    solver.declareSygusVar(boolSort)
-    solver.declareSygusVar(funSort)
-    solver.declareSygusVar(boolSort, "b")
-    solver.declareSygusVar(funSort, "")
+    solver.declareSygusVar("", boolSort)
+    solver.declareSygusVar("", funSort)
+    solver.declareSygusVar("b", boolSort)
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar(cvc5.Sort(solver))
+        solver.declareSygusVar("", cvc5.Sort(solver))
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar(solver.getNullSort(), "a")
+        solver.declareSygusVar("a", solver.getNullSort())
     slv = cvc5.Solver()
     solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
-        slv.declareSygusVar(boolSort)
+        slv.declareSygusVar("", boolSort)
 
 
 def test_synth_fun(solver):

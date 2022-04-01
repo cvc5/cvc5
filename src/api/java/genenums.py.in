@@ -36,6 +36,7 @@ DEFAULT_PREFIX = 'Kind'
 ENUM_JAVA_TOP = \
     r"""package io.github.{namespace};
 
+import io.github.cvc5.CVC5ApiException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -162,7 +163,7 @@ def gen_java(parser: EnumParser, path):
     for namespace in parser.namespaces:
         for enum in namespace.enums:
             subnamespace = namespace.name.replace('::', '.')
-            filedir = os.path.join(path, subnamespace)
+            filedir = os.path.join(path, subnamespace.replace('.', '/'))
             if not os.path.exists(filedir):
                 os.mkdir(filedir)
             filename = os.path.join(filedir, enum.name + ".java")

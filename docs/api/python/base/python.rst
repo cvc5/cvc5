@@ -28,6 +28,7 @@ See the :doc:`pythonic API <../pythonic/pythonic>` for a higher-level programmin
     roundingmode
     solver
     sort
+    statistics
     synthresult
     term
     unknownexplanation

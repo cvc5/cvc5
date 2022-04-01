@@ -34,7 +34,6 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
     case UnknownExplanation::RESOURCEOUT: out << "RESOURCEOUT"; break;
     case UnknownExplanation::MEMOUT: out << "MEMOUT"; break;
     case UnknownExplanation::INTERRUPTED: out << "INTERRUPTED"; break;
-    case UnknownExplanation::NO_STATUS: out << "NO_STATUS"; break;
     case UnknownExplanation::UNSUPPORTED: out << "UNSUPPORTED"; break;
     case UnknownExplanation::OTHER: out << "OTHER"; break;
     case UnknownExplanation::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
