@@ -403,10 +403,10 @@ cdef class DatatypeConstructorDecl:
             Add datatype selector declaration whose codomain sort is an 
             unresolved datatype with the given name.
 
-            :param name: the name of the datatype selector declaration to add.
-            :param unresDataypeName: the name of the unresolved datatype. The
-                                    codomain of the selector will be the
-                                    resolved datatype with the given name.
+            :param name: The name of the datatype selector declaration to add.
+            :param unresDataypeName: The name of the unresolved datatype. The
+                                     codomain of the selector will be the
+                                     resolved datatype with the given name.
         """
         self.cddc.addSelectorUnresolved(name.encode(), unresDatatypeName.encode())
 
