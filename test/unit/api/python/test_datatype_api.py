@@ -194,7 +194,7 @@ def test_datatype_structs(solver):
     assert dtStream.isWellFounded()
 
     # create tuple
-    tupSort = solver.mkTupleSort([boolSort])
+    tupSort = solver.mkTupleSort(boolSort)
     dtTuple = tupSort.getDatatype()
     assert dtTuple.isTuple()
     assert not dtTuple.isRecord()
@@ -203,7 +203,7 @@ def test_datatype_structs(solver):
 
     # create record
     fields = [("b", boolSort), ("i", intSort)]
-    recSort = solver.mkRecordSort(fields)
+    recSort = solver.mkRecordSort(*fields)
     assert recSort.isDatatype()
     dtRecord = recSort.getDatatype()
     assert not dtRecord.isTuple()
@@ -466,7 +466,7 @@ def test_datatype_simply_rec(solver):
     #     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
     #   END
     unresTypes.clear()
-    unresList5 = solver.mkUninterpretedSortConstructorSort("list5", 1)
+    unresList5 = solver.mkUninterpretedSortConstructorSort(1, "list5")
     unresTypes.add(unresList5)
 
     v = []
@@ -503,7 +503,7 @@ def test_datatype_specialized_cons(solver):
 
     # Make unresolved types as placeholders
     unresTypes = set([])
-    unresList = solver.mkUninterpretedSortConstructorSort("plist", 1)
+    unresList = solver.mkUninterpretedSortConstructorSort(1, "plist")
     unresTypes.add(unresList)
 
     v = []

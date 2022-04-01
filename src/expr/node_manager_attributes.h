@@ -30,12 +30,19 @@ namespace attr {
   struct SortArityTag { };
   struct TypeTag { };
   struct TypeCheckedTag { };
+  struct UnresolvedDatatypeTag
+  {
+  };
   }  // namespace attr
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;
+
+/** Attribute is true for unresolved datatype sorts */
+using UnresolvedDatatypeAttr =
+    expr::Attribute<expr::attr::UnresolvedDatatypeTag, bool>;
 
 }  // namespace expr
 }  // namespace cvc5::internal

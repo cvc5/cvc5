@@ -41,8 +41,8 @@ if __name__ == "__main__":
 
   # define the rules
   zero = slv.mkInteger(0)
-  neg_x = slv.mkTerm(Kind.Neg, x)
-  plus = slv.mkTerm(Kind.Add, x, start)
+  neg_x = slv.mkTerm(Kind.NEG, x)
+  plus = slv.mkTerm(Kind.ADD, x, start)
 
   # create the grammar object
   g1 = slv.mkSygusGrammar({x}, {start})
@@ -69,16 +69,21 @@ if __name__ == "__main__":
   id4 = slv.synthFun("id4", {x}, integer, g1)
 
   # declare universal variables.
-  varX = slv.declareSygusVar(integer, "x")
+  varX = slv.declareSygusVar("x", integer)
 
-  id1_x = slv.mkTerm(Kind.ApplyUf, id1, varX)
-  id2_x = slv.mkTerm(Kind.ApplyUf, id2, varX)
-  id3_x = slv.mkTerm(Kind.ApplyUf, id3, varX)
-  id4_x = slv.mkTerm(Kind.ApplyUf, id4, varX)
+  id1_x = slv.mkTerm(Kind.APPLY_UF, id1, varX)
+  id2_x = slv.mkTerm(Kind.APPLY_UF, id2, varX)
+  id3_x = slv.mkTerm(Kind.APPLY_UF, id3, varX)
+  id4_x = slv.mkTerm(Kind.APPLY_UF, id4, varX)
 
   # add semantic constraints
   # (constraint (= (id1 x) (id2 x) (id3 x) (id4 x) x))
-  slv.addSygusConstraint(slv.mkTerm(Kind.And, [slv.mkTerm(Kind.Equal, id1_x, id2_x), slv.mkTerm(Kind.Equal, id1_x, id3_x), slv.mkTerm(Kind.Equal, id1_x, id4_x), slv.mkTerm(Kind.Equal, id1_x, varX)]))
+  slv.addSygusConstraint(
+        slv.mkTerm(Kind.AND,
+                   slv.mkTerm(Kind.EQUAL, id1_x, id2_x),
+                   slv.mkTerm(Kind.EQUAL, id1_x, id3_x),
+                   slv.mkTerm(Kind.EQUAL, id1_x, id4_x),
+                   slv.mkTerm(Kind.EQUAL, id1_x, varX)))
 
   # print solutions if available
   if (slv.checkSynth().hasSolution()):
