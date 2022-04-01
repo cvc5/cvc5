@@ -145,7 +145,12 @@ size_t DType::cindexOfInternal(Node item)
 
 void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
 {
-  // scan the arguments of all constructors
+  // Scan the arguments of all constructors and collect their types. To be
+  // robust to datatypes with nested recursion, we collect the *component*
+  // types of all subfield types and store them in csfTypes. In other words, we
+  // search for unresolved datatypes that occur possibly as parameters to
+  // other parametric types.
+  std::unordered_set<TypeNode> csfTypes;
   for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
   {
     for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
@@ -158,20 +163,27 @@ void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
         continue;
       }
       // The selector has *not* been initialized to a variable of selector type,
-      // which is done during resolve. Instead, we get the raw type of sel.
-      TypeNode arg = sel.getType();
-      if (arg.isUnresolvedDatatype())
+      // which is done during resolve. Instead, we get the raw type of sel
+      // and compute its component types.
+      expr::getComponentTypes(sel.getType(), csfTypes);
+    }
+  }
+  // Now, process each component type
+  for (const TypeNode& arg : csfTypes)
+  {
+    if (arg.isUnresolvedDatatype())
+    {
+      // it is an unresolved datatype
+      unresTypes.insert(arg);
+    }
+    else if (arg.isInstantiatedUninterpretedSort())
+    {
+      // it might be an instantiated sort constructor corresponding to a
+      // unresolved parametric datatype, in which case we extract its operator
+      TypeNode argc = arg.getUninterpretedSortConstructor();
+      if (argc.isUnresolvedDatatype())
       {
-        unresTypes.insert(arg);
-      }
-      else if (arg.isInstantiatedUninterpretedSort())
-      {
-        // it might be an instantiated sort constructor
-        TypeNode argc = arg.getUninterpretedSortConstructor();
-        if (argc.isUnresolvedDatatype())
-        {
-          unresTypes.insert(argc);
-        }
+        unresTypes.insert(argc);
       }
     }
   }
