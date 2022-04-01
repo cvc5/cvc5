@@ -1402,9 +1402,7 @@ enum class PfRule : uint32_t
    * ``P`` conluding :math:`x\cdot z = x`, then ``(CONCAT_EQ P :args false)``
    * concludes :math:`z = ''`.
    *
-   * Also note that constants are split, such that if ``P`` concludes :math:`(x
-   * \cdot \mathsf{'abc'}) = (y \cdot \mathsf{'a'})`, then ``(CONCAT_EQ P :args
-   * false)`` concludes :math:`(x \cdot \mathsf{'bc'}) = y`.  This splitting is
+   * Also note that constants are split, such that for :math:`(\mathsf{'abc'} \cdot x) = (y \cdot \mathsf{'a'})`, this rule concludes :math:`(\mathsf{'bc'} \cdot x) = y`.  This splitting is
    * done only for constants such that ``Word::splitConstant`` returns non-null.
    * \endverbatim
    */
