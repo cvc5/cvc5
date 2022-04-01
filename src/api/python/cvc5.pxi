@@ -1203,37 +1203,24 @@ cdef class Solver:
             term.cterm = self.csolver.mkInteger((<int?> val))
         return term
 
-    def mkReal(self, val, den=None):
+    def mkReal(self, numerator, denominator=None):
         """
-            Create a real constant.
+            Create a real constant from a numerator and an optional denominator.
+            
+            First converts the arguments to a temporary string, either
+            ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
+            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            thus represent an integer, a decimal number or a fraction.
 
-            :param val: The value of the term. Can be an integer, float, or
-                        string. It will be formatted as a string before the
-                        term is built.
-            :param den: If not None, the value is ``val``/``den``.
+            :param numerator: The numerator.
+            :param denominator: The denominator, or ``None``.
             :return: A real term with literal value.
-
-            Can be used in various forms:
-
-            - Given a string ``"N/D"`` constructs the corresponding rational.
-            - Given a string ``"W.D"`` constructs the reduction of
-              ``(W * P + D)/P``, where ``P`` is the appropriate power of 10.
-            - Given a float ``f``, constructs the rational matching ``f``'s
-              string representation. This means that ``mkReal(0.3)`` gives
-              ``3/10`` and not the IEEE-754 approximation of ``3/10``.
-            - Given a string ``"W"`` or an integer, constructs that integer.
-            - Given two strings and/or integers ``N`` and ``D``, constructs
-              ``N/D``.
         """
         cdef Term term = Term(self)
-        if den is None:
-            term.cterm = self.csolver.mkReal(str(val).encode())
+        if denominator is None:
+            term.cterm = self.csolver.mkReal(str(numerator).encode())
         else:
-            if not isinstance(val, int) or not isinstance(den, int):
-                raise ValueError("Expecting integers when"
-                                 " constructing a rational"
-                                 " but got: {}".format((val, den)))
-            term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
+            term.cterm = self.csolver.mkReal("{}/{}".format(numerator, denominator).encode())
         return term
 
     def mkRegexpAll(self):
@@ -1360,7 +1347,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-    def mkBitVector(self, *args):
+    def mkBitVector(self, int size, *args):
         """
             Create bit-vector value.
 
@@ -1378,25 +1365,18 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         if len(args) == 0:
-            raise ValueError("Missing arguments to mkBitVector")
-        size = args[0]
-        if not isinstance(size, int):
-            raise ValueError(
-                "Invalid first argument to mkBitVector '{}', "
-                "expected bit-vector size".format(size))
-        if len(args) == 1:
             term.cterm = self.csolver.mkBitVector(<uint32_t> size)
-        elif len(args) == 2:
-            val = args[1]
+        elif len(args) == 1:
+            val = args[0]
             if not isinstance(val, int):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
                 <uint32_t> size, <uint32_t> val)
-        elif len(args) == 3:
-            val = args[1]
-            base = args[2]
+        elif len(args) == 2:
+            val = args[0]
+            base = args[1]
             if not isinstance(val, str):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
@@ -2277,18 +2257,6 @@ cdef class Solver:
             res['modes'] = [s.decode() for s in mi.modes]
         return res
 
-    def getOptionNames(self):
-       """
-           Get all option names that can be used with
-           :py:meth:`Solver.setOption()`, :py:meth:`Solver.getOption()` and
-           :py:meth:`Solver.getOptionInfo()`.
-           :return: All option names.
-       """
-       result = []
-       for n in self.csolver.getOptionNames():
-           result += [n.decode()]
-       return result
-
     def getUnsatAssumptions(self):
         """
             Get the set of unsat ("failed") assumptions.
@@ -2690,7 +2658,7 @@ cdef class Solver:
         self.csolver.setOption(option.encode(), value.encode())
 
 
-    def getInterpolant(self, Term conj, *args):
+    def getInterpolant(self, Term conj, Grammar grammar=None):
         """
             Get an interpolant.
 
@@ -2705,27 +2673,18 @@ cdef class Solver:
             <lbl-option-produce-interpolants>` to be set to a mode different
             from `none`.
 
-            Supports the following variants:
-
-            - ``Term getInterpolant(Term conj)``
-            - ``Term getInterpolant(Term conj, Grammar grammar)``
-
             .. warning:: This method is experimental and may change in future
-                         versions.
-
+                        versions.
             :param conj: The conjecture term.
-            :param output: The term where the result will be stored.
             :param grammar: A grammar for the inteprolant.
-            :return: True iff an interpolant was found.
-            """
+            :return: The interpolant. 
+                     See :cpp:func:`cvc5::Solver::getInterpolant` for details.
+        """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getInterpolant(
-                    conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getInterpolant(conj.cterm, grammar.cgrammar)
         return result
 
 
@@ -2756,8 +2715,7 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.getInterpolantNext()
         return result
-
-    def getAbduct(self, Term conj, *args):
+    def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
 
@@ -2771,27 +2729,18 @@ cdef class Solver:
             Requires to enable option :ref:`produce-abducts
             <lbl-option-produce-abducts>`.
 
-            Supports the following variants:
-
-            - ``Term getAbduct(Term conj)``
-            - ``Term getAbduct(Term conj, Grammar grammar)``
-
             .. warning:: This method is experimental and may change in future
                          versions.
-
             :param conj: The conjecture term.
-            :param output: The term where the result will be stored.
             :param grammar: A grammar for the abduct.
-            :return: True iff an abduct was found.
+            :return: The abduct.
+                     See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getAbduct(
-                    conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getAbduct(conj.cterm, grammar.cgrammar)
         return result
 
     def getAbductNext(self):
