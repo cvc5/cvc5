@@ -778,7 +778,7 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedeclse):
+    def mkDatatypeSorts(self, list dtypedecls):
         """
         Create a vector of datatype sorts using unresolved sorts. The names of
         the datatype declarations in dtypedecls must be distinct.

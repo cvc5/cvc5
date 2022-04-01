@@ -86,8 +86,8 @@ def test_mk_datatype_sorts(solver):
 
     #Make unresolved types as placeholders
     unresTypes = set([])
-    unresTree = solver.mkUnresolvedSort("tree")
-    unresList = solver.mkUnresolvedSort("list")
+    unresTree = solver.mkUnresolvedDatatypeSort("tree")
+    unresList = solver.mkUnresolvedDatatypeSort("list")
     unresTypes.add(unresTree)
     unresTypes.add(unresList)
 
@@ -328,9 +328,9 @@ def test_datatype_simply_rec(solver):
 
     # Make unresolved types as placeholders
     unresTypes = set([])
-    unresWList = solver.mkUnresolvedSort("wlist")
-    unresList = solver.mkUnresolvedSort("list")
-    unresNs = solver.mkUnresolvedSort("ns")
+    unresWList = solver.mkUnresolvedDatatypeSort("wlist")
+    unresList = solver.mkUnresolvedDatatypeSort("list")
+    unresNs = solver.mkUnresolvedDatatypeSort("ns")
     unresTypes.add(unresWList)
     unresTypes.add(unresList)
     unresTypes.add(unresNs)
@@ -370,7 +370,7 @@ def test_datatype_simply_rec(solver):
     #   END
 
     unresTypes.clear()
-    unresNs2 = solver.mkUnresolvedSort("ns2")
+    unresNs2 = solver.mkUnresolvedDatatypeSort("ns2")
     unresTypes.add(unresNs2)
 
     ns2 = solver.mkDatatypeDecl("ns2")
@@ -399,9 +399,9 @@ def test_datatype_simply_rec(solver):
     #   END
 
     unresTypes.clear()
-    unresNs3 = solver.mkUnresolvedSort("ns3")
+    unresNs3 = solver.mkUnresolvedDatatypeSort("ns3")
     unresTypes.add(unresNs3)
-    unresList3 = solver.mkUnresolvedSort("list3")
+    unresList3 = solver.mkUnresolvedDatatypeSort("list3")
     unresTypes.add(unresList3)
 
     list3 = solver.mkDatatypeDecl("list3")
@@ -433,9 +433,9 @@ def test_datatype_simply_rec(solver):
     #     ns4 = elem(ndata: list4)
     #   END
     unresTypes.clear()
-    unresNs4 = solver.mkUnresolvedSort("ns4")
+    unresNs4 = solver.mkUnresolvedDatatypeSort("ns4")
     unresTypes.add(unresNs4)
-    unresList4 = solver.mkUnresolvedSort("list4")
+    unresList4 = solver.mkUnresolvedDatatypeSort("list4")
     unresTypes.add(unresList4)
 
     list4 = solver.mkDatatypeDecl("list4")

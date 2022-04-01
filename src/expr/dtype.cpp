@@ -155,6 +155,15 @@ void DType::getUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
       {
         unresTypes.insert(arg);
       }
+      else if (arg.isInstantiatedUninterpretedSort())
+      {
+        // it might be an instantiated sort constructor
+        TypeNode argc = arg.getUninterpretedSortConstructor();
+        if (argc.isUnresolvedDatatype())
+        {
+          unresTypes.insert(argc);
+        }
+      }
     }
   }
 }

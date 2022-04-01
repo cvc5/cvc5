@@ -938,9 +938,8 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
   return type;
 }
 
-TypeNode NodeManager::mkUnresolvedDatatype(const std::string& name,
-                                           size_t arity,
-                                           uint32_t flags)
+TypeNode NodeManager::mkUnresolvedDatatypeSort(const std::string& name,
+                                           size_t arity)
 {
   TypeNode usort = arity > 0 ? mkSortConstructor(name, arity) : mkSort(name);
   // mark that it is an unresolved sort

@@ -183,7 +183,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(throwsDecls));
 
     /* with unresolved sorts */
-    Sort unresList = d_solver.mkUnresolvedSort("ulist", 1);
+    Sort unresList = d_solver.mkUnresolvedDatatypeSort("ulist", 1);
     Set<Sort> unresSorts = new HashSet<>();
     unresSorts.add(unresList);
     DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
@@ -203,8 +203,8 @@ class SolverTest
     /* mutually recursive with unresolved parameterized sorts */
     Sort p0 = d_solver.mkParamSort("p0");
     Sort p1 = d_solver.mkParamSort("p1");
-    Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
-    Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+    Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
+    Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
     DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
     DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
     DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
@@ -359,12 +359,12 @@ class SolverTest
   }
 
   @Test
-  void mkUnresolvedSort() throws CVC5ApiException
+  void mkUnresolvedDatatypeSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort("u"));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort("u", 1));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort(""));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort("", 1));
   }
 
   @Test

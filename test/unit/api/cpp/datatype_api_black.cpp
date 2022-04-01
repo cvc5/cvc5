@@ -85,8 +85,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
    *   END;
    */
   // Make unresolved types as placeholders
-  Sort unresTree = d_solver.mkUnresolvedSort("tree");
-  Sort unresList = d_solver.mkUnresolvedSort("list");
+  Sort unresTree = d_solver.mkUnresolvedDatatypeSort("tree");
+  Sort unresList = d_solver.mkUnresolvedDatatypeSort("list");
 
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
   DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
@@ -136,7 +136,7 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
+TEST_F(TestApiBlackDatatype, mkDatatypeSortsSelUnres)
 {
   // Same as above, without unresolved sorts
 
@@ -375,9 +375,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    */
   // Make unresolved types as placeholders
   std::set<Sort> unresTypes;
-  Sort unresWList = d_solver.mkUnresolvedSort("wlist");
-  Sort unresList = d_solver.mkUnresolvedSort("list");
-  Sort unresNs = d_solver.mkUnresolvedSort("ns");
+  Sort unresWList = d_solver.mkUnresolvedDatatypeSort("wlist");
+  Sort unresList = d_solver.mkUnresolvedDatatypeSort("list");
+  Sort unresNs = d_solver.mkUnresolvedDatatypeSort("ns");
   unresTypes.insert(unresWList);
   unresTypes.insert(unresList);
   unresTypes.insert(unresNs);
@@ -422,7 +422,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresNs2 = d_solver.mkUnresolvedSort("ns2");
+  Sort unresNs2 = d_solver.mkUnresolvedDatatypeSort("ns2");
   unresTypes.insert(unresNs2);
 
   DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
@@ -453,9 +453,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresNs3 = d_solver.mkUnresolvedSort("ns3");
+  Sort unresNs3 = d_solver.mkUnresolvedDatatypeSort("ns3");
   unresTypes.insert(unresNs3);
-  Sort unresList3 = d_solver.mkUnresolvedSort("list3");
+  Sort unresList3 = d_solver.mkUnresolvedDatatypeSort("list3");
   unresTypes.insert(unresList3);
 
   DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
@@ -489,9 +489,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresNs4 = d_solver.mkUnresolvedSort("ns4");
+  Sort unresNs4 = d_solver.mkUnresolvedDatatypeSort("ns4");
   unresTypes.insert(unresNs4);
-  Sort unresList4 = d_solver.mkUnresolvedSort("list4");
+  Sort unresList4 = d_solver.mkUnresolvedDatatypeSort("list4");
   unresTypes.insert(unresList4);
 
   DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
