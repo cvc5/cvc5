@@ -38,7 +38,7 @@ def test(slv, consListSort):
             Kind.APPLY_CONSTRUCTOR,
             consList.getConstructor("cons").getConstructorTerm(),
             slv.mkInteger(0),
-            slv.mkTerm(Kind.ApplyConstructor,
+            slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
             consList.getConstructor("nil").getConstructorTerm()))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
