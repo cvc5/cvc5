@@ -1202,7 +1202,7 @@ cdef class Solver:
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
             string is forwarded to
-	    :cpp:func:`cvc5::Solver::mkReal(const std::string&)` and should thus
+	    :cpp:func:`cvc5::Solver::mkReal()` and should thus
 	    represent an integer, a decimal number or a fraction.
 
             :param numerator: The numerator.
