@@ -5,8 +5,10 @@ inputs:
     description: file name of binary
   binary-name:
     description: target name of binary
-  github-token:
-    description: token to upload binary
+  github-token-latest:
+    description: token to upload binary to latest
+  github-token-release:
+    description: token to upload binary to release
 runs:
   using: composite
   steps:
@@ -24,7 +26,7 @@ runs:
       if: github.ref == 'refs/heads/main'
       shell: 'python3 {0}'
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token-latest }}
         BINARY: ${{ inputs.binary-name }}
       run: |
         import datetime
@@ -81,7 +83,7 @@ runs:
       if: startsWith(github.ref, 'refs/tags/')
       shell: 'python3 {0}'
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token-release }}
         BINARY: ${{ inputs.binary-name }}
       run: |
         import os
