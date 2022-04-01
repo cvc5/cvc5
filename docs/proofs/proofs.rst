@@ -1,14 +1,18 @@
-Proof generation
+Proof production
 ================
 
-cvc5 can generate formal proofs and output it in the following formats:
+cvc5 produces proofs in an internal proof calculus that faithfully reflects its
+reasoning. Here is a comprehensive description of the :doc:`proof rules
+<proof_rules>`.
+
+Optionally cvc5 can convert and output its internal proofs into the following
+external formats:
 
 .. toctree::
    :maxdepth: 1
-   
+
    Alethe <output_alethe>
-   Lean <output_lean>
    LFSC <output_lfsc>
+   DOT <output_dot>
 
-
-some other stuff: :doc:`proof rules <proof_rules>`.
+where note that the DOT format is only meant for visualization.

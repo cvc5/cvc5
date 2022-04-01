@@ -165,15 +165,6 @@ private:
  std::set<std::string> d_attributesWarnedAbout;
 
  /**
-  * The current set of unresolved types.  We can get by with this NOT
-  * being on the scope, because we can only have one DATATYPE
-  * definition going on at one time.  This is a bit hackish; we
-  * depend on mkMutualDatatypeTypes() to check everything and clear
-  * this out.
-  */
- std::set<cvc5::Sort> d_unresolved;
-
- /**
   * "Preemption commands": extra commands implied by subterms that
   * should be issued before the currently-being-parsed command is
   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
@@ -219,9 +210,6 @@ public:
 
   /** Get the associated input. */
   Input* getInput() const { return d_input.get(); }
-
-  /** Get unresolved sorts */
-  inline std::set<cvc5::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
@@ -507,11 +495,6 @@ public:
    * depending on the arity.
    */
   cvc5::Sort mkUnresolvedType(const std::string& name, size_t arity);
-
-  /**
-   * Returns true IFF name is an unresolved type.
-   */
-  bool isUnresolvedType(const std::string& name);
 
   /**
    * Creates and binds sorts of a list of mutually-recursive datatype

@@ -299,6 +299,20 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
   return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
+modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
+{
+  if (mode == "literals")
+  {
+    return modes::BlockModelsMode::LITERALS;
+  }
+  else if (mode == "values")
+  {
+    return modes::BlockModelsMode::VALUES;
+  }
+  parseError(std::string("Unknown block models mode `") + mode + "'");
+  return modes::BlockModelsMode::LITERALS;
+}
+
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);

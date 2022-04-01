@@ -159,7 +159,8 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdGetModel(std::ostream& out) const override;
 
   /** Print block-model command */
-  void toStreamCmdBlockModel(std::ostream& out) const override;
+  void toStreamCmdBlockModel(std::ostream& out,
+                             modes::BlockModelsMode mode) const override;
 
   /** Print block-model-values command */
   void toStreamCmdBlockModelValues(

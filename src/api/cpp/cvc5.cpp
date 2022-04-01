@@ -3943,16 +3943,6 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Datatype::getConstructorTerm(const std::string& name) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return getConstructorForName(name).getConstructorTerm();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 DatatypeSelector Datatype::getSelector(const std::string& name) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4419,7 +4409,9 @@ Sort Grammar::resolve()
     // make the unresolved type, used for referencing the final version of
     // the ntsymbol's datatype
     ntsToUnres[ntsymbol] =
-        Sort(d_solver, d_solver->getNodeManager()->mkSort(ntsymbol.toString()));
+        Sort(d_solver,
+             d_solver->getNodeManager()->mkUnresolvedDatatypeSort(
+                 ntsymbol.toString()));
   }
 
   std::vector<internal::DType> datatypes;
@@ -4461,7 +4453,6 @@ Sort Grammar::resolve()
   std::vector<internal::TypeNode> datatypeTypes =
       d_solver->getNodeManager()->mkMutualDatatypeTypes(
           datatypes,
-          unresTypes,
           internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
 
   // return is the first datatype
@@ -5178,10 +5169,8 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
 
-  std::set<internal::TypeNode> utypes =
-      Sort::sortSetToTypeNodes(unresolvedSorts);
   std::vector<internal::TypeNode> dtypes =
-      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
+      getNodeManager()->mkMutualDatatypeTypes(datatypes);
   std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
   return retTypes;
 }
@@ -5544,10 +5533,7 @@ Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
   //////// all checks before this line
 
   internal::TypeNode tn =
-      symbol ? getNodeManager()->mkSort(
-          *symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER)
-             : getNodeManager()->mkSort(
-                 internal::NodeManager::SORT_FLAG_PLACEHOLDER);
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
   return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5633,11 +5619,7 @@ Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity)
-  {
-    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-  }
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  return Sort(this, getNodeManager()->mkUnresolvedDatatypeSort(symbol, arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7282,7 +7264,7 @@ Term Solver::getAbductNext() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::blockModel() const
+void Solver::blockModel(modes::BlockModelsMode mode) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
@@ -7291,7 +7273,7 @@ void Solver::blockModel() const
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model after SAT or UNKNOWN response.";
   //////// all checks before this line
-  d_slv->blockModel();
+  d_slv->blockModel(mode);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

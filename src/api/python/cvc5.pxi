@@ -37,6 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 
@@ -44,23 +45,6 @@ cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
     object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
     void PyMem_Free(void*)
-
-################################## DECORATORS #################################
-def expand_list_arg(num_req_args=0):
-    """
-        Creates a decorator that looks at index num_req_args of the args,
-        if it's a list, it expands it before calling the function.
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(owner, *args):
-            if len(args) == num_req_args + 1 and \
-               isinstance(args[num_req_args], list):
-                args = list(args[:num_req_args]) + args[num_req_args]
-            return func(owner, *args)
-        return wrapper
-    return decorator
-###############################################################################
 
 # Style Guidelines
 ### Using PEP-8 spacing recommendations
@@ -108,6 +92,16 @@ cdef class Datatype:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype constructor with the given index, where index can
+            be either a numeric id starting with zero, or the name of the
+            constructor. In the latter case, this is a linear search through the
+            constructors, so in case of multiple, similarly-named constructors,
+            the first is returned.
+
+            :param index: The id or name of the datatype constructor.
+            :return: The matching datatype constructor.
+        """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
@@ -125,16 +119,6 @@ cdef class Datatype:
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
-
-    def getConstructorTerm(self, str name):
-        """
-            :param name: The name of the constructor.
-            :return: The term representing the datatype constructor with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cd.getConstructorTerm(name.encode())
-        return term
 
     def getSelector(self, str name):
         """
@@ -227,6 +211,7 @@ cdef class Datatype:
         return self.cd.toString().decode()
 
     def __iter__(self):
+        """Iterate over all constructors."""
         for ci in self.cd:
             dc = DatatypeConstructor(self.solver)
             dc.cdc = ci
@@ -246,6 +231,16 @@ cdef class DatatypeConstructor:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype selector with the given index, where index can be
+            either a numeric id starting with zero, or the name of the selector.
+            In the latter case, this is a linear search through the selectors,
+            so in case of multiple, similarly-named selectors, the first is
+            returned.
+
+            :param index: The id or name of the datatype selector.
+            :return: The matching datatype selector.
+        """
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         if isinstance(index, int) and index >= 0:
             ds.cds = self.cdc[(<int?> index)]
@@ -361,6 +356,7 @@ cdef class DatatypeConstructor:
         return self.cdc.toString().decode()
 
     def __iter__(self):
+        """Iterate over all datatype selectors."""
         for ci in self.cdc:
             ds = DatatypeSelector(self.solver)
             ds.cds = ci
@@ -572,7 +568,7 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def __getitem__(self, i):
+    def __getitem__(self, int i):
         """
             Get the index at position ``i``.
 
@@ -944,13 +940,11 @@ cdef class Solver:
           sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkPredicateSort(self, *sorts):
         """
             Create a predicate sort.
 
-            :param sorts: The list of sorts of the predicate, as a list or as
-                          distinct arguments.
+            :param sorts: The list of sorts of the predicate.
             :return: The predicate sort.
         """
         cdef Sort sort = Sort(self)
@@ -960,7 +954,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkPredicateSort(<const vector[c_Sort]&> v)
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """
             Create a record sort
@@ -968,8 +961,7 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
 
-            :param fields: The list of fields of the record, as a list or as
-                           distinct arguments.
+            :param fields: The list of fields of the record.
             :return: The record sort.
         """
         cdef Sort sort = Sort(self)
@@ -1065,13 +1057,11 @@ cdef class Solver:
               arity, symbol.encode())
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
         """
             Create a tuple sort.
 
-            :param sorts: Of the elements of the tuple, as a list or as
-                          distinct arguments.
+            :param sorts: Of the elements of the tuple.
             :return: The tuple sort.
         """
         cdef Sort sort = Sort(self)
@@ -1081,7 +1071,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkTupleSort(v)
         return sort
 
-    @expand_list_arg(num_req_args=1)
     def mkTerm(self, kind_or_op, *args):
         """
             Create a term.
@@ -1130,7 +1119,6 @@ cdef class Solver:
         result.cterm = self.csolver.mkTuple(csorts, cterms)
         return result
 
-    @expand_list_arg(num_req_args=0)
     def mkOp(self, k, *args):
         """
             Create operator.
@@ -1377,7 +1365,6 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-    @expand_list_arg(num_req_args=0)
     def mkBitVector(self, *args):
         """
             Create bit-vector value.
@@ -1913,7 +1900,6 @@ cdef class Solver:
                     grammar.cgrammar)
         return term
 
-    @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
         """
             Check satisfiability assuming the given formula.
@@ -1924,8 +1910,7 @@ cdef class Solver:
 
                 ( check-sat-assuming ( <prop_literal> ) )
 
-            :param assumptions: The formulas to assume, as a list or as
-                                distinct arguments.
+            :param assumptions: The formulas to assume.
             :return: The result of the satisfiability check.
         """
         cdef Result r = Result()
@@ -1936,7 +1921,6 @@ cdef class Solver:
         r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
         return r
 
-    @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         """
             Create datatype sort.
@@ -1948,8 +1932,7 @@ cdef class Solver:
                 ( declare-datatype <symbol> <datatype_decl> )
 
             :param symbol: The name of the datatype sort.
-            :param ctors: The constructor declarations of the datatype sort, as
-                          a list or as distinct arguments.
+            :param ctors: The constructor declarations of the datatype sort.
             :return: The datatype sort.
         """
         cdef Sort sort = Sort(self)
@@ -2843,7 +2826,7 @@ cdef class Solver:
         result.cterm  = self.csolver.getAbductNext()
         return result
 
-    def blockModel(self):
+    def blockModel(self, mode):
         """
             Block the current model. Can be called only if immediately preceded
             by a SAT or INVALID query.
@@ -2862,8 +2845,10 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
+
+            :param mode: The mode to use for blocking
         """
-        self.csolver.blockModel()
+        self.csolver.blockModel(<c_BlockModelsMode> mode.value)
 
     def blockModelValues(self, terms):
         """
@@ -3533,6 +3518,12 @@ cdef class Term:
         return self.cterm >= other.cterm
 
     def __getitem__(self, int index):
+        """
+            Get the child term at a given index.
+
+            :param index: The index of the child term to return.
+            :return: The child term with the given index.
+        """
         cdef Term term = Term(self.solver)
         if index >= 0:
             term.cterm = self.cterm[index]
@@ -3547,6 +3538,7 @@ cdef class Term:
         return self.cterm.toString().decode()
 
     def __iter__(self):
+        """Iterate over all child terms."""
         for ci in self.cterm:
             term = Term(self.solver)
             term.cterm = ci

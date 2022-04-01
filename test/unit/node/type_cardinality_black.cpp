@@ -307,7 +307,7 @@ TEST_F(TestNodeBlackTypeCardinality, ternary_functions)
 
 TEST_F(TestNodeBlackTypeCardinality, undefined_sorts)
 {
-  TypeNode foo = d_nodeManager->mkSort("foo", NodeManager::SORT_FLAG_NONE);
+  TypeNode foo = d_nodeManager->mkSort("foo");
   // We've currently assigned them a specific Beth number, which
   // isn't really correct, but...
   ASSERT_FALSE(foo.getCardinality().isFinite());

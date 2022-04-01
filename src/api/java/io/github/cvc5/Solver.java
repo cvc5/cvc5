@@ -15,6 +15,7 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.modes.BlockModelsMode;
 import java.io.IOException;
 import java.util.*;
 
@@ -2420,13 +2421,15 @@ public class Solver implements IPointer, AutoCloseable
    * to a mode other than "none".
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @param mode The mode to use for blocking
    */
-  public void blockModel()
+  public void blockModel(BlockModelsMode mode)
   {
-    blockModel(pointer);
+    blockModel(pointer, mode.getValue());
   }
 
-  private native void blockModel(long pointer);
+  private native void blockModel(long pointer, int modeValue);
 
   /**
    * Block the current model values of (at least) the values in terms. Can be

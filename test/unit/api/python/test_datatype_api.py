@@ -194,7 +194,7 @@ def test_datatype_structs(solver):
     assert dtStream.isWellFounded()
 
     # create tuple
-    tupSort = solver.mkTupleSort([boolSort])
+    tupSort = solver.mkTupleSort(boolSort)
     dtTuple = tupSort.getDatatype()
     assert dtTuple.isTuple()
     assert not dtTuple.isRecord()
@@ -203,7 +203,7 @@ def test_datatype_structs(solver):
 
     # create record
     fields = [("b", boolSort), ("i", intSort)]
-    recSort = solver.mkRecordSort(fields)
+    recSort = solver.mkRecordSort(*fields)
     assert recSort.isDatatype()
     dtRecord = recSort.getDatatype()
     assert not dtRecord.isTuple()
