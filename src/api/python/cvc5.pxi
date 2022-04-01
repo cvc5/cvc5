@@ -107,6 +107,16 @@ cdef class Datatype:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype constructor with the given index, where index can
+            be either a numeric id starting with zero, or the name of the
+            constructor. In the latter case, this is a linear search through the
+            constructors, so in case of multiple, similarly-named constructors,
+            the first is returned.
+
+            :param index: the id or name of the datatype constructor
+            :return: the matching datatype constructor
+        """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
@@ -209,6 +219,7 @@ cdef class Datatype:
         return self.cd.toString().decode()
 
     def __iter__(self):
+        """Iterate over all constructors."""
         for ci in self.cd:
             dc = DatatypeConstructor(self.solver)
             dc.cdc = ci
