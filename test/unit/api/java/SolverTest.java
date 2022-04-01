@@ -195,10 +195,10 @@ class SolverTest
     DatatypeConstructorDecl unil = d_solver.mkDatatypeConstructorDecl("unil");
     ulist.addConstructor(unil);
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
-    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(udecls, unresSorts.toArray(new Sort[0])));
 
     assertThrows(
-        CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+        CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls, unresSorts.toArray(new Sort[0])));
     slv.close();
 
     /* mutually recursive with unresolved parameterized sorts */

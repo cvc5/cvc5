@@ -223,20 +223,6 @@ public class Solver implements IPointer, AutoCloseable
    * @return the datatype sorts
    * @throws CVC5ApiException
    */
-  public Sort[] mkDatatypeSorts(List<DatatypeDecl> dtypedecls) throws CVC5ApiException
-  {
-    return mkDatatypeSorts(dtypedecls.toArray(new DatatypeDecl[0]));
-  }
-
-  /**
-   * Create a vector of datatype sorts. The names of the datatype
-   * declarations must be distinct.
-   *
-   * @param dtypedecls the datatype declarations from which the sort is
-   *     created
-   * @return the datatype sorts
-   * @throws CVC5ApiException
-   */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
     long[] declPointers = Utils.getPointers(dtypedecls);
@@ -246,37 +232,6 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long[] mkDatatypeSorts(long pointer, long[] declPointers) throws CVC5ApiException;
-
-  /**
-   * Create a vector of datatype sorts using unresolved sorts. The names of
-   * the datatype declarations in dtypedecls must be distinct.
-   *
-   * This method is called when the DatatypeDecl objects dtypedecls have
-   * been built using "unresolved" sorts.
-   *
-   * We associate each sort in unresolvedSorts with exacly one datatype from
-   * dtypedecls. In particular, it must have the same name as exactly one
-   * datatype declaration in dtypedecls.
-   *
-   * When constructing datatypes, unresolved sorts are replaced by the
-   * datatype sort constructed for the datatype declaration it is associated
-   * with.
-   *
-   * @api.note Create unresolved sorts with Solver::mkUnresolvedSort().
-   *
-   * @param dtypedecls the datatype declarations from which the sort is
-   *     created
-   * @param unresolvedSorts the set of unresolved sorts
-   * @return the datatype sorts
-   * @throws CVC5ApiException
-   */
-  public List<Sort> mkDatatypeSorts(List<DatatypeDecl> dtypedecls, Set<Sort> unresolvedSorts)
-      throws CVC5ApiException
-  {
-    Sort[] array = mkDatatypeSorts(
-        dtypedecls.toArray(new DatatypeDecl[0]), unresolvedSorts.toArray(new Sort[0]));
-    return Arrays.asList(array);
-  }
 
   /**
    * Create a vector of datatype sorts using unresolved sorts. The names of
@@ -686,18 +641,6 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkTerm(
       long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
-
-  /**
-   * Create n-ary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param children the children of the term
-   * @return the Term
-   */
-  public Term mkTerm(Op op, List<Term> children)
-  {
-    return mkTerm(op, children.toArray(new Term[0]));
-  }
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -1452,18 +1395,6 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkDatatypeDecl(
       long pointer, String name, long paramPointer, boolean isCoDatatype);
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, List<Sort> params)
-  {
-    return mkDatatypeDecl(name, params.toArray(new Sort[0]));
-  }
 
   /**
    * Create a datatype declaration.
