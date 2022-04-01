@@ -3282,6 +3282,12 @@ cdef class Term:
         return self.cterm >= other.cterm
 
     def __getitem__(self, int index):
+        """
+            Get the child term at a given index.
+
+            :param index: the index of the child term to return
+            :return: the child term with the given index
+        """
         cdef Term term = Term(self.solver)
         if index >= 0:
             term.cterm = self.cterm[index]
@@ -3296,6 +3302,7 @@ cdef class Term:
         return self.cterm.toString().decode()
 
     def __iter__(self):
+        """Iterate over all child terms."""
         for ci in self.cterm:
             term = Term(self.solver)
             term.cterm = ci
