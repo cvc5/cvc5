@@ -3280,7 +3280,8 @@ class CVC5_EXPORT Solver
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
    */
-  Sort mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity = 0) const;
+  Sort mkUnresolvedDatatypeSort(const std::string& symbol,
+                                size_t arity = 0) const;
 
   /**
    * Create an uninterpreted sort constructor sort.

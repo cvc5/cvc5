@@ -468,8 +468,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   dtToProcess.push_back(sdt);
   std::stringstream ssutn0;
   ssutn0 << sdtd.getName() << "_s";
-  TypeNode abdTNew =
-      nm->mkUnresolvedDatatypeSort(ssutn0.str());
+  TypeNode abdTNew = nm->mkUnresolvedDatatypeSort(ssutn0.str());
   dtProcessed[sdt] = abdTNew;
 
   // We must convert all symbols in the sygus datatype type sdt to
@@ -509,8 +508,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
           {
             std::stringstream ssutn;
             ssutn << argt.getDType().getName() << "_s";
-            argtNew =
-                nm->mkUnresolvedDatatypeSort(ssutn.str());
+            argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
             dtProcessed[argt] = argtNew;

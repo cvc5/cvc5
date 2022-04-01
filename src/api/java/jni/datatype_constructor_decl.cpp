@@ -77,11 +77,12 @@ Java_io_github_cvc5_DatatypeConstructorDecl_addSelectorSelf(JNIEnv* env,
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_DatatypeConstructorDecl_addSelectorUnresolved(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer,
-                                                                jstring jName,
-                                                                jstring jUnresDataypeName)
+Java_io_github_cvc5_DatatypeConstructorDecl_addSelectorUnresolved(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jName,
+    jstring jUnresDataypeName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructorDecl* current = (DatatypeConstructorDecl*)pointer;

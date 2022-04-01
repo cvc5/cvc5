@@ -5538,9 +5538,7 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this,
-              getNodeManager()->mkSort(
-                  symbol));
+  return Sort(this, getNodeManager()->mkSort(symbol));
   ////////
   CVC5_API_TRY_CATCH_END;
 }

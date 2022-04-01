@@ -332,8 +332,7 @@ cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 cvc5::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                size_t arity)
 {
-  cvc5::Sort unresolved =
-      d_solver->mkUnresolvedDatatypeSort(name, arity);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
   defineType(name, vector<cvc5::Sort>(arity), unresolved);
   return unresolved;
 }
@@ -363,8 +362,7 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
     std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload)
 {
   try {
-    std::vector<cvc5::Sort> types =
-        d_solver->mkDatatypeSorts(datatypes);
+    std::vector<cvc5::Sort> types = d_solver->mkDatatypeSorts(datatypes);
 
     Assert(datatypes.size() == types.size());
 
