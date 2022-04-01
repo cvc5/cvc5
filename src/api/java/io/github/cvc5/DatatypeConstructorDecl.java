@@ -64,7 +64,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    * of the selector will be the resolved datatype with the given name.
    */
   public void addSelectorUnresolved(String name, String unresDataypeName) {
-    addSelectorSelf(pointer, name, unresDataypeName);
+    addSelectorUnresolved(pointer, name, unresDataypeName);
   }
 
   private native void addSelectorUnresolved(
