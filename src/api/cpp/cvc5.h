@@ -2284,16 +2284,6 @@ class CVC5_EXPORT Datatype
   DatatypeConstructor getConstructor(const std::string& name) const;
 
   /**
-   * Get a term representing the datatype constructor with the given name.
-   * This is a linear search through the constructors, so in case of multiple,
-   * similarly-named constructors, the
-   * first is returned.
-   * @param name the name of the datatype constructor
-   * @return a Term representing the datatype constructor with the given name
-   */
-  Term getConstructorTerm(const std::string& name) const;
-
-  /**
    * Get the datatype constructor with the given name.
    * This is a linear search through the constructors and their selectors, so
    * in case of multiple, similarly-named selectors, the first is returned.
