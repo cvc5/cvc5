@@ -519,9 +519,10 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def __getitem__(self, i):
+    def __getitem__(self, int i):
         """
             Get the index at position i.
+
             :param i: the position of the index to return
             :return: the index at position i
         """
