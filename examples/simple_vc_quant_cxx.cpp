@@ -27,7 +27,7 @@ int main() {
 
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
-  Sort integerPredicate = slv.mkFunctionSort(integer, boolean);
+  Sort integerPredicate = slv.mkFunctionSort({integer}, boolean);
 
   Term p = slv.mkConst(integerPredicate, "P");
   Term x = slv.mkVar(integer, "x");
