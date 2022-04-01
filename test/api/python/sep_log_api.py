@@ -157,11 +157,11 @@ def validate_getters():
     nil_expr = slv.getValueSepNil()
 
     # If the heap is not a separating conjunction, bail-out
-    if (heap_expr.getKind.) != Kind.SEP_STAR):
+    if (heap_expr.getKind() != Kind.SEP_STAR):
         return False
 
     # If nil is not a direct equality, bail-out
-    if (nil_expr.getKind.) != Kind.EQUAL):
+    if (nil_expr.getKind() != Kind.EQUAL):
         return False
 
     # Obtain the values for our "pointers"
@@ -175,7 +175,7 @@ def validate_getters():
     # Walk all the children
     for child in heap_expr:
         # If we don't have a PTO operator, bail-out
-        if (child.getKind.) != Kind.SEP_PTO):
+        if (child.getKind() != Kind.SEP_PTO):
             return False
 
         # Find both sides of the PTO operator

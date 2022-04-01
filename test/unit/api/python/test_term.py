@@ -940,7 +940,8 @@ def test_term_children(solver):
     fsort = solver.mkFunctionSort(intSort, intSort)
     f = solver.mkConst(fsort, "f")
     t2 = solver.mkTerm(Kind.APPLY_UF, f, two)
-    # due to our higher-order view of terms, we treat f as a child of Kind.ApplyUf
+    # due to our higher-order view of terms, we treat f as a child of
+    # Kind.APPLY_UF
     assert t2.getNumChildren() == 2
     assert t2[0] == f
     assert t2[1] == two
