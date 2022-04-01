@@ -256,12 +256,12 @@ cdef class DatatypeConstructor:
         """
         return self.cdc.getName().decode()
 
-    def getConstructorTerm(self):
+    def getTerm(self):
         """
             :return: The constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getConstructorTerm()
+        term.cterm = self.cdc.getTerm()
         return term
 
     def getInstantiatedConstructorTerm(self, Sort retSort):
@@ -466,12 +466,12 @@ cdef class DatatypeSelector:
         """
         return self.cds.getName().decode()
 
-    def getSelectorTerm(self):
+    def getTerm(self):
         """
             :return: The selector opeartor of this datatype selector as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cds.getSelectorTerm()
+        term.cterm = self.cds.getTerm()
         return term
 
     def getUpdaterTerm(self):

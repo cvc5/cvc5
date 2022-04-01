@@ -219,7 +219,7 @@ class SolverTest
     Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
     Term t1 = d_solver.mkConst(isort1, "t");
     Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
-        t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getSelectorTerm(),
+        t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getTerm(),
         t1);
     assertEquals(dt_sorts[0].instantiate(new Sort[] {d_solver.getBooleanSort()}), t0.getSort());
 
@@ -838,10 +838,10 @@ class SolverTest
     Datatype list = listSort.getDatatype();
 
     // list datatype constructor and selector operator terms
-    Term consTerm = list.getConstructor("cons").getConstructorTerm();
-    Term nilTerm = list.getConstructor("nil").getConstructorTerm();
-    Term headTerm = list.getConstructor("cons").getSelector("head").getSelectorTerm();
-    Term tailTerm = list.getConstructor("cons").getSelector("tail").getSelectorTerm();
+    Term consTerm = list.getConstructor("cons").getTerm();
+    Term nilTerm = list.getConstructor("nil").getTerm();
+    Term headTerm = list.getConstructor("cons").getSelector("head").getTerm();
+    Term tailTerm = list.getConstructor("cons").getSelector("tail").getTerm();
 
     // mkTerm(Op op, Term term) const
     assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
@@ -1545,9 +1545,9 @@ class SolverTest
     Sort consListSort = d_solver.mkDatatypeSort(consListSpec);
     Datatype consList = consListSort.getDatatype();
 
-    Term consTerm = consList.getConstructor("cons").getConstructorTerm();
-    Term nilTerm = consList.getConstructor("nil").getConstructorTerm();
-    Term headTerm = consList.getConstructor("cons").getSelector("head").getSelectorTerm();
+    Term consTerm = consList.getConstructor("cons").getTerm();
+    Term nilTerm = consList.getConstructor("nil").getTerm();
+    Term headTerm = consList.getConstructor("cons").getSelector("head").getTerm();
 
     Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm);
     Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm, d_solver.mkInteger(1), listnil);
@@ -2418,12 +2418,12 @@ class SolverTest
 
     Datatype consList = consListSort.getDatatype();
     Term dt1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
-        consList.getConstructor("cons").getConstructorTerm(),
+        consList.getConstructor("cons").getTerm(),
         d_solver.mkInteger(0),
-        d_solver.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructor("nil").getConstructorTerm()));
+        d_solver.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructor("nil").getTerm()));
     assertDoesNotThrow(() -> d_solver.simplify(dt1));
     Term dt2 = d_solver.mkTerm(
-        APPLY_SELECTOR, consList.getConstructor("cons").getSelector("head").getSelectorTerm(), dt1);
+        APPLY_SELECTOR, consList.getConstructor("cons").getSelector("head").getTerm(), dt1);
     assertDoesNotThrow(() -> d_solver.simplify(dt2));
 
     Term b1 = d_solver.mkVar(bvSort, "b1");
@@ -2943,7 +2943,7 @@ class SolverTest
 
     for (int i = 0; i < indices.length; i++)
     {
-      Term selectorTerm = constructor.getSelector(indices[i]).getSelectorTerm();
+      Term selectorTerm = constructor.getSelector(indices[i]).getTerm();
       Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
       Term simplifiedTerm = d_solver.simplify(selectedTerm);
       assertEquals(elements[indices[i]], simplifiedTerm);

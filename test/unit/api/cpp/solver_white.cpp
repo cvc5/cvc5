@@ -36,9 +36,9 @@ TEST_F(TestApiWhiteSolver, getOp)
   Sort consListSort = d_solver.mkDatatypeSort(consListSpec);
   Datatype consList = consListSort.getDatatype();
 
-  Term nilTerm = consList.getConstructor("nil").getConstructorTerm();
-  Term consTerm = consList.getConstructor("cons").getConstructorTerm();
-  Term headTerm = consList["cons"].getSelector("head").getSelectorTerm();
+  Term nilTerm = consList.getConstructor("nil").getTerm();
+  Term consTerm = consList.getConstructor("cons").getTerm();
+  Term headTerm = consList["cons"].getSelector("head").getTerm();
 
   Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
   Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,

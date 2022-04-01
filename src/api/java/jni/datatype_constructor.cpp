@@ -48,17 +48,15 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeConstructor_getName(
 
 /*
  * Class:     io_github_cvc5_DatatypeConstructor
- * Method:    getConstructorTerm
+ * Method:    getTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_DatatypeConstructor_getConstructorTerm(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeConstructor_getTerm(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructor* current = (DatatypeConstructor*)pointer;
-  Term* retPointer = new Term(current->getConstructorTerm());
+  Term* retPointer = new Term(current->getTerm());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

@@ -1101,8 +1101,8 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     cvc5::Term ret;
     if (p.d_kind == cvc5::APPLY_SELECTOR)
     {
-      ret = d_solver->mkTerm(cvc5::APPLY_SELECTOR,
-                             {dt[0][n].getSelectorTerm(), args[0]});
+      ret =
+          d_solver->mkTerm(cvc5::APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
     }
     else
     {

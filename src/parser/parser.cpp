@@ -388,7 +388,7 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const cvc5::DatatypeConstructor& ctor = dt[j];
-        cvc5::Term constructor = ctor.getConstructorTerm();
+        cvc5::Term constructor = ctor.getTerm();
         Trace("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
@@ -414,7 +414,7 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
           const cvc5::DatatypeSelector& sel = ctor[k];
-          cvc5::Term selector = sel.getSelectorTerm();
+          cvc5::Term selector = sel.getTerm();
           Trace("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = sel.getName();
           if(selNames.find(selectorName)==selNames.end()) {
