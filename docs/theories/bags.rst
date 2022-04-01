@@ -82,5 +82,8 @@ The semantics of supported bag operators is given in the table below.
 Below is a more extensive example on how to use finite bags:
 
 .. api-examples::
+    <examples>/api/cpp/bags.cpp
+    <examples>/api/java/Bags.java
+    <examples>/api/python/bags.py
     <examples>/api/smtlib/bags.smt2
 

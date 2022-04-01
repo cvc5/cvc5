@@ -485,27 +485,27 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a constructor sort?
-   * @return true if the sort is a constructor sort
+   * Is this a datatype constructor sort?
+   * @return true if the sort is a datatype constructor sort
    */
-  bool isConstructor() const;
+  bool isDatatypeConstructor() const;
 
   /**
-   * Is this a selector sort?
-   * @return true if the sort is a selector sort
+   * Is this a datatype selector sort?
+   * @return true if the sort is a datatype selector sort
    */
-  bool isSelector() const;
+  bool isDatatypeSelector() const;
 
   /**
-   * Is this a tester sort?
-   * @return true if the sort is a tester sort
+   * Is this a datatype tester sort?
+   * @return true if the sort is a datatype tester sort
    */
-  bool isTester() const;
+  bool isDatatypeTester() const;
   /**
    * Is this a datatype updater sort?
    * @return true if the sort is a datatype updater sort
    */
-  bool isUpdater() const;
+  bool isDatatypeUpdater() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -604,8 +604,6 @@ class CVC5_EXPORT Sort
    *
    * Create sort parameters with Solver::mkParamSort().
    *
-   * @warning This method is experimental and may change in future versions.
-   *
    * @param params the list of sort parameters to instantiate with
    * @return the instantiated sort
    */
@@ -665,49 +663,50 @@ class CVC5_EXPORT Sort
    */
   std::string toString() const;
 
-  /* Constructor sort ------------------------------------------------------- */
+  /* Datatype constructor sort ------------------------------------------- */
 
   /**
-   * @return the arity of a constructor sort
+   * @return the arity of a datatype constructor sort
    */
-  size_t getConstructorArity() const;
+  size_t getDatatypeConstructorArity() const;
 
   /**
-   * @return the domain sorts of a constructor sort
+   * @return the domain sorts of a datatype constructor sort
    */
-  std::vector<Sort> getConstructorDomainSorts() const;
+  std::vector<Sort> getDatatypeConstructorDomainSorts() const;
 
   /**
    * @return the codomain sort of a constructor sort
    */
-  Sort getConstructorCodomainSort() const;
+  Sort getDatatypeConstructorCodomainSort() const;
 
   /* Selector sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a selector sort
+   * @return the domain sort of a datatype selector sort
    */
-  Sort getSelectorDomainSort() const;
+  Sort getDatatypeSelectorDomainSort() const;
 
   /**
-   * @return the codomain sort of a selector sort
+   * @return the codomain sort of a datatype selector sort
    */
-  Sort getSelectorCodomainSort() const;
+  Sort getDatatypeSelectorCodomainSort() const;
 
   /* Tester sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a tester sort
+   * @return the domain sort of a datatype tester sort
    */
-  Sort getTesterDomainSort() const;
+  Sort getDatatypeTesterDomainSort() const;
 
   /**
-   * @return the codomain sort of a tester sort, which is the Boolean sort
+   * @return the codomain sort of a datatype tester sort, which is the Boolean
+   *         sort
    *
    * @note We mainly need this for the symbol table, which doesn't have
    *       access to the solver object.
    */
-  Sort getTesterCodomainSort() const;
+  Sort getDatatypeTesterCodomainSort() const;
 
   /* Function sort ------------------------------------------------------- */
 
@@ -2879,13 +2878,18 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Represents a snapshot of a single statistic value.
- * A value can be of type `int64_t`, `double`, `std::string` or a histogram
- * (`std::map<std::string, uint64_t>`).
- * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
- * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
+ * \verbatim embed:rst:leading-asterisk
+ * Represents a snapshot of a single statistic value. See :doc:`/statistics` for
+ * how statistics can be used.
+ * A value can be of type ``int64_t``, ``double``, ``std::string`` or a
+ * histogram
+ * (``std::map<std::string, uint64_t>``).
+ * The value type can be queried (using ``isInt()``, ``isDouble()``, etc.) and
+ * the stored value can be accessed (using ``getInt()``, ``getDouble()``, etc.).
  * It is possible to query whether this statistic is an internal statistic by
- * `isInternal()` and whether its value is the default value by `isDefault()`.
+ * :cpp:func:`isInternal() <cvc5::Stat::isInternal()>` and whether its value is
+ * the default value by :cpp:func:`isDefault() <cvc5::Stat::isDefault()>`.
+ * \endverbatim
  */
 class CVC5_EXPORT Stat
 {
@@ -2976,14 +2980,19 @@ class CVC5_EXPORT Stat
 std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
 
 /**
- * Represents a snapshot of the solver statistics.
- * Once obtained, an instance of this class is independent of the `Solver`
- * object: it will not change when the solvers internal statistics do, it
- * will not be invalidated if the solver is destroyed.
- * Iterating on this class (via `begin()` and `end()`) shows only public
- * statistics that have been changed. By passing appropriate flags to
- * `begin()`, statistics that are internal, defaulted, or both, can be
- * included as well. A single statistic value is represented as `Stat`.
+ * \verbatim embed:rst:leading-asterisk
+ * Represents a snapshot of the solver statistics. See :doc:`/statistics` for
+ * how statistics can be used.
+ * Once obtained via :cpp:func:`Solver::getStatistics()
+ * <cvc5::Solver::getStatistics()>`, an instance of this class is independent of
+ * the :cpp:class:`Solver <cvc5::Solver>` object: it will not change when the
+ * solvers internal statistics do, and it will not be invalidated if the solver
+ * is destroyed. Iterating over this class (via :cpp:func:`begin()
+ * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
+ * shows only public statistics that have been changed. By passing appropriate
+ * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
+ * internal, defaulted, or both, can be included as well. A single statistic
+ * value is represented as :cpp:class:`Stat <cvc5::Stat>`. \endverbatim
  */
 class CVC5_EXPORT Statistics
 {
@@ -3204,14 +3213,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Create function sort.
-   * @param domain the sort of the function argument
-   * @param codomain the sort of the function return value
-   * @return the function sort
-   */
-  Sort mkFunctionSort(const Sort& domain, const Sort& codomain) const;
-
-  /**
-   * Create function sort.
    * @param sorts the sort of the function arguments
    * @param codomain the sort of the function return value
    * @return the function sort
@@ -3227,7 +3228,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the sort parameter
    */
-  Sort mkParamSort(const std::string& symbol) const;
+  Sort mkParamSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a predicate sort.
@@ -3273,7 +3275,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the sort
    * @return the uninterpreted sort
    */
-  Sort mkUninterpretedSort(const std::string& symbol) const;
+  Sort mkUninterpretedSort(
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create an unresolved sort.
@@ -3296,8 +3299,9 @@ class CVC5_EXPORT Solver
    * @param arity the arity of the sort (must be > 0)
    * @return the uninterpreted sort constructor sort
    */
-  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                          size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(
+      size_t arity,
+      const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a tuple sort.
@@ -3649,27 +3653,21 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param sort the sort of the constant
-   * @param symbol the name of the constant
+   * @param symbol the name of the constant (optional)
    * @return the first-order constant
    */
-  Term mkConst(const Sort& sort, const std::string& symbol) const;
-  /**
-   * Create (first-order) constant (0-arity function symbol), with a default
-   * symbol name.
-   *
-   * @param sort the sort of the constant
-   * @return the first-order constant
-   */
-  Term mkConst(const Sort& sort) const;
+  Term mkConst(const Sort& sort,
+               const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
    * lambda, or a witness binder).
    * @param sort the sort of the variable
-   * @param symbol the name of the variable
+   * @param symbol the name of the variable (optional)
    * @return the variable
    */
-  Term mkVar(const Sort& sort, const std::string& symbol = std::string()) const;
+  Term mkVar(const Sort& sort,
+             const std::optional<std::string>& symbol = std::nullopt) const;
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
@@ -4501,9 +4499,9 @@ class CVC5_EXPORT Solver
    *     (block-model)
    *
    * Requires enabling option
-   * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models' and setting option
-   * :ref:`block-models <lbl-option-block-models>`.
+   * :ref:`produce-models <lbl-option-produce-models>`
+   * and setting option
+   * :ref:`block-models <lbl-option-block-models>`
    * to a mode other than ``none``.
    * \endverbatim
    *
@@ -4524,7 +4522,6 @@ class CVC5_EXPORT Solver
    *
    * Requires enabling option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models'.
    * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
@@ -4630,8 +4627,7 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term declareSygusVar(const Sort& sort,
-                       const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
