@@ -1627,7 +1627,7 @@ enum class PfRule : uint32_t
   STRING_EAGER_REDUCTION,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Regular expressions -- Intersection**
+   * **Strings -- Regular expressions -- Intersection**
    *
    * .. math::
    *
@@ -1637,7 +1637,7 @@ enum class PfRule : uint32_t
   RE_INTER,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Regular expressions -- Positive Unfold**
+   * **Strings -- Regular expressions -- Positive Unfold**
    *
    * .. math::
    *
@@ -1649,7 +1649,7 @@ enum class PfRule : uint32_t
   RE_UNFOLD_POS,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Regular expressions -- Negative Unfold**
+   * **Strings -- Regular expressions -- Negative Unfold**
    *
    * .. math::
    *
@@ -1661,7 +1661,7 @@ enum class PfRule : uint32_t
   RE_UNFOLD_NEG,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Regular expressions -- Unfold negative concatenation, fixed**
+   * **Strings -- Regular expressions -- Unfold negative concatenation, fixed**
    *
    * .. math::
    *
@@ -1677,7 +1677,7 @@ enum class PfRule : uint32_t
   RE_UNFOLD_NEG_CONCAT_FIXED,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Regular expressions -- Elimination**
+   * **Strings -- Regular expressions -- Elimination**
    *
    * .. math::
    *
@@ -1703,7 +1703,7 @@ enum class PfRule : uint32_t
   STRING_CODE_INJ,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Sequence unit**
+   * **Strings -- Sequence unit**
    *
    * .. math::
    *
@@ -1716,7 +1716,7 @@ enum class PfRule : uint32_t
   STRING_SEQ_UNIT_INJ,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Trusted -- String inference**
+   * **Strings -- (Trusted) String inference**
    *
    * .. math::
    *
