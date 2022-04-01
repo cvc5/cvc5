@@ -1258,7 +1258,7 @@ cdef class Solver:
 
     def mkRegexpAllchar(self):
         """
-            Create a regular expression allchar (re.allchar) term.
+            Create a regular expression allchar (``re.allchar``) term.
 
             :return: The allchar term.
         """
@@ -1268,7 +1268,7 @@ cdef class Solver:
 
     def mkRegexpNone(self):
         """
-            Create a regular expression none (re.none) term.
+            Create a regular expression none (``re.none``) term.
 
             :return: The none term.
         """
@@ -1327,7 +1327,7 @@ cdef class Solver:
 
     def mkString(self, str s, useEscSequences = None):
         """
-            Create a String constant from a `str` which may contain SMT-LIB
+            Create a String constant from a ``str`` which may contain SMT-LIB
             compatible escape sequences like ``\\u1234`` to encode unicode
             characters.
 
@@ -2047,7 +2047,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with mkConst().
+            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2085,7 +2085,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with mkConst().
+            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2128,7 +2128,7 @@ cdef class Solver:
                          versions.
 
             :return: A string representing the proof, according to the value of
-                     proof-format-mode.
+                     :ref:`proof-format-mode <lbl-option-proof-format-mode>`.
         """
         return self.csolver.getProof()
 
@@ -2206,7 +2206,7 @@ cdef class Solver:
     def getOptionNames(self):
         """
             Get all option names that can be used with
-            :py:meth:`Solver.setOption()`, `:py:meth:`Solver.getOption()`
+            :py:meth:`Solver.setOption()`, :py:meth:`Solver.getOption()`
             and :py:meth:`Solver.getOptionInfo()`.
 
         :return: All option names.
@@ -2215,9 +2215,9 @@ cdef class Solver:
 
     def getOptionInfo(self, str option):
         """
-            Get some information about the given option. Check the
-            :py:class:`OptionInfo` class for more details on which information
-            is available.
+            Get some information about the given option.
+            Returns the information provided by the C++
+            :cpp:func:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
 
             :return: Information about the given option.
         """
@@ -2451,8 +2451,7 @@ cdef class Solver:
                          versions.
 
             :param q: A quantified formula of the form
-                      :math:`Q\\bar{x_1}... Q\\bar{x}_n. P( x_1...x_i,
-                              y_1...y_j)`
+                      :math:`Q\\bar{x_1}\\dots Q\\bar{x}_n. P( x_1 \\dots x_i, y_1 \\dots y_j)`
                       where
                       :math:`Q\\bar{x}` is a set of quantified variables of the
                       form :math:`Q x_1...x_k` and
@@ -2723,8 +2722,8 @@ cdef class Solver:
 
             Supports the following variants:
 
-            - ``Term getInteprolant(Term conj)``
-            - ``Term getInteprolant(Term conj, Grammar grammar)``
+            - ``Term getInterpolant(Term conj)``
+            - ``Term getInterpolant(Term conj, Grammar grammar)``
 
             .. warning:: This method is experimental and may change in future
                          versions.
@@ -2748,7 +2747,8 @@ cdef class Solver:
     def getInterpolantNext(self):
         """
             Get the next interpolant. Can only be called immediately after
-            a succesful call to get-interpolant or get-interpolant-next.
+            a successful call to :py:func:`Solver.getInterpolant()` or
+            :py:func:`Solver.getInterpolantNext()`.
             Is guaranteed to produce a syntactically different interpolant wrt
             the last returned interpolant if successful.
 
@@ -2760,7 +2760,7 @@ cdef class Solver:
 
             Requires to enable incremental mode, and option
             :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be
-            set to a mode different from `none`.
+            set to a mode different from ``none``.
 
             .. warning:: This method is experimental and may change in future
                          versions.
@@ -2812,7 +2812,8 @@ cdef class Solver:
     def getAbductNext(self):
         """
             Get the next abduct. Can only be called immediately after
-            a succesful call to get-abduct or get-abduct-next.
+            a succesful call to :py:func:`Solver.getAbduct()` or
+            :py:func:`Solver.getAbductNext()`.
             Is guaranteed to produce a syntactically different abduct wrt the
             last returned abduct if successful.
 
@@ -3479,7 +3480,9 @@ cdef class Statistics:
 
     def get(self, bint internal = False, bint defaulted = False):
         """
-            Get all statistics.
+            Get all statistics as a dictionary. See :cpp:func:`cvc5::Statistics::begin()`
+            for more information on which statistics are included based on the parameters.
+            
             :return: A dictionary with all available statistics.
         """
         cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
@@ -3780,7 +3783,6 @@ cdef class Term:
             Asserts :py:meth:`isStringValue()`.
 
             .. note::
-            j
                This method is not to be confused with :py:meth:`__str__()`
                which returns the term in some string representation, whatever
                data it may hold.
@@ -3882,8 +3884,8 @@ cdef class Term:
                     (set.singleton c1) ...
                     (set.union (set.singleton c_{n-1}) (set.singleton c_n))))
 
-            where :math:`c1 ... cn` are values ordered by id such that
-            :math:`c1 > ... > cn`.
+            where :math:`c_1 \dots c_n` are values ordered by id such that
+            :math:`c_1 > \cdots > c_n`.
 
             .. note::
                 A universe set term ``(kind SET_UNIVERSE)`` is not considered
@@ -3986,7 +3988,7 @@ cdef class Term:
 
     def getRoundingModeValue(self):
         """
-            Asserts isRoundingModeValue().
+            Asserts :py:meth:`isRoundingModeValue()`.
             :return: The floating-point rounding mode value held by the term.
         """
         return RoundingMode(<int> self.cterm.getRoundingModeValue())
