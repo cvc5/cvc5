@@ -12,7 +12,7 @@ This API is missing some features from cvc5 and Z3Py.
 
 It does not (currently) support these cvc5 features:
 
-* The theories of strings and sequences
+* The theories of strings, sequences and bags
 * unsatisfiable cores
 * syntax-guided synthesis (SyGuS)
 
