@@ -1685,7 +1685,7 @@ enum class PfRule : uint32_t
    *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
    *
    * where :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`(= F F)` if no eliminations
+   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
    * are performed for :math:`F`.
    * \endverbatim
    */
