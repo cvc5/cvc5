@@ -819,16 +819,14 @@ cdef class Solver:
         cdef Sort sort = Sort(self)
         # populate a vector with dereferenced c_Sorts
         cdef vector[c_Sort] v
-
         if isinstance(sorts, Sort):
-            sort.csort = self.csolver.mkFunctionSort((<Sort?> sorts).csort,
-                                                     codomain.csort)
-        elif isinstance(sorts, list):
+            v.push_back((<Sort?>sorts).csort)
+        else:
             for s in sorts:
                 v.push_back((<Sort?>s).csort)
 
-            sort.csort = self.csolver.mkFunctionSort(<const vector[c_Sort]&> v,
-                                                      codomain.csort)
+        sort.csort = self.csolver.mkFunctionSort(<const vector[c_Sort]&> v,
+                                                 codomain.csort)
         return sort
 
     def mkParamSort(self, str symbolname = None):

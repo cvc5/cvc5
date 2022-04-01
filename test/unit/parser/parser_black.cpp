@@ -66,9 +66,9 @@ class TestParserBlackParser : public TestInternal
     cvc5::Sort u = parser.mkSort("u");
     cvc5::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.bindVar("f", d_solver.get()->mkFunctionSort(t, u));
-    parser.bindVar("g", d_solver.get()->mkFunctionSort(u, v));
-    parser.bindVar("h", d_solver.get()->mkFunctionSort(v, t));
+    parser.bindVar("f", d_solver.get()->mkFunctionSort({t}, u));
+    parser.bindVar("g", d_solver.get()->mkFunctionSort({u}, v));
+    parser.bindVar("h", d_solver.get()->mkFunctionSort({v}, t));
     /* x:t; y:u; z:v; */
     parser.bindVar("x", t);
     parser.bindVar("y", u);

@@ -272,35 +272,14 @@ Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkFunctionSort
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkFunctionSort__JJJ(JNIEnv* env,
-                                                   jobject,
-                                                   jlong pointer,
-                                                   jlong domainPointer,
-                                                   jlong codomainPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Sort* domain = reinterpret_cast<Sort*>(domainPointer);
-  Sort* codomain = reinterpret_cast<Sort*>(codomainPointer);
-  Sort* sortPointer = new Sort(solver->mkFunctionSort(*domain, *codomain));
-  return reinterpret_cast<jlong>(sortPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    mkFunctionSort
  * Signature: (J[JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer,
-                                                     jlongArray sortPointers,
-                                                     jlong codomainPointer)
+Java_io_github_cvc5_Solver_mkFunctionSort(JNIEnv* env,
+                                          jobject,
+                                          jlong pointer,
+                                          jlongArray sortPointers,
+                                          jlong codomainPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
