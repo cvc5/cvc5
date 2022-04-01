@@ -91,7 +91,7 @@ Java_io_github_cvc5_DatatypeConstructorDecl_addSelectorUnresolved(
   const char* du = env->GetStringUTFChars(jUnresDataypeName, nullptr);
   std::string duName(du);
   current->addSelectorUnresolved(sName, duName);
-  env->ReleaseStringUTFChars(jName, du);
+  env->ReleaseStringUTFChars(jUnresDataypeName, du);
   env->ReleaseStringUTFChars(jName, s);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
