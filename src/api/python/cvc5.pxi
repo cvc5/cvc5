@@ -886,11 +886,6 @@ cdef class Solver:
                                created.
             :return: The datatype sorts.
         """
-        if unresolvedSorts == None:
-            unresolvedSorts = set([])
-        else:
-            assert isinstance(unresolvedSorts, set)
-
         sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:

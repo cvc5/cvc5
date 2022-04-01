@@ -107,6 +107,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass DatatypeConstructorDecl:
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
+        void addSelectorUnresolved(const string& name, const string& unresDatatypeName) except +
         bint isNull() except +
         string toString() except +
 
