@@ -102,6 +102,12 @@ enum RoundingMode
 
 namespace cvc5::modes {
 
+/**
+ * Mode for blocking models.
+ *
+ * Specifies how models are blocked in Solver::blockModel and
+ * Solver::blockModelValues.
+ */
 enum BlockModelsMode
 {
   /** Block models based on the SAT skeleton. */
