@@ -203,7 +203,7 @@ class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
    *  f(x,z)=f(y,w)
    *
    */
-  bool finalize(Node res,
+  bool updatePost(Node res,
                 PfRule id,
                 const std::vector<Node>& children,
                 const std::vector<Node>& args,

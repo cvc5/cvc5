@@ -2132,7 +2132,7 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
   return false;
 }
 
-bool AletheProofPostprocessNoSubtypeCallback::finalize(
+bool AletheProofPostprocessNoSubtypeCallback::updatePost(
     Node res,
     PfRule id,
     const std::vector<Node>& children,
