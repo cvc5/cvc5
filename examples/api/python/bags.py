@@ -31,7 +31,7 @@ if __name__ == "__main__":
     C = slv.mkConst(bag, "C")
     x = slv.mkConst(slv.getStringSort(), "x")
 
-    intersectionAC = slv.mkTerm(Kind.BAG_INTER_MIND, A, C)
+    intersectionAC = slv.mkTerm(Kind.BAG_INTER_MIN, A, C)
     intersectionBC = slv.mkTerm(Kind.BAG_INTER_MIN, B, C)
 
     # union disjoint does not distribute over intersection
