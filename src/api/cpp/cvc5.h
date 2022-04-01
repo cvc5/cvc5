@@ -2032,7 +2032,7 @@ class CVC5_EXPORT DatatypeConstructor
    *         (par (T) ((nil) (cons (head T) (tail (List T))))))
    * \endverbatim
    *
-   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * The type of nil terms must be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2282,16 +2282,6 @@ class CVC5_EXPORT Datatype
    */
   DatatypeConstructor operator[](const std::string& name) const;
   DatatypeConstructor getConstructor(const std::string& name) const;
-
-  /**
-   * Get a term representing the datatype constructor with the given name.
-   * This is a linear search through the constructors, so in case of multiple,
-   * similarly-named constructors, the
-   * first is returned.
-   * @param name the name of the datatype constructor
-   * @return a Term representing the datatype constructor with the given name
-   */
-  Term getConstructorTerm(const std::string& name) const;
 
   /**
    * Get the datatype constructor with the given name.

@@ -63,7 +63,18 @@ ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
 '''
 
 comment_repls = {
-    '`Solver::([a-zA-Z]+)\(([^)]*)\)[^`]*`': ':py:meth:`pycvc5.Solver.\\1`',
+    'Term::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Term.\\1()`',
+    'Solver::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`Solver.\\1()`',
+    'Solver::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Solver.\\1()`',
+    'DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`DatatypeConstructor.\\1()`',
+    'DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`DatatypeConstructor.\\1()`',
+    'Datatype::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`Datatype.\\1()`',
+    'Datatype::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Datatype.\\1()`',
+    'DatatypeSelector::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`DatatypeSelector.\\1()`',
+    'DatatypeSelector::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`DatatypeSelector.\\1()`',
+    ':cpp:func:`(.*?)`': '\\1',
+    ':cpp:enumerator:`(.*?)`': ':py:obj:`\\1`',
+    '\\\\': '\\\\\\\\',
 }
 
 
