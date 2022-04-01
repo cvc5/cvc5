@@ -42,12 +42,12 @@ if __name__ == "__main__":
     personSort = solver.mkUninterpretedSort("Person")
 
     # (Tuple Person)
-    tupleArity1 = solver.mkTupleSort([personSort])
+    tupleArity1 = solver.mkTupleSort(personSort)
     # (Set (Tuple Person))
     relationArity1 = solver.mkSetSort(tupleArity1)
 
     # (Tuple Person Person)
-    tupleArity2 = solver.mkTupleSort([personSort, personSort])
+    tupleArity2 = solver.mkTupleSort(personSort, personSort)
     # (Set (Tuple Person Person))
     relationArity2 = solver.mkSetSort(tupleArity2)
 

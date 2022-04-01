@@ -80,7 +80,7 @@ if __name__ == "__main__":
         assertions.append(current_slt_new_current)
         old_current = slv.mkTerm(Kind.Select, current_array, index)
 
-    query = slv.mkTerm(Kind.Not, slv.mkTerm(Kind.And, assertions))
+    query = slv.mkTerm(Kind.Not, slv.mkTerm(Kind.And, *assertions))
 
     print("Asserting {} to cvc5".format(query))
     slv.assertFormula(query)
