@@ -40,7 +40,7 @@ if __name__ == "__main__":
     C = slv.mkConst(set_, "C")
 
     unionAB = slv.mkTerm(Kind.SET_UNION, A, B)
-    lhs = slv.mkTerm(Kind.SetInter, unionAB, C)
+    lhs = slv.mkTerm(Kind.SET_INTER, unionAB, C)
 
     intersectionAC = slv.mkTerm(Kind.SET_INTER, A, C)
     intersectionBC = slv.mkTerm(Kind.SET_INTER, B, C)
