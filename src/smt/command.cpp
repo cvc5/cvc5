@@ -1731,7 +1731,7 @@ void BlockModelCommand::toStream(std::ostream& out,
                                  size_t dag,
                                  Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdBlockModel(out);
+  Printer::getPrinter(language)->toStreamCmdBlockModel(out, d_mode);
 }
 
 /* -------------------------------------------------------------------------- */
