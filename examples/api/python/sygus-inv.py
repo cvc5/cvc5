@@ -44,7 +44,7 @@ if __name__ == "__main__":
   # (ite (< x 10) (= xp (+ x 1)) (= xp x))
   ite = slv.mkTerm(Kind.ITE,
                    slv.mkTerm(Kind.LT, x, ten),
-                   slv.mkTerm(Kind.EQUAL, xp, slv.mkTerm(Kind.Add, x, one)),
+                   slv.mkTerm(Kind.EQUAL, xp, slv.mkTerm(Kind.ADD, x, one)),
                    slv.mkTerm(Kind.EQUAL, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
