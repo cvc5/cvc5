@@ -72,7 +72,7 @@ if __name__ == "__main__":
     s1 = slv.mkConst(string, "s1")
     s2 = slv.mkConst(string, "s2")
     # String concatenation: s1.s2
-    s = slv.mkTerm(Kind.STRING_CONCAT, S1, s2)
+    s = slv.mkTerm(Kind.STRING_CONCAT, s1, s2)
 
     # s1.s2 in (ab[c-e]*f)|g|h
     formula3 = slv.mkTerm(Kind.STRING_IN_REGEXP, s, r)
