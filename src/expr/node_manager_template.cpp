@@ -675,10 +675,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
+      Assert(c.isResolved() && testerType.isDatatypeTester()
+             && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
-      Assert(ctorType.isConstructor()
+      Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
              && ctorType.getRangeType() == ut)
           << "malformed constructor in datatype post-resolution";
@@ -687,7 +688,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
       {
         const DTypeSelector& a = c[j];
         TypeNode selectorType = a.getType();
-        Assert(a.isResolved() && selectorType.isSelector()
+        Assert(a.isResolved() && selectorType.isDatatypeSelector()
                && selectorType[0] == ut)
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
@@ -1258,17 +1259,21 @@ Kind NodeManager::getKindForFunction(TNode fun)
   {
     return kind::APPLY_UF;
   }
-  else if (tn.isConstructor())
+  else if (tn.isDatatypeConstructor())
   {
     return kind::APPLY_CONSTRUCTOR;
   }
-  else if (tn.isSelector())
+  else if (tn.isDatatypeSelector())
   {
     return kind::APPLY_SELECTOR;
   }
-  else if (tn.isTester())
+  else if (tn.isDatatypeTester())
   {
     return kind::APPLY_TESTER;
+  }
+  else if (tn.isDatatypeUpdater())
+  {
+    return kind::APPLY_UPDATER;
   }
   return kind::UNDEFINED_KIND;
 }
