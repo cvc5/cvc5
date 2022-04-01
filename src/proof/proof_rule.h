@@ -1387,7 +1387,7 @@ enum class PfRule : uint32_t
   QUANTIFIERS_PREPROCESS,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation equality**
+   * **Strings -- Core rules -- Concatenation equality**
    *
    * .. math::
    *
@@ -1411,7 +1411,7 @@ enum class PfRule : uint32_t
   CONCAT_EQ,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation unification**
+   * **Strings -- Core rules -- Concatenation unification**
    *
    * .. math::
    *
@@ -1424,7 +1424,7 @@ enum class PfRule : uint32_t
   CONCAT_UNIFY,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation conflict**
+   * **Strings -- Core rules -- Concatenation conflict**
    *
    * .. math::
    *
@@ -1439,7 +1439,7 @@ enum class PfRule : uint32_t
   CONCAT_CONFLICT,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation split**
+   * **Strings -- Core rules -- Concatenation split**
    *
    * .. math::
    *
@@ -1473,7 +1473,7 @@ enum class PfRule : uint32_t
   CONCAT_SPLIT,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation split for constants**
+   * **Strings -- Core rules -- Concatenation split for constants**
    *
    * .. math::
    *
@@ -1496,7 +1496,7 @@ enum class PfRule : uint32_t
   CONCAT_CSPLIT,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation length propagation**
+   * **Strings -- Core rules -- Concatenation length propagation**
    *
    * .. math::
    *
@@ -1521,7 +1521,7 @@ enum class PfRule : uint32_t
   CONCAT_LPROP,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Concatenation constant propagation**
+   * **Strings -- Core rules -- Concatenation constant propagation**
    *
    * .. math::
    *
@@ -1558,7 +1558,7 @@ enum class PfRule : uint32_t
   CONCAT_CPROP,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- String decomposition**
+   * **Strings -- Core rules -- String decomposition**
    *
    * .. math::
    *
@@ -1579,7 +1579,7 @@ enum class PfRule : uint32_t
   STRING_DECOMPOSE,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Length positive**
+   * **Strings -- Core rules -- Length positive**
    *
    * .. math::
    *
@@ -1590,7 +1590,7 @@ enum class PfRule : uint32_t
   STRING_LENGTH_POS,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Core rules -- Length non-empty**
+   * **Strings -- Core rules -- Length non-empty**
    *
    * .. math::
    *
@@ -1600,7 +1600,7 @@ enum class PfRule : uint32_t
   STRING_LENGTH_NON_EMPTY,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Extended functions -- Reduction**
+   * **Strings -- Extended functions -- Reduction**
    *
    * .. math::
    *
@@ -1617,7 +1617,7 @@ enum class PfRule : uint32_t
   STRING_REDUCTION,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Stings -- Extended functions -- Eager reduction**
+   * **Strings -- Extended functions -- Eager reduction**
    *
    * .. math::
    *
