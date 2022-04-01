@@ -1199,6 +1199,7 @@ cdef class Solver:
     def mkReal(self, numerator, denominator=None):
         """
             Create a real constant from a numerator and an optional denominator.
+            
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
             string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
