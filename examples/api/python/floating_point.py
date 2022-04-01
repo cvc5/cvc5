@@ -29,7 +29,7 @@ if __name__ == "__main__":
     fp32 = slv.mkFloatingPointSort(8, 24)
 
     # the standard rounding mode
-    rm = slv.mkRoundingMode(RoundingMode.RoundNearestTiesToEven)
+    rm = slv.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN)
 
     # create a few single-precision variables
     x = slv.mkConst(fp32, 'x')
