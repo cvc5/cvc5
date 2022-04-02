@@ -103,8 +103,7 @@ void test(Solver& slv, Sort& consListSort)
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
   DatatypeDecl paramConsListSpec =
-      slv.mkDatatypeDecl("paramlist",
-                         {sort});  // give the datatype a name
+      slv.mkDatatypeDecl("paramlist", {sort});  // give the datatype a name
   DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
