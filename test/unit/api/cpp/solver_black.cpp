@@ -1359,7 +1359,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term truen = d_solver.mkBoolean(true);
   Term start = d_solver.mkVar(boolean);
   Term output2;
-  Grammar g = d_solver.mkSygusGrammar({}, {start});
+  Grammar g = d_solver.mkGrammar({}, {start});
   Term conj2 = d_solver.mkTerm(GT, {x, zero});
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
@@ -2532,25 +2532,25 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   ASSERT_THROW(slv.declareSygusVar("", boolSort), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, mkSygusGrammar)
+TEST_F(TestApiBlackSolver, mkGrammar)
 {
   Term nullTerm;
   Term boolTerm = d_solver.mkBoolean(true);
   Term boolVar = d_solver.mkVar(d_solver.getBooleanSort());
   Term intVar = d_solver.mkVar(d_solver.getIntegerSort());
 
-  ASSERT_NO_THROW(d_solver.mkSygusGrammar({}, {intVar}));
-  ASSERT_NO_THROW(d_solver.mkSygusGrammar({boolVar}, {intVar}));
-  ASSERT_THROW(d_solver.mkSygusGrammar({}, {}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkSygusGrammar({}, {nullTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkSygusGrammar({}, {boolTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkSygusGrammar({boolTerm}, {intVar}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkGrammar({}, {intVar}));
+  ASSERT_NO_THROW(d_solver.mkGrammar({boolVar}, {intVar}));
+  ASSERT_THROW(d_solver.mkGrammar({}, {}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkGrammar({}, {nullTerm}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkGrammar({}, {boolTerm}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkGrammar({boolTerm}, {intVar}), CVC5ApiException);
   Solver slv;
   Term boolVar2 = slv.mkVar(slv.getBooleanSort());
   Term intVar2 = slv.mkVar(slv.getIntegerSort());
-  ASSERT_NO_THROW(slv.mkSygusGrammar({boolVar2}, {intVar2}));
-  ASSERT_THROW(slv.mkSygusGrammar({boolVar}, {intVar2}), CVC5ApiException);
-  ASSERT_THROW(slv.mkSygusGrammar({boolVar2}, {intVar}), CVC5ApiException);
+  ASSERT_NO_THROW(slv.mkGrammar({boolVar2}, {intVar2}));
+  ASSERT_THROW(slv.mkGrammar({boolVar}, {intVar2}), CVC5ApiException);
+  ASSERT_THROW(slv.mkGrammar({boolVar2}, {intVar}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, synthFun)
@@ -2566,10 +2566,10 @@ TEST_F(TestApiBlackSolver, synthFun)
   Term start1 = d_solver.mkVar(boolean);
   Term start2 = d_solver.mkVar(integer);
 
-  Grammar g1 = d_solver.mkSygusGrammar({x}, {start1});
+  Grammar g1 = d_solver.mkGrammar({x}, {start1});
   g1.addRule(start1, d_solver.mkBoolean(false));
 
-  Grammar g2 = d_solver.mkSygusGrammar({x}, {start2});
+  Grammar g2 = d_solver.mkGrammar({x}, {start2});
   g2.addRule(start2, d_solver.mkInteger(0));
 
   ASSERT_NO_THROW(d_solver.synthFun("", {}, boolean));
@@ -2601,10 +2601,10 @@ TEST_F(TestApiBlackSolver, synthInv)
   Term start1 = d_solver.mkVar(boolean);
   Term start2 = d_solver.mkVar(integer);
 
-  Grammar g1 = d_solver.mkSygusGrammar({x}, {start1});
+  Grammar g1 = d_solver.mkGrammar({x}, {start1});
   g1.addRule(start1, d_solver.mkBoolean(false));
 
-  Grammar g2 = d_solver.mkSygusGrammar({x}, {start2});
+  Grammar g2 = d_solver.mkGrammar({x}, {start2});
   g2.addRule(start2, d_solver.mkInteger(0));
 
   ASSERT_NO_THROW(d_solver.synthInv("", {}));

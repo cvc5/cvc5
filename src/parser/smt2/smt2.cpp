@@ -711,7 +711,7 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
                                const std::vector<cvc5::Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
-      new cvc5::Grammar(d_solver->mkSygusGrammar(boundVars, ntSymbols)));
+      new cvc5::Grammar(d_solver->mkGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 

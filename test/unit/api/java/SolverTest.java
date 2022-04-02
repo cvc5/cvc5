@@ -1419,7 +1419,7 @@ class SolverTest
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
     Term output2 = d_solver.getNullTerm();
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
@@ -2600,35 +2600,35 @@ class SolverTest
   }
 
   @Test
-  void mkSygusGrammar() throws CVC5ApiException
+  void mkGrammar() throws CVC5ApiException
   {
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(true);
     Term boolVar = d_solver.mkVar(d_solver.getBooleanSort());
     Term intVar = d_solver.mkVar(d_solver.getIntegerSort());
 
-    assertDoesNotThrow(() -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {intVar}));
-    assertDoesNotThrow(() -> d_solver.mkSygusGrammar(new Term[] {boolVar}, new Term[] {intVar}));
+    assertDoesNotThrow(() -> d_solver.mkGrammar(new Term[] {}, new Term[] {intVar}));
+    assertDoesNotThrow(() -> d_solver.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
 
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {}));
+        CVC5ApiException.class, () -> d_solver.mkGrammar(new Term[] {}, new Term[] {}));
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {nullTerm}));
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {boolTerm}));
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkSygusGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
+        () -> d_solver.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
 
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
     Term boolVar2 = slv.mkVar(slv.getBooleanSort());
     Term intVar2 = slv.mkVar(slv.getIntegerSort());
-    assertDoesNotThrow(() -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
+    assertDoesNotThrow(() -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
 
     assertThrows(CVC5ApiException.class,
-        () -> slv.mkSygusGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
+        () -> slv.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
     assertThrows(CVC5ApiException.class,
-        () -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
+        () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
     slv.close();
   }
 
@@ -2646,10 +2646,10 @@ class SolverTest
     Term start1 = d_solver.mkVar(bool);
     Term start2 = d_solver.mkVar(integer);
 
-    Grammar g1 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start1});
+    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
     g1.addRule(start1, d_solver.mkBoolean(false));
 
-    Grammar g2 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start2});
+    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
     g2.addRule(start2, d_solver.mkInteger(0));
 
     assertDoesNotThrow(() -> d_solver.synthFun("", new Term[] {}, bool));
@@ -2686,10 +2686,10 @@ class SolverTest
     Term start1 = d_solver.mkVar(bool);
     Term start2 = d_solver.mkVar(integer);
 
-    Grammar g1 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start1});
+    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
     g1.addRule(start1, d_solver.mkBoolean(false));
 
-    Grammar g2 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start2});
+    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
     g2.addRule(start2, d_solver.mkInteger(0));
 
     assertDoesNotThrow(() -> d_solver.synthInv("", new Term[] {}));

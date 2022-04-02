@@ -1885,24 +1885,24 @@ def test_mk_sygus_grammar(solver):
     boolVar = solver.mkVar(solver.getBooleanSort())
     intVar = solver.mkVar(solver.getIntegerSort())
 
-    solver.mkSygusGrammar([], [intVar])
-    solver.mkSygusGrammar([boolVar], [intVar])
+    solver.mkGrammar([], [intVar])
+    solver.mkGrammar([boolVar], [intVar])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([], [])
+        solver.mkGrammar([], [])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([], [nullTerm])
+        solver.mkGrammar([], [nullTerm])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([], [boolTerm])
+        solver.mkGrammar([], [boolTerm])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([boolTerm], [intVar])
+        solver.mkGrammar([boolTerm], [intVar])
     slv = cvc5.Solver()
     boolVar2 = slv.mkVar(slv.getBooleanSort())
     intVar2 = slv.mkVar(slv.getIntegerSort())
-    slv.mkSygusGrammar([boolVar2], [intVar2])
+    slv.mkGrammar([boolVar2], [intVar2])
     with pytest.raises(RuntimeError):
-        slv.mkSygusGrammar([boolVar], [intVar2])
+        slv.mkGrammar([boolVar], [intVar2])
     with pytest.raises(RuntimeError):
-        slv.mkSygusGrammar([boolVar2], [intVar])
+        slv.mkGrammar([boolVar2], [intVar])
 
 
 def test_synth_inv(solver):
@@ -1916,10 +1916,10 @@ def test_synth_inv(solver):
     start1 = solver.mkVar(boolean)
     start2 = solver.mkVar(integer)
 
-    g1 = solver.mkSygusGrammar([x], [start1])
+    g1 = solver.mkGrammar([x], [start1])
     g1.addRule(start1, solver.mkBoolean(False))
 
-    g2 = solver.mkSygusGrammar([x], [start2])
+    g2 = solver.mkGrammar([x], [start2])
     g2.addRule(start2, solver.mkInteger(0))
 
     solver.synthInv("", [])
@@ -2114,7 +2114,7 @@ def test_get_abduct(solver):
     truen = solver.mkBoolean(True)
     start = solver.mkVar(boolean)
     output2 = cvc5.Term(solver)
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
     conj2 = solver.mkTerm(Kind.GT, x, zero)
     g.addRule(start, truen)
     output2 = solver.getAbduct(conj2, g)
@@ -2520,10 +2520,10 @@ def test_synth_fun(solver):
     start1 = solver.mkVar(boolean)
     start2 = solver.mkVar(integer)
 
-    g1 = solver.mkSygusGrammar(x, [start1])
+    g1 = solver.mkGrammar(x, [start1])
     g1.addRule(start1, solver.mkBoolean(False))
 
-    g2 = solver.mkSygusGrammar(x, [start2])
+    g2 = solver.mkGrammar(x, [start2])
     g2.addRule(start2, solver.mkInteger(0))
 
     solver.synthFun("", [], boolean)

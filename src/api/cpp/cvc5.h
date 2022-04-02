@@ -4676,7 +4676,7 @@ class CVC5_EXPORT Solver
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar
    */
-  Grammar mkSygusGrammar(const std::vector<Term>& boundVars,
+  Grammar mkGrammar(const std::vector<Term>& boundVars,
                          const std::vector<Term>& ntSymbols) const;
 
   /**

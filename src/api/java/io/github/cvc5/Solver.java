@@ -2480,15 +2480,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar
    */
-  public Grammar mkSygusGrammar(Term[] boundVars, Term[] ntSymbols)
+  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols)
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long grammarPointer = mkSygusGrammar(pointer, boundVarPointers, ntSymbolPointers);
+    long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
     return new Grammar(this, grammarPointer);
   }
 
-  private native long mkSygusGrammar(
+  private native long mkGrammar(
       long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 
   /**

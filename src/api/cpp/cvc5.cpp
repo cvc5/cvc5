@@ -7400,7 +7400,7 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
+Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
                                const std::vector<Term>& ntSymbols) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

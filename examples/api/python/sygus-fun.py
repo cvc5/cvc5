@@ -54,7 +54,7 @@ if __name__ == "__main__":
   leq = slv.mkTerm(Kind.LEQ, start, start)
 
   # create the grammar object
-  g = slv.mkSygusGrammar([x, y], [start, start_bool])
+  g = slv.mkGrammar([x, y], [start, start_bool])
 
   # bind each non-terminal to its rules
   g.addRules(start, {zero, one, x, y, plus, minus, ite})
