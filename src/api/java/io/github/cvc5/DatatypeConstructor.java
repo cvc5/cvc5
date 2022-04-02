@@ -18,6 +18,9 @@ package io.github.cvc5;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * A cvc5 datatype constructor.
+ */
 public class DatatypeConstructor extends AbstractPointer implements Iterable<DatatypeSelector>
 {
   // region construction and destruction
@@ -133,20 +136,6 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return new DatatypeSelector(solver, selectorPointer);
   }
   private native long getSelector(long pointer, String name);
-
-  /**
-   * Get the term representation of the datatype selector with the given name.
-   * This is a linear search through the arguments, so in case of multiple,
-   * similarly-named arguments, the selector for the first is returned.
-   * @param name the name of the datatype selector
-   * @return a term representing the datatype selector with the given name
-   */
-  public Term getSelectorTerm(String name)
-  {
-    long termPointer = getSelectorTerm(pointer, name);
-    return new Term(solver, termPointer);
-  }
-  private native long getSelectorTerm(long pointer, String name);
 
   /**
    * @return true if this DatatypeConstructor is a null object
