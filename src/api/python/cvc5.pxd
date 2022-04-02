@@ -58,7 +58,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeConstructor operator[](size_t idx) except +
         DatatypeConstructor operator[](const string& name) except +
         DatatypeConstructor getConstructor(const string& name) except +
-        Term getConstructorTerm(const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
         string getName() except +
         size_t getNumConstructors() except +
@@ -107,6 +106,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass DatatypeConstructorDecl:
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
+        void addSelectorUnresolved(const string& name, const string& unresDatatypeName) except +
         bint isNull() except +
         string toString() except +
 
@@ -216,8 +216,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
-        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
-                                     const set[Sort]& unresolvedSorts) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
@@ -228,7 +227,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort() except +
         Sort mkUninterpretedSort(const string& symbol) except +
-        Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
+        Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +

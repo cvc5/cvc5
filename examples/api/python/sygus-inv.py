@@ -42,15 +42,15 @@ if __name__ == "__main__":
   xp = slv.mkVar(integer, "xp")
 
   # (ite (< x 10) (= xp (+ x 1)) (= xp x))
-  ite = slv.mkTerm(Kind.Ite,
-                        slv.mkTerm(Kind.Lt, x, ten),
-                        slv.mkTerm(Kind.Equal, xp, slv.mkTerm(Kind.Add, x, one)),
-                        slv.mkTerm(Kind.Equal, xp, x))
+  ite = slv.mkTerm(Kind.ITE,
+                   slv.mkTerm(Kind.LT, x, ten),
+                   slv.mkTerm(Kind.EQUAL, xp, slv.mkTerm(Kind.ADD, x, one)),
+                   slv.mkTerm(Kind.EQUAL, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
-  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(Kind.Equal, x, zero))
+  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(Kind.EQUAL, x, zero))
   trans_f = slv.defineFun("trans-f", [x, xp], boolean, ite)
-  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(Kind.Leq, x, ten))
+  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(Kind.LEQ, x, ten))
 
   # declare the invariant-to-synthesize
   inv_f = slv.synthInv("inv-f", {x})
