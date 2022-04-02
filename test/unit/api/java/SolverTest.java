@@ -193,9 +193,9 @@ class SolverTest
     DatatypeConstructorDecl unil = d_solver.mkDatatypeConstructorDecl("unil");
     ulist.addConstructor(unil);
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
-    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(Arrays.asList(udecls)));
+    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(udecls));
 
-    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls)));
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
     slv.close();
 
     /* mutually recursive with unresolved parameterized sorts */
@@ -203,8 +203,8 @@ class SolverTest
     Sort p1 = d_solver.mkParamSort("p1");
     Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
     Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
-    DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
-    DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+    DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", new Sort[] {p0});
+    DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", new Sort[] {p1});
     DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
     ctordecl0.addSelector("s0", u1.instantiate(new Sort[] {p0}));
     DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
@@ -215,7 +215,7 @@ class SolverTest
     Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
     Term t1 = d_solver.mkConst(isort1, "t");
     Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
-        t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getSelectorTerm(),
+        t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getTerm(),
         t1);
     assertEquals(dt_sorts[0].instantiate(new Sort[] {d_solver.getBooleanSort()}), t0.getSort());
 
@@ -821,7 +821,8 @@ class SolverTest
 
     // list datatype
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+    DatatypeDecl listDecl =
+        d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
     cons.addSelector("head", sort);
@@ -834,12 +835,10 @@ class SolverTest
     Datatype list = listSort.getDatatype();
 
     // list datatype constructor and selector operator terms
-    Term consTerm = list.getConstructor("cons").getConstructorTerm();
-    Term nilTerm = list.getConstructor("nil").getConstructorTerm();
-    Term headTerm1 = list.getConstructor("cons").getSelectorTerm("head");
-    Term headTerm2 = list.getConstructor("cons").getSelector("head").getSelectorTerm();
-    Term tailTerm1 = list.getConstructor("cons").getSelectorTerm("tail");
-    Term tailTerm2 = list.getConstructor("cons").getSelector("tail").getSelectorTerm();
+    Term consTerm = list.getConstructor("cons").getTerm();
+    Term nilTerm = list.getConstructor("nil").getTerm();
+    Term headTerm = list.getConstructor("cons").getSelector("head").getTerm();
+    Term tailTerm = list.getConstructor("cons").getSelector("tail").getTerm();
 
     // mkTerm(Op op, Term term) const
     assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
@@ -847,15 +846,15 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, consTerm));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, headTerm));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1));
     assertThrows(CVC5ApiException.class, () -> slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
 
     // mkTerm(Op op, Term child) const
     assertDoesNotThrow(() -> d_solver.mkTerm(opterm1, a));
     assertDoesNotThrow(() -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1)));
-    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1, c));
-    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, tailTerm2, c));
+    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, headTerm, c));
+    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, tailTerm, c));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, a));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, d_solver.getNullTerm()));
     assertThrows(CVC5ApiException.class,
@@ -1419,7 +1418,7 @@ class SolverTest
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
     Term output2 = d_solver.getNullTerm();
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
@@ -1543,9 +1542,9 @@ class SolverTest
     Sort consListSort = d_solver.mkDatatypeSort(consListSpec);
     Datatype consList = consListSort.getDatatype();
 
-    Term consTerm = consList.getConstructor("cons").getConstructorTerm();
-    Term nilTerm = consList.getConstructor("nil").getConstructorTerm();
-    Term headTerm = consList.getConstructor("cons").getSelectorTerm("head");
+    Term consTerm = consList.getConstructor("cons").getTerm();
+    Term nilTerm = consList.getConstructor("nil").getTerm();
+    Term headTerm = consList.getConstructor("cons").getSelector("head").getTerm();
 
     Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm);
     Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm, d_solver.mkInteger(1), listnil);
@@ -2416,12 +2415,12 @@ class SolverTest
 
     Datatype consList = consListSort.getDatatype();
     Term dt1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
-        consList.getConstructor("cons").getConstructorTerm(),
+        consList.getConstructor("cons").getTerm(),
         d_solver.mkInteger(0),
-        d_solver.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructor("nil").getConstructorTerm()));
+        d_solver.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructor("nil").getTerm()));
     assertDoesNotThrow(() -> d_solver.simplify(dt1));
     Term dt2 = d_solver.mkTerm(
-        APPLY_SELECTOR, consList.getConstructor("cons").getSelectorTerm("head"), dt1);
+        APPLY_SELECTOR, consList.getConstructor("cons").getSelector("head").getTerm(), dt1);
     assertDoesNotThrow(() -> d_solver.simplify(dt2));
 
     Term b1 = d_solver.mkVar(bvSort, "b1");
@@ -2600,35 +2599,37 @@ class SolverTest
   }
 
   @Test
-  void mkSygusGrammar() throws CVC5ApiException
-  {
+  void mkGrammar() throws CVC5ApiException {
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(true);
     Term boolVar = d_solver.mkVar(d_solver.getBooleanSort());
     Term intVar = d_solver.mkVar(d_solver.getIntegerSort());
 
-    assertDoesNotThrow(() -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {intVar}));
-    assertDoesNotThrow(() -> d_solver.mkSygusGrammar(new Term[] {boolVar}, new Term[] {intVar}));
+    assertDoesNotThrow(
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {intVar}));
+    assertDoesNotThrow(
+        () -> d_solver.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
 
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {}));
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {nullTerm}));
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {}));
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkSygusGrammar(new Term[] {}, new Term[] {boolTerm}));
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkSygusGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
+    assertThrows(CVC5ApiException.class,
+        () -> d_solver.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
 
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
     Term boolVar2 = slv.mkVar(slv.getBooleanSort());
     Term intVar2 = slv.mkVar(slv.getIntegerSort());
-    assertDoesNotThrow(() -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
+    assertDoesNotThrow(
+        () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
 
     assertThrows(CVC5ApiException.class,
-        () -> slv.mkSygusGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
+        () -> slv.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
     assertThrows(CVC5ApiException.class,
-        () -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
+        () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
     slv.close();
   }
 
@@ -2646,10 +2647,10 @@ class SolverTest
     Term start1 = d_solver.mkVar(bool);
     Term start2 = d_solver.mkVar(integer);
 
-    Grammar g1 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start1});
+    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
     g1.addRule(start1, d_solver.mkBoolean(false));
 
-    Grammar g2 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start2});
+    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
     g2.addRule(start2, d_solver.mkInteger(0));
 
     assertDoesNotThrow(() -> d_solver.synthFun("", new Term[] {}, bool));
@@ -2686,10 +2687,10 @@ class SolverTest
     Term start1 = d_solver.mkVar(bool);
     Term start2 = d_solver.mkVar(integer);
 
-    Grammar g1 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start1});
+    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
     g1.addRule(start1, d_solver.mkBoolean(false));
 
-    Grammar g2 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start2});
+    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
     g2.addRule(start2, d_solver.mkInteger(0));
 
     assertDoesNotThrow(() -> d_solver.synthInv("", new Term[] {}));
@@ -2941,7 +2942,7 @@ class SolverTest
 
     for (int i = 0; i < indices.length; i++)
     {
-      Term selectorTerm = constructor.getSelector(indices[i]).getSelectorTerm();
+      Term selectorTerm = constructor.getSelector(indices[i]).getTerm();
       Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
       Term simplifiedTerm = d_solver.simplify(selectedTerm);
       assertEquals(elements[indices[i]], simplifiedTerm);

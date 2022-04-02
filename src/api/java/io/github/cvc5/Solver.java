@@ -19,6 +19,9 @@ import io.github.cvc5.modes.BlockModelsMode;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * A cvc5 solver.
+ */
 public class Solver implements IPointer, AutoCloseable
 {
   private long pointer;
@@ -213,20 +216,6 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkDatatypeSort(long pointer, long datatypeDeclPointer)
       throws CVC5ApiException;
-
-  /**
-   * Create a vector of datatype sorts. The names of the datatype
-   * declarations must be distinct.
-   *
-   * @param dtypedecls the datatype declarations from which the sort is
-   *     created
-   * @return the datatype sorts
-   * @throws CVC5ApiException
-   */
-  public Sort[] mkDatatypeSorts(List<DatatypeDecl> dtypedecls) throws CVC5ApiException
-  {
-    return mkDatatypeSorts(dtypedecls.toArray(new DatatypeDecl[0]));
-  }
 
   /**
    * Create a vector of datatype sorts. The names of the datatype
@@ -622,18 +611,6 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkTerm(
       long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
-
-  /**
-   * Create n-ary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param children the children of the term
-   * @return the Term
-   */
-  public Term mkTerm(Op op, List<Term> children)
-  {
-    return mkTerm(op, children.toArray(new Term[0]));
-  }
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -1363,47 +1340,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, Sort param)
-  {
-    return mkDatatypeDecl(name, param, false);
-  }
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, Sort param, boolean isCoDatatype)
-  {
-    long declPointer = mkDatatypeDecl(pointer, name, param.getPointer(), isCoDatatype);
-    return new DatatypeDecl(this, declPointer);
-  }
-
-  private native long mkDatatypeDecl(
-      long pointer, String name, long paramPointer, boolean isCoDatatype);
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, List<Sort> params)
-  {
-    return mkDatatypeDecl(name, params.toArray(new Sort[0]));
-  }
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @return the DatatypeDecl
@@ -2518,15 +2457,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar
    */
-  public Grammar mkSygusGrammar(Term[] boundVars, Term[] ntSymbols)
-  {
+  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols) {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long grammarPointer = mkSygusGrammar(pointer, boundVarPointers, ntSymbolPointers);
+    long grammarPointer =
+        mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
     return new Grammar(this, grammarPointer);
   }
 
-  private native long mkSygusGrammar(
+  private native long mkGrammar(
       long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 
   /**

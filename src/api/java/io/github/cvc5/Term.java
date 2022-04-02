@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+/**
+ * A cvc5 Term.
+ */
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
   // region construction and destruction
@@ -150,22 +153,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native long substitute(long pointer, long termPointer, long replacementPointer);
-
-  /**
-   * @return the result of simultaneously replacing 'terms' by 'replacements'
-   * in this term
-   *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point. In the case that
-   * terms contains duplicates, the replacement earliest in the vector takes
-   * priority. For example, calling substitute on f(x,y) with
-   *   terms = { x, z }, replacements = { g(z), w }
-   * results in the term f(g(z),y).
-   */
-  public Term substitute(List<Term> terms, List<Term> replacements)
-  {
-    return substitute(terms.toArray(new Term[0]), replacements.toArray(new Term[0]));
-  }
 
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
