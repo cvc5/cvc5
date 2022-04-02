@@ -265,7 +265,7 @@ class CVC5_EXPORT Result
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
-/* Result                                                                     */
+/* SynthResult                                                                */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -415,12 +415,21 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
+   * Does the sort have a symbol, i.e., a name?
+   *
+   * For example, uninterpreted sorts and uninterpreted sort constructors have symbols.
    * @return true if the sort has a symbol.
    */
   bool hasSymbol() const;
 
   /**
-   * Asserts hasSymbol().
+   * Get the symbol of this Sort.
+   *
+   * Asserts hasSymbol(). The symbol of this sort is the string that was
+   * provided when constructing it via
+   * Solver::mkUninterpretedSort(const std::string&) const,
+   * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
+   * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
    * @return the raw symbol of the sort.
    */
   std::string getSymbol() const;
@@ -787,6 +796,8 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
+   * Get the arity of a datatype sort, which is the number of type parameters
+   * if the datatype is parametric, or 0 otherwise.
    * @return the arity of a datatype sort
    */
   size_t getDatatypeArity() const;
@@ -1168,12 +1179,18 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * Does the term have a symbol, i.e., a name?
+   *
+   * For example, free constants and variables have symbols.
    * @return true if the term has a symbol.
    */
   bool hasSymbol() const;
 
   /**
-   * Asserts hasSymbol().
+   * Get the symbol of this Term.
+   *
+   * Asserts hasSymbol(). The symbol of the term is the string that was
+   * provided when constructing it via Solver::mkConst() or Solver::mkVar().
    * @return the raw symbol of the term.
    */
   std::string getSymbol() const;
@@ -1566,14 +1583,54 @@ class CVC5_EXPORT Term
   std::set<Term> getSetValue() const;
 
   /**
+   * Determine if this term is a sequence value.
+   *
+   * A term is a sequence value if it has kind #CONST_SEQUENCE. In contrast to
+   * values for the set sort (as described in isSetValue()), a sequence value
+   * is represented as a Term with no children.
+   *
+   * Semantically, a sequence value is a concatenation of unit sequences
+   * whose elements are themselves values. For example:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (seq.++ (seq.unit 0) (seq.unit 1))
+   * \endverbatim
+   *
+   * The above term has two representations in Term. One is as the sequence
+   * concatenation term:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (SEQ_CONCAT (SEQ_UNIT 0) (SEQ_UNIT 1))
+   * \endrst
+   *
+   * where 0 and 1 are the terms corresponding to the integer constants 0 and 1.
+   *
+   * Alternatively, the above term is represented as the constant sequence
+   * value:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     CONST_SEQUENCE_{0,1}
+   * \endrst
+   *
+   * where calling getSequenceValue() on the latter returns the vector `{0, 1}`.
+   *
+   * The former term is not a sequence value, but the latter term is.
+   *
+   * Constant sequences cannot be constructed directly via the API. They are
+   * returned in response to API calls such Solver::getValue() and
+   * Solver::simplify().
+   *
    * @return true if the term is a sequence value.
    */
   bool isSequenceValue() const;
   /**
    * Asserts isSequenceValue().
-   * @note It is usually necessary for sequences to call Solver::simplify()
-   *       to turn a sequence that is constructed by, e.g., concatenation of
-   *       unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
@@ -3208,6 +3265,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a predicate sort.
+   *
+   * This is equivalent to calling mkFunctionSort() with the Boolean sort as the
+   * codomain.
    * @param sorts the list of sorts of the predicate
    * @return the predicate sort
    */
@@ -3619,7 +3679,7 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create (first-order) constant (0-arity function symbol).
+   * Create a free constant.
    *
    * SMT-LIB:
    *
@@ -3632,7 +3692,7 @@ class CVC5_EXPORT Solver
    *
    * @param sort the sort of the constant
    * @param symbol the name of the constant (optional)
-   * @return the first-order constant
+   * @return the constant
    */
   Term mkConst(const Sort& sort,
                const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3702,8 +3762,7 @@ class CVC5_EXPORT Solver
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * definitions, and assertions.  It also involves theory normalization.
    *
    * @warning This method is experimental and may change in future versions.
    *
