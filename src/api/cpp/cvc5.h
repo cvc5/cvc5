@@ -265,7 +265,7 @@ class CVC5_EXPORT Result
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
-/* Result                                                                     */
+/* SynthResult                                                                */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -415,12 +415,21 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
+   * Does the sort have a symbol, i.e., a name?
+   *
+   * For example, uninterpreted sorts and uninterpreted sort constructors have symbols.
    * @return true if the sort has a symbol.
    */
   bool hasSymbol() const;
 
   /**
-   * Asserts hasSymbol().
+   * Get the symbol of this Sort.
+   *
+   * Asserts hasSymbol(). The symbol of this sort is the string that was
+   * provided when constructing it via
+   * Solver::mkUninterpretedSort(const std::string&) const,
+   * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
+   * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
    * @return the raw symbol of the sort.
    */
   std::string getSymbol() const;
@@ -787,6 +796,8 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
+   * Get the arity of a datatype sort, which is the number of type parameters
+   * if the datatype is parametric, or 0 otherwise.
    * @return the arity of a datatype sort
    */
   size_t getDatatypeArity() const;
@@ -1168,12 +1179,18 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * Does the term have a symbol, i.e., a name?
+   *
+   * For example, free constants and variables have symbols.
    * @return true if the term has a symbol.
    */
   bool hasSymbol() const;
 
   /**
-   * Asserts hasSymbol().
+   * Get the symbol of this Term.
+   *
+   * Asserts hasSymbol(). The symbol of the term is the string that was
+   * provided when constructing it via Solver::mkConst() or Solver::mkVar().
    * @return the raw symbol of the term.
    */
   std::string getSymbol() const;
@@ -1566,14 +1583,54 @@ class CVC5_EXPORT Term
   std::set<Term> getSetValue() const;
 
   /**
+   * Determine if this term is a sequence value.
+   *
+   * A term is a sequence value if it has kind #CONST_SEQUENCE. In contrast to
+   * values for the set sort (as described in isSetValue()), a sequence value
+   * is represented as a Term with no children.
+   *
+   * Semantically, a sequence value is a concatenation of unit sequences
+   * whose elements are themselves values. For example:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (seq.++ (seq.unit 0) (seq.unit 1))
+   * \endverbatim
+   *
+   * The above term has two representations in Term. One is as the sequence
+   * concatenation term:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (SEQ_CONCAT (SEQ_UNIT 0) (SEQ_UNIT 1))
+   * \endrst
+   *
+   * where 0 and 1 are the terms corresponding to the integer constants 0 and 1.
+   *
+   * Alternatively, the above term is represented as the constant sequence
+   * value:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     CONST_SEQUENCE_{0,1}
+   * \endrst
+   *
+   * where calling getSequenceValue() on the latter returns the vector `{0, 1}`.
+   *
+   * The former term is not a sequence value, but the latter term is.
+   *
+   * Constant sequences cannot be constructed directly via the API. They are
+   * returned in response to API calls such Solver::getValue() and
+   * Solver::simplify().
+   *
    * @return true if the term is a sequence value.
    */
   bool isSequenceValue() const;
   /**
    * Asserts isSequenceValue().
-   * @note It is usually necessary for sequences to call Solver::simplify()
-   *       to turn a sequence that is constructed by, e.g., concatenation of
-   *       unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
@@ -1760,6 +1817,17 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * @param name the name of the datatype selector declaration to add
    */
   void addSelectorSelf(const std::string& name);
+
+  /**
+   * Add datatype selector declaration whose codomain sort is an unresolved
+   * datatype with the given name.
+   * @param name the name of the datatype selector declaration to add
+   * @param unresDataypeName the name of the unresolved datatype. The codomain
+   *                         of the selector will be the resolved datatype with
+   *                         the given name.
+   */
+  void addSelectorUnresolved(const std::string& name,
+                             const std::string& unresDataypeName);
 
   /**
    * @return true if this DatatypeConstructorDecl is a null declaration.
@@ -2036,7 +2104,7 @@ class CVC5_EXPORT DatatypeConstructor
    *         (par (T) ((nil) (cons (head T) (tail (List T))))))
    * \endverbatim
    *
-   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * The type of nil terms must be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2639,8 +2707,6 @@ class CVC5_EXPORT Grammar
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
-   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
-   *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
    * @param ntsToUnres mapping from non-terminals to their unresolved sorts
@@ -3182,30 +3248,6 @@ class CVC5_EXPORT Solver
       const std::vector<DatatypeDecl>& dtypedecls) const;
 
   /**
-   * Create a vector of datatype sorts using unresolved sorts. The names of
-   * the datatype declarations in dtypedecls must be distinct.
-   *
-   * This method is called when the DatatypeDecl objects dtypedecls have been
-   * built using "unresolved" sorts.
-   *
-   * We associate each sort in unresolvedSorts with exactly one datatype from
-   * dtypedecls. In particular, it must have the same name as exactly one
-   * datatype declaration in dtypedecls.
-   *
-   * When constructing datatypes, unresolved sorts are replaced by the datatype
-   * sort constructed for the datatype declaration it is associated with.
-   *
-   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
-   *
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @param unresolvedSorts the list of unresolved sorts
-   * @return the datatype sorts
-   */
-  std::vector<Sort> mkDatatypeSorts(
-      const std::vector<DatatypeDecl>& dtypedecls,
-      const std::set<Sort>& unresolvedSorts) const;
-
-  /**
    * Create function sort.
    * @param sorts the sort of the function arguments
    * @param codomain the sort of the function return value
@@ -3227,6 +3269,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a predicate sort.
+   *
+   * This is equivalent to calling mkFunctionSort() with the Boolean sort as the
+   * codomain.
    * @param sorts the list of sorts of the predicate
    * @return the predicate sort
    */
@@ -3273,16 +3318,19 @@ class CVC5_EXPORT Solver
       const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
-   * Create an unresolved sort.
+   * Create an unresolved datatype sort.
    *
    * This is for creating yet unresolved sort placeholders for mutually
-   * recursive datatypes.
+   * recursive parametric datatypes.
    *
    * @param symbol the symbol of the sort
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
+   *
+   * @warning This method is experimental and may change in future versions.
    */
-  Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
+  Sort mkUnresolvedDatatypeSort(const std::string& symbol,
+                                size_t arity = 0) const;
 
   /**
    * Create an uninterpreted sort constructor sort.
@@ -3635,7 +3683,7 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create (first-order) constant (0-arity function symbol).
+   * Create a free constant.
    *
    * SMT-LIB:
    *
@@ -3648,7 +3696,7 @@ class CVC5_EXPORT Solver
    *
    * @param sort the sort of the constant
    * @param symbol the name of the constant (optional)
-   * @return the first-order constant
+   * @return the constant
    */
   Term mkConst(const Sort& sort,
                const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3709,8 +3757,7 @@ class CVC5_EXPORT Solver
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * definitions, and assertions.  It also involves theory normalization.
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -4908,16 +4955,6 @@ class CVC5_EXPORT Solver
    * @return the Term
    */
   Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
-
-  /**
-   * Create a vector of datatype sorts, using unresolved sorts.
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @param unresolvedSorts the list of unresolved sorts
-   * @return the datatype sorts
-   */
-  std::vector<Sort> mkDatatypeSortsInternal(
-      const std::vector<DatatypeDecl>& dtypedecls,
-      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
