@@ -263,7 +263,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("srs-input") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
-  std::set<TypeNode> unres;
   std::vector<SygusDatatype> sdts;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
@@ -273,9 +272,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::stringstream ss;
     ss << "T" << i;
     std::string tname = ss.str();
-    TypeNode tnu = nm->mkSort(tname, NodeManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode tnu = nm->mkUnresolvedDatatypeSort(tname);
     cterm_to_utype[ct] = tnu;
-    unres.insert(tnu);
     sdts.push_back(SygusDatatype(tname));
   }
   Trace("srs-input") << "...finished." << std::endl;
@@ -398,9 +396,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     datatypes.push_back(sdts[i].getDatatype());
   }
   std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(
-      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("srs-input") << "...finished." << std::endl;
-  Assert(types.size() == unres.size());
+  Assert(types.size() == datatypes.size());
   std::map<Node, TypeNode> subtermTypes;
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {

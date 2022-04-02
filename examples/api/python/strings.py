@@ -43,38 +43,42 @@ if __name__ == "__main__":
     z = slv.mkConst(string, "z")
 
     # String concatenation: x.ab.y
-    lhs = slv.mkTerm(Kind.StringConcat, x, ab, y)
+    lhs = slv.mkTerm(Kind.STRING_CONCAT, x, ab, y)
     # String concatenation: abc.z
-    rhs = slv.mkTerm(Kind.StringConcat, abc, z)
+    rhs = slv.mkTerm(Kind.STRING_CONCAT, abc, z)
     # x.ab.y = abc.z
-    formula1 = slv.mkTerm(Kind.Equal, lhs, rhs)
+    formula1 = slv.mkTerm(Kind.EQUAL, lhs, rhs)
 
     # Length of y: |y|
-    leny = slv.mkTerm(Kind.StringLength, y)
+    leny = slv.mkTerm(Kind.STRING_LENGTH, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(Kind.Geq, leny, slv.mkInteger(0))
+    formula2 = slv.mkTerm(Kind.GEQ, leny, slv.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
-    r = slv.mkTerm(Kind.RegexpUnion,
-                   slv.mkTerm(Kind.RegexpConcat,
-                              slv.mkTerm(Kind.StringToRegexp, slv.mkString("ab")),
-                              slv.mkTerm(Kind.RegexpStar,
-                                         slv.mkTerm(Kind.RegexpRange, slv.mkString("c"), slv.mkString("e"))),
-                            slv.mkTerm(Kind.StringToRegexp, slv.mkString("f"))),
-                 slv.mkTerm(Kind.StringToRegexp, slv.mkString("g")),
-                 slv.mkTerm(Kind.StringToRegexp, slv.mkString("h")))
+    r = slv.mkTerm(Kind.REGEXP_UNION,
+                   slv.mkTerm(Kind.REGEXP_CONCAT,
+                              slv.mkTerm(Kind.STRING_TO_REGEXP,
+                                         slv.mkString("ab")),
+                              slv.mkTerm(Kind.REGEXP_STAR,
+                                         slv.mkTerm(Kind.REGEXP_RANGE,
+                                         slv.mkString("c"),
+                                         slv.mkString("e"))),
+                            slv.mkTerm(Kind.STRING_TO_REGEXP,
+                                       slv.mkString("f"))),
+                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("g")),
+                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("h")))
 
     # String variables
     s1 = slv.mkConst(string, "s1")
     s2 = slv.mkConst(string, "s2")
     # String concatenation: s1.s2
-    s = slv.mkTerm(Kind.StringConcat, s1, s2)
+    s = slv.mkTerm(Kind.STRING_CONCAT, s1, s2)
 
     # s1.s2 in (ab[c-e]*f)|g|h
-    formula3 = slv.mkTerm(Kind.StringInRegexp, s, r)
+    formula3 = slv.mkTerm(Kind.STRING_IN_REGEXP, s, r)
 
     # Make a query
-    q = slv.mkTerm(Kind.And,
+    q = slv.mkTerm(Kind.AND,
                    formula1,
                    formula2,
                    formula3)

@@ -415,20 +415,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * Create sorts parameter with Solver.mkParamSort().
    *
-   * @param params the list of sort parameters to instantiate with
-   * @return the instantiated sort
-   */
-  public Sort instantiate(List<Sort> params)
-  {
-    return instantiate(params.toArray(new Sort[0]));
-  }
-
-  /**
-   * Instantiate a parameterized datatype sort or uninterpreted sort
-   * constructor sort.
-   *
-   * Create sorts parameter with Solver.mkParamSort().
-   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param params the list of sort parameters to instantiate with
