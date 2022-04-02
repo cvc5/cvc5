@@ -154,27 +154,6 @@ Java_io_github_cvc5_DatatypeConstructor_getSelector__JLjava_lang_String_2(
 
 /*
  * Class:     io_github_cvc5_DatatypeConstructor
- * Method:    getSelectorTerm
- * Signature: (JLjava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_DatatypeConstructor_getSelectorTerm(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer,
-                                                            jstring jName)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  DatatypeConstructor* current = (DatatypeConstructor*)pointer;
-  const char* s = env->GetStringUTFChars(jName, nullptr);
-  std::string cName(s);
-  Term* retPointer = new Term(current->getSelectorTerm(cName));
-  env->ReleaseStringUTFChars(jName, s);
-  return (jlong)retPointer;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_DatatypeConstructor
  * Method:    isNull
  * Signature: (J)Z
  */
