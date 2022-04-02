@@ -62,49 +62,19 @@ class {enum}(Enum):
 ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
 '''
 
-# Format Kind Names
-# special cases for format_name
-_IS = '_IS'
-# replacements after some preprocessing
-replacements = {'Bitvector': 'BV', 'Floatingpoint': 'FP'}
-
-
-def format_name(name):
-    '''
-    In the Python API, each Kind name is reformatted for easier use
-
-    The naming scheme is:
-       1. capitalize the first letter of each word (delimited by underscores)
-       2. make the rest of the letters lowercase
-       3. replace Floatingpoint with FP
-       4. replace Bitvector with BV
-
-    There is one exception:
-       FLOATINGPOINT_IS_NAN  --> FPIsNan
-
-    For every "_IS" in the name, there's an underscore added before step 1,
-       so that the word after "Is" is capitalized
-
-    Examples:
-       BITVECTOR_ADD       -->  BVAdd
-       APPLY_SELECTOR      -->  ApplySelector
-       FLOATINGPOINT_IS_NAN -->  FPIsNan
-       SET_MINUS            -->  Setminus
-
-    See the generated .pxi file for an explicit mapping
-    '''
-    name = name.replace(_IS, _IS + US)
-    words = [w.capitalize() for w in name.lower().split(US)]
-    name = "".join(words)
-
-    for og, new in replacements.items():
-        name = name.replace(og, new)
-
-    return name
-
-
 comment_repls = {
-    '`Solver::([a-zA-Z]+)\(([^)]*)\)[^`]*`': ':py:meth:`pycvc5.Solver.\\1`',
+    'Term::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Term.\\1()`',
+    'Solver::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`Solver.\\1()`',
+    'Solver::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Solver.\\1()`',
+    'DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`DatatypeConstructor.\\1()`',
+    'DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`DatatypeConstructor.\\1()`',
+    'Datatype::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`Datatype.\\1()`',
+    'Datatype::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Datatype.\\1()`',
+    'DatatypeSelector::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`DatatypeSelector.\\1()`',
+    'DatatypeSelector::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`DatatypeSelector.\\1()`',
+    ':cpp:func:`(.*?)`': '\\1',
+    ':cpp:enumerator:`(.*?)`': ':py:obj:`\\1`',
+    '\\\\': '\\\\\\\\',
 }
 
 
@@ -118,13 +88,6 @@ def gen_pxd(parser: EnumParser, file_prefix, header):
     with open(file_prefix + ".pxd", "w") as f:
         for namespace in parser.namespaces:
             for enum in namespace.enums:
-                # include the format_name docstring in the generated file
-                # could be helpful for users to see the formatting rules
-                for line in format_name.__doc__.split(NL):
-                    f.write(PYCOMMENT)
-                    if not line.isspace():
-                        f.write(line)
-                    f.write(NL)
                 f.write(
                     ENUMS_PXD_TOP_TEMPLATE.format(header=header[len(SOURCE_DIR)
                                                                 + 1:],
@@ -144,7 +107,7 @@ def gen_pxi(parser: EnumParser, file_prefix):
                 for name, value in enum.enumerators.items():
                     doc = reformat_comment(enum.enumerators_doc.get(name, ''))
                     f.write(
-                        ENUMS_ATTR_TEMPLATE.format(name=format_name(name),
+                        ENUMS_ATTR_TEMPLATE.format(name=name,
                                                    enum=enum.name,
                                                    cpp_name=name,
                                                    doc=doc))
