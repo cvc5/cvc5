@@ -2155,16 +2155,14 @@ class CVC5_EXPORT DatatypeConstructor
    * @return the first datatype selector with the given name
    */
   DatatypeSelector operator[](const std::string& name) const;
-  DatatypeSelector getSelector(const std::string& name) const;
-
   /**
-   * Get the term representation of the datatype selector with the given name.
-   * This is a linear search through the arguments, so in case of multiple,
-   * similarly-named arguments, the selector for the first is returned.
+   * Get the datatype selector with the given name.
+   * This is a linear search through the selectors, so in case of
+   * multiple, similarly-named selectors, the first is returned.
    * @param name the name of the datatype selector
-   * @return a term representing the datatype selector with the given name
+   * @return the first datatype selector with the given name
    */
-  Term getSelectorTerm(const std::string& name) const;
+  DatatypeSelector getSelector(const std::string& name) const;
 
   /**
    * @return true if this DatatypeConstructor is a null object

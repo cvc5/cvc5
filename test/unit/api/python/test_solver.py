@@ -829,10 +829,8 @@ def test_mk_term_from_op(solver):
     # list datatype constructor and selector operator terms
     consTerm = lis.getConstructor("cons").getConstructorTerm()
     nilTerm = lis.getConstructor("nil").getConstructorTerm()
-    headTerm1 = lis["cons"].getSelectorTerm("head")
-    headTerm2 = lis["cons"].getSelector("head").getSelectorTerm()
-    tailTerm1 = lis["cons"].getSelectorTerm("tail")
-    tailTerm2 = lis["cons"]["tail"].getSelectorTerm()
+    headTerm = lis["cons"].getSelector("head").getSelectorTerm()
+    tailTerm = lis["cons"]["tail"].getSelectorTerm()
 
     # mkTerm(Op op, Term term) const
     solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
@@ -846,7 +844,7 @@ def test_mk_term_from_op(solver):
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.APPLY_SELECTOR, headTerm1)
+        solver.mkTerm(Kind.APPLY_SELECTOR, headTerm)
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1)
     with pytest.raises(RuntimeError):
@@ -855,8 +853,8 @@ def test_mk_term_from_op(solver):
     # mkTerm(Op op, Term child) const
     solver.mkTerm(opterm1, a)
     solver.mkTerm(opterm2, solver.mkInteger(1))
-    solver.mkTerm(Kind.APPLY_SELECTOR, headTerm1, c)
-    solver.mkTerm(Kind.APPLY_SELECTOR, tailTerm2, c)
+    solver.mkTerm(Kind.APPLY_SELECTOR, headTerm, c)
+    solver.mkTerm(Kind.APPLY_SELECTOR, tailTerm, c)
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm2, a)
     with pytest.raises(RuntimeError):
@@ -1161,7 +1159,7 @@ def test_get_op(solver):
 
     consTerm = consList.getConstructor("cons").getConstructorTerm()
     nilTerm = consList.getConstructor("nil").getConstructorTerm()
-    headTerm = consList["cons"].getSelectorTerm("head")
+    headTerm = consList["cons"].getSelector("head").getSelectorTerm()
 
     listnil = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
     listcons1 = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm,
@@ -1733,7 +1731,9 @@ def test_simplify(solver):
             consList.getConstructor("nil").getConstructorTerm()))
     solver.simplify(dt1)
     dt2 = solver.mkTerm(
-      Kind.APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), dt1)
+      Kind.APPLY_SELECTOR,
+      consList["cons"].getSelector("head").getSelectorTerm(),
+      dt1)
     solver.simplify(dt2)
 
     b1 = solver.mkVar(bvSort, "b1")
