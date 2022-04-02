@@ -48,7 +48,7 @@ public class SygusGrammar
       Term plus = slv.mkTerm(ADD, x, start);
 
       // create the grammar object
-      Grammar g1 = slv.mkSygusGrammar(new Term[] {x}, new Term[] {start});
+      Grammar g1 = slv.mkGrammar(new Term[] {x}, new Term[] {start});
 
       // bind each non-terminal to its rules
       g1.addRules(start, new Term[] {neg_x, plus});

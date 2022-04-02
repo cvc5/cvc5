@@ -1656,7 +1656,7 @@ cdef class Solver:
         r.cr = self.csolver.checkSat()
         return r
 
-    def mkSygusGrammar(self, boundVars, ntSymbols):
+    def mkGrammar(self, boundVars, ntSymbols):
         """
             Create a SyGuS grammar. The first non-terminal is treated as the
             starting non-terminal, so the order of non-terminals matters.
@@ -1673,7 +1673,7 @@ cdef class Solver:
             bvc.push_back((<Term?> bv).cterm)
         for nt in ntSymbols:
             ntc.push_back((<Term?> nt).cterm)
-        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
+        grammar.cgrammar = self.csolver.mkGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
     def declareSygusVar(self, str symbol, Sort sort):

@@ -45,9 +45,9 @@ if __name__ == "__main__":
   plus = slv.mkTerm(Kind.ADD, x, start)
 
   # create the grammar object
-  g1 = slv.mkSygusGrammar({x}, {start})
-  g2 = slv.mkSygusGrammar({x}, {start})
-  g3 = slv.mkSygusGrammar({x}, {start})
+  g1 = slv.mkGrammar({x}, {start})
+  g2 = slv.mkGrammar({x}, {start})
+  g3 = slv.mkGrammar({x}, {start})
 
   # bind each non-terminal to its rules
   g1.addRules(start, {neg_x, plus})
