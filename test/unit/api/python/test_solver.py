@@ -655,6 +655,17 @@ def test_mk_real(solver):
     solver.mkReal(val3, val3)
     solver.mkReal(val4, val4)
 
+    solver.mkReal("1", "2")
+    solver.mkReal("-1", "2")
+    solver.mkReal(-1, "2")
+    solver.mkReal("-1", 2)
+    with pytest.raises(TypeError):
+        solver.mkReal(1, 2, 3)
+    with pytest.raises(RuntimeError):
+        solver.mkReal("1.0", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkReal(1, "asdf")
+
 
 def test_mk_regexp_none(solver):
     strSort = solver.getStringSort()
