@@ -365,7 +365,8 @@ cdef class DatatypeConstructor:
 
 cdef class DatatypeConstructorDecl:
     """
-        A cvc5 datatype constructor declaration.
+        A cvc5 datatype constructor declaration. A datatype constructor
+        declaration is a specification used for creating a datatype constructor.
 
         Wrapper class for :cpp:class:`cvc5::DatatypeConstructorDecl`.
     """
@@ -421,7 +422,19 @@ cdef class DatatypeConstructorDecl:
 
 cdef class DatatypeDecl:
     """
-        A cvc5 datatype declaration.
+        A cvc5 datatype declaration. A datatype declaration is not itself a
+        datatype (see :py:class:`cvc5.Datatype`), but a specification for creating a datatype
+        sort.
+
+        The interface for a datatype declaration coincides with the syntax for
+        the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
+        the `declare-datatypes` command.
+
+        Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
+        the methods:
+        
+            - :py:meth:`Solver.mkDatatypeSort()`
+            - :py:meth:`Solver.mkDatatypeSorts()`
 
         Wrapper class for :cpp:class:`cvc5::DatatypeDecl`.
     """
@@ -594,7 +607,9 @@ cdef class Op:
 
 cdef class Grammar:
     """
-        A Sygus Grammar.
+        A Sygus Grammar. This class can be used to define a context-free grammar
+        of terms. Its interface coincides with the definition of grammars
+        (``GrammarDef``) in the SyGuS IF 2.1 standard.
 
         Wrapper class for :cpp:class:`cvc5::Grammar`.
     """

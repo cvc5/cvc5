@@ -15,6 +15,10 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 datatype constructor declaration. A datatype constructor declaration
+ * is a specification used for creating a datatype constructor.
+ */
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
