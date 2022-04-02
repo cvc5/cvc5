@@ -196,8 +196,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(throwsDecls), CVC5ApiException);
 
   /* with unresolved sorts */
-  Sort unresList = d_solver.mkUnresolvedSort("ulist");
-  std::set<Sort> unresSorts = {unresList};
+  Sort unresList = d_solver.mkUnresolvedDatatypeSort("ulist");
   DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
   DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
   ucons.addSelector("car", unresList);
@@ -206,15 +205,15 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   DatatypeConstructorDecl unil = d_solver.mkDatatypeConstructorDecl("unil");
   ulist.addConstructor(unil);
   std::vector<DatatypeDecl> udecls = {ulist};
-  ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls, unresSorts));
+  ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls));
 
-  ASSERT_THROW(slv.mkDatatypeSorts(udecls, unresSorts), CVC5ApiException);
+  ASSERT_THROW(slv.mkDatatypeSorts(udecls), CVC5ApiException);
 
   /* mutually recursive with unresolved parameterized sorts */
   Sort p0 = d_solver.mkParamSort("p0");
   Sort p1 = d_solver.mkParamSort("p1");
-  Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
-  Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+  Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
+  Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
   DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
   DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
   DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
@@ -223,8 +222,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ctordecl1.addSelector("s1", u0.instantiate({p1}));
   dtdecl0.addConstructor(ctordecl0);
   dtdecl1.addConstructor(ctordecl1);
-  std::vector<Sort> dt_sorts =
-      d_solver.mkDatatypeSorts({dtdecl0, dtdecl1}, {u0, u1});
+  std::vector<Sort> dt_sorts = d_solver.mkDatatypeSorts({dtdecl0, dtdecl1});
   Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
   Term t1 = d_solver.mkConst(isort1, "t");
   Term t0 = d_solver.mkTerm(
@@ -352,12 +350,12 @@ TEST_F(TestApiBlackSolver, mkUninterpretedSort)
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort(""));
 }
 
-TEST_F(TestApiBlackSolver, mkUnresolvedSort)
+TEST_F(TestApiBlackSolver, mkUnresolvedDatatypeSort)
 {
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u"));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u", 1));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(""));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort("u"));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort("u", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort(""));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort("", 1));
 }
 
 TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)
@@ -856,10 +854,8 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
   // list datatype constructor and selector operator terms
   Term consTerm = list.getConstructor("cons").getConstructorTerm();
   Term nilTerm = list.getConstructor("nil").getConstructorTerm();
-  Term headTerm1 = list["cons"].getSelectorTerm("head");
-  Term headTerm2 = list["cons"].getSelector("head").getSelectorTerm();
-  Term tailTerm1 = list["cons"].getSelectorTerm("tail");
-  Term tailTerm2 = list["cons"]["tail"].getSelectorTerm();
+  Term headTerm = list["cons"].getSelector("head").getSelectorTerm();
+  Term tailTerm = list["cons"]["tail"].getSelectorTerm();
 
   // mkTerm(Op op, Term term) const
   ASSERT_NO_THROW(d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm}));
@@ -868,15 +864,15 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
   ASSERT_THROW(d_solver.mkTerm(APPLY_CONSTRUCTOR, {consTerm}),
                CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm1), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(APPLY_SELECTOR, {headTerm1}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(APPLY_SELECTOR, {headTerm}), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm1), CVC5ApiException);
   ASSERT_THROW(slv.mkTerm(APPLY_CONSTRUCTOR, {nilTerm}), CVC5ApiException);
 
   // mkTerm(Op op, Term child) const
   ASSERT_NO_THROW(d_solver.mkTerm(opterm1, {a}));
   ASSERT_NO_THROW(d_solver.mkTerm(opterm2, {d_solver.mkInteger(1)}));
-  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_SELECTOR, {headTerm1, c}));
-  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_SELECTOR, {tailTerm2, c}));
+  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_SELECTOR, {headTerm, c}));
+  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_SELECTOR, {tailTerm, c}));
   ASSERT_THROW(d_solver.mkTerm(opterm2, {a}), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm1, {Term()}), CVC5ApiException);
   ASSERT_THROW(
@@ -1504,7 +1500,7 @@ TEST_F(TestApiBlackSolver, getOp)
 
   Term consTerm = consList.getConstructor("cons").getConstructorTerm();
   Term nilTerm = consList.getConstructor("nil").getConstructorTerm();
-  Term headTerm = consList["cons"].getSelectorTerm("head");
+  Term headTerm = consList["cons"].getSelector("head").getSelectorTerm();
 
   Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
   Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
@@ -2373,8 +2369,9 @@ TEST_F(TestApiBlackSolver, simplify)
        d_solver.mkTerm(APPLY_CONSTRUCTOR,
                        {consList.getConstructor("nil").getConstructorTerm()})});
   ASSERT_NO_THROW(d_solver.simplify(dt1));
-  Term dt2 = d_solver.mkTerm(APPLY_SELECTOR,
-                             {consList["cons"].getSelectorTerm("head"), dt1});
+  Term dt2 = d_solver.mkTerm(
+      APPLY_SELECTOR,
+      {consList["cons"].getSelector("head").getSelectorTerm(), dt1});
   ASSERT_NO_THROW(d_solver.simplify(dt2));
 
   Term b1 = d_solver.mkVar(bvSort, "b1");
@@ -2976,11 +2973,13 @@ TEST_F(TestApiBlackSolver, proj_issue378)
   Term t1507 = d_solver.mkTerm(
       APPLY_CONSTRUCTOR,
       {s9.getDatatype().getConstructor("_x184").getConstructorTerm(), t7});
-  ASSERT_NO_THROW(d_solver.mkTerm(
-      APPLY_UPDATER,
-      {s9.getDatatype().getConstructor("_x186").getSelectorTerm("_x185"),
-       t1507,
-       t7}));
+  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_UPDATER,
+                                  {s9.getDatatype()
+                                       .getConstructor("_x186")
+                                       .getSelector("_x185")
+                                       .getSelectorTerm(),
+                                   t1507,
+                                   t7}));
 }
 
 TEST_F(TestApiBlackSolver, proj_issue379)
@@ -3344,9 +3343,11 @@ TEST_F(TestApiBlackSolver, projIssue431)
   Sort s14 = slv.mkDatatypeSorts({_dt46})[0];
   Term t31 = slv.mkConst(s7, "_x100");
   Term t47 = slv.mkConst(s14, "_x112");
-  Term sel =
-      t47.getSort().getDatatype().getConstructor("_cons64").getSelectorTerm(
-          "_sel62");
+  Term sel = t47.getSort()
+                 .getDatatype()
+                 .getConstructor("_cons64")
+                 .getSelector("_sel62")
+                 .getSelectorTerm();
   Term t274 = slv.mkTerm(APPLY_SELECTOR, {sel, t47});
   Term t488 = slv.mkTerm(Kind::APPLY_UF, {t31, t274});
   slv.assertFormula({t488});

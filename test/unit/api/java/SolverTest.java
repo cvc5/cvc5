@@ -184,9 +184,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(throwsDecls));
 
     /* with unresolved sorts */
-    Sort unresList = d_solver.mkUnresolvedSort("ulist", 1);
-    Set<Sort> unresSorts = new HashSet<>();
-    unresSorts.add(unresList);
+    Sort unresList = d_solver.mkUnresolvedDatatypeSort("ulist", 1);
     DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
     DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
     ucons.addSelector("car", unresList);
@@ -195,17 +193,16 @@ class SolverTest
     DatatypeConstructorDecl unil = d_solver.mkDatatypeConstructorDecl("unil");
     ulist.addConstructor(unil);
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
-    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+    assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(udecls));
 
-    assertThrows(
-        CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
     slv.close();
 
     /* mutually recursive with unresolved parameterized sorts */
     Sort p0 = d_solver.mkParamSort("p0");
     Sort p1 = d_solver.mkParamSort("p1");
-    Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
-    Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+    Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
+    Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
     DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
     DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
     DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
@@ -214,8 +211,7 @@ class SolverTest
     ctordecl1.addSelector("s1", u0.instantiate(new Sort[] {p1}));
     dtdecl0.addConstructor(ctordecl0);
     dtdecl1.addConstructor(ctordecl1);
-    Sort[] dt_sorts =
-        d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1}, new Sort[] {u0, u1});
+    Sort[] dt_sorts = d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1});
     Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
     Term t1 = d_solver.mkConst(isort1, "t");
     Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
@@ -360,12 +356,12 @@ class SolverTest
   }
 
   @Test
-  void mkUnresolvedSort() throws CVC5ApiException
+  void mkUnresolvedDatatypeSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort("u"));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort("u", 1));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort(""));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedDatatypeSort("", 1));
   }
 
   @Test
@@ -840,10 +836,8 @@ class SolverTest
     // list datatype constructor and selector operator terms
     Term consTerm = list.getConstructor("cons").getConstructorTerm();
     Term nilTerm = list.getConstructor("nil").getConstructorTerm();
-    Term headTerm1 = list.getConstructor("cons").getSelectorTerm("head");
-    Term headTerm2 = list.getConstructor("cons").getSelector("head").getSelectorTerm();
-    Term tailTerm1 = list.getConstructor("cons").getSelectorTerm("tail");
-    Term tailTerm2 = list.getConstructor("cons").getSelector("tail").getSelectorTerm();
+    Term headTerm = list.getConstructor("cons").getSelector("head").getSelectorTerm();
+    Term tailTerm = list.getConstructor("cons").getSelector("tail").getSelectorTerm();
 
     // mkTerm(Op op, Term term) const
     assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
@@ -851,15 +845,15 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, consTerm));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, headTerm));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1));
     assertThrows(CVC5ApiException.class, () -> slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
 
     // mkTerm(Op op, Term child) const
     assertDoesNotThrow(() -> d_solver.mkTerm(opterm1, a));
     assertDoesNotThrow(() -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1)));
-    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1, c));
-    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, tailTerm2, c));
+    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, headTerm, c));
+    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, tailTerm, c));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, a));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, d_solver.getNullTerm()));
     assertThrows(CVC5ApiException.class,
@@ -1549,7 +1543,7 @@ class SolverTest
 
     Term consTerm = consList.getConstructor("cons").getConstructorTerm();
     Term nilTerm = consList.getConstructor("nil").getConstructorTerm();
-    Term headTerm = consList.getConstructor("cons").getSelectorTerm("head");
+    Term headTerm = consList.getConstructor("cons").getSelector("head").getSelectorTerm();
 
     Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm);
     Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm, d_solver.mkInteger(1), listnil);
@@ -2425,7 +2419,7 @@ class SolverTest
         d_solver.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructor("nil").getConstructorTerm()));
     assertDoesNotThrow(() -> d_solver.simplify(dt1));
     Term dt2 = d_solver.mkTerm(
-        APPLY_SELECTOR, consList.getConstructor("cons").getSelectorTerm("head"), dt1);
+        APPLY_SELECTOR, consList.getConstructor("cons").getSelector("head").getSelectorTerm(), dt1);
     assertDoesNotThrow(() -> d_solver.simplify(dt2));
 
     Term b1 = d_solver.mkVar(bvSort, "b1");

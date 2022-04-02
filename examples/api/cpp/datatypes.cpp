@@ -56,7 +56,8 @@ void test(Solver& slv, Sort& consListSort)
   // consList["cons"]) in order to get the "head" selector symbol
   // to apply.
   Term t2 =
-      slv.mkTerm(APPLY_SELECTOR, {consList["cons"].getSelectorTerm("head"), t});
+      slv.mkTerm(APPLY_SELECTOR,
+                 {consList["cons"].getSelector("head").getSelectorTerm(), t});
 
   std::cout << "t2 is " << t2 << std::endl
             << "simplify(t2) is " << slv.simplify(t2) << std::endl
@@ -131,8 +132,9 @@ void test(Solver& slv, Sort& consListSort)
   Term a = slv.mkConst(paramConsIntListSort, "a");
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
-  Term head_a = slv.mkTerm(APPLY_SELECTOR,
-                           {paramConsList["cons"].getSelectorTerm("head"), a});
+  Term head_a = slv.mkTerm(
+      APPLY_SELECTOR,
+      {paramConsList["cons"].getSelector("head").getSelectorTerm(), a});
   std::cout
       << "head_a is " << head_a << " of sort " << head_a.getSort() << std::endl
       << "sort of cons is "

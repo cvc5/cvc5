@@ -15,6 +15,10 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 datatype constructor declaration. A datatype constructor declaration
+ * is a specification used for creating a datatype constructor.
+ */
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
@@ -55,6 +59,21 @@ public class DatatypeConstructorDecl extends AbstractPointer
   }
 
   private native void addSelectorSelf(long pointer, String name);
+
+  /**
+   * Add datatype selector declaration whose codomain sort is an unresolved
+   * datatype with the given name.
+   * @param name the name of the datatype selector declaration to add
+   * @param unresDataypeName the name of the unresolved datatype. The codomain
+   *                         of the selector will be the resolved datatype with
+   *                         the given name.
+   */
+  public void addSelectorUnresolved(String name, String unresDataypeName)
+  {
+    addSelectorUnresolved(pointer, name, unresDataypeName);
+  }
+
+  private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
 
   /**
    * @return true if this DatatypeConstructorDecl is a null declaration.

@@ -15,6 +15,16 @@
 
 package io.github.cvc5;
 
+/**
+ * Encapsulation of a solver synth result.
+ *
+ * This is the return value of the API methods:
+ *   - {@link Solver#checkSynth()}
+ *   - {@link Solver#checkSynthNext()}
+ *
+ * which we call synthesis queries.  This class indicates whether the
+ * synthesis query has a solution, has no solution, or is unknown.
+ */
 public class SynthResult extends AbstractPointer
 {
   // region construction and destruction
