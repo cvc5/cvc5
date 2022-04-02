@@ -196,8 +196,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(throwsDecls), CVC5ApiException);
 
   /* with unresolved sorts */
-  Sort unresList = d_solver.mkUnresolvedSort("ulist");
-  std::set<Sort> unresSorts = {unresList};
+  Sort unresList = d_solver.mkUnresolvedDatatypeSort("ulist");
   DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
   DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
   ucons.addSelector("car", unresList);
@@ -206,15 +205,15 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   DatatypeConstructorDecl unil = d_solver.mkDatatypeConstructorDecl("unil");
   ulist.addConstructor(unil);
   std::vector<DatatypeDecl> udecls = {ulist};
-  ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls, unresSorts));
+  ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls));
 
-  ASSERT_THROW(slv.mkDatatypeSorts(udecls, unresSorts), CVC5ApiException);
+  ASSERT_THROW(slv.mkDatatypeSorts(udecls), CVC5ApiException);
 
   /* mutually recursive with unresolved parameterized sorts */
   Sort p0 = d_solver.mkParamSort("p0");
   Sort p1 = d_solver.mkParamSort("p1");
-  Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
-  Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+  Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
+  Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
   DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
   DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
   DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
@@ -223,8 +222,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ctordecl1.addSelector("s1", u0.instantiate({p1}));
   dtdecl0.addConstructor(ctordecl0);
   dtdecl1.addConstructor(ctordecl1);
-  std::vector<Sort> dt_sorts =
-      d_solver.mkDatatypeSorts({dtdecl0, dtdecl1}, {u0, u1});
+  std::vector<Sort> dt_sorts = d_solver.mkDatatypeSorts({dtdecl0, dtdecl1});
   Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
   Term t1 = d_solver.mkConst(isort1, "t");
   Term t0 = d_solver.mkTerm(
@@ -352,12 +350,12 @@ TEST_F(TestApiBlackSolver, mkUninterpretedSort)
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort(""));
 }
 
-TEST_F(TestApiBlackSolver, mkUnresolvedSort)
+TEST_F(TestApiBlackSolver, mkUnresolvedDatatypeSort)
 {
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u"));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u", 1));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(""));
-  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort("u"));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort("u", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort(""));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedDatatypeSort("", 1));
 }
 
 TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)

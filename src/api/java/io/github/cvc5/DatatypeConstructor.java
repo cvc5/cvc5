@@ -18,6 +18,9 @@ package io.github.cvc5;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * A cvc5 datatype constructor.
+ */
 public class DatatypeConstructor extends AbstractPointer implements Iterable<DatatypeSelector>
 {
   // region construction and destruction
