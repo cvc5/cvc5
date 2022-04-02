@@ -69,7 +69,7 @@ jobs:
     # cancel already running jobs for the same branch/pr/tag
     concurrency:
       group: build-${{ github.ref }}-${{ matrix.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
-      cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+      cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
 

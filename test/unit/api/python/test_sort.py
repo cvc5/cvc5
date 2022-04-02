@@ -136,7 +136,7 @@ def test_is_datatype(solver):
 def test_is_constructor(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
-    cons_sort = dt[0].getConstructorTerm().getSort()
+    cons_sort = dt[0].getTerm().getSort()
     assert cons_sort.isDatatypeConstructor()
     Sort(solver).isDatatypeConstructor()
 
@@ -146,7 +146,7 @@ def test_is_selector(solver):
     dt = dt_sort.getDatatype()
     dt0 = dt[0]
     dt01 = dt0[1]
-    cons_sort = dt01.getSelectorTerm().getSort()
+    cons_sort = dt01.getTerm().getSort()
     assert cons_sort.isDatatypeSelector()
     Sort(solver).isDatatypeSelector()
 
@@ -250,7 +250,7 @@ def test_datatype_sorts(solver):
 
     # get constructor
     dcons = dt[0]
-    consTerm = dcons.getConstructorTerm()
+    consTerm = dcons.getTerm()
     consSort = consTerm.getSort()
     assert consSort.isDatatypeConstructor()
     assert not consSort.isDatatypeTester()
@@ -275,7 +275,7 @@ def test_datatype_sorts(solver):
 
     # get selector
     dselTail = dcons[1]
-    tailTerm = dselTail.getSelectorTerm()
+    tailTerm = dselTail.getTerm()
     assert tailTerm.getSort().isDatatypeSelector()
     assert tailTerm.getSort().getDatatypeSelectorDomainSort() == dtypeSort
     assert tailTerm.getSort().getDatatypeSelectorCodomainSort() == dtypeSort

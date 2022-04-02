@@ -19,6 +19,9 @@ import io.github.cvc5.modes.BlockModelsMode;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * A cvc5 solver.
+ */
 public class Solver implements IPointer, AutoCloseable
 {
   private long pointer;

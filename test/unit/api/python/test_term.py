@@ -187,10 +187,10 @@ def test_get_op(solver):
     c = solver.mkConst(intListSort, "c")
     list1 = listSort.getDatatype()
     # list datatype constructor and selector operator terms
-    consOpTerm = list1.getConstructor("cons").getConstructorTerm()
-    nilOpTerm = list1.getConstructor("nil").getConstructorTerm()
-    headOpTerm = list1["cons"].getSelectorTerm("head")
-    tailOpTerm = list1["cons"].getSelectorTerm("tail")
+    consOpTerm = list1.getConstructor("cons").getTerm()
+    nilOpTerm = list1.getConstructor("nil").getTerm()
+    headOpTerm = list1["cons"].getSelector("head").getTerm()
+    tailOpTerm = list1["cons"].getSelector("tail").getTerm()
 
     nilTerm = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilOpTerm)
     consTerm = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consOpTerm,

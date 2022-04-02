@@ -153,6 +153,14 @@ void ExponentialSolver::checkMonotonic()
 
   for (const Node& tf : it->second)
   {
+    Node mva = d_data->d_model.computeAbstractModelValue(tf);
+    if (mva == tf)
+    {
+      // if it was not assigned a model value by the linear solver, it is
+      // not a relevant term. This can happen for terms like (exp (exp 1.0)),
+      // where (exp 1.0) is not relevant until we purify (exp (exp 1.0)).
+      continue;
+    }
     Node a = tf[0];
     Node mvaa = d_data->d_model.computeAbstractModelValue(a);
     if (mvaa.isConst())
@@ -178,7 +186,8 @@ void ExponentialSolver::checkMonotonic()
     Assert(sargval.isConst());
     Node s = tf_arg_to_term[sarg];
     Node sval = d_data->d_model.computeAbstractModelValue(s);
-    Assert(sval.isConst());
+    Assert(sval.isConst()) << "non-constant model value " << sval << " for "
+                           << s;
 
     // store the concavity region
     d_data->d_tf_region[s] = 1;
