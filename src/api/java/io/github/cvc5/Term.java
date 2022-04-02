@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+/**
+ * A cvc5 Term.
+ */
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
   // region construction and destruction

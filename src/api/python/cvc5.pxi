@@ -256,12 +256,12 @@ cdef class DatatypeConstructor:
         """
         return self.cdc.getName().decode()
 
-    def getConstructorTerm(self):
+    def getTerm(self):
         """
             :return: The constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getConstructorTerm()
+        term.cterm = self.cdc.getTerm()
         return term
 
     def getInstantiatedConstructorTerm(self, Sort retSort):
@@ -333,16 +333,6 @@ cdef class DatatypeConstructor:
         ds.cds = self.cdc.getSelector(name.encode())
         return ds
 
-    def getSelectorTerm(self, str name):
-        """
-            :param name: The name of the datatype selector.
-            :return: A term representing the firstdatatype selector with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getSelectorTerm(name.encode())
-        return term
-
     def isNull(self):
         """
             :return: True if this DatatypeConstructor is a null object.
@@ -365,7 +355,8 @@ cdef class DatatypeConstructor:
 
 cdef class DatatypeConstructorDecl:
     """
-        A cvc5 datatype constructor declaration.
+        A cvc5 datatype constructor declaration. A datatype constructor
+        declaration is a specification used for creating a datatype constructor.
 
         Wrapper class for :cpp:class:`cvc5::DatatypeConstructorDecl`.
     """
@@ -421,7 +412,19 @@ cdef class DatatypeConstructorDecl:
 
 cdef class DatatypeDecl:
     """
-        A cvc5 datatype declaration.
+        A cvc5 datatype declaration. A datatype declaration is not itself a
+        datatype (see :py:class:`cvc5.Datatype`), but a specification for creating a datatype
+        sort.
+
+        The interface for a datatype declaration coincides with the syntax for
+        the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
+        the `declare-datatypes` command.
+
+        Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
+        the methods:
+        
+            - :py:meth:`Solver.mkDatatypeSort()`
+            - :py:meth:`Solver.mkDatatypeSorts()`
 
         Wrapper class for :cpp:class:`cvc5::DatatypeDecl`.
     """
@@ -447,6 +450,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :return: True if this datatype declaration is parametric.
         """
         return self.cdd.isParametric()
@@ -488,12 +494,12 @@ cdef class DatatypeSelector:
         """
         return self.cds.getName().decode()
 
-    def getSelectorTerm(self):
+    def getTerm(self):
         """
             :return: The selector opeartor of this datatype selector as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cds.getSelectorTerm()
+        term.cterm = self.cds.getTerm()
         return term
 
     def getUpdaterTerm(self):
@@ -594,7 +600,9 @@ cdef class Op:
 
 cdef class Grammar:
     """
-        A Sygus Grammar.
+        A Sygus Grammar. This class can be used to define a context-free grammar
+        of terms. Its interface coincides with the definition of grammars
+        (``GrammarDef``) in the SyGuS IF 2.1 standard.
 
         Wrapper class for :cpp:class:`cvc5::Grammar`.
     """
@@ -1575,10 +1583,6 @@ cdef class Solver:
             if isinstance(sorts_or_bool, bool):
                 dd.cdd = self.csolver.mkDatatypeDecl(
                         <const string &> name.encode(), <bint> sorts_or_bool)
-            elif isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort)
             elif isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
@@ -1589,12 +1593,7 @@ cdef class Solver:
                 raise ValueError("Unhandled second argument type {}"
                                  .format(type(sorts_or_bool)))
         elif sorts_or_bool is not None and isCoDatatype is not None:
-            if isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort,
-                        <bint> isCoDatatype)
-            elif isinstance(sorts_or_bool, list):
+            if isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
                 dd.cdd = self.csolver.mkDatatypeDecl(

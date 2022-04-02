@@ -35,28 +35,25 @@ void test(Solver& slv, Sort& consListSort)
   // which is equivalent to consList["cons"].getConstructor().  Note that
   // "nil" is a constructor too, so it needs to be applied with
   // APPLY_CONSTRUCTOR, even though it has no arguments.
-  Term t = slv.mkTerm(
-      APPLY_CONSTRUCTOR,
-      {consList.getConstructor("cons").getConstructorTerm(),
-       slv.mkInteger(0),
-       slv.mkTerm(APPLY_CONSTRUCTOR,
-                  {consList.getConstructor("nil").getConstructorTerm()})});
+  Term t = slv.mkTerm(APPLY_CONSTRUCTOR,
+                      {consList.getConstructor("cons").getTerm(),
+                       slv.mkInteger(0),
+                       slv.mkTerm(APPLY_CONSTRUCTOR,
+                                  {consList.getConstructor("nil").getTerm()})});
 
   std::cout << "t is " << t << std::endl
             << "sort of cons is "
-            << consList.getConstructor("cons").getConstructorTerm().getSort()
-            << std::endl
+            << consList.getConstructor("cons").getTerm().getSort() << std::endl
             << "sort of nil is "
-            << consList.getConstructor("nil").getConstructorTerm().getSort()
-            << std::endl;
+            << consList.getConstructor("nil").getTerm().getSort() << std::endl;
 
   // t2 = head(cons 0 nil), and of course this can be evaluated
   //
   // Here we first get the DatatypeConstructor for cons (with
   // consList["cons"]) in order to get the "head" selector symbol
   // to apply.
-  Term t2 =
-      slv.mkTerm(APPLY_SELECTOR, {consList["cons"].getSelectorTerm("head"), t});
+  Term t2 = slv.mkTerm(APPLY_SELECTOR,
+                       {consList["cons"].getSelector("head").getTerm(), t});
 
   std::cout << "t2 is " << t2 << std::endl
             << "simplify(t2) is " << slv.simplify(t2) << std::endl
@@ -103,8 +100,7 @@ void test(Solver& slv, Sort& consListSort)
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
   DatatypeDecl paramConsListSpec =
-      slv.mkDatatypeDecl("paramlist",
-                         sort);  // give the datatype a name
+      slv.mkDatatypeDecl("paramlist", {sort});  // give the datatype a name
   DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
@@ -131,14 +127,14 @@ void test(Solver& slv, Sort& consListSort)
   Term a = slv.mkConst(paramConsIntListSort, "a");
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
-  Term head_a = slv.mkTerm(APPLY_SELECTOR,
-                           {paramConsList["cons"].getSelectorTerm("head"), a});
-  std::cout
-      << "head_a is " << head_a << " of sort " << head_a.getSort() << std::endl
-      << "sort of cons is "
-      << paramConsList.getConstructor("cons").getConstructorTerm().getSort()
-      << std::endl
-      << std::endl;
+  Term head_a = slv.mkTerm(
+      APPLY_SELECTOR, {paramConsList["cons"].getSelector("head").getTerm(), a});
+  std::cout << "head_a is " << head_a << " of sort " << head_a.getSort()
+            << std::endl
+            << "sort of cons is "
+            << paramConsList.getConstructor("cons").getTerm().getSort()
+            << std::endl
+            << std::endl;
 
   Term assertion = slv.mkTerm(GT, {head_a, slv.mkInteger(50)});
   std::cout << "Assert " << assertion << std::endl;

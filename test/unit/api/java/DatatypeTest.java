@@ -54,8 +54,8 @@ class DatatypeTest
     DatatypeConstructor consConstr = d.getConstructor(0);
     DatatypeConstructor nilConstr = d.getConstructor(1);
     assertThrows(CVC5ApiException.class, () -> d.getConstructor(2));
-    assertDoesNotThrow(() -> consConstr.getConstructorTerm());
-    assertDoesNotThrow(() -> nilConstr.getConstructorTerm());
+    assertDoesNotThrow(() -> consConstr.getTerm());
+    assertDoesNotThrow(() -> nilConstr.getTerm());
   }
 
   @Test
@@ -200,7 +200,7 @@ class DatatypeTest
     assertTrue(dt.isWellFounded());
     // get constructor
     DatatypeConstructor dcons = dt.getConstructor(0);
-    Term consTerm = dcons.getConstructorTerm();
+    Term consTerm = dcons.getTerm();
     assertEquals(dcons.getNumSelectors(), 2);
 
     // create datatype sort to test
@@ -592,7 +592,7 @@ class DatatypeTest
     // get the specialized constructor term for list[Int]
     assertDoesNotThrow(() -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
     Term testConsTerm = atomicTerm.get();
-    assertNotEquals(testConsTerm, nilc.getConstructorTerm());
+    assertNotEquals(testConsTerm, nilc.getTerm());
     // error to get the specialized constructor term for Int
     assertThrows(CVC5ApiException.class, () -> nilc.getInstantiatedConstructorTerm(isort));
   }

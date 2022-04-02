@@ -36,8 +36,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSort)
   DatatypeConstructor consConstr = d[0];
   DatatypeConstructor nilConstr = d[1];
   ASSERT_THROW(d[2], CVC5ApiException);
-  ASSERT_NO_THROW(consConstr.getConstructorTerm());
-  ASSERT_NO_THROW(nilConstr.getConstructorTerm());
+  ASSERT_NO_THROW(consConstr.getTerm());
+  ASSERT_NO_THROW(nilConstr.getTerm());
 }
 
 TEST_F(TestApiBlackDatatype, isNull)
@@ -206,7 +206,7 @@ TEST_F(TestApiBlackDatatype, datatypeStructs)
   ASSERT_TRUE(dt.isWellFounded());
   // get constructor
   DatatypeConstructor dcons = dt[0];
-  Term consTerm = dcons.getConstructorTerm();
+  Term consTerm = dcons.getTerm();
   ASSERT_EQ(dcons.getNumSelectors(), 2);
 
   // create datatype sort to test
@@ -588,7 +588,7 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
   ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedConstructorTerm(listInt));
-  ASSERT_NE(testConsTerm, nilc.getConstructorTerm());
+  ASSERT_NE(testConsTerm, nilc.getTerm());
   // error to get the specialized constructor term for Int
   ASSERT_THROW(nilc.getInstantiatedConstructorTerm(isort), CVC5ApiException);
 }

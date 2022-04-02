@@ -1789,7 +1789,8 @@ class DatatypeConstructorIterator;
 class DatatypeIterator;
 
 /**
- * A cvc5 datatype constructor declaration.
+ * A cvc5 datatype constructor declaration. A datatype constructor declaration
+ * is a specification used for creating a datatype constructor.
  */
 class CVC5_EXPORT DatatypeConstructorDecl
 {
@@ -1877,7 +1878,16 @@ class CVC5_EXPORT DatatypeConstructorDecl
 class Solver;
 
 /**
- * A cvc5 datatype declaration.
+ * A cvc5 datatype declaration. A datatype declaration is not itself a datatype
+ * (see Datatype), but a specification for creating a datatype sort.
+ *
+ * The interface for a datatype declaration coincides with the syntax for the
+ * SMT-LIB 2.6 command `declare-datatype`, or a single datatype within the
+ * `declare-datatypes` command.
+ *
+ * Datatype sorts can be constructed from DatatypeDecl using the methods:
+ *   - Solver::mkDatatypeSort()
+ *   - Solver::mkDatatypeSorts()
  */
 class CVC5_EXPORT DatatypeDecl
 {
@@ -1903,7 +1913,11 @@ class CVC5_EXPORT DatatypeDecl
   /** Get the number of constructors (so far) for this Datatype declaration. */
   size_t getNumConstructors() const;
 
-  /** Is this Datatype declaration parametric? */
+  /**
+   * Is this Datatype declaration parametric?
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
   bool isParametric() const;
 
   /**
@@ -2007,7 +2021,7 @@ class CVC5_EXPORT DatatypeSelector
    * Get the selector operator of this datatype selector.
    * @return the selector term
    */
-  Term getSelectorTerm() const;
+  Term getTerm() const;
 
   /**
    * Get the updater operator of this datatype selector.
@@ -2082,7 +2096,7 @@ class CVC5_EXPORT DatatypeConstructor
    * Get the constructor operator of this datatype constructor.
    * @return the constructor term
    */
-  Term getConstructorTerm() const;
+  Term getTerm() const;
 
   /**
    * Get the constructor operator of this datatype constructor whose return
@@ -2145,16 +2159,14 @@ class CVC5_EXPORT DatatypeConstructor
    * @return the first datatype selector with the given name
    */
   DatatypeSelector operator[](const std::string& name) const;
-  DatatypeSelector getSelector(const std::string& name) const;
-
   /**
-   * Get the term representation of the datatype selector with the given name.
-   * This is a linear search through the arguments, so in case of multiple,
-   * similarly-named arguments, the selector for the first is returned.
+   * Get the datatype selector with the given name.
+   * This is a linear search through the selectors, so in case of
+   * multiple, similarly-named selectors, the first is returned.
    * @param name the name of the datatype selector
-   * @return a term representing the datatype selector with the given name
+   * @return the first datatype selector with the given name
    */
-  Term getSelectorTerm(const std::string& name) const;
+  DatatypeSelector getSelector(const std::string& name) const;
 
   /**
    * @return true if this DatatypeConstructor is a null object
@@ -2629,7 +2641,9 @@ std::ostream& operator<<(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 /**
- * A Sygus Grammar.
+ * A Sygus Grammar. This class can be used to define a context-free grammar
+ * of terms. Its interface coincides with the definition of grammars
+ * (``GrammarDef``) in the SyGuS IF 2.1 standard.
  */
 class CVC5_EXPORT Grammar
 {
@@ -3734,18 +3748,9 @@ class CVC5_EXPORT Solver
   /**
    * Create a datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
-   */
-  DatatypeDecl mkDatatypeDecl(const std::string& name,
-                              const Sort& param,
-                              bool isCoDatatype = false);
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
