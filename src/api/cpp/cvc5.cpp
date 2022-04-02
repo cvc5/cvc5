@@ -6058,18 +6058,6 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
 }
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
-                                    const Sort& param,
-                                    bool isCoDatatype)
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(param);
-  //////// all checks before this line
-  return DatatypeDecl(this, name, param, isCoDatatype);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     const std::vector<Sort>& params,
                                     bool isCoDatatype)
 {

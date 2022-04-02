@@ -292,8 +292,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h

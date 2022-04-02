@@ -41,7 +41,7 @@ def create_datatype_sort(solver):
 
 def create_param_datatype_sort(solver):
     sort = solver.mkParamSort("T")
-    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", sort)
+    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", [sort])
     paramCons = solver.mkDatatypeConstructorDecl("cons")
     paramNil = solver.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)

@@ -1340,35 +1340,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, Sort param)
-  {
-    return mkDatatypeDecl(name, param, false);
-  }
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, Sort param, boolean isCoDatatype)
-  {
-    long declPointer = mkDatatypeDecl(pointer, name, param.getPointer(), isCoDatatype);
-    return new DatatypeDecl(this, declPointer);
-  }
-
-  private native long mkDatatypeDecl(
-      long pointer, String name, long paramPointer, boolean isCoDatatype);
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @return the DatatypeDecl

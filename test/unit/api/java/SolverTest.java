@@ -203,8 +203,8 @@ class SolverTest
     Sort p1 = d_solver.mkParamSort("p1");
     Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
     Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
-    DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
-    DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+    DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", new Sort[] {p0});
+    DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", new Sort[] {p1});
     DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
     ctordecl0.addSelector("s0", u1.instantiate(new Sort[] {p0}));
     DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
@@ -821,7 +821,8 @@ class SolverTest
 
     // list datatype
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+    DatatypeDecl listDecl =
+        d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
     cons.addSelector("head", sort);

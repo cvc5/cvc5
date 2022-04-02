@@ -164,8 +164,8 @@ def test_mk_datatype_sorts(solver):
     p1 = solver.mkParamSort("p1")
     u0 = solver.mkUnresolvedDatatypeSort("dt0", 1)
     u1 = solver.mkUnresolvedDatatypeSort("dt1", 1)
-    dtdecl0 = solver.mkDatatypeDecl("dt0", p0)
-    dtdecl1 = solver.mkDatatypeDecl("dt1", p1)
+    dtdecl0 = solver.mkDatatypeDecl("dt0", [p0])
+    dtdecl1 = solver.mkDatatypeDecl("dt1", [p1])
     ctordecl0 = solver.mkDatatypeConstructorDecl("c0")
     ctordecl0.addSelector("s0", u1.instantiate({p0}))
     ctordecl1 = solver.mkDatatypeConstructorDecl("c1")
@@ -813,7 +813,7 @@ def test_mk_term_from_op(solver):
 
     # list datatype
     sort = solver.mkParamSort("T")
-    listDecl = solver.mkDatatypeDecl("paramlist", sort)
+    listDecl = solver.mkDatatypeDecl("paramlist", [sort])
     cons = solver.mkDatatypeConstructorDecl("cons")
     nil = solver.mkDatatypeConstructorDecl("nil")
     cons.addSelector("head", sort)

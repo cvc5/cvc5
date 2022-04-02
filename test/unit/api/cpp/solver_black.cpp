@@ -214,8 +214,8 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   Sort p1 = d_solver.mkParamSort("p1");
   Sort u0 = d_solver.mkUnresolvedDatatypeSort("dt0", 1);
   Sort u1 = d_solver.mkUnresolvedDatatypeSort("dt1", 1);
-  DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
-  DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+  DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", {p0});
+  DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", {p1});
   DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
   ctordecl0.addSelector("s0", u1.instantiate({p0}));
   DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
@@ -838,7 +838,7 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
 
   // list datatype
   Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", {sort});
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
@@ -2960,7 +2960,7 @@ TEST_F(TestApiBlackSolver, proj_issue378)
   Term t7 = d_solver.mkConst(s2, "_x58");
 
   Sort sp = d_solver.mkParamSort("_x178");
-  dtdecl = d_solver.mkDatatypeDecl("_x176", sp);
+  dtdecl = d_solver.mkDatatypeDecl("_x176", {sp});
   cdecl = d_solver.mkDatatypeConstructorDecl("_x184");
   cdecl.addSelector("_x180", s2);
   dtdecl.addConstructor(cdecl);
@@ -2984,7 +2984,7 @@ TEST_F(TestApiBlackSolver, proj_issue379)
   Sort bsort = d_solver.getBooleanSort();
   Sort psort = d_solver.mkParamSort("_x1");
   DatatypeConstructorDecl cdecl;
-  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("x_0", psort);
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("x_0", {psort});
   cdecl = d_solver.mkDatatypeConstructorDecl("_x8");
   cdecl.addSelector("_x7", bsort);
   dtdecl.addConstructor(cdecl);
@@ -3021,7 +3021,7 @@ TEST_F(TestApiBlackSolver, proj_issue381)
   Sort s1 = d_solver.getBooleanSort();
 
   Sort psort = d_solver.mkParamSort("_x9");
-  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x8", psort);
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x8", {psort});
   DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x22");
   ctor.addSelector("_x19", s1);
   dtdecl.addConstructor(ctor);
@@ -3047,7 +3047,7 @@ TEST_F(TestApiBlackSolver, proj_issue382)
   Sort psort = d_solver.mkParamSort("_x1");
   DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x20");
   ctor.addSelector("_x19", psort);
-  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", psort);
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", {psort});
   dtdecl.addConstructor(ctor);
   Sort s2 = d_solver.mkDatatypeSort(dtdecl);
   Sort s6 = s2.instantiate({s1});

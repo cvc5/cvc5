@@ -85,7 +85,7 @@ def test(slv, consListSort):
     # This example builds a simple parameterized list of sort T, with one
     # constructor "cons".
     sort = slv.mkParamSort("T")
-    paramConsListSpec = slv.mkDatatypeDecl("paramlist", sort)
+    paramConsListSpec = slv.mkDatatypeDecl("paramlist", [sort])
     paramCons = slv.mkDatatypeConstructorDecl("cons")
     paramNil = slv.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)

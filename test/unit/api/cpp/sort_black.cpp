@@ -37,7 +37,7 @@ class TestApiBlackSort : public TestApi
   Sort create_param_datatype_sort()
   {
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
+    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", {sort});
     DatatypeConstructorDecl paramCons =
         d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl paramNil =

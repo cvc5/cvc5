@@ -450,6 +450,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :return: True if this datatype declaration is parametric.
         """
         return self.cdd.isParametric()
@@ -1580,10 +1583,6 @@ cdef class Solver:
             if isinstance(sorts_or_bool, bool):
                 dd.cdd = self.csolver.mkDatatypeDecl(
                         <const string &> name.encode(), <bint> sorts_or_bool)
-            elif isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort)
             elif isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
@@ -1594,12 +1593,7 @@ cdef class Solver:
                 raise ValueError("Unhandled second argument type {}"
                                  .format(type(sorts_or_bool)))
         elif sorts_or_bool is not None and isCoDatatype is not None:
-            if isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort,
-                        <bint> isCoDatatype)
-            elif isinstance(sorts_or_bool, list):
+            if isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
                 dd.cdd = self.csolver.mkDatatypeDecl(
