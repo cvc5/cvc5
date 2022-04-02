@@ -2426,17 +2426,16 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSygusVar(
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_mkGrammar(JNIEnv* env,
-                                              jobject,
-                                              jlong pointer,
-                                              jlongArray jBoundVars,
-                                              jlongArray jNtSymbols)
+                                     jobject,
+                                     jlong pointer,
+                                     jlongArray jBoundVars,
+                                     jlongArray jNtSymbols)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   std::vector<Term> boundVars = getObjectsFromPointers<Term>(env, jBoundVars);
   std::vector<Term> ntSymbols = getObjectsFromPointers<Term>(env, jNtSymbols);
-  Grammar* retPointer =
-      new Grammar(solver->mkGrammar(boundVars, ntSymbols));
+  Grammar* retPointer = new Grammar(solver->mkGrammar(boundVars, ntSymbols));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

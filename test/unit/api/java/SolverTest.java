@@ -2600,18 +2600,19 @@ class SolverTest
   }
 
   @Test
-  void mkGrammar() throws CVC5ApiException
-  {
+  void mkGrammar() throws CVC5ApiException {
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(true);
     Term boolVar = d_solver.mkVar(d_solver.getBooleanSort());
     Term intVar = d_solver.mkVar(d_solver.getIntegerSort());
 
-    assertDoesNotThrow(() -> d_solver.mkGrammar(new Term[] {}, new Term[] {intVar}));
-    assertDoesNotThrow(() -> d_solver.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
+    assertDoesNotThrow(
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {intVar}));
+    assertDoesNotThrow(
+        () -> d_solver.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
 
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkGrammar(new Term[] {}, new Term[] {}));
+    assertThrows(CVC5ApiException.class,
+        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {}));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
     assertThrows(CVC5ApiException.class,
@@ -2623,7 +2624,8 @@ class SolverTest
     slv.setOption("sygus", "true");
     Term boolVar2 = slv.mkVar(slv.getBooleanSort());
     Term intVar2 = slv.mkVar(slv.getIntegerSort());
-    assertDoesNotThrow(() -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
+    assertDoesNotThrow(
+        () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
 
     assertThrows(CVC5ApiException.class,
         () -> slv.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));

@@ -7401,7 +7401,7 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
 }
 
 Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
-                               const std::vector<Term>& ntSymbols) const
+                          const std::vector<Term>& ntSymbols) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)

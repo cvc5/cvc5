@@ -4677,7 +4677,7 @@ class CVC5_EXPORT Solver
    * @return the grammar
    */
   Grammar mkGrammar(const std::vector<Term>& boundVars,
-                         const std::vector<Term>& ntSymbols) const;
+                    const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.
