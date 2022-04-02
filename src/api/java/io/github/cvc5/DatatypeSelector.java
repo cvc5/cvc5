@@ -15,6 +15,9 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 datatype selector.
+ */
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction

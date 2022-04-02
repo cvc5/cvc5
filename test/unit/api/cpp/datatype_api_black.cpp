@@ -85,11 +85,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
    *   END;
    */
   // Make unresolved types as placeholders
-  std::set<Sort> unresTypes;
-  Sort unresTree = d_solver.mkUnresolvedSort("tree");
-  Sort unresList = d_solver.mkUnresolvedSort("list");
-  unresTypes.insert(unresTree);
-  unresTypes.insert(unresList);
+  Sort unresTree = d_solver.mkUnresolvedDatatypeSort("tree");
+  Sort unresList = d_solver.mkUnresolvedDatatypeSort("list");
 
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
   DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
@@ -114,7 +111,7 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   dtdecls.push_back(tree);
   dtdecls.push_back(list);
   std::vector<Sort> dtsorts;
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), dtdecls.size());
   for (size_t i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
   {
@@ -137,6 +134,52 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   DatatypeDecl emptyD = d_solver.mkDatatypeDecl("emptyD");
   dtdeclsBad.push_back(emptyD);
   ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackDatatype, mkDatatypeSortsSelUnres)
+{
+  // Same as above, without unresolved sorts
+
+  DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
+  DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
+  node.addSelectorUnresolved("left", "tree");
+  node.addSelectorUnresolved("right", "tree");
+  tree.addConstructor(node);
+
+  DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
+  leaf.addSelectorUnresolved("data", "list");
+  tree.addConstructor(leaf);
+
+  DatatypeDecl list = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  cons.addSelectorUnresolved("car", "tree");
+  cons.addSelectorUnresolved("cdr", "tree");
+  list.addConstructor(cons);
+
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+  list.addConstructor(nil);
+
+  std::vector<DatatypeDecl> dtdecls;
+  dtdecls.push_back(tree);
+  dtdecls.push_back(list);
+  std::vector<Sort> dtsorts;
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
+  ASSERT_EQ(dtsorts.size(), dtdecls.size());
+  for (size_t i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
+  {
+    ASSERT_TRUE(dtsorts[i].isDatatype());
+    ASSERT_FALSE(dtsorts[i].getDatatype().isFinite());
+    ASSERT_EQ(dtsorts[i].getDatatype().getName(), dtdecls[i].getName());
+  }
+  // verify the resolution was correct
+  Datatype dtTree = dtsorts[0].getDatatype();
+  DatatypeConstructor dtcTreeNode = dtTree[0];
+  ASSERT_EQ(dtcTreeNode.getName(), "node");
+  DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
+  ASSERT_EQ(dtsTreeNodeLeft.getName(), "left");
+  // argument type should have resolved to be recursive
+  ASSERT_TRUE(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+  ASSERT_EQ(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
 }
 
 TEST_F(TestApiBlackDatatype, datatypeStructs)
@@ -331,13 +374,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   // Make unresolved types as placeholders
-  std::set<Sort> unresTypes;
-  Sort unresWList = d_solver.mkUnresolvedSort("wlist");
-  Sort unresList = d_solver.mkUnresolvedSort("list");
-  Sort unresNs = d_solver.mkUnresolvedSort("ns");
-  unresTypes.insert(unresWList);
-  unresTypes.insert(unresList);
-  unresTypes.insert(unresNs);
+  Sort unresWList = d_solver.mkUnresolvedDatatypeSort("wlist");
+  Sort unresList = d_solver.mkUnresolvedDatatypeSort("list");
+  Sort unresNs = d_solver.mkUnresolvedDatatypeSort("ns");
 
   DatatypeDecl wlist = d_solver.mkDatatypeDecl("wlist");
   DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
@@ -367,7 +406,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   dtdecls.push_back(ns);
   // this is well-founded and has no nested recursion
   std::vector<Sort> dtsorts;
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), 3);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
@@ -378,9 +417,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *     ns2 = elem2(ndata: array(int,ns2)) | nil2
    *   END;
    */
-  unresTypes.clear();
-  Sort unresNs2 = d_solver.mkUnresolvedSort("ns2");
-  unresTypes.insert(unresNs2);
+  Sort unresNs2 = d_solver.mkUnresolvedDatatypeSort("ns2");
 
   DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
   DatatypeConstructorDecl elem2 = d_solver.mkDatatypeConstructorDecl("elem2");
@@ -395,7 +432,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
 
   dtsorts.clear();
   // this is not well-founded due to non-simple recursion
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), 1);
   ASSERT_TRUE(dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray());
   ASSERT_EQ(
@@ -409,11 +446,8 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *     ns3 = elem3(ndata: set(list3))
    *   END;
    */
-  unresTypes.clear();
-  Sort unresNs3 = d_solver.mkUnresolvedSort("ns3");
-  unresTypes.insert(unresNs3);
-  Sort unresList3 = d_solver.mkUnresolvedSort("list3");
-  unresTypes.insert(unresList3);
+  Sort unresNs3 = d_solver.mkUnresolvedDatatypeSort("ns3");
+  Sort unresList3 = d_solver.mkUnresolvedDatatypeSort("list3");
 
   DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
   DatatypeConstructorDecl cons3 = d_solver.mkDatatypeConstructorDecl("cons3");
@@ -434,7 +468,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
 
   dtsorts.clear();
   // both are well-founded and have nested recursion
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
@@ -445,11 +479,8 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *     ns4 = elem(ndata: list4)
    *   END;
    */
-  unresTypes.clear();
-  Sort unresNs4 = d_solver.mkUnresolvedSort("ns4");
-  unresTypes.insert(unresNs4);
-  Sort unresList4 = d_solver.mkUnresolvedSort("list4");
-  unresTypes.insert(unresList4);
+  Sort unresNs4 = d_solver.mkUnresolvedDatatypeSort("ns4");
+  Sort unresList4 = d_solver.mkUnresolvedDatatypeSort("list4");
 
   DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
   DatatypeConstructorDecl cons4 = d_solver.mkDatatypeConstructorDecl("cons4");
@@ -470,7 +501,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
 
   dtsorts.clear();
   // both are well-founded and have nested recursion
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
@@ -480,9 +511,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
    *   END;
    */
-  unresTypes.clear();
   Sort unresList5 = d_solver.mkUninterpretedSortConstructorSort(1, "list5");
-  unresTypes.insert(unresList5);
 
   std::vector<Sort> v;
   Sort x = d_solver.mkParamSort("X");
@@ -506,7 +535,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   dtdecls.push_back(list5);
 
   // well-founded and has nested recursion
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), 1);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
 }
@@ -519,9 +548,7 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
    *   END;
    */
   // Make unresolved types as placeholders
-  std::set<Sort> unresTypes;
   Sort unresList = d_solver.mkUninterpretedSortConstructorSort(1, "plist");
-  unresTypes.insert(unresList);
 
   std::vector<Sort> v;
   Sort x = d_solver.mkParamSort("X");
@@ -544,7 +571,7 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
 
   std::vector<Sort> dtsorts;
   // make the datatype sorts
-  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls));
   ASSERT_EQ(dtsorts.size(), 1);
   Datatype d = dtsorts[0].getDatatype();
   DatatypeConstructor nilc = d[0];

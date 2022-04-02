@@ -324,7 +324,7 @@ cvc5::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 
 cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 {
-  cvc5::Sort unresolved = d_solver->mkUnresolvedSort(name);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name);
   defineType(name, unresolved);
   return unresolved;
 }
@@ -332,7 +332,7 @@ cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 cvc5::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                size_t arity)
 {
-  cvc5::Sort unresolved = d_solver->mkUnresolvedSort(name, arity);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
   defineType(name, vector<cvc5::Sort>(arity), unresolved);
   return unresolved;
 }
@@ -343,7 +343,7 @@ cvc5::Sort Parser::mkUnresolvedTypeConstructor(
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
   cvc5::Sort unresolved =
-      d_solver->mkUnresolvedSort(name, params.size());
+      d_solver->mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
   cvc5::Sort t = getSort(name, params);
   return unresolved;
