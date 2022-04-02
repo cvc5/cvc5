@@ -223,20 +223,6 @@ public class Solver implements IPointer, AutoCloseable
    * @return the datatype sorts
    * @throws CVC5ApiException
    */
-  public Sort[] mkDatatypeSorts(List<DatatypeDecl> dtypedecls) throws CVC5ApiException
-  {
-    return mkDatatypeSorts(dtypedecls.toArray(new DatatypeDecl[0]));
-  }
-
-  /**
-   * Create a vector of datatype sorts. The names of the datatype
-   * declarations must be distinct.
-   *
-   * @param dtypedecls the datatype declarations from which the sort is
-   *     created
-   * @return the datatype sorts
-   * @throws CVC5ApiException
-   */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
     long[] declPointers = Utils.getPointers(dtypedecls);
@@ -622,18 +608,6 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkTerm(
       long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
-
-  /**
-   * Create n-ary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param children the children of the term
-   * @return the Term
-   */
-  public Term mkTerm(Op op, List<Term> children)
-  {
-    return mkTerm(op, children.toArray(new Term[0]));
-  }
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -1388,18 +1362,6 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkDatatypeDecl(
       long pointer, String name, long paramPointer, boolean isCoDatatype);
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @return the DatatypeDecl
-   */
-  public DatatypeDecl mkDatatypeDecl(String name, List<Sort> params)
-  {
-    return mkDatatypeDecl(name, params.toArray(new Sort[0]));
-  }
 
   /**
    * Create a datatype declaration.
