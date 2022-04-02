@@ -1789,7 +1789,8 @@ class DatatypeConstructorIterator;
 class DatatypeIterator;
 
 /**
- * A cvc5 datatype constructor declaration.
+ * A cvc5 datatype constructor declaration. A datatype constructor declaration
+ * is a specification used for creating a datatype constructor.
  */
 class CVC5_EXPORT DatatypeConstructorDecl
 {
@@ -1877,7 +1878,16 @@ class CVC5_EXPORT DatatypeConstructorDecl
 class Solver;
 
 /**
- * A cvc5 datatype declaration.
+ * A cvc5 datatype declaration. A datatype declaration is not itself a datatype
+ * (see Datatype), but a specification for creating a datatype sort.
+ *
+ * The interface for a datatype declaration coincides with the syntax for the
+ * SMT-LIB 2.6 command `declare-datatype`, or a single datatype within the
+ * `declare-datatypes` command.
+ *
+ * Datatype sorts can be constructed from DatatypeDecl using the methods:
+ *   - Solver::mkDatatypeSort()
+ *   - Solver::mkDatatypeSorts()
  */
 class CVC5_EXPORT DatatypeDecl
 {
@@ -2629,7 +2639,9 @@ std::ostream& operator<<(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 /**
- * A Sygus Grammar.
+ * A Sygus Grammar. This class can be used to define a context-free grammar
+ * of terms. Its interface coincides with the definition of grammars
+ * (``GrammarDef``) in the SyGuS IF 2.1 standard.
  */
 class CVC5_EXPORT Grammar
 {
