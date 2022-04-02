@@ -2533,7 +2533,7 @@ enum Kind : int32_t
    *
    * - Arity: ``n > 0``
    *
-   *   - ``1:`` DatatypeConstructor Term (see DatatypeConstructor::getConstructorTerm() const)
+   *   - ``1:`` DatatypeConstructor Term (see DatatypeConstructor::getTerm() const)
    *   - ``2..n:`` Terms of the Sorts of the selectors of the constructor (the arguments to the constructor)
    *
    * - Create Term of this Kind with:
@@ -2555,7 +2555,7 @@ enum Kind : int32_t
    *
    * - Arity: ``2``
    *
-   *   - ``1:`` DatatypeSelector Term (see DatatypeSelector::getSelectorTerm() const)
+   *   - ``1:`` DatatypeSelector Term (see DatatypeSelector::getTerm() const)
    *   - ``2:`` Term of the codomain Sort of the selector
    *
    * - Create Term of this Kind with:

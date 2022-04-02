@@ -2017,7 +2017,7 @@ class CVC5_EXPORT DatatypeSelector
    * Get the selector operator of this datatype selector.
    * @return the selector term
    */
-  Term getSelectorTerm() const;
+  Term getTerm() const;
 
   /**
    * Get the updater operator of this datatype selector.
@@ -2092,7 +2092,7 @@ class CVC5_EXPORT DatatypeConstructor
    * Get the constructor operator of this datatype constructor.
    * @return the constructor term
    */
-  Term getConstructorTerm() const;
+  Term getTerm() const;
 
   /**
    * Get the constructor operator of this datatype constructor whose return

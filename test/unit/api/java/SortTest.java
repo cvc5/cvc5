@@ -165,7 +165,7 @@ class SortTest
   {
     Sort dt_sort = create_datatype_sort();
     Datatype dt = dt_sort.getDatatype();
-    Sort cons_sort = dt.getConstructor(0).getConstructorTerm().getSort();
+    Sort cons_sort = dt.getConstructor(0).getTerm().getSort();
     assertTrue(cons_sort.isDatatypeConstructor());
     assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeConstructor());
   }
@@ -175,7 +175,7 @@ class SortTest
   {
     Sort dt_sort = create_datatype_sort();
     Datatype dt = dt_sort.getDatatype();
-    Sort cons_sort = dt.getConstructor(0).getSelector(1).getSelectorTerm().getSort();
+    Sort cons_sort = dt.getConstructor(0).getSelector(1).getTerm().getSort();
     assertTrue(cons_sort.isDatatypeSelector());
     assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeSelector());
   }
@@ -294,7 +294,7 @@ class SortTest
 
     // get constructor
     DatatypeConstructor dcons = dt.getConstructor(0);
-    Term consTerm = dcons.getConstructorTerm();
+    Term consTerm = dcons.getTerm();
     Sort consSort = consTerm.getSort();
     assertTrue(consSort.isDatatypeConstructor());
     assertFalse(consSort.isDatatypeTester());
@@ -316,7 +316,7 @@ class SortTest
 
     // get selector
     DatatypeSelector dselTail = dcons.getSelector(1);
-    Term tailTerm = dselTail.getSelectorTerm();
+    Term tailTerm = dselTail.getTerm();
     assertTrue(tailTerm.getSort().isDatatypeSelector());
     assertEquals(tailTerm.getSort().getDatatypeSelectorDomainSort(), dtypeSort);
     assertEquals(tailTerm.getSort().getDatatypeSelectorCodomainSort(), dtypeSort);

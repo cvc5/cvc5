@@ -177,7 +177,7 @@ def test_mk_datatype_sorts(solver):
     t1 = solver.mkConst(isort1, "t")
     t0 = solver.mkTerm(
         Kind.APPLY_SELECTOR,
-        t1.getSort().getDatatype().getSelector("s1").getSelectorTerm(),
+        t1.getSort().getDatatype().getSelector("s1").getTerm(),
         t1)
     assert dt_sorts[0].instantiate({solver.getBooleanSort()}) == t0.getSort()
 
@@ -827,10 +827,10 @@ def test_mk_term_from_op(solver):
     lis = listSort.getDatatype()
 
     # list datatype constructor and selector operator terms
-    consTerm = lis.getConstructor("cons").getConstructorTerm()
-    nilTerm = lis.getConstructor("nil").getConstructorTerm()
-    headTerm = lis["cons"].getSelector("head").getSelectorTerm()
-    tailTerm = lis["cons"]["tail"].getSelectorTerm()
+    consTerm = lis.getConstructor("cons").getTerm()
+    nilTerm = lis.getConstructor("nil").getTerm()
+    headTerm = lis["cons"].getSelector("head").getTerm()
+    tailTerm = lis["cons"]["tail"].getTerm()
 
     # mkTerm(Op op, Term term) const
     solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
@@ -1157,9 +1157,9 @@ def test_get_op(solver):
     consListSort = solver.mkDatatypeSort(consListSpec)
     consList = consListSort.getDatatype()
 
-    consTerm = consList.getConstructor("cons").getConstructorTerm()
-    nilTerm = consList.getConstructor("nil").getConstructorTerm()
-    headTerm = consList["cons"].getSelector("head").getSelectorTerm()
+    consTerm = consList.getConstructor("cons").getTerm()
+    nilTerm = consList.getConstructor("nil").getTerm()
+    headTerm = consList["cons"].getSelector("head").getTerm()
 
     listnil = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
     listcons1 = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm,
@@ -1724,15 +1724,15 @@ def test_simplify(solver):
     consList = consListSort.getDatatype()
     dt1 = solver.mkTerm(
         Kind.APPLY_CONSTRUCTOR,
-        consList.getConstructor("cons").getConstructorTerm(),
+        consList.getConstructor("cons").getTerm(),
         solver.mkInteger(0),
         solver.mkTerm(
             Kind.APPLY_CONSTRUCTOR,
-            consList.getConstructor("nil").getConstructorTerm()))
+            consList.getConstructor("nil").getTerm()))
     solver.simplify(dt1)
     dt2 = solver.mkTerm(
       Kind.APPLY_SELECTOR,
-      consList["cons"].getSelector("head").getSelectorTerm(),
+      consList["cons"].getSelector("head").getTerm(),
       dt1)
     solver.simplify(dt2)
 
@@ -2589,7 +2589,7 @@ def test_tuple_project(solver):
 
     for i in indices:
 
-        selectorTerm = constructor[i].getSelectorTerm()
+        selectorTerm = constructor[i].getTerm()
         selectedTerm = solver.mkTerm(Kind.APPLY_SELECTOR, selectorTerm, tuple)
         simplifiedTerm = solver.simplify(selectedTerm)
         assert elements[i] == simplifiedTerm

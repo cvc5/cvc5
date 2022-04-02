@@ -39,8 +39,8 @@ def test_mk_datatype_sort(solver):
     nilConstr = d[1]
     with pytest.raises(RuntimeError):
         d[2]
-    consConstr.getConstructorTerm()
-    nilConstr.getConstructorTerm()
+    consConstr.getTerm()
+    nilConstr.getTerm()
 
 def test_is_null(solver):
   # creating empty (null) objects.
@@ -203,7 +203,7 @@ def test_datatype_structs(solver):
     assert dt.isWellFounded()
     # get constructor
     dcons = dt[0]
-    consTerm = dcons.getConstructorTerm()
+    consTerm = dcons.getTerm()
     assert dcons.getNumSelectors() == 2
 
     # create datatype sort to test
@@ -558,7 +558,7 @@ def test_datatype_specialized_cons(solver):
     testConsTerm = Term(solver)
     # get the specialized constructor term for list[Int]
     testConsTerm = nilc.getInstantiatedConstructorTerm(listInt)
-    assert testConsTerm != nilc.getConstructorTerm()
+    assert testConsTerm != nilc.getTerm()
     # error to get the specialized constructor term for Int
     with pytest.raises(RuntimeError):
         nilc.getInstantiatedConstructorTerm(isort)

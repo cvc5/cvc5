@@ -222,8 +222,8 @@ class TermTest
     Term c = d_solver.mkConst(intListSort, "c");
     Datatype list = listSort.getDatatype();
     // list datatype constructor and selector operator terms
-    Term consOpTerm = list.getConstructor("cons").getConstructorTerm();
-    Term nilOpTerm = list.getConstructor("nil").getConstructorTerm();
+    Term consOpTerm = list.getConstructor("cons").getTerm();
+    Term nilOpTerm = list.getConstructor("nil").getTerm();
   }
 
   @Test

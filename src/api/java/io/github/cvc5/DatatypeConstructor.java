@@ -50,13 +50,13 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * Get the constructor operator of this datatype constructor.
    * @return the constructor term
    */
-  public Term getConstructorTerm()
+  public Term getTerm()
   {
-    long termPointer = getConstructorTerm(pointer);
+    long termPointer = getTerm(pointer);
     return new Term(solver, termPointer);
   }
 
-  private native long getConstructorTerm(long pointer);
+  private native long getTerm(long pointer);
 
   /**
    * Get the constructor operator of this datatype constructor whose return

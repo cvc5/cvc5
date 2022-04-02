@@ -202,7 +202,7 @@ public class Statistics
     // (assert (forall ((x Person)) (not (set.member (mkTuple x x) ancestor))))
     Term var = solver.mkVar(personSort, "x");
     DatatypeConstructor constructor = tupleArity2.getDatatype().getConstructor(0);
-    Term xxTuple = solver.mkTerm(APPLY_CONSTRUCTOR, constructor.getConstructorTerm(), var, var);
+    Term xxTuple = solver.mkTerm(APPLY_CONSTRUCTOR, constructor.getTerm(), var, var);
     Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
     Term notMember = solver.mkTerm(NOT, member);
 
