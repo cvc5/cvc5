@@ -90,7 +90,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term getTesterTerm() except +
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +
-        Term getSelectorTerm(const string& name) except +
         bint isNull() except +
         string toString() except +
         cppclass const_iterator:
