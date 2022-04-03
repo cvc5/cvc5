@@ -735,13 +735,14 @@ void Parser::pushGetValueScope()
     for (const cvc5::Term& e : elements)
     {
       Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
-      if (e.getKind()==Kind::UNINTERPRETED_SORT_VALUE)
+      if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
       {
         defineVar(e.getUninterpretedSortValue(), e);
       }
       else
       {
-        Assert (false) << "model domain element is not an uninterpreted sort value: " << e;
+        Assert(false)
+            << "model domain element is not an uninterpreted sort value: " << e;
       }
     }
   }
