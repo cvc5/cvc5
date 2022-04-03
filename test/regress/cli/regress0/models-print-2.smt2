@@ -3,6 +3,7 @@
 
 ; SCRUBBER: sed -e 's/.*(as @.*/AS/; /sat/d; /cardinality/d; /rep/d; /^($/d; /^)$/d'
 ; EXPECT: AS
+; EXPECT: AS
 (set-logic QF_UF)
 (set-option :produce-models true)
 (declare-sort Sort0 0)
