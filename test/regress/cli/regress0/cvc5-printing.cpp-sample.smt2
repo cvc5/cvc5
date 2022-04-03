@@ -1,6 +1,5 @@
 ; SCRUBBER: sed -e 's/((x.*//g'
 ; EXPECT: unsat
-; EXPECT: ()
 ; EXPECT: sat
 (set-option :bv-print-consts-as-indexed-symbols true)
 (set-logic QF_AUFBV)
@@ -20,7 +19,6 @@
 (assert (= (f x) s))
 (assert (not (=> (= x y) (= (select arr x) (select arr y)))))
 (check-sat-assuming (ind1 ))
-(get-unsat-assumptions)
 (pop 1)
 (check-sat)
 (get-value (x))
