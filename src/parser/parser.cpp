@@ -733,7 +733,10 @@ void Parser::pushGetValueScope()
     std::vector<cvc5::Term> elements = d_solver->getModelDomainElements(s);
     for (const cvc5::Term& e : elements)
     {
-      defineVar(e.getUninterpretedSortValue(), e);
+      if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+      {
+        defineVar(e.getUninterpretedSortValue(), e);
+      }
     }
   }
 }
