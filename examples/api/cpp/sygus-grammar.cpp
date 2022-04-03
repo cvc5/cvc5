@@ -49,7 +49,7 @@ int main()
   Term plus = slv.mkTerm(ADD, {x, start});
 
   // create the grammar object
-  Grammar g1 = slv.mkSygusGrammar({x}, {start});
+  Grammar g1 = slv.mkGrammar({x}, {start});
 
   // bind each non-terminal to its rules
   g1.addRules(start, {neg_x, plus});

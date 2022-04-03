@@ -15,6 +15,9 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 datatype selector.
+ */
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
@@ -44,13 +47,13 @@ public class DatatypeSelector extends AbstractPointer
    * Get the selector operator of this datatype selector.
    * @return the selector term
    */
-  public Term getSelectorTerm()
+  public Term getTerm()
   {
-    long termPointer = getSelectorTerm(pointer);
+    long termPointer = getTerm(pointer);
     return new Term(solver, termPointer);
   }
 
-  private native long getSelectorTerm(long pointer);
+  private native long getTerm(long pointer);
 
   /**
    * Get the upater operator of this datatype selector.

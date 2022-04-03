@@ -501,6 +501,14 @@ name   = "Arithmetic Theory"
   help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]
+  name       = "nlCovForce"
+  category   = "expert"
+  long       = "nl-cov-force"
+  type       = "bool"
+  default    = "false"
+  help       = "forces using the cylindrical algebraic coverings solver, even in cases where it is possibly not safe to do so"
+
+[[option]]
   name       = "nlCovVarElim"
   category   = "expert"
   long       = "nl-cov-var-elim"

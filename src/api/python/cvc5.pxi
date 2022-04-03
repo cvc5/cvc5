@@ -120,16 +120,6 @@ cdef class Datatype:
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
 
-    def getConstructorTerm(self, str name):
-        """
-            :param name: The name of the constructor.
-            :return: The term representing the datatype constructor with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cd.getConstructorTerm(name.encode())
-        return term
-
     def getSelector(self, str name):
         """
             :param name: The name of the selector..
@@ -266,12 +256,12 @@ cdef class DatatypeConstructor:
         """
         return self.cdc.getName().decode()
 
-    def getConstructorTerm(self):
+    def getTerm(self):
         """
             :return: The constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getConstructorTerm()
+        term.cterm = self.cdc.getTerm()
         return term
 
     def getInstantiatedConstructorTerm(self, Sort retSort):
@@ -343,16 +333,6 @@ cdef class DatatypeConstructor:
         ds.cds = self.cdc.getSelector(name.encode())
         return ds
 
-    def getSelectorTerm(self, str name):
-        """
-            :param name: The name of the datatype selector.
-            :return: A term representing the firstdatatype selector with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getSelectorTerm(name.encode())
-        return term
-
     def isNull(self):
         """
             :return: True if this DatatypeConstructor is a null object.
@@ -375,7 +355,8 @@ cdef class DatatypeConstructor:
 
 cdef class DatatypeConstructorDecl:
     """
-        A cvc5 datatype constructor declaration.
+        A cvc5 datatype constructor declaration. A datatype constructor
+        declaration is a specification used for creating a datatype constructor.
 
         Wrapper class for :cpp:class:`cvc5::DatatypeConstructorDecl`.
     """
@@ -404,6 +385,18 @@ cdef class DatatypeConstructorDecl:
         """
         self.cddc.addSelectorSelf(name.encode())
 
+    def addSelectorUnresolved(self, str name, str unresDatatypeName):
+        """
+            Add datatype selector declaration whose codomain sort is an 
+            unresolved datatype with the given name.
+
+            :param name: The name of the datatype selector declaration to add.
+            :param unresDataypeName: The name of the unresolved datatype. The
+                                     codomain of the selector will be the
+                                     resolved datatype with the given name.
+        """
+        self.cddc.addSelectorUnresolved(name.encode(), unresDatatypeName.encode())
+
     def isNull(self):
         """
             :return: True if this DatatypeConstructorDecl is a null object.
@@ -419,7 +412,19 @@ cdef class DatatypeConstructorDecl:
 
 cdef class DatatypeDecl:
     """
-        A cvc5 datatype declaration.
+        A cvc5 datatype declaration. A datatype declaration is not itself a
+        datatype (see :py:class:`cvc5.Datatype`), but a specification for creating a datatype
+        sort.
+
+        The interface for a datatype declaration coincides with the syntax for
+        the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
+        the `declare-datatypes` command.
+
+        Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
+        the methods:
+        
+            - :py:meth:`Solver.mkDatatypeSort()`
+            - :py:meth:`Solver.mkDatatypeSorts()`
 
         Wrapper class for :cpp:class:`cvc5::DatatypeDecl`.
     """
@@ -445,6 +450,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :return: True if this datatype declaration is parametric.
         """
         return self.cdd.isParametric()
@@ -486,12 +494,12 @@ cdef class DatatypeSelector:
         """
         return self.cds.getName().decode()
 
-    def getSelectorTerm(self):
+    def getTerm(self):
         """
             :return: The selector opeartor of this datatype selector as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cds.getSelectorTerm()
+        term.cterm = self.cds.getTerm()
         return term
 
     def getUpdaterTerm(self):
@@ -592,7 +600,9 @@ cdef class Op:
 
 cdef class Grammar:
     """
-        A Sygus Grammar.
+        A Sygus Grammar. This class can be used to define a context-free grammar
+        of terms. Its interface coincides with the definition of grammars
+        (``GrammarDef``) in the SyGuS IF 2.1 standard.
 
         Wrapper class for :cpp:class:`cvc5::Grammar`.
     """
@@ -867,17 +877,10 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
+    def mkDatatypeSorts(self, list dtypedecls):
         """
             Create a vector of datatype sorts using unresolved sorts. The names
             of the datatype declarations in dtypedecls must be distinct.
-
-            This method is called when the DatatypeDecl objects dtypedecls have
-            been built using "unresolved" sorts.
-
-            We associate each sort in unresolvedSorts with exacly one datatype
-            from dtypedecls. In particular, it must have the same name as
-            exactly one datatype declaration in dtypedecls.
 
             When constructing datatypes, unresolved sorts are replaced by the
             datatype sort constructed for the datatype declaration it is
@@ -885,25 +888,15 @@ cdef class Solver:
 
             :param dtypedecls: The datatype declarations from which the sort is
                                created.
-            :param unresolvedSorts: The list of unresolved sorts.
             :return: The datatype sorts.
         """
-        if unresolvedSorts == None:
-            unresolvedSorts = set([])
-        else:
-            assert isinstance(unresolvedSorts, set)
-
         sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
 
-        cdef c_set[c_Sort] usorts
-        for usort in unresolvedSorts:
-            usorts.insert((<Sort?> usort).csort)
-
         csorts = self.csolver.mkDatatypeSorts(
-            <const vector[c_DatatypeDecl]&> decls, <const c_set[c_Sort]&> usorts)
+            <const vector[c_DatatypeDecl]&> decls)
         for csort in csorts:
           sort = Sort(self)
           sort.csort = csort
@@ -1033,9 +1026,9 @@ cdef class Solver:
           sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
-    def mkUnresolvedSort(self, str name, size_t arity = 0):
+    def mkUnresolvedDatatypeSort(self, str name, size_t arity = 0):
         """
-            Create an unresolved sort.
+            Create an unresolved datatype sort.
 
             This is for creating yet unresolved sort placeholders for mutually
             recursive datatypes.
@@ -1045,7 +1038,7 @@ cdef class Solver:
             :return: The unresolved sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
+        sort.csort = self.csolver.mkUnresolvedDatatypeSort(name.encode(), arity)
         return sort
 
     def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
@@ -1218,37 +1211,24 @@ cdef class Solver:
             term.cterm = self.csolver.mkInteger((<int?> val))
         return term
 
-    def mkReal(self, val, den=None):
+    def mkReal(self, numerator, denominator=None):
         """
-            Create a real constant.
+            Create a real constant from a numerator and an optional denominator.
+            
+            First converts the arguments to a temporary string, either
+            ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
+            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            thus represent an integer, a decimal number or a fraction.
 
-            :param val: The value of the term. Can be an integer, float, or
-                        string. It will be formatted as a string before the
-                        term is built.
-            :param den: If not None, the value is ``val``/``den``.
+            :param numerator: The numerator.
+            :param denominator: The denominator, or ``None``.
             :return: A real term with literal value.
-
-            Can be used in various forms:
-
-            - Given a string ``"N/D"`` constructs the corresponding rational.
-            - Given a string ``"W.D"`` constructs the reduction of
-              ``(W * P + D)/P``, where ``P`` is the appropriate power of 10.
-            - Given a float ``f``, constructs the rational matching ``f``'s
-              string representation. This means that ``mkReal(0.3)`` gives
-              ``3/10`` and not the IEEE-754 approximation of ``3/10``.
-            - Given a string ``"W"`` or an integer, constructs that integer.
-            - Given two strings and/or integers ``N`` and ``D``, constructs
-              ``N/D``.
         """
         cdef Term term = Term(self)
-        if den is None:
-            term.cterm = self.csolver.mkReal(str(val).encode())
+        if denominator is None:
+            term.cterm = self.csolver.mkReal(str(numerator).encode())
         else:
-            if not isinstance(val, int) or not isinstance(den, int):
-                raise ValueError("Expecting integers when"
-                                 " constructing a rational"
-                                 " but got: {}".format((val, den)))
-            term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
+            term.cterm = self.csolver.mkReal("{}/{}".format(numerator, denominator).encode())
         return term
 
     def mkRegexpAll(self):
@@ -1375,7 +1355,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-    def mkBitVector(self, *args):
+    def mkBitVector(self, int size, *args):
         """
             Create bit-vector value.
 
@@ -1393,25 +1373,18 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         if len(args) == 0:
-            raise ValueError("Missing arguments to mkBitVector")
-        size = args[0]
-        if not isinstance(size, int):
-            raise ValueError(
-                "Invalid first argument to mkBitVector '{}', "
-                "expected bit-vector size".format(size))
-        if len(args) == 1:
             term.cterm = self.csolver.mkBitVector(<uint32_t> size)
-        elif len(args) == 2:
-            val = args[1]
+        elif len(args) == 1:
+            val = args[0]
             if not isinstance(val, int):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
                 <uint32_t> size, <uint32_t> val)
-        elif len(args) == 3:
-            val = args[1]
-            base = args[2]
+        elif len(args) == 2:
+            val = args[0]
+            base = args[1]
             if not isinstance(val, str):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
@@ -1610,10 +1583,6 @@ cdef class Solver:
             if isinstance(sorts_or_bool, bool):
                 dd.cdd = self.csolver.mkDatatypeDecl(
                         <const string &> name.encode(), <bint> sorts_or_bool)
-            elif isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort)
             elif isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
@@ -1624,12 +1593,7 @@ cdef class Solver:
                 raise ValueError("Unhandled second argument type {}"
                                  .format(type(sorts_or_bool)))
         elif sorts_or_bool is not None and isCoDatatype is not None:
-            if isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort,
-                        <bint> isCoDatatype)
-            elif isinstance(sorts_or_bool, list):
+            if isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
                 dd.cdd = self.csolver.mkDatatypeDecl(
@@ -1692,7 +1656,7 @@ cdef class Solver:
         r.cr = self.csolver.checkSat()
         return r
 
-    def mkSygusGrammar(self, boundVars, ntSymbols):
+    def mkGrammar(self, boundVars, ntSymbols):
         """
             Create a SyGuS grammar. The first non-terminal is treated as the
             starting non-terminal, so the order of non-terminals matters.
@@ -1709,7 +1673,7 @@ cdef class Solver:
             bvc.push_back((<Term?> bv).cterm)
         for nt in ntSymbols:
             ntc.push_back((<Term?> nt).cterm)
-        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
+        grammar.cgrammar = self.csolver.mkGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
     def declareSygusVar(self, str symbol, Sort sort):
@@ -2292,18 +2256,6 @@ cdef class Solver:
             res['modes'] = [s.decode() for s in mi.modes]
         return res
 
-    def getOptionNames(self):
-       """
-           Get all option names that can be used with
-           :py:meth:`Solver.setOption()`, :py:meth:`Solver.getOption()` and
-           :py:meth:`Solver.getOptionInfo()`.
-           :return: All option names.
-       """
-       result = []
-       for n in self.csolver.getOptionNames():
-           result += [n.decode()]
-       return result
-
     def getUnsatAssumptions(self):
         """
             Get the set of unsat ("failed") assumptions.
@@ -2705,7 +2657,7 @@ cdef class Solver:
         self.csolver.setOption(option.encode(), value.encode())
 
 
-    def getInterpolant(self, Term conj, *args):
+    def getInterpolant(self, Term conj, Grammar grammar=None):
         """
             Get an interpolant.
 
@@ -2720,27 +2672,18 @@ cdef class Solver:
             <lbl-option-produce-interpolants>` to be set to a mode different
             from `none`.
 
-            Supports the following variants:
-
-            - ``Term getInterpolant(Term conj)``
-            - ``Term getInterpolant(Term conj, Grammar grammar)``
-
             .. warning:: This method is experimental and may change in future
-                         versions.
-
+                        versions.
             :param conj: The conjecture term.
-            :param output: The term where the result will be stored.
             :param grammar: A grammar for the inteprolant.
-            :return: True iff an interpolant was found.
-            """
+            :return: The interpolant. 
+                     See :cpp:func:`cvc5::Solver::getInterpolant` for details.
+        """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getInterpolant(
-                    conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getInterpolant(conj.cterm, grammar.cgrammar)
         return result
 
 
@@ -2771,8 +2714,7 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.getInterpolantNext()
         return result
-
-    def getAbduct(self, Term conj, *args):
+    def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
 
@@ -2786,27 +2728,18 @@ cdef class Solver:
             Requires to enable option :ref:`produce-abducts
             <lbl-option-produce-abducts>`.
 
-            Supports the following variants:
-
-            - ``Term getAbduct(Term conj)``
-            - ``Term getAbduct(Term conj, Grammar grammar)``
-
             .. warning:: This method is experimental and may change in future
                          versions.
-
             :param conj: The conjecture term.
-            :param output: The term where the result will be stored.
             :param grammar: A grammar for the abduct.
-            :return: True iff an abduct was found.
+            :return: The abduct.
+                     See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getAbduct(
-                    conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getAbduct(conj.cterm, grammar.cgrammar)
         return result
 
     def getAbductNext(self):

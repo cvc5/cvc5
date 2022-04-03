@@ -15,6 +15,11 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 operator.
+ * An operator is a term that represents certain operators, instantiated
+ * with its required parameters, e.g., a term of kind {@link Kind#BITVECTOR_EXTRACT}.
+ */
 public class Op extends AbstractPointer
 {
   // region construction and destruction
