@@ -731,8 +731,11 @@ void Parser::pushGetValueScope()
   for (const cvc5::Sort& s : declareSorts)
   {
     std::vector<cvc5::Term> elements = d_solver->getModelDomainElements(s);
+    Trace("parser") << "elements for " << s << ":" << std::endl;
     for (const cvc5::Term& e : elements)
     {
+      Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
+      Assert (e.getKind()==Kind::UNINTERPRETED_SORT_VALUE);
       defineVar(e.getUninterpretedSortValue(), e);
     }
   }
