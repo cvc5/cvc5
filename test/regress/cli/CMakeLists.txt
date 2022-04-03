@@ -490,6 +490,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.04.cvc.smt2
   regress0/cvc3.userdoc.05.cvc.smt2
   regress0/cvc3.userdoc.06.cvc.smt2
+  regress0/cvc5-printing.cpp-sample.smt2
   regress0/datatypes/4482-unc-simp-one.smt2
   regress0/datatypes/boolean-equality.cvc.smt2
   regress0/datatypes/boolean-terms-datatype.cvc.smt2
