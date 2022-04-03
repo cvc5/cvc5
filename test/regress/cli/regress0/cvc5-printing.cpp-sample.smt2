@@ -1,7 +1,7 @@
+; SCRUBBER: sed -e 's/((x.*//g'
 ; EXPECT: unsat
 ; EXPECT: ()
 ; EXPECT: sat
-; EXPECT: (@a0)
 (set-option :bv-print-consts-as-indexed-symbols true)
 (set-logic QF_AUFBV)
 (set-option :produce-models true)
