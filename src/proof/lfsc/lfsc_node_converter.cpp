@@ -99,9 +99,13 @@ Node LfscNodeConverter::postConvert(Node n)
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
       << "postConvert " << n << " " << k << std::endl;
-  if (k == BOUND_VARIABLE)
+  if (k==BOUND_VARIABLE)
   {
-    Assert(d_symbols.find(n) != d_symbols.end());
+    if (d_symbols.find(n) != d_symbols.end())
+    {
+      // ignore internally generated symbols
+      return n;
+    }
     // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
     Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
@@ -110,7 +114,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  else if (k == RAW_SYMBOL)
+  else if (k==RAW_SYMBOL)
   {
     // ignore internally generated symbols
     return n;
@@ -567,7 +571,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str());
+        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
         cur = nm->mkSort(sss.str());
       }
       else
@@ -604,7 +608,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getAttribute(expr::VarNameAttr(), name);
-      op = getSymbolInternal(k, ftype, name);
+      op = getSymbolInternal(k, ftype, name, false);
     }
     else
     {
@@ -768,22 +772,23 @@ Node LfscNodeConverter::typeAsNode(TypeNode tni) const
   return it->second;
 }
 
-Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn)
+Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn, bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym = NodeManager::currentNM()->mkRawSymbol(name, tn);
+  NodeManager * nm = NodeManager::currentNM();
+  Node sym = useRawSym ? nm->mkRawSymbol(name, tn) : nm->mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
 
-Node LfscNodeConverter::getSymbolInternalFor(Node n, const std::string& name)
+Node LfscNodeConverter::getSymbolInternalFor(Node n, const std::string& name, bool useRawSym)
 {
-  return getSymbolInternal(n.getKind(), n.getType(), name);
+  return getSymbolInternal(n.getKind(), n.getType(), name, useRawSym);
 }
 
 Node LfscNodeConverter::getSymbolInternal(Kind k,
                                           TypeNode tn,
-                                          const std::string& name)
+                                          const std::string& name, bool useRawSym)
 {
   std::tuple<Kind, TypeNode, std::string> key(k, tn, name);
   std::map<std::tuple<Kind, TypeNode, std::string>, Node>::iterator it =
@@ -792,7 +797,7 @@ Node LfscNodeConverter::getSymbolInternal(Kind k,
   {
     return it->second;
   }
-  Node sym = mkInternalSymbol(name, tn);
+  Node sym = mkInternalSymbol(name, tn, useRawSym);
   d_symbolToBuiltinKind[sym] = k;
   d_symbolsMap[key] = sym;
   return sym;
@@ -1108,6 +1113,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       Trace("lfsc-term-process-debug2") << "...default symbol" << std::endl;
       ret = getSymbolInternal(k, ftype, opName.str());
     }
+    // TODO: if parametric, instantiate the parameters?
     // if indexed, apply to index
     if (!indices.empty())
     {
