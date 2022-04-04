@@ -79,44 +79,44 @@ cvc5 1.0
 * *Proofs*
   * Documentation available at:
     https://cvc5.github.io/docs/cvc5-1.0.0/proofs/proofs.html
-  * When used after an unsatisfiable response to checkSat, getProof
+  * When used after an unsatisfiable response to `checkSat`, `getProof`
     returns a representation of the refutation proof for the current set of
     assertions (get-proof in SMT-LIB).
   * Preliminary support for translations to external proof formats LFSC and Alethe.
 
 * *Difficulty Estimation*
-  - The API method getDifficulty returns a map from asserted formulas to
+  - The API method `getDifficulty` returns a map from asserted formulas to
     integers which estimates how much that formula contributed to the
     difficulty of the overall problem (get-difficulty in SMT-LIB).
 
 * *Learned Literals*
-  - The API method getLearnedLiterals gets a list of literals that are
+  - The API method `getLearnedLiterals` gets a list of literals that are
     entailed by the current set of assertions that were learned during solving
     (get-learned-literals in SMT-LIB).
 
 * *Abduction and Interpolation*
-  * The API method getAbduct can be used to find an abduct for the current set
+  * The API method `getAbduct` can be used to find an abduct for the current set
     of assertions and provided goal (get-abduct in SMT-LIB). Optionally, a
     SyGuS grammar can be provided to restrict the shape of possible abducts.
     If using the text inferace, the grammar may be provided using the same
     syntax for grammars as in SyGuS IF format.
-  * The API method getInterpolant can be used to find an interpolant for the
+  * The API method `getInterpolant` can be used to find an interpolant for the
     current set of assertions and provided goal (get-interpolant in SMT-LIB).
     Like abduction, grammars may be provided to restrict the shape of
     interpolants.
 
 * *Support for Incremental Synthesis Queries*
   - The core SyGuS solver now supports getting multiple solutions for a
-    synthesis conjecture via the API. The method checkSynthNext finds the
+    synthesis conjecture via the API. The method `checkSynthNext` finds the
     next SyGuS solution to the current set of SyGuS constraints
     (check-synth-next in SyGuS IF).
-  - getAbductNext finds the next abduct for the current set of
+  - `getAbductNext` finds the next abduct for the current set of
     assertions and provided goal (get-abduct-next in SMT-LIB).
-  - getInterpolantNext finds the next interpolant for the current set of
+  - `getInterpolantNext` finds the next interpolant for the current set of
     assertions and provided goal (get-interpolant-next in SMT-LIB).
 
 * *Pool-based Quantifier Instantiation*
-  - The API method declarePool declares symbol sets of terms called pools
+  - The API method `declarePool` declares symbol sets of terms called pools
     (declare-pool in SMT-LIB).
   - Pools can be used in annotations of quantified formulas for fine grained
     control over quantifier instantiations (:inst-pool, :inst-add-to-pool,
