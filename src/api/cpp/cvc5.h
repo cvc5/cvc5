@@ -2022,7 +2022,7 @@ class CVC5_EXPORT DatatypeSelector
    *
    * Selector terms are a class of function-like terms of selector
    * sort (`Sort::isDatatypeSelector`), and should be used as the first
-   * argument of Terms of kind APPLY_SELECTOR.
+   * argument of Terms of kind #APPLY_SELECTOR.
    *
    * @return the selector term
    */
@@ -2033,7 +2033,7 @@ class CVC5_EXPORT DatatypeSelector
    *
    * Similar to selectors, updater terms are a class of function-like terms of
    * updater Sort (`Sort::isDatatypeUpdater`), and should be used as the first
-   * argument of Terms of kind APPLY_UPDATER.
+   * argument of Terms of kind #APPLY_UPDATER.
    *
    * @return the updater term
    */
