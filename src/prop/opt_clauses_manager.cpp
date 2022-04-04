@@ -83,6 +83,9 @@ void OptimizedClausesManager::contextNotifyPop()
   if (d_nodeHashSet)
   {
     Assert(d_nodeLevels);
+    // traverse mapping from context levels to nodes so that we can reinsert the
+    // nodes that are below the current level being popped. The entries in the
+    // map at or above this level are deleted.
     for (auto it = d_nodeLevels->cbegin(); it != d_nodeLevels->cend();)
     {
       if (it->first <= newLvl)
