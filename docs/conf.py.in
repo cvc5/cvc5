@@ -165,10 +165,10 @@ examples_types = {
                 'lang': 'python',
                 'group': 'py-regular'
         },
-        '^<z3pycompat>.*\.py$': {
+        '^<pythonicapi>.*\.py$': {
                 'title': 'Python (pythonic)',
                 'lang': 'python',
-                'group': 'py-z3pycompat'
+                'group': 'py-pythonicapi'
         },
         '\.smt2$': {
                 'title': 'SMT-LIBv2',
@@ -188,10 +188,10 @@ examples_file_patterns = {
                 'url': 'https://github.com/cvc5/cvc5/tree/main/examples{}',
                 'urlname': 'examples{}',
         },
-        '<z3pycompat>(.*)': {
+        '<pythonicapi>(.*)': {
                 'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
-                'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
-                'urlname': 'cvc5_z3py_compat:{}',
+                'url': 'https://github.com/cvc5/cvc5_pythonic_api/tree/main{}',
+                'urlname': 'cvc5_pythonic_api:{}',
         }
 }
 

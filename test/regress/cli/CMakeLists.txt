@@ -490,6 +490,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.04.cvc.smt2
   regress0/cvc3.userdoc.05.cvc.smt2
   regress0/cvc3.userdoc.06.cvc.smt2
+  regress0/cvc5-printing.cpp-sample.smt2
   regress0/datatypes/4482-unc-simp-one.smt2
   regress0/datatypes/boolean-equality.cvc.smt2
   regress0/datatypes/boolean-terms-datatype.cvc.smt2
@@ -797,6 +798,8 @@ set(regress_0_tests
   regress0/nl/issue8161-var-elim.smt2
   regress0/nl/issue8226-ran-refinement.smt2
   regress0/nl/issue8414-ran-rational.smt2
+  regress0/nl/issue8515-cov-iand.smt2
+  regress0/nl/issue8516-cov-sin.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -2228,6 +2231,8 @@ set(regress_1_tests
   regress1/quantifiers/issue8456-2-syqi-ic.smt2
   regress1/quantifiers/issue8456-syqi-ic.smt2
   regress1/quantifiers/issue8497-syqi-str-fmf.smt2
+  regress1/quantifiers/issue8517-exp-exp.smt2
+  regress1/quantifiers/issue8520-cegqi-nl-cov.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2

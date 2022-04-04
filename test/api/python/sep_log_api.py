@@ -43,7 +43,7 @@ def validate_exception():
     y = slv.mkConst(integer, "y")
 
     # y > x
-    y_gt_x = slv.mkTerm(Kind.Gt, y, x)
+    y_gt_x = slv.mkTerm(Kind.GT, y, x)
 
     # assert it
     slv.assertFormula(y_gt_x)
@@ -124,18 +124,18 @@ def validate_getters():
     p2 = slv.mkConst(integer, "p2")
 
     # Constraints on x and y
-    x_equal_const = slv.mkTerm(Kind.Equal, x, random_constant)
-    y_gt_x = slv.mkTerm(Kind.Gt, y, x)
+    x_equal_const = slv.mkTerm(Kind.EQUAL, x, random_constant)
+    y_gt_x = slv.mkTerm(Kind.GT, y, x)
 
     # Points-to expressions
-    p1_to_x = slv.mkTerm(Kind.SepPto, p1, x)
-    p2_to_y = slv.mkTerm(Kind.SepPto, p2, y)
+    p1_to_x = slv.mkTerm(Kind.SEP_PTO, p1, x)
+    p2_to_y = slv.mkTerm(Kind.SEP_PTO, p2, y)
 
     # Heap -- the points-to have to be "starred"!
-    heap = slv.mkTerm(Kind.SepStar, p1_to_x, p2_to_y)
+    heap = slv.mkTerm(Kind.SEP_STAR, p1_to_x, p2_to_y)
 
     # Constain "nil" to be something random
-    fix_nil = slv.mkTerm(Kind.Equal, nil, expr_nil_val)
+    fix_nil = slv.mkTerm(Kind.EQUAL, nil, expr_nil_val)
 
     # Add it all to the solver!
     slv.assertFormula(x_equal_const)
@@ -157,11 +157,11 @@ def validate_getters():
     nil_expr = slv.getValueSepNil()
 
     # If the heap is not a separating conjunction, bail-out
-    if (heap_expr.getKind() != Kind.SepStar):
+    if (heap_expr.getKind() != Kind.SEP_STAR):
         return False
 
     # If nil is not a direct equality, bail-out
-    if (nil_expr.getKind() != Kind.Equal):
+    if (nil_expr.getKind() != Kind.EQUAL):
         return False
 
     # Obtain the values for our "pointers"
@@ -175,7 +175,7 @@ def validate_getters():
     # Walk all the children
     for child in heap_expr:
         # If we don't have a PTO operator, bail-out
-        if (child.getKind() != Kind.SepPto):
+        if (child.getKind() != Kind.SEP_PTO):
             return False
 
         # Find both sides of the PTO operator

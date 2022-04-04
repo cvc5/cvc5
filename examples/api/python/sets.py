@@ -39,27 +39,27 @@ if __name__ == "__main__":
     B = slv.mkConst(set_, "B")
     C = slv.mkConst(set_, "C")
 
-    unionAB = slv.mkTerm(Kind.SetUnion, A, B)
-    lhs = slv.mkTerm(Kind.SetInter, unionAB, C)
+    unionAB = slv.mkTerm(Kind.SET_UNION, A, B)
+    lhs = slv.mkTerm(Kind.SET_INTER, unionAB, C)
 
-    intersectionAC = slv.mkTerm(Kind.SetInter, A, C)
-    intersectionBC = slv.mkTerm(Kind.SetInter, B, C)
-    rhs = slv.mkTerm(Kind.SetUnion, intersectionAC, intersectionBC)
+    intersectionAC = slv.mkTerm(Kind.SET_INTER, A, C)
+    intersectionBC = slv.mkTerm(Kind.SET_INTER, B, C)
+    rhs = slv.mkTerm(Kind.SET_UNION, intersectionAC, intersectionBC)
 
-    theorem = slv.mkTerm(Kind.Equal, lhs, rhs)
+    theorem = slv.mkTerm(Kind.EQUAL, lhs, rhs)
 
-    print("cvc5 reports: {} is {}".format(theorem,
-                                          slv.checkSatAssuming(theorem.notTerm())))
+    print("cvc5 reports: {} is {}".format(
+        theorem.notTerm(), slv.checkSatAssuming(theorem.notTerm())))
 
     # Verify emptset is a subset of any set
 
     A = slv.mkConst(set_, "A")
     emptyset = slv.mkEmptySet(set_)
 
-    theorem = slv.mkTerm(Kind.SetSubset, emptyset, A)
+    theorem = slv.mkTerm(Kind.SET_SUBSET, emptyset, A)
 
-    print("cvc5 reports: {} is {}".format(theorem,
-                                          slv.checkSatAssuming(theorem.notTerm())))
+    print("cvc5 reports: {} is {}".format(
+        theorem.notTerm(), slv.checkSatAssuming(theorem.notTerm())))
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
 
@@ -67,16 +67,16 @@ if __name__ == "__main__":
     two = slv.mkInteger(2)
     three = slv.mkInteger(3)
 
-    singleton_one = slv.mkTerm(Kind.SetSingleton, one)
-    singleton_two = slv.mkTerm(Kind.SetSingleton, two)
-    singleton_three = slv.mkTerm(Kind.SetSingleton, three)
-    one_two = slv.mkTerm(Kind.SetUnion, singleton_one, singleton_two)
-    two_three = slv.mkTerm(Kind.SetUnion, singleton_two, singleton_three)
-    intersection = slv.mkTerm(Kind.SetInter, one_two, two_three)
+    singleton_one = slv.mkTerm(Kind.SET_SINGLETON, one)
+    singleton_two = slv.mkTerm(Kind.SET_SINGLETON, two)
+    singleton_three = slv.mkTerm(Kind.SET_SINGLETON, three)
+    one_two = slv.mkTerm(Kind.SET_UNION, singleton_one, singleton_two)
+    two_three = slv.mkTerm(Kind.SET_UNION, singleton_two, singleton_three)
+    intersection = slv.mkTerm(Kind.SET_INTER, one_two, two_three)
 
     x = slv.mkConst(integer, "x")
 
-    e = slv.mkTerm(Kind.SetMember, x, intersection)
+    e = slv.mkTerm(Kind.SET_MEMBER, x, intersection)
 
     result = slv.checkSatAssuming(e)
 
