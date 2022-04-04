@@ -769,7 +769,8 @@ Node LfscNodeConverter::typeAsNode(TypeNode tni) const
 
 Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn)
 {
-  Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
+  // use raw symbol so that it is never quoted
+  Node sym = NodeManager::currentNM()->mkRawSymbol(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
