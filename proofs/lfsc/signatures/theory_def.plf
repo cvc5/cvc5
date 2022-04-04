@@ -416,8 +416,8 @@
 (define to_fp_real (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_real x y) z) w))))))
 (declare f_to_fp_sbv (! i mpz (! j mpz term)))
 (define to_fp_sbv (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_sbv x y) z) w))))))
-(declare f_to_fp_generic (! i mpz (! j mpz term)))
-(define to_fp_generic (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_generic x y) z) w))))))
+(declare f_to_fp_ieee_bv (! i mpz (! j mpz term)))
+(define to_fp_ieee_bv (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_ieee_bv x y) z) w))))))
 (declare f_to_fp_bv (! i mpz (! j mpz term)))
 (define to_fp_bv (# x mpz (# y mpz (# z term (apply (f_to_fp_bv x y) z)))))
 ; rounding modes
