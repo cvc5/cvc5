@@ -1384,7 +1384,7 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           {
             // lookup constructor by name
             cvc5::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            cvc5::Term scons = dc.getInstantiatedConstructorTerm(expr.getSort());
+            cvc5::Term scons = dc.getInstantiatedTerm(expr.getSort());
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }

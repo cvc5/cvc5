@@ -44,7 +44,12 @@ public class DatatypeSelector extends AbstractPointer
   private native String getName(long pointer);
 
   /**
-   * Get the selector operator of this datatype selector.
+   * Get the selector term of this datatype selector.
+   *
+   * Selector terms are a class of function-like terms of selector
+   * sort (Sort::isDatatypeSelector), and should be used as the first
+   * argument of Terms of kind APPLY_SELECTOR.
+   *
    * @return the selector term
    */
   public Term getTerm()
@@ -56,7 +61,12 @@ public class DatatypeSelector extends AbstractPointer
   private native long getTerm(long pointer);
 
   /**
-   * Get the upater operator of this datatype selector.
+   * Get the updater term of this datatype selector.
+   *
+   * Similar to selectors, updater terms are a class of function-like terms of
+   * updater Sort (Sort::isDatatypeUpdater), and should be used as the first
+   * argument of Terms of kind APPLY_UPDATER.
+   *
    * @return the updater term
    */
   public Term getUpdaterTerm()

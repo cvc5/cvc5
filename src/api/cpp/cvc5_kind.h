@@ -4899,7 +4899,7 @@ enum Kind : int32_t
    *
    * \rst
    * .. note:: Should only be used as a child of
-   *           :cpp:enumerator`INST_PATTERN_LIST`.
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    *
    * - Arity: ``n > 0``
