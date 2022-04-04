@@ -30,8 +30,9 @@ namespace cvc5::internal {
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->sExprType());
-  d_argsMarker = nm->mkBoundVar(":args", nm->sExprType());
+  // use raw symbols so that `:args` is not converted to `|:args|`
+  d_conclusionMarker = nm->mkRawSymbol(":conclusion", nm->sExprType());
+  d_argsMarker = nm->mkRawSymbol(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)

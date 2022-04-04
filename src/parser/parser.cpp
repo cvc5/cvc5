@@ -567,7 +567,7 @@ cvc5::Term Parser::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
       // lookup by name
       cvc5::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getInstantiatedConstructorTerm(s);
+      t = dc.getInstantiatedTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
