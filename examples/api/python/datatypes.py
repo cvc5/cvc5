@@ -36,15 +36,16 @@ def test(slv, consListSort):
 
     t = slv.mkTerm(
             Kind.APPLY_CONSTRUCTOR,
-            consList.getConstructor("cons").getConstructorTerm(),
+            consList.getConstructor("cons").getTerm(),
             slv.mkInteger(0),
-            slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
-            consList.getConstructor("nil").getConstructorTerm()))
+            slv.mkTerm(
+                Kind.APPLY_CONSTRUCTOR,
+                consList.getConstructor("nil").getTerm()))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
-        consList.getConstructor("cons").getConstructorTerm().getSort(),
-        consList.getConstructor("nil").getConstructorTerm().getSort()))
+        consList.getConstructor("cons").getTerm().getSort(),
+        consList.getConstructor("nil").getTerm().getSort()))
 
     # t2 = head(cons 0 nil), and of course this can be evaluated
     #
@@ -53,7 +54,9 @@ def test(slv, consListSort):
     # to apply.
 
     t2 = slv.mkTerm(
-            Kind.APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t)
+            Kind.APPLY_SELECTOR,
+            consList["cons"].getSelector("head").getTerm(),
+            t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -82,7 +85,7 @@ def test(slv, consListSort):
     # This example builds a simple parameterized list of sort T, with one
     # constructor "cons".
     sort = slv.mkParamSort("T")
-    paramConsListSpec = slv.mkDatatypeDecl("paramlist", sort)
+    paramConsListSpec = slv.mkDatatypeDecl("paramlist", [sort])
     paramCons = slv.mkDatatypeConstructorDecl("cons")
     paramNil = slv.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)
@@ -99,11 +102,11 @@ def test(slv, consListSort):
 
     head_a = slv.mkTerm(
             Kind.APPLY_SELECTOR,
-            paramConsList["cons"].getSelectorTerm("head"),
+            paramConsList["cons"].getSelector("head").getTerm(),
             a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is",
-          paramConsList.getConstructor("cons").getConstructorTerm().getSort())
+          paramConsList.getConstructor("cons").getTerm().getSort())
 
     assertion = slv.mkTerm(Kind.GT, head_a, slv.mkInteger(50))
     print("Assert", assertion)

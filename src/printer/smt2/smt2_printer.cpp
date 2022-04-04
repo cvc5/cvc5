@@ -1403,15 +1403,27 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (trn.isVar())
+    if (options::modelUninterpPrint()
+            == options::ModelUninterpPrintMode::DeclSortAndFun
+        || options::modelUninterpPrint()
+               == options::ModelUninterpPrintMode::DeclFun)
     {
-      if (options::modelUninterpPrint()
-              == options::ModelUninterpPrintMode::DeclSortAndFun
-          || options::modelUninterpPrint()
-                 == options::ModelUninterpPrintMode::DeclFun)
+      out << "(declare-fun ";
+      if (trn.getKind() == kind::UNINTERPRETED_SORT_VALUE)
       {
-        out << "(declare-fun " << trn << " () " << tn << ")" << endl;
+        // prints as raw symbol
+        const UninterpretedSortValue& av =
+            trn.getConst<UninterpretedSortValue>();
+        out << av;
       }
+      else
+      {
+        Assert(false)
+            << "model domain element is not an uninterpreted sort value: "
+            << trn;
+        out << trn;
+      }
+      out << " () " << tn << ")" << endl;
     }
     else
     {

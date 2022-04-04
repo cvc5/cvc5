@@ -175,7 +175,7 @@ TEST_F(TestApiBlackTerm, getOp)
 
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", {sort});
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
@@ -188,10 +188,10 @@ TEST_F(TestApiBlackTerm, getOp)
   Term c = d_solver.mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
   // list datatype constructor and selector operator terms
-  Term consOpTerm = list.getConstructor("cons").getConstructorTerm();
-  Term nilOpTerm = list.getConstructor("nil").getConstructorTerm();
-  Term headOpTerm = list["cons"].getSelectorTerm("head");
-  Term tailOpTerm = list["cons"].getSelectorTerm("tail");
+  Term consOpTerm = list.getConstructor("cons").getTerm();
+  Term nilOpTerm = list.getConstructor("nil").getTerm();
+  Term headOpTerm = list["cons"].getSelector("head").getTerm();
+  Term tailOpTerm = list["cons"].getSelector("tail").getTerm();
 
   Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilOpTerm});
   Term consTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR,

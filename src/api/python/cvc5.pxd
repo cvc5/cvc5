@@ -85,12 +85,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeSelector operator[](size_t idx) except +
         DatatypeSelector operator[](const string& name) except +
         string getName() except +
-        Term getConstructorTerm() except +
+        Term getTerm() except +
         Term getInstantiatedConstructorTerm(const Sort& retSort) except +
         Term getTesterTerm() except +
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +
-        Term getSelectorTerm(const string& name) except +
         bint isNull() except +
         string toString() except +
         cppclass const_iterator:
@@ -106,6 +105,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass DatatypeConstructorDecl:
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
+        void addSelectorUnresolved(const string& name, const string& unresDatatypeName) except +
         bint isNull() except +
         string toString() except +
 
@@ -122,7 +122,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass DatatypeSelector:
         DatatypeSelector() except +
         string getName() except +
-        Term getSelectorTerm() except +
+        Term getTerm() except +
         Term getUpdaterTerm() except +
         Sort getCodomainSort() except +
         bint isNull() except +
@@ -215,8 +215,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
-        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
-                                     const set[Sort]& unresolvedSorts) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
@@ -227,7 +226,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort() except +
         Sort mkUninterpretedSort(const string& symbol) except +
-        Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
+        Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
@@ -238,7 +237,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
-        Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
+        Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
         void addSygusAssume(Term term) except +
@@ -293,8 +292,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h

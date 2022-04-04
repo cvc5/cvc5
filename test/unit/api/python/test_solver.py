@@ -134,19 +134,18 @@ def test_mk_datatype_sorts(solver):
     dtypeSpec2.addConstructor(nil2)
 
     decls = [dtypeSpec1, dtypeSpec2]
-    solver.mkDatatypeSorts(decls, set([]))
+    solver.mkDatatypeSorts(decls)
 
     with pytest.raises(RuntimeError):
-        slv.mkDatatypeSorts(decls, set([]))
+        slv.mkDatatypeSorts(decls)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     throwsDecls = [throwsDtypeSpec]
     with pytest.raises(RuntimeError):
-        solver.mkDatatypeSorts(throwsDecls, set([]))
+        solver.mkDatatypeSorts(throwsDecls)
 
     # with unresolved sorts
-    unresList = solver.mkUnresolvedSort("ulist")
-    unresSorts = set([unresList])
+    unresList = solver.mkUnresolvedDatatypeSort("ulist")
     ulist = solver.mkDatatypeDecl("ulist")
     ucons = solver.mkDatatypeConstructorDecl("ucons")
     ucons.addSelector("car", unresList)
@@ -156,29 +155,29 @@ def test_mk_datatype_sorts(solver):
     ulist.addConstructor(unil)
     udecls = [ulist]
 
-    solver.mkDatatypeSorts(udecls, unresSorts)
+    solver.mkDatatypeSorts(udecls)
     with pytest.raises(RuntimeError):
-        slv.mkDatatypeSorts(udecls, unresSorts)
+        slv.mkDatatypeSorts(udecls)
 
     # mutually recursive with unresolved parameterized sorts
     p0 = solver.mkParamSort("p0")
     p1 = solver.mkParamSort("p1")
-    u0 = solver.mkUnresolvedSort("dt0", 1)
-    u1 = solver.mkUnresolvedSort("dt1", 1)
-    dtdecl0 = solver.mkDatatypeDecl("dt0", p0)
-    dtdecl1 = solver.mkDatatypeDecl("dt1", p1)
+    u0 = solver.mkUnresolvedDatatypeSort("dt0", 1)
+    u1 = solver.mkUnresolvedDatatypeSort("dt1", 1)
+    dtdecl0 = solver.mkDatatypeDecl("dt0", [p0])
+    dtdecl1 = solver.mkDatatypeDecl("dt1", [p1])
     ctordecl0 = solver.mkDatatypeConstructorDecl("c0")
     ctordecl0.addSelector("s0", u1.instantiate({p0}))
     ctordecl1 = solver.mkDatatypeConstructorDecl("c1")
     ctordecl1.addSelector("s1", u0.instantiate({p1}))
     dtdecl0.addConstructor(ctordecl0)
     dtdecl1.addConstructor(ctordecl1)
-    dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1], {u0, u1})
+    dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1])
     isort1 = dt_sorts[1].instantiate({solver.getBooleanSort()})
     t1 = solver.mkConst(isort1, "t")
     t0 = solver.mkTerm(
         Kind.APPLY_SELECTOR,
-        t1.getSort().getDatatype().getSelector("s1").getSelectorTerm(),
+        t1.getSort().getDatatype().getSelector("s1").getTerm(),
         t1)
     assert dt_sorts[0].instantiate({solver.getBooleanSort()}) == t0.getSort()
 
@@ -292,10 +291,10 @@ def test_mk_uninterpreted_sort(solver):
 
 
 def test_mk_unresolved_sort(solver):
-    solver.mkUnresolvedSort("u")
-    solver.mkUnresolvedSort("u", 1)
-    solver.mkUnresolvedSort("")
-    solver.mkUnresolvedSort("", 1)
+    solver.mkUnresolvedDatatypeSort("u")
+    solver.mkUnresolvedDatatypeSort("u", 1)
+    solver.mkUnresolvedDatatypeSort("")
+    solver.mkUnresolvedDatatypeSort("", 1)
 
 
 def test_mk_sort_constructor_sort(solver):
@@ -656,6 +655,17 @@ def test_mk_real(solver):
     solver.mkReal(val3, val3)
     solver.mkReal(val4, val4)
 
+    solver.mkReal("1", "2")
+    solver.mkReal("-1", "2")
+    solver.mkReal(-1, "2")
+    solver.mkReal("-1", 2)
+    with pytest.raises(TypeError):
+        solver.mkReal(1, 2, 3)
+    with pytest.raises(RuntimeError):
+        solver.mkReal("1.0", 2)
+    with pytest.raises(RuntimeError):
+        solver.mkReal(1, "asdf")
+
 
 def test_mk_regexp_none(solver):
     strSort = solver.getStringSort()
@@ -803,7 +813,7 @@ def test_mk_term_from_op(solver):
 
     # list datatype
     sort = solver.mkParamSort("T")
-    listDecl = solver.mkDatatypeDecl("paramlist", sort)
+    listDecl = solver.mkDatatypeDecl("paramlist", [sort])
     cons = solver.mkDatatypeConstructorDecl("cons")
     nil = solver.mkDatatypeConstructorDecl("nil")
     cons.addSelector("head", sort)
@@ -817,12 +827,10 @@ def test_mk_term_from_op(solver):
     lis = listSort.getDatatype()
 
     # list datatype constructor and selector operator terms
-    consTerm = lis.getConstructor("cons").getConstructorTerm()
-    nilTerm = lis.getConstructor("nil").getConstructorTerm()
-    headTerm1 = lis["cons"].getSelectorTerm("head")
-    headTerm2 = lis["cons"].getSelector("head").getSelectorTerm()
-    tailTerm1 = lis["cons"].getSelectorTerm("tail")
-    tailTerm2 = lis["cons"]["tail"].getSelectorTerm()
+    consTerm = lis.getConstructor("cons").getTerm()
+    nilTerm = lis.getConstructor("nil").getTerm()
+    headTerm = lis["cons"].getSelector("head").getTerm()
+    tailTerm = lis["cons"]["tail"].getTerm()
 
     # mkTerm(Op op, Term term) const
     solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
@@ -836,7 +844,7 @@ def test_mk_term_from_op(solver):
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(Kind.APPLY_SELECTOR, headTerm1)
+        solver.mkTerm(Kind.APPLY_SELECTOR, headTerm)
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm1)
     with pytest.raises(RuntimeError):
@@ -845,8 +853,8 @@ def test_mk_term_from_op(solver):
     # mkTerm(Op op, Term child) const
     solver.mkTerm(opterm1, a)
     solver.mkTerm(opterm2, solver.mkInteger(1))
-    solver.mkTerm(Kind.APPLY_SELECTOR, headTerm1, c)
-    solver.mkTerm(Kind.APPLY_SELECTOR, tailTerm2, c)
+    solver.mkTerm(Kind.APPLY_SELECTOR, headTerm, c)
+    solver.mkTerm(Kind.APPLY_SELECTOR, tailTerm, c)
     with pytest.raises(RuntimeError):
         solver.mkTerm(opterm2, a)
     with pytest.raises(RuntimeError):
@@ -1149,9 +1157,9 @@ def test_get_op(solver):
     consListSort = solver.mkDatatypeSort(consListSpec)
     consList = consListSort.getDatatype()
 
-    consTerm = consList.getConstructor("cons").getConstructorTerm()
-    nilTerm = consList.getConstructor("nil").getConstructorTerm()
-    headTerm = consList["cons"].getSelectorTerm("head")
+    consTerm = consList.getConstructor("cons").getTerm()
+    nilTerm = consList.getConstructor("nil").getTerm()
+    headTerm = consList["cons"].getSelector("head").getTerm()
 
     listnil = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, nilTerm)
     listcons1 = solver.mkTerm(Kind.APPLY_CONSTRUCTOR, consTerm,
@@ -1720,14 +1728,16 @@ def test_simplify(solver):
     consList = consListSort.getDatatype()
     dt1 = solver.mkTerm(
         Kind.APPLY_CONSTRUCTOR,
-        consList.getConstructor("cons").getConstructorTerm(),
+        consList.getConstructor("cons").getTerm(),
         solver.mkInteger(0),
         solver.mkTerm(
             Kind.APPLY_CONSTRUCTOR,
-            consList.getConstructor("nil").getConstructorTerm()))
+            consList.getConstructor("nil").getTerm()))
     solver.simplify(dt1)
     dt2 = solver.mkTerm(
-      Kind.APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), dt1)
+      Kind.APPLY_SELECTOR,
+      consList["cons"].getSelector("head").getTerm(),
+      dt1)
     solver.simplify(dt2)
 
     b1 = solver.mkVar(bvSort, "b1")
@@ -1879,24 +1889,24 @@ def test_mk_sygus_grammar(solver):
     boolVar = solver.mkVar(solver.getBooleanSort())
     intVar = solver.mkVar(solver.getIntegerSort())
 
-    solver.mkSygusGrammar([], [intVar])
-    solver.mkSygusGrammar([boolVar], [intVar])
+    solver.mkGrammar([], [intVar])
+    solver.mkGrammar([boolVar], [intVar])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([], [])
+        solver.mkGrammar([], [])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([], [nullTerm])
+        solver.mkGrammar([], [nullTerm])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([], [boolTerm])
+        solver.mkGrammar([], [boolTerm])
     with pytest.raises(RuntimeError):
-        solver.mkSygusGrammar([boolTerm], [intVar])
+        solver.mkGrammar([boolTerm], [intVar])
     slv = cvc5.Solver()
     boolVar2 = slv.mkVar(slv.getBooleanSort())
     intVar2 = slv.mkVar(slv.getIntegerSort())
-    slv.mkSygusGrammar([boolVar2], [intVar2])
+    slv.mkGrammar([boolVar2], [intVar2])
     with pytest.raises(RuntimeError):
-        slv.mkSygusGrammar([boolVar], [intVar2])
+        slv.mkGrammar([boolVar], [intVar2])
     with pytest.raises(RuntimeError):
-        slv.mkSygusGrammar([boolVar2], [intVar])
+        slv.mkGrammar([boolVar2], [intVar])
 
 
 def test_synth_inv(solver):
@@ -1910,10 +1920,10 @@ def test_synth_inv(solver):
     start1 = solver.mkVar(boolean)
     start2 = solver.mkVar(integer)
 
-    g1 = solver.mkSygusGrammar([x], [start1])
+    g1 = solver.mkGrammar([x], [start1])
     g1.addRule(start1, solver.mkBoolean(False))
 
-    g2 = solver.mkSygusGrammar([x], [start2])
+    g2 = solver.mkGrammar([x], [start2])
     g2.addRule(start2, solver.mkInteger(0))
 
     solver.synthInv("", [])
@@ -2108,7 +2118,7 @@ def test_get_abduct(solver):
     truen = solver.mkBoolean(True)
     start = solver.mkVar(boolean)
     output2 = cvc5.Term(solver)
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
     conj2 = solver.mkTerm(Kind.GT, x, zero)
     g.addRule(start, truen)
     output2 = solver.getAbduct(conj2, g)
@@ -2514,10 +2524,10 @@ def test_synth_fun(solver):
     start1 = solver.mkVar(boolean)
     start2 = solver.mkVar(integer)
 
-    g1 = solver.mkSygusGrammar(x, [start1])
+    g1 = solver.mkGrammar(x, [start1])
     g1.addRule(start1, solver.mkBoolean(False))
 
-    g2 = solver.mkSygusGrammar(x, [start2])
+    g2 = solver.mkGrammar(x, [start2])
     g2.addRule(start2, solver.mkInteger(0))
 
     solver.synthFun("", [], boolean)
@@ -2583,7 +2593,7 @@ def test_tuple_project(solver):
 
     for i in indices:
 
-        selectorTerm = constructor[i].getSelectorTerm()
+        selectorTerm = constructor[i].getTerm()
         selectedTerm = solver.mkTerm(Kind.APPLY_SELECTOR, selectorTerm, tuple)
         simplifiedTerm = solver.simplify(selectedTerm)
         assert elements[i] == simplifiedTerm
