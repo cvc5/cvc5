@@ -1924,7 +1924,7 @@ bool AletheProofPostprocessCallback::updatePost(
     }
     default:
     {
-      Unreachable();
+      // Unreachable();
       return false;
     }
   }
