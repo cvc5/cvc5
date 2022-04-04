@@ -553,7 +553,7 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      if (n.getKind()==kind::RAW_SYMBOL)
+      if (n.getKind() == kind::RAW_SYMBOL)
       {
         // raw symbols are never quoted
         out << s;

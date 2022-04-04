@@ -99,9 +99,9 @@ Node LfscNodeConverter::postConvert(Node n)
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
       << "postConvert " << n << " " << k << std::endl;
-  if (k==BOUND_VARIABLE)
+  if (k == BOUND_VARIABLE)
   {
-    Assert (d_symbols.find(n) != d_symbols.end());
+    Assert(d_symbols.find(n) != d_symbols.end());
     // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
     Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
@@ -110,7 +110,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  else if (k==RAW_SYMBOL)
+  else if (k == RAW_SYMBOL)
   {
     // ignore internally generated symbols
     return n;
