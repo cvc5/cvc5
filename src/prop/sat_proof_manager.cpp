@@ -797,7 +797,8 @@ void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
   }
 }
 
-void SatProofManager::notifyAssumptionInsertedAtLevel(int level, Node assumption)
+void SatProofManager::notifyAssumptionInsertedAtLevel(int level,
+                                                      Node assumption)
 {
   Assert(d_assumptions.contains(assumption));
   d_assumptionLevels[level].push_back(assumption);
