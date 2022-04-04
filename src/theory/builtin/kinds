@@ -310,4 +310,6 @@ typerule DISTINCT ::cvc5::internal::theory::builtin::DistinctTypeRule
 typerule SEXPR ::cvc5::internal::theory::builtin::SExprTypeRule
 typerule WITNESS ::cvc5::internal::theory::builtin::WitnessTypeRule
 
+variable RAW_SYMBOL "a variable that is not quoted in the smt2 printer (internal only)"
+
 endtheory

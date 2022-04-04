@@ -557,8 +557,8 @@ def test_datatype_specialized_cons(solver):
 
     testConsTerm = Term(solver)
     # get the specialized constructor term for list[Int]
-    testConsTerm = nilc.getInstantiatedConstructorTerm(listInt)
+    testConsTerm = nilc.getInstantiatedTerm(listInt)
     assert testConsTerm != nilc.getTerm()
     # error to get the specialized constructor term for Int
     with pytest.raises(RuntimeError):
-        nilc.getInstantiatedConstructorTerm(isort)
+        nilc.getInstantiatedTerm(isort)
