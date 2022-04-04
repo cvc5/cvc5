@@ -54,6 +54,12 @@ class OptimizedClausesManager : context::ContextNotifyObj
 
   /** Adds a hash set of nodes to be tracked and updated when popping
    *
+   * This method can be used when it is necessary to track, in a
+   * context-dependent manner, other information, in a node hash set, beyond the
+   * proofs associated with given clauses. For example, the SAT proof manager
+   * needs to bookeep the current assumptions of the SAT solver, which are
+   * stored in a node hash set.
+   *
    * @param nodeHashSet the node hash set to be updated when context pops
    * @param nodeLevels a mapping from context levels to nodes to be reinserted
    * at these levels
