@@ -97,12 +97,7 @@ void LfscPrinter::print(std::ostream& out,
     {
       const DTypeConstructor& cons = dt[i];
       std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
-      // for now, must print as node to ensure same policy for printing
-      // variable names. For instance, this means that cvc.X is printed as
-      // LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not
-      // SMT-LIB. (cvc5-projects/issues/466) We should disable printing quote
-      // escapes in the smt2 printing of LFSC converted terms.
-      Node cc = nm->mkBoundVar(cname, stc);
+      Node cc = nm->mkRawSymbol(cname, stc);
       // print constructor/tester
       preamble << "(declare " << cc << " term)" << std::endl;
       for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
@@ -110,7 +105,7 @@ void LfscPrinter::print(std::ostream& out,
         const DTypeSelector& arg = cons[j];
         // print selector
         std::string sname = d_tproc.getNameForUserNameOf(arg.getSelector());
-        Node sc = nm->mkBoundVar(sname, stc);
+        Node sc = nm->mkRawSymbol(sname, stc);
         preamble << "(declare " << sc << " term)" << std::endl;
       }
     }
