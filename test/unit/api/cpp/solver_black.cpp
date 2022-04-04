@@ -3063,7 +3063,7 @@ TEST_F(TestApiBlackSolver, proj_issue382)
                        d_solver.mkTerm(APPLY_CONSTRUCTOR,
                                        {s6.getDatatype()
                                             .getConstructor("_x20")
-                                            .getInstantiatedConstructorTerm(s6),
+                                            .getInstantiatedTerm(s6),
                                         t73}),
                        t18});
   Term t82 = d_solver.mkTerm(MATCH, {t13, t53, t53, t53, t81});

@@ -2094,6 +2094,14 @@ class CVC5_EXPORT DatatypeConstructor
 
   /**
    * Get the constructor operator of this datatype constructor.
+   *
+   * Datatype constructors are a special class of funtion-like terms whose sort
+   * is datatype constructor (Sort::isDatatypeConstructor). All datatype
+   * constructors, including nullary ones, should be used as the
+   * first argument to Terms whose kind is APPLY_CONSTRUCTOR. For example,
+   * the nil list is represented by the term (APPLY_CONSTRUCTOR nil), where
+   * nil is the term returned by this method.
+   *
    * @return the constructor term
    */
   Term getTerm() const;
@@ -2136,7 +2144,7 @@ class CVC5_EXPORT DatatypeConstructor
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  Term getInstantiatedConstructorTerm(const Sort& retSort) const;
+  Term getInstantiatedTerm(const Sort& retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.

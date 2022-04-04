@@ -257,14 +257,24 @@ cdef class DatatypeConstructor:
         return self.cdc.getName().decode()
 
     def getTerm(self):
-        """
+        """   
+            Get the constructor operator of this datatype constructor.
+            
+            Datatype constructors are a special class of funtion-like terms
+            whose sort is datatype constructor
+            (:py:meth:`Sort.isDatatypeConstructor). All datatype constructors,
+            including nullary ones, should be used as the first argument to
+            Terms whose kind is APPLY_CONSTRUCTOR. For example, the nil list is
+            represented by the term (APPLY_CONSTRUCTOR nil), where nil is the
+            term returned by this method.
+
             :return: The constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTerm()
         return term
 
-    def getInstantiatedConstructorTerm(self, Sort retSort):
+    def getInstantiatedTerm(self, Sort retSort):
         """
             Get the constructor operator of this datatype constructor whose
             return type is retSort. This method is intended to be used on
@@ -305,7 +315,7 @@ cdef class DatatypeConstructor:
             :return: The constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getInstantiatedConstructorTerm(retSort.csort)
+        term.cterm = self.cdc.getInstantiatedTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):

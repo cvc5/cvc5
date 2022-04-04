@@ -3692,7 +3692,7 @@ Term DatatypeConstructor::getTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeConstructor::getInstantiatedConstructorTerm(
+Term DatatypeConstructor::getInstantiatedTerm(
     const Sort& retSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
