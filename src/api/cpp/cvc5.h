@@ -426,11 +426,14 @@ class CVC5_EXPORT Sort
   /**
    * Get the symbol of this Sort.
    *
-   * Asserts hasSymbol(). The symbol of this sort is the string that was
+   * @note Asserts hasSymbol().
+   *
+   * The symbol of this sort is the string that was
    * provided when constructing it via
    * Solver::mkUninterpretedSort(const std::string&) const,
    * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
    * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
+   *
    * @return The raw symbol of the sort.
    */
   std::string getSymbol() const;
@@ -1195,8 +1198,11 @@ class CVC5_EXPORT Term
   /**
    * Get the symbol of this Term.
    *
-   * Asserts hasSymbol(). The symbol of the term is the string that was
+   * @note Asserts hasSymbol().
+   *
+   * The symbol of the term is the string that was
    * provided when constructing it via Solver::mkConst() or Solver::mkVar().
+   *
    * @return The raw symbol of the term.
    */
   std::string getSymbol() const;
@@ -1382,8 +1388,9 @@ class CVC5_EXPORT Term
    */
   bool isInt32Value() const;
   /**
-   * Asserts isInt32Value().
-   * @return The integer term as a int32_t.
+   * Get the `int32_t` representation of  this integer value.
+   * @note Asserts isInt32Value().
+   * @return This integer value as a `int32_t`.
    */
   int32_t getInt32Value() const;
   /**
@@ -1391,8 +1398,9 @@ class CVC5_EXPORT Term
    */
   bool isUInt32Value() const;
   /**
-   * Asserts isUInt32Value().
-   * @return The integer term as a uint32_t.
+   * Get the `uint32_t` representation of this integer value.
+   * @note Asserts isUInt32Value().
+   * @return This integer value as a `uint32_t`.
    */
   uint32_t getUInt32Value() const;
   /**
@@ -1400,8 +1408,9 @@ class CVC5_EXPORT Term
    */
   bool isInt64Value() const;
   /**
-   * Asserts isInt64Value().
-   * @return The integer term as a int64_t.
+   * Get the `int64_t` representation of this integer value.
+   * @note Asserts isInt64Value().
+   * @return This integer value as a `int64_t`.
    */
   int64_t getInt64Value() const;
   /**
@@ -1409,8 +1418,9 @@ class CVC5_EXPORT Term
    */
   bool isUInt64Value() const;
   /**
-   * Asserts isUInt64Value().
-   * @return The integer term as a uint64_t.
+   * Get the `uint64_t` representation of this integer value.
+   * @note Asserts isUInt64Value().
+   * @return This integer value as a `uint64_t`.
    */
   uint64_t getUInt64Value() const;
   /**
@@ -1418,7 +1428,7 @@ class CVC5_EXPORT Term
    */
   bool isIntegerValue() const;
   /**
-   * Asserts isIntegerValue().
+   * @note Asserts isIntegerValue().
    * @return The integer term in (decimal) string representation.
    */
   std::string getIntegerValue() const;
@@ -1428,7 +1438,7 @@ class CVC5_EXPORT Term
    */
   bool isStringValue() const;
   /**
-   * Asserts isStringValue().
+   * @note Asserts isStringValue().
    * @note This method is not to be confused with toString(), which returns
    *       some string representation of the term, whatever data it may hold.
    * @return The string term as a native string value.
@@ -1441,7 +1451,7 @@ class CVC5_EXPORT Term
    */
   bool isReal32Value() const;
   /**
-   * Asserts isReal32Value().
+   * @note Asserts isReal32Value().
    * @return The representation of a rational value as a pair of its numerator
    *         and denominator.
    */
@@ -1452,7 +1462,7 @@ class CVC5_EXPORT Term
    */
   bool isReal64Value() const;
   /**
-   * Asserts isReal64Value().
+   * @note Asserts isReal64Value().
    * @return The representation of a rational value as a pair of its numerator
    *         and denominator.
    */
@@ -1463,7 +1473,7 @@ class CVC5_EXPORT Term
    */
   bool isRealValue() const;
   /**
-   * Asserts isRealValue().
+   * @note Asserts isRealValue().
    * @return The representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
@@ -1473,7 +1483,7 @@ class CVC5_EXPORT Term
    */
   bool isConstArray() const;
   /**
-   * Asserts isConstArray().
+   * @note Asserts isConstArray().
    * @return The base (element stored at all indices) of a constant array.
    */
   Term getConstArrayBase() const;
@@ -1483,7 +1493,7 @@ class CVC5_EXPORT Term
    */
   bool isBooleanValue() const;
   /**
-   * Asserts isBooleanValue().
+   * @note Asserts isBooleanValue().
    * @return The representation of a Boolean value as a native Boolean value.
    */
   bool getBooleanValue() const;
@@ -1509,7 +1519,7 @@ class CVC5_EXPORT Term
    */
   bool isUninterpretedSortValue() const;
   /**
-   * Asserts isUninterpretedSortValue().
+   * @note Asserts isUninterpretedSortValue().
    * @return The representation of an uninterpreted sort value as a string.
    */
   std::string getUninterpretedSortValue() const;
@@ -1519,7 +1529,7 @@ class CVC5_EXPORT Term
    */
   bool isTupleValue() const;
   /**
-   * Asserts isTupleValue().
+   * @note Asserts isTupleValue().
    * @return The representation of a tuple value as a vector of terms.
    */
   std::vector<Term> getTupleValue() const;
@@ -1529,7 +1539,7 @@ class CVC5_EXPORT Term
    */
   bool isRoundingModeValue() const;
   /**
-   * Asserts isRoundingModeValue().
+   * @note Asserts isRoundingModeValue().
    * @return The floating-point rounding mode value held by the term.
    */
   RoundingMode getRoundingModeValue() const;
@@ -1561,7 +1571,7 @@ class CVC5_EXPORT Term
    */
   bool isFloatingPointValue() const;
   /**
-   * Asserts isFloatingPointValue().
+   * @note Asserts isFloatingPointValue().
    * @return The representation of a floating-point value as a tuple of the
    *         exponent width, the significand width and a bit-vector value.
    */
@@ -1587,7 +1597,7 @@ class CVC5_EXPORT Term
    */
   bool isSetValue() const;
   /**
-   * Asserts isSetValue().
+   * @note Asserts isSetValue().
    * @return The representation of a set value as a set of terms.
    */
   std::set<Term> getSetValue() const;
@@ -1640,7 +1650,7 @@ class CVC5_EXPORT Term
    */
   bool isSequenceValue() const;
   /**
-   * Asserts isSequenceValue().
+   * @note Asserts isSequenceValue().
    * @return The representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
@@ -1650,7 +1660,7 @@ class CVC5_EXPORT Term
    */
   bool isCardinalityConstraint() const;
   /**
-   * Asserts isCardinalityConstraint().
+   * @note Asserts isCardinalityConstraint().
    * @return The sort the cardinality constraint is for and its upper bound.
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
@@ -2959,23 +2969,35 @@ struct CVC5_EXPORT OptionInfo
                                          ModeInfo>;
   /** The option value information */
   OptionInfoVariant valueInfo;
-  /** Obtain the current value as a `bool`. Asserts that `valueInfo` holds a
-   * `bool`.
+  /**
+   * Get the current value as a `bool`.
+   * @note Asserts that `valueInfo` holds a `bool`.
+   * @return The current value as a `bool`.
    */
   bool boolValue() const;
-  /** Obtain the current value as a `std::string`. Asserts that `valueInfo`
-   * holds a `std::string`. */
+  /**
+   * Get the current value as a `std::string`.
+   * @note Asserts that `valueInfo` holds a `std::string`.
+   * @return The current value as a `std::string`.
+   */
   std::string stringValue() const;
-  /** Obtain the current value as an `int64_t`. Asserts that `valueInfo` holds
-   * an `int64_t`.
+  /**
+   * Get the current value as an `int64_t`.
+   * @note Asserts that `valueInfo` holds an `int64_t`.
+   * @return The current value as a `int64_t`.
    */
   int64_t intValue() const;
-  /** Obtain the current value as a `uint64_t`. Asserts that `valueInfo` holds a
-   * `uint64_t`.
+  /**
+   * Get the current value as a `uint64_t`.
+   * @note Asserts that `valueInfo` holds a `uint64_t`.
+   * @return The current value as a `uint64_t`.
    */
   uint64_t uintValue() const;
-  /** Obtain the current value as a `double`. Asserts that `valueInfo` holds a
-   * `double`. */
+  /**
+   * Obtain the current value as a `double`.
+   * @note Asserts that `valueInfo` holds a `double`.
+   * @return The current value as a `double`.
+   */
   double doubleValue() const;
 };
 
@@ -3144,9 +3166,9 @@ class CVC5_EXPORT Statistics
 
   /**
    * Retrieve the statistic with the given name.
-   * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC5ApiRecoverableException` if it does not.
-   * @param name Name of the statistic.
+   * @note Asserts that a statistic with the given name actually exists and
+   *       throws a CVC5ApiRecoverableException if it does not.
+   * @param name The name of the statistic.
    * @return The statistic with the given name.
    */
   const Stat& get(const std::string& name);

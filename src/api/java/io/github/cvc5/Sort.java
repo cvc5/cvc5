@@ -85,7 +85,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean hasSymbol(long pointer);
 
   /**
-   * Asserts hasSymbol().
+   * @api.note Asserts hasSymbol().
    * @return The raw symbol of the symbol.
    */
   public String getSymbol()
