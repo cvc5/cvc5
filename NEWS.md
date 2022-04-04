@@ -117,7 +117,7 @@ cvc5 1.0
 
 * *Pool-based Quantifier Instantiation*
   - The API method `declarePool` declares symbol sets of terms called pools
-    (declare-pool in SMT-LIB).
+    (`declare-pool` in SMT-LIB).
   - Pools can be used in annotations of quantified formulas for fine grained
     control over quantifier instantiations (:inst-pool, :inst-add-to-pool,
     :skolem-add-to-pool in SMT-LIB).
