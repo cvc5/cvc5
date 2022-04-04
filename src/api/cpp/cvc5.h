@@ -2021,7 +2021,7 @@ class CVC5_EXPORT DatatypeSelector
    * Get the selector term of this datatype selector.
    *
    * Selector terms are a class of function-like terms of selector
-   * sort (`Sort::isDatatypeSelector`), and should be used as the first
+   * sort (Sort::isDatatypeSelector()), and should be used as the first
    * argument of Terms of kind #APPLY_SELECTOR.
    *
    * @return the selector term
@@ -2032,7 +2032,7 @@ class CVC5_EXPORT DatatypeSelector
    * Get the updater term of this datatype selector.
    *
    * Similar to selectors, updater terms are a class of function-like terms of
-   * updater Sort (`Sort::isDatatypeUpdater`), and should be used as the first
+   * updater Sort (Sort::isDatatypeUpdater()), and should be used as the first
    * argument of Terms of kind #APPLY_UPDATER.
    *
    * @return the updater term
@@ -2106,7 +2106,7 @@ class CVC5_EXPORT DatatypeConstructor
    * Get the constructor term of this datatype constructor.
    *
    * Datatype constructors are a special class of funtion-like terms whose sort
-   * is datatype constructor (`Sort::isDatatypeConstructor`). All datatype
+   * is datatype constructor (Sort::isDatatypeConstructor()). All datatype
    * constructors, including nullary ones, should be used as the
    * first argument to Terms whose kind is #APPLY_CONSTRUCTOR. For example,
    * the nil list can be constructed by
@@ -2114,7 +2114,7 @@ class CVC5_EXPORT DatatypeConstructor
    * by this method.
    *
    * @note This method should not be used for parametric datatypes. Instead,
-   *       use the method `DatatypeConstructor::getInstantiatedTerm` below.
+   *       use the method DatatypeConstructor::getInstantiatedTerm() below.
    *
    * @return the constructor term
    */
@@ -2164,7 +2164,7 @@ class CVC5_EXPORT DatatypeConstructor
    * Get the tester term of this datatype constructor.
    *
    * Similar to constructors, testers are a class of function-like terms of
-   * tester sort (`Sort::isDatatypeConstructor`) which should be used as the
+   * tester sort (Sort::isDatatypeConstructor()) which should be used as the
    * first argument of Terms of kind #APPLY_TESTER.
    *
    * @return the tester term
