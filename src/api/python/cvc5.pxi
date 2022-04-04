@@ -321,6 +321,12 @@ cdef class DatatypeConstructor:
 
     def getTesterTerm(self):
         """
+            Get the tester operator of this datatype constructor.
+
+            Similar to constructors, testers are a class of function-like terms
+            of tester sort (:py:meth:`Sort.isDatatypeTester`), and should
+            be used as the first argument of Terms of kind APPLY_TESTER.
+
             :return: The tester operator that is related to this constructor,
                      as a term.
         """
@@ -507,6 +513,12 @@ cdef class DatatypeSelector:
 
     def getTerm(self):
         """
+            Get the selector operator of this datatype selector.
+
+            Selector terms are a class of function-like terms of selector
+            sort (:py:meth:`Sort.isDatatypeSelector()`), and should be used as
+            the first argument of Terms of kind APPLY_SELECTOR.
+
             :return: The selector opeartor of this datatype selector as a term.
         """
         cdef Term term = Term(self.solver)
@@ -515,6 +527,12 @@ cdef class DatatypeSelector:
 
     def getUpdaterTerm(self):
         """
+            Get the updater operator of this datatype selector.
+
+            Similar to selectors, updater terms are a class of function-like
+            terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
+            should be used as the first argument of Terms of kind APPLY_UPDATER.
+
             :return: The updater opeartor of this datatype selector as a term.
         """
         cdef Term term = Term(self.solver)

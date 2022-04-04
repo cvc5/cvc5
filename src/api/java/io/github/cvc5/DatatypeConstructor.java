@@ -101,6 +101,11 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
 
   /**
    * Get the tester operator of this datatype constructor.
+   *
+   * Similar to constructors, testers are a class of function-like terms of
+   * tester sort (Sort::isDatatypeTester), and should be used as the first
+   * argument of Terms of kind APPLY_TESTER.
+   *
    * @return the tester operator
    */
   public Term getTesterTerm()

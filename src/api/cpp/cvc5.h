@@ -2019,12 +2019,22 @@ class CVC5_EXPORT DatatypeSelector
 
   /**
    * Get the selector operator of this datatype selector.
+   *
+   * Selector terms are a class of function-like terms of selector
+   * sort (Sort::isDatatypeSelector), and should be used as the first
+   * argument of Terms of kind APPLY_SELECTOR.
+   *
    * @return the selector term
    */
   Term getTerm() const;
 
   /**
    * Get the updater operator of this datatype selector.
+   *
+   * Similar to selectors, updater terms are a class of function-like terms of
+   * updater Sort (Sort::isDatatypeUpdater), and should be used as the first
+   * argument of Terms of kind APPLY_UPDATER.
+   *
    * @return the updater term
    */
   Term getUpdaterTerm() const;
@@ -2098,9 +2108,10 @@ class CVC5_EXPORT DatatypeConstructor
    * Datatype constructors are a special class of funtion-like terms whose sort
    * is datatype constructor (Sort::isDatatypeConstructor). All datatype
    * constructors, including nullary ones, should be used as the
-   * first argument to Terms whose kind is APPLY_CONSTRUCTOR. For example,
-   * the nil list is represented by the term (APPLY_CONSTRUCTOR nil), where
-   * nil is the term returned by this method.
+   * first argument to Terms whose kind is #APPLY_CONSTRUCTOR. For example,
+   * the nil list can be constructed by
+   * `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`, where `t` is the term returned
+   * by this method.
    *
    * @return the constructor term
    */
@@ -2148,6 +2159,11 @@ class CVC5_EXPORT DatatypeConstructor
 
   /**
    * Get the tester operator of this datatype constructor.
+   *
+   * Similar to constructors, testers are a class of function-like terms of
+   * tester sort (Sort::isDatatypeConstructor) which should be used as the first
+   * argument of Terms of kind #APPLY_TESTER.
+   *
    * @return the tester operator
    */
   Term getTesterTerm() const;
