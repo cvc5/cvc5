@@ -2931,7 +2931,7 @@ cdef class Sort:
 
     def getSymbol(self):
         """
-            Asserts :py:meth:`hasSymbol()`.
+            .. note:: Asserts :py:meth:`hasSymbol()`.
 
             :return: The raw symbol of the sort.
         """
@@ -3642,7 +3642,7 @@ cdef class Term:
 
     def getSymbol(self):
         """
-            Asserts :py:meth:`hasSymbol()`.
+            ..note:: Asserts :py:meth:`hasSymbol()`.
 
             :return: The raw symbol of the term.
         """
@@ -3740,7 +3740,7 @@ cdef class Term:
 
     def getConstArrayBase(self):
         """
-           Asserts :py:meth:`isConstArray()`.
+           .. note:: Asserts :py:meth:`isConstArray()`.
 
            :return: The base (element stored at all indicies) of this constant
                     array.
@@ -3757,7 +3757,7 @@ cdef class Term:
 
     def getBooleanValue(self):
         """
-           Asserts :py:meth:`isBooleanValue()`
+           .. note:: Asserts :py:meth:`isBooleanValue()`
 
            :return: The representation of a Boolean value as a native Boolean
                     value.
@@ -3772,7 +3772,7 @@ cdef class Term:
 
     def getStringValue(self):
         """
-            Asserts :py:meth:`isStringValue()`.
+            .. note:: Asserts :py:meth:`isStringValue()`.
 
             .. note::
                This method is not to be confused with :py:meth:`__str__()`
@@ -3804,7 +3804,7 @@ cdef class Term:
 
     def getIntegerValue(self):
         """
-           Asserts :py:meth:`isIntegerValue()`.
+           .. note:: Asserts :py:meth:`isIntegerValue()`.
 
            :return: The integer term as a native python integer.
         """
@@ -3853,7 +3853,7 @@ cdef class Term:
 
     def getFloatingPointValue(self):
         """
-           Asserts :py:meth:`isFloatingPointValue()`.
+           .. note:: Asserts :py:meth:`isFloatingPointValue()`.
 
            :return: The representation of a floating-point value as a tuple of
                     the exponent width, the significand width and a bit-vector
@@ -3890,7 +3890,7 @@ cdef class Term:
 
     def getSetValue(self):
         """
-           Asserts :py:meth:`isSetValue()`.
+           .. note:: Asserts :py:meth:`isSetValue()`.
 
            :return: The representation of a set value as a set of terms.
         """
@@ -3909,7 +3909,7 @@ cdef class Term:
 
     def getSequenceValue(self):
         """
-            Asserts :py:meth:`isSequenceValue()`.
+            .. note:: Asserts :py:meth:`isSequenceValue()`.
 
             .. note::
 
@@ -3960,7 +3960,7 @@ cdef class Term:
 
     def getUninterpretedSortValue(self):
         """
-           Asserts :py:meth:`isUninterpretedSortValue()`.
+           .. note:: Asserts :py:meth:`isUninterpretedSortValue()`.
 
            :return: The representation of an uninterpreted value as a pair of
                     its sort and its index.
@@ -3982,14 +3982,14 @@ cdef class Term:
 
     def getRoundingModeValue(self):
         """
-            Asserts :py:meth:`isRoundingModeValue()`.
+            .. note:: Asserts :py:meth:`isRoundingModeValue()`.
             :return: The floating-point rounding mode value held by the term.
         """
         return RoundingMode(<int> self.cterm.getRoundingModeValue())
 
     def getTupleValue(self):
         """
-           Asserts :py:meth:`isTupleValue()`.
+           .. note:: Asserts :py:meth:`isTupleValue()`.
 
            :return: The representation of a tuple value as a vector of terms.
         """
@@ -4014,7 +4014,7 @@ cdef class Term:
 
     def getRealValue(self):
         """
-           Asserts :py:meth:`isRealValue()`.
+           .. note:: Asserts :py:meth:`isRealValue()`.
 
            :return: The representation of a rational value as a python Fraction.
         """
@@ -4028,7 +4028,7 @@ cdef class Term:
 
     def getBitVectorValue(self, base = 2):
         """
-           Asserts :py:meth:`isBitVectorValue()`.
+           .. note:: Asserts :py:meth:`isBitVectorValue()`.
            Supported bases are 2 (bit string), 10 (decimal string) or 16
            (hexdecimal string).
 
