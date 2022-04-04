@@ -366,7 +366,7 @@ class SatProofManager : protected EnvObj
 
   /** Notify this proof manager that a SAT assumption has had its level
    * optmized. */
-  void notifyOptSatAssumption(int level, Node assumption);
+  void notifyAssumptionInsertedAtLevel(int level, Node assumption);
 
  private:
   /** Ends resolution chain concluding clause

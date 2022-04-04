@@ -638,7 +638,7 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
-  d_satPM->notifyOptSatAssumption(explLevel, d_currPropagationProccessed);
+  d_satPM->notifyAssumptionInsertedAtLevel(explLevel, d_currPropagationProccessed);
   // Reset
   d_currPropagationProccessed = Node::null();
 }
@@ -659,7 +659,7 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
-  d_satPM->notifyOptSatAssumption(clLevel, clauseNode);
+  d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
 }
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
