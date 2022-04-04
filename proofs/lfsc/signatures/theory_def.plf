@@ -190,6 +190,8 @@
 (define str.< (# x term (# y term (apply (apply f_str.< x) y))))
 (declare f_str.<= term)
 (define str.<= (# x term (# y term (apply (apply f_str.<= x) y))))
+(declare f_str.replace_all term)
+(define str.replace_all (# x term (# y term (# z term (apply (apply (apply f_str.replace_all x) y) z)))))
 (declare f_str.indexof_re term)
 (define str.indexof_re (# x term (# y term (# z term (apply (apply (apply f_str.indexof_re x) y) z)))))
 (declare f_str.replace_re term)
