@@ -17,15 +17,15 @@ cvc5 1.0
 **New Features**
 
 * *Streamlined C++ API*
-  - Documentation: https://cvc5.github.io/docs/cvc5-1.0.0/api/cpp/cpp.html
+  - Documentation: https://cvc5.github.io/docs/latest/api/cpp/cpp.html
 
 * *Two new Python language bindings*
   - Base module: Feature complete with C++ API
   - Pythonic module: A pythonic wrapper around the base module
-  - Documentation: https://cvc5.github.io/docs/cvc5-1.0.0/api/python/python.html
+  - Documentation: https://cvc5.github.io/docs/latest/api/python/python.html
 
 * *New Java language bindings*
-  - Documentation: https://cvc5.github.io/docs/cvc5-1.0.0/api/java/java.html
+  - Documentation: https://cvc5.github.io/docs/latest/api/java/java.html
 
 * *Theory of Bags (Multisets)*
   - A new theory of bags, which are collections that allow duplicates. It
@@ -78,7 +78,7 @@ cvc5 1.0
 
 * *Proofs*
   * Documentation available at:
-    https://cvc5.github.io/docs/cvc5-1.0.0/proofs/proofs.html
+    https://cvc5.github.io/docs/latest/proofs/proofs.html
   * When used after an unsatisfiable response to `checkSat`, `getProof`
     returns a representation of the refutation proof for the current set of
     assertions (get-proof in SMT-LIB).
