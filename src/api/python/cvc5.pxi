@@ -2714,6 +2714,8 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.getInterpolantNext()
         return result
+
+
     def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
@@ -2730,6 +2732,7 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :param conj: The conjecture term.
             :param grammar: A grammar for the abduct.
             :return: The abduct.
@@ -3575,8 +3578,7 @@ cdef class Term:
 
             .. note::
 
-            This is safe to call when :py:meth:`hasOp()` returns True.
-
+                This is safe to call when :py:meth:`hasOp()` returns True.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -3888,6 +3890,7 @@ cdef class Term:
         """
             :return: The sort the cardinality constraint is for and its upper
                      bound.
+
             .. warning:: This method is experimental and may change in future
                          versions.
         """
