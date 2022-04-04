@@ -4541,10 +4541,7 @@ class CVC5_EXPORT Solver
    *     (block-model)
    *
    * Requires enabling option
-   * :ref:`produce-models <lbl-option-produce-models>`
-   * and setting option
-   * :ref:`block-models <lbl-option-block-models>`
-   * to a mode other than ``none``.
+   * :ref:`produce-models <lbl-option-produce-models>`.
    * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
