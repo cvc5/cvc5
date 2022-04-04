@@ -541,7 +541,7 @@ cdef class DatatypeSelector:
             Similar to selectors, updater terms are a class of function-like
             terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
             should be used as the first argument of Terms of kind
-            :py:ob:`APPLY_UPDATER <cvc5.Kind.APPLY_UPDATER>`.
+            :py:obj:`APPLY_UPDATER <Kind.APPLY_UPDATER>`.
 
             :return: The updater term of this datatype selector.
         """
