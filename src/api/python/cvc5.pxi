@@ -264,8 +264,9 @@ cdef class DatatypeConstructor:
             whose sort is datatype constructor
             (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
             constructors, including nullary ones, should be used as the first
-            argument to Terms whose kind is APPLY_CONSTRUCTOR. For example, the
-            nil list can be constructed via
+            argument to Terms whose kind is
+            :py:obj:`APPLY_CONSTRUCTOR <cvc5.Kind.APPLY_CONSTRUCTOR>`.
+            For example, the nil list can be constructed via
             ``Solver.mkTerm(APPLY_CONSTRUCTOR, [nil])``, where nil is the Term
             returned by this method.
 
@@ -273,7 +274,7 @@ cdef class DatatypeConstructor:
 
                 This method should not be used for parametric datatypes.
                 Instead, use the method
-                :py:meth:`DatatypeConstructor.getInstantiatedTerm` below.
+                :py:meth:`DatatypeConstructor.getInstantiatedTerm()` below.
 
             :return: The constructor operator as a term.
         """
@@ -523,7 +524,8 @@ cdef class DatatypeSelector:
 
             Selector terms are a class of function-like terms of selector
             sort (:py:meth:`Sort.isDatatypeSelector()`), and should be used as
-            the first argument of Terms of kind APPLY_SELECTOR.
+            the first argument of Terms of kind
+            :py:obj:`APPLY_SELECTOR <cvc5.Kind.APPLY_SELECTOR>`.
 
             :return: The selector opeartor of this datatype selector as a term.
         """
@@ -537,7 +539,8 @@ cdef class DatatypeSelector:
 
             Similar to selectors, updater terms are a class of function-like
             terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
-            should be used as the first argument of Terms of kind APPLY_UPDATER.
+            should be used as the first argument of Terms of kind
+            :py:ob:`APPLY_UPDATER <cvc5.Kind.APPLY_UPDATER>`.
 
             :return: The updater opeartor of this datatype selector as a term.
         """

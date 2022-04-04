@@ -50,14 +50,14 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * Get the constructor operator of this datatype constructor.
    *
    * Datatype constructors are a special class of funtion-like terms whose sort
-   * is datatype constructor (Sort::isDatatypeConstructor). All datatype
+   * is datatype constructor ({@link Sort#isDatatypeConstructor()}). All datatype
    * constructors, including nullary ones, should be used as the
    * first argument to Terms whose kind is APPLY_CONSTRUCTOR. For example,
    * the nil list is represented by the term (APPLY_CONSTRUCTOR nil), where
    * nil is the term returned by this method.
    *
    * @api.note This method should not be used for parametric datatypes. Instead,
-   *           use the method `DatatypeConstructor::getInstantiatedTerm` below.
+   *           use the method {@link DatatypeConstructor#getInstantiatedTerm(Sort)} below.
    *
    * @return the constructor term
    */
@@ -106,7 +106,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * Get the tester operator of this datatype constructor.
    *
    * Similar to constructors, testers are a class of function-like terms of
-   * tester sort (Sort::isDatatypeTester), and should be used as the first
+   * tester sort ({@link Sort#isDatatypeTester()}), and should be used as the first
    * argument of Terms of kind APPLY_TESTER.
    *
    * @return the tester operator
