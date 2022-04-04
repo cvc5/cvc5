@@ -43,7 +43,7 @@ cvc5 1.0
 
 * *Bit-vectors*
   - New bit-vector solver with CaDiCaL as default SAT back-end.
-  - New approach for solving bit-vectors as integers
+  - New approach for solving bit-vectors as integers (option `--solve-bv-as-int`).
 
 * *Datatypes*
   - Support for generic datatype updaters `((_ update s) t u)` which replaces
@@ -73,6 +73,7 @@ cvc5 1.0
   * When used after an unsatisfiable response to checkSat, getProof
     returns a representation of the refutation proof for the current set of
     assertions (get-proof in SMT-LIB).
+  * Preliminary support for translations to external proof formats LFSC and Alethe.
 
 * *Difficulty Estimation*
   - The API method getDifficulty returns a map from asserted formulas to
@@ -80,7 +81,7 @@ cvc5 1.0
     difficulty of the overall problem (get-difficulty in SMT-LIB).
 
 * *Learned Literals*
-  - The API method  getLearnedLiterals gets a list of literals that are
+  - The API method getLearnedLiterals gets a list of literals that are
     entailed by the current set of assertions that were learned during solving
     (get-learned-literals in SMT-LIB).
 
@@ -106,7 +107,7 @@ cvc5 1.0
     assertions and provided goal (get-interpolant-next in SMT-LIB).
 
 * *Pool-based Quantifier Instantiation*
-  - declarePool declares symbol sets of terms called pools (declare-pool in
+  - The API method declarePool declares symbol sets of terms called pools (declare-pool in
     SMT-LIB).
   - Pools can be used in annotations of quantified formulas for fine grained
     control over quantifier instantiations (:inst-pool, :inst-add-to-pool,
@@ -158,6 +159,6 @@ cvc5 1.0
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
-* The SMT-LIB syntax for some extensions has been changed. Notably, set operators are now prefixed by `set.`. For example, `union` is now written `set.union`.
+* The SMT-LIB syntax for some extensions has been changed. Notably, set operators are now prefixed by `set.`, and relations by `rel.`. For example, `union` is now written `set.union`.
 * Removed support for redundant logics `ALL_SUPPORTED` and `QF_ALL_SUPPORTED`,
   use `ALL` and `QF_ALL` instead.
