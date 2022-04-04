@@ -3,6 +3,9 @@ This file contains a summary of important user-visible changes.
 cvc5 1.0
 =========
 
+**Website**
+  * https://cvc5.github.io
+
 **System Description**
   * *cvc5: A Versatile and Industrial-Strength SMT Solver.*  
     Barbosa H., Barrett C., Brain M., Kremer G., Lachnitt H.,
@@ -13,7 +16,8 @@ cvc5 1.0
 **New Features**
 
 * *Streamlined C++ API*
-  Please refer to the documentation for details.
+
+  - Please refer to the documentation for details (https://cvc5.github.io/docs).
 
 * *Two new Python language bindings*
   - Base module: Feature complete with C++ API
