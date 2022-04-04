@@ -3962,7 +3962,7 @@ cdef class Term:
 
             .. note::
 
-                A term of kind :py:obj:`Pi <Kind.Pi>` is not considered
+                A term of kind :py:obj:`PI <Kind.PI>` is not considered
                 to be a real value.
 
         """
