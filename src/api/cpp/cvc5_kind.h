@@ -474,12 +474,14 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *     ((_ iand k) i_1 i_2)
+   *
    * is equivalent to
    *
    * .. code:: smtlib
    *
    *     ((_ iand k) i_1 i_2)
    *     (bv2int (bvand ((_ int2bv k) i_1) ((_ int2bv k) i_2)))
+   *
    * for all integers ``i_1``, ``i_2``.
    *
    * - Arity: ``2``

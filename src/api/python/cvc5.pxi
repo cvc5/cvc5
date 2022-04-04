@@ -2181,7 +2181,7 @@ cdef class Solver:
         """
             Get some information about the given option.
             Returns the information provided by the C++
-            :cpp:func:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
+            :cpp:class:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
 
             :return: Information about the given option.
         """
@@ -2781,7 +2781,7 @@ cdef class Solver:
                 (block-model)
 
             Requires enabling option
-            :ref:`produce-models <lbl-option-produce-models>``
+            :ref:`produce-models <lbl-option-produce-models>`
             to a mode other than ``none``.
 
             .. warning:: This method is experimental and may change in future
