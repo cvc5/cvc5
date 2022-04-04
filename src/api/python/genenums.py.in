@@ -62,24 +62,27 @@ class {enum}(Enum):
 ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
 '''
 
-comment_repls = {
-    'Term::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Term.\\1()`',
-    'Solver::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`Solver.\\1()`',
-    'Solver::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Solver.\\1()`',
-    'DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`DatatypeConstructor.\\1()`',
-    'DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`DatatypeConstructor.\\1()`',
-    'Datatype::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`Datatype.\\1()`',
-    'Datatype::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`Datatype.\\1()`',
-    'DatatypeSelector::([a-zA-Z]+)\(([^)]*)\) const': ':py:meth:`DatatypeSelector.\\1()`',
-    'DatatypeSelector::([a-zA-Z]+)\(([^)]*)\)': ':py:meth:`DatatypeSelector.\\1()`',
-    ':cpp:func:`(.*?)`': '\\1',
-    ':cpp:enumerator:`(.*?)`': ':py:obj:`\\1`',
-    '\\\\': '\\\\\\\\',
-}
+# list to enforce proper ordering
+comment_repls = [
+    # first remove explicit cpp references
+    (':cpp:func:`(.*?)`', '\\1'),
+    (':cpp:enumerator:`(.*?)`', ':py:obj:`\\1`'),
+    # introduce proper python references
+    ('Term::([a-zA-Z]+)\(([^)]*)\)', ':py:meth:`Term.\\1()`'),
+    ('Solver::([a-zA-Z]+)\(([^)]*)\) const', ':py:meth:`Solver.\\1()`'),
+    ('Solver::([a-zA-Z]+)\(([^)]*)\)', ':py:meth:`Solver.\\1()`'),
+    ('DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\) const', ':py:meth:`DatatypeConstructor.\\1()`'),
+    ('DatatypeConstructor::([a-zA-Z]+)\(([^)]*)\)', ':py:meth:`DatatypeConstructor.\\1()`'),
+    ('Datatype::([a-zA-Z]+)\(([^)]*)\) const', ':py:meth:`Datatype.\\1()`'),
+    ('Datatype::([a-zA-Z]+)\(([^)]*)\)', ':py:meth:`Datatype.\\1()`'),
+    ('DatatypeSelector::([a-zA-Z]+)\(([^)]*)\) const', ':py:meth:`DatatypeSelector.\\1()`'),
+    ('DatatypeSelector::([a-zA-Z]+)\(([^)]*)\)', ':py:meth:`DatatypeSelector.\\1()`'),
+    ('\\\\', '\\\\\\\\'),
+]
 
 
 def reformat_comment(comment):
-    for pat, repl in comment_repls.items():
+    for pat, repl in comment_repls:
         comment = re.sub(pat, repl, comment)
     return comment
 
