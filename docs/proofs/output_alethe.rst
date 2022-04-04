@@ -20,3 +20,7 @@ available `here <https://github.com/ufmg-smite/alethe-proof-checker>`_.
 Currently, only the theory of equality with uninterpreted functions, parts of
 the theory of arithmetic and parts of the theory of quantifiers are supported in
 cvc5's Alethe proofs.
+
+A simple example of cvc5 producing a proof in the Alethe proof format:
+
+.. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=alethe --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2

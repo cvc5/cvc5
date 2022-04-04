@@ -86,7 +86,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeSelector operator[](const string& name) except +
         string getName() except +
         Term getTerm() except +
-        Term getInstantiatedConstructorTerm(const Sort& retSort) except +
+        Term getInstantiatedTerm(const Sort& retSort) except +
         Term getTesterTerm() except +
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +

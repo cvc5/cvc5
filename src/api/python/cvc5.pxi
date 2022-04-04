@@ -157,6 +157,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype is parametric.
         """
         return self.cd.isParametric()
@@ -177,6 +178,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype corresponds to a record.
         """
         return self.cd.isRecord()
@@ -257,16 +259,34 @@ cdef class DatatypeConstructor:
         return self.cdc.getName().decode()
 
     def getTerm(self):
-        """
-            :return: The constructor operator as a term.
+        """   
+            Get the constructor term of this datatype constructor.
+            
+            Datatype constructors are a special class of function-like terms
+            whose sort is datatype constructor
+            (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
+            constructors, including nullary ones, should be used as the first
+            argument to Terms whose kind is
+            :py:obj:`APPLY_CONSTRUCTOR <cvc5.Kind.APPLY_CONSTRUCTOR>`.
+            For example, the nil list can be constructed via
+            ``Solver.mkTerm(APPLY_CONSTRUCTOR, [nil])``, where nil is the Term
+            returned by this method.
+
+            .. note::
+
+                This method should not be used for parametric datatypes.
+                Instead, use the method
+                :py:meth:`DatatypeConstructor.getInstantiatedTerm()` below.
+
+            :return: The constructor term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTerm()
         return term
 
-    def getInstantiatedConstructorTerm(self, Sort retSort):
+    def getInstantiatedTerm(self, Sort retSort):
         """
-            Get the constructor operator of this datatype constructor whose
+            Get the constructor term of this datatype constructor whose
             return type is retSort. This method is intended to be used on
             constructors of parametric datatypes and can be seen as returning
             the constructor term that has been explicitly cast to the given
@@ -294,7 +314,7 @@ cdef class DatatypeConstructor:
 
             .. note::
 
-                The returned constructor term ``t`` is an operator, while
+                The returned constructor term ``t`` is the constructor, while
                 ``Solver.mkTerm(APPLY_CONSTRUCTOR, [t])`` is used to construct
                 the above (nullary) application of nil.
 
@@ -302,16 +322,21 @@ cdef class DatatypeConstructor:
                          versions.
 
             :param retSort: The desired return sort of the constructor.
-            :return: The constructor operator as a term.
+            :return: The constructor term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getInstantiatedConstructorTerm(retSort.csort)
+        term.cterm = self.cdc.getInstantiatedTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):
         """
-            :return: The tester operator that is related to this constructor,
-                     as a term.
+            Get the tester term of this datatype constructor.
+
+            Similar to constructors, testers are a class of function-like terms
+            of tester sort (:py:meth:`Sort.isDatatypeTester`), and should
+            be used as the first argument of Terms of kind APPLY_TESTER.
+
+            :return: The tester term for this constructor.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTesterTerm()
@@ -413,8 +438,8 @@ cdef class DatatypeConstructorDecl:
 cdef class DatatypeDecl:
     """
         A cvc5 datatype declaration. A datatype declaration is not itself a
-        datatype (see :py:class:`cvc5.Datatype`), but a specification for creating a datatype
-        sort.
+        datatype (see :py:class:`Datatype`), but a specification for creating a
+        datatype sort.
 
         The interface for a datatype declaration coincides with the syntax for
         the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
@@ -422,7 +447,7 @@ cdef class DatatypeDecl:
 
         Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
         the methods:
-        
+
             - :py:meth:`Solver.mkDatatypeSort()`
             - :py:meth:`Solver.mkDatatypeSorts()`
 
@@ -496,7 +521,14 @@ cdef class DatatypeSelector:
 
     def getTerm(self):
         """
-            :return: The selector opeartor of this datatype selector as a term.
+            Get the selector term of this datatype selector.
+
+            Selector terms are a class of function-like terms of selector
+            sort (:py:meth:`Sort.isDatatypeSelector()`), and should be used as
+            the first argument of Terms of kind
+            :py:obj:`APPLY_SELECTOR <cvc5.Kind.APPLY_SELECTOR>`.
+
+            :return: The selector term of this datatype selector.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getTerm()
@@ -504,7 +536,14 @@ cdef class DatatypeSelector:
 
     def getUpdaterTerm(self):
         """
-            :return: The updater opeartor of this datatype selector as a term.
+            Get the updater term of this datatype selector.
+
+            Similar to selectors, updater terms are a class of function-like
+            terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
+            should be used as the first argument of Terms of kind
+            :py:ob:`APPLY_UPDATER <cvc5.Kind.APPLY_UPDATER>`.
+
+            :return: The updater term of this datatype selector.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getUpdaterTerm()
@@ -537,7 +576,8 @@ cdef class Op:
 
         An operator is a term that represents certain operators,
         instantiated with its required parameters, e.g.,
-        a term of kind :py:obj:`BVExtract <cvc5.Kind.BVExtract>`.
+        a term of kind
+        :py:obj:`BITVECTOR_EXTRACT <Kind.BITVECTOR_EXTRACT>`.
 
         Wrapper class for :cpp:class:`cvc5::Op`.
     """
@@ -1188,7 +1228,7 @@ cdef class Solver:
         """
             Create a constant representing the number Pi.
 
-            :return: A constant representing :py:obj:`Pi <cvc5.Kind.Pi>`.
+            :return: A constant representing :py:obj:`PI <Kind.PI>`.
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPi()
@@ -2011,7 +2051,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
+            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2049,7 +2089,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
+            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2181,7 +2221,7 @@ cdef class Solver:
         """
             Get some information about the given option.
             Returns the information provided by the C++
-            :cpp:func:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
+            :cpp:class:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
 
             :return: Information about the given option.
         """
@@ -2668,22 +2708,24 @@ cdef class Solver:
                 ( get-interpolant <conj> )
                 ( get-interpolant <conj> <grammar> )
 
-            Requires option :ref:`produce-interpolants
-            <lbl-option-produce-interpolants>` to be set to a mode different
-            from `none`.
+            Requires option
+            :ref:`produce-interpolants <lbl-option-produce-interpolants>`
+            to be set to a mode different from `none`.
 
             .. warning:: This method is experimental and may change in future
                         versions.
+
             :param conj: The conjecture term.
             :param grammar: A grammar for the inteprolant.
-            :return: The interpolant. 
+            :return: The interpolant.
                      See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """
         cdef Term result = Term(self)
         if grammar is None:
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            result.cterm = self.csolver.getInterpolant(conj.cterm, grammar.cgrammar)
+            result.cterm = self.csolver.getInterpolant(
+                conj.cterm, grammar.cgrammar)
         return result
 
 
@@ -2714,6 +2756,8 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.getInterpolantNext()
         return result
+
+
     def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
@@ -2725,11 +2769,12 @@ cdef class Solver:
                 ( get-abduct <conj> )
                 ( get-abduct <conj> <grammar> )
 
-            Requires to enable option :ref:`produce-abducts
-            <lbl-option-produce-abducts>`.
+            Requires to enable option
+            :ref:`produce-abducts <lbl-option-produce-abducts>`.
 
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :param conj: The conjecture term.
             :param grammar: A grammar for the abduct.
             :return: The abduct.
@@ -2782,8 +2827,6 @@ cdef class Solver:
 
             Requires enabling option
             :ref:`produce-models <lbl-option-produce-models>`
-            and setting option
-            :ref:`block-models <lbl-option-block-models>`
             to a mode other than ``none``.
 
             .. warning:: This method is experimental and may change in future
@@ -3031,7 +3074,7 @@ cdef class Sort:
             Is this a record sort?
 
             .. warning:: This method is experimental and may change in future
-                        versions.
+                         versions.
 
             :return: True if the sort is a record sort.
         """
@@ -3504,13 +3547,13 @@ cdef class Term:
 
     def getKind(self):
         """
-            :return: The :py:class:`cvc5.Kind` of this term.
+            :return: The :py:class:`Kind` of this term.
         """
         return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
         """
-            :return: The :py:class:`cvc5.Sort` of this term.
+            :return: The :py:class:`Sort` of this term.
         """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
@@ -3573,12 +3616,11 @@ cdef class Term:
 
     def getOp(self):
         """
-            :return: The :py:class:`cvc5.Op` used to create this Term.
+            :return: The :py:class:`Op` used to create this Term.
 
             .. note::
 
-            This is safe to call when :py:meth:`hasOp()` returns True.
-
+                This is safe to call when :py:meth:`hasOp()` returns True.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -3830,8 +3872,9 @@ cdef class Term:
             :math:`c_1 > \cdots > c_n`.
 
             .. note::
-                A universe set term ``(kind SET_UNIVERSE)`` is not considered
-                to be a set value.
+                A universe set term
+                (kind :py:obj:`SET_UNIVERSE <Kind.SET_UNIVERSE>`)
+                is not considered to be a set value.
 
             :return: True if the term is a set value.
         """
@@ -3890,6 +3933,7 @@ cdef class Term:
         """
             :return: The sort the cardinality constraint is for and its upper
                      bound.
+
             .. warning:: This method is experimental and may change in future
                          versions.
         """
@@ -3954,7 +3998,7 @@ cdef class Term:
 
             .. note::
 
-                A term of kind :py:obj:`Pi <cvc5.Kind.Pi>` is not considered
+                A term of kind :py:obj:`PI <Kind.PI>` is not considered
                 to be a real value.
 
         """

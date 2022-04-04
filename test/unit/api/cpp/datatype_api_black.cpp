@@ -587,10 +587,10 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
 
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
-  ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedConstructorTerm(listInt));
+  ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedTerm(listInt));
   ASSERT_NE(testConsTerm, nilc.getTerm());
   // error to get the specialized constructor term for Int
-  ASSERT_THROW(nilc.getInstantiatedConstructorTerm(isort), CVC5ApiException);
+  ASSERT_THROW(nilc.getInstantiatedTerm(isort), CVC5ApiException);
 }
 }  // namespace test
 }  // namespace cvc5::internal

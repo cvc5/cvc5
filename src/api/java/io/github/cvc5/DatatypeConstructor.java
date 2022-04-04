@@ -47,7 +47,18 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native String getName(long pointer);
 
   /**
-   * Get the constructor operator of this datatype constructor.
+   * Get the constructor term of this datatype constructor.
+   *
+   * Datatype constructors are a special class of function-like terms whose sort
+   * is datatype constructor ({@link Sort#isDatatypeConstructor()}). All datatype
+   * constructors, including nullary ones, should be used as the
+   * first argument to Terms whose kind is APPLY_CONSTRUCTOR. For example,
+   * the nil list is represented by the term (APPLY_CONSTRUCTOR nil), where
+   * nil is the term returned by this method.
+   *
+   * @api.note This method should not be used for parametric datatypes. Instead,
+   *           use the method {@link DatatypeConstructor#getInstantiatedTerm(Sort)} below.
+   *
    * @return the constructor term
    */
   public Term getTerm()
@@ -59,7 +70,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native long getTerm(long pointer);
 
   /**
-   * Get the constructor operator of this datatype constructor whose return
+   * Get the constructor term of this datatype constructor whose return
    * type is retSort. This method is intended to be used on constructors of
    * parametric datatypes and can be seen as returning the constructor
    * term that has been explicitly cast to the given sort.
@@ -74,7 +85,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * DatatypeConstructor is the one corresponding to nil, and retSort is
    * (List Int).
    *
-   * Furthermore note that the returned constructor term t is an operator,
+   * Furthermore note that the returned constructor term t is the constructor,
    * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
    * (nullary) application of nil.
    *
@@ -83,17 +94,22 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  public Term getInstantiatedConstructorTerm(Sort retSort)
+  public Term getInstantiatedTerm(Sort retSort)
   {
-    long termPointer = getInstantiatedConstructorTerm(pointer, retSort.getPointer());
+    long termPointer = getInstantiatedTerm(pointer, retSort.getPointer());
     return new Term(solver, termPointer);
   }
 
-  private native long getInstantiatedConstructorTerm(long pointer, long retSortPointer);
+  private native long getInstantiatedTerm(long pointer, long retSortPointer);
 
   /**
-   * Get the tester operator of this datatype constructor.
-   * @return the tester operator
+   * Get the tester term of this datatype constructor.
+   *
+   * Similar to constructors, testers are a class of function-like terms of
+   * tester sort ({@link Sort#isDatatypeTester()}), and should be used as the first
+   * argument of Terms of kind APPLY_TESTER.
+   *
+   * @return the tester term
    */
   public Term getTesterTerm()
   {
