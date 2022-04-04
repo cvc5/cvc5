@@ -29,7 +29,7 @@ ExternalProject_Add(
   CVC5PythonicAPI
   ${COMMON_EP_CONFIG}
   URL https://github.com/cvc5/cvc5_pythonic_api/archive/${CVC5PythonicAPI_VERSION}.zip
-  URL_HASH SHA1=232b589148c0a19783cfca22c8628af4516a6eec
+  URL_HASH SHA1=a2ad7f53c38fdb9f3351d1915278e92de1427b69
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
