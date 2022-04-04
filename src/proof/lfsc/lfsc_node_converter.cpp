@@ -1118,7 +1118,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       Trace("lfsc-term-process-debug2") << "...default symbol" << std::endl;
       ret = getSymbolInternal(k, ftype, opName.str());
     }
-    // TODO: if parametric, instantiate the parameters?
     // if indexed, apply to index
     if (!indices.empty())
     {
