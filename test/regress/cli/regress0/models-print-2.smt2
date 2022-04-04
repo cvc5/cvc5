@@ -1,7 +1,8 @@
 ; the purpose of this test is to verify that there is a `as` term in the output.
 ; the scrubber excludes all lines without "(as @", and replaces this pattern by "AS".
 
-; SCRUBBER: sed -e 's/.*(as @.*/AS/; /sat/d; /cardinality/d; /^($/d; /^)$/d'
+; SCRUBBER: sed -e 's/.*(as @.*/AS/; /sat/d; /cardinality/d; /rep/d; /^($/d; /^)$/d'
+; EXPECT: AS
 ; EXPECT: AS
 (set-logic QF_UF)
 (set-option :produce-models true)
