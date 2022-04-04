@@ -157,6 +157,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype is parametric.
         """
         return self.cd.isParametric()
@@ -177,6 +178,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype corresponds to a record.
         """
         return self.cd.isRecord()
@@ -2674,6 +2676,7 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                         versions.
+
             :param conj: The conjecture term.
             :param grammar: A grammar for the inteprolant.
             :return: The interpolant. 
@@ -3032,7 +3035,7 @@ cdef class Sort:
             Is this a record sort?
 
             .. warning:: This method is experimental and may change in future
-                        versions.
+                         versions.
 
             :return: True if the sort is a record sort.
         """
