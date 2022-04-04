@@ -2113,6 +2113,9 @@ class CVC5_EXPORT DatatypeConstructor
    * `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`, where `t` is the term returned
    * by this method.
    *
+   * @note This method should not be used for parametric datatypes. Instead,
+   *       use the method `DatatypeConstructor::getInstantiatedTerm` below.
+   *
    * @return the constructor term
    */
   Term getTerm() const;

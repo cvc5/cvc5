@@ -269,6 +269,12 @@ cdef class DatatypeConstructor:
             ``Solver.mkTerm(APPLY_CONSTRUCTOR, [nil])``, where nil is the Term
             returned by this method.
 
+            .. note::
+
+                This method should not be used for parametric datatypes.
+                Instead, use the method
+                :py:meth:`DatatypeConstructor.getInstantiatedTerm` below.
+
             :return: The constructor operator as a term.
         """
         cdef Term term = Term(self.solver)

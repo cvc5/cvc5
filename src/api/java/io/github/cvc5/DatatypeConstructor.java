@@ -56,6 +56,9 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * the nil list is represented by the term (APPLY_CONSTRUCTOR nil), where
    * nil is the term returned by this method.
    *
+   * @api.note This method should not be used for parametric datatypes. Instead,
+   *           use the method `DatatypeConstructor::getInstantiatedTerm` below.
+   *
    * @return the constructor term
    */
   public Term getTerm()
