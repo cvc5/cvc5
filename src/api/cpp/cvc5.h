@@ -2018,13 +2018,23 @@ class CVC5_EXPORT DatatypeSelector
   std::string getName() const;
 
   /**
-   * Get the selector operator of this datatype selector.
+   * Get the selector term of this datatype selector.
+   *
+   * Selector terms are a class of function-like terms of selector
+   * sort (Sort::isDatatypeSelector()), and should be used as the first
+   * argument of Terms of kind #APPLY_SELECTOR.
+   *
    * @return the selector term
    */
   Term getTerm() const;
 
   /**
-   * Get the updater operator of this datatype selector.
+   * Get the updater term of this datatype selector.
+   *
+   * Similar to selectors, updater terms are a class of function-like terms of
+   * updater Sort (Sort::isDatatypeUpdater()), and should be used as the first
+   * argument of Terms of kind #APPLY_UPDATER.
+   *
    * @return the updater term
    */
   Term getUpdaterTerm() const;
@@ -2093,13 +2103,25 @@ class CVC5_EXPORT DatatypeConstructor
   std::string getName() const;
 
   /**
-   * Get the constructor operator of this datatype constructor.
+   * Get the constructor term of this datatype constructor.
+   *
+   * Datatype constructors are a special class of function-like terms whose sort
+   * is datatype constructor (Sort::isDatatypeConstructor()). All datatype
+   * constructors, including nullary ones, should be used as the
+   * first argument to Terms whose kind is #APPLY_CONSTRUCTOR. For example,
+   * the nil list can be constructed by
+   * `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`, where `t` is the term returned
+   * by this method.
+   *
+   * @note This method should not be used for parametric datatypes. Instead,
+   *       use the method DatatypeConstructor::getInstantiatedTerm() below.
+   *
    * @return the constructor term
    */
   Term getTerm() const;
 
   /**
-   * Get the constructor operator of this datatype constructor whose return
+   * Get the constructor term of this datatype constructor whose return
    * type is retSort. This method is intended to be used on constructors of
    * parametric datatypes and can be seen as returning the constructor
    * term that has been explicitly cast to the given sort.
@@ -2127,7 +2149,7 @@ class CVC5_EXPORT DatatypeConstructor
    * DatatypeConstructor is the one corresponding to nil, and retSort is
    * `(List Int)`.
    *
-   * @note the returned constructor term `t` is an operator, while
+   * @note the returned constructor term `t` is the constructor, while
    *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
    *       above (nullary) application of nil.
    *
@@ -2136,11 +2158,16 @@ class CVC5_EXPORT DatatypeConstructor
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  Term getInstantiatedConstructorTerm(const Sort& retSort) const;
+  Term getInstantiatedTerm(const Sort& retSort) const;
 
   /**
-   * Get the tester operator of this datatype constructor.
-   * @return the tester operator
+   * Get the tester term of this datatype constructor.
+   *
+   * Similar to constructors, testers are a class of function-like terms of
+   * tester sort (Sort::isDatatypeConstructor()) which should be used as the
+   * first argument of Terms of kind #APPLY_TESTER.
+   *
+   * @return the tester term
    */
   Term getTesterTerm() const;
 
