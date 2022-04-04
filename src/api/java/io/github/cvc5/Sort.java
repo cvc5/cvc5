@@ -17,6 +17,9 @@ package io.github.cvc5;
 
 import java.util.List;
 
+/**
+ * The sort of a cvc5 term.
+ */
 public class Sort extends AbstractPointer implements Comparable<Sort>
 {
   // region construction and destruction
@@ -36,8 +39,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Comparison for structural equality.
-   * @param s the sort to compare to
-   * @return true if the sorts are equal
+   * @param s The sort to compare to.
+   * @return True if the sorts are equal.
    */
   @Override
   public boolean equals(Object s)
@@ -59,8 +62,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Comparison for ordering on sorts.
    *
-   * @param s the sort to compare to
-   * @return a negative integer, zero, or a positive integer as this sort
+   * @param s The sort to compare to.
+   * @return A negative integer, zero, or a positive integer as this sort
    * is less than, equal to, or greater than the specified sort.
    */
   @Override
@@ -72,7 +75,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int compareTo(long pointer1, long pointer2);
 
   /**
-   * @return true if the sort has a symbol.
+   * @return True if the sort has a symbol.
    */
   public boolean hasSymbol()
   {
@@ -83,7 +86,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Asserts hasSymbol().
-   * @return the raw symbol of the symbol.
+   * @return The raw symbol of the symbol.
    */
   public String getSymbol()
   {
@@ -93,7 +96,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native String getSymbol(long pointer);
 
   /**
-   * @return true if this Sort is a null sort.
+   * Determine if this is the null sort.
+   * @return True if this Sort is the null sort.
    */
   public boolean isNull()
   {
@@ -103,8 +107,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isNull(long pointer);
 
   /**
-   * Is this a Boolean sort?
-   * @return true if the sort is a Boolean sort
+   * Determine if this is the Boolean sort (SMT-LIB: `Bool`).
+   * @return True if this sort is the Boolean sort.
    */
   public boolean isBoolean()
   {
@@ -114,8 +118,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isBoolean(long pointer);
 
   /**
-   * Is this a integer sort?
-   * @return true if the sort is a integer sort
+   * Determine if this is the integer sort (SMT-LIB: `Int`).
+   * @return True if this sort is the integer sort.
    */
   public boolean isInteger()
   {
@@ -125,8 +129,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isInteger(long pointer);
 
   /**
-   * Is this a real sort?
-   * @return true if the sort is a real sort
+   * Determine if this is the real sort (SMT-LIB: `Real`).
+   * @return True if this sort is the real sort.
    */
   public boolean isReal()
   {
@@ -136,8 +140,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isReal(long pointer);
 
   /**
-   * Is this a string sort?
-   * @return true if the sort is the string sort
+   * Determine if this is the string sort (SMT-LIB: `String`)..
+   * @return True if this sort is the string sort.
    */
   public boolean isString()
   {
@@ -147,8 +151,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isString(long pointer);
 
   /**
-   * Is this a regexp sort?
-   * @return true if the sort is the regexp sort
+   * Determine if this is the regular expression sort (SMT-LIB: `RegLan`).
+   * @return True if this sort is the regular expression sort.
    */
   public boolean isRegExp()
   {
@@ -158,8 +162,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isRegExp(long pointer);
 
   /**
-   * Is this a rounding mode sort?
-   * @return true if the sort is the rounding mode sort
+   * Determine if this is the rounding mode sort (SMT-LIB: `RoundingMode`).
+   * @return True if this sort is the rounding mode sort.
    */
   public boolean isRoundingMode()
   {
@@ -169,8 +173,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isRoundingMode(long pointer);
 
   /**
-   * Is this a bit-vector sort?
-   * @return true if the sort is a bit-vector sort
+   * Determine if this is a bit-vector sort (SMT-LIB: `(_ BitVec i)`).
+   * @return True if this sort is a bit-vector sort.
    */
   public boolean isBitVector()
   {
@@ -180,8 +184,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isBitVector(long pointer);
 
   /**
-   * Is this a floating-point sort?
-   * @return true if the sort is a floating-point sort
+   * Determine if this is a floatingpoint sort
+   * (SMT-LIB: `(_ FloatingPoint eb sb)`).
+   * @return True if this sort is a floating-point sort.
    */
   public boolean isFloatingPoint()
   {
@@ -191,8 +196,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isFloatingPoint(long pointer);
 
   /**
-   * Is this a datatype sort?
-   * @return true if the sort is a datatype sort
+   * Determine if this is a datatype sort.
+   * @return True if this sort is a datatype sort.
    */
   public boolean isDatatype()
   {
@@ -202,8 +207,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatype(long pointer);
 
   /**
-   * Is this a datatype constructor sort?
-   * @return true if the sort is a datatype constructor sort
+   * Determine if this is a datatype constructor sort.
+   * @return True if this sort is a datatype constructor sort.
    */
   public boolean isDatatypeConstructor()
   {
@@ -213,8 +218,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatypeConstructor(long pointer);
 
   /**
-   * Is this a datatype selector sort?
-   * @return true if the sort is a datatype selector sort
+   * Determine if this is a datatype selector sort.
+   * @return True if this sort is a datatype selector sort.
    */
   public boolean isDatatypeSelector()
   {
@@ -224,8 +229,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatypeSelector(long pointer);
 
   /**
-   * Is this a datatype tester sort?
-   * @return true if the sort is a datatype tester sort
+   * Determine if this is a datatype tester sort.
+   * @return True if this sort is a datatype tester sort.
    */
   public boolean isDatatypeTester()
   {
@@ -235,8 +240,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatypeTester(long pointer);
 
   /**
-   * Is this a datatype updater sort?
-   * @return true if the sort is a datatype updater sort
+   * Determine if this is a datatype updater sort.
+   * @return True if this sort is a datatype updater sort.
    */
   public boolean isDatatypeUpdater()
   {
@@ -246,8 +251,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatypeUpdater(long pointer);
 
   /**
-   * Is this a function sort?
-   * @return true if the sort is a function sort
+   * Determine if this is a function sort.
+   * @return True if this sort is a function sort.
    */
   public boolean isFunction()
   {
@@ -257,10 +262,12 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isFunction(long pointer);
 
   /**
-   * Is this a predicate sort?
-   * That is, is this a function sort mapping to Boolean? All predicate
-   * sorts are also function sorts.
-   * @return true if the sort is a predicate sort
+   * Determine if this is a predicate sort.
+   *
+   * A predicate sort is a function sort that maps to the Boolean sort. All
+   * predicate sorts are also function sorts.
+   *
+   * @return True if this sort is a predicate sort.
    */
   public boolean isPredicate()
   {
@@ -270,8 +277,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isPredicate(long pointer);
 
   /**
-   * Is this a tuple sort?
-   * @return true if the sort is a tuple sort
+   * Determine if this a tuple sort.
+   * @return True if this sort is a tuple sort.
    */
   public boolean isTuple()
   {
@@ -281,11 +288,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isTuple(long pointer);
 
   /**
-   * Is this a record sort?
-   *
+   * Determine if this is a record sort.
    * @api.note This method is experimental and may change in future versions.
-   *
-   * @return true if the sort is a record sort
+   * @return True if the sort is a record sort.
    */
   public boolean isRecord()
   {
@@ -295,8 +300,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isRecord(long pointer);
 
   /**
-   * Is this an array sort?
-   * @return true if the sort is a array sort
+   * Determine if this is an array sort.
+   * @return True if the sort is an array sort.
    */
   public boolean isArray()
   {
@@ -306,8 +311,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isArray(long pointer);
 
   /**
-   * Is this a Set sort?
-   * @return true if the sort is a Set sort
+   * Determine if this is a Set sort.
+   * @return True if the sort is a Set sort.
    */
   public boolean isSet()
   {
@@ -317,8 +322,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isSet(long pointer);
 
   /**
-   * Is this a Bag sort?
-   * @return true if the sort is a Bag sort
+   * Determine if this is a Bag sort.
+   * @return True if the sort is a Bag sort.
    */
   public boolean isBag()
   {
@@ -328,8 +333,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isBag(long pointer);
 
   /**
-   * Is this a Sequence sort?
-   * @return true if the sort is a Sequence sort
+   * Determine if this is a Sequence sort.
+   * @return True if the sort is a Sequence sort.
    */
   public boolean isSequence()
   {
@@ -339,8 +344,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isSequence(long pointer);
 
   /**
-   * Is this a sort kind?
-   * @return true if this is a sort kind
+   * Determine if this is an uninterpreted sort.
+   * @return True if this is an uninterpreted sort.
    */
   public boolean isUninterpretedSort()
   {
@@ -350,12 +355,12 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isUninterpretedSort(long pointer);
 
   /**
-   * Is this an uninterpreted sort constructor kind?
+   * Determine if this is an uninterpreted sort constructor.
    *
-   * An uninterpreted sort constructor is an uninterpreted sort with arity
-   * &gt; 0.
+   * An uninterpreted sort constructor has arity &gt; 0 and can be instantiated
+   * to construct uninterpreted sorts with given sort parameters.
    *
-   * @return true if this is a sort constructor kind
+   * @return True if this is a sort constructor kind.
    */
   public boolean isUninterpretedSortConstructor()
   {
@@ -365,14 +370,14 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isUninterpretedSortConstructor(long pointer);
 
   /**
-   * Is this an instantiated (parametric datatype or uninterpreted sort
-   * constructor) sort?
+   * Determine if this is an instantiated (parametric datatype or uninterpreted
+   * sort constructor) sort.
    *
    * An instantiated sort is a sort that has been constructed from
    * instantiating a sort with sort arguments
    * (see {@link Sort#instantiate(Sort[])}).
    *
-   * @return true if this is an instantiated sort
+   * @return True if this is an instantiated sort.
    */
   public boolean isInstantiated()
   {
@@ -385,7 +390,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Get the associated uninterpreted sort constructor of an instantiated
    * uninterpreted sort.
    *
-   * @return the uninterpreted sort constructor sort
+   * @return The uninterpreted sort constructor sort.
    */
   public Sort getUninterpretedSortConstructor()
   {
@@ -396,7 +401,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getUninterpretedSortConstructor(long pointer);
 
   /**
-   * @return the underlying datatype of a datatype sort
+   * @return The underlying datatype of a datatype sort.
    */
   public Datatype getDatatype()
   {
@@ -410,25 +415,11 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Instantiate a parameterized datatype sort or uninterpreted sort
    * constructor sort.
    *
-   * Create sorts parameter with Solver.mkParamSort().
-   *
-   * @param params the list of sort parameters to instantiate with
-   * @return the instantiated sort
-   */
-  public Sort instantiate(List<Sort> params)
-  {
-    return instantiate(params.toArray(new Sort[0]));
-  }
-
-  /**
-   * Instantiate a parameterized datatype sort or uninterpreted sort
-   * constructor sort.
-   *
-   * Create sorts parameter with Solver.mkParamSort().
+   * Create sorts parameter with {@link Solver#mkParamSort(String)}).
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param params the list of sort parameters to instantiate with
+   * @param params The list of sort parameters to instantiate with.
    */
   public Sort instantiate(Sort[] params)
   {
@@ -444,8 +435,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * sort (parametric datatype or uninterpreted sort constructor sort,
    * see {@link Sort#instantiate(Sort[])}).
    *
-   * @return the sorts used to instantiate the sort parameters of a
-   *         parametric sort
+   * @return The sorts used to instantiate the sort parameters of a
+   *         parametric sort.
    */
   public Sort[] getInstantiatedParameters()
   {
@@ -463,8 +454,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param sort the subsort to be substituted within this sort.
-   * @param replacement the sort replacing the substituted subsort.
+   * @param sort The subsort to be substituted within this sort.
+   * @param replacement The sort replacing the substituted subsort.
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
@@ -488,8 +479,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param sorts the subsorts to be substituted within this sort.
-   * @param replacements the sort replacing the substituted subsorts.
+   * @param sorts The subsorts to be substituted within this sort.
+   * @param replacements The sort replacing the substituted subsorts.
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
@@ -503,20 +494,20 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Output a string representation of this sort to a given stream.
-   * @param out the output stream
+   * @param out The output stream.
    */
   // TODO: do we need to support this?
   // void toStream(std::ostream& out)
 
   /**
-   * @return a string representation of this sort
+   * @return A string representation of this sort.
    */
   protected native String toString(long pointer);
 
   /* Constructor sort ------------------------------------------------------- */
 
   /**
-   * @return the arity of a datatype constructor sort
+   * @return The arity of a datatype constructor sort.
    */
   public int getDatatypeConstructorArity()
   {
@@ -526,7 +517,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int getDatatypeConstructorArity(long pointer);
 
   /**
-   * @return the domain sorts of a datatype constructor sort
+   * @return The domain sorts of a datatype constructor sort.
    */
   public Sort[] getDatatypeConstructorDomainSorts()
   {
@@ -537,7 +528,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long[] getDatatypeConstructorDomainSorts(long pointer);
 
   /**
-   * @return the codomain sort of a datatype constructor sort
+   * @return The codomain sort of a datatype constructor sort.
    */
   public Sort getDatatypeConstructorCodomainSort()
   {
@@ -550,7 +541,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Selector sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a datatype selector sort
+   * @return The domain sort of a datatype selector sort.
    */
   public Sort getDatatypeSelectorDomainSort()
   {
@@ -561,7 +552,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getDatatypeSelectorDomainSort(long pointer);
 
   /**
-   * @return the codomain sort of a datatype selector sort
+   * @return The codomain sort of a datatype selector sort.
    */
   public Sort getDatatypeSelectorCodomainSort()
   {
@@ -574,7 +565,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Tester sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a datatype tester sort
+   * @return The domain sort of a datatype tester sort.
    */
   public Sort getDatatypeTesterDomainSort()
   {
@@ -585,8 +576,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getDatatypeTesterDomainSort(long pointer);
 
   /**
-   * @return the codomain sort of a datatype tester sort, which is the Boolean
-   *         sort
+   * @return The codomain sort of a datatype tester sort, which is the Boolean
+   *         sort.
    */
   public Sort getDatatypeTesterCodomainSort()
   {
@@ -599,7 +590,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Function sort ------------------------------------------------------- */
 
   /**
-   * @return the arity of a function sort
+   * @return The arity of a function sort.
    */
   public int getFunctionArity()
   {
@@ -609,7 +600,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int getFunctionArity(long pointer);
 
   /**
-   * @return the domain sorts of a function sort
+   * @return The domain sorts of a function sort.
    */
   public Sort[] getFunctionDomainSorts()
   {
@@ -620,7 +611,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long[] getFunctionDomainSorts(long pointer);
 
   /**
-   * @return the codomain sort of a function sort
+   * @return The codomain sort of a function sort.
    */
   public Sort getFunctionCodomainSort()
   {
@@ -633,7 +624,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Array sort ---------------------------------------------------------- */
 
   /**
-   * @return the array index sort of an array sort
+   * @return The array index sort of an array sort.
    */
   public Sort getArrayIndexSort()
   {
@@ -644,7 +635,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getArrayIndexSort(long pointer);
 
   /**
-   * @return the array element sort of an array element sort
+   * @return The array element sort of an array element sort.
    */
   public Sort getArrayElementSort()
   {
@@ -657,7 +648,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Set sort ------------------------------------------------------------ */
 
   /**
-   * @return the element sort of a set sort
+   * @return The element sort of a set sort.
    */
   public Sort getSetElementSort()
   {
@@ -670,7 +661,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Bag sort ------------------------------------------------------------ */
 
   /**
-   * @return the element sort of a bag sort
+   * @return The element sort of a bag sort.
    */
   public Sort getBagElementSort()
   {
@@ -683,7 +674,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Sequence sort ------------------------------------------------------- */
 
   /**
-   * @return the element sort of a sequence sort
+   * @return The element sort of a sequence sort.
    */
   public Sort getSequenceElementSort()
   {
@@ -696,7 +687,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the arity of an uninterpreted sort constructor sort
+   * @return The arity of an uninterpreted sort constructor sort.
    */
   public int getUninterpretedSortConstructorArity()
   {
@@ -708,7 +699,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Bit-vector sort ----------------------------------------------------- */
 
   /**
-   * @return the bit-width of the bit-vector sort
+   * @return The bit-width of the bit-vector sort.
    */
   public int getBitVectorSize()
   {
@@ -720,7 +711,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Floating-point sort ------------------------------------------------- */
 
   /**
-   * @return the bit-width of the exponent of the floating-point sort
+   * @return The bit-width of the exponent of the floating-point sort.
    */
   public int getFloatingPointExponentSize()
   {
@@ -730,7 +721,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int getFloatingPointExponentSize(long pointer);
 
   /**
-   * @return the width of the significand of the floating-point sort
+   * @return The width of the significand of the floating-point sort.
    */
   public int getFloatingPointSignificandSize()
   {
@@ -742,7 +733,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Datatype sort ------------------------------------------------------- */
 
   /**
-   * @return the arity of a datatype sort
+   * @return The arity of a datatype sort.
    */
   public int getDatatypeArity()
   {
@@ -754,7 +745,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Tuple sort ---------------------------------------------------------- */
 
   /**
-   * @return the length of a tuple sort
+   * @return The length of a tuple sort.
    */
   public int getTupleLength()
   {
@@ -764,7 +755,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int getTupleLength(long pointer);
 
   /**
-   * @return the element sorts of a tuple sort
+   * @return The element sorts of a tuple sort.
    */
   public Sort[] getTupleSorts()
   {

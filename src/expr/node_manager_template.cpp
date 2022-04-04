@@ -1097,6 +1097,15 @@ Node NodeManager::mkInstConstant(const TypeNode& type)
   return n;
 }
 
+Node NodeManager::mkRawSymbol(const std::string& name, const TypeNode& type)
+{
+  Node n = NodeBuilder(this, kind::RAW_SYMBOL);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  setAttribute(n, expr::VarNameAttr(), name);
+  return n;
+}
+
 Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
 {
   std::map<TypeNode, Node>::iterator it = d_unique_vars[k].find(type);

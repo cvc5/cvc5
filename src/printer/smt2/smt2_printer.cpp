@@ -553,7 +553,15 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << cvc5::internal::quoteSymbol(s);
+      if (n.getKind() == kind::RAW_SYMBOL)
+      {
+        // raw symbols are never quoted
+        out << s;
+      }
+      else
+      {
+        out << cvc5::internal::quoteSymbol(s);
+      }
     }
     else
     {
@@ -1403,15 +1411,27 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (trn.isVar())
+    if (options::modelUninterpPrint()
+            == options::ModelUninterpPrintMode::DeclSortAndFun
+        || options::modelUninterpPrint()
+               == options::ModelUninterpPrintMode::DeclFun)
     {
-      if (options::modelUninterpPrint()
-              == options::ModelUninterpPrintMode::DeclSortAndFun
-          || options::modelUninterpPrint()
-                 == options::ModelUninterpPrintMode::DeclFun)
+      out << "(declare-fun ";
+      if (trn.getKind() == kind::UNINTERPRETED_SORT_VALUE)
       {
-        out << "(declare-fun " << trn << " () " << tn << ")" << endl;
+        // prints as raw symbol
+        const UninterpretedSortValue& av =
+            trn.getConst<UninterpretedSortValue>();
+        out << av;
       }
+      else
+      {
+        Assert(false)
+            << "model domain element is not an uninterpreted sort value: "
+            << trn;
+        out << trn;
+      }
+      out << " () " << tn << ")" << endl;
     }
     else
     {

@@ -15,6 +15,9 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 datatype selector.
+ */
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
@@ -41,19 +44,29 @@ public class DatatypeSelector extends AbstractPointer
   private native String getName(long pointer);
 
   /**
-   * Get the selector operator of this datatype selector.
+   * Get the selector term of this datatype selector.
+   *
+   * Selector terms are a class of function-like terms of selector
+   * sort (Sort::isDatatypeSelector), and should be used as the first
+   * argument of Terms of kind APPLY_SELECTOR.
+   *
    * @return the selector term
    */
-  public Term getSelectorTerm()
+  public Term getTerm()
   {
-    long termPointer = getSelectorTerm(pointer);
+    long termPointer = getTerm(pointer);
     return new Term(solver, termPointer);
   }
 
-  private native long getSelectorTerm(long pointer);
+  private native long getTerm(long pointer);
 
   /**
-   * Get the upater operator of this datatype selector.
+   * Get the updater term of this datatype selector.
+   *
+   * Similar to selectors, updater terms are a class of function-like terms of
+   * updater Sort (Sort::isDatatypeUpdater), and should be used as the first
+   * argument of Terms of kind APPLY_UPDATER.
+   *
    * @return the updater term
    */
   public Term getUpdaterTerm()

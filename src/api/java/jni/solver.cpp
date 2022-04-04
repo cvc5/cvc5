@@ -221,7 +221,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkDatatypeSort(
  * Signature: (J[J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_mkDatatypeSorts(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jlongArray jDecls)
@@ -240,31 +240,6 @@ Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J(JNIEnv* env,
 
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
-  return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    mkDatatypeSorts
- * Signature: (J[J[J)[J
- */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer,
-                                                        jlongArray jDecls,
-                                                        jlongArray jUnresolved)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<DatatypeDecl> decls =
-      getObjectsFromPointers<DatatypeDecl>(env, jDecls);
-  std::vector<Sort> cUnresolved =
-      getObjectsFromPointers<Sort>(env, jUnresolved);
-  std::set<Sort> unresolved(cUnresolved.begin(), cUnresolved.end());
-  std::vector<Sort> sorts = solver->mkDatatypeSorts(decls, unresolved);
-  jlongArray ret = getPointersFromObjects<Sort>(env, sorts);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -478,10 +453,10 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUninterpretedSort__J(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    mkUnresolvedSort
+ * Method:    mkUnresolvedDatatypeSort
  * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedDatatypeSort(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -489,7 +464,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkUnresolvedSort(
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Sort* retPointer = new Sort(solver->mkUnresolvedSort(cSymbol, (size_t)arity));
+  Sort* retPointer =
+      new Sort(solver->mkUnresolvedDatatypeSort(cSymbol, (size_t)arity));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
 
@@ -1478,32 +1454,6 @@ Java_io_github_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2Z(
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkDatatypeDecl
- * Signature: (JLjava/lang/String;JZ)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(
-    JNIEnv* env,
-    jobject,
-    jlong pointer,
-    jstring jName,
-    jlong paramPointer,
-    jboolean isCoDatatype)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  const char* s = env->GetStringUTFChars(jName, nullptr);
-  std::string cName(s);
-  Sort* param = reinterpret_cast<Sort*>(paramPointer);
-  DatatypeDecl* retPointer = new DatatypeDecl(
-      solver->mkDatatypeDecl(cName, *param, (bool)isCoDatatype));
-  env->ReleaseStringUTFChars(jName, s);
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    mkDatatypeDecl
  * Signature: (JLjava/lang/String;[JZ)J
  */
 JNIEXPORT jlong JNICALL
@@ -2445,22 +2395,21 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSygusVar(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    mkSygusGrammar
+ * Method:    mkGrammar
  * Signature: (J[J[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkSygusGrammar(JNIEnv* env,
-                                              jobject,
-                                              jlong pointer,
-                                              jlongArray jBoundVars,
-                                              jlongArray jNtSymbols)
+Java_io_github_cvc5_Solver_mkGrammar(JNIEnv* env,
+                                     jobject,
+                                     jlong pointer,
+                                     jlongArray jBoundVars,
+                                     jlongArray jNtSymbols)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   std::vector<Term> boundVars = getObjectsFromPointers<Term>(env, jBoundVars);
   std::vector<Term> ntSymbols = getObjectsFromPointers<Term>(env, jNtSymbols);
-  Grammar* retPointer =
-      new Grammar(solver->mkSygusGrammar(boundVars, ntSymbols));
+  Grammar* retPointer = new Grammar(solver->mkGrammar(boundVars, ntSymbols));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

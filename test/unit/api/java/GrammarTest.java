@@ -50,7 +50,7 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addRule(start, d_solver.mkBoolean(false)));
 
@@ -76,7 +76,7 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addRules(start, new Term[] {d_solver.mkBoolean(false)}));
 
@@ -105,7 +105,7 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addAnyConstant(start));
     assertDoesNotThrow(() -> g.addAnyConstant(start));
@@ -129,8 +129,8 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g1 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start});
-    Grammar g2 = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start});
+    Grammar g2 = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g1.addAnyVariable(start));
     assertDoesNotThrow(() -> g1.addAnyVariable(start));
