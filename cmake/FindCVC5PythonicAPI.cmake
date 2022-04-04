@@ -24,7 +24,7 @@ endif()
 
 include(ExternalProject)
 
-set(CVC5PythonicAPI_VERSION "a35b49ef3cd121e3dbc9496848019f7850f8f17d")
+set(CVC5PythonicAPI_VERSION "a04093e60036b83681c6f2cf5cca42bb631b6ce4")
 ExternalProject_Add(
   CVC5PythonicAPI
   ${COMMON_EP_CONFIG}
