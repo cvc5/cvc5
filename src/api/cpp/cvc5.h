@@ -2135,7 +2135,7 @@ class CVC5_EXPORT DatatypeConstructor
    * DatatypeConstructor is the one corresponding to nil, and retSort is
    * `(List Int)`.
    *
-   * @note the returned constructor term `t` is an operator, while
+   * @note the returned constructor term `t` is the constructor, while
    *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
    *       above (nullary) application of nil.
    *

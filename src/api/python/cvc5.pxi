@@ -262,11 +262,12 @@ cdef class DatatypeConstructor:
             
             Datatype constructors are a special class of funtion-like terms
             whose sort is datatype constructor
-            (:py:meth:`Sort.isDatatypeConstructor). All datatype constructors,
-            including nullary ones, should be used as the first argument to
-            Terms whose kind is APPLY_CONSTRUCTOR. For example, the nil list is
-            represented by the term (APPLY_CONSTRUCTOR nil), where nil is the
-            term returned by this method.
+            (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
+            constructors, including nullary ones, should be used as the first
+            argument to Terms whose kind is APPLY_CONSTRUCTOR. For example, the
+            nil list can be constructed via
+            ``Solver.mkTerm(APPLY_CONSTRUCTOR, [nil])``, where nil is the Term
+            returned by this method.
 
             :return: The constructor operator as a term.
         """
@@ -304,7 +305,7 @@ cdef class DatatypeConstructor:
 
             .. note::
 
-                The returned constructor term ``t`` is an operator, while
+                The returned constructor term ``t`` is the constructor, while
                 ``Solver.mkTerm(APPLY_CONSTRUCTOR, [t])`` is used to construct
                 the above (nullary) application of nil.
 

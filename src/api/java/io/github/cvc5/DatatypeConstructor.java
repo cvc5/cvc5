@@ -82,7 +82,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * DatatypeConstructor is the one corresponding to nil, and retSort is
    * (List Int).
    *
-   * Furthermore note that the returned constructor term t is an operator,
+   * Furthermore note that the returned constructor term t is the constructor,
    * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
    * (nullary) application of nil.
    *
