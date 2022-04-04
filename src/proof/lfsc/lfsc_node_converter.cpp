@@ -99,7 +99,7 @@ Node LfscNodeConverter::postConvert(Node n)
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
       << "postConvert " << n << " " << k << std::endl;
-  if (k==BOUND_VARIABLE)
+  if (k == BOUND_VARIABLE)
   {
     if (d_symbols.find(n) != d_symbols.end())
     {
@@ -114,7 +114,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  else if (k==RAW_SYMBOL)
+  else if (k == RAW_SYMBOL)
   {
     // ignore internally generated symbols
     return n;
@@ -772,23 +772,28 @@ Node LfscNodeConverter::typeAsNode(TypeNode tni) const
   return it->second;
 }
 
-Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn, bool useRawSym)
+Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
+                                         TypeNode tn,
+                                         bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node sym = useRawSym ? nm->mkRawSymbol(name, tn) : nm->mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
 
-Node LfscNodeConverter::getSymbolInternalFor(Node n, const std::string& name, bool useRawSym)
+Node LfscNodeConverter::getSymbolInternalFor(Node n,
+                                             const std::string& name,
+                                             bool useRawSym)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name, useRawSym);
 }
 
 Node LfscNodeConverter::getSymbolInternal(Kind k,
                                           TypeNode tn,
-                                          const std::string& name, bool useRawSym)
+                                          const std::string& name,
+                                          bool useRawSym)
 {
   std::tuple<Kind, TypeNode, std::string> key(k, tn, name);
   std::map<std::tuple<Kind, TypeNode, std::string>, Node>::iterator it =
