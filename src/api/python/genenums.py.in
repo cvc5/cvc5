@@ -79,8 +79,11 @@ comment_repls = {
 
 
 def reformat_comment(comment):
+    # apply replacements from above
     for pat, repl in comment_repls.items():
         comment = re.sub(pat, repl, comment)
+    # remove duplicate lines (e.g. overloads collapse from previous substitutions)
+    comment = re.sub('^(?P<line>.*)$\n^(?P=line)$', '\\g<line>', comment, flags=re.MULTILINE)
     return comment
 
 
