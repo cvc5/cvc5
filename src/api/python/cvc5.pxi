@@ -157,6 +157,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype is parametric.
         """
         return self.cd.isParametric()
@@ -177,6 +178,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype corresponds to a record.
         """
         return self.cd.isRecord()
@@ -2218,7 +2220,7 @@ cdef class Solver:
         """
             Get some information about the given option.
             Returns the information provided by the C++
-            :cpp:func:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
+            :cpp:class:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
 
             :return: Information about the given option.
         """
@@ -2711,6 +2713,7 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                         versions.
+
             :param conj: The conjecture term.
             :param grammar: A grammar for the inteprolant.
             :return: The interpolant. 
@@ -2751,6 +2754,8 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.getInterpolantNext()
         return result
+
+
     def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
@@ -2767,6 +2772,7 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :param conj: The conjecture term.
             :param grammar: A grammar for the abduct.
             :return: The abduct.
@@ -2819,8 +2825,6 @@ cdef class Solver:
 
             Requires enabling option
             :ref:`produce-models <lbl-option-produce-models>`
-            and setting option
-            :ref:`block-models <lbl-option-block-models>`
             to a mode other than ``none``.
 
             .. warning:: This method is experimental and may change in future
@@ -3068,7 +3072,7 @@ cdef class Sort:
             Is this a record sort?
 
             .. warning:: This method is experimental and may change in future
-                        versions.
+                         versions.
 
             :return: True if the sort is a record sort.
         """
@@ -3614,8 +3618,7 @@ cdef class Term:
 
             .. note::
 
-            This is safe to call when :py:meth:`hasOp()` returns True.
-
+                This is safe to call when :py:meth:`hasOp()` returns True.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -3927,6 +3930,7 @@ cdef class Term:
         """
             :return: The sort the cardinality constraint is for and its upper
                      bound.
+
             .. warning:: This method is experimental and may change in future
                          versions.
         """
