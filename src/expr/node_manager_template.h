@@ -652,6 +652,9 @@ class NodeManager
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
 
+  /** Create a raw symbol with the given type. */
+  Node mkRawSymbol(const std::string& name, const TypeNode& type);
+
   /** Make a new uninterpreted sort value with the given type. */
   Node mkUninterpretedSortValue(const TypeNode& type);
 
