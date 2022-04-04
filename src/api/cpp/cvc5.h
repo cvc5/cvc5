@@ -2448,7 +2448,7 @@ class CVC5_EXPORT Datatype
   bool isFinite() const;
 
   /**
-   * Determine if this datatype is well-founded?
+   * Determine if this datatype is well-founded.
    *
    * If this datatype is not a codatatype, this returns false if there are no
    * values of this datatype that are of finite size.
