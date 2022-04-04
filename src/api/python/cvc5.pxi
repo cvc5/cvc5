@@ -191,7 +191,7 @@ cdef class Datatype:
 
     def isWellFounded(self):
         """
-            Is this datatype well-founded?
+            Determine if this datatype is well-founded.
 
             If this datatype is not a codatatype, this returns false if there
             are no values of this datatype that are of finite size.
@@ -2731,8 +2731,10 @@ cdef class Solver:
 
     def getInterpolantNext(self):
         """
-            Get the next interpolant. Can only be called immediately after
-            a successful call to :py:func:`Solver.getInterpolant()` or
+            Get the next interpolant.
+
+            Can only be called immediately after a successful call to
+            :py:func:`Solver.getInterpolant()` or
             :py:func:`Solver.getInterpolantNext()`.
             Is guaranteed to produce a syntactically different interpolant wrt
             the last returned interpolant if successful.
@@ -2789,8 +2791,10 @@ cdef class Solver:
 
     def getAbductNext(self):
         """
-            Get the next abduct. Can only be called immediately after
-            a succesful call to :py:func:`Solver.getAbduct()` or
+            Get the next abduct.
+
+            Can only be called immediately after a succesful call to
+            :py:func:`Solver.getAbduct()` or
             :py:func:`Solver.getAbductNext()`.
             Is guaranteed to produce a syntactically different abduct wrt the
             last returned abduct if successful.
@@ -2941,7 +2945,7 @@ cdef class Sort:
 
     def isBoolean(self):
         """
-            Is this a Boolean sort?
+            Determine if this is the Boolean sort (SMT-LIB: ``Bool``).
 
             :return: True if the sort is the Boolean sort.
         """
@@ -2949,7 +2953,7 @@ cdef class Sort:
 
     def isInteger(self):
         """
-            Is this an integer sort?
+            Determine if this is the integer sort (SMT-LIB: ``Int``).
 
             :return: True if the sort is the integer sort.
         """
@@ -2957,7 +2961,7 @@ cdef class Sort:
 
     def isReal(self):
         """
-            Is this a real sort?
+            Determine if this is the real sort (SMT-LIB: `Real`).
 
             :return: True if the sort is the real sort.
         """
@@ -2965,7 +2969,7 @@ cdef class Sort:
 
     def isString(self):
         """
-            Is this a string sort?
+            Determine if this is the string sort (SMT-LIB: `String`).
 
             :return: True if the sort is the string sort.
         """
@@ -2973,7 +2977,8 @@ cdef class Sort:
 
     def isRegExp(self):
         """
-            Is this a regexp sort?
+            Determine if this is the regular expression sort (SMT-LIB:
+            ``RegLan``).
 
             :return: True if the sort is the regexp sort.
         """
@@ -2981,7 +2986,8 @@ cdef class Sort:
 
     def isRoundingMode(self):
         """
-            Is this a rounding mode sort?
+            Determine if this is the rounding mode sort (SMT-LIB:
+            ``RoundingMode``).
 
             :return: True if the sort is the rounding mode sort.
         """
@@ -2989,7 +2995,7 @@ cdef class Sort:
 
     def isBitVector(self):
         """
-            Is this a bit-vector sort?
+            Determine if this is a bit-vector sort (SMT-LIB: ``(_ BitVec i)``).
 
             :return: True if the sort is a bit-vector sort.
         """
@@ -2997,7 +3003,8 @@ cdef class Sort:
 
     def isFloatingPoint(self):
         """
-            Is this a floating-point sort?
+            Determine if this is a floatingpoint sort
+            (SMT-LIB: ``(_ FloatingPoint eb sb)``).
 
             :return: True if the sort is a bit-vector sort.
         """
@@ -3005,7 +3012,7 @@ cdef class Sort:
 
     def isDatatype(self):
         """
-            Is this a datatype sort?
+            Determine if this is a datatype sort.
 
             :return: True if the sort is a datatype sort.
         """
@@ -3013,7 +3020,7 @@ cdef class Sort:
 
     def isDatatypeConstructor(self):
         """
-            Is this a datatype constructor sort?
+            Determine if this is a datatype constructor sort.
 
             :return: True if the sort is a datatype constructor sort.
         """
@@ -3021,7 +3028,7 @@ cdef class Sort:
 
     def isDatatypeSelector(self):
         """
-            Is this a datatype selector sort?
+            Determine if this is a datatype selector sort.
 
             :return: True if the sort is a datatype selector sort.
         """
@@ -3029,7 +3036,7 @@ cdef class Sort:
 
     def isDatatypeTester(self):
         """
-            Is this a tester sort?
+            Determine if this is a tester sort.
 
             :return: True if the sort is a selector sort.
         """
@@ -3037,7 +3044,7 @@ cdef class Sort:
 
     def isDatatypeUpdater(self):
         """
-            Is this a datatype updater sort?
+            Determine if this is a datatype updater sort.
 
             :return: True if the sort is a datatype updater sort.
         """
@@ -3045,7 +3052,7 @@ cdef class Sort:
 
     def isFunction(self):
         """
-            Is this a function sort?
+            Determine if this is a function sort.
 
             :return: True if the sort is a function sort.
         """
@@ -3053,9 +3060,10 @@ cdef class Sort:
 
     def isPredicate(self):
         """
-            Is this a predicate sort?
-            That is, is this a function sort mapping to Boolean? All predicate
-            sorts are also function sorts.
+            Determine if this is a predicate sort.
+
+            A predicate sort is a function sort that maps to the Boolean sort.
+            All predicate sorts are also function sorts.
 
             :return: True if the sort is a predicate sort.
         """
@@ -3063,7 +3071,7 @@ cdef class Sort:
 
     def isTuple(self):
         """
-            Is this a tuple sort?
+            Determine if this is a tuple sort.
 
             :return: True if the sort is a tuple sort.
         """
@@ -3071,7 +3079,7 @@ cdef class Sort:
 
     def isRecord(self):
         """
-            Is this a record sort?
+            Determine if this is a record sort.
 
             .. warning:: This method is experimental and may change in future
                          versions.
@@ -3082,7 +3090,7 @@ cdef class Sort:
 
     def isArray(self):
         """
-            Is this an array sort?
+            Determine if this is an array sort.
 
             :return: True if the sort is an array sort.
         """
@@ -3090,7 +3098,7 @@ cdef class Sort:
 
     def isSet(self):
         """
-            Is this a set sort?
+            Determine if this is a set sort.
 
             :return: True if the sort is a set sort.
         """
@@ -3098,7 +3106,7 @@ cdef class Sort:
 
     def isBag(self):
         """
-            Is this a bag sort?
+            Determine if this is a bag sort.
 
             :return: True if the sort is a bag sort.
         """
@@ -3106,7 +3114,7 @@ cdef class Sort:
 
     def isSequence(self):
         """
-            Is this a sequence sort?
+            Determine if this is a sequence sort.
 
             :return: True if the sort is a sequence sort.
         """
@@ -3114,7 +3122,7 @@ cdef class Sort:
 
     def isUninterpretedSort(self):
         """
-            Is this a sort uninterpreted?
+            Determine if this is a sort uninterpreted.
 
             :return: True if the sort is uninterpreted.
         """
@@ -3122,7 +3130,7 @@ cdef class Sort:
 
     def isUninterpretedSortConstructor(self):
         """
-            Is this a sort constructor kind?
+            Determine if this is a sort constructor kind.
 
             An uninterpreted sort constructor is an uninterpreted sort with
             arity > 0.
@@ -3133,8 +3141,8 @@ cdef class Sort:
 
     def isInstantiated(self):
         """
-            Is this an instantiated (parametric datatype or uninterpreted sort
-            constructor) sort?
+            Determine if this is an instantiated (parametric datatype or
+            uninterpreted sort constructor) sort.
 
             An instantiated sort is a sort that has been constructed from
             instantiating a sort parameters with sort arguments
