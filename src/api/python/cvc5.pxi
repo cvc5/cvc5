@@ -438,8 +438,8 @@ cdef class DatatypeConstructorDecl:
 cdef class DatatypeDecl:
     """
         A cvc5 datatype declaration. A datatype declaration is not itself a
-        datatype (see :py:class:`cvc5.Datatype`), but a specification for creating a datatype
-        sort.
+        datatype (see :py:class:`Datatype`), but a specification for creating a
+        datatype sort.
 
         The interface for a datatype declaration coincides with the syntax for
         the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
@@ -447,7 +447,7 @@ cdef class DatatypeDecl:
 
         Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
         the methods:
-        
+
             - :py:meth:`Solver.mkDatatypeSort()`
             - :py:meth:`Solver.mkDatatypeSorts()`
 
@@ -576,7 +576,8 @@ cdef class Op:
 
         An operator is a term that represents certain operators,
         instantiated with its required parameters, e.g.,
-        a term of kind :py:obj:`BVExtract <cvc5.Kind.BVExtract>`.
+        a term of kind
+        :py:obj:`BITVECTOR_EXTRACT <Kind.BITVECTOR_EXTRACT>`.
 
         Wrapper class for :cpp:class:`cvc5::Op`.
     """
@@ -1227,7 +1228,7 @@ cdef class Solver:
         """
             Create a constant representing the number Pi.
 
-            :return: A constant representing :py:obj:`Pi <cvc5.Kind.Pi>`.
+            :return: A constant representing :py:obj:`PI <Kind.PI>`.
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPi()
@@ -2050,7 +2051,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
+            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2088,7 +2089,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
+            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2707,23 +2708,24 @@ cdef class Solver:
                 ( get-interpolant <conj> )
                 ( get-interpolant <conj> <grammar> )
 
-            Requires option :ref:`produce-interpolants
-            <lbl-option-produce-interpolants>` to be set to a mode different
-            from `none`.
+            Requires option
+            :ref:`produce-interpolants <lbl-option-produce-interpolants>`
+            to be set to a mode different from `none`.
 
             .. warning:: This method is experimental and may change in future
                         versions.
 
             :param conj: The conjecture term.
             :param grammar: A grammar for the inteprolant.
-            :return: The interpolant. 
+            :return: The interpolant.
                      See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """
         cdef Term result = Term(self)
         if grammar is None:
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            result.cterm = self.csolver.getInterpolant(conj.cterm, grammar.cgrammar)
+            result.cterm = self.csolver.getInterpolant(
+                conj.cterm, grammar.cgrammar)
         return result
 
 
@@ -2767,8 +2769,8 @@ cdef class Solver:
                 ( get-abduct <conj> )
                 ( get-abduct <conj> <grammar> )
 
-            Requires to enable option :ref:`produce-abducts
-            <lbl-option-produce-abducts>`.
+            Requires to enable option
+            :ref:`produce-abducts <lbl-option-produce-abducts>`.
 
             .. warning:: This method is experimental and may change in future
                          versions.
@@ -3545,13 +3547,13 @@ cdef class Term:
 
     def getKind(self):
         """
-            :return: The :py:class:`cvc5.Kind` of this term.
+            :return: The :py:class:`Kind` of this term.
         """
         return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
         """
-            :return: The :py:class:`cvc5.Sort` of this term.
+            :return: The :py:class:`Sort` of this term.
         """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
@@ -3614,7 +3616,7 @@ cdef class Term:
 
     def getOp(self):
         """
-            :return: The :py:class:`cvc5.Op` used to create this Term.
+            :return: The :py:class:`Op` used to create this Term.
 
             .. note::
 
@@ -3870,8 +3872,9 @@ cdef class Term:
             :math:`c_1 > \cdots > c_n`.
 
             .. note::
-                A universe set term ``(kind SET_UNIVERSE)`` is not considered
-                to be a set value.
+                A universe set term
+                (kind :py:obj:`SET_UNIVERSE <Kind.SET_UNIVERSE>`)
+                is not considered to be a set value.
 
             :return: True if the term is a set value.
         """
@@ -3995,7 +3998,7 @@ cdef class Term:
 
             .. note::
 
-                A term of kind :py:obj:`Pi <cvc5.Kind.Pi>` is not considered
+                A term of kind :py:obj:`PI <Kind.PI>` is not considered
                 to be a real value.
 
         """
