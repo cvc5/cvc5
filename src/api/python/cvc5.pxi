@@ -260,7 +260,7 @@ cdef class DatatypeConstructor:
         """   
             Get the constructor term of this datatype constructor.
             
-            Datatype constructors are a special class of funtion-like terms
+            Datatype constructors are a special class of function-like terms
             whose sort is datatype constructor
             (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
             constructors, including nullary ones, should be used as the first

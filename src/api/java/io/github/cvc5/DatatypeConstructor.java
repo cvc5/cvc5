@@ -49,7 +49,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   /**
    * Get the constructor term of this datatype constructor.
    *
-   * Datatype constructors are a special class of funtion-like terms whose sort
+   * Datatype constructors are a special class of function-like terms whose sort
    * is datatype constructor ({@link Sort#isDatatypeConstructor()}). All datatype
    * constructors, including nullary ones, should be used as the
    * first argument to Terms whose kind is APPLY_CONSTRUCTOR. For example,
