@@ -267,7 +267,7 @@ cdef class DatatypeConstructor:
             (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
             constructors, including nullary ones, should be used as the first
             argument to Terms whose kind is
-            :py:obj:`APPLY_CONSTRUCTOR <cvc5.Kind.APPLY_CONSTRUCTOR>`.
+            :py:obj:`APPLY_CONSTRUCTOR <Kind.APPLY_CONSTRUCTOR>`.
             For example, the nil list can be constructed via
             ``Solver.mkTerm(APPLY_CONSTRUCTOR, [nil])``, where nil is the Term
             returned by this method.
@@ -526,7 +526,7 @@ cdef class DatatypeSelector:
             Selector terms are a class of function-like terms of selector
             sort (:py:meth:`Sort.isDatatypeSelector()`), and should be used as
             the first argument of Terms of kind
-            :py:obj:`APPLY_SELECTOR <cvc5.Kind.APPLY_SELECTOR>`.
+            :py:obj:`APPLY_SELECTOR <Kind.APPLY_SELECTOR>`.
 
             :return: The selector term of this datatype selector.
         """
@@ -541,7 +541,7 @@ cdef class DatatypeSelector:
             Similar to selectors, updater terms are a class of function-like
             terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
             should be used as the first argument of Terms of kind
-            :py:ob:`APPLY_UPDATER <cvc5.Kind.APPLY_UPDATER>`.
+            :py:obj:`APPLY_UPDATER <Kind.APPLY_UPDATER>`.
 
             :return: The updater term of this datatype selector.
         """
