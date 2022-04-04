@@ -47,7 +47,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native String getName(long pointer);
 
   /**
-   * Get the constructor operator of this datatype constructor.
+   * Get the constructor term of this datatype constructor.
    *
    * Datatype constructors are a special class of funtion-like terms whose sort
    * is datatype constructor (Sort::isDatatypeConstructor). All datatype
@@ -70,7 +70,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native long getTerm(long pointer);
 
   /**
-   * Get the constructor operator of this datatype constructor whose return
+   * Get the constructor term of this datatype constructor whose return
    * type is retSort. This method is intended to be used on constructors of
    * parametric datatypes and can be seen as returning the constructor
    * term that has been explicitly cast to the given sort.
@@ -103,13 +103,13 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native long getInstantiatedTerm(long pointer, long retSortPointer);
 
   /**
-   * Get the tester operator of this datatype constructor.
+   * Get the tester term of this datatype constructor.
    *
    * Similar to constructors, testers are a class of function-like terms of
    * tester sort (Sort::isDatatypeTester), and should be used as the first
    * argument of Terms of kind APPLY_TESTER.
    *
-   * @return the tester operator
+   * @return the tester term
    */
   public Term getTesterTerm()
   {

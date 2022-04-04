@@ -258,7 +258,7 @@ cdef class DatatypeConstructor:
 
     def getTerm(self):
         """   
-            Get the constructor operator of this datatype constructor.
+            Get the constructor term of this datatype constructor.
             
             Datatype constructors are a special class of funtion-like terms
             whose sort is datatype constructor
@@ -275,7 +275,7 @@ cdef class DatatypeConstructor:
                 Instead, use the method
                 :py:meth:`DatatypeConstructor.getInstantiatedTerm` below.
 
-            :return: The constructor operator as a term.
+            :return: The constructor term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTerm()
@@ -283,7 +283,7 @@ cdef class DatatypeConstructor:
 
     def getInstantiatedTerm(self, Sort retSort):
         """
-            Get the constructor operator of this datatype constructor whose
+            Get the constructor term of this datatype constructor whose
             return type is retSort. This method is intended to be used on
             constructors of parametric datatypes and can be seen as returning
             the constructor term that has been explicitly cast to the given
@@ -319,7 +319,7 @@ cdef class DatatypeConstructor:
                          versions.
 
             :param retSort: The desired return sort of the constructor.
-            :return: The constructor operator as a term.
+            :return: The constructor term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getInstantiatedTerm(retSort.csort)
@@ -327,14 +327,13 @@ cdef class DatatypeConstructor:
 
     def getTesterTerm(self):
         """
-            Get the tester operator of this datatype constructor.
+            Get the tester term of this datatype constructor.
 
             Similar to constructors, testers are a class of function-like terms
             of tester sort (:py:meth:`Sort.isDatatypeTester`), and should
             be used as the first argument of Terms of kind APPLY_TESTER.
 
-            :return: The tester operator that is related to this constructor,
-                     as a term.
+            :return: The tester term for this constructor.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTesterTerm()
@@ -519,13 +518,13 @@ cdef class DatatypeSelector:
 
     def getTerm(self):
         """
-            Get the selector operator of this datatype selector.
+            Get the selector term of this datatype selector.
 
             Selector terms are a class of function-like terms of selector
             sort (:py:meth:`Sort.isDatatypeSelector()`), and should be used as
             the first argument of Terms of kind APPLY_SELECTOR.
 
-            :return: The selector opeartor of this datatype selector as a term.
+            :return: The selector term of this datatype selector.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getTerm()
@@ -533,13 +532,13 @@ cdef class DatatypeSelector:
 
     def getUpdaterTerm(self):
         """
-            Get the updater operator of this datatype selector.
+            Get the updater term of this datatype selector.
 
             Similar to selectors, updater terms are a class of function-like
             terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
             should be used as the first argument of Terms of kind APPLY_UPDATER.
 
-            :return: The updater opeartor of this datatype selector as a term.
+            :return: The updater term of this datatype selector.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getUpdaterTerm()

@@ -2018,7 +2018,7 @@ class CVC5_EXPORT DatatypeSelector
   std::string getName() const;
 
   /**
-   * Get the selector operator of this datatype selector.
+   * Get the selector term of this datatype selector.
    *
    * Selector terms are a class of function-like terms of selector
    * sort (`Sort::isDatatypeSelector`), and should be used as the first
@@ -2029,7 +2029,7 @@ class CVC5_EXPORT DatatypeSelector
   Term getTerm() const;
 
   /**
-   * Get the updater operator of this datatype selector.
+   * Get the updater term of this datatype selector.
    *
    * Similar to selectors, updater terms are a class of function-like terms of
    * updater Sort (`Sort::isDatatypeUpdater`), and should be used as the first
@@ -2103,7 +2103,7 @@ class CVC5_EXPORT DatatypeConstructor
   std::string getName() const;
 
   /**
-   * Get the constructor operator of this datatype constructor.
+   * Get the constructor term of this datatype constructor.
    *
    * Datatype constructors are a special class of funtion-like terms whose sort
    * is datatype constructor (`Sort::isDatatypeConstructor`). All datatype
@@ -2121,7 +2121,7 @@ class CVC5_EXPORT DatatypeConstructor
   Term getTerm() const;
 
   /**
-   * Get the constructor operator of this datatype constructor whose return
+   * Get the constructor term of this datatype constructor whose return
    * type is retSort. This method is intended to be used on constructors of
    * parametric datatypes and can be seen as returning the constructor
    * term that has been explicitly cast to the given sort.
@@ -2161,13 +2161,13 @@ class CVC5_EXPORT DatatypeConstructor
   Term getInstantiatedTerm(const Sort& retSort) const;
 
   /**
-   * Get the tester operator of this datatype constructor.
+   * Get the tester term of this datatype constructor.
    *
    * Similar to constructors, testers are a class of function-like terms of
    * tester sort (`Sort::isDatatypeConstructor`) which should be used as the
    * first argument of Terms of kind #APPLY_TESTER.
    *
-   * @return the tester operator
+   * @return the tester term
    */
   Term getTesterTerm() const;
 
