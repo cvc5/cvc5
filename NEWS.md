@@ -3,8 +3,9 @@ This file contains a summary of important user-visible changes.
 cvc5 1.0
 =========
 
-**Website**
-  * https://cvc5.github.io
+**Website**: https://cvc5.github.io
+
+**Documentation**: https://cvc5.github.io/docs
 
 **System Description**
   * *cvc5: A Versatile and Industrial-Strength SMT Solver.*  
@@ -16,17 +17,21 @@ cvc5 1.0
 **New Features**
 
 * *Streamlined C++ API*
-
-  - Please refer to the documentation for details (https://cvc5.github.io/docs).
+  - Documentation: https://cvc5.github.io/docs/cvc5-1.0.0/api/cpp/cpp.html
 
 * *Two new Python language bindings*
   - Base module: Feature complete with C++ API
   - Pythonic module: A pythonic wrapper around the base module
+  - Documentation: https://cvc5.github.io/docs/cvc5-1.0.0/api/python/python.html
 
 * *New Java language bindings*
+  - Documentation: https://cvc5.github.io/docs/cvc5-1.0.0/api/java/java.html
 
 * *Theory of Bags (Multisets)*
-  - A new theory of bags, which are collections that allow duplicates. It supports basic operators like union disjoint, union max, intersection, difference subtract, difference remove, duplicate removal, and multiplicity of an element in a bag. 
+  - A new theory of bags, which are collections that allow duplicates. It
+    supports basic operators like union disjoint, union max, intersection,
+    difference subtract, difference remove, duplicate removal, and multiplicity
+    of an element in a bag. 
 
 * *Theory of Sequences*
   - A new parametric theory of sequences whose syntax is compatible with the
@@ -111,8 +116,8 @@ cvc5 1.0
     assertions and provided goal (get-interpolant-next in SMT-LIB).
 
 * *Pool-based Quantifier Instantiation*
-  - The API method declarePool declares symbol sets of terms called pools (declare-pool in
-    SMT-LIB).
+  - The API method declarePool declares symbol sets of terms called pools
+    (declare-pool in SMT-LIB).
   - Pools can be used in annotations of quantified formulas for fine grained
     control over quantifier instantiations (:inst-pool, :inst-add-to-pool,
     :skolem-add-to-pool in SMT-LIB).
@@ -132,16 +137,22 @@ cvc5 1.0
   - Computing minimal unsat cores (option `--minimal-unsat-cores`).
 
 * *Blocking Models*
-  - The API method `blockModels` can be used to block the current model using various policies for how to exclude the values of terms (`block-model` in SMT-LIB).
-  - The API method `blockModelValues` can be used to block the current model for a provided set of terms (`block-model-values` in SMT-LIB).
+  - The API method `blockModels` can be used to block the current model using
+    various policies for how to exclude the values of terms (`block-model` in
+    SMT-LIB).
+  - The API method `blockModelValues` can be used to block the current model
+    for a provided set of terms (`block-model-values` in SMT-LIB).
 
 * *Model Cores*
-  - The API method `isModelCoreSymbol` can be used to query whether the value for a symbol was critical to whether the model satisfies the current set of assertions.
+  - The API method `isModelCoreSymbol` can be used to query whether the value
+    for a symbol was critical to whether the model satisfies the current set of
+    assertions.
   - Models can be limited to show only model core symbols (option `--model-cores`).
 
 **Changes**
 
-* CaDiCaL and SymFPU are now required dependencies. CaDiCaL 1.4.1 is now the version used by default.
+* CaDiCaL and SymFPU are now required dependencies. CaDiCaL 1.4.1 is now the
+  version used by default.
 * Options have been extensively refactored, please refer to the cvc5
   documentation for further information.
 * Removed support for the CVC language.
@@ -163,6 +174,8 @@ cvc5 1.0
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
 * Building with Python 2 is now deprecated.
-* The SMT-LIB syntax for some extensions has been changed. Notably, set operators are now prefixed by `set.`, and relations by `rel.`. For example, `union` is now written `set.union`.
+* The SMT-LIB syntax for some extensions has been changed. Notably, set
+  operators are now prefixed by `set.`, and relations by `rel.`. For example,
+  `union` is now written `set.union`.
 * Removed support for redundant logics `ALL_SUPPORTED` and `QF_ALL_SUPPORTED`,
   use `ALL` and `QF_ALL` instead.
