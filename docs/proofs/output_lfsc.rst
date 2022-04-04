@@ -15,4 +15,4 @@ For more fine-grained proofs, the additional option :ref:`proof-granularity=theo
 
 A simple example of cvc5 producing a proof in LFSC proof format:
 
-.. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=lfsc ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
+.. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=lfsc --proof-granularity=theory-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
