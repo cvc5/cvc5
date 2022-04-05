@@ -68,7 +68,13 @@ class TermUtil
   static size_t getVariableNum(Node q, Node v);
 
   static Node getInstConstAttr( Node n );
-  static bool hasInstConstAttr( Node n );
+  /**
+   * Does n contain instantiation constants? This method is used for
+   * determining when a term is ineligible for instantiation.
+   * 
+   * @param n the node to check.
+   */
+  static bool hasInstConstAttr( Node n);
   static Node getBoundVarAttr( Node n );
   static bool hasBoundVarAttr( Node n );
   
