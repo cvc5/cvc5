@@ -61,7 +61,8 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   for (const Node& s : symset)
   {
     TypeNode tn = s.getType();
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // datatype symbols should be considered interpreted symbols here, not
       // (higher-order) variables.

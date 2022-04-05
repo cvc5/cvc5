@@ -275,10 +275,10 @@ class TheorySep : public Theory {
 
   class HeapAssertInfo {
   public:
-    HeapAssertInfo( context::Context* c );
-    ~HeapAssertInfo(){}
-    context::CDO< Node > d_pto;
-    context::CDO< bool > d_has_neg_pto;
+   HeapAssertInfo(context::Context* c);
+   ~HeapAssertInfo() {}
+   context::CDO<Node> d_pto;
+   context::CDO<bool> d_has_neg_pto;
   };
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );

@@ -77,7 +77,7 @@ using namespace std;
 using namespace cvc5::internal::smt;
 using namespace cvc5::internal::preprocessing;
 using namespace cvc5::internal::prop;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
@@ -140,11 +140,14 @@ Result SolverEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
 }
-context::UserContext* SolverEngine::getUserContext()
+UserContext* SolverEngine::getUserContext()
 {
   return d_env->getUserContext();
 }
-context::Context* SolverEngine::getContext() { return d_env->getContext(); }
+Context* SolverEngine::getContext()
+{
+  return d_env->getContext();
+}
 
 TheoryEngine* SolverEngine::getTheoryEngine()
 {
@@ -1086,7 +1089,7 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   return ssm.str();
 }
 
-void SolverEngine::blockModel()
+void SolverEngine::blockModel(modes::BlockModelsMode mode)
 {
   Trace("smt") << "SMT blockModel()" << endl;
   SolverEngineScope smts(this);
@@ -1095,18 +1098,10 @@ void SolverEngine::blockModel()
 
   TheoryModel* m = getAvailableModel("block model");
 
-  if (d_env->getOptions().smt.blockModelsMode == options::BlockModelsMode::NONE)
-  {
-    std::stringstream ss;
-    ss << "Cannot block model when block-models is set to none.";
-    throw RecoverableModalException(ss.str().c_str());
-  }
-
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
   ModelBlocker mb(*d_env.get());
-  Node eblocker = mb.getModelBlocker(
-      eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
+  Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
   assertFormulaInternal(eblocker);
 }
@@ -1130,7 +1125,7 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   // we always do block model values mode here
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
-      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
+      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);
   assertFormulaInternal(eblocker);
 }
 
@@ -1159,7 +1154,7 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 std::vector<Node> SolverEngine::getAssertionsInternal()
 {
   Assert(d_state->isFullyInited());
-  const context::CDList<Node>& al = d_asserts->getAssertionList();
+  const CDList<Node>& al = d_asserts->getAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
   {
@@ -1442,7 +1437,7 @@ void SolverEngine::checkUnsatCore()
 
 void SolverEngine::checkModel(bool hardFailure)
 {
-  const context::CDList<Node>& al = d_asserts->getAssertionList();
+  const CDList<Node>& al = d_asserts->getAssertionList();
   // we always enable the assertion list, so it is able to be checked
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);

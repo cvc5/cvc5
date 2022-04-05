@@ -368,7 +368,6 @@ class IntBlaster : protected EnvObj
 
   /** an SolverEngine for context */
   context::Context* d_context;
-
 };
 
 }  // namespace cvc5::internal

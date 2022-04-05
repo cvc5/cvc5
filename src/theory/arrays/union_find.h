@@ -26,18 +26,18 @@
 #include "expr/node.h"
 #include "context/cdo.h"
 
+namespace cvc5::context {
+class Context;
+}
+
 namespace cvc5::internal {
-
-namespace context {
-  class Context;
-  }  // namespace context
-
 namespace theory {
 namespace arrays {
 
 // NodeType \in { Node, TNode }
 template <class NodeType, class NodeHash>
-class UnionFind : context::ContextNotifyObj {
+class UnionFind : context::ContextNotifyObj
+{
   /** Our underlying map type. */
   typedef std::unordered_map<NodeType, NodeType, NodeHash> MapType;
 
@@ -55,9 +55,9 @@ class UnionFind : context::ContextNotifyObj {
   context::CDO<size_t> d_offset;
 
  public:
-  UnionFind(context::Context* ctxt) :
-    context::ContextNotifyObj(ctxt),
-    d_offset(ctxt, 0) {
+  UnionFind(context::Context* ctxt)
+      : context::ContextNotifyObj(ctxt), d_offset(ctxt, 0)
+  {
   }
 
   /**
@@ -84,7 +84,7 @@ class UnionFind : context::ContextNotifyObj {
    */
   void notify();
 
-};/* class UnionFind<> */
+}; /* class UnionFind<> */
 
 template <class NodeType, class NodeHash>
 inline TNode UnionFind<NodeType, NodeHash>::debugFind(TNode n) const {

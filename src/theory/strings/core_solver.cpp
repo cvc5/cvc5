@@ -28,7 +28,7 @@
 #include "util/string.h"
 
 using namespace std;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -2524,7 +2524,7 @@ void CoreSolver::checkNormalFormsDeq()
 {
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   std::map< Node, std::map< Node, bool > > processed;
-  
+
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();

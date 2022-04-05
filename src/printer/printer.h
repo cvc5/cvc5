@@ -185,7 +185,8 @@ class Printer
   virtual void toStreamCmdGetModel(std::ostream& out) const;
 
   /** Print block-model command */
-  virtual void toStreamCmdBlockModel(std::ostream& out) const;
+  virtual void toStreamCmdBlockModel(std::ostream& out,
+                                     modes::BlockModelsMode mode) const;
 
   /** Print block-model-values command */
   virtual void toStreamCmdBlockModelValues(

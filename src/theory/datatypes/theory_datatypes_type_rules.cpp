@@ -36,11 +36,11 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode consType = n.getOperator().getType(check);
-  if (!consType.isConstructor())
+  if (!consType.isDatatypeConstructor())
   {
     throw TypeCheckingExceptionPrivate(n, "expected constructor to apply");
   }
-  TypeNode t = consType.getConstructorRangeType();
+  TypeNode t = consType.getDatatypeConstructorRangeType();
   Assert(t.isDatatype());
   TNode::iterator child_it = n.begin();
   TNode::iterator child_it_end = n.end();
@@ -96,7 +96,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
         }
       }
     }
-    return consType.getConstructorRangeType();
+    return consType.getDatatypeConstructorRangeType();
   }
 }
 
@@ -262,7 +262,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
     TypeMatcher m;
     if (childType.getKind() == kind::CONSTRUCTOR_TYPE)
     {
-      m.addTypesFromDatatype(childType.getConstructorRangeType());
+      m.addTypesFromDatatype(childType.getDatatypeConstructorRangeType());
     }
     else if (childType.getKind() == kind::DATATYPE_TYPE)
     {
@@ -284,7 +284,7 @@ Cardinality ConstructorProperties::computeCardinality(TypeNode type)
   // Constructors aren't exactly functions, they're like
   // parameterized ground terms.  So the cardinality is more like
   // that of a tuple than that of a function.
-  AssertArgument(type.isConstructor(), type);
+  AssertArgument(type.isDatatypeConstructor(), type);
   Cardinality c = 1;
   for (unsigned i = 0, i_end = type.getNumChildren(); i < i_end - 1; ++i)
   {

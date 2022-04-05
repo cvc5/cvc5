@@ -25,8 +25,8 @@ namespace test {
 class TestContext : public TestInternal
 {
  protected:
-  void SetUp() override { d_context.reset(new context::Context()); }
-  std::unique_ptr<context::Context> d_context;
+  void SetUp() override { d_context.reset(new cvc5::context::Context()); }
+  std::unique_ptr<cvc5::context::Context> d_context;
 };
 
 }  // namespace test

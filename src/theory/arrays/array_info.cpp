@@ -43,8 +43,7 @@ Info::~Info() {
   in_stores->deleteSelf();
 }
 
-ArrayInfo::ArrayInfo(context::Context* c,
-                     std::string statisticsPrefix)
+ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
     : ct(c),
       info_map(),
       d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(

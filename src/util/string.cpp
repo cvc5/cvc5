@@ -522,7 +522,7 @@ Rational String::toNumber() const
 
 namespace strings {
 
-size_t StringHashFunction::operator()(const ::cvc5::internal::String& s) const
+size_t StringHashFunction::operator()(const cvc5::internal::String& s) const
 {
   uint64_t ret = fnv1a::offsetBasis;
   for (unsigned c : s.d_str)

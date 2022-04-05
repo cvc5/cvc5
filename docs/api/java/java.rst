@@ -9,8 +9,8 @@ The :doc:`quickstart guide <quickstart>` gives a short introduction,
 and more examples can be found `here <../../examples/examples.html>`_.
 
 
-For most applications, the `Solver <io/github/cvc5/api/Solver.html>`_ class is the main entry point to cvc5.
-The class hierarchy of `cvc5 package <io/github/cvc5/api/package-summary.html>`_
+For most applications, the `Solver <io/github/cvc5/Solver.html>`_ class is the main entry point to cvc5.
+The class hierarchy of `cvc5 package <io/github/cvc5/package-summary.html>`_
 provides more details on the individual classes.
 
 .. toctree::
@@ -55,30 +55,30 @@ Building cvc5 Java API
        (< 0 b)
        (< (+ a b) 1)
 
-`Package io.github.cvc5.api <io/github/cvc5/api/package-summary.html>`_
+`Package io.github.cvc5 <io/github/cvc5/package-summary.html>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  * class `Datatype <io/github/cvc5/api/Datatype.html>`_
-  * class `DatatypeConstructor <io/github/cvc5/api/DatatypeConstructor.html>`_
-  * class `DatatypeConstructorDecl <io/github/cvc5/api/DatatypeConstructorDecl.html>`_
-  * class `DatatypeDecl <io/github/cvc5/api/DatatypeDecl.html>`_
-  * class `DatatypeSelector <io/github/cvc5/api/DatatypeSelector.html>`_
-  * class `Grammar <io/github/cvc5/api/Grammar.html>`_
-  * class `Op <io/github/cvc5/api/Op.html>`_
-  * class `OptionInfo <io/github/cvc5/api/OptionInfo.html>`_
-  * class `Pair<K,V> <io/github/cvc5/api/Pair.html>`_
-  * class `Result <io/github/cvc5/api/Result.html>`_
-  * class `Solver <io/github/cvc5/api/Solver.html>`_
-  * class `Sort <io/github/cvc5/api/Sort.html>`_
-  * class `Stat <io/github/cvc5/api/Stat.html>`_
-  * class `Statistics <io/github/cvc5/api/Statistics.html>`_
-  * class `SynthResult <io/github/cvc5/api/SynthResult.html>`_
-  * class `Term <io/github/cvc5/api/Term.html>`_
-  * class `Triplet<A,B,C> <io/github/cvc5/api/Triplet.html>`_
-  * class `Utils <io/github/cvc5/api/Utils.html>`_
-  * enum `Kind <io/github/cvc5/api/Kind.html>`_
-  * enum `Result.UnknownExplanation <io/github/cvc5/api/Result.UnknownExplanation.html>`_
-  * enum `RoundingMode <io/github/cvc5/api/RoundingMode.html>`_
-  * exception `CVC5ApiException <io/github/cvc5/api/CVC5ApiException.html>`_
-  * exception `CVC5ApiOptionException <io/github/cvc5/api/CVC5ApiOptionException.html>`_
-  * exception `CVC5ApiRecoverableException <io/github/cvc5/api/CVC5ApiRecoverableException.html>`_
+  * class `Datatype <io/github/cvc5/Datatype.html>`_
+  * class `DatatypeConstructor <io/github/cvc5/DatatypeConstructor.html>`_
+  * class `DatatypeConstructorDecl <io/github/cvc5/DatatypeConstructorDecl.html>`_
+  * class `DatatypeDecl <io/github/cvc5/DatatypeDecl.html>`_
+  * class `DatatypeSelector <io/github/cvc5/DatatypeSelector.html>`_
+  * class `Grammar <io/github/cvc5/Grammar.html>`_
+  * class `Op <io/github/cvc5/Op.html>`_
+  * class `OptionInfo <io/github/cvc5/OptionInfo.html>`_
+  * class `Pair<K,V> <io/github/cvc5/Pair.html>`_
+  * class `Result <io/github/cvc5/Result.html>`_
+  * class `Solver <io/github/cvc5/Solver.html>`_
+  * class `Sort <io/github/cvc5/Sort.html>`_
+  * class `Stat <io/github/cvc5/Stat.html>`_
+  * class `Statistics <io/github/cvc5/Statistics.html>`_
+  * class `SynthResult <io/github/cvc5/SynthResult.html>`_
+  * class `Term <io/github/cvc5/Term.html>`_
+  * class `Triplet<A,B,C> <io/github/cvc5/Triplet.html>`_
+  * class `Utils <io/github/cvc5/Utils.html>`_
+  * enum `Kind <io/github/cvc5/Kind.html>`_
+  * enum `Result.UnknownExplanation <io/github/cvc5/Result.UnknownExplanation.html>`_
+  * enum `RoundingMode <io/github/cvc5/RoundingMode.html>`_
+  * exception `CVC5ApiException <io/github/cvc5/CVC5ApiException.html>`_
+  * exception `CVC5ApiOptionException <io/github/cvc5/CVC5ApiOptionException.html>`_
+  * exception `CVC5ApiRecoverableException <io/github/cvc5/CVC5ApiRecoverableException.html>`_

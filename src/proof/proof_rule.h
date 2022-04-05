@@ -676,7 +676,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Not Equivalence elimination version 1**
    *
    * .. math::
-   *   \inferrule{\neg(F_1 = F_2) \mid -}{F_1 \lor F_2}
+   *   \inferrule{F_1 \neq F_2 \mid -}{F_1 \lor F_2}
    *
    * \endverbatim
    */
@@ -686,7 +686,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Not Equivalence elimination version 2**
    *
    * .. math::
-   *   \inferrule{\neg(F_1 = F_2) \mid -}{\neg F_1 \lor \neg F_2}
+   *   \inferrule{F_1 \neq F_2 \mid -}{\neg F_1 \lor \neg F_2}
    *
    * \endverbatim
    */
@@ -863,7 +863,7 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Equiv Positive 1**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 = F_2}{\neg(F_1 = F_2) \lor \neg F_1 \lor F_2}
+   *   \inferrule{- \mid F_1 = F_2}{F_1 \neq F_2 \lor \neg F_1 \lor F_2}
    *
    * \endverbatim
    */
@@ -873,7 +873,7 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Equiv Positive 2**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 = F_2}{\neg(F_1 = F_2) \lor F_1 \lor \neg F_2}
+   *   \inferrule{- \mid F_1 = F_2}{F_1 \neq F_2 \lor F_1 \lor \neg F_2}
    *
    * \endverbatim
    */
@@ -1006,474 +1006,726 @@ enum class PfRule : uint32_t
    */
   CNF_ITE_NEG3,
 
-  //================================================= Equality rules
-  // ======== Reflexive
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= t t)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Reflexivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{t = t)}
+   * \endverbatim
+   */
   REFL,
-  // ======== Symmetric
-  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
-  // Arguments: none
-  // -----------------------
-  // Conclusion: (= t2 t1) or (not (= t2 t1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Symmetry**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1 = t_2\mid -}{t_2 = t_1}
+   *
+   * or
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1 \neq t_2\mid -}{t_2 \neq t_1}
+   *
+   * \endverbatim
+   */
   SYMM,
-  // ======== Transitivity
-  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
-  // Arguments: none
-  // -----------------------
-  // Conclusion: (= t1 tn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Transitivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=t_2,\dots,t_{n-1}=t_n\mid -}{t_1 = t_n}
+   * \endverbatim
+   */
   TRANS,
-  // ======== Congruence
-  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-  // Arguments: (<kind> f?)
-  // ---------------------------------------------
-  // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
-  // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
-  // APPLY_UF. The actual node for <kind> is constructible via
-  // ProofRuleChecker::mkKindNode.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?)(t_1,\dots, t_n) =
+   *   k(f?)(s_1,\dots, s_n)}
+   *
+   * where :math:`k` is the application kind. Notice that :math:`f` must be
+   * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
+   * actual node for :math:`k` is constructible via
+   * ``ProofRuleChecker::mkKindNode``.
+   * \endverbatim
+   */
   CONG,
-  // ======== True intro
-  // Children: (P:F)
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (= F true)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- True intro**
+   *
+   * .. math::
+   *
+   *   \inferrule{F\mid -}{F = \top}
+   * \endverbatim
+   */
   TRUE_INTRO,
-  // ======== True elim
-  // Children: (P:(= F true))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: F
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- True elim**
+   *
+   * .. math::
+   *
+   *   \inferrule{F=\top\mid -}{F}
+   * \endverbatim
+   */
   TRUE_ELIM,
-  // ======== False intro
-  // Children: (P:(not F))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (= F false)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- False intro**
+   *
+   * .. math::
+   *
+   *   \inferrule{\neg F\mid -}{F = \bot}
+   * \endverbatim
+   */
   FALSE_INTRO,
-  // ======== False elim
-  // Children: (P:(= F false))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (not F)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- False elim**
+   *
+   * .. math::
+   *
+   *   \inferrule{F=\bot\mid -}{\neg F}
+   * \endverbatim
+   */
   FALSE_ELIM,
-  // ======== HO trust
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
-  // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Higher-order application encoding**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{t= \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
+   *
+   * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
+   * :math:`@` isthe ``HO_APPLY`` kind.
+   *  \endverbatim
+   */
   HO_APP_ENCODE,
-  // ======== Congruence
-  // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
-  // Arguments: ()
-  // ---------------------------------------------
-  // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
-  // Notice that this rule is only used when the application kinds are APPLY_UF.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Higher-order congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
+   *   g(s_1,\dots, s_n)}
+   *
+   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * \endverbatim
+   */
   HO_CONG,
 
-  //================================================= Array rules
-  // ======== Read over write
-  // Children: (P:(not (= i1 i2)))
-  // Arguments: ((select (store a i1 e) i2))
-  // ----------------------------------------
-  // Conclusion: (= (select (store a i1 e) i2) (select a i2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Read over write**
+   *
+   * .. math::
+   *
+   *   \inferrule{i_1 \neq i_2\mid \mathit{select}(\mathit{store}(a,i_1,e),i_2)}
+   *   {\mathit{select}(\mathit{store}(a,i_1,e),i_2) = \mathit{select}(a,i_2)}
+   * \endverbatim
+   */
   ARRAYS_READ_OVER_WRITE,
-  // ======== Read over write, contrapositive
-  // Children: (P:(not (= (select (store a i2 e) i1) (select a i1)))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (= i1 i2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Read over write, contrapositive**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{select}(\mathit{store}(a,i_2,e),i_1) \neq
+   *   \mathit{select}(a,i_1)\mid -}{i_1=i_2}
+   * \endverbatim
+   */
   ARRAYS_READ_OVER_WRITE_CONTRA,
-  // ======== Read over write 1
-  // Children: none
-  // Arguments: ((select (store a i e) i))
-  // ----------------------------------------
-  // Conclusion: (= (select (store a i e) i) e)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Read over write 1**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \mathit{select}(\mathit{store}(a,i,e),i)}
+   *   {\mathit{select}(\mathit{store}(a,i,e),i)=e}
+   * \endverbatim
+   */
   ARRAYS_READ_OVER_WRITE_1,
-  // ======== Extensionality
-  // Children: (P:(not (= a b)))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: (not (= (select a k) (select b k)))
-  // where k is arrays::SkolemCache::getExtIndexSkolem((not (= a b))).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Arrays extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{a \neq b\mid -}
+   *   {\mathit{select}(a,k)\neq\mathit{select}(b,k)}
+   *
+   * where :math:`k` is
+   * :math:`\texttt{arrays::SkolemCache::getExtIndexSkolem}(a\neq b)`.
+   * \endverbatim
+   */
   ARRAYS_EXT,
-  // ======== EQ_RANGE expansion
-  // Children: none
-  // Arguments: ((eqrange a b i j))
-  // ----------------------------------------
-  // Conclusion: (=
-  //              (eqrange a b i j)
-  //              (forall ((x T))
-  //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Expansion of array range equality**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \mathit{eqrange}(a,b,i,j)}
+   *   {\mathit{eqrange}(a,b,i,j)=
+   *   \forall x.\> i \leq x \leq j \rightarrow
+   *   \mathit{select}(a,x)=\mathit{select}(b,x)}
+   * \endverbatim
+   */
   ARRAYS_EQ_RANGE_EXPAND,
 
-  //================================================= Bit-Vector rules
-  // Note: bitblast() represents the result of the bit-blasted term as a
-  //       bit-vector consisting of the output bits of the bit-blasted circuit
-  //       representation of the term. Terms are bit-blasted according to the
-  //       strategies defined in
-  //       theory/bv/bitblast/bitblast_strategies_template.h.
-  // ======== Bitblast
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= t bitblast(t))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Bitblast**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{t = \texttt{bitblast}(t)}
+   *
+   * where ``bitblast()`` represents the result of the bit-blasted term as a
+   * bit-vector consisting of the output bits of the bit-blasted circuit
+   * representation of the term. Terms are bit-blasted according to the
+   * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
+   * \endverbatim
+   */
   BV_BITBLAST,
-  // ======== Bitblast Bit-Vector Constant, Variable
-  // Children: none
-  // Arguments: (= t bitblast(t))
-  // ---------------------
-  // Conclusion: (= t bitblast(t))
-  // ======== Bitblast Bit-Vector Terms
-  // Children: none
-  // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
-  // ---------------------
-  // Conclusion: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Bitblast bit-vector constant, variable, and terms**
+   *
+   * For constant and variables:
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{t = \texttt{bitblast}(t)}
+   *
+   * For terms:
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid k(\texttt{bitblast}(t_1),\dots,\texttt{bitblast}(t_n))}
+   *   {k(\texttt{bitblast}(t_1),\dots,\texttt{bitblast}(t_n)) =
+   *   \texttt{bitblast}(t)}
+   *
+   * where :math:`t` is :math:`k(t_1,\dots,t_n)`.
+   * \endverbatim
+   */
   BV_BITBLAST_STEP,
-
-  // ======== Eager Atom
-  // Children: none
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: (= F F[0])
-  // where F is of kind BITVECTOR_EAGER_ATOM
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Bit-vector eager atom**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F}{F = F[0]}
+   *
+   * where :math:`F` is of kind ``BITVECTOR_EAGER_ATOM``.
+   * \endverbatim
+   */
   BV_EAGER_ATOM,
 
-  //================================================= Datatype rules
-  // ======== Unification
-  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
-  // Arguments: (i)
-  // ----------------------------------------
-  // Conclusion: (= ti si)
-  // where C is a constructor.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Unification**
+   *
+   * .. math::
+   *
+   *   \inferrule{C(t_1,\dots,t_n)= C(s_1,\dots,s_n)\mid i}{t_1 = s_i}
+   *
+   * where :math:`C` is a constructor.
+   * \endverbatim
+   */
   DT_UNIF,
-  // ======== Instantiate
-  // Children: none
-  // Arguments: (t, n)
-  // ----------------------------------------
-  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
-  // where C is the n^th constructor of the type of T, and (_ is C) is the
-  // discriminator (tester) for C.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Instantiation**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t,n}{\mathit{is}_C(t) =
+   *   (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))}
+   *
+   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
+   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
+   * \endverbatim
+   */
   DT_INST,
-  // ======== Collapse
-  // Children: none
-  // Arguments: ((sel_i (C_j t_1 ... t_n)))
-  // ----------------------------------------
-  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
-  // where C_j is a constructor, r is t_i if sel_i is a correctly applied
-  // selector, or TypeNode::mkGroundTerm() of the proper type otherwise. Notice
-  // that the use of mkGroundTerm differs from the rewriter which uses
-  // mkGroundValue in this case.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Collapse**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \mathit{sel}_i(C_j(t_1,\dots,t_n))}{
+   *   \mathit{sel}_i(C_j(t_1,\dots,t_n)) = r}
+   *
+   * where :math:`C_j` is a constructor, :math:`r` is :math:`t_i` if
+   * :math:`\mathit{sel}_i` is a correctly applied selector, or
+   * ``TypeNode::mkGroundTerm()`` of the proper type otherwise. Notice that the
+   * use of ``mkGroundTerm`` differs from the rewriter which uses
+   * ``mkGroundValue`` in this case.
+   * \endverbatim
+   */
   DT_COLLAPSE,
-  // ======== Split
-  // Children: none
-  // Arguments: (t)
-  // ----------------------------------------
-  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Split**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{\mathit{is}_{C_1}(t)\vee\cdots\vee\mathit{is}_{C_n}(t)}
+   *
+   * where :math:`C_1,\dots,C_n` are all the constructors of the type of :math:`t`.
+   * \endverbatim
+   */
   DT_SPLIT,
-  // ======== Clash
-  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: false
-  // for i != j.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Clash**
+   *
+   * .. math::
+   *
+   *   \inferruleSC{\mathit{is}_{C_i}(t), \mathit{is}_{C_j}(t)\mid -}{\bot}
+   *   {if $i\neq j$}
+   *
+   * \endverbatim
+   */
   DT_CLASH,
 
-  //================================================= Quantifiers rules
-  // ======== Skolem intro
-  // Children: none
-  // Arguments: (k)
-  // ----------------------------------------
-  // Conclusion: (= k t)
-  // where t is the original form of skolem k.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Skolem introduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid k}{k = t}
+   *
+   * where :math:`t` is the original form of skolem :math:`k`.
+   * \endverbatim
+   */
   SKOLEM_INTRO,
-  // ======== Exists intro
-  // Children: (P:F[t])
-  // Arguments: ((exists ((x T)) F[x]))
-  // ----------------------------------------
-  // Conclusion: (exists ((x T)) F[x])
-  // This rule verifies that F[x] indeed matches F[t] with a substitution
-  // over x.
-  EXISTS_INTRO,
-  // ======== Skolemize
-  // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
-  // Arguments: none
-  // ----------------------------------------
-  // Conclusion: F*sigma
-  // sigma maps x1 ... xn to their representative skolems obtained by
-  // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method. Alternatively, can use negated forall as a premise. The witness
-  // terms for the returned skolems can be obtained by
-  // SkolemManager::getWitnessForm.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Skolemization**
+   *
+   * .. math::
+   *
+   *   \inferrule{\exists x_1\dots x_n.\> F\mid -}{F\sigma}
+   *
+   * or
+   *
+   * .. math::
+   *
+   *   \inferrule{\neg (\forall x_1\dots x_n.\> F)\mid -}{\neg F\sigma}
+   *
+   * where :math:`\sigma` maps :math:`x_1,\dots,x_n` to their representative
+   * skolems obtained by ``SkolemManager::mkSkolemize``, returned in the skolems
+   * argument of that method. The witness terms for the returned skolems can be
+   * obtained by ``SkolemManager::getWitnessForm``.
+   * \endverbatim
+   */
   SKOLEMIZE,
-  // ======== Instantiate
-  // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-  // Arguments: (t1 ... tn, (id (t)?)? )
-  // ----------------------------------------
-  // Conclusion: F*sigma
-  // where sigma maps x1 ... xn to t1 ... tn.
-  //
-  // The optional argument id indicates the inference id that caused the
-  // instantiation. The term t indicates an additional term (e.g. the trigger)
-  // associated with the instantiation, which depends on the id. If the id
-  // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
-  // generated the instantiation.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Instantiation**
+   *
+   * .. math::
+   *
+   *   \inferrule{\forall x_1\dots x_n.\> F\mid t_1,\dots,t_n, (id\, (t)?)?}
+   *   {F\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
+   *
+   * The optional argument :math:`id` indicates the inference id that caused the
+   * instantiation. The term :math:`t` indicates an additional term (e.g. the trigger)
+   * associated with the instantiation, which depends on the id. If the id
+   * has prefix ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the trigger that
+   * generated the instantiation.
+   * \endverbatim
+   */
   INSTANTIATE,
-  // ======== Alpha equivalence
-  // Children: none
-  // Arguments: (F, (y1 = z1), ..., (yn = zn) )
-  // ----------------------------------------
-  // Conclusion: (= F F*sigma)
-  // sigma maps y1 ... yn to z1 ... zn, where y1 ... yn are unique bound
-  // variables, and z1 ... zn are unique bound variables. Notice that this
-  // rule is correct only when z1, ..., zn are not contained in
-  // FV(F) \ { y1 ... yn }. The internal quantifiers proof checker does not
-  // currently check that this is the case.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Alpha equivalence**
+   *
+   * .. math::
+   *
+   *   \inferruleSC{-\mid F, y_1=z_1,\dots, y_n=z_n}
+   *   {F = F\{y_1\mapsto z_1,\dots,y_n\mapsto z_n\}}
+   *   {if $y_1,\dots,y_n, z_1,\dots,z_n$ are unique bound variables}
+   *
+   * Notice that this rule is correct only when :math:`z_1,\dots,z_n` are not
+   * contained in :math:`FV(F) \setminus \{ y_1,\dots, y_n \}`, where
+   * :math:`FV(\varphi)` are the free variables of :math:`\varphi`. The internal
+   * quantifiers proof checker does not currently check that this is the case.
+   * \endverbatim
+   */
   ALPHA_EQUIV,
-  // ======== (Trusted) quantifiers preprocess
-  // Children: ?
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  // where F is an equality of the form t = QuantifiersPreprocess::preprocess(t)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- (Trusted) quantifiers preprocessing**
+   *
+   * .. math::
+   *
+   *   \inferrule{?\mid F}{F}
+   *
+   * where :math:`F` is an equality of the form :math:`t =
+   * \texttt{QuantifiersPreprocess::preprocess(t)}`.
+   * \endverbatim
+   */
   QUANTIFIERS_PREPROCESS,
-  //================================================= String rules
-  //======================== Core solver
-  // ======== Concat eq
-  // Children: (P1:(= (str.++ t1 ... tn t) (str.++ t1 ... tn s)))
-  // Arguments: (b), indicating if reverse direction
-  // ---------------------
-  // Conclusion: (= t s)
-  //
-  // Notice that t or s may be empty, in which case they are implicit in the
-  // concatenation above. For example, if
-  // P1 concludes (= x (str.++ x z)), then
-  // (CONCAT_EQ P1 :args false) concludes (= "" z)
-  //
-  // Also note that constants are split, such that if
-  // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then
-  // (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
-  // This splitting is done only for constants such that Word::splitConstant
-  // returns non-null.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation equality**
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot\ldots \cdot t_n \cdot t) = (t_1 \cdot\ldots
+   *   \cdot t_n\cdot s)\mid b}{t = s}
+   *
+   * where :math:`\cdot` stands for string concatenation and :math:`b` indicates
+   * if the direction is reversed.
+   *
+   * Notice that :math:`t` or :math:`s` may be empty, in which case they are
+   * implicit in the concatenation above. For example, if the premise is
+   * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
+   * :math:`z = ''`.
+   *
+   * Also note that constants are split, such that for :math:`(\mathsf{'abc'}
+   * \cdot x) = (\mathsf{'a'} \cdot y)`, this rule, with argument :math:`\bot`,
+   * concludes :math:`(\mathsf{'bc'} \cdot x) = y`.  This splitting is done only
+   * for constants such that ``Word::splitConstant`` returns non-null.
+   * \endverbatim
+   */
   CONCAT_EQ,
-  // ======== Concat unify
-  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-  //            P2:(= (str.len t1) (str.len s1)))
-  // Arguments: (b), indicating if reverse direction
-  // ---------------------
-  // Conclusion: (= t1 s1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation unification**
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_1) =
+   *   \mathit{len}(s_1)\mid b}{t_1 = s_1}
+   *
+   * where :math:`b` indicates if the direction is reversed.
+   * \endverbatim
+   */
   CONCAT_UNIFY,
-  // ======== Concat conflict
-  // Children: (P1:(= (str.++ c1 t) (str.++ c2 s)))
-  // Arguments: (b), indicating if reverse direction
-  // ---------------------
-  // Conclusion: false
-  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,index,b)
-  // is null, in other words, neither is a prefix of the other.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation conflict**
+   *
+   * .. math::
+   *
+   *   \inferrule{(c_1\cdot t) = (c_2 \cdot s)\mid b}{\bot}
+   *
+   * where :math:`b` indicates if the direction is reversed, :math:`c_1,\,c_2`
+   * are constants such that :math:`\texttt{Word::splitConstant}(c_1,c_2,
+   * \mathit{index},b)` is null, in other words, neither is a prefix of the
+   * other.
+   * \endverbatim
+   */
   CONCAT_CONFLICT,
-  // ======== Concat split
-  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-  //            P2:(not (= (str.len t1) (str.len s1))))
-  // Arguments: (false)
-  // ---------------------
-  // Conclusion: (or (= t1 (str.++ s1 r_t)) (= s1 (str.++ t1 r_s)))
-  // where
-  //   r_t = (skolem (suf t1 (str.len s1)))),
-  //   r_s = (skolem (suf s1 (str.len t1)))).
-  //
-  // or the reverse form of the above:
-  //
-  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-  //            P2:(not (= (str.len t2) (str.len s2))))
-  // Arguments: (true)
-  // ---------------------
-  // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
-  // where
-  //   r_t = (skolem (pre t2 (- (str.len t2) (str.len s2))))),
-  //   r_s = (skolem (pre s2 (- (str.len s2) (str.len t2))))).
-  //
-  // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
-  // (pre x n) is shorthand for (str.substr x 0 n).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation split**
+   *
+   * .. math::
+   *
+   *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
+   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\bot$}
+   *
+   * where :math:`r_t` is
+   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))` and
+   * :math:`r_s` is :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
+   *
+   * .. math::
+   *
+   *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
+   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\top$}
+   *
+   * where :math:`r_t` is
+   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
+   * \mathit{len}(s_2)))` and :math:`r_s` is
+   * :math:`\mathit{skolem}(\mathit{pre}(s_2,\mathit{len}(s_2) -
+   * \mathit{len}(t_2)))`.
+   *
+   * Above, :math:`\mathit{suf}(x,n)` is shorthand for
+   * :math:`\mathit{substr}(x,n, \mathit{len}(x) - n)` and
+   * :math:`\mathit{pre}(x,n)` is shorthand for :math:`\mathit{substr}(x,0,n)`.
+   * \endverbatim
+   */
   CONCAT_SPLIT,
-  // ======== Concat constant split
-  // Children: (P1:(= (str.++ t1 t2) (str.++ c s2)),
-  //            P2:(not (= (str.len t1) 0)))
-  // Arguments: (false)
-  // ---------------------
-  // Conclusion: (= t1 (str.++ c r))
-  // where
-  //   r = (skolem (suf t1 1)).
-  //
-  // or the reverse form of the above:
-  //
-  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 c)),
-  //            P2:(not (= (str.len t2) 0)))
-  // Arguments: (true)
-  // ---------------------
-  // Conclusion: (= t2 (str.++ r c))
-  // where
-  //   r = (skolem (pre t2 (- (str.len t2) 1))).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation split for constants**
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (c \cdot s_2),\,
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = c\cdot r)}
+   *
+   * where :math:`r` is :math:`\mathit{skolem}(\mathit{suf}(t_1,1))`.
+   *
+   * Alternatively for the reverse:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot c),\,
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot c)}
+   *
+   * where :math:`r` is
+   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) - 1))`.
+   * \endverbatim
+   */
   CONCAT_CSPLIT,
-  // ======== Concat length propagate
-  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-  //            P2:(> (str.len t1) (str.len s1)))
-  // Arguments: (false)
-  // ---------------------
-  // Conclusion: (= t1 (str.++ s1 r_t))
-  // where
-  //   r_t = (skolem (suf t1 (str.len s1)))
-  //
-  // or the reverse form of the above:
-  //
-  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-  //            P2:(> (str.len t2) (str.len s2)))
-  // Arguments: (false)
-  // ---------------------
-  // Conclusion: (= t2 (str.++ r_t s2))
-  // where
-  //   r_t = (skolem (pre t2 (- (str.len t2) (str.len s2)))).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation length propagation**
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r_t)}
+   *
+   * where :math:`r_t` is
+   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))`.
+   *
+   * Alternatively for the reverse:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r_t\cdot s_2)}
+   *
+   * where :math:`r_t` is
+   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
+   * \mathit{len}(s_2)))`.
+   * \endverbatim
+   */
   CONCAT_LPROP,
-  // ======== Concat constant propagate
-  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
-  //            P2:(not (= (str.len t1) 0)))
-  // Arguments: (false)
-  // ---------------------
-  // Conclusion: (= t1 (str.++ w3 r))
-  // where
-  //   w1, w2, w3, w4 are words,
-  //   w3 is (pre w2 p),
-  //   w4 is (suf w2 p),
-  //   p = Word::overlap((suf w2 1), w1),
-  //   r = (skolem (suf t1 (str.len w3))).
-  // In other words, w4 is the largest suffix of (suf w2 1) that can contain a
-  // prefix of w1; since t1 is non-empty, w3 must therefore be contained in t1.
-  //
-  // or the reverse form of the above:
-  //
-  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ s w2)),
-  //            P2:(not (= (str.len t2) 0)))
-  // Arguments: (true)
-  // ---------------------
-  // Conclusion: (= t2 (str.++ r w3))
-  // where
-  //   w1, w2, w3, w4 are words,
-  //   w3 is (suf w2 (- (str.len w2) p)),
-  //   w4 is (pre w2 (- (str.len w2) p)),
-  //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
-  //   r = (skolem (pre t2 (- (str.len t2) (str.len w3)))).
-  // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1))
-  // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
-  // be contained in t2.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation constant propagation**
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_3\cdot r)}
+   *
+   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
+   * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
+   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
+   * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
+   * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
+   * :math:`t_1` is non-empty, :math:`w_3` must therefore be contained in
+   * :math:`t_1`.
+   *
+   * Alternatively for the reverse:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
+   *
+   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * :math:`\mathit{suf}(w_2, \mathit{len}(w_2) - p)`, :math:`p` is
+   * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
+   * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
+   * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that
+   * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
+   * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
+   * of :math:`w_1`; since :math:`t_2` is non-empty, :math:`w_3` must therefore
+   * be contained in :math:`t_2`.
+   * \endverbatim
+   */
   CONCAT_CPROP,
-  // ======== String decompose
-  // Children: (P1: (>= (str.len t) n)
-  // Arguments: (false)
-  // ---------------------
-  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w1) n))
-  // or
-  // Children: (P1: (>= (str.len t) n)
-  // Arguments: (true)
-  // ---------------------
-  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
-  // where
-  //   w1 is (skolem (pre t n))
-  //   w2 is (skolem (suf t n))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- String decomposition**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
+   *   \mathit{len}(w_1) = n}
+   *
+   * or alternatively for the reverse:
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
+   *   \mathit{len}(w_2) = n}
+   *
+   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
+   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * \endverbatim
+   */
   STRING_DECOMPOSE,
-  // ======== Length positive
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Length positive**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{(\mathit{len}(t) = 0\wedge t= '')\vee \mathit{len}(t)
+   *   > 0}
+   * \endverbatim
+   */
   STRING_LENGTH_POS,
-  // ======== Length non-empty
-  // Children: (P1:(not (= t "")))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (not (= (str.len t) 0))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Length non-empty**
+   *
+   * .. math::
+   *
+   *   \inferrule{t\neq ''\mid -}{\mathit{len}(t) \neq 0}
+   * \endverbatim
+   */
   STRING_LENGTH_NON_EMPTY,
-  //======================== Extended functions
-  // ======== Reduction
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and R (= t w))
-  // where w = strings::StringsPreprocess::reduce(t, R, ...).
-  // In other words, R is the reduction predicate for extended term t, and w is
-  //   (skolem t)
-  // Notice that the free variables of R are w and the free variables of t.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Extended functions -- Reduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{R\wedge t = w}
+   *
+   * where :math:`w` is :math:`\texttt{strings::StringsPreprocess::reduce}(t, R,
+   * \dots)`.  In other words, :math:`R` is the reduction predicate for extended
+   * term :math:`t`, and :math:`w` is :math:`skolem(t)`.
+   *
+   * Notice that the free variables of :math:`R` are :math:`w` and the free
+   * variables of :math:`t`.
+   * \endverbatim
+   */
   STRING_REDUCTION,
-  // ======== Eager Reduction
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: R
-  // where R = strings::TermRegistry::eagerReduce(t).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Extended functions -- Eager reduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t}{R}
+   *
+   * where :math:`R` is :math:`\texttt{strings::TermRegistry::eagerReduce}(t)`.
+   * \endverbatim
+   */
   STRING_EAGER_REDUCTION,
-  //======================== Regular expressions
-  // ======== Regular expression intersection
-  // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (str.in.re t (re.inter R1 R2)).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Intersection**
+   *
+   * .. math::
+   *
+   *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{inter}(R_1,R_2)}
+   * \endverbatim
+   */
   RE_INTER,
-  // ======== Regular expression unfold positive
-  // Children: (P:(str.in.re t R))
-  // Arguments: none
-  // ---------------------
-  // Conclusion:(RegExpOpr::reduceRegExpPos((str.in.re t R))),
-  // corresponding to the one-step unfolding of the premise.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Positive Unfold**
+   *
+   * .. math::
+   *
+   *   \inferrule{t\in R\mid -}{\texttt{RegExpOpr::reduceRegExpPos}(t\in R)}
+   *
+   * corresponding to the one-step unfolding of the premise.
+   * \endverbatim
+   */
   RE_UNFOLD_POS,
-  // ======== Regular expression unfold negative
-  // Children: (P:(not (str.in.re t R)))
-  // Arguments: none
-  // ---------------------
-  // Conclusion:(RegExpOpr::reduceRegExpNeg((not (str.in.re t R)))),
-  // corresponding to the one-step unfolding of the premise.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Negative Unfold**
+   *
+   * .. math::
+   *
+   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in R)}
+   *
+   * corresponding to the one-step unfolding of the premise.
+   * \endverbatim
+   */
   RE_UNFOLD_NEG,
-  // ======== Regular expression unfold negative concat fixed
-  // Children: (P:(not (str.in.re t R)))
-  // Arguments: none
-  // ---------------------
-  // Conclusion:(RegExpOpr::reduceRegExpNegConcatFixed((not (str.in.re t
-  // R)),L,i)) where RegExpOpr::getRegExpConcatFixed((not (str.in.re t R)), i) =
-  // L. corresponding to the one-step unfolding of the premise, optimized for
-  // fixed length of component i of the regular expression concatenation R.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Unfold negative concatenation, fixed**
+   *
+   * .. math::
+   *
+   *   \inferrule{t\not\in R\mid
+   *   -}{\texttt{RegExpOpr::reduceRegExpNegConcatFixed}(t\not\in R,L,i)}
+   *
+   * where :math:`\texttt{RegExpOpr::getRegExpConcatFixed}(t\not\in R, i) = L`,
+   * corresponding to the one-step unfolding of the premise, optimized for fixed
+   * length of component :math:`i` of the regular expression concatenation
+   * :math:`R`.
+   * \endverbatim
+   */
   RE_UNFOLD_NEG_CONCAT_FIXED,
-  // ======== Regular expression elimination
-  // Children: none
-  // Arguments: (F, b)
-  // ---------------------
-  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
-  // where b is a Boolean indicating whether we are using aggressive
-  // eliminations. Notice this rule concludes (= F F) if no eliminations
-  // are performed for F.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Elimination**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F,b}{F =
+   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *
+   * where :math:`b` is a Boolean indicating whether we are using aggressive
+   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
+   * are performed for :math:`F`.
+   * \endverbatim
+   */
   RE_ELIM,
-  //======================== Code points
-  // Children: none
-  // Arguments: (t, s)
-  // ---------------------
-  // Conclusion:(or (= (str.code t) (- 1))
-  //                (not (= (str.code t) (str.code s)))
-  //                (not (= t s)))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Code points**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
+   *   \mathit{to\_code}(s) \vee t\neq s}
+   * \endverbatim
+   */
   STRING_CODE_INJ,
-  //======================== Sequence unit
-  // Children: (P:(= (seq.unit x) (seq.unit y)))
-  // Arguments: none
-  // ---------------------
-  // Conclusion:(= x y)
-  // Also applies to the case where (seq.unit y) is a constant sequence
-  // of length one.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Sequence unit**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{unit}(x) = \mathit{unit}(y)\mid -}{x = y}
+   *
+   * Also applies to the case where :math:`\mathit{unit}(y)` is a constant
+   * sequence of length one.
+   * \endverbatim
+   */
   STRING_SEQ_UNIT_INJ,
-  //======================== Trusted
-  // ======== String inference
-  // Children: ?
-  // Arguments: (F id isRev exp)
-  // ---------------------
-  // Conclusion: F
-  // used to bookkeep an inference that has not yet been converted via
-  // strings::InferProofCons::convert.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- (Trusted) String inference**
+   *
+   * .. math::
+   *
+   *   \inferrule{?\mid F,\mathit{id},\mathit{isRev},\mathit{exp}}{F}
+   *
+   * used to bookkeep an inference that has not yet been converted via
+   * :math:`\texttt{strings::InferProofCons::convert}`.
+   * \endverbatim
+   */
   STRING_INFERENCE,
 
   /**
@@ -1734,12 +1986,12 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Transcendentals -- Exp is approximated from below**
    *
    * .. math::
-   *   \inferrule{- \mid d,t}{exp(t) \geq \texttt{maclaurin}(\exp, d, t)}
+   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
    * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
-   * :math:`\texttt{maclaurin}(\exp, d, t)` is the :math:`d`'th taylor
+   * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
-   * function evaluated at :math:`t`. The Maclaurin series for the exponential
+   * function evaluated at :math:`c`. The Maclaurin series for the exponential
    * function is the following:
    *
    * .. math::

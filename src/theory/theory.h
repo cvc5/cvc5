@@ -99,7 +99,7 @@ namespace eq {
 class Theory : protected EnvObj
 {
   friend class CarePairArgumentCallback;
-  friend class ::cvc5::internal::TheoryEngine;
+  friend class internal::TheoryEngine;
 
  protected:
   /** Name of this theory instance. Along with the TheoryId this should

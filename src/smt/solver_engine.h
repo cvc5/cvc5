@@ -31,6 +31,11 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5 {
 
 class Solver;
@@ -51,15 +56,6 @@ class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -231,7 +227,7 @@ class CVC5_EXPORT SolverEngine
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by cvc5.
    */
-  void blockModel();
+  void blockModel(modes::BlockModelsMode mode);
 
   /**
    * Block the current model values of (at least) the values in exprs.

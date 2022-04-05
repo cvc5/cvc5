@@ -776,6 +776,9 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
   {
     ret = d_zero;
   }
+  Trace("strings-rentail") << "getConstantBoundLengthForRegexp: " << n
+                           << ", isLower=" << isLower << " returns " << ret
+                           << std::endl;
   setConstantBoundCache(n, ret, isLower);
   return ret;
 }

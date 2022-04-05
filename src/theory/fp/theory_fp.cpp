@@ -430,7 +430,8 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
     NodeManager* nm = NodeManager::currentNM();
 
     handleLemma(
-        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::internal::BitVector(1U, 1U))),
+        nm->mkNode(
+            kind::EQUAL, addA, nm->mkConst(cvc5::internal::BitVector(1U, 1U))),
         InferenceId::FP_EQUATE_TERM);
 
     ++oldSize;
@@ -447,11 +448,12 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
       NodeManager* nm = NodeManager::currentNM();
 
       handleLemma(
-          nm->mkNode(kind::EQUAL,
-                     node,
-                     nm->mkNode(kind::EQUAL,
-                                wordBlasted,
-                                nm->mkConst(::cvc5::internal::BitVector(1U, 1U)))),
+          nm->mkNode(
+              kind::EQUAL,
+              node,
+              nm->mkNode(kind::EQUAL,
+                         wordBlasted,
+                         nm->mkConst(cvc5::internal::BitVector(1U, 1U)))),
           InferenceId::FP_EQUATE_TERM);
     }
     else

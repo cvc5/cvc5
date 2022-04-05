@@ -313,8 +313,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           Assert(response.d_node != rewriteStackTop.d_node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
 #ifdef CVC5_ASSERTIONS
-          Assert(d_rewriteStack->find(response.d_node)
-                 == d_rewriteStack->end());
+          Assert(d_rewriteStack->find(response.d_node) == d_rewriteStack->end())
+              << "Non-terminating rewriting detected for: " << response.d_node;
           d_rewriteStack->insert(response.d_node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.d_node, tcpg);

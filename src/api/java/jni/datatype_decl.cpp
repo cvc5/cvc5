@@ -15,27 +15,27 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_DatatypeDecl.h"
+#include "io_github_cvc5_DatatypeDecl.h"
 
 using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_DatatypeDecl_deletePointer(
+JNIEXPORT void JNICALL Java_io_github_cvc5_DatatypeDecl_deletePointer(
     JNIEnv*, jobject, jlong pointer)
 {
   delete ((DatatypeDecl*)pointer);
 }
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    addConstructor
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_DatatypeDecl_addConstructor(
+JNIEXPORT void JNICALL Java_io_github_cvc5_DatatypeDecl_addConstructor(
     JNIEnv* env, jobject, jlong pointer, jlong declPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -46,11 +46,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_DatatypeDecl_addConstructor(
 }
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    getNumConstructors
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_DatatypeDecl_getNumConstructors(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_DatatypeDecl_getNumConstructors(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -60,11 +60,11 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_DatatypeDecl_getNumConstructors(
 }
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    isParametric
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_DatatypeDecl_isParametric(
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_DatatypeDecl_isParametric(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -74,12 +74,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_DatatypeDecl_isParametric(
 }
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    isNull
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_DatatypeDecl_isNull(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_DatatypeDecl_isNull(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeDecl* current = (DatatypeDecl*)pointer;
@@ -88,11 +88,11 @@ Java_io_github_cvc5_api_DatatypeDecl_isNull(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_DatatypeDecl_toString(
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeDecl_toString(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -102,11 +102,11 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_DatatypeDecl_toString(
 }
 
 /*
- * Class:     io_github_cvc5_api_DatatypeDecl
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_DatatypeDecl_getName(
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeDecl_getName(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;

@@ -49,8 +49,8 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 
 SimpSolver::SimpSolver(Env& env,
                        cvc5::internal::prop::TheoryProxy* proxy,
-                       cvc5::internal::context::Context* context,
-                       cvc5::internal::context::UserContext* userContext,
+                       context::Context* context,
+                       context::UserContext* userContext,
                        ProofNodeManager* pnm,
                        bool enableIncremental)
     : Solver(env, proxy, context, userContext, pnm, enableIncremental),

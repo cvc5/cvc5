@@ -13,13 +13,12 @@
  * Utility methods.
  */
 
+import io.github.cvc5.CVC5ApiException;
+import io.github.cvc5.Kind;
+import io.github.cvc5.Sort;
+import io.github.cvc5.Term;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.github.cvc5.api.CVC5ApiException;
-import io.github.cvc5.api.Kind;
-import io.github.cvc5.api.Sort;
-import io.github.cvc5.api.Term;
 
 public class Utils
 {
@@ -46,8 +45,7 @@ public class Utils
       {
         ss.append(' ');
       }
-      ss.append('(').append(params[i]).append(' ').append(params[i].getSort())
-          .append(')');
+      ss.append('(').append(params[i]).append(' ').append(params[i].getSort()).append(')');
     }
     ss.append(") ").append(sort).append(' ').append(body).append(')');
     return ss.toString();
@@ -59,8 +57,7 @@ public class Utils
    * @param terms the terms for which the synthesis solutions were retrieved
    * @param sols the synthesis solutions of the given terms
    */
-  public static void printSynthSolutions(Term[] terms, Term[] sols)
-      throws CVC5ApiException
+  public static void printSynthSolutions(Term[] terms, Term[] sols) throws CVC5ApiException
   {
     System.out.println('(');
     for (int i = 0; i < terms.length; ++i)
@@ -75,8 +72,7 @@ public class Utils
         }
         body = sols[i].getChild(1);
       }
-      System.out.println("  "
-          + defineFunToString(terms[i], params.toArray(new Term[0]), body));
+      System.out.println("  " + defineFunToString(terms[i], params.toArray(new Term[0]), body));
     }
     System.out.println(')');
   }

@@ -122,7 +122,7 @@ class RegExpEntail
    * regular expression n. Return null if a constant bound cannot be determined.
    * This method will always worst case return 0 as a lower bound.
    */
-  Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
+  Node getConstantBoundLengthForRegexp(TNode n, bool isLower) const;
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences

@@ -46,8 +46,8 @@ int main()
   Sort u = slv.mkUninterpretedSort("u");
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
-  Sort uToInt = slv.mkFunctionSort(u, integer);
-  Sort intPred = slv.mkFunctionSort(integer, boolean);
+  Sort uToInt = slv.mkFunctionSort({u}, integer);
+  Sort intPred = slv.mkFunctionSort({integer}, boolean);
 
   // Variables
   Term x = slv.mkConst(u, "x");

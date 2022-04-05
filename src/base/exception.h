@@ -124,7 +124,7 @@ inline void CheckArgument(bool cond,
                           const char* tail CVC5_UNUSED)
 {
   if(__builtin_expect( ( !cond ), false )) {
-    throw ::cvc5::internal::IllegalArgumentException("", "", tail);
+    throw cvc5::internal::IllegalArgumentException("", "", tail);
   }
 }
 template <class T>
@@ -133,7 +133,7 @@ template <class T>
 inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
 {
   if(__builtin_expect( ( !cond ), false )) {
-    throw ::cvc5::internal::IllegalArgumentException("", "", "");
+    throw cvc5::internal::IllegalArgumentException("", "", "");
   }
 }
 

@@ -95,6 +95,7 @@ typerule APPLY_TYPE_ASCRIPTION ::cvc5::internal::theory::datatypes::DatatypeAscr
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule
 
+# the remaining kinds are used only by the sygus extension
 operator DT_SIZE 1 "datatypes size"
 typerule DT_SIZE ::cvc5::internal::theory::datatypes::DtSizeTypeRule
 

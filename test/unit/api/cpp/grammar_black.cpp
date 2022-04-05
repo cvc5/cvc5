@@ -33,7 +33,7 @@ TEST_F(TestApiBlackGrammar, addRule)
   Term start = d_solver.mkVar(boolean);
   Term nts = d_solver.mkVar(boolean);
 
-  Grammar g = d_solver.mkSygusGrammar({}, {start});
+  Grammar g = d_solver.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g.addRule(start, d_solver.mkBoolean(false)));
 
@@ -59,7 +59,7 @@ TEST_F(TestApiBlackGrammar, addRules)
   Term start = d_solver.mkVar(boolean);
   Term nts = d_solver.mkVar(boolean);
 
-  Grammar g = d_solver.mkSygusGrammar({}, {start});
+  Grammar g = d_solver.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g.addRules(start, {d_solver.mkBoolean(false)}));
 
@@ -85,7 +85,7 @@ TEST_F(TestApiBlackGrammar, addAnyConstant)
   Term start = d_solver.mkVar(boolean);
   Term nts = d_solver.mkVar(boolean);
 
-  Grammar g = d_solver.mkSygusGrammar({}, {start});
+  Grammar g = d_solver.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g.addAnyConstant(start));
   ASSERT_NO_THROW(g.addAnyConstant(start));
@@ -108,8 +108,8 @@ TEST_F(TestApiBlackGrammar, addAnyVariable)
   Term start = d_solver.mkVar(boolean);
   Term nts = d_solver.mkVar(boolean);
 
-  Grammar g1 = d_solver.mkSygusGrammar({x}, {start});
-  Grammar g2 = d_solver.mkSygusGrammar({}, {start});
+  Grammar g1 = d_solver.mkGrammar({x}, {start});
+  Grammar g2 = d_solver.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g1.addAnyVariable(start));
   ASSERT_NO_THROW(g1.addAnyVariable(start));

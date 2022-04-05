@@ -75,7 +75,7 @@ class Solver : protected EnvObj
   cvc5::internal::prop::TheoryProxy* d_proxy;
 
   /** The contexts from the SMT solver */
-  cvc5::internal::context::Context* d_context;
+  context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -132,8 +132,8 @@ public:
     //
  Solver(Env& env,
         cvc5::internal::prop::TheoryProxy* proxy,
-        cvc5::internal::context::Context* context,
-        cvc5::internal::context::UserContext* userContext,
+        context::Context* context,
+        context::UserContext* userContext,
         ProofNodeManager* pnm,
         bool enableIncremental = false);
  virtual ~Solver();

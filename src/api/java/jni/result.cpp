@@ -15,27 +15,27 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_Result.h"
+#include "io_github_cvc5_Result.h"
 
 using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    deletePointer
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_Result_deletePointer(JNIEnv*, jobject, jlong pointer)
+Java_io_github_cvc5_Result_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete ((Result*)pointer);
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isNull(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Result_isNull(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -46,11 +46,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    isSat
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isSat(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Result_isSat(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -61,11 +61,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isSat(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    isUnsat
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isUnsat(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Result_isUnsat(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -76,12 +76,12 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isUnsat(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    isUnknown
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Result_isUnknown(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Result_isUnknown(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Result* current = (Result*)pointer;
@@ -90,11 +90,11 @@ Java_io_github_cvc5_api_Result_isUnknown(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    equals
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_equals(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Result_equals(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer1,
                                                                  jlong pointer2)
@@ -108,11 +108,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_equals(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    getUnknownExplanation
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Result_getUnknownExplanation(
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Result_getUnknownExplanation(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -122,11 +122,11 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Result_getUnknownExplanation(
 }
 
 /*
- * Class:     io_github_cvc5_api_Result
+ * Class:     io_github_cvc5_Result
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Result_toString(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Result_toString(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {

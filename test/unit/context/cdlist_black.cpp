@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of context::CDList<>.
+ * Black box testing of cvc5::context::CDList<>.
  */
 
 #include <limits.h>

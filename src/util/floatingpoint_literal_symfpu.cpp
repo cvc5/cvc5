@@ -35,22 +35,22 @@
 
 namespace symfpu {
 
-#define CVC5_LIT_ITE_DFN(T)                                            \
-  template <>                                                          \
-  struct ite<::cvc5::internal::symfpuLiteral::Cvc5Prop, T>                       \
-  {                                                                    \
-    static const T& iteOp(const ::cvc5::internal::symfpuLiteral::Cvc5Prop& cond, \
-                          const T& l,                                  \
-                          const T& r)                                  \
-    {                                                                  \
-      return cond ? l : r;                                             \
-    }                                                                  \
+#define CVC5_LIT_ITE_DFN(T)                                                    \
+  template <>                                                                  \
+  struct ite<cvc5::internal::symfpuLiteral::Cvc5Prop, T>                       \
+  {                                                                            \
+    static const T& iteOp(const cvc5::internal::symfpuLiteral::Cvc5Prop& cond, \
+                          const T& l,                                          \
+                          const T& r)                                          \
+    {                                                                          \
+      return cond ? l : r;                                                     \
+    }                                                                          \
   }
 
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::rm);
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::prop);
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::sbv);
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::ubv);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::rm);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::prop);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::sbv);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::ubv);
 
 #undef CVC5_LIT_ITE_DFN
 }  // namespace symfpu

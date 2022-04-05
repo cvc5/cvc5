@@ -47,7 +47,7 @@ namespace quantifiers {
  */
 class QuantifiersModules
 {
-  friend class ::cvc5::internal::theory::QuantifiersEngine;
+  friend class theory::QuantifiersEngine;
 
  public:
   QuantifiersModules();

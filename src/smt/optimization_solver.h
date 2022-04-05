@@ -63,18 +63,13 @@ class OptimizationResult
       : d_result(result), d_value(value), d_infinity(isInf)
   {
   }
-  OptimizationResult()
-      : d_result(Result::UNKNOWN, UnknownExplanation::NO_STATUS),
-        d_value(),
-        d_infinity(FINITE)
-  {
-  }
+  OptimizationResult() : d_result(), d_value(), d_infinity(FINITE) {}
   ~OptimizationResult() = default;
 
   /**
    * Returns an enum indicating whether
    * the result is SAT or not.
-   * @return whether the result is SAT, UNSAT or UNKNOWN
+   * @return whether the result is SAT, UNSAT or NONE
    **/
   Result getResult() const { return d_result; }
 

@@ -15,16 +15,16 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_Stat.h"
+#include "io_github_cvc5_Stat.h"
 
 using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Stat_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Stat_deletePointer(JNIEnv*,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -32,11 +32,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Stat_deletePointer(JNIEnv*,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Stat_toString(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_toString(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -50,11 +50,11 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Stat_toString(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    isInternal
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isInternal(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isInternal(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -65,11 +65,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isInternal(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    isDefault
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isDefault(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isDefault(JNIEnv* env,
                                                                   jobject,
                                                                   jlong pointer)
 {
@@ -80,11 +80,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isDefault(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    isInt
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isInt(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isInt(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -95,11 +95,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isInt(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    getInt
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Stat_getInt(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Stat_getInt(JNIEnv* env,
                                                             jobject,
                                                             jlong pointer)
 {
@@ -110,11 +110,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Stat_getInt(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    isDouble
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isDouble(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isDouble(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -125,11 +125,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isDouble(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    getDouble
  * Signature: (J)D
  */
-JNIEXPORT jdouble JNICALL Java_io_github_cvc5_api_Stat_getDouble(JNIEnv* env,
+JNIEXPORT jdouble JNICALL Java_io_github_cvc5_Stat_getDouble(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -140,11 +140,11 @@ JNIEXPORT jdouble JNICALL Java_io_github_cvc5_api_Stat_getDouble(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    isString
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isString(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isString(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -155,11 +155,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isString(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    getString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Stat_getString(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_getString(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
@@ -170,12 +170,12 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Stat_getString(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    isHistogram
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Stat_isHistogram(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Stat_isHistogram(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -184,12 +184,12 @@ Java_io_github_cvc5_api_Stat_isHistogram(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     io_github_cvc5_api_Stat
+ * Class:     io_github_cvc5_Stat
  * Method:    getHistogram
  * Signature: (J)Ljava/util/Map;
  */
 JNIEXPORT jobject JNICALL
-Java_io_github_cvc5_api_Stat_getHistogram(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Stat_getHistogram(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);

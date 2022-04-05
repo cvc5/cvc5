@@ -49,7 +49,7 @@ int main()
   Term plus = slv.mkTerm(ADD, {x, start});
 
   // create the grammar object
-  Grammar g1 = slv.mkSygusGrammar({x}, {start});
+  Grammar g1 = slv.mkGrammar({x}, {start});
 
   // bind each non-terminal to its rules
   g1.addRules(start, {neg_x, plus});
@@ -73,7 +73,7 @@ int main()
   Term id4 = slv.synthFun("id4", {x}, integer, g1);
 
   // declare universal variables.
-  Term varX = slv.declareSygusVar(integer, "x");
+  Term varX = slv.declareSygusVar("x", integer);
 
   Term id1_x = slv.mkTerm(APPLY_UF, {id1, varX});
   Term id2_x = slv.mkTerm(APPLY_UF, {id2, varX});

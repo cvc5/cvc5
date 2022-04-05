@@ -508,7 +508,7 @@ struct FloatingPointToBVHashFunction
 {
   inline size_t operator()(const FloatingPointToBV& fptbv) const
   {
-    UnsignedHashFunction< ::cvc5::internal::BitVectorSize> f;
+    UnsignedHashFunction<cvc5::internal::BitVectorSize> f;
     return (key ^ 0x46504256) ^ f(fptbv.d_bv_size);
   }
 }; /* struct FloatingPointToBVHashFunction */

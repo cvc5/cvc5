@@ -50,7 +50,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-using namespace ::cvc5::internal::context;
+using namespace cvc5::context;
 
 SymmetryBreaker::Template::Template() :
   d_template(),

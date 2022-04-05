@@ -3574,7 +3574,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node val;
   if (isPrefix)
   {
-    val = NodeManager::currentNM()->mkConstInt(::cvc5::internal::Rational(0));
+    val = NodeManager::currentNM()->mkConstInt(cvc5::internal::Rational(0));
   }
   else
   {

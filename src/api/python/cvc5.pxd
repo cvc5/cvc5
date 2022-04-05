@@ -9,7 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
-from cvc5types cimport RoundingMode, UnknownExplanation
+from cvc5types cimport BlockModelsMode, RoundingMode, UnknownExplanation
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -58,7 +58,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeConstructor operator[](size_t idx) except +
         DatatypeConstructor operator[](const string& name) except +
         DatatypeConstructor getConstructor(const string& name) except +
-        Term getConstructorTerm(const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
         string getName() except +
         size_t getNumConstructors() except +
@@ -86,12 +85,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeSelector operator[](size_t idx) except +
         DatatypeSelector operator[](const string& name) except +
         string getName() except +
-        Term getConstructorTerm() except +
-        Term getInstantiatedConstructorTerm(const Sort& retSort) except +
+        Term getTerm() except +
+        Term getInstantiatedTerm(const Sort& retSort) except +
         Term getTesterTerm() except +
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +
-        Term getSelectorTerm(const string& name) except +
         bint isNull() except +
         string toString() except +
         cppclass const_iterator:
@@ -107,6 +105,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass DatatypeConstructorDecl:
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
+        void addSelectorUnresolved(const string& name, const string& unresDatatypeName) except +
         bint isNull() except +
         string toString() except +
 
@@ -123,7 +122,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass DatatypeSelector:
         DatatypeSelector() except +
         string getName() except +
-        Term getSelectorTerm() except +
+        Term getTerm() except +
         Term getUpdaterTerm() except +
         Sort getCodomainSort() except +
         bint isNull() except +
@@ -216,19 +215,20 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
-        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
-                                     const set[Sort]& unresolvedSorts) except +
-        Sort mkFunctionSort(Sort domain, Sort codomain) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
+        Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
         Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
+        Sort mkUninterpretedSort() except +
         Sort mkUninterpretedSort(const string& symbol) except +
-        Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
-        Sort mkUninterpretedSortConstructorSort(const string& symbol, size_t arity) except +
+        Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
@@ -237,9 +237,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
-        Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
-        Term declareSygusVar(Sort sort, const string& symbol) except +
-        Term declareSygusVar(Sort sort) except +
+        Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
+        Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
         void addSygusAssume(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
@@ -293,8 +292,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h
@@ -351,6 +348,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term getAbduct(const Term& conj, Grammar& grammar) except +
         Term getAbductNext() except +
         void blockModel() except +
+        void blockModel(BlockModelsMode mode) except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
         Statistics getStatistics() except +
@@ -383,10 +381,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isBitVector() except +
         bint isFloatingPoint() except +
         bint isDatatype() except +
-        bint isConstructor() except +
-        bint isSelector() except +
-        bint isTester() except +
-        bint isUpdater() except +
+        bint isDatatypeConstructor() except +
+        bint isDatatypeSelector() except +
+        bint isDatatypeTester() except +
+        bint isDatatypeUpdater() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
@@ -398,17 +396,18 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isUninterpretedSort() except +
         bint isUninterpretedSortConstructor() except +
         bint isInstantiated() except +
+        Sort getUninterpretedSortConstructor() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         vector[Sort] getInstantiatedParameters() except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
-        size_t getConstructorArity() except +
-        vector[Sort] getConstructorDomainSorts() except +
-        Sort getConstructorCodomainSort() except +
-        Sort getSelectorDomainSort() except +
-        Sort getSelectorCodomainSort() except +
-        Sort getTesterDomainSort() except +
-        Sort getTesterCodomainSort() except +
+        size_t getDatatypeConstructorArity() except +
+        vector[Sort] getDatatypeConstructorDomainSorts() except +
+        Sort getDatatypeConstructorCodomainSort() except +
+        Sort getDatatypeSelectorDomainSort() except +
+        Sort getDatatypeSelectorCodomainSort() except +
+        Sort getDatatypeTesterDomainSort() except +
+        Sort getDatatypeTesterCodomainSort() except +
         size_t getFunctionArity() except +
         vector[Sort] getFunctionDomainSorts() except +
         Sort getFunctionCodomainSort() except +

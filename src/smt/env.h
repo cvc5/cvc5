@@ -27,6 +27,11 @@
 #include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5::internal {
 
 class NodeManager;
@@ -38,11 +43,6 @@ namespace options {
 enum class OutputTag;
 }
 using OutputTag = options::OutputTag;
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 namespace smt {
 class PfManager;
