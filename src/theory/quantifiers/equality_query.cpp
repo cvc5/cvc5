@@ -168,7 +168,7 @@ Node EqualityQuery::getInstance(Node n,
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
 int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 {
-  if (options().quantifiers.cegqi && quantifiers::TermUtil::hasInstConstAttr(n))
+  if (quantifiers::TermUtil::hasInstConstAttr(n))
   {  // reject
     return -2;
   }
