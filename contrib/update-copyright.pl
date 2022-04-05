@@ -42,6 +42,7 @@ $excluded_paths .= '|cmake/FindCython.cmake';
 $excluded_paths .= '|cmake/FindPythonExtensions.cmake';
 $excluded_paths .= '|cmake/UseCython.cmake';
 $excluded_paths .= '|cmake/targetLinkLibrariesWithDynamicLookup.cmake';
+$excluded_paths .= '|cmake/version-base.cmake';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
