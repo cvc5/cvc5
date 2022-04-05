@@ -64,7 +64,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * @param s The sort to compare to.
    * @return A negative integer, zero, or a positive integer as this sort
-   * is less than, equal to, or greater than the specified sort.
+   *         is less than, equal to, or greater than the specified sort.
    */
   @Override
   public int compareTo(Sort s)
@@ -107,7 +107,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isNull(long pointer);
 
   /**
-   * Determine if this is the Boolean sort (SMT-LIB: `Bool`).
+   * Determine if this is the Boolean sort (SMT-LIB: {@code Bool}).
    * @return True if this sort is the Boolean sort.
    */
   public boolean isBoolean()
@@ -118,7 +118,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isBoolean(long pointer);
 
   /**
-   * Determine if this is the integer sort (SMT-LIB: `Int`).
+   * Determine if this is the integer sort (SMT-LIB: {@code Int}).
    * @return True if this sort is the integer sort.
    */
   public boolean isInteger()
@@ -129,7 +129,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isInteger(long pointer);
 
   /**
-   * Determine if this is the real sort (SMT-LIB: `Real`).
+   * Determine if this is the real sort (SMT-LIB: {@code Real}).
    * @return True if this sort is the real sort.
    */
   public boolean isReal()
@@ -140,7 +140,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isReal(long pointer);
 
   /**
-   * Determine if this is the string sort (SMT-LIB: `String`)..
+   * Determine if this is the string sort (SMT-LIB: {@code String})..
    * @return True if this sort is the string sort.
    */
   public boolean isString()
@@ -151,7 +151,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isString(long pointer);
 
   /**
-   * Determine if this is the regular expression sort (SMT-LIB: `RegLan`).
+   * Determine if this is the regular expression sort (SMT-LIB: {@code RegLan}).
    * @return True if this sort is the regular expression sort.
    */
   public boolean isRegExp()
@@ -162,7 +162,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isRegExp(long pointer);
 
   /**
-   * Determine if this is the rounding mode sort (SMT-LIB: `RoundingMode`).
+   * Determine if this is the rounding mode sort (SMT-LIB: {@code RoundingMode}).
    * @return True if this sort is the rounding mode sort.
    */
   public boolean isRoundingMode()
@@ -173,7 +173,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isRoundingMode(long pointer);
 
   /**
-   * Determine if this is a bit-vector sort (SMT-LIB: `(_ BitVec i)`).
+   * Determine if this is a bit-vector sort (SMT-LIB: {@code (_ BitVec i)}).
    * @return True if this sort is a bit-vector sort.
    */
   public boolean isBitVector()
@@ -185,7 +185,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Determine if this is a floatingpoint sort
-   * (SMT-LIB: `(_ FloatingPoint eb sb)`).
+   * (SMT-LIB: {@code (_ FloatingPoint eb sb)}).
    * @return True if this sort is a floating-point sort.
    */
   public boolean isFloatingPoint()
@@ -474,8 +474,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * priority.
    *
    * For example,
-   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
-   * return (Array (Array C D) B).
+   * {@code (Array A B).substitute({A, C}, {(Array C D), (Array A B)})} will
+   * return {@code (Array (Array C D) B)}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -491,13 +491,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long substitute(long pointer, long[] sortPointers, long[] replacementPointers);
-
-  /**
-   * Output a string representation of this sort to a given stream.
-   * @param out The output stream.
-   */
-  // TODO: do we need to support this?
-  // void toStream(std::ostream& out)
 
   /**
    * @return A string representation of this sort.

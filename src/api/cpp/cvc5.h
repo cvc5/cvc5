@@ -3698,7 +3698,7 @@ class CVC5_EXPORT Solver
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant.
+   * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3706,7 +3706,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant.
+   * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3714,7 +3714,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant.
+   * Create a not-a-number floating-point constant (SMT-LIB: `NaN`).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3722,7 +3722,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant.
+   * Create a positive zero floating-point constant (SMT-LIB: +zero).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3730,7 +3730,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant.
+   * Create a negative zero floating-point constant (SMT-LIB: -zero).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3738,7 +3738,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a roundingmode constant.
+   * Create a rounding mode constant.
    * @param rm The floating point rounding mode this constant represents.
    */
   Term mkRoundingMode(RoundingMode rm) const;
@@ -4036,7 +4036,8 @@ class CVC5_EXPORT Solver
    *     (define-fun-rec <function_def>)
    * \endverbatim
    *
-   * Create parameter 'fun' with mkConst().
+   * Create parameter `fun` with mkConst().
+   *
    * @param fun The sorted function.
    * @param bound_vars The parameters to this function.
    * @param term The function body.

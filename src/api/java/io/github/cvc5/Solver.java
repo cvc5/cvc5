@@ -106,7 +106,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getBooleanSort(long pointer);
 
   /**
-   * @return Sort Integer (in cvc5, Integer is a subtype of Real).
+   * @return Sort Integer.
    */
   public Sort getIntegerSort()
   {
@@ -651,7 +651,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
-   *   (e.g. BITVECTOR_EXTRACT).
+   * (e.g. {@link Kind#BITVECTOR_EXTRACT}).
    *
    * @api.note In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
@@ -667,8 +667,11 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkOp(long pointer, int kindValue);
   /**
    * Create operator of kind:
-   *   - RECORD_UPDATE
-   *   - DIVISIBLE (to support arbitrary precision integers)
+   * <ul>
+   *   <li>
+   *     {@link Kind#DIVISIBLE} (to support arbitrary precision integers)
+   *   </li>
+   * </ul>
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The string argument to this operator.
@@ -683,18 +686,20 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create operator of kind:
-   *   - DIVISIBLE
-   *   - BITVECTOR_REPEAT
-   *   - BITVECTOR_ZERO_EXTEND
-   *   - BITVECTOR_SIGN_EXTEND
-   *   - BITVECTOR_ROTATE_LEFT
-   *   - BITVECTOR_ROTATE_RIGHT
-   *   - INT_TO_BITVECTOR
-   *   - FLOATINGPOINT_TO_UBV
-   *   - FLOATINGPOINT_TO_UBV_TOTAL
-   *   - FLOATINGPOINT_TO_SBV
-   *   - FLOATINGPOINT_TO_SBV_TOTAL
-   *   - TUPLE_UPDATE
+   * <ul>
+   *   <li>DIVISIBLE</li>
+   *   <li>BITVECTOR_REPEAT</li>
+   *   <li>BITVECTOR_ZERO_EXTEND</li>
+   *   <li>BITVECTOR_SIGN_EXTEND</li>
+   *   <li>BITVECTOR_ROTATE_LEFT</li>
+   *   <li>BITVECTOR_ROTATE_RIGHT</li>
+   *   <li>INT_TO_BITVECTOR</li>
+   *   <li>FLOATINGPOINT_TO_UBV</li>
+   *   <li>FLOATINGPOINT_TO_UBV_TOTAL</li>
+   *   <li>FLOATINGPOINT_TO_SBV</li>
+   *   <li>FLOATINGPOINT_TO_SBV_TOTAL</li>
+   *   <li>TUPLE_UPDATE</li>
+   * </ul>
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The unsigned int argument to this operator.
@@ -711,12 +716,14 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create operator of Kind:
-   *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - FLOATINGPOINT_TO_FP_FROM_FP
-   *   - FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - FLOATINGPOINT_TO_FP_FROM_UBV
+   * <ul>
+   *   <li>BITVECTOR_EXTRACT</li>
+   *   <li>FLOATINGPOINT_TO_FP_FROM_IEEE_BV</li>
+   *   <li>FLOATINGPOINT_TO_FP_FROM_FP</li>
+   *   <li>FLOATINGPOINT_TO_FP_FROM_REAL</li>
+   *   <li>FLOATINGPOINT_TO_FP_FROM_SBV</li>
+   *   <li>FLOATINGPOINT_TO_FP_FROM_UBV</li>
+   * </ul>
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg1 The first unsigned int argument to this operator.
@@ -735,7 +742,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create operator of Kind:
-   *   - TUPLE_PROJECT
+   * <ul>
+   *   <li>TUPLE_PROJECT</li>
+   * </ul>
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param args The arguments (indices) of the operator.
@@ -755,7 +764,7 @@ public class Solver implements IPointer, AutoCloseable
   /* .................................................................... */
 
   /**
-   * Create a Boolean true constant.
+   * Create a Boolean {@code true} constant.
    * @return The true constant.
    */
   public Term mkTrue()
@@ -766,7 +775,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkTrue(long pointer);
   /**
-   * Create a Boolean false constant.
+   * Create a Boolean {@code false} constant.
    * @return The false constant.
    */
   public Term mkFalse()
@@ -803,7 +812,8 @@ public class Solver implements IPointer, AutoCloseable
    * Create an integer constant from a string.
    * @param s The string representation of the constant, may represent an.
    *          integer (e.g., "123").
-   * @return A constant of sort Integer assuming 's' represents an integer)
+   * @return A constant of sort Integer assuming {@code s} represents an
+   *         integer).
    * @throws CVC5ApiException
    */
   public Term mkInteger(String s) throws CVC5ApiException
@@ -815,7 +825,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkInteger(long pointer, String s) throws CVC5ApiException;
 
   /**
-   * Create an integer constant from a c++ int.
+   * Create an integer constant from a C++ {@code int}.
    * @param val The value of the constant.
    * @return A constant of sort Integer.
    */
@@ -868,7 +878,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkReal(long pointer, long num, long den);
 
   /**
-   * Create a regular expression none (re.none) term.
+   * Create a regular expression none ({@code re.none}) term.
    * @return The none term.
    */
   public Term mkRegexpNone()
@@ -880,7 +890,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkRegexpNone(long pointer);
 
   /**
-   * Create a regular expression all (re.all) term.
+   * Create a regular expression all ({@code re.all}) term.
    * @return The all term.
    */
   public Term mkRegexpAll()
@@ -892,7 +902,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkRegexpAll(long pointer);
 
   /**
-   * Create a regular expression allchar (re.allchar) term.
+   * Create a regular expression allchar ({@code re.allchar}) term.
    * @return The allchar term.
    */
   public Term mkRegexpAllchar()
@@ -972,8 +982,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a String constant.
    * @param s The string this constant represents.
-   * @param useEscSequences Determines whether escape sequences in `s`
-   * should be converted to the corresponding unicode character
+   * @param useEscSequences Determines whether escape sequences in {@code s}
+   *                        should be converted to the corresponding unicode
+   *                        character.
    * @return The String constant.
    */
   public Term mkString(String s, boolean useEscSequences)
@@ -987,9 +998,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a String constant.
-   * @param s A list of unsigned (unicode) values this constant represents.
-   *     as
-   * string
+   * @param s A list of unsigned (unicode) values this constant represents
+   *          as string.
    * @return The String constant.
    * @throws CVC5ApiException
    */
@@ -1084,8 +1094,8 @@ public class Solver implements IPointer, AutoCloseable
    * Create a constant array with the provided constant value stored at
    * every index
    * @param sort The sort of the constant array (must be an array sort)
-   * @param val The constant value to store (must match the sort's element.
-   *     sort)
+   * @param val The constant value to store (must match the sort's element
+   *            sort).
    * @return The constant array term.
    */
   public Term mkConstArray(Sort sort, Term val)
@@ -1096,7 +1106,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkConstArray(long pointer, long sortPointer, long valPointer);
   /**
-   * Create a positive infinity floating-point constant.
+   * Create a positive infinity floating-point constant (SMT-LIB: {@code +oo}).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -1112,7 +1122,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
   /**
-   * Create a negative infinity floating-point constant.
+   * Create a negative infinity floating-point constant (SMT-LIB: {@code -oo}).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -1128,7 +1138,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
   /**
-   * Create a not-a-number (NaN) floating-point constant.
+   * Create a not-a-number floating-point constant (SMT-LIB: {@code NaN}).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -1145,7 +1155,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkFloatingPointNaN(long pointer, int exp, int sig);
 
   /**
-   * Create a positive zero (+0.0) floating-point constant.
+   * Create a positive zero floating-point constant (SMT-LIB: {@code +zero}).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -1162,7 +1172,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkFloatingPointPosZero(long pointer, int exp, int sig);
 
   /**
-   * Create a negative zero (-0.0) floating-point constant.
+   * Create a negative zero floating-point constant (SMT-LIB: {@code -zero}).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -1179,7 +1189,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkFloatingPointNegZero(long pointer, int exp, int sig);
 
   /**
-   * Create a roundingmode constant.
+   * Create a rounding mode constant.
    * @param rm The floating point rounding mode this constant represents.
    */
   public Term mkRoundingMode(RoundingMode rm)
@@ -1231,7 +1241,8 @@ public class Solver implements IPointer, AutoCloseable
   /* .................................................................... */
 
   /**
-   * Create (first-order) constant (0-arity function symbol).
+   * Create a free constant.
+   *
    * SMT-LIB:
    * {@code
    *   ( declare-const <symbol> <sort> )
@@ -1251,8 +1262,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkConst(long pointer, long sortPointer, String symbol);
 
   /**
-   * Create (first-order) constant (0-arity function symbol), with a default
-   * symbol name.
+   * Create a free constant with a default symbol name.
    *
    * @param sort The sort of the constant.
    * @return The first-order constant.
@@ -1266,7 +1276,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkConst(long pointer, long sortPointer);
 
   /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
    * @param sort The sort of the variable.
    * @return The variable.
@@ -1277,7 +1287,7 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
    * @param sort The sort of the variable.
    * @param symbol The name of the variable.
@@ -1338,7 +1348,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   *
+   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1353,7 +1364,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   *
+   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   *
    * @param name The name of the datatype.
    * @param params A list of sort parameters.
    * @param isCoDatatype True if a codatatype is to be constructed.
@@ -1374,10 +1387,11 @@ public class Solver implements IPointer, AutoCloseable
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Simplify a formula without doing "much" work.
+   *
+   * Does not involve the SAT Engine in the simplification, but uses the
+   * current definitions, assertions, and the current partial model, if one has
+   * been constructed.  It also involves theory normalization.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1409,10 +1423,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Check satisfiability.
+   *
    * SMT-LIB:
    * {@code
    *   ( check-sat )
    * }
+   *
    * @return The result of the satisfiability check.
    */
   public Result checkSat()
@@ -1424,10 +1440,12 @@ public class Solver implements IPointer, AutoCloseable
   private native long checkSat(long pointer);
   /**
    * Check satisfiability assuming the given formula.
+   *
    * SMT-LIB:
    * {@code
    *   ( check-sat-assuming ( <prop_literal> ) )
    * }
+   *
    * @param assumption The formula to assume.
    * @return The result of the satisfiability check.
    */
@@ -1441,10 +1459,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Check satisfiability assuming the given formulas.
+   *
    * SMT-LIB:
    * {@code
    *   ( check-sat-assuming ( <prop_literal>+ ) )
    * }
+   *
    * @param assumptions The formulas to assume.
    * @return The result of the satisfiability check.
    */
@@ -1459,10 +1479,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create datatype sort.
+   *
    * SMT-LIB:
    * {@code
    *   ( declare-datatype <symbol> <datatype_decl> )
    * }
+   *
    * @param symbol The name of the datatype sort.
    * @param ctors The constructor declarations of the datatype sort.
    * @return The datatype sort.
@@ -1478,10 +1500,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Declare n-ary function symbol.
+   *
    * SMT-LIB:
    * {@code
    *   ( declare-fun <symbol> ( <sort>* ) <sort> )
    * }
+   *
    * @param symbol The name of the function.
    * @param sorts The sorts of the parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -1499,13 +1523,14 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Declare uninterpreted sort.
+   *
    * SMT-LIB:
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
    *
    * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
-   *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
@@ -1523,10 +1548,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define n-ary function in the current context.
+   *
    * SMT-LIB:
    * {@code
    *   ( define-fun <function_def> )
    * }
+   *
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -1540,10 +1567,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define n-ary function.
+   *
    * SMT-LIB:
    * {@code
    *   ( define-fun <function_def> )
    * }
+   *
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -1569,10 +1598,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define recursive function in the current context.
+   *
    * SMT-LIB:
    * {@code
    * ( define-fun-rec <function_def> )
    * }
+   *
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -1586,10 +1617,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define recursive function.
+   *
    * SMT-LIB:
    * {@code
    * ( define-fun-rec <function_def> )
    * }
+   *
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -1615,11 +1648,14 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define recursive function in the current context.
+   *
    * SMT-LIB:
    * {@code
    * ( define-fun-rec <function_def> )
    * }
-   * Create parameter 'fun' with mkConst().
+   *
+   * Create parameter {@code fun} with {@link Solver#mkConst(Sort)}.
+   *
    * @param fun The sorted function.
    * @param boundVars The parameters to this function.
    * @param term The function body.
@@ -1633,11 +1669,14 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define recursive function.
+   *
    * SMT-LIB:
    * {@code
    * ( define-fun-rec <function_def> )
    * }
-   * Create parameter 'fun' with mkConst().
+   *
+   * Create parameter {@code fun} with {@link Solver#mkConst(Sort)}.
+   *
    * @param fun The sorted function.
    * @param boundVars The parameters to this function.
    * @param term The function body.
@@ -1658,11 +1697,15 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Define recursive functions in the current context.
+   *
    * SMT-LIB:
    * {@code
    *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
    * }
-   * Create elements of parameter 'funs' with mkConst().
+   *
+   * Create elements of parameter {@code funs} with
+   * {@link Solver#mkConst(Sort)}.
+   *
    * @param funs The sorted functions.
    * @param boundVars The list of parameters to the functions.
    * @param terms The list of function bodies of the functions.
@@ -1673,11 +1716,15 @@ public class Solver implements IPointer, AutoCloseable
   }
   /**
    * Define recursive functions.
+   *
    * SMT-LIB:
    * {@code
    *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
    * }
-   * Create elements of parameter 'funs' with mkConst().
+   *
+   * Create elements of parameter {@code funs} with
+   * {@link Solver#mkConst(Sort)}.
+   *
    * @param funs The sorted functions.
    * @param boundVars The list of parameters to the functions.
    * @param terms The list of function bodies of the functions.
@@ -1699,7 +1746,8 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Get a list of literals that are entailed by the current set of assertions
+   * Get a list of literals that are entailed by the current set of assertions.
+   *
    * SMT-LIB:
    * {@code
    * ( get-learned-literals )
@@ -1719,10 +1767,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the list of asserted formulas.
+   *
    * SMT-LIB:
    * {@code
    * ( get-assertions )
    * }
+   *
    * @return The list of asserted formulas.
    */
   public Term[] getAssertions()
@@ -1762,8 +1812,10 @@ public class Solver implements IPointer, AutoCloseable
   private native String getOption(long pointer, String option);
 
   /**
-   * Get all option names that can be used with `setOption`, `getOption` and
-   * `getOptionInfo`.
+   * Get all option names that can be used with
+   * {@link Solver#setOption(String, String)},
+   * {@link Solver#getOption(String)} and
+   * {@link Solver#getOptionInfo(String)}.
    * @return All option names.
    */
   public String[] getOptionNames()
@@ -1774,8 +1826,11 @@ public class Solver implements IPointer, AutoCloseable
   private native String[] getOptionNames(long pointer);
 
   /**
-   * Get some information about the given option. Check the `OptionInfo` class
-   * for more details on which information is available.
+   * Get some information about the given option.
+   *
+   * Check the {@link OptionInfo} class for more details on which information
+   * is available.
+   *
    * @return Information about the given option.
    */
   public OptionInfo getOptionInfo(String option)
@@ -1788,11 +1843,14 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the set of unsat ("failed") assumptions.
+   *
    * SMT-LIB:
    * {@code
    * ( get-unsat-assumptions )
    * }
-   * Requires to enable option 'produce-unsat-assumptions'.
+   *
+   * Requires to enable option {@code produce-unsat-assumptions}.
+   *
    * @return The set of unsat assumptions.
    */
   public Term[] getUnsatAssumptions()
@@ -1809,9 +1867,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * (get-unsat-core)
    * }
-   * Requires to enable option 'produce-unsat-cores'.
+   * Requires to enable option {@code produce-unsat-cores}.
    *
-   * @api.note In contrast to SMT-LIB, the API does not distinguish between
+   * @api.note In contrast to SMT-LIB, cvc5's API does not distinguish between
    *           named and unnamed assertions when producing an unsatisfiable
    *           core. Additionally, the API allows this option to be called after
    *           a check with assumptions. A subset of those assumptions may be
@@ -1854,11 +1912,13 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the refutation proof
+   *
    * SMT-LIB:
    * {@code
    * ( get-proof )
    * }
-   * Requires to enable option 'produce-proofs'.
+   *
+   * Requires to enable option {@code produce-proofs}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1874,10 +1934,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the value of the given term in the current model.
+   *
    * SMT-LIB:
    * {@code
    * ( get-value ( <term> ) )
    * }
+   *
    * @param term The term for which the value is queried.
    * @return The value of the given term.
    */
@@ -1891,10 +1953,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the values of the given terms in the current model.
+   *
    * SMT-LIB:
    * {@code
    * ( get-value ( <term>+ ) )
    * }
+   *
    * @param terms The terms for which the value is queried.
    * @return The values of the given terms.
    */
@@ -1908,12 +1972,13 @@ public class Solver implements IPointer, AutoCloseable
   private native long[] getValue(long pointer, long[] termPointers);
 
   /**
-   * Get the domain elements of uninterpreted sort s in the current model. The
-   * current model interprets s as the finite sort whose domain elements are
-   * given in the return value of this method.
+   * Get the domain elements of uninterpreted sort s in the current model.
+   *
+   * The current model interprets {@code s} as the finite sort whose domain
+   * elements are given in the return value of this method.
    *
    * @param s The uninterpreted sort in question.
-   * @return The domain elements of s in the current model.
+   * @return The domain elements of {@code s} in the current model.
    */
   public Term[] getModelDomainElements(Sort s)
   {
@@ -1924,10 +1989,11 @@ public class Solver implements IPointer, AutoCloseable
   private native long[] getModelDomainElements(long pointer, long sortPointer);
 
   /**
-   * This returns false if the model value of free constant v was not essential
-   * for showing the satisfiability of the last call to checkSat using the
-   * current model. This method will only return false (for any v) if
-   * the model-cores option has been set.
+   * This returns false if the model value of free constant {@code v} was not
+   * essential for showing the satisfiability of the last call to
+   * {@link Solver#checkSat()} using the current model. This method will only
+   * return false (for any {@code v}) if the option {@code model-cores} has
+   * been set.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1943,11 +2009,13 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the model
+   *
    * SMT-LIB:
    * {@code
    * ( get-model )
    * }
-   * Requires to enable option 'produce-models'.
+   *
+   * Requires to enable option {@code produce-models}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2090,6 +2158,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
+   *
    * SMT-LIB:
    * {@code
    * ( declare-pool <symbol> <sort> ( <term>* ) )
@@ -2113,10 +2182,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Pop a level from the assertion stack.
+   *
    * SMT-LIB:
    * {@code
    * ( pop <numeral> )
    * }
+   *
    * @throws CVC5ApiException
    */
   public void pop() throws CVC5ApiException
@@ -2126,10 +2197,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Pop (a) level(s) from the assertion stack.
+   *
    * SMT-LIB:
    * {@code
    * ( pop <numeral> )
    * }
+   *
    * @param nscopes The number of levels to pop.
    * @throws CVC5ApiException
    */
@@ -2143,18 +2216,22 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get an interpolant
+   *
    * SMT-LIB:
    * {@code
    * ( get-interpolant <conj> )
    * }
-   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
+   *
+   * Requires option {@code produce-interpolants} to be set to a mode different
+   * from {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where.
-   *        A is the current set of assertions and B is given in the input by
-   *        conj, or the null term if such a term cannot be found.
+   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where
+   *         {@code A} is the current set of assertions and {@code B} is given
+   *         in the input by {@code conj}, or the null term if such a term
+   *         cannot be found.
    */
   public Term getInterpolant(Term conj)
   {
@@ -2166,19 +2243,23 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get an interpolant
+   *
    * SMT-LIB:
    * {@code
    * ( get-interpolant <conj> <g> )
    * }
-   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
+   *
+   * Requires option {@code produce-interpolants} to be set to a mode different
+   * from {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
    * @param grammar The grammar for the interpolant I.
-   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where.
-   *        A is the current set of assertions and B is given in the input by
-   *        conj, or the null term if such a term cannot be found.
+   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where
+   *         {@code A} is the current set of assertions and {@code B} is given
+   *         in the input by {@code conj}, or the null term if such a term
+   *         cannot be found.
    */
   public Term getInterpolant(Term conj, Grammar grammar)
   {
@@ -2189,28 +2270,28 @@ public class Solver implements IPointer, AutoCloseable
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
 
   /**
-   * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
-   * syntactically different interpolant wrt the last returned interpolant if
-   * successful.
+   * Get the next interpolant.
+   *
+   * Can only be called immediately after a successful call to
+   * {@code get-interpolant} or {@code get-interpolant-next}. Is guaranteed to
+   * produce a syntactically different interpolant wrt the last returned
+   * interpolant if successful.
    *
    * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
+   * {@code
    *     (get-interpolant-next)
+   * }
    *
-   * Requires to enable incremental mode, and option 'produce-interpolants' to be
-   * set to a mode different from 'none'.
-   * \endverbatim
+   * Requires to enable incremental mode, and option
+   * {@code produce-interpolants} to be set to a mode different from
+   * {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return A Term I such that {@code A->I} and {@code I->B} are valid,
-   *        where A is the current set of assertions and B is given in the input
-   *        by conj on the last call to getInterpolant, or the null term if such
-   *        a term cannot be found.
+   *         where {@code A} is the current set of assertions and {@code B}
+   *         is given in the input by conj on the last call to getInterpolant,
+   *         or the null term if such a term cannot be found.
    */
   public Term getInterpolantNext()
   {
@@ -2222,19 +2303,20 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get an abduct.
+   *
    * SMT-LIB:
    * {@code
    * ( get-abduct <conj> )
    * }
-   * Requires enabling option 'produce-abducts'
+   * Requires enabling option {@code produce-abducts}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @return A term C such that A^C is satisfiable, and A^~B^C is.
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj, or the null term if such a term cannot
-   *        be found.
+   * @return A term {@code C} such that {@code A && C} is satisfiable, and
+   *         {@code A && ~B && C} is unsatisfiable, where {@code A} is the
+   *         current set of assertions and {@code B} is given in the input by
+   *         {@code conj}, or the null term if such a term cannot be found.
    */
   public Term getAbduct(Term conj)
   {
@@ -2245,20 +2327,22 @@ public class Solver implements IPointer, AutoCloseable
   private native long getAbduct(long pointer, long conjPointer);
   /**
    * Get an abduct.
+   *
    * SMT-LIB:
    * {@code
    * ( get-abduct <conj> <g> )
    * }
-   * Requires enabling option 'produce-abducts'
+   *
+   * Requires enabling option {@code produce-abducts}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @param grammar The grammar for the abduct C.
-   * @return A term C such that A^C is satisfiable, and A^~B^C is
-   *         unsatisfiable, where A is the current set of assertions and B is
-   *         given in the input by conj, or the null term if such a term cannot
-   *         be found.
+   * @param grammar The grammar for the abduct {@code C}.
+   * @return A term {@code C} such that {@code A && C} is satisfiable, and
+   *         {@code A && ~B && C} is unsatisfiable, where {@code A} is the
+   *         current set of assertions and {@code B} is given in the input by
+   *         {@code conj}, or the null term if such a term cannot be found.
    */
   public Term getAbduct(Term conj, Grammar grammar)
   {
@@ -2276,7 +2360,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-abduct-next )
    * }
-   * Requires enabling incremental mode and option 'produce-abducts'
+   * Requires enabling incremental mode and option {@code produce-abducts}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2294,14 +2378,16 @@ public class Solver implements IPointer, AutoCloseable
   private native long getAbductNext(long pointer);
 
   /**
-   * Block the current model. Can be called only if immediately preceded by a
-   * SAT or INVALID query.
+   * Block the current model.
+   *
+   * Can be called only if immediately preceded by a SAT or INVALID query.
+   *
    * SMT-LIB:
    * {@code
    * ( block-model )
    * }
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
+   *
+   * Requires enabling option {@code produce-models}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2315,13 +2401,16 @@ public class Solver implements IPointer, AutoCloseable
   private native void blockModel(long pointer, int modeValue);
 
   /**
-   * Block the current model values of (at least) the values in terms. Can be
-   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * Block the current model values of (at least) the values in terms.
+   *
+   * Can be called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   *
    * SMT-LIB:
    * {@code
    * ( block-model-values ( <terms>+ ) )
    * }
-   * Requires enabling 'produce-models' option.
+   *
+   * Requires enabling option {@code produce-models}.
    *
    * @api.note This method is experimental and may change in future versions.
    */
@@ -2348,10 +2437,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Push a level to the assertion stack.
+   *
    * SMT-LIB:
    * {@code
    * ( push <numeral> )
    * }
+   *
    * @throws CVC5ApiException
    */
   public void push() throws CVC5ApiException
@@ -2361,10 +2452,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Push (a) level(s) to the assertion stack.
+   *
    * SMT-LIB:
    * {@code
    * ( push <numeral> )
    * }
+   *
    * @param nscopes The number of levels to push.
    * @throws CVC5ApiException
    */
@@ -2378,6 +2471,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Remove all assertions.
+   *
    * SMT-LIB:
    * {@code
    * ( reset-assertions )
@@ -2392,10 +2486,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Set info.
+   *
    * SMT-LIB:
    * {@code
    * ( set-info <attribute> )
    * }
+   *
    * @param keyword The info flag.
    * @param value The value of the info flag.
    * @throws CVC5ApiException
@@ -2409,10 +2505,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Set logic.
+   *
    * SMT-LIB:
    * {@code
    * ( set-logic <symbol> )
    * }
+   *
    * @param logic The logic to set.
    * @throws CVC5ApiException
    */
@@ -2425,10 +2523,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Set option.
+   *
    * SMT-LIB:
    * {@code
    *   ( set-option <option> )
    * }
+   *
    * @param option The option name.
    * @param value The option value.
    */
@@ -2440,11 +2540,13 @@ public class Solver implements IPointer, AutoCloseable
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * Append \p symbol to the current list of universal variables.
+   * Append {@code symbol} to the current list of universal variables.
+   *
    * SyGuS v2:
    * {@code
    *   ( declare-var <symbol> <sort> )
    * }
+   *
    * @param sort The sort of the universal variable.
    * @param symbol The name of the universal variable.
    * @return The universal variable.
@@ -2480,10 +2582,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Synthesize n-ary function.
+   *
    * SyGuS v2:
    * {@code
    *   ( synth-fun <symbol> ( <boundVars>* ) <sort> )
    * }
+   *
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -2501,10 +2605,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
+   *
    * SyGuS v2:
    * {@code
    *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
    * }
+   *
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
@@ -2524,10 +2630,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Synthesize invariant.
+   *
    * SyGuS v2:
    * {@code
    *   ( synth-inv <symbol> ( <boundVars>* ) )
    * }
+   *
    * @param symbol The name of the invariant.
    * @param boundVars The parameters to this invariant.
    * @return The invariant.
@@ -2543,10 +2651,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Synthesize invariant following specified syntactic constraints.
+   *
    * SyGuS v2:
    * {@code
    *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
    * }
+   *
    * @param symbol The name of the invariant.
    * @param boundVars The parameters to this invariant.
    * @param grammar The syntactic constraints.
@@ -2564,10 +2674,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Add a forumla to the set of Sygus constraints.
+   *
    * SyGuS v2:
    * {@code
    *   ( constraint <term> )
    * }
+   *
    * @param term The formula to add as a constraint.
    */
   public void addSygusConstraint(Term term)
@@ -2579,10 +2691,12 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Add a forumla to the set of Sygus assumptions.
+   *
    * SyGuS v2:
    * {@code
    *   ( assume <term> )
    * }
+   *
    * @param term The formula to add as an assumption.
    */
   public void addSygusAssume(Term term)
@@ -2595,10 +2709,12 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
+   *
    * SyGuS v2:
    * {@code
    *   ( inv-constraint <inv> <pre> <trans> <post> )
    * }
+   *
    * @param inv The function-to-synthesize.
    * @param pre The pre-condition.
    * @param trans The transition relation.
@@ -2617,10 +2733,12 @@ public class Solver implements IPointer, AutoCloseable
    * Try to find a solution for the synthesis conjecture corresponding to the
    * current list of functions-to-synthesize, universal variables and
    * constraints.
+   *
    * SyGuS v2:
    * {@code
    *   ( check-synth )
    * }
+   *
    * @return The result of the check, which is "solution" if the check found a.
    *         solution in which case solutions are available via
    *         getSynthSolutions, "no solution" if it was determined there is no
@@ -2638,11 +2756,15 @@ public class Solver implements IPointer, AutoCloseable
    * Try to find a next solution for the synthesis conjecture corresponding to
    * the current list of functions-to-synthesize, universal variables and
    * constraints. Must be called immediately after a successful call to
-   * check-synth or check-synth-next. Requires incremental mode.
+   * {@code check-synth} or {@code check-synth-next}.
+   *
+   * @api.note Requires incremental mode.
+   *
    * SyGuS v2:
    * {@code
    *   ( check-synth-next )
    * }
+   *
    * @return The result of the check, which is "solution" if the check found a
    *         solution in which case solutions are available via
    *         getSynthSolutions, "no solution" if it was determined there is no
@@ -2657,8 +2779,11 @@ public class Solver implements IPointer, AutoCloseable
   private native long checkSynthNext(long pointer);
 
   /**
-   * Get the synthesis solution of the given term. This method should be called
-   * immediately after the solver answers unsat for sygus input.
+   * Get the synthesis solution of the given term.
+   *
+   * This method should be called immediately after the solver answers unsat
+   * for sygus input.
+   *
    * @param term The term for which the synthesis solution is queried.
    * @return The synthesis solution of the given term.
    */
@@ -2671,8 +2796,11 @@ public class Solver implements IPointer, AutoCloseable
   private native long getSynthSolution(long pointer, long termPointer);
 
   /**
-   * Get the synthesis solutions of the given terms. This method should be
-   * called immediately after the solver answers unsat for sygus input.
+   * Get the synthesis solutions of the given terms.
+   *
+   * This method should be called immediately after the solver answers unsat
+   * for sygus input.
+   *
    * @param terms The terms for which the synthesis solutions is queried.
    * @return The synthesis solutions of the given terms.
    */
