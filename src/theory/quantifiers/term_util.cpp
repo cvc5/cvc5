@@ -16,6 +16,7 @@
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
@@ -24,7 +25,6 @@
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -91,7 +91,8 @@ Node TermUtil::getInstConstAttr( Node n ) {
   return n.getAttribute(InstConstantAttribute());
 }
 
-bool TermUtil::hasInstConstAttr( Node n  ) {
+bool TermUtil::hasInstConstAttr(Node n)
+{
   n = SkolemManager::getOriginalForm(n);
   return !getInstConstAttr(n).isNull();
 }

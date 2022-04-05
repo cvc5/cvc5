@@ -71,10 +71,10 @@ class TermUtil
   /**
    * Does n contain instantiation constants? This method is used for
    * determining when a term is ineligible for instantiation.
-   * 
+   *
    * @param n the node to check.
    */
-  static bool hasInstConstAttr( Node n);
+  static bool hasInstConstAttr(Node n);
   static Node getBoundVarAttr( Node n );
   static bool hasBoundVarAttr( Node n );
   
