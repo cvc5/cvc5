@@ -234,7 +234,6 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   }
 
   NodeClusterType nodeType = NodeClusterType::NOT_DEFINED;
-  // Print the node clusters
   if (options::printDotClusters())
   {
     // Define the type of this node
@@ -404,14 +403,14 @@ inline bool DotPrinter::isInput(const ProofNode* pn)
   auto& thisAssumeArg = pn->getArguments()[0];
   auto& firstScope = d_scopesArgs[0].get();
 
-  // Verifies if all args of this assume are in the first scope
+  // Verifies if the arg of this assume are in the first scope
   auto it = std::find(firstScope.begin(), firstScope.end(), thisAssumeArg);
   if (it == firstScope.end())
   {
     return false;
   }
 
-  // Verifies if any arg of this assume is at any of the other scopes
+  // Verifies if the arg of this assume is at any of the other scopes
   for (int i = d_scopesArgs.size() - 1; i > 0; i--)
   {
     auto& args = d_scopesArgs[i].get();
