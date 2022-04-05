@@ -7,7 +7,7 @@ Notice that these are *symbolic* constants, but not actual values.
 
 .. literalinclude:: quickstart.py
      :language: python
-     :lines: 6-7
+     :lines: 9-10
 
 We define the following constraints regarding ``x`` and ``y``:
 
@@ -19,7 +19,7 @@ We check whether there is a solution to these constraints:
 
 .. literalinclude:: quickstart.py
      :language: python
-     :lines: 15
+     :lines: 18
 
 In this case, there is, so we get output:
 
@@ -31,13 +31,13 @@ We can also get an explicit model (assignment) for the constraints.
 
 .. literalinclude:: quickstart.py
      :language: python
-     :lines: 19-22
+     :lines: 22-25
 
 With the model, we can evaluate variables and terms:
 
 .. literalinclude:: quickstart.py
      :language: python
-     :lines: 24-26
+     :lines: 27-29
 
 This will print:
 
@@ -52,7 +52,7 @@ We can also get these values in other forms:
 
 .. literalinclude:: quickstart.py
      :language: python
-     :lines: 29-32
+     :lines: 32-35
 
 
 Next, we assert the same assertions as above, but with integers.
@@ -60,7 +60,7 @@ This time, there is no solution, so "no solution" is printed.
 
 .. literalinclude:: quickstart.py
      :language: python
-     :lines: 36
+     :lines: 39
 
 
 Example

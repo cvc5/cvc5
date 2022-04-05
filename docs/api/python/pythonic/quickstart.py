@@ -1,3 +1,6 @@
+# From: https://github.com/cvc5/cvc5_pythonic_api/blob/main/test/pgms/example_quickstart.py
+# TODO: fix up the pathing so we don't have to copy this file.
+
 from cvc5_pythonic_api import *
 
 if __name__ == '__main__':
