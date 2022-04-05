@@ -238,7 +238,7 @@ enum Kind : int32_t
    *
    *   - ``1:`` Term of kind :cpp:enumerator:`VARIABLE_LIST`
    *   - ``2:`` Term of Sort Bool (the body of the witness)
-   *   - ``3:`` (optional) Term of kind :cpp:enumerator:`INST_PATTERN`_LIST
+   *   - ``3:`` (optional) Term of kind :cpp:enumerator:`INST_PATTERN_LIST`
    *
    * - Create Term of this Kind with:
    *
@@ -474,12 +474,14 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *     ((_ iand k) i_1 i_2)
+   *
    * is equivalent to
    *
    * .. code:: smtlib
    *
    *     ((_ iand k) i_1 i_2)
    *     (bv2int (bvand ((_ int2bv k) i_1) ((_ int2bv k) i_2)))
+   *
    * for all integers ``i_1``, ``i_2``.
    *
    * - Arity: ``2``
@@ -2620,6 +2622,7 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *      (match l (((cons h t) h) (nil 0)))
+   *
    * is represented by the AST
    *
    * .. code:: lisp
@@ -4771,6 +4774,7 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
+   *
    * where :math:`n \leq 0` and :math:`c_1, ..., c_n` are constants of some
    * sort. The elements can be extracted with Term::getSequenceValue().
    * \endrst
@@ -4895,7 +4899,7 @@ enum Kind : int32_t
    *
    * \rst
    * .. note:: Should only be used as a child of
-   *           :cpp:enumerator`INST_PATTERN_LIST`.
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    *
    * - Arity: ``n > 0``

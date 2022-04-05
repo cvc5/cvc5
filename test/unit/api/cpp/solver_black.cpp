@@ -3061,15 +3061,14 @@ TEST_F(TestApiBlackSolver, proj_issue382)
   Term t53 = d_solver.mkTerm(MATCH_BIND_CASE,
                              {d_solver.mkTerm(VARIABLE_LIST, {t52}), t52, t18});
   Term t73 = d_solver.mkVar(s1, "_x78");
-  Term t81 =
-      d_solver.mkTerm(MATCH_BIND_CASE,
-                      {d_solver.mkTerm(VARIABLE_LIST, {t73}),
-                       d_solver.mkTerm(APPLY_CONSTRUCTOR,
-                                       {s6.getDatatype()
-                                            .getConstructor("_x20")
-                                            .getInstantiatedConstructorTerm(s6),
-                                        t73}),
-                       t18});
+  Term t81 = d_solver.mkTerm(
+      MATCH_BIND_CASE,
+      {d_solver.mkTerm(VARIABLE_LIST, {t73}),
+       d_solver.mkTerm(
+           APPLY_CONSTRUCTOR,
+           {s6.getDatatype().getConstructor("_x20").getInstantiatedTerm(s6),
+            t73}),
+       t18});
   Term t82 = d_solver.mkTerm(MATCH, {t13, t53, t53, t53, t81});
   Term t325 = d_solver.mkTerm(
       APPLY_SELECTOR,

@@ -9,6 +9,6 @@ The two checks are separated by using :code:`push` and :code:`pop`.
 .. api-examples::
     <examples>/api/cpp/linear_arith.cpp
     <examples>/api/java/LinearArith.java
-    <pythonicapi>/test/pgms/example_linear_arith.py
+    <examples>/api/python/pythonic/linear_arith.py
     <examples>/api/python/linear_arith.py
     <examples>/api/smtlib/linear_arith.smt2
