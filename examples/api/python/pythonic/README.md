@@ -1,6 +1,6 @@
 # Notes
 
-These files are copied from [the pythonic API's](TODO).
+These files are copied from [the pythonic API's](https://github.com/cvc5/cvc5_pythonic_api).
 
 They were copied with this script:
 

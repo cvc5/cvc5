@@ -163,7 +163,7 @@ examples_types = {
         '^<examples>.*pythonic.*\.py$': {
                 'title': 'Python (pythonic)',
                 'lang': 'python',
-                'group': 'py-regular'
+                'group': 'py-pythonicapi'
         },
         '^<examples>.*\.py$': {
                 'title': 'Python (base)',
