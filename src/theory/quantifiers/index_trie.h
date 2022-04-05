@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   MikolasJanota, Aina Niemetz
+ *   Mikolas Janota, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *

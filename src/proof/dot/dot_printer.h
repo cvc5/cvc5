@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Diego Della Rocca de Camargos, Haniel Barbosa, vinciusb
+ *   Diego Della Rocca de Camargos, Haniel Barbosa, Vinícius Braga Freire
  *
  * This file is part of the cvc5 project.
  *

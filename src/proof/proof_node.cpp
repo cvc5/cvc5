@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, vinciusb
+ *   Andrew Reynolds, Vinícius Braga Freire
  *
  * This file is part of the cvc5 project.
  *

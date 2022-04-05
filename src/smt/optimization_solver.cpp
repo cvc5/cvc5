@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ouyancheng, Andrew Reynolds, Michael Chang
+ *   Yancheng Ou, Andrew Reynolds, Michael Chang
  *
  * This file is part of the cvc5 project.
  *

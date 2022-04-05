@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Lachnitt, Haniel Barbosa
+ *   Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
