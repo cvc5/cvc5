@@ -17,8 +17,10 @@ package io.github.cvc5;
 
 /**
  * A cvc5 operator.
+ *
  * An operator is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind {@link Kind#BITVECTOR_EXTRACT}.
+ * with its required parameters, e.g., a Term of kind
+ * {@link Kind#BITVECTOR_EXTRACT}.
  */
 public class Op extends AbstractPointer
 {
@@ -39,10 +41,9 @@ public class Op extends AbstractPointer
 
   /**
    * Syntactic equality operator.
-   * Return true if both operators are syntactically identical.
-   * Both operators must belong to the same solver object.
-   * @param t the operator to compare to for equality
-   * @return true if the operators are equal
+   * @api.note Both operators must belong to the same solver object.
+   * @param t The operator to compare to for equality.
+   * @return True If the operators are syntactically identical.
    */
   @Override
   public boolean equals(Object t)
@@ -57,7 +58,7 @@ public class Op extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
-   * @return the kind of this operator
+   * @return The Kind of this operator.
    */
   public Kind getKind()
   {
@@ -76,7 +77,7 @@ public class Op extends AbstractPointer
   private native int getKind(long pointer);
 
   /**
-   * @return true if this operator is a null term
+   * @return True If this operator is a null term.
    */
   public boolean isNull()
   {
@@ -86,7 +87,7 @@ public class Op extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return true iff this operator is indexed
+   * @return True Iff this operator is indexed.
    */
   public boolean isIndexed()
   {
@@ -96,7 +97,7 @@ public class Op extends AbstractPointer
   private native boolean isIndexed(long pointer);
 
   /**
-   * @return the number of indices of this op
+   * @return The Number of indices of this op.
    */
   public int getNumIndices()
   {
@@ -106,9 +107,9 @@ public class Op extends AbstractPointer
   private native int getNumIndices(long pointer);
 
   /**
-   * Get the index at position i.
-   * @param i the position of the index to return
-   * @return the index at position i
+   * Get the index at position {@code i}.
+   * @param i The position of the index to return.
+   * @return The Index at position i.
    */
   public Term get(int i) throws CVC5ApiException
   {
@@ -120,7 +121,7 @@ public class Op extends AbstractPointer
   private native long get(long pointer, int i);
 
   /**
-   * @return a string representation of this operator
+   * @return A String representation of this operator.
    */
   protected native String toString(long pointer);
 }

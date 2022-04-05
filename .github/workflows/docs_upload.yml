@@ -124,6 +124,9 @@ jobs:
             cp -r docs-new target-releases/$NAME
             cd target-releases/
 
+            rm -f latest
+            ln -s $NAME latest
+
             python3 genversions.py
             git add .
 
