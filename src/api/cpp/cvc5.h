@@ -1157,23 +1157,28 @@ class CVC5_EXPORT Term
   Sort getSort() const;
 
   /**
-   * @return The result of replacing 'term' by 'replacement' in this term.
+   * Replace `term` with `replacement` in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point.
+   * @return The result of replacing `term` with `replacement` in this term.
+   *
+   * @note This replacement is applied during a pre-order traversal and
+   *       only once (it is not run until fixed point).
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return The result of simultaneously replacing 'terms' by 'replacements'
-   *         in this term.
+   * Simultaneously replace `terms` with `replacements` in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point. In the case that
-   * terms contains duplicates, the replacement earliest in the vector takes
-   * priority. For example, calling substitute on f(x,y) with
-   *   terms = { x, z }, replacements = { g(z), w }
-   * results in the term f(g(z),y).
+   * In the case that terms contains duplicates, the replacement earliest in
+   * the vector takes priority. For example, calling substitute on `f(x,y)`
+   * with `terms = { x, z }`, `replacements = { g(z), w }` results in the term
+   * `f(g(z),y)`.
+   *
+   * @note This replacement is applied during a pre-order traversal and
+   *       only once (it is not run until fixed point).
+   *
+   * @return The result of simultaneously replacing `terms` with `replacements`
+   *         in this term.
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
@@ -1879,7 +1884,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isNullHelper() const;
 
   /**
-   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * Is the underlying constructor resolved (i.e,. has it been used to declare
    * a datatype already)?
    */
   bool isResolved() const;
@@ -3262,7 +3267,7 @@ class CVC5_EXPORT Solver
   Sort getBooleanSort() const;
 
   /**
-   * @return Sort Integer (in cvc5, Integer is a subtype of Real)
+   * @return Sort Integer.
    */
   Sort getIntegerSort() const;
 
@@ -3781,7 +3786,7 @@ class CVC5_EXPORT Solver
                const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
    * @param sort The sort of the variable.
    * @param symbol The name of the variable (optional).
@@ -3834,9 +3839,11 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, and assertions.  It also involves theory normalization.
+   * Simplify a formula without doing "much" work.
+   *
+   * Does not involve the SAT Engine in the simplification, but uses the
+   * current definitions, and assertions.  It also involves theory
+   * normalization.
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -3956,9 +3963,10 @@ class CVC5_EXPORT Solver
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
    *
-   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
-   *       arity = 0, and to
-   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   * @note This corresponds to
+   *       mkUninterpretedSort(const std::optional<std::string>&) const
+   *       if arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(size_t arity, const std::optional<std::string>&) const
    *       if arity > 0.
    *
    * @param symbol The name of the sort.
@@ -3982,7 +3990,7 @@ class CVC5_EXPORT Solver
    * @param bound_vars The parameters to this function.
    * @param sort The sort of the return value of this function.
    * @param term The function body.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    * @return The function.
    */
@@ -4007,7 +4015,7 @@ class CVC5_EXPORT Solver
    * @param bound_vars The parameters to this function.
    * @param sort The sort of the return value of this function.
    * @param term The function body.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    * @return The function.
    */
@@ -4032,7 +4040,7 @@ class CVC5_EXPORT Solver
    * @param fun The sorted function.
    * @param bound_vars The parameters to this function.
    * @param term The function body.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    * @return The function.
    */
@@ -4059,7 +4067,7 @@ class CVC5_EXPORT Solver
    * @param funs The sorted functions.
    * @param bound_vars The list of parameters to the functions.
    * @param terms The list of function bodies of the functions.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    */
   void defineFunsRec(const std::vector<Term>& funs,
@@ -4114,15 +4122,18 @@ class CVC5_EXPORT Solver
   std::string getOption(const std::string& option) const;
 
   /**
-   * Get all option names that can be used with `setOption`, `getOption` and
-   * `getOptionInfo`.
+   * Get all option names that can be used with setOption(), getOption() and
+   * getOptionInfo().
    * @return All option names.
    */
   std::vector<std::string> getOptionNames() const;
 
   /**
-   * Get some information about the given option. Check the `OptionInfo` class
-   * for more details on which information is available.
+   * Get some information about the given option.
+   *
+   * Check the OptionInfo class for more details on which information is
+   * available.
+   *
    * @return Information about the given option.
    */
   OptionInfo getOptionInfo(const std::string& option) const;
@@ -4166,11 +4177,11 @@ class CVC5_EXPORT Solver
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
    *
    * .. note::
-   *   In contrast to SMT-LIB, the API does not distinguish between named and
-   *   unnamed assertions when producing an unsatisfiable core. Additionally,
-   *   the API allows this option to be called after a check with assumptions.
-   *   A subset of those assumptions may be included in the unsatisfiable core
-   *   returned by this method.
+   *   In contrast to SMT-LIB, cvc5's API does not distinguish between named
+   *   and unnamed assertions when producing an unsatisfiable core.
+   *   Additionally, the API allows this option to be called after a check with
+   *   assumptions. A subset of those assumptions may be included in the
+   *   unsatisfiable core returned by this method.
    * \endverbatim
    *
    * @return A set of terms representing the unsatisfiable core.
@@ -4266,15 +4277,15 @@ class CVC5_EXPORT Solver
   /**
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
-   * current model. This method will only return false (for any v) if
+   * current model. This method will only return false (for any `v`) if
    * option
-   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim has been set.
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`\endverbatim
+   * has been set.
    *
    * @warning This method is experimental and may change in future versions.
    *
    * @param v The term in question.
-   * @return True if v is a model core symbol.
+   * @return True if `v` is a model core symbol.
    */
   bool isModelCoreSymbol(const Term& v) const;
 
