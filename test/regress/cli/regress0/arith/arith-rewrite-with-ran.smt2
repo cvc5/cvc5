@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-const x Bool)
