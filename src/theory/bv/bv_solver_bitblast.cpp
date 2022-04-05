@@ -22,7 +22,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -120,8 +120,7 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bbInputFacts(context()),
       d_assumptions(context()),
       d_assertions(context()),
-      d_epg(pnm ? new EagerProofGenerator(pnm, userContext(), "")
-                : nullptr),
+      d_epg(pnm ? new EagerProofGenerator(pnm, userContext(), "") : nullptr),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
       d_propagate(options().bv.bitvectorPropagate),
@@ -411,4 +410,4 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

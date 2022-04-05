@@ -26,9 +26,7 @@
 
 namespace cvc5 {
 
-namespace api {
 class Solver;
-}
 
 class Options;
 class SymbolManager;
@@ -48,7 +46,7 @@ class CVC5_EXPORT ParserBuilder
   std::string d_lang;
 
   /** The API Solver object. */
-  api::Solver* d_solver;
+  cvc5::Solver* d_solver;
 
   /** The symbol manager */
   SymbolManager* d_symman;
@@ -72,11 +70,11 @@ class CVC5_EXPORT ParserBuilder
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(api::Solver* solver, SymbolManager* sm);
+  void init(cvc5::Solver* solver, SymbolManager* sm);
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver, SymbolManager* sm, bool useOptions);
+  ParserBuilder(cvc5::Solver* solver, SymbolManager* sm, bool useOptions);
 
   /** Build the parser, using the current settings. */
   Parser* build();

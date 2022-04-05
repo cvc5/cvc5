@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -121,6 +121,6 @@ class IMGenerator : protected EnvObj
 }  // namespace inst
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -31,7 +31,7 @@
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class TheoryEngine;
@@ -211,6 +211,6 @@ class TheoryProxy : protected EnvObj, public Registrar
 }; /* class TheoryProxy */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

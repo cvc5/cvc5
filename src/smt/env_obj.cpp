@@ -20,7 +20,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 EnvObj::EnvObj(Env& env) : d_env(env) {}
 
@@ -86,4 +86,4 @@ std::ostream& EnvObj::verbose(int64_t level) const
 
 std::ostream& EnvObj::warning() const { return verbose(0); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -30,7 +30,7 @@
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ResourceManager;
 class ProofNodeManager;
@@ -379,6 +379,6 @@ class PropEngine : protected EnvObj
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP_ENGINE_H */

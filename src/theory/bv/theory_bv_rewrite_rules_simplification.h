@@ -25,7 +25,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -2215,4 +2215,4 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

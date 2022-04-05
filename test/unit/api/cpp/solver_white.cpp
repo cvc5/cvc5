@@ -16,9 +16,7 @@
 #include "base/configuration.h"
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -38,9 +36,9 @@ TEST_F(TestApiWhiteSolver, getOp)
   Sort consListSort = d_solver.mkDatatypeSort(consListSpec);
   Datatype consList = consListSort.getDatatype();
 
-  Term nilTerm = consList.getConstructorTerm("nil");
-  Term consTerm = consList.getConstructorTerm("cons");
-  Term headTerm = consList["cons"].getSelectorTerm("head");
+  Term nilTerm = consList.getConstructor("nil").getTerm();
+  Term consTerm = consList.getConstructor("cons").getTerm();
+  Term headTerm = consList["cons"].getSelector("head").getTerm();
 
   Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
   Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
@@ -53,4 +51,4 @@ TEST_F(TestApiWhiteSolver, getOp)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

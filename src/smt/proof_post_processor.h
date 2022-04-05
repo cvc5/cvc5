@@ -29,7 +29,7 @@
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace rewriter {
 class RewriteDb;
@@ -283,6 +283,6 @@ class ProofPostproccess : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

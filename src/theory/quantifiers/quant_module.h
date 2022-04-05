@@ -30,7 +30,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 class TermDb;
@@ -182,6 +182,6 @@ class QuantifiersModule : protected EnvObj
 }; /* class QuantifiersModule */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANT_UTIL_H */

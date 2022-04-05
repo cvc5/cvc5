@@ -24,7 +24,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 class PreprocessingPass;
@@ -95,6 +95,6 @@ class PreprocessingPassRegistry {
 };  // class PreprocessingPassRegistry
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */

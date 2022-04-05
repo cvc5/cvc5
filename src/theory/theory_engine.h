@@ -40,7 +40,7 @@
 #include "util/hash.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class ResourceManager;
@@ -644,6 +644,6 @@ class TheoryEngine : protected EnvObj
 
 }; /* class TheoryEngine */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY_ENGINE_H */

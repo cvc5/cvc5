@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
@@ -740,4 +740,4 @@ theory::Assertion Theory::get()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

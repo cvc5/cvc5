@@ -20,7 +20,7 @@
 
 #include "theory/inference_manager_buffered.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -64,6 +64,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__INFERENCE_MANAGER_H */

@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -487,4 +487,4 @@ void ErrorSet::pushFocusInto(ArithVarVec& vec) const{
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

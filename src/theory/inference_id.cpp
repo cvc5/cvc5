@@ -19,9 +19,9 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 const char* toString(InferenceId i)
@@ -516,4 +516,4 @@ bool getInferenceId(TNode n, InferenceId& i)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

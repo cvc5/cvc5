@@ -59,19 +59,19 @@ namespace cvc5 {
  */
 struct ParseOp
 {
-  ParseOp(api::Kind k = api::NULL_TERM) : d_kind(k) {}
+  ParseOp(cvc5::Kind k = cvc5::NULL_TERM) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */
-  api::Kind d_kind;
+  cvc5::Kind d_kind;
   /** The name associated with the parsed operator, if it exists */
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
-  api::Term d_expr;
+  cvc5::Term d_expr;
   /** The type associated with the parsed operator, if it exists */
-  api::Sort d_type;
+  cvc5::Sort d_type;
   /** The operator associated with the parsed operator, if it exists */
-  api::Op d_op;
+  cvc5::Op d_op;
   /**
-   * The indices if the operator is indexed, but api::Op is the null operator.
+   * The indices if the operator is indexed, but cvc5::Op is the null operator.
    * This is the case for operator symbols that cannot be resolved to a kind
    * without parsing the arguments. This is currently only the case for
    * `to_fp`.

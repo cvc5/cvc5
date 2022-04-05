@@ -19,8 +19,8 @@
 #include "smt/solver_engine.h"
 #include "util/bitvector.h"
 
-using namespace cvc5::smt;
-namespace cvc5::omt {
+using namespace cvc5::internal::smt;
+namespace cvc5::internal::omt {
 
 OMTOptimizerBitVector::OMTOptimizerBitVector(bool isSigned)
     : d_isSigned(isSigned)
@@ -219,4 +219,4 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
   return OptimizationResult(lastSatResult, value);
 }
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt

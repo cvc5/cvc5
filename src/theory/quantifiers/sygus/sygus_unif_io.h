@@ -21,7 +21,7 @@
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -467,6 +467,6 @@ class SygusUnifIo : public SygusUnif
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */

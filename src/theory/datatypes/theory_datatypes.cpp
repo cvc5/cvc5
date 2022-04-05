@@ -42,10 +42,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -109,7 +109,10 @@ void TheoryDatatypes::finishInit()
   // We could but don't do congruence for DT_SIZE and DT_HEIGHT_BOUND here.
   // It also could make sense in practice to do congruence for APPLY_UF, but
   // this is not done.
-  if (getQuantifiersEngine() && options().quantifiers.sygus)
+  // Enable the sygus extension if we will introduce sygus datatypes. This
+  // is the case for sygus problems and when using sygus-inst.
+  if (getQuantifiersEngine()
+      && (options().quantifiers.sygus || options().quantifiers.sygusInst))
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
@@ -677,9 +680,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
 }
 
 TheoryDatatypes::EqcInfo::EqcInfo(context::Context* c)
-    : d_inst(c, false),
-      d_constructor(c, Node::null()),
-      d_selectors(c, false)
+    : d_inst(c, false), d_constructor(c, Node::null()), d_selectors(c, false)
 {}
 
 bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
@@ -1833,4 +1834,4 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

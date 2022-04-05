@@ -16,8 +16,8 @@
  * Supports:
  * - std::map
  * - std::unordered_map
- * - cvc5::context::CDHashmap
- * - cvc5::context::CDInsertHashmap
+ * - context::CDHashmap
+ * - context::CDInsertHashmap
  * The ContainsKey function is also compatible with std::[unordered_]set.
  *
  * Currently implemented classes of functions:
@@ -40,7 +40,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Returns true if the `map` contains the `key`.
 //
@@ -92,6 +92,6 @@ const MapMappedTypeT<M>& FindOrDie(const M& map, const MapKeyTypeT<M>& key)
   return (*it).second;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BASE__MAP_UTIL_H */

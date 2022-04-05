@@ -25,7 +25,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace options {
   class OptionsHandler;
 // clang-format off
@@ -109,6 +109,6 @@ ${holder_ref_decls}$
 
 }; /* class Options */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__OPTIONS__OPTIONS_H */

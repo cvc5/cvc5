@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -308,4 +308,4 @@ Node RewriteRule<ReflexivityEq>::apply(TNode node) {
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

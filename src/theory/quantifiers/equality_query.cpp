@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -63,7 +63,8 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
           r = tr;
           r = d_qstate.getRepresentative(r);
         }else{
-          if( r.getType().isSort() ){
+          if (r.getType().isUninterpretedSort())
+          {
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             //should never happen : UF constants should never escape model
             Assert(false);
@@ -194,4 +195,4 @@ int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

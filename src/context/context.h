@@ -28,8 +28,7 @@
 #include "base/output.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 class Context;
 class Scope;
@@ -735,7 +734,6 @@ inline void Scope::addToChain(ContextObj* pContextObj)
   d_pContextObjList = pContextObj;
 }
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CONTEXT_H */

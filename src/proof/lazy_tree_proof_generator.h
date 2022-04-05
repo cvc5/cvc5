@@ -24,7 +24,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace detail {
 /**
  * A single node in the proof tree created by the LazyTreeProofGenerator.
@@ -211,6 +211,6 @@ class LazyTreeProofGenerator : public ProofGenerator
  */
 std::ostream& operator<<(std::ostream& os, const LazyTreeProofGenerator& ltpg);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

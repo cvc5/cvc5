@@ -17,7 +17,7 @@
 
 #include "expr/node_algorithm.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 AletheNodeConverter::AletheNodeConverter() {}
@@ -35,4 +35,4 @@ Node AletheNodeConverter::postConvert(Node n)
 bool AletheNodeConverter::shouldTraverse(Node n) { return expr::hasClosure(n); }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

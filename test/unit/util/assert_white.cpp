@@ -19,7 +19,7 @@
 #include "base/check.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilWhite : public TestInternal
@@ -85,4 +85,4 @@ TEST_F(TestUtilWhite, CheckArgument)
   ASSERT_THROW(CheckArgument(false, "x"), IllegalArgumentException);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -13,8 +13,8 @@
  * A node value.
  *
  * The actual node implementation.
- * Instances of this class are generally referenced through cvc5::Node rather
- * than by pointer. Note that cvc5::Node maintains the reference count on
+ * Instances of this class are generally referenced through cvc5::internal::Node rather
+ * than by pointer. Note that cvc5::internal::Node maintains the reference count on
  * NodeValue instances.
  */
 #include "expr/node_value.h"
@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 string NodeValue::toString() const {
@@ -125,4 +125,4 @@ bool NodeValue::isBeingDeleted() const
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

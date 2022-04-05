@@ -17,7 +17,7 @@
 
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 OptimizedClausesManager::OptimizedClausesManager(
@@ -27,7 +27,9 @@ OptimizedClausesManager::OptimizedClausesManager(
     : context::ContextNotifyObj(context),
       d_context(context),
       d_optProofs(optProofs),
-      d_parentProof(parentProof)
+      d_parentProof(parentProof),
+      d_nodeHashSet(nullptr),
+      d_nodeLevels(nullptr)
 {
 }
 
@@ -78,8 +80,42 @@ void OptimizedClausesManager::contextNotifyPop()
     }
     it = d_optProofs.erase(it);
   }
+  if (d_nodeHashSet)
+  {
+    Assert(d_nodeLevels);
+    // traverse mapping from context levels to nodes so that we can reinsert the
+    // nodes that are below the current level being popped. The entries in the
+    // map at or above this level are deleted.
+    for (auto it = d_nodeLevels->cbegin(); it != d_nodeLevels->cend();)
+    {
+      if (it->first <= newLvl)
+      {
+        Trace("sat-proof") << "Should re-add SAT assumptions of [" << it->first
+                           << "]:\n";
+        for (const auto& assumption : it->second)
+        {
+          Trace("sat-proof") << "\t- " << assumption << "\n";
+          // Note that since it's a hash set we do not care about repetitions
+          d_nodeHashSet->insert(assumption);
+        }
+        ++it;
+        continue;
+      }
+      Trace("sat-proof") << "Should remove from map assumptions of ["
+                         << it->first << "]: " << it->second << "\n";
+      it = d_nodeLevels->erase(it);
+    }
+  }
   Trace("sat-proof") << pop;
 }
 
+void OptimizedClausesManager::trackNodeHashSet(
+    context::CDHashSet<Node>* nodeHashSet,
+    std::map<int, std::vector<Node>>* nodeLevels)
+{
+  d_nodeHashSet = nodeHashSet;
+  d_nodeLevels = nodeLevels;
+}
+
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

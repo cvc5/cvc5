@@ -23,10 +23,10 @@
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -359,4 +359,4 @@ void SygusExplain::getExplanationFor(Node n,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

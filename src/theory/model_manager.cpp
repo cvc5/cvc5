@@ -24,7 +24,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 ModelManager::ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem)
@@ -175,4 +175,4 @@ bool ModelManager::collectModelBooleanVariables()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

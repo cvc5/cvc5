@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* Definitions of the declared globals from output.h... */
 
@@ -32,4 +32,4 @@ const int Cvc5ostream::s_indentIosIndex = std::ios_base::xalloc();
 WarningC WarningChannel(&std::cerr);
 TraceC TraceChannel(&std::cout);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

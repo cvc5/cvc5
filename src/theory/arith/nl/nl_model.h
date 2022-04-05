@@ -25,11 +25,11 @@
 #include "expr/subs.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
-
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+
+namespace cvc5::internal {
 
 namespace theory {
 
@@ -304,6 +304,6 @@ class NlModel : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

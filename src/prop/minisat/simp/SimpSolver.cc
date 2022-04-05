@@ -27,8 +27,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/minisat/utils/System.h"
 
-using namespace cvc5;
-using namespace cvc5::Minisat;
+using namespace cvc5::internal;
+using namespace cvc5::internal::Minisat;
 
 //=================================================================================================
 // Options:
@@ -48,9 +48,9 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 // Constructor/Destructor:
 
 SimpSolver::SimpSolver(Env& env,
-                       cvc5::prop::TheoryProxy* proxy,
-                       cvc5::context::Context* context,
-                       cvc5::context::UserContext* userContext,
+                       cvc5::internal::prop::TheoryProxy* proxy,
+                       context::Context* context,
+                       context::UserContext* userContext,
                        ProofNodeManager* pnm,
                        bool enableIncremental)
     : Solver(env, proxy, context, userContext, pnm, enableIncremental),

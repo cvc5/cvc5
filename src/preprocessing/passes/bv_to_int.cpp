@@ -32,13 +32,13 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
@@ -107,4 +107,4 @@ void BVToInt::addFinalizeAssertions(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

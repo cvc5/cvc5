@@ -24,7 +24,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -52,6 +52,6 @@ class PreprocessRewriteEq : protected EnvObj
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

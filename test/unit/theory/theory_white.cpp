@@ -23,7 +23,7 @@
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace expr;
@@ -91,4 +91,4 @@ TEST_F(TestTheoryWhite, outputChannel)
   d_outputChannel.d_callHistory.clear();
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

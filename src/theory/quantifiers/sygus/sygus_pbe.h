@@ -21,7 +21,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -170,6 +170,6 @@ class SygusPbe : public SygusModule
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

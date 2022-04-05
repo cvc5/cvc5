@@ -32,7 +32,7 @@
 #include "util/hash.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace preprocessing {
 
@@ -426,6 +426,6 @@ class ITECareSimplifier
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

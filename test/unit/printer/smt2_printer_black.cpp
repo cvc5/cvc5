@@ -24,7 +24,7 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -61,4 +61,4 @@ TEST_F(TestPrinterBlackSmt2, regexp_loop)
   checkToString(n, "((_ re.loop 1 3) (str.to_re \"x\"))");
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

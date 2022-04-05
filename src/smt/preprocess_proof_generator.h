@@ -26,7 +26,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -141,6 +141,6 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

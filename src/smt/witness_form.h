@@ -24,7 +24,7 @@
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -88,10 +88,6 @@ class WitnessFormGenerator : public ProofGenerator
    * of this class (d_tcpg).
    */
   Node convertToWitnessForm(Node t);
-  /**
-   * Return a proof generator that can prove the given axiom exists.
-   */
-  ProofGenerator* convertExistsInternal(Node exists);
   /** The rewriter we are using */
   theory::Rewriter* d_rewriter;
   /** The term conversion proof generator */
@@ -107,6 +103,6 @@ class WitnessFormGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

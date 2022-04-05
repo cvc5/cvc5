@@ -27,9 +27,9 @@
 
 #include <math.h>
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -1679,4 +1679,4 @@ Node SygusUnifIo::constructBestConditional(Node ce,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

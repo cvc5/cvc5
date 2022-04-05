@@ -15,7 +15,7 @@
 
 #include "expr/node_trie_algorithm.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 void nodeTriePathPairProcess(const TNodeTrie* t,
                              size_t arity,
@@ -87,4 +87,4 @@ void nodeTriePathPairProcess(const TNodeTrie* t,
   } while (!visit.empty());
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

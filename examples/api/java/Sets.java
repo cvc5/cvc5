@@ -13,9 +13,9 @@
  * A simple demonstration of reasoning about sets with cvc5.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class Sets
 {
@@ -50,8 +50,8 @@ public class Sets
 
         Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
 
-        System.out.println("cvc5 reports: " + theorem + " is "
-            + slv.checkSatAssuming(theorem.notTerm()) + ".");
+        System.out.println(
+            "cvc5 reports: " + theorem + " is " + slv.checkSatAssuming(theorem.notTerm()) + ".");
       }
 
       // Verify set.empty is a subset of any set
@@ -61,8 +61,8 @@ public class Sets
 
         Term theorem = slv.mkTerm(SET_SUBSET, emptyset, A);
 
-        System.out.println("cvc5 reports: " + theorem + " is "
-            + slv.checkSatAssuming(theorem.notTerm()) + ".");
+        System.out.println(
+            "cvc5 reports: " + theorem + " is " + slv.checkSatAssuming(theorem.notTerm()) + ".");
       }
 
       // Find me an element in {1, 2} intersection {2, 3}, if there is one.

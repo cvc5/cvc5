@@ -4,12 +4,12 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_QUANTIFIERS ::cvc5::theory::quantifiers::TheoryQuantifiers "theory/quantifiers/theory_quantifiers.h"
+theory THEORY_QUANTIFIERS ::cvc5::internal::theory::quantifiers::TheoryQuantifiers "theory/quantifiers/theory_quantifiers.h"
 typechecker "theory/quantifiers/theory_quantifiers_type_rules.h"
 
 properties check presolve
 
-rewriter ::cvc5::theory::quantifiers::QuantifiersRewriter "theory/quantifiers/quantifiers_rewriter.h"
+rewriter ::cvc5::internal::theory::quantifiers::QuantifiersRewriter "theory/quantifiers/quantifiers_rewriter.h"
 
 operator FORALL 2:3 "universally quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
 
@@ -47,16 +47,16 @@ sort INST_PATTERN_LIST_TYPE \
 # a list of instantiation patterns
 operator INST_PATTERN_LIST 1: "a list of instantiation patterns"
 
-typerule FORALL ::cvc5::theory::quantifiers::QuantifierTypeRule
-typerule EXISTS ::cvc5::theory::quantifiers::QuantifierTypeRule
-typerule BOUND_VAR_LIST ::cvc5::theory::quantifiers::QuantifierBoundVarListTypeRule
-typerule INST_PATTERN_LIST ::cvc5::theory::quantifiers::QuantifierInstPatternListTypeRule
+typerule FORALL ::cvc5::internal::theory::quantifiers::QuantifierTypeRule
+typerule EXISTS ::cvc5::internal::theory::quantifiers::QuantifierTypeRule
+typerule BOUND_VAR_LIST ::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule
+typerule INST_PATTERN_LIST ::cvc5::internal::theory::quantifiers::QuantifierInstPatternListTypeRule
 
-typerule INST_PATTERN ::cvc5::theory::quantifiers::QuantifierInstPatternTypeRule
-typerule INST_NO_PATTERN ::cvc5::theory::quantifiers::QuantifierAnnotationTypeRule
-typerule INST_ATTRIBUTE ::cvc5::theory::quantifiers::QuantifierAnnotationTypeRule
-typerule INST_POOL ::cvc5::theory::quantifiers::QuantifierAnnotationTypeRule
-typerule INST_ADD_TO_POOL ::cvc5::theory::quantifiers::QuantifierAnnotationTypeRule
-typerule SKOLEM_ADD_TO_POOL ::cvc5::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_PATTERN ::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule
+typerule INST_NO_PATTERN ::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_ATTRIBUTE ::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_POOL ::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_ADD_TO_POOL ::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule SKOLEM_ADD_TO_POOL ::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule
 
 endtheory

@@ -23,7 +23,7 @@
 #include "base/listener.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class OutputManager;
 class SolverEngine;
@@ -44,6 +44,6 @@ class ResourceOutListener : public Listener
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

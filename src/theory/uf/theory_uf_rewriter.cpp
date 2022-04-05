@@ -20,7 +20,7 @@
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -262,4 +262,4 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

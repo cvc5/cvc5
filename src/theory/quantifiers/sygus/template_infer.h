@@ -24,7 +24,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -73,6 +73,6 @@ class SygusTemplateInfer : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

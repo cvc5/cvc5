@@ -24,10 +24,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -1412,4 +1412,4 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

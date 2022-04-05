@@ -20,7 +20,7 @@
 
 #include "expr/emptyset.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -166,6 +166,6 @@ class NormalForm {
 };
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

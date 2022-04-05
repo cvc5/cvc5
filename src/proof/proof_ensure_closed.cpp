@@ -23,7 +23,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Ensure closed with respect to assumptions, internal version, which
@@ -180,4 +180,4 @@ void pfnEnsureClosedWrt(ProofNode* pn,
   ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

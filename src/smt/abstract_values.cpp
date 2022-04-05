@@ -19,7 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 AbstractValues::AbstractValues(NodeManager* nm)
@@ -56,4 +56,4 @@ Node AbstractValues::mkAbstractValue(TNode n)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

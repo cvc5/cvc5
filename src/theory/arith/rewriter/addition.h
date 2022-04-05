@@ -25,7 +25,7 @@
 #include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -94,6 +94,6 @@ Node distributeMultiplication(const std::vector<TNode>& factors);
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

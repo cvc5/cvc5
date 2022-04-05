@@ -18,7 +18,7 @@
 #include "test.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackBitVector : public TestInternal
@@ -207,4 +207,4 @@ TEST_F(TestUtilBlackBitVector, static_helpers)
   ASSERT_EQ(BitVector::mkMaxSigned(4).toSignedInteger(), Integer(7));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

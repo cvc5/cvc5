@@ -32,9 +32,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -711,4 +711,4 @@ std::vector<Node> andComponents(TNode an)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

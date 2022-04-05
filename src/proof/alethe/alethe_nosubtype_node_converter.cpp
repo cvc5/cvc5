@@ -15,7 +15,7 @@
 
 #include "proof/alethe/alethe_nosubtype_node_converter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 Node AletheNoSubtypeNodeConverter::postConvert(Node n)
@@ -57,4 +57,4 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -21,7 +21,7 @@
 #include "printer/printer.h"
 #include "smt/solver_engine_scope.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 UnsatCore::UnsatCore(const std::vector<Node>& core)
     : d_useNames(false), d_core(core), d_names()
@@ -61,4 +61,4 @@ std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

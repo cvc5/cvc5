@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A node converter for terms and types. Implements term/type traversals,
@@ -104,6 +104,6 @@ class NodeConverter
   bool d_forceIdem;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

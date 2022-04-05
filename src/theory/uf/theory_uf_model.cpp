@@ -22,9 +22,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -251,4 +251,4 @@ Node UfModelTree::getFunctionValue(const std::string& argPrefix, Rewriter* r)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

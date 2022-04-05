@@ -21,9 +21,9 @@
 #include "proof/proof_node_manager.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -593,4 +593,4 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

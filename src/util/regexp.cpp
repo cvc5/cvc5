@@ -17,7 +17,7 @@
 
 #include <ostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 RegExpRepeat::RegExpRepeat(uint32_t repeatAmount) : d_repeatAmount(repeatAmount)
 {
@@ -58,4 +58,4 @@ std::ostream& operator<<(std::ostream& os, const RegExpLoop& r)
   return os << "[" << r.d_loopMinOcc << ".." << r.d_loopMaxOcc << "]";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

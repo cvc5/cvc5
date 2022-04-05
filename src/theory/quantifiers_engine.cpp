@@ -39,9 +39,9 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
@@ -703,4 +703,4 @@ void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

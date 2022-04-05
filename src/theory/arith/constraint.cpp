@@ -35,9 +35,9 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -2019,12 +2019,12 @@ bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {
   return v < d_varDatabases.size();
 }
 
-
-ConstraintDatabase::Watches::Watches(context::Context* satContext, context::Context* userContext):
-  d_constraintProofs(satContext),
-  d_canBePropagatedWatches(satContext),
-  d_assertionOrderWatches(satContext),
-  d_splitWatches(userContext)
+ConstraintDatabase::Watches::Watches(context::Context* satContext,
+                                     context::Context* userContext)
+    : d_constraintProofs(satContext),
+      d_canBePropagatedWatches(satContext),
+      d_assertionOrderWatches(satContext),
+      d_splitWatches(userContext)
 {}
 
 
@@ -2455,4 +2455,4 @@ std::pair<int, int> Constraint::unateFarkasSigns(ConstraintCP ca, ConstraintCP c
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

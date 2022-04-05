@@ -24,7 +24,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class CVC5_EXPORT Exception : public std::exception
 {
@@ -124,7 +124,7 @@ inline void CheckArgument(bool cond,
                           const char* tail CVC5_UNUSED)
 {
   if(__builtin_expect( ( !cond ), false )) {
-    throw ::cvc5::IllegalArgumentException("", "", tail);
+    throw cvc5::internal::IllegalArgumentException("", "", tail);
   }
 }
 template <class T>
@@ -133,7 +133,7 @@ template <class T>
 inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
 {
   if(__builtin_expect( ( !cond ), false )) {
-    throw ::cvc5::IllegalArgumentException("", "", "");
+    throw cvc5::internal::IllegalArgumentException("", "", "");
   }
 }
 
@@ -163,6 +163,6 @@ private:
   static thread_local LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXCEPTION_H */

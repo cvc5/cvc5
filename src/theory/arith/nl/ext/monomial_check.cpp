@@ -24,7 +24,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -109,11 +109,14 @@ void MonomialCheck::checkMagnitude(unsigned c)
   // ensure information is setup
   if (c == 0)
   {
+    Trace("nl-ext-proc") << "Assign order ids for " << d_data->d_ms_vars
+                         << "..." << std::endl;
     // sort by absolute values of abstract model values
     assignOrderIds(d_data->d_ms_vars, d_order_vars, false, true);
 
     // sort individual variable lists
-    Trace("nl-ext-proc") << "Assign order var lists..." << std::endl;
+    Trace("nl-ext-proc") << "Assign order var lists for " << d_data->d_ms
+                         << "..." << std::endl;
     d_data->d_mdb.sortVariablesByModel(d_data->d_ms, d_data->d_model);
   }
 
@@ -454,7 +457,8 @@ bool MonomialCheck::compareMonomial(
                              lem,
                              cmp_infers);
     }
-    Assert(d_order_vars.find(av) != d_order_vars.end());
+    Assert(d_order_vars.find(av) != d_order_vars.end())
+        << "Missing order information for variable " << av;
     avo = d_order_vars[av];
   }
   Node bv;
@@ -664,7 +668,7 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
       Trace("nl-ext-mvo") << "..do not assign order to " << x << " : " << v
                           << std::endl;
       // don't assign for non-constant values (transcendental function apps)
-      break;
+      continue;
     }
     Trace("nl-ext-mvo") << "  order " << x << " : " << v << std::endl;
     if (v != prev)
@@ -760,4 +764,4 @@ void MonomialCheck::setMonomialFactor(Node a,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "expr/node_value.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -445,4 +445,4 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

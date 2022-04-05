@@ -19,9 +19,9 @@
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -243,4 +243,4 @@ std::ostream& operator<<(std::ostream& os, const BoundInference& bi)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

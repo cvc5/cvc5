@@ -50,9 +50,9 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace parser;
+using namespace cvc5::parser;
 using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
@@ -81,7 +81,7 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver,
+InteractiveShell::InteractiveShell(Solver* solver,
                                    SymbolManager* sm,
                                    std::istream& in,
                                    std::ostream& out)
@@ -431,4 +431,4 @@ char* commandGenerator(const char* text, int state) {
 
 #endif /* HAVE_LIBEDITLINE */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

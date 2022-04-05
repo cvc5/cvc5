@@ -24,7 +24,7 @@
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 DotPrinter::DotPrinter()
@@ -336,4 +336,4 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -19,9 +19,9 @@
 #include "theory/sets/singleton_op.h"
 #include "util/rational.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestTheoryWhiteSetsTypeRuleApi : public TestApi
@@ -48,8 +48,8 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
   Term emptyReal = d_solver.mkEmptySet(d_solver.mkSetSort(realSort));
   Term integerOne = d_solver.mkInteger(1);
   Term realOne = d_solver.mkReal(1);
-  Term singletonInt = d_solver.mkTerm(api::SET_SINGLETON, {integerOne});
-  Term singletonReal = d_solver.mkTerm(api::SET_SINGLETON, {realOne});
+  Term singletonInt = d_solver.mkTerm(cvc5::SET_SINGLETON, {integerOne});
+  Term singletonReal = d_solver.mkTerm(cvc5::SET_SINGLETON, {realOne});
   // (union
   //    (singleton (singleton_op Int) 1)
   //    (as emptyset (Set Real)))
@@ -86,4 +86,4 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
   ASSERT_TRUE(n.isConst());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -27,9 +27,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -467,4 +467,4 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

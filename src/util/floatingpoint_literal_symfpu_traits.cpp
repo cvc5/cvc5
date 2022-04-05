@@ -17,7 +17,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace symfpuLiteral {
 
 template <bool isSigned>
@@ -410,4 +410,4 @@ void traits::invariant(const traits::prop& p)
   return;
 }
 }  // namespace symfpuLiteral
-}  // namespace cvc5
+}  // namespace cvc5::internal

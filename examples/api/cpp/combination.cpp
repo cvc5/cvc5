@@ -22,7 +22,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 {
@@ -46,8 +46,8 @@ int main()
   Sort u = slv.mkUninterpretedSort("u");
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
-  Sort uToInt = slv.mkFunctionSort(u, integer);
-  Sort intPred = slv.mkFunctionSort(integer, boolean);
+  Sort uToInt = slv.mkFunctionSort({u}, integer);
+  Sort intPred = slv.mkFunctionSort({integer}, boolean);
 
   // Variables
   Term x = slv.mkConst(u, "x");

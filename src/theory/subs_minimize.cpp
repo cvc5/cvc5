@@ -22,9 +22,9 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SubstitutionMinimize::SubstitutionMinimize(Env& env) : EnvObj(env) {}
@@ -467,4 +467,4 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A trie that stores data at undetermined depth. Storing data at
@@ -49,6 +49,6 @@ class VariadicTrie
   bool hasSubset(const std::vector<Node>& is) const;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__VARIADIC_TRIE_H */

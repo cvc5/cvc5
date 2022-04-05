@@ -20,7 +20,7 @@
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -156,4 +156,4 @@ bool ArrayEnumerator::isFinished()
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

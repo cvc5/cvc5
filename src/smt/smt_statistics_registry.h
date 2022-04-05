@@ -20,7 +20,7 @@
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * This returns the StatisticsRegistry attached to the currently in scope
@@ -29,4 +29,4 @@ namespace cvc5 {
  */
 StatisticsRegistry& smtStatisticsRegistry();
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

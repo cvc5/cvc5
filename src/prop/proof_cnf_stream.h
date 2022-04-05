@@ -30,7 +30,7 @@
 #include "prop/sat_proof_manager.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class SatProofManager;
@@ -203,6 +203,6 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

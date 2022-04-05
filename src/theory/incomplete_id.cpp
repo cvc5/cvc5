@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 const char* toString(IncompleteId i)
@@ -59,4 +59,4 @@ std::ostream& operator<<(std::ostream& out, IncompleteId i)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

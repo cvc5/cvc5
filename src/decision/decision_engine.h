@@ -24,7 +24,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 class DecisionEngine : protected EnvObj
@@ -101,6 +101,6 @@ class DecisionEngineEmpty : public DecisionEngine
 };
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__DECISION_ENGINE_H */

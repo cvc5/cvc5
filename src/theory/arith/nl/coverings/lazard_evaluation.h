@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace cvc5::theory::arith::nl::coverings {
+namespace cvc5::internal::theory::arith::nl::coverings {
 
 struct LazardEvaluationState;
 /**
@@ -111,7 +111,7 @@ class LazardEvaluation
   std::unique_ptr<LazardEvaluationState> d_state;
 };
 
-}  // namespace cvc5::theory::arith::nl::coverings
+}  // namespace cvc5::internal::theory::arith::nl::coverings
 
 #endif
 #endif

@@ -21,7 +21,7 @@
 #include <ostream>
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -54,6 +54,6 @@ struct TupleProjectOpHashFunction
   size_t operator()(const TupleProjectOp& op) const;
 }; /* struct TupleProjectOpHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROJECT_OP_H */

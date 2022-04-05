@@ -23,7 +23,7 @@
 #include "theory/type_enumerator.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -54,6 +54,6 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__UF__TYPE_ENUMERATOR_H */

@@ -31,10 +31,10 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5;
-using namespace cvc5::theory;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -486,4 +486,4 @@ Node NonClausalSimp::processRewrittenLearnedLit(TrustNode trn)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

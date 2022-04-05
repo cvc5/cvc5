@@ -21,7 +21,6 @@
 #define CVC5__API__CHECKS_H
 
 namespace cvc5 {
-namespace api {
 
 /* -------------------------------------------------------------------------- */
 /* Basic check macros.                                                        */
@@ -33,7 +32,8 @@ namespace api {
  */
 #define CVC5_API_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)    \
-  ? (void)0 : OstreamVoider() & CVC5ApiExceptionStream().ostream()
+  ? (void)0                  \
+  : cvc5::internal::OstreamVoider() & CVC5ApiExceptionStream().ostream()
 
 /**
  * The base check macro for throwing recoverable exceptions.
@@ -41,7 +41,9 @@ namespace api {
  */
 #define CVC5_API_RECOVERABLE_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC5ApiRecoverableExceptionStream().ostream()
+  ? (void)0                              \
+  : cvc5::internal::OstreamVoider()      \
+          & CVC5ApiRecoverableExceptionStream().ostream()
 
 /**
  * The base check macro for throwing unsupported exceptions.
@@ -49,7 +51,9 @@ namespace api {
  */
 #define CVC5_API_UNSUPPORTED_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC5ApiUnsupportedExceptionStream().ostream()
+  ? (void)0                              \
+  : cvc5::internal::OstreamVoider()      \
+          & CVC5ApiUnsupportedExceptionStream().ostream()
 
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
@@ -94,7 +98,7 @@ namespace api {
 #define CVC5_API_KIND_CHECK_EXPECTED(cond, kind) \
   CVC5_PREDICT_TRUE(cond)                        \
   ? (void)0                                      \
-  : OstreamVoider()                              \
+  : cvc5::internal::OstreamVoider()              \
           & CVC5ApiExceptionStream().ostream()   \
                 << "Invalid kind '" << kindToString(kind) << "', expected "
 
@@ -110,7 +114,7 @@ namespace api {
 #define CVC5_API_ARG_CHECK_EXPECTED(cond, arg)                      \
   CVC5_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
-  : OstreamVoider()                                                 \
+  : cvc5::internal::OstreamVoider()                                 \
           & CVC5ApiExceptionStream().ostream()                      \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
@@ -123,7 +127,7 @@ namespace api {
 #define CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(cond, arg)          \
   CVC5_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
-  : OstreamVoider()                                                 \
+  : cvc5::internal::OstreamVoider()                                 \
           & CVC5ApiRecoverableExceptionStream().ostream()           \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
@@ -138,7 +142,7 @@ namespace api {
 #define CVC5_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
   CVC5_PREDICT_TRUE(cond)                           \
   ? (void)0                                         \
-  : OstreamVoider()                                 \
+  : cvc5::internal::OstreamVoider()                 \
           & CVC5ApiExceptionStream().ostream()      \
                 << "Invalid size of argument '" << #arg << "', expected "
 
@@ -154,7 +158,7 @@ namespace api {
 #define CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, args, idx)          \
   CVC5_PREDICT_TRUE(cond)                                                    \
   ? (void)0                                                                  \
-  : OstreamVoider()                                                          \
+  : cvc5::internal::OstreamVoider()                                          \
           & CVC5ApiExceptionStream().ostream()                               \
                 << "Invalid " << (what) << " in '" << #args << "' at index " \
                 << (idx) << ", expected "
@@ -536,7 +540,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i) \
           << "a term associated with this solver object";       \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,   \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,   \
           "bound variable",                                     \
           bound_vars,                                           \
           i)                                                    \
@@ -568,7 +572,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i)               \
           << "a term associated with this solver object";                     \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,                 \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,                 \
           "bound variable",                                                   \
           bound_vars,                                                         \
           i)                                                                  \
@@ -675,6 +679,5 @@ namespace api {
       << "Invalid number of indices for operator " << kind << ". Expected " \
       << expected << " but got " << nargs << "."
 
-}  // namespace api
 }  // namespace cvc5
 #endif

@@ -17,7 +17,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 JustifyStatistics::JustifyStatistics()
@@ -39,4 +39,4 @@ JustifyStatistics::JustifyStatistics()
 JustifyStatistics::~JustifyStatistics() {}
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

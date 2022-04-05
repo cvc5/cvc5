@@ -22,7 +22,7 @@
 #include "expr/type_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace theory {
 namespace quantifiers {
@@ -96,6 +96,6 @@ class InterpolationSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__INTERPOLATION_SOLVER_H */

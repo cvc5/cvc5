@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -1424,4 +1424,4 @@ bool Polynomial::isNonlinear() const {
 
 } //namespace arith
 } //namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -20,7 +20,7 @@
 #include "theory/arith/tableau.h"
 
 using namespace std;
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -193,4 +193,4 @@ void Tableau::printBasicRow(ArithVar basic, std::ostream& out){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -20,7 +20,7 @@
 
 #include "expr/node_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /** A virtual base class for the algorithm below. */
 class NodeTriePathPairProcessCallback
@@ -47,6 +47,6 @@ void nodeTriePathPairProcess(const TNodeTrie* t,
                              size_t n,
                              NodeTriePathPairProcessCallback& ntpc);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__NODE_TRIE_ALGORITHM_H */

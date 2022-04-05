@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -89,6 +89,6 @@ const char* toString(IncompleteId i);
 std::ostream& operator<<(std::ostream& out, IncompleteId i);
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__INCOMPLETE_ID_H */

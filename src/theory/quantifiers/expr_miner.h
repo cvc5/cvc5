@@ -27,7 +27,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class SolverEngine;
@@ -103,6 +103,6 @@ class ExprMiner : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

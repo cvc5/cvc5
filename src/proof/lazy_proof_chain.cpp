@@ -22,7 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    bool cyclic,
@@ -382,4 +382,4 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofForInternal(Node fact,
 
 std::string LazyCDProofChain::identify() const { return d_name; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

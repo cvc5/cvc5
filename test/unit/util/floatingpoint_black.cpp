@@ -16,7 +16,7 @@
 #include "test.h"
 #include "util/floatingpoint.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackFloatingPoint : public TestInternal
@@ -135,4 +135,4 @@ TEST_F(TestUtilBlackFloatingPoint, makeMaxNormal)
   ASSERT_TRUE(mfp128.isNormal());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

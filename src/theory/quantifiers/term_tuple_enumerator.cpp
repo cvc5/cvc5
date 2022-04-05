@@ -33,7 +33,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <typename T>
 static Cvc5ostream& operator<<(Cvc5ostream& out, const std::vector<T>& v)
@@ -557,4 +557,4 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -25,9 +25,9 @@
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
@@ -97,12 +97,7 @@ void LfscPrinter::print(std::ostream& out,
     {
       const DTypeConstructor& cons = dt[i];
       std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
-      // for now, must print as node to ensure same policy for printing
-      // variable names. For instance, this means that cvc.X is printed as
-      // LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not
-      // SMT-LIB. (cvc5-projects/issues/466) We should disable printing quote
-      // escapes in the smt2 printing of LFSC converted terms.
-      Node cc = nm->mkBoundVar(cname, stc);
+      Node cc = nm->mkRawSymbol(cname, stc);
       // print constructor/tester
       preamble << "(declare " << cc << " term)" << std::endl;
       for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
@@ -110,7 +105,7 @@ void LfscPrinter::print(std::ostream& out,
         const DTypeSelector& arg = cons[j];
         // print selector
         std::string sname = d_tproc.getNameForUserNameOf(arg.getSelector());
-        Node sc = nm->mkBoundVar(sname, stc);
+        Node sc = nm->mkRawSymbol(sname, stc);
         preamble << "(declare " << sc << " term)" << std::endl;
       }
     }
@@ -123,8 +118,8 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& s : syms)
   {
     TypeNode st = s.getType();
-    if (st.isConstructor() || st.isSelector() || st.isTester()
-        || st.isUpdater())
+    if (st.isDatatypeConstructor() || st.isDatatypeSelector()
+        || st.isDatatypeTester() || st.isDatatypeUpdater())
     {
       // constructors, selector, testers, updaters are defined by the datatype
       continue;
@@ -242,7 +237,7 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     os << "(declare ";
     printType(os, tn);
@@ -783,4 +778,4 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

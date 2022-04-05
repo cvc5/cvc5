@@ -30,10 +30,10 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
@@ -1275,4 +1275,4 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

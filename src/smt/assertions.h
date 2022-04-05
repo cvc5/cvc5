@@ -26,7 +26,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 class AbstractValues;
@@ -186,6 +186,6 @@ class Assertions : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

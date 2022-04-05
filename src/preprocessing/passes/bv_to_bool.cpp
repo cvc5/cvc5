@@ -30,12 +30,12 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-bool"),
@@ -299,4 +299,4 @@ BVToBool::Statistics::Statistics(StatisticsRegistry& reg)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

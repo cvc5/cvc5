@@ -20,9 +20,9 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -204,4 +204,4 @@ Node LambdaLift::betaReduce(TNode lam, const std::vector<Node>& args) const
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

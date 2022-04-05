@@ -18,7 +18,7 @@
 #include "test_smt.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace smt;
@@ -298,4 +298,4 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

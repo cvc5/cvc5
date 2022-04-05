@@ -22,7 +22,7 @@
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 CombinationCareGraph::CombinationCareGraph(
@@ -100,4 +100,4 @@ bool CombinationCareGraph::buildModel()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

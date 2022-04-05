@@ -29,9 +29,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -2524,7 +2524,7 @@ void CoreSolver::checkNormalFormsDeq()
 {
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   std::map< Node, std::map< Node, bool > > processed;
-  
+
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();
@@ -2693,4 +2693,4 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

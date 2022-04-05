@@ -37,7 +37,7 @@
 #include <utility>
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Forward declarations
 struct StatisticBaseValue;
@@ -137,6 +137,6 @@ std::string toSExpr(Iterator begin, Iterator end)
   return ss.str();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SEXPR_H */

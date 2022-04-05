@@ -27,9 +27,9 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 AbductionSolver::AbductionSolver(Env& env) : EnvObj(env) {}
@@ -214,4 +214,4 @@ void AbductionSolver::checkAbduct(Node a)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

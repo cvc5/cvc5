@@ -21,7 +21,7 @@
 #include "util/cardinality.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackCardinality : public TestInternal
@@ -269,4 +269,4 @@ TEST_F(TestUtilBlackCardinality, cardinalities)
   ASSERT_EQ((z ^ z).getBethNumber(), 3);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

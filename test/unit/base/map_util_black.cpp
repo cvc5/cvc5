@@ -26,11 +26,11 @@
 #include "context/context.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using context::CDHashMap;
-using context::CDInsertHashMap;
-using context::Context;
+using cvc5::context::CDHashMap;
+using cvc5::context::CDInsertHashMap;
+using cvc5::context::Context;
 
 namespace test {
 
@@ -62,8 +62,8 @@ class TestBaseBlackMap : public TestInternal
 TEST_F(TestBaseBlackMap, map)
 {
   std::map<std::string, std::string> map = default_map();
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
   if (std::string* found_value = FindOrNull(map, "other"))
@@ -77,8 +77,8 @@ TEST_F(TestBaseBlackMap, map)
 TEST_F(TestBaseBlackMap, constant_map)
 {
   const std::map<std::string, std::string> map = default_map();
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
@@ -93,8 +93,8 @@ TEST_F(TestBaseBlackMap, unordered_map)
 {
   std::unordered_map<std::string, std::string> map(default_map().begin(),
                                                    default_map().end());
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
   if (std::string* found_value = FindOrNull(map, "other"))
@@ -109,8 +109,8 @@ TEST_F(TestBaseBlackMap, const_unordered_map)
 {
   const std::unordered_map<std::string, std::string> map(default_map().begin(),
                                                          default_map().end());
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
@@ -124,23 +124,23 @@ TEST_F(TestBaseBlackMap, const_unordered_map)
 TEST_F(TestBaseBlackMap, set)
 {
   std::set<std::string> set{"entry", "other"};
-  ASSERT_TRUE(cvc5::ContainsKey(set, "entry"));
-  ASSERT_FALSE(cvc5::ContainsKey(set, "non member"));
+  ASSERT_TRUE(ContainsKey(set, "entry"));
+  ASSERT_FALSE(ContainsKey(set, "non member"));
 
   const std::set<std::string> const_set{"entry", "other"};
-  ASSERT_TRUE(cvc5::ContainsKey(const_set, "entry"));
-  ASSERT_FALSE(cvc5::ContainsKey(const_set, "non member"));
+  ASSERT_TRUE(ContainsKey(const_set, "entry"));
+  ASSERT_FALSE(ContainsKey(const_set, "non member"));
 }
 
 TEST_F(TestBaseBlackMap, unordered_set)
 {
   std::unordered_set<std::string> set{"entry", "other"};
-  ASSERT_TRUE(cvc5::ContainsKey(set, "entry"));
-  ASSERT_FALSE(cvc5::ContainsKey(set, "non member"));
+  ASSERT_TRUE(ContainsKey(set, "entry"));
+  ASSERT_FALSE(ContainsKey(set, "non member"));
 
   const std::unordered_set<std::string> const_set{"entry", "other"};
-  ASSERT_TRUE(cvc5::ContainsKey(const_set, "entry"));
-  ASSERT_FALSE(cvc5::ContainsKey(const_set, "non member"));
+  ASSERT_TRUE(ContainsKey(const_set, "entry"));
+  ASSERT_FALSE(ContainsKey(const_set, "non member"));
 }
 
 TEST_F(TestBaseBlackMap, CDHashMap)
@@ -149,8 +149,8 @@ TEST_F(TestBaseBlackMap, CDHashMap)
   CDHashMap<std::string, std::string> map(&context);
   insert_all(default_map(), &map);
 
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
@@ -167,8 +167,8 @@ TEST_F(TestBaseBlackMap, const_CDHashMap)
   insert_all(default_map(), &store);
   const auto& map = store;
 
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
@@ -184,8 +184,8 @@ TEST_F(TestBaseBlackMap, CDInsertHashMap)
   CDInsertHashMap<std::string, std::string> map(&context);
   insert_all(default_map(), &map);
 
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
@@ -202,8 +202,8 @@ TEST_F(TestBaseBlackMap, const_CDInsertHashMap)
   insert_all(default_map(), &store);
   const auto& map = store;
 
-  ASSERT_TRUE(cvc5::ContainsKey(map, "key"));
-  ASSERT_FALSE(cvc5::ContainsKey(map, "non key"));
+  ASSERT_TRUE(ContainsKey(map, "key"));
+  ASSERT_FALSE(ContainsKey(map, "non key"));
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
     ASSERT_EQ(*found_value, "entry");
@@ -212,4 +212,4 @@ TEST_F(TestBaseBlackMap, const_CDInsertHashMap)
   ASSERT_EQ(FindOrDie(map, "other"), "entry");
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

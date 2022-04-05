@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 class ProofNode;
@@ -160,6 +160,6 @@ class PfManager : protected EnvObj
 }; /* class SolverEngine */
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__PROOF_MANAGER_H */

@@ -26,7 +26,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -312,6 +312,6 @@ std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

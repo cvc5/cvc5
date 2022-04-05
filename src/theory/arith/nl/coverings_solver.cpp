@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -256,4 +256,4 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

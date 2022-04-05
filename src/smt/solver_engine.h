@@ -31,7 +31,16 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5 {
+
+class Solver;
+
+namespace internal {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -47,19 +56,6 @@ class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-namespace api {
-class Solver;
-}  // namespace api
-
-/* -------------------------------------------------------------------------- */
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -109,9 +105,9 @@ class QuantifiersEngine;
 
 class CVC5_EXPORT SolverEngine
 {
-  friend class ::cvc5::api::Solver;
-  friend class ::cvc5::smt::SolverEngineState;
-  friend class ::cvc5::smt::SolverEngineScope;
+  friend class cvc5::Solver;
+  friend class smt::SolverEngineState;
+  friend class smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -231,7 +227,7 @@ class CVC5_EXPORT SolverEngine
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by cvc5.
    */
-  void blockModel();
+  void blockModel(modes::BlockModelsMode mode);
 
   /**
    * Block the current model values of (at least) the values in exprs.
@@ -877,7 +873,7 @@ class CVC5_EXPORT SolverEngine
   SolverEngine& operator=(const SolverEngine&) = delete;
 
   /** Set solver instance that owns this SolverEngine. */
-  void setSolver(api::Solver* solver) { d_solver = solver; }
+  void setSolver(cvc5::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the (new) PfManager owned by this SolverEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
@@ -1048,7 +1044,7 @@ class CVC5_EXPORT SolverEngine
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
-  api::Solver* d_solver = nullptr;
+  cvc5::Solver* d_solver = nullptr;
 
   /**
    * The environment object, which contains all utilities that are globally
@@ -1119,6 +1115,7 @@ class CVC5_EXPORT SolverEngine
 
 /* -------------------------------------------------------------------------- */
 
+}  // namespace internal
 }  // namespace cvc5
 
 #endif /* CVC5__SMT_ENGINE_H */

@@ -22,7 +22,7 @@
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 class SmtSolver;
@@ -101,6 +101,6 @@ class QuantElimSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__QUANT_ELIM_SOLVER_H */

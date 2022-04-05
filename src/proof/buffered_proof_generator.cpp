@@ -18,7 +18,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 BufferedProofGenerator::BufferedProofGenerator(context::Context* c,
                                                ProofNodeManager* pnm)
@@ -100,4 +100,4 @@ bool BufferedProofGenerator::hasProofFor(Node f)
   return true;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

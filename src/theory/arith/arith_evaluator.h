@@ -9,7 +9,7 @@
 #include "expr/node.h"
 #include "smt/env.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -27,6 +27,6 @@ std::optional<bool> isExpressionZero(Env& env,
                                      const std::map<Node, Node>& model);
 }
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

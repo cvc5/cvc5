@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 class TypeNode;
@@ -142,6 +142,6 @@ struct SequenceProperties
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */

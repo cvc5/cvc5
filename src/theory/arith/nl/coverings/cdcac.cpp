@@ -25,19 +25,19 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
 namespace std {
 /** Generic streaming operator for std::vector. */
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
-  cvc5::container_to_stream(os, v);
+  cvc5::internal::container_to_stream(os, v);
   return os;
 }
 }  // namespace std
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -763,6 +763,6 @@ std::vector<poly::Value> CDCAC::isolateRealRoots(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

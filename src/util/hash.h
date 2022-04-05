@@ -39,7 +39,7 @@ struct hash<uint64_t> {
 
 }/* std namespace */
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace fnv1a {
 
@@ -68,6 +68,6 @@ struct PairHashFunction {
   }
 };/* struct PairHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__HASH_H */

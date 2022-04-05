@@ -31,9 +31,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 namespace utils {
@@ -438,4 +438,4 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

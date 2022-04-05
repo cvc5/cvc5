@@ -20,7 +20,7 @@
 #include "test_smt.h"
 #include "theory/sets/theory_sets_type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace kind;
@@ -151,4 +151,4 @@ TEST_F(TestTheoryWhiteSetsTypeEnumerator, bv)
   ASSERT_TRUE(setEnumerator.isFinished());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

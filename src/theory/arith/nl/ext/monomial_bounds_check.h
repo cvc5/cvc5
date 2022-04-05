@@ -20,7 +20,7 @@
 #include "smt/env_obj.h"
 #include "theory/arith/nl/ext/constraint.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -88,6 +88,6 @@ class MonomialBoundsCheck : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

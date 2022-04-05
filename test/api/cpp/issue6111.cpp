@@ -18,7 +18,7 @@
 
 #include "api/cpp/cvc5.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 using namespace std;
 
 int main()

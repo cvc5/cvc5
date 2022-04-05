@@ -35,8 +35,7 @@
 
 /// \cond internals
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 template <class T>
 class DefaultCleanUp {
@@ -49,7 +48,6 @@ class CDList;
 
 /// \endcond
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDLIST_FORWARD_H */

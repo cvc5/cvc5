@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace {
 
@@ -154,4 +154,4 @@ std::string DidYouMean::getMatchAsString(const std::string& input)
   return oss.str();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

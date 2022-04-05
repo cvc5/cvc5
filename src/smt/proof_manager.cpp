@@ -34,7 +34,7 @@
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 PfManager::PfManager(Env& env)
@@ -316,4 +316,4 @@ void PfManager::getAssertions(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

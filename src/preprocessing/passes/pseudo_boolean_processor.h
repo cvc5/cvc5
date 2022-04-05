@@ -32,7 +32,7 @@
 #include "theory/substitutions.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -110,6 +110,6 @@ class PseudoBooleanProcessor : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H

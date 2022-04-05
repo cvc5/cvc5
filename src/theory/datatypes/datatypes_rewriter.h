@@ -21,7 +21,7 @@
 #include "theory/evaluator.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -204,6 +204,6 @@ class DatatypesRewriter : public TheoryRewriter
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H */

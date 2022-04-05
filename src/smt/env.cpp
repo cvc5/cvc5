@@ -32,9 +32,9 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
-using namespace cvc5::smt;
+using namespace cvc5::internal::smt;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Env::Env(NodeManager* nm, const Options* opts)
     : d_context(new context::Context()),
@@ -156,7 +156,7 @@ std::ostream& Env::output(OutputTag tag) const
   {
     return *d_options.base.out;
   }
-  return cvc5::null_os;
+  return cvc5::internal::null_os;
 }
 
 bool Env::isVerboseOn(int64_t level) const
@@ -170,7 +170,7 @@ std::ostream& Env::verbose(int64_t level) const
   {
     return *d_options.base.err;
   }
-  return cvc5::null_os;
+  return cvc5::internal::null_os;
 }
 
 std::ostream& Env::warning() const
@@ -256,4 +256,4 @@ theory::TheoryId Env::theoryOf(TNode node) const
       node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

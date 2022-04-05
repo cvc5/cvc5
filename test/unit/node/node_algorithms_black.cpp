@@ -18,7 +18,7 @@
 #include "expr/node_manager.h"
 #include "test_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace expr;
 using namespace kind;
@@ -160,4 +160,4 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

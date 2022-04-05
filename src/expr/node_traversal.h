@@ -24,7 +24,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Enum that represents an order in which nodes are visited.
@@ -145,6 +145,6 @@ class NodeDfsIterable
   std::function<bool(TNode)> d_skipIf;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5__EXPR__NODE_TRAVERSAL_H

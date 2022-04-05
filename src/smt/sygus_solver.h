@@ -26,7 +26,7 @@
 #include "smt/env_obj.h"
 #include "util/synth_result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 
@@ -246,6 +246,6 @@ class SygusSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SYGUS_SOLVER_H */

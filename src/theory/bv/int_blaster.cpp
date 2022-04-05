@@ -33,11 +33,11 @@
 #include "util/iand.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace {
 
@@ -1090,4 +1090,4 @@ Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
   return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

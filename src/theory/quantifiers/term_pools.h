@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -103,6 +103,6 @@ class TermPools : public QuantifiersUtil
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_POOLS_H */

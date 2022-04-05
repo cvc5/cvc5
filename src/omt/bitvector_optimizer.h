@@ -18,7 +18,7 @@
 
 #include "omt/omt_optimizer.h"
 
-namespace cvc5::omt {
+namespace cvc5::internal::omt {
 
 /**
  * Optimizer for BitVector type
@@ -46,6 +46,6 @@ class OMTOptimizerBitVector : public OMTOptimizer
   bool d_isSigned;
 };
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt
 
 #endif /* CVC5__OMT__BITVECTOR_OPTIMIZER_H */

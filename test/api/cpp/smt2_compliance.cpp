@@ -24,14 +24,15 @@
 #include "smt/solver_engine.h"
 
 using namespace cvc5;
+using namespace cvc5::internal;
 using namespace cvc5::parser;
 using namespace std;
 
-void testGetInfo(api::Solver* solver, const char* s);
+void testGetInfo(cvc5::Solver* solver, const char* s);
 
 int main()
 {
-  std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
   solver->setOption("input-language", "smtlib2");
   solver->setOption("output-language", "smtlib2");
   testGetInfo(solver.get(), ":error-behavior");
@@ -49,7 +50,7 @@ int main()
   return 0;
 }
 
-void testGetInfo(api::Solver* solver, const char* s)
+void testGetInfo(cvc5::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 

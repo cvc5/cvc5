@@ -32,10 +32,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -46,15 +46,17 @@ typedef Region::RegionNodeInfo RegionNodeInfo;
 typedef RegionNodeInfo::DiseqList DiseqList;
 
 Region::Region(SortModel* cf, context::Context* c)
-  : d_cf( cf )
-  , d_testCliqueSize( c, 0 )
-  , d_splitsSize( c, 0 )
-  , d_testClique( c )
-  , d_splits( c )
-  , d_reps_size( c, 0 )
-  , d_total_diseq_external( c, 0 )
-  , d_total_diseq_internal( c, 0 )
-  , d_valid( c, true ) {}
+    : d_cf(cf),
+      d_testCliqueSize(c, 0),
+      d_splitsSize(c, 0),
+      d_testClique(c),
+      d_splits(c),
+      d_reps_size(c, 0),
+      d_total_diseq_external(c, 0),
+      d_total_diseq_internal(c, 0),
+      d_valid(c, true)
+{
+}
 
 Region::~Region() {
   for(iterator i = begin(), iend = end(); i != iend; ++i) {
@@ -1346,7 +1348,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       const CardinalityConstraint& cc =
           lit.getOperator().getConst<CardinalityConstraint>();
       TypeNode tn = cc.getType();
-      Assert(tn.isSort());
+      Assert(tn.isUninterpretedSort());
       Assert(d_rep_model[tn]);
       uint32_t nCard = cc.getUpperBound().getUnsignedInt();
       Trace("uf-ss-debug") << "...check cardinality constraint : " << tn
@@ -1525,7 +1527,8 @@ void CardinalityExtension::check(Theory::Effort level)
         while( !eqcs_i.isFinished() ){
           Node a = *eqcs_i;
           TypeNode tn = a.getType();
-          if( tn.isSort() ){
+          if (tn.isUninterpretedSort())
+          {
             if( type_proc.find( tn )==type_proc.end() ){
               std::map< TypeNode, std::vector< Node > >::iterator itel = eqc_list.find( tn );
               if( itel!=eqc_list.end() ){
@@ -1610,7 +1613,7 @@ void CardinalityExtension::preRegisterTerm(TNode n)
   {
     tn = n.getType();
   }
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
     return;
   }
@@ -1618,7 +1621,7 @@ void CardinalityExtension::preRegisterTerm(TNode n)
   if (it == d_rep_model.end())
   {
     SortModel* rm = nullptr;
-    if (tn.isSort())
+    if (tn.isUninterpretedSort())
     {
       Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
       rm = new SortModel(d_env, tn, d_state, d_im, this);
@@ -1799,4 +1802,4 @@ CardinalityExtension::Statistics::Statistics()
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

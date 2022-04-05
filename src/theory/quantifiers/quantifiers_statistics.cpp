@@ -17,7 +17,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -47,4 +47,4 @@ QuantifiersStatistics::QuantifiersStatistics()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

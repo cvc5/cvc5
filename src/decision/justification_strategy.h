@@ -31,7 +31,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 /**
@@ -252,6 +252,6 @@ class JustificationStrategy : public DecisionEngine
 };
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__JUSTIFICATION_STRATEGY_H */

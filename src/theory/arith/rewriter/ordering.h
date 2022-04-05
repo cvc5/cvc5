@@ -21,7 +21,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5::internal::theory::arith::rewriter {
 
 /**
  * Implements an ordering on arithmetic leaf nodes. We expect that values have
@@ -109,6 +109,6 @@ struct TermComparator
   }
 };
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace cvc5::internal::theory::arith::rewriter
 
 #endif

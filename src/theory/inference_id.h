@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Types of inferences used in the procedure
@@ -919,6 +919,6 @@ Node mkInferenceIdNode(InferenceId i);
 bool getInferenceId(TNode n, InferenceId& i);
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__INFERENCE_H */

@@ -26,7 +26,7 @@
 #include "expr/type_node.h"
 #include "util/cardinality_class.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * The Node-level representation of a constructor for a datatype, which
@@ -57,7 +57,7 @@ class DTypeConstructor
    * to this constructor.  Selector names need not be unique;
    * they are for convenience and pretty-printing only.
    */
-  void addArg(std::string selectorName, TypeNode selectorType);
+  void addArg(std::string selectorName, TypeNode rangeType);
   /**
    * Add an argument, given a pointer to a selector object.
    */
@@ -365,6 +365,6 @@ struct DTypeConstructorHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

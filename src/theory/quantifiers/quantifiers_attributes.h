@@ -21,7 +21,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Attribute true for function definition quantifiers */
@@ -235,6 +235,6 @@ class QuantAttributes
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name);
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

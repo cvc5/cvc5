@@ -27,11 +27,11 @@
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 
-using namespace cvc5::preprocessing;
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ExpandDefs::ExpandDefs(Env& env) : EnvObj(env), d_tpg(nullptr) {}
@@ -181,4 +181,4 @@ void ExpandDefs::enableProofs()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

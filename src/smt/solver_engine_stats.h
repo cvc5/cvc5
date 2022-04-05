@@ -20,7 +20,7 @@
 
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 struct SolverEngineStatistics
@@ -50,6 +50,6 @@ struct SolverEngineStatistics
 }; /* struct SolverEngineStatistics */
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SMT_ENGINE_STATS_H */

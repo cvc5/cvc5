@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Result::Result()
     : d_status(NONE), d_unknownExplanation(UNKNOWN_REASON), d_inputName("")
@@ -103,7 +103,7 @@ Result::Result(const std::string& instr, std::string inputName)
   }
 }
 
-Result::UnknownExplanation Result::getUnknownExplanation() const
+UnknownExplanation Result::getUnknownExplanation() const
 {
   PrettyCheckArgument(isUnknown(), this,
                       "This result is not unknown, so the reason for "
@@ -141,25 +141,6 @@ ostream& operator<<(ostream& out, enum Result::Status s)
   return out;
 }
 
-ostream& operator<<(ostream& out, enum Result::UnknownExplanation e)
-{
-  switch (e)
-  {
-    case Result::REQUIRES_FULL_CHECK: out << "REQUIRES_FULL_CHECK"; break;
-    case Result::INCOMPLETE: out << "INCOMPLETE"; break;
-    case Result::TIMEOUT: out << "TIMEOUT"; break;
-    case Result::RESOURCEOUT: out << "RESOURCEOUT"; break;
-    case Result::MEMOUT: out << "MEMOUT"; break;
-    case Result::INTERRUPTED: out << "INTERRUPTED"; break;
-    case Result::NO_STATUS: out << "NO_STATUS"; break;
-    case Result::UNSUPPORTED: out << "UNSUPPORTED"; break;
-    case Result::OTHER: out << "OTHER"; break;
-    case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
-    default: Unhandled() << e;
-  }
-  return out;
-}
-
 ostream& operator<<(ostream& out, const Result& r) {
   Language language = options::ioutils::getOutputLang(out);
   switch (language) {
@@ -186,7 +167,7 @@ void Result::toStreamDefault(std::ostream& out) const {
     case Result::SAT: out << "sat"; break;
     case Result::UNKNOWN:
       out << "unknown";
-      if (getUnknownExplanation() != Result::UNKNOWN_REASON)
+      if (getUnknownExplanation() != UnknownExplanation::UNKNOWN_REASON)
       {
         out << " (" << getUnknownExplanation() << ")";
       }
@@ -222,4 +203,4 @@ void Result::toStreamTptp(std::ostream& out) const {
   out << " for " << getInputName();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

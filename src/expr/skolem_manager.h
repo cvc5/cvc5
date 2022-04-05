@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofGenerator;
 
@@ -510,6 +510,6 @@ class SkolemManager
                     int flags = SKOLEM_DEFAULT);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__PROOF_SKOLEM_CACHE_H */

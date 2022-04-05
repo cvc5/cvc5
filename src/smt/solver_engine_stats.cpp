@@ -17,7 +17,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
@@ -44,4 +44,4 @@ SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

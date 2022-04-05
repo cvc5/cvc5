@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_letify.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -100,6 +100,6 @@ class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

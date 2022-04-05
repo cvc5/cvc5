@@ -23,15 +23,16 @@
 #include "proof/proof_node.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->sExprType());
-  d_argsMarker = nm->mkBoundVar(":args", nm->sExprType());
+  // use raw symbols so that `:args` is not converted to `|:args|`
+  d_conclusionMarker = nm->mkRawSymbol(":conclusion", nm->sExprType());
+  d_argsMarker = nm->mkRawSymbol(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
@@ -308,4 +309,4 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   return ArgFormat::DEFAULT;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

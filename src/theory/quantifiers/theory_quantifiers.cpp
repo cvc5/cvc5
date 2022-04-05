@@ -23,10 +23,10 @@
 #include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -185,4 +185,4 @@ bool TheoryQuantifiers::preNotifyFact(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

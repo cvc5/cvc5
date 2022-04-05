@@ -21,7 +21,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -59,6 +59,6 @@ struct EmptyBagHashFunction
   size_t operator()(const EmptyBag& es) const;
 }; /* struct EmptyBagHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EMPTY_BAG_H */

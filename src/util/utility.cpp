@@ -21,7 +21,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
 {
@@ -51,4 +51,4 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
   return tmpStream;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

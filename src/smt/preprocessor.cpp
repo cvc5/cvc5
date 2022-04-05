@@ -28,10 +28,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 Preprocessor::Preprocessor(Env& env,
@@ -159,4 +159,4 @@ void Preprocessor::enableProofs(PreprocessProofGenerator* pppg)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

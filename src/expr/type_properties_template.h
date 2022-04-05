@@ -30,7 +30,7 @@
 ${type_properties_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace kind {
 
 /**
@@ -101,6 +101,6 @@ Node mkGroundTerm(TypeConstant tc);
 Node mkGroundTerm(TypeNode typeNode);
 
 }  // namespace kind
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__TYPE_PROPERTIES_H */

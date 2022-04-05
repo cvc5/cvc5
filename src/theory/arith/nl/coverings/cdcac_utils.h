@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "theory/arith/nl/coverings/projections.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -108,7 +108,7 @@ void makeFinestSquareFreeBasis(CACInterval& lhs, CACInterval& rhs);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
 

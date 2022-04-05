@@ -24,7 +24,7 @@
 #include "base/exception.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class BitVector
 {
@@ -445,6 +445,6 @@ inline std::ostream& operator<<(std::ostream& os, const IntToBitVector& bv)
   return os << "[" << bv.d_size << "]";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BITVECTOR_H */

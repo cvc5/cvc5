@@ -50,10 +50,10 @@ enum class NamingResult
 class CVC5_EXPORT SymbolManager
 {
  public:
-  SymbolManager(api::Solver* s);
+  SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
   /** Get the underlying symbol table */
-  SymbolTable* getSymbolTable();
+  internal::SymbolTable* getSymbolTable();
   //---------------------------- named expressions
   /** Set name of term t to name
    *
@@ -65,7 +65,7 @@ class CVC5_EXPORT SymbolManager
    * @return true if the name was set. This method may return false if t
    * already has a name.
    */
-  NamingResult setExpressionName(api::Term t,
+  NamingResult setExpressionName(cvc5::Term t,
                                  const std::string& name,
                                  bool isAssertion = false);
   /** Get name for term t
@@ -76,7 +76,7 @@ class CVC5_EXPORT SymbolManager
    * @return true if t has a name. If so, name is updated to that name.
    * Otherwise, name is unchanged.
    */
-  bool getExpressionName(api::Term t,
+  bool getExpressionName(cvc5::Term t,
                          std::string& name,
                          bool isAssertion = false) const;
   /**
@@ -93,7 +93,7 @@ class CVC5_EXPORT SymbolManager
    * @param names The name list
    * @param areAssertions Whether we only wish to include assertion names
    */
-  void getExpressionNames(const std::vector<api::Term>& ts,
+  void getExpressionNames(const std::vector<cvc5::Term>& ts,
                           std::vector<std::string>& names,
                           bool areAssertions = false) const;
   /**
@@ -102,34 +102,34 @@ class CVC5_EXPORT SymbolManager
    * @param areAssertions Whether we only wish to include assertion names
    * @return the mapping containing all expression names.
    */
-  std::map<api::Term, std::string> getExpressionNames(
+  std::map<cvc5::Term, std::string> getExpressionNames(
       bool areAssertions = false) const;
   /**
    * @return The sorts we have declared that should be printed in the model.
    */
-  std::vector<api::Sort> getModelDeclareSorts() const;
+  std::vector<cvc5::Sort> getModelDeclareSorts() const;
   /**
    * @return The terms we have declared that should be printed in the model.
    */
-  std::vector<api::Term> getModelDeclareTerms() const;
+  std::vector<cvc5::Term> getModelDeclareTerms() const;
   /**
    * @return The functions we have declared that should be printed in a response
    * to check-synth.
    */
-  std::vector<api::Term> getFunctionsToSynthesize() const;
+  std::vector<cvc5::Term> getFunctionsToSynthesize() const;
   /**
    * Add declared sort to the list of model declarations.
    */
-  void addModelDeclarationSort(api::Sort s);
+  void addModelDeclarationSort(cvc5::Sort s);
   /**
    * Add declared term to the list of model declarations.
    */
-  void addModelDeclarationTerm(api::Term t);
+  void addModelDeclarationTerm(cvc5::Term t);
   /**
    * Add a function to synthesize. This ensures the solution for f is printed
    * in a successful response to check-synth.
    */
-  void addFunctionToSynthesize(api::Term f);
+  void addFunctionToSynthesize(cvc5::Term f);
 
   //---------------------------- end named expressions
   /**
@@ -174,11 +174,11 @@ class CVC5_EXPORT SymbolManager
 
  private:
   /** The API Solver object. */
-  api::Solver* d_solver;
+  cvc5::Solver* d_solver;
   /**
    * The declaration scope that is "owned" by this symbol manager.
    */
-  SymbolTable d_symtabAllocated;
+  internal::SymbolTable d_symtabAllocated;
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;

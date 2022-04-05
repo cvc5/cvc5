@@ -27,9 +27,9 @@
 #include "smt/solver_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::omt;
-namespace cvc5 {
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::omt;
+namespace cvc5::internal {
 namespace smt {
 
 std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
@@ -378,4 +378,4 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

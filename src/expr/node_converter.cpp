@@ -17,9 +17,9 @@
 
 #include "expr/attribute.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
 
@@ -261,4 +261,4 @@ TypeNode NodeConverter::postConvertType(TypeNode tn)
 }
 bool NodeConverter::shouldTraverse(Node n) { return true; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

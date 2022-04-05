@@ -17,7 +17,7 @@
 
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
@@ -171,4 +171,4 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -20,7 +20,7 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -121,4 +121,4 @@ void QuantifiersModules::initialize(Env& env,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

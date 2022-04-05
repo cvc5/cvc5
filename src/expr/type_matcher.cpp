@@ -17,7 +17,7 @@
 
 #include "expr/dtype.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TypeMatcher::TypeMatcher(TypeNode dt)
 {
@@ -136,4 +136,4 @@ void TypeMatcher::getMatches(std::vector<TypeNode>& types) const
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

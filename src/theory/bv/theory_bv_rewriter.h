@@ -23,7 +23,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -109,6 +109,6 @@ class TheoryBVRewriter : public TheoryRewriter
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BV__THEORY_BV_REWRITER_H */

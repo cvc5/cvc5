@@ -27,7 +27,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -72,6 +72,6 @@ class TheoryUfRewriter : public TheoryRewriter
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__UF__THEORY_UF_REWRITER_H */

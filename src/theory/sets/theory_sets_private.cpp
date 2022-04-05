@@ -30,9 +30,9 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -1143,7 +1143,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");
       }
-      cvc5::Rational r(INT_MAX);
+      cvc5::internal::Rational r(INT_MAX);
       if (node[1].getConst<Rational>() > r)
       {
         throw LogicException(
@@ -1298,4 +1298,4 @@ void TheorySetsPrivate::presolve() { d_state.reset(); }
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

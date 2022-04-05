@@ -20,8 +20,7 @@
 
 #include "context/context.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Most basic template for context-dependent objects.  Simply makes a copy
@@ -169,7 +168,6 @@ public:
 
 };/* class CDO */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDO_H */

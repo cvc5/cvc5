@@ -58,29 +58,31 @@ if __name__ == "__main__":
     constarr0 = slv.mkConstArray(arraySort, slv.mkBitVector(32, 0))
 
     # Asserting that current_array[0] > 0
-    current_array0 = slv.mkTerm(Kind.Select, current_array, zero)
-    current_array0_gt_0 = slv.mkTerm(Kind.BVSgt,
+    current_array0 = slv.mkTerm(Kind.SELECT, current_array, zero)
+    current_array0_gt_0 = slv.mkTerm(Kind.BITVECTOR_SGT,
                                      current_array0,
                                      slv.mkBitVector(32, 0))
     slv.assertFormula(current_array0_gt_0)
 
     # Building the assertions in the loop unrolling
     index = slv.mkBitVector(index_size, 0)
-    old_current = slv.mkTerm(Kind.Select, current_array, index)
+    old_current = slv.mkTerm(Kind.SELECT, current_array, index)
     two = slv.mkBitVector(32, 2)
 
     assertions = []
     for i in range(1, k):
         index = slv.mkBitVector(index_size, i)
-        new_current = slv.mkTerm(Kind.BVMult, two, old_current)
+        new_current = slv.mkTerm(Kind.BITVECTOR_MULT, two, old_current)
         # current[i] = 2*current[i-1]
-        current_array = slv.mkTerm(Kind.Store, current_array, index, new_current)
+        current_array = \
+                slv.mkTerm(Kind.STORE, current_array, index, new_current)
         # current[i-1] < current[i]
-        current_slt_new_current = slv.mkTerm(Kind.BVSlt, old_current, new_current)
+        current_slt_new_current = \
+                slv.mkTerm(Kind.BITVECTOR_SLT, old_current, new_current)
         assertions.append(current_slt_new_current)
-        old_current = slv.mkTerm(Kind.Select, current_array, index)
+        old_current = slv.mkTerm(Kind.SELECT, current_array, index)
 
-    query = slv.mkTerm(Kind.Not, slv.mkTerm(Kind.And, assertions))
+    query = slv.mkTerm(Kind.NOT, slv.mkTerm(Kind.AND, *assertions))
 
     print("Asserting {} to cvc5".format(query))
     slv.assertFormula(query)

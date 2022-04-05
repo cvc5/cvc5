@@ -13,8 +13,8 @@
  * A node value.
  *
  * The actual node implementation.
- * Instances of this class are generally referenced through cvc5::Node rather
- * than by pointer. Note that cvc5::Node maintains the reference count on
+ * Instances of this class are generally referenced through cvc5::internal::Node rather
+ * than by pointer. Note that cvc5::internal::Node maintains the reference count on
  * NodeValue instances.
  */
 
@@ -30,7 +30,7 @@
 #include "expr/metakind.h"
 #include "options/language.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <bool ref_count> class NodeTemplate;
 class TypeNode;
@@ -44,7 +44,7 @@ namespace expr {
 namespace kind {
   namespace metakind {
 
-  template < ::cvc5::Kind k, class T, bool pool>
+  template <cvc5::internal::Kind k, class T, bool pool>
   struct NodeValueConstCompare;
 
   struct NodeValueCompare;
@@ -60,10 +60,10 @@ namespace expr {
 class NodeValue
 {
   template <bool>
-  friend class ::cvc5::NodeTemplate;
-  friend class ::cvc5::TypeNode;
-  friend class ::cvc5::NodeBuilder;
-  friend class ::cvc5::NodeManager;
+  friend class cvc5::internal::NodeTemplate;
+  friend class cvc5::internal::TypeNode;
+  friend class cvc5::internal::NodeBuilder;
+  friend class cvc5::internal::NodeManager;
 
   template <Kind k, class T, bool pool>
   friend struct kind::metakind::NodeValueConstCompare;
@@ -478,6 +478,6 @@ inline NodeValue* NodeValue::getChild(int i) const {
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__NODE_VALUE_H */

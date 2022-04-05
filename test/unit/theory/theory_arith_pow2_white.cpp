@@ -21,7 +21,7 @@
 #include "theory/arith/nl/pow2_solver.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -43,4 +43,4 @@ class TestTheoryWhiteArithPow2 : public TestSmtNoFinishInit
   Node d_one;
 };
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

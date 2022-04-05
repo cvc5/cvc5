@@ -18,7 +18,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -43,8 +43,7 @@ Info::~Info() {
   in_stores->deleteSelf();
 }
 
-ArrayInfo::ArrayInfo(context::Context* c,
-                     std::string statisticsPrefix)
+ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
     : ct(c),
       info_map(),
       d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(
@@ -503,4 +502,4 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

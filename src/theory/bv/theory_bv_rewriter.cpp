@@ -26,9 +26,9 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 
-using namespace cvc5;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
 TheoryBVRewriter::TheoryBVRewriter() { initializeRewrites(); }
 

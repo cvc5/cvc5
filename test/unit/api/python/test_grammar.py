@@ -34,7 +34,7 @@ def test_add_rule(solver):
     nts = solver.mkVar(boolean)
 
     # expecting no error
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
 
     g.addRule(start, solver.mkBoolean(False))
 
@@ -67,7 +67,7 @@ def test_add_rules(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
 
     g.addRules(start, {solver.mkBoolean(False)})
 
@@ -98,7 +98,7 @@ def test_add_any_constant(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g = solver.mkSygusGrammar({}, {start})
+    g = solver.mkGrammar({}, {start})
 
     g.addAnyConstant(start)
     g.addAnyConstant(start)
@@ -123,8 +123,8 @@ def test_add_any_variable(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g1 = solver.mkSygusGrammar({x}, {start})
-    g2 = solver.mkSygusGrammar({}, {start})
+    g1 = solver.mkGrammar({x}, {start})
+    g2 = solver.mkGrammar({}, {start})
 
     g1.addAnyVariable(start)
     g1.addAnyVariable(start)

@@ -20,9 +20,9 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_node.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -60,4 +60,4 @@ Node SkolemCache::getEqRangeVar(TNode eqr)
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

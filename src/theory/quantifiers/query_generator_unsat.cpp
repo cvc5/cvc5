@@ -21,7 +21,7 @@
 #include "smt/env.h"
 #include "util/random.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -170,4 +170,4 @@ size_t QueryGeneratorUnsat::getNextRandomIndex(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

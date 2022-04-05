@@ -22,7 +22,7 @@
 #include "theory/type_enumerator.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -330,4 +330,4 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

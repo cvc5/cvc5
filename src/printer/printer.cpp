@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 unique_ptr<Printer>
     Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
@@ -376,7 +376,8 @@ void Printer::toStreamCmdGetModel(std::ostream& out) const
   printUnknownCommand(out, "ge-model");
 }
 
-void Printer::toStreamCmdBlockModel(std::ostream& out) const
+void Printer::toStreamCmdBlockModel(std::ostream& out,
+                                    modes::BlockModelsMode mode) const
 {
   printUnknownCommand(out, "block-model");
 }
@@ -524,15 +525,15 @@ void Printer::toStreamCmdDeclareHeap(std::ostream& out,
 }
 
 void Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   printUnknownCommand(out, "sequence");
 }
 
 void Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   printUnknownCommand(out, "sequence");
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

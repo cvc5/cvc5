@@ -24,7 +24,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "test_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackBooleanSimplification : public TestNode
@@ -240,4 +240,4 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
 #endif
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

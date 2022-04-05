@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 DatatypeIndexConstant::DatatypeIndexConstant(uint32_t index) : d_index(index) {}
 std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic)
@@ -35,4 +35,4 @@ size_t DatatypeIndexConstantHashFunction::operator()(
   return IntegerHashFunction()(dic.getIndex());
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

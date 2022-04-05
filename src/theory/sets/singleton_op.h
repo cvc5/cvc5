@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -58,6 +58,6 @@ struct SetSingletonOpHashFunction
   size_t operator()(const SetSingletonOp& op) const;
 }; /* struct SetSingletonOpHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SETS__SINGLETON_OP_H */

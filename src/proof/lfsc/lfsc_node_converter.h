@@ -24,7 +24,7 @@
 #include "expr/node_converter.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -97,7 +97,9 @@ class LfscNodeConverter : public NodeConverter
    * has a distinguished status so that it is *not* printed as (bvar ...). The
    * returned variable is always fresh.
    */
-  Node mkInternalSymbol(const std::string& name, TypeNode tn);
+  Node mkInternalSymbol(const std::string& name,
+                        TypeNode tn,
+                        bool useRawSym = true);
   /**
    * Get builtin kind for internal symbol op
    */
@@ -134,14 +136,19 @@ class LfscNodeConverter : public NodeConverter
    * Get symbol for term, a special case of the method below for the type and
    * kind of n.
    */
-  Node getSymbolInternalFor(Node n, const std::string& name);
+  Node getSymbolInternalFor(Node n,
+                            const std::string& name,
+                            bool useRawSym = true);
   /**
    * Get symbol internal, (k,tn,name) are for caching, name is the name. This
    * method returns a fresh symbol of the given name and type. It is frequently
    * used when the type of a native operator does not match the type of the
    * LFSC operator.
    */
-  Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name);
+  Node getSymbolInternal(Kind k,
+                         TypeNode tn,
+                         const std::string& name,
+                         bool useRawSym = true);
   /**
    * Get character vector, add internal vector of characters for c.
    */
@@ -176,6 +183,6 @@ class LfscNodeConverter : public NodeConverter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

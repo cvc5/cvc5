@@ -27,7 +27,7 @@
 
 #include "util/ostream_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // standard helper, see https://en.cppreference.com/w/cpp/utility/variant/visit
 template <class... Ts>
@@ -110,4 +110,4 @@ uint64_t StatisticTimerValue::get() const
   return static_cast<int64_t>(data / std::chrono::milliseconds(1));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

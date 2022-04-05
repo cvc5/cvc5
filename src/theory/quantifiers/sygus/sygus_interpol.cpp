@@ -28,7 +28,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -65,7 +65,8 @@ void SygusInterpol::createVariables(bool needsShared)
   for (const Node& s : d_syms)
   {
     TypeNode tn = s.getType();
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // datatype symbols should be considered interpreted symbols here, not
       // (higher-order) variables.
@@ -373,4 +374,4 @@ bool SygusInterpol::solveInterpolationNext(Node& interpol)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

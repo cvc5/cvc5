@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
@@ -155,4 +155,4 @@ std::optional<Rational> Rational::fromDouble(double d)
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

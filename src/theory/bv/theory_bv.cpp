@@ -28,7 +28,7 @@
 #include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -472,4 +472,4 @@ TheoryBV::Statistics::Statistics(StatisticsRegistry& reg,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

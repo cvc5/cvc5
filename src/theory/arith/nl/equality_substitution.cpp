@@ -18,7 +18,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -216,4 +216,4 @@ void EqualitySubstitution::addToConflictMap(const Node& n,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

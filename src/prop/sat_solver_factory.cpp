@@ -20,7 +20,7 @@
 #include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
@@ -72,4 +72,4 @@ SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -18,8 +18,8 @@
 #include "proof/lfsc/lfsc_node_converter.h"
 #include "test.h"
 
-namespace cvc5 {
-using namespace cvc5::proof;
+namespace cvc5::internal {
+using namespace cvc5::internal::proof;
 
 namespace test {
 
@@ -57,4 +57,4 @@ TEST_F(TestLfscNodeConverterBlack, ident_sanitize)
 
 }  // namespace test
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

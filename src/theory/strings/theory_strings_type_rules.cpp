@@ -22,7 +22,7 @@
 #include "theory/strings/seq_unit_op.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -391,4 +391,4 @@ Node SequenceProperties::mkGroundTerm(TypeNode type)
 }
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

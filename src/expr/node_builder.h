@@ -148,7 +148,7 @@
 #include "expr/node_value.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 
@@ -404,6 +404,6 @@ class NodeBuilder {
 // isn't yet a Node..
 std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_BUILDER_H */

@@ -23,9 +23,9 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
@@ -621,4 +621,4 @@ std::string TConvProofGenerator::toStringDebug() const
   return ss.str();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

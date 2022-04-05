@@ -23,10 +23,10 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -418,4 +418,4 @@ Node LearnedRewrite::returnRewriteLearned(Node n, Node nr, LearnedRewriteId id)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

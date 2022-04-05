@@ -23,7 +23,7 @@
 #include "proof/proof_rule.h"
 #include "theory/theory_inference_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -72,6 +72,6 @@ class InferenceManager : public TheoryInferenceManager
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

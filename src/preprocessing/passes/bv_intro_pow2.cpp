@@ -25,12 +25,12 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using NodeMap = std::unordered_map<Node, Node>;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-intro-pow2"){};
@@ -142,4 +142,4 @@ Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
 }  // namespace passes
 }  // namespace preprocessing
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

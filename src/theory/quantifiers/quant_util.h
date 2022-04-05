@@ -27,7 +27,7 @@
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Quantifiers utility
@@ -112,6 +112,6 @@ public:
 };
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANT_UTIL_H */

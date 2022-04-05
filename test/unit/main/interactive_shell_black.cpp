@@ -26,7 +26,7 @@
 #include "smt/command.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestMainBlackInteractiveShell : public TestInternal
@@ -39,7 +39,7 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_sin = std::make_unique<std::stringstream>();
     d_sout = std::make_unique<std::stringstream>();
 
-    d_solver.reset(new cvc5::api::Solver());
+    d_solver.reset(new cvc5::Solver());
     d_solver->setOption("input-language", "smt2");
     d_symman.reset(new SymbolManager(d_solver.get()));
   }
@@ -79,7 +79,7 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<SymbolManager> d_symman;
-  std::unique_ptr<cvc5::api::Solver> d_solver;
+  std::unique_ptr<cvc5::Solver> d_solver;
 };
 
 TEST_F(TestMainBlackInteractiveShell, assert_true)
@@ -131,4 +131,4 @@ TEST_F(TestMainBlackInteractiveShell, repeated_empty_lines)
   countCommands(shell, 0, 3);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

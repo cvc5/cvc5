@@ -24,7 +24,7 @@
 #include "expr/node_manager.h"
 #include "options/options.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 class StatisticsRegistry;
@@ -56,6 +56,6 @@ class SolverEngineScope
 }; /* class SolverEngineScope */
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SMT_ENGINE_SCOPE_H */

@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 RemoveTermFormulas::RemoveTermFormulas(Env& env)
     : EnvObj(env),
@@ -516,4 +516,4 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 
 bool RemoveTermFormulas::isProofEnabled() const { return d_tpg != nullptr; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -30,7 +30,7 @@ ${options_includes}$
 #include <iostream>
 #include <limits>
 
-namespace cvc5::options
+namespace cvc5::internal::options
 {
   // Contains the default option handlers (i.e. parsers)
   namespace handlers {
@@ -231,4 +231,4 @@ OptionInfo getInfo(const Options& opts, const std::string& name)
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options

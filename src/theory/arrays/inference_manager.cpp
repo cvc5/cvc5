@@ -21,9 +21,9 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -132,4 +132,4 @@ void InferenceManager::convert(PfRule& id,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

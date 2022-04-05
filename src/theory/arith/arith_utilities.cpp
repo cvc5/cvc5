@@ -17,9 +17,9 @@
 
 #include <cmath>
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -337,4 +337,4 @@ Node multConstants(const Node& c1, const Node& c2)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

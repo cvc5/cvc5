@@ -22,7 +22,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -67,6 +67,6 @@ struct ArrayStoreAllHashFunction
   size_t operator()(const ArrayStoreAll& asa) const;
 }; /* struct ArrayStoreAllHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__ARRAY_STORE_ALL_H */

@@ -22,7 +22,7 @@
 
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -127,6 +127,6 @@ class SolverState : public TheoryState
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H */

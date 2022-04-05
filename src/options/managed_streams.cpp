@@ -27,7 +27,7 @@
 
 #include "options/option_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::string cvc5_errno_failreason()
 {
@@ -151,4 +151,4 @@ bool ManagedOut::specialCases(const std::string& value)
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

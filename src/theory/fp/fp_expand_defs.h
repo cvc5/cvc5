@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -64,6 +64,6 @@ class FpExpandDefs
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__FP__THEORY_FP_H */

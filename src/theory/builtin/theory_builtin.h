@@ -24,7 +24,7 @@
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -56,6 +56,6 @@ class TheoryBuiltin : public Theory
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H */

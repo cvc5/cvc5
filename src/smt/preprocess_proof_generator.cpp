@@ -26,7 +26,7 @@
 #include "smt/env.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(
@@ -265,4 +265,4 @@ void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

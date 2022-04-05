@@ -18,9 +18,9 @@
 
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 DecisionStrategyFmf::DecisionStrategyFmf(Env& env, Valuation valuation)
@@ -147,4 +147,4 @@ Node DecisionStrategySingleton::mkLiteral(unsigned n)
 Node DecisionStrategySingleton::getSingleLiteral() { return d_literal; }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

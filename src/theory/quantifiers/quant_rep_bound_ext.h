@@ -24,7 +24,7 @@
 #include "theory/rep_set.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -68,6 +68,6 @@ class QRepBoundExt : public RepBoundExt
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__FIRST_ORDER_MODEL_H */

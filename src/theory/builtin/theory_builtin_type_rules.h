@@ -23,7 +23,7 @@
 
 #include <sstream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -66,6 +66,6 @@ class SortProperties
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */

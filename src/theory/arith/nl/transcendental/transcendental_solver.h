@@ -24,7 +24,7 @@
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -220,6 +220,6 @@ class TranscendentalSolver : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

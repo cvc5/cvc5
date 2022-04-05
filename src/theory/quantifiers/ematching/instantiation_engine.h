@@ -25,7 +25,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -77,6 +77,6 @@ class InstantiationEngine : public QuantifiersModule {
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

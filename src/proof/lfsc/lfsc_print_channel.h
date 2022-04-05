@@ -26,7 +26,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -123,6 +123,6 @@ class LfscPrintChannelPre : public LfscPrintChannel
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

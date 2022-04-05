@@ -24,7 +24,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -115,6 +115,6 @@ class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_ENUMERATOR_CALLBACK_H */

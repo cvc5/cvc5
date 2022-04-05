@@ -17,9 +17,9 @@
 
 #include "proof/proof.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc,
                                              bool ensureUnique,
@@ -242,4 +242,4 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
   return n;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -29,7 +29,7 @@
 #include "smt/command.h"
 #include "test_api.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace parser;
 
@@ -42,7 +42,7 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkEmptyInput(Parser* parser)
   {
-    api::Term e = parser->nextExpression();
+    cvc5::Term e = parser->nextExpression();
     ASSERT_TRUE(e.isNull());
   }
 
@@ -143,4 +143,4 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

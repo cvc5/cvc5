@@ -29,7 +29,7 @@
 #include "proof/proof_set.h"
 #include "theory/arith/nl/coverings/cdcac_utils.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofGenerator;
 
@@ -153,7 +153,7 @@ std::ostream& operator<<(std::ostream& os, const CoveringsProofGenerator& proof)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif
 #endif

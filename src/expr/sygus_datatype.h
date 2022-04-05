@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /** Attribute true for variables that represent any constant */
 struct SygusAnyConstAttributeId
@@ -135,6 +135,6 @@ class SygusDatatype
   DType d_dt;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

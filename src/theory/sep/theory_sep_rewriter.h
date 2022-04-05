@@ -24,7 +24,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -50,6 +50,6 @@ class TheorySepRewriter : public TheoryRewriter
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SEP__THEORY_SEP_REWRITER_H */

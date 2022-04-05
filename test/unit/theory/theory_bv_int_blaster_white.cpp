@@ -24,7 +24,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -321,4 +321,4 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

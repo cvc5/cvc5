@@ -18,7 +18,7 @@
 #include "test.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilWhiteRational : public TestInternal
@@ -415,4 +415,4 @@ TEST_F(TestUtilWhiteRational, constructrion)
   ASSERT_EQ(Rational(u), Rational(u));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

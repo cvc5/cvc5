@@ -23,7 +23,7 @@
 #include "smt/env.h"
 #include "theory/arith/nl/ext/monomial.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class CDProof;
 
@@ -85,6 +85,6 @@ struct ExtState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

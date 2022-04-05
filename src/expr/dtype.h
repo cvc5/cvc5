@@ -27,7 +27,7 @@
 #include "expr/type_node.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // ----------------------- datatype attributes
 /**
@@ -436,6 +436,14 @@ class DType
 
  private:
   /**
+   * Collect unresolved datatype types. This is called by NodeManager when
+   * constructing datatypes from datatype declarations. This adds all
+   * unresolved datatype types to unresTypes, which are then considered
+   * when constructing the datatype (for details, see
+   * NodeManager::mkMutualDatatypeTypesInternal).
+   */
+  void collectUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const;
+  /**
    * DTypes refer to themselves, recursively, and we have a
    * chicken-and-egg problem.  The TypeNode around the DType
    * cannot exist until the DType is finalized, and the DType
@@ -681,6 +689,6 @@ struct DTypeIndexConstantHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

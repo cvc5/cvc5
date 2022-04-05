@@ -44,9 +44,7 @@
 
 #pragma once
 
-namespace cvc5 {
-namespace context {
-
+namespace cvc5::context {
 
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
@@ -349,7 +347,8 @@ public:
 };/* class CDInsertHashMap<> */
 
 template <class Data, class HashFcn>
-class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
+class CDInsertHashMap<internal::TNode, Data, HashFcn> : public ContextObj
+{
   /* CDInsertHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -365,5 +364,4 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

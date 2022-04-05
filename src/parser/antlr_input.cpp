@@ -31,8 +31,6 @@
 #include "parser/tptp/tptp_input.h"
 
 using namespace std;
-using namespace cvc5;
-using namespace cvc5::parser;
 
 namespace cvc5 {
 namespace parser {

@@ -23,7 +23,7 @@
 #include "proof/proof_node.h"
 #include "theory/quantifiers/instantiation_list.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace smt {
 
@@ -69,6 +69,6 @@ class UnsatCoreManager
 }; /* class UnsatCoreManager */
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__UNSAT_CORE_MANAGER_H */

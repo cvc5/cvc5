@@ -20,9 +20,7 @@
 #include "base/check.h"
 #include "context/context.h"
 
-namespace cvc5 {
-namespace context {
-
+namespace cvc5::context {
 
 Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
   // Create new memory manager
@@ -347,5 +345,4 @@ void Scope::enqueueToGarbageCollect(ContextObj* obj) {
   d_garbage.push_back(obj);
 }
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

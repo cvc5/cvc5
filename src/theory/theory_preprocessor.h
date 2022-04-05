@@ -31,7 +31,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/skolem_lemma.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LogicInfo;
 class TheoryEngine;
@@ -206,6 +206,6 @@ class TheoryPreprocessor : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_PREPROCESSOR_H */

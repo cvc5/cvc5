@@ -20,7 +20,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 ProofCnfStream::ProofCnfStream(Env& env,
@@ -636,7 +636,11 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
-
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
+                                           d_currPropagationProccessed);
+  // Reset
   d_currPropagationProccessed = Node::null();
 }
 
@@ -654,6 +658,9 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
       d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
   Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
 }
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
@@ -1111,4 +1118,4 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

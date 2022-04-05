@@ -21,7 +21,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 SatProofManager::SatProofManager(Env& env,
@@ -39,6 +39,7 @@ SatProofManager::SatProofManager(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
 }
 
 void SatProofManager::printClause(const Minisat::Clause& clause)
@@ -796,6 +797,13 @@ void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
   }
 }
 
+void SatProofManager::notifyAssumptionInsertedAtLevel(int level,
+                                                      Node assumption)
+{
+  Assert(d_assumptions.contains(assumption));
+  d_assumptionLevels[level].push_back(assumption);
+}
+
 void SatProofManager::notifyPop()
 {
   for (context::CDHashMap<Node, int>::const_iterator it =
@@ -804,7 +812,7 @@ void SatProofManager::notifyPop()
        ++it)
   {
     // Save into map the proof of the resolution chain. We copy to prevent the
-    // proof node saved to be restored to suffering unintended updates. This is
+    // proof node saved to be restored of suffering unintended updates. This is
     // *necessary*.
     std::shared_ptr<ProofNode> clauseResPf =
         d_env.getProofNodeManager()->clone(d_resChains.getProofFor(it->first));
@@ -814,4 +822,4 @@ void SatProofManager::notifyPop()
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

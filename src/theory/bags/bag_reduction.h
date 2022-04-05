@@ -22,7 +22,7 @@
 #include "smt/env_obj.h"
 #include "theory/bags/inference_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -102,6 +102,6 @@ class BagReduction : EnvObj
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BAG_REDUCTION_H */

@@ -33,9 +33,9 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -99,6 +99,17 @@ void NonlinearExtension::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
          << " requires nl-ext mode to be set to value 'full'";
+      throw LogicException(ss.str());
+    }
+  }
+  if (isTranscendentalKind(k) || k == Kind::IAND || k == Kind::POW2)
+  {
+    if (options().arith.nlCov && !options().arith.nlCovForce)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " is not compatible with using the coverings-based solver. If you know what you are doing, "
+          "you can try --nl-cov-force, but expect crashes or incorrect results.";
       throw LogicException(ss.str());
     }
   }
@@ -529,4 +540,4 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
