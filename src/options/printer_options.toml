@@ -31,3 +31,11 @@ name   = "Printing"
   type       = "bool"
   default    = "true"
   help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
+  name       = "printDotClusters"
+  category   = "regular"
+  long       = "print-dot-clusters"
+  type       = "bool"
+  default    = "false"
+  help       = "Indicates if the nodes clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format."
