@@ -426,11 +426,14 @@ class CVC5_EXPORT Sort
   /**
    * Get the symbol of this Sort.
    *
-   * Asserts hasSymbol(). The symbol of this sort is the string that was
+   * @note Asserts hasSymbol().
+   *
+   * The symbol of this sort is the string that was
    * provided when constructing it via
    * Solver::mkUninterpretedSort(const std::string&) const,
    * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
    * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
+   *
    * @return The raw symbol of the sort.
    */
   std::string getSymbol() const;
@@ -893,8 +896,9 @@ namespace cvc5 {
 
 /**
  * A cvc5 operator.
+ *
  * An operator is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ * with its required parameters, e.g., a Term of kind #BITVECTOR_EXTRACT.
  */
 class CVC5_EXPORT Op
 {
@@ -915,19 +919,21 @@ class CVC5_EXPORT Op
 
   /**
    * Syntactic equality operator.
-   * Return true if both operators are syntactically identical.
-   * Both operators must belong to the same solver object.
+   *
+   * @note Both operators must belong to the same solver object.
+   *
    * @param t The operator to compare to for equality.
-   * @return True if the operators are equal.
+   * @return True if both operators are syntactically identical.
    */
   bool operator==(const Op& t) const;
 
   /**
    * Syntactic disequality operator.
-   * Return true if both operators differ syntactically.
-   * Both terms must belong to the same solver object.
+   *
+   * @note Both terms must belong to the same solver object.
+   *
    * @param t The operator to compare to for disequality.
-   * @return True if operators are disequal.
+   * @return True if operators differ syntactically.
    */
   bool operator!=(const Op& t) const;
 
@@ -952,7 +958,7 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
-   * Get the index at position i.
+   * Get the index at position `i`.
    * @param i The position of the index to return.
    * @return The index at position i.
    */
@@ -1151,23 +1157,28 @@ class CVC5_EXPORT Term
   Sort getSort() const;
 
   /**
-   * @return The result of replacing 'term' by 'replacement' in this term.
+   * Replace `term` with `replacement` in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point.
+   * @return The result of replacing `term` with `replacement` in this term.
+   *
+   * @note This replacement is applied during a pre-order traversal and
+   *       only once (it is not run until fixed point).
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return The result of simultaneously replacing 'terms' by 'replacements'
-   *         in this term.
+   * Simultaneously replace `terms` with `replacements` in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point. In the case that
-   * terms contains duplicates, the replacement earliest in the vector takes
-   * priority. For example, calling substitute on f(x,y) with
-   *   terms = { x, z }, replacements = { g(z), w }
-   * results in the term f(g(z),y).
+   * In the case that terms contains duplicates, the replacement earliest in
+   * the vector takes priority. For example, calling substitute on `f(x,y)`
+   * with `terms = { x, z }`, `replacements = { g(z), w }` results in the term
+   * `f(g(z),y)`.
+   *
+   * @note This replacement is applied during a pre-order traversal and
+   *       only once (it is not run until fixed point).
+   *
+   * @return The result of simultaneously replacing `terms` with `replacements`
+   *         in this term.
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
@@ -1195,8 +1206,11 @@ class CVC5_EXPORT Term
   /**
    * Get the symbol of this Term.
    *
-   * Asserts hasSymbol(). The symbol of the term is the string that was
+   * @note Asserts hasSymbol().
+   *
+   * The symbol of the term is the string that was
    * provided when constructing it via Solver::mkConst() or Solver::mkVar().
+   *
    * @return The raw symbol of the term.
    */
   std::string getSymbol() const;
@@ -1382,8 +1396,9 @@ class CVC5_EXPORT Term
    */
   bool isInt32Value() const;
   /**
-   * Asserts isInt32Value().
-   * @return The integer term as a int32_t.
+   * Get the `int32_t` representation of  this integer value.
+   * @note Asserts isInt32Value().
+   * @return This integer value as a `int32_t`.
    */
   int32_t getInt32Value() const;
   /**
@@ -1391,8 +1406,9 @@ class CVC5_EXPORT Term
    */
   bool isUInt32Value() const;
   /**
-   * Asserts isUInt32Value().
-   * @return The integer term as a uint32_t.
+   * Get the `uint32_t` representation of this integer value.
+   * @note Asserts isUInt32Value().
+   * @return This integer value as a `uint32_t`.
    */
   uint32_t getUInt32Value() const;
   /**
@@ -1400,8 +1416,9 @@ class CVC5_EXPORT Term
    */
   bool isInt64Value() const;
   /**
-   * Asserts isInt64Value().
-   * @return The integer term as a int64_t.
+   * Get the `int64_t` representation of this integer value.
+   * @note Asserts isInt64Value().
+   * @return This integer value as a `int64_t`.
    */
   int64_t getInt64Value() const;
   /**
@@ -1409,8 +1426,9 @@ class CVC5_EXPORT Term
    */
   bool isUInt64Value() const;
   /**
-   * Asserts isUInt64Value().
-   * @return The integer term as a uint64_t.
+   * Get the `uint64_t` representation of this integer value.
+   * @note Asserts isUInt64Value().
+   * @return This integer value as a `uint64_t`.
    */
   uint64_t getUInt64Value() const;
   /**
@@ -1418,7 +1436,7 @@ class CVC5_EXPORT Term
    */
   bool isIntegerValue() const;
   /**
-   * Asserts isIntegerValue().
+   * @note Asserts isIntegerValue().
    * @return The integer term in (decimal) string representation.
    */
   std::string getIntegerValue() const;
@@ -1428,7 +1446,7 @@ class CVC5_EXPORT Term
    */
   bool isStringValue() const;
   /**
-   * Asserts isStringValue().
+   * @note Asserts isStringValue().
    * @note This method is not to be confused with toString(), which returns
    *       some string representation of the term, whatever data it may hold.
    * @return The string term as a native string value.
@@ -1441,7 +1459,7 @@ class CVC5_EXPORT Term
    */
   bool isReal32Value() const;
   /**
-   * Asserts isReal32Value().
+   * @note Asserts isReal32Value().
    * @return The representation of a rational value as a pair of its numerator
    *         and denominator.
    */
@@ -1452,7 +1470,7 @@ class CVC5_EXPORT Term
    */
   bool isReal64Value() const;
   /**
-   * Asserts isReal64Value().
+   * @note Asserts isReal64Value().
    * @return The representation of a rational value as a pair of its numerator
    *         and denominator.
    */
@@ -1463,7 +1481,7 @@ class CVC5_EXPORT Term
    */
   bool isRealValue() const;
   /**
-   * Asserts isRealValue().
+   * @note Asserts isRealValue().
    * @return The representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
@@ -1473,7 +1491,7 @@ class CVC5_EXPORT Term
    */
   bool isConstArray() const;
   /**
-   * Asserts isConstArray().
+   * @note Asserts isConstArray().
    * @return The base (element stored at all indices) of a constant array.
    */
   Term getConstArrayBase() const;
@@ -1483,7 +1501,7 @@ class CVC5_EXPORT Term
    */
   bool isBooleanValue() const;
   /**
-   * Asserts isBooleanValue().
+   * @note Asserts isBooleanValue().
    * @return The representation of a Boolean value as a native Boolean value.
    */
   bool getBooleanValue() const;
@@ -1509,7 +1527,7 @@ class CVC5_EXPORT Term
    */
   bool isUninterpretedSortValue() const;
   /**
-   * Asserts isUninterpretedSortValue().
+   * @note Asserts isUninterpretedSortValue().
    * @return The representation of an uninterpreted sort value as a string.
    */
   std::string getUninterpretedSortValue() const;
@@ -1519,7 +1537,7 @@ class CVC5_EXPORT Term
    */
   bool isTupleValue() const;
   /**
-   * Asserts isTupleValue().
+   * @note Asserts isTupleValue().
    * @return The representation of a tuple value as a vector of terms.
    */
   std::vector<Term> getTupleValue() const;
@@ -1529,7 +1547,7 @@ class CVC5_EXPORT Term
    */
   bool isRoundingModeValue() const;
   /**
-   * Asserts isRoundingModeValue().
+   * @note Asserts isRoundingModeValue().
    * @return The floating-point rounding mode value held by the term.
    */
   RoundingMode getRoundingModeValue() const;
@@ -1561,7 +1579,7 @@ class CVC5_EXPORT Term
    */
   bool isFloatingPointValue() const;
   /**
-   * Asserts isFloatingPointValue().
+   * @note Asserts isFloatingPointValue().
    * @return The representation of a floating-point value as a tuple of the
    *         exponent width, the significand width and a bit-vector value.
    */
@@ -1587,7 +1605,7 @@ class CVC5_EXPORT Term
    */
   bool isSetValue() const;
   /**
-   * Asserts isSetValue().
+   * @note Asserts isSetValue().
    * @return The representation of a set value as a set of terms.
    */
   std::set<Term> getSetValue() const;
@@ -1640,7 +1658,7 @@ class CVC5_EXPORT Term
    */
   bool isSequenceValue() const;
   /**
-   * Asserts isSequenceValue().
+   * @note Asserts isSequenceValue().
    * @return The representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
@@ -1650,7 +1668,7 @@ class CVC5_EXPORT Term
    */
   bool isCardinalityConstraint() const;
   /**
-   * Asserts isCardinalityConstraint().
+   * @note Asserts isCardinalityConstraint().
    * @return The sort the cardinality constraint is for and its upper bound.
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
@@ -1866,7 +1884,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isNullHelper() const;
 
   /**
-   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * Is the underlying constructor resolved (i.e,. has it been used to declare
    * a datatype already)?
    */
   bool isResolved() const;
@@ -2132,9 +2150,11 @@ class CVC5_EXPORT DatatypeConstructor
 
   /**
    * Get the constructor term of this datatype constructor whose return
-   * type is retSort. This method is intended to be used on constructors of
-   * parametric datatypes and can be seen as returning the constructor
-   * term that has been explicitly cast to the given sort.
+   * type is `retSort`.
+   *
+   * This method is intended to be used on constructors of parametric datatypes
+   * and can be seen as returning the constructor term that has been explicitly
+   * cast to the given sort.
    *
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
@@ -2156,12 +2176,12 @@ class CVC5_EXPORT DatatypeConstructor
    * \endverbatim
    *
    * This method is equivalent of applying the above, where this
-   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * DatatypeConstructor is the one corresponding to `nil`, and `retSort` is
    * `(List Int)`.
    *
-   * @note the returned constructor term `t` is the constructor, while
-   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
-   *       above (nullary) application of nil.
+   * @note The returned constructor term `t` is used to construct the above
+   *       (nullary) application of `nil` with
+   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`.
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -2959,23 +2979,35 @@ struct CVC5_EXPORT OptionInfo
                                          ModeInfo>;
   /** The option value information */
   OptionInfoVariant valueInfo;
-  /** Obtain the current value as a `bool`. Asserts that `valueInfo` holds a
-   * `bool`.
+  /**
+   * Get the current value as a `bool`.
+   * @note Asserts that `valueInfo` holds a `bool`.
+   * @return The current value as a `bool`.
    */
   bool boolValue() const;
-  /** Obtain the current value as a `std::string`. Asserts that `valueInfo`
-   * holds a `std::string`. */
+  /**
+   * Get the current value as a `std::string`.
+   * @note Asserts that `valueInfo` holds a `std::string`.
+   * @return The current value as a `std::string`.
+   */
   std::string stringValue() const;
-  /** Obtain the current value as an `int64_t`. Asserts that `valueInfo` holds
-   * an `int64_t`.
+  /**
+   * Get the current value as an `int64_t`.
+   * @note Asserts that `valueInfo` holds an `int64_t`.
+   * @return The current value as a `int64_t`.
    */
   int64_t intValue() const;
-  /** Obtain the current value as a `uint64_t`. Asserts that `valueInfo` holds a
-   * `uint64_t`.
+  /**
+   * Get the current value as a `uint64_t`.
+   * @note Asserts that `valueInfo` holds a `uint64_t`.
+   * @return The current value as a `uint64_t`.
    */
   uint64_t uintValue() const;
-  /** Obtain the current value as a `double`. Asserts that `valueInfo` holds a
-   * `double`. */
+  /**
+   * Obtain the current value as a `double`.
+   * @note Asserts that `valueInfo` holds a `double`.
+   * @return The current value as a `double`.
+   */
   double doubleValue() const;
 };
 
@@ -3144,9 +3176,9 @@ class CVC5_EXPORT Statistics
 
   /**
    * Retrieve the statistic with the given name.
-   * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC5ApiRecoverableException` if it does not.
-   * @param name Name of the statistic.
+   * @note Asserts that a statistic with the given name actually exists and
+   *       throws a CVC5ApiRecoverableException if it does not.
+   * @param name The name of the statistic.
    * @return The statistic with the given name.
    */
   const Stat& get(const std::string& name);
@@ -3235,7 +3267,7 @@ class CVC5_EXPORT Solver
   Sort getBooleanSort() const;
 
   /**
-   * @return Sort Integer (in cvc5, Integer is a subtype of Real)
+   * @return Sort Integer.
    */
   Sort getIntegerSort() const;
 
@@ -3666,7 +3698,7 @@ class CVC5_EXPORT Solver
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant.
+   * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3674,7 +3706,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant.
+   * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3682,7 +3714,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant.
+   * Create a not-a-number floating-point constant (SMT-LIB: `NaN`).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3690,7 +3722,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant.
+   * Create a positive zero floating-point constant (SMT-LIB: +zero).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3698,7 +3730,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant.
+   * Create a negative zero floating-point constant (SMT-LIB: -zero).
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
@@ -3706,7 +3738,7 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a roundingmode constant.
+   * Create a rounding mode constant.
    * @param rm The floating point rounding mode this constant represents.
    */
   Term mkRoundingMode(RoundingMode rm) const;
@@ -3754,7 +3786,7 @@ class CVC5_EXPORT Solver
                const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
    * @param sort The sort of the variable.
    * @param symbol The name of the variable (optional).
@@ -3807,9 +3839,11 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, and assertions.  It also involves theory normalization.
+   * Simplify a formula without doing "much" work.
+   *
+   * Does not involve the SAT Engine in the simplification, but uses the
+   * current definitions, and assertions.  It also involves theory
+   * normalization.
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -3929,9 +3963,10 @@ class CVC5_EXPORT Solver
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
    *
-   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
-   *       arity = 0, and to
-   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   * @note This corresponds to
+   *       mkUninterpretedSort(const std::optional<std::string>&) const
+   *       if arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(size_t arity, const std::optional<std::string>&) const
    *       if arity > 0.
    *
    * @param symbol The name of the sort.
@@ -3955,7 +3990,7 @@ class CVC5_EXPORT Solver
    * @param bound_vars The parameters to this function.
    * @param sort The sort of the return value of this function.
    * @param term The function body.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    * @return The function.
    */
@@ -3980,7 +4015,7 @@ class CVC5_EXPORT Solver
    * @param bound_vars The parameters to this function.
    * @param sort The sort of the return value of this function.
    * @param term The function body.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    * @return The function.
    */
@@ -4001,11 +4036,12 @@ class CVC5_EXPORT Solver
    *     (define-fun-rec <function_def>)
    * \endverbatim
    *
-   * Create parameter 'fun' with mkConst().
+   * Create parameter `fun` with mkConst().
+   *
    * @param fun The sorted function.
    * @param bound_vars The parameters to this function.
    * @param term The function body.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    * @return The function.
    */
@@ -4032,7 +4068,7 @@ class CVC5_EXPORT Solver
    * @param funs The sorted functions.
    * @param bound_vars The list of parameters to the functions.
    * @param terms The list of function bodies of the functions.
-   * @param global Determines whether this definition is global (i.e. persists
+   * @param global Determines whether this definition is global (i.e., persists
    *               when popping the context).
    */
   void defineFunsRec(const std::vector<Term>& funs,
@@ -4087,15 +4123,18 @@ class CVC5_EXPORT Solver
   std::string getOption(const std::string& option) const;
 
   /**
-   * Get all option names that can be used with `setOption`, `getOption` and
-   * `getOptionInfo`.
+   * Get all option names that can be used with setOption(), getOption() and
+   * getOptionInfo().
    * @return All option names.
    */
   std::vector<std::string> getOptionNames() const;
 
   /**
-   * Get some information about the given option. Check the `OptionInfo` class
-   * for more details on which information is available.
+   * Get some information about the given option.
+   *
+   * Check the OptionInfo class for more details on which information is
+   * available.
+   *
    * @return Information about the given option.
    */
   OptionInfo getOptionInfo(const std::string& option) const;
@@ -4139,11 +4178,11 @@ class CVC5_EXPORT Solver
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
    *
    * .. note::
-   *   In contrast to SMT-LIB, the API does not distinguish between named and
-   *   unnamed assertions when producing an unsatisfiable core. Additionally,
-   *   the API allows this option to be called after a check with assumptions.
-   *   A subset of those assumptions may be included in the unsatisfiable core
-   *   returned by this method.
+   *   In contrast to SMT-LIB, cvc5's API does not distinguish between named
+   *   and unnamed assertions when producing an unsatisfiable core.
+   *   Additionally, the API allows this option to be called after a check with
+   *   assumptions. A subset of those assumptions may be included in the
+   *   unsatisfiable core returned by this method.
    * \endverbatim
    *
    * @return A set of terms representing the unsatisfiable core.
@@ -4239,15 +4278,15 @@ class CVC5_EXPORT Solver
   /**
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
-   * current model. This method will only return false (for any v) if
+   * current model. This method will only return false (for any `v`) if
    * option
-   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim has been set.
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`\endverbatim
+   * has been set.
    *
    * @warning This method is experimental and may change in future versions.
    *
    * @param v The term in question.
-   * @return True if v is a model core symbol.
+   * @return True if `v` is a model core symbol.
    */
   bool isModelCoreSymbol(const Term& v) const;
 
