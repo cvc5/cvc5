@@ -74,7 +74,7 @@ public class OptionInfo extends AbstractPointer
   }
 
   /**
-   * @return a String representation of this optionInfo.
+   * @return A string representation of this OptionInfo.
    */
   protected native String toString(long pointer);
 

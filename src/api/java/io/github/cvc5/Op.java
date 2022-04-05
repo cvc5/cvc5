@@ -43,7 +43,7 @@ public class Op extends AbstractPointer
    * Syntactic equality operator.
    * @api.note Both operators must belong to the same solver object.
    * @param t The operator to compare to for equality.
-   * @return True If the operators are syntactically identical.
+   * @return True if the operators are syntactically identical.
    */
   @Override
   public boolean equals(Object t)
@@ -58,7 +58,7 @@ public class Op extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
-   * @return The Kind of this operator.
+   * @return The kind of this operator.
    */
   public Kind getKind()
   {
@@ -77,7 +77,7 @@ public class Op extends AbstractPointer
   private native int getKind(long pointer);
 
   /**
-   * @return True If this operator is a null term.
+   * @return True if this operator is a null term.
    */
   public boolean isNull()
   {
@@ -87,7 +87,7 @@ public class Op extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return True Iff this operator is indexed.
+   * @return True iff this operator is indexed.
    */
   public boolean isIndexed()
   {
@@ -97,7 +97,7 @@ public class Op extends AbstractPointer
   private native boolean isIndexed(long pointer);
 
   /**
-   * @return The Number of indices of this op.
+   * @return The number of indices of this op.
    */
   public int getNumIndices()
   {
@@ -109,7 +109,7 @@ public class Op extends AbstractPointer
   /**
    * Get the index at position {@code i}.
    * @param i The position of the index to return.
-   * @return The Index at position i.
+   * @return The index at position {@code i}.
    */
   public Term get(int i) throws CVC5ApiException
   {
@@ -121,7 +121,7 @@ public class Op extends AbstractPointer
   private native long get(long pointer, int i);
 
   /**
-   * @return A String representation of this operator.
+   * @return A string representation of this operator.
    */
   protected native String toString(long pointer);
 }
