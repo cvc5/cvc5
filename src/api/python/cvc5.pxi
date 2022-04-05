@@ -314,9 +314,9 @@ cdef class DatatypeConstructor:
 
             .. note::
 
-                The returned constructor term ``t`` is the constructor, while
-                ``Solver.mkTerm(APPLY_CONSTRUCTOR, [t])`` is used to construct
-                the above (nullary) application of nil.
+                The returned constructor term ``t`` is used to construct the
+                above (nullary) application of ``nil`` with
+                ``Solver.mkTerm(APPLY_CONSTRUCTOR, [t])``.
 
             .. warning:: This method is experimental and may change in future
                          versions.
@@ -334,7 +334,8 @@ cdef class DatatypeConstructor:
 
             Similar to constructors, testers are a class of function-like terms
             of tester sort (:py:meth:`Sort.isDatatypeTester`), and should
-            be used as the first argument of Terms of kind APPLY_TESTER.
+            be used as the first argument of Terms of kind
+            :py:obj:`Kind.APPLY_TESTER`.
 
             :return: The tester term for this constructor.
         """
