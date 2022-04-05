@@ -196,8 +196,7 @@ class DotPrinter
   uint64_t d_ruleID;
 
   /** Vector that holds all the scopes args */
-  std::vector<std::reference_wrapper<const std::vector<cvc5::Node>>>
-      d_scopesArgs;
+  std::vector<std::reference_wrapper<const std::vector<Node>>> d_scopesArgs;
 
   /** Array with all the subgraphs description strings */
   std::ostringstream* d_subgraphsStr;
