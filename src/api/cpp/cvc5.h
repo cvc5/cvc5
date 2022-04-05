@@ -896,8 +896,9 @@ namespace cvc5 {
 
 /**
  * A cvc5 operator.
+ *
  * An operator is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ * with its required parameters, e.g., a Term of kind #BITVECTOR_EXTRACT.
  */
 class CVC5_EXPORT Op
 {
@@ -918,19 +919,21 @@ class CVC5_EXPORT Op
 
   /**
    * Syntactic equality operator.
-   * Return true if both operators are syntactically identical.
-   * Both operators must belong to the same solver object.
+   *
+   * @note Both operators must belong to the same solver object.
+   *
    * @param t The operator to compare to for equality.
-   * @return True if the operators are equal.
+   * @return True if both operators are syntactically identical.
    */
   bool operator==(const Op& t) const;
 
   /**
    * Syntactic disequality operator.
-   * Return true if both operators differ syntactically.
-   * Both terms must belong to the same solver object.
+   *
+   * @note Both terms must belong to the same solver object.
+   *
    * @param t The operator to compare to for disequality.
-   * @return True if operators are disequal.
+   * @return True if operators differ syntactically.
    */
   bool operator!=(const Op& t) const;
 
@@ -955,7 +958,7 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
-   * Get the index at position i.
+   * Get the index at position `i`.
    * @param i The position of the index to return.
    * @return The index at position i.
    */
@@ -2142,9 +2145,11 @@ class CVC5_EXPORT DatatypeConstructor
 
   /**
    * Get the constructor term of this datatype constructor whose return
-   * type is retSort. This method is intended to be used on constructors of
-   * parametric datatypes and can be seen as returning the constructor
-   * term that has been explicitly cast to the given sort.
+   * type is `retSort`.
+   *
+   * This method is intended to be used on constructors of parametric datatypes
+   * and can be seen as returning the constructor term that has been explicitly
+   * cast to the given sort.
    *
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
@@ -2166,12 +2171,12 @@ class CVC5_EXPORT DatatypeConstructor
    * \endverbatim
    *
    * This method is equivalent of applying the above, where this
-   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * DatatypeConstructor is the one corresponding to `nil`, and `retSort` is
    * `(List Int)`.
    *
-   * @note the returned constructor term `t` is the constructor, while
-   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
-   *       above (nullary) application of nil.
+   * @note The returned constructor term `t` is used to construct the above
+   *       (nullary) application of `nil` with
+   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`.
    *
    * @warning This method is experimental and may change in future versions.
    *
