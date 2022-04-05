@@ -26,6 +26,7 @@ set(regress_0_tests
   regress0/arith/arith.01.cvc.smt2
   regress0/arith/arith.02.cvc.smt2
   regress0/arith/arith.03.cvc.smt2
+  regress0/arith/arith-rewrite-with-ran.smt2
   regress0/arith/bug443.delta01.smtv1.smt2
   regress0/arith/bug547.2.smt2
   regress0/arith/bug549.cvc.smt2
