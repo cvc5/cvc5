@@ -5,9 +5,9 @@ First, we create two constants ``x`` and ``y`` of sort ``Real``,
 and two constants ``a`` and ``b`` of sort ``Integer``.
 Notice that these are *symbolic* constants, but not actual values.
 
-.. literalinclude:: quickstart.py
+.. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
      :language: python
-     :lines: 9-10
+     :lines: 6-7
 
 We define the following constraints regarding ``x`` and ``y``:
 
@@ -17,9 +17,9 @@ We define the following constraints regarding ``x`` and ``y``:
 
 We check whether there is a solution to these constraints:
 
-.. literalinclude:: quickstart.py
+.. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
      :language: python
-     :lines: 18
+     :lines: 15
 
 In this case, there is, so we get output:
 
@@ -29,15 +29,15 @@ In this case, there is, so we get output:
 
 We can also get an explicit model (assignment) for the constraints.
 
-.. literalinclude:: quickstart.py
+.. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
      :language: python
-     :lines: 22-25
+     :lines: 19-22
 
 With the model, we can evaluate variables and terms:
 
-.. literalinclude:: quickstart.py
+.. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
      :language: python
-     :lines: 27-29
+     :lines: 24-26
 
 This will print:
 
@@ -50,17 +50,17 @@ This will print:
 
 We can also get these values in other forms:
 
-.. literalinclude:: quickstart.py
+.. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
      :language: python
-     :lines: 32-35
+     :lines: 29-32
 
 
 Next, we assert the same assertions as above, but with integers.
 This time, there is no solution, so "no solution" is printed.
 
-.. literalinclude:: quickstart.py
+.. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
      :language: python
-     :lines: 39
+     :lines: 36
 
 
 Example
@@ -70,5 +70,5 @@ Example
     <examples>/api/python/quickstart.py
     <examples>/api/cpp/quickstart.cpp
     <examples>/api/java/QuickStart.java
-    <pythonicapi>/test/pgms/example_quickstart.py
+    <examples>/api/python/pythonic/quickstart.py
     <examples>/api/smtlib/quickstart.smt2
