@@ -44,7 +44,7 @@ public class Stat extends AbstractPointer
   // endregion
 
   /**
-   * @return a string representation of this Stat
+   * @return A string representation of this Stat.
    */
   protected native String toString(long pointer);
 

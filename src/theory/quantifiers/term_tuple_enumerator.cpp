@@ -469,7 +469,7 @@ size_t TermTupleEnumeratorBasic::prepareTerms(size_t variableIx)
     for (size_t j = 0; j < ground_terms_count; j++)
     {
       Node gt = d_tdb->getTypeGroundTerm(type_node, j);
-      if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
+      if (!quantifiers::TermUtil::hasInstConstAttr(gt))
       {
         Node rep = d_qs.getRepresentative(gt);
         if (repsFound.find(rep) == repsFound.end())

@@ -38,14 +38,14 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
   // endregion
 
   /**
-   * @return a string representation of this Statistics
+   * @return A string representation of this Statistics.
    */
   protected native String toString(long pointer);
 
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC5ApiRecoverableException` if it does not.
+   * a {@code CVC5ApiRecoverableException} if it does not.
    * @param name Name of the statistic.
    * @return The statistic with the given name.
    */

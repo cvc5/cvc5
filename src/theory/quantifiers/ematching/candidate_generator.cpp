@@ -41,7 +41,7 @@ CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_treg.getTermDatabase()->isTermActive(n)
-         && (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n));
+         && !quantifiers::TermUtil::hasInstConstAttr(n);
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
