@@ -23,28 +23,28 @@ a `cvc5::Solver solver` object.
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Union disjoint       | ``(bag.union_disjoint X Y)``                 | ``Term Y = solver.mkConst(s, "Y");``                                    |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_UNION_DISJOINT, X, Y);``             |
+|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_UNION_DISJOINT, {X, Y});``           |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Union max            | ``(bag.union_max X Y)``                      | ``Term Y = solver.mkConst(s, "Y");``                                    |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_UNION_MAX, X, Y);``                  |
+|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_UNION_MAX, {X, Y});``                |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Intersection min     | ``(bag.inter_min X Y)``                      | ``Term t = solver.mkTerm(Kind::BAG_INTER_MIN, X, Y);``                  |
+| Intersection min     | ``(bag.inter_min X Y)``                      | ``Term t = solver.mkTerm(Kind::BAG_INTER_MIN, {X, Y});``                |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Difference subtract  | ``(bag.difference_subtract X Y)``            | ``Term t = solver.mkTerm(Kind::BAG_DIFFERENCE_SUBTRACT, X, Y);``        |
+| Difference subtract  | ``(bag.difference_subtract X Y)``            | ``Term t = solver.mkTerm(Kind::BAG_DIFFERENCE_SUBTRACT, {X, Y});``      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Duplicate elimination| ``(bag.duplicate_removal X)``                | ``Term t = solver.mkTerm(Kind::BAG_DUPLICATE_REMOVAL, X);``             |
+| Duplicate elimination| ``(bag.duplicate_removal X)``                | ``Term t = solver.mkTerm(Kind::BAG_DUPLICATE_REMOVAL, {X});``           |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Membership           | ``(bag.member x X)``                         | ``Term x = solver.mkConst(solver.getStringSort(), "x");``               |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_MEMBER, x, X);``                     |
+|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_MEMBER, {x, X});``                   |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Subbag               | ``(bag.subbag X Y)``                         | ``Term t = solver.mkTerm(Kind::BAG_SUBBAG, X, Y);``                     |
+| Subbag               | ``(bag.subbag X Y)``                         | ``Term t = solver.mkTerm(Kind::BAG_SUBBAG, {X, Y});``                   |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Emptybag             | ``(as bag.empty (Bag Int)``                  | ``Term t = solver.mkEmptyBag(s);``                                      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Make bag             | ``(bag "a" 3)``                              | ``Term t = solver.mkTerm(Kind::BAG_MAKE,``                              |
-|                      |                                              |            ``solver.mkString("a"), solver.mkInteger(1));``              |
+|                      |                                              |            ``{solver.mkString("a"), solver.mkInteger(1)});``            |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 
 
