@@ -10,10 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
+ * Constant evaluation rewrite rules of the BV theory.
  *
- * [[ Add lengthier description here ]]
- * \todo document this file
  */
 
 #include "cvc5_private.h"

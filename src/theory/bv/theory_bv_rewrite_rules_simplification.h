@@ -10,10 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Simplification rewrite rules of the BV theory.
  */
 
 #include "cvc5_private.h"
