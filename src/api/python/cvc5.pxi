@@ -316,7 +316,7 @@ cdef class DatatypeConstructor:
 
                 The returned constructor term ``t`` is used to construct the
                 above (nullary) application of ``nil`` with
-                ``Solver.mkTerm(APPLY_CONSTRUCTOR, [t])``.
+                ``Solver.mkTerm(APPLY_CONSTRUCTOR, t)``.
 
             .. warning:: This method is experimental and may change in future
                          versions.
