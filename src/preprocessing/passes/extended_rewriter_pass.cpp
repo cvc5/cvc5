@@ -21,7 +21,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -35,8 +35,9 @@ PreprocessingPassResult ExtRewPre::applyInternal(
   {
     assertionsToPreprocess->replace(
         i,
-        extendedRewrite((*assertionsToPreprocess)[i],
-                        options().smt.extRewPrepAgg));
+        extendedRewrite(
+            (*assertionsToPreprocess)[i],
+            options().smt.extRewPrep == options::ExtRewPrepMode::AGG));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -44,4 +45,4 @@ PreprocessingPassResult ExtRewPre::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -141,7 +141,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   Node operator*() override
   {
-    Debug("dt-enum-debug") << ": get term " << this << std::endl;
+    Trace("dt-enum-debug") << ": get term " << this << std::endl;
     if (d_zeroTermActive)
     {
       return d_zeroTerm;
@@ -164,6 +164,6 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H */

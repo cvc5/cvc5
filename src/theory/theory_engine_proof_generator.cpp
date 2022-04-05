@@ -19,9 +19,9 @@
 
 #include "proof/proof_node.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
                                                        context::Context* c)
@@ -129,4 +129,4 @@ std::string TheoryEngineProofGenerator::identify() const
   return "TheoryEngineProofGenerator";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

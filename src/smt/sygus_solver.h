@@ -24,9 +24,9 @@
 #include "expr/type_node.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
-#include "util/result.h"
+#include "util/synth_result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 
@@ -131,7 +131,7 @@ class SygusSolver : protected EnvObj
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    */
-  Result checkSynth(Assertions& as, bool isNext);
+  SynthResult checkSynth(Assertions& as, bool isNext);
   /**
    * Get synth solution.
    *
@@ -246,6 +246,6 @@ class SygusSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SYGUS_SOLVER_H */

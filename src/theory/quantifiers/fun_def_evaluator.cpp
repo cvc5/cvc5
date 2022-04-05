@@ -20,9 +20,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -186,7 +186,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           {
             // invoke it on arguments using the evaluator
             sbody = evaluate(sbody, args, children);
-            if (Trace.isOn("fd-eval-debug2"))
+            if (TraceIsOn("fd-eval-debug2"))
             {
               Trace("fd-eval-debug2")
                   << "FunDefEvaluator: evaluation with args:\n";
@@ -269,4 +269,4 @@ Node FunDefEvaluator::getDefinitionFor(Node f) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

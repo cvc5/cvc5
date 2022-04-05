@@ -18,9 +18,9 @@
 #include "expr/node_manager_attributes.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 BoundVarManager::BoundVarManager() : d_keepCacheVals(false) {}
 
@@ -61,4 +61,4 @@ Node BoundVarManager::getCacheValue(TNode cv, size_t i)
   return getCacheValue(cv, getCacheValue(i));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

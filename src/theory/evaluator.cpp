@@ -21,9 +21,9 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 EvalResult::EvalResult(const EvalResult& other)
@@ -869,7 +869,7 @@ EvalResult Evaluator::evalInternal(
 
             default:
             {
-              Trace("evaluator") << "Theory " << Theory::theoryOf(currNode[0])
+              Trace("evaluator") << "Evaluation of " << currNode[0].getKind()
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
               evalAsNode[currNode] =
@@ -984,4 +984,4 @@ void Evaluator::processUnhandled(TNode n,
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

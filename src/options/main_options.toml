@@ -7,6 +7,7 @@ name   = "Driver"
   short      = "V"
   long       = "version"
   type       = "bool"
+  default    = "false"
   predicates = ["showVersion"]
   alternate  = false
   help       = "identify this cvc5 binary"
@@ -17,6 +18,7 @@ name   = "Driver"
   short      = "h"
   long       = "help"
   type       = "bool"
+  default    = "false"
   alternate  = false
   help       = "full command line reference"
 
@@ -25,6 +27,7 @@ name   = "Driver"
   category   = "common"
   long       = "show-config"
   type       = "bool"
+  default    = "false"
   predicates = ["showConfiguration"]
   alternate  = false
   help       = "show cvc5 static configuration"
@@ -34,6 +37,7 @@ name   = "Driver"
   category   = "common"
   long       = "copyright"
   type       = "bool"
+  default    = "false"
   predicates = ["showCopyright"]
   alternate  = false
   help       = "show cvc5 copyright information"
@@ -49,18 +53,20 @@ name   = "Driver"
 
 [[option]]
   name       = "showDebugTags"
-  category   = "regular"
+  category   = "expert"
   long       = "show-debug-tags"
   type       = "bool"
+  default    = "false"
   predicates = ["showDebugTags"]
   alternate  = false
   help       = "show all available tags for debugging"
 
 [[option]]
   name       = "showTraceTags"
-  category   = "regular"
+  category   = "expert"
   long       = "show-trace-tags"
   type       = "bool"
+  default    = "false"
   predicates = ["showTraceTags"]
   alternate  = false
   help       = "show all available tags for tracing"
@@ -75,9 +81,10 @@ name   = "Driver"
 
 [[option]]
   name       = "interactive"
-  category   = "regular"
+  category   = "common"
   long       = "interactive"
   type       = "bool"
+  default    = "false"
   help       = "force interactive shell/non-interactive mode"
 
 [[option]]
@@ -85,11 +92,12 @@ name   = "Driver"
   category   = "undocumented"
   long       = "filename=FILENAME"
   type       = "std::string"
+  default    = '""'
   help       = "filename of the input"
 
 [[option]]
   name       = "segvSpin"
-  category   = "regular"
+  category   = "expert"
   long       = "segv-spin"
   type       = "bool"
   default    = "false"
@@ -121,7 +129,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpInstantiationsDebug"
-  category   = "regular"
+  category   = "expert"
   long       = "dump-instantiations-debug"
   type       = "bool"
   default    = "false"
@@ -136,14 +144,6 @@ name   = "Driver"
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
-  name       = "printUnsatCoresFull"
-  category   = "regular"
-  long       = "print-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  help       = "dump the full unsat core, including unlabeled assertions"
-
-[[option]]
   name       = "dumpDifficulty"
   category   = "regular"
   long       = "dump-difficulty"
@@ -153,7 +153,7 @@ name   = "Driver"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"
-  category   = "regular"
+  category   = "expert"
   long       = "force-no-limit-cpu-while-dump"
   type       = "bool"
   default    = "false"

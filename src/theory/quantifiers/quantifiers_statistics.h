@@ -20,7 +20,7 @@
 
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -33,7 +33,7 @@ class QuantifiersStatistics
  public:
   QuantifiersStatistics();
   TimerStat d_time;
-  TimerStat d_qcf_time;
+  TimerStat d_cbqi_time;
   TimerStat d_ematching_time;
   IntStat d_num_quant;
   IntStat d_instantiation_rounds;
@@ -46,6 +46,6 @@ class QuantifiersStatistics
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H */

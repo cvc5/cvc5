@@ -23,7 +23,7 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -208,10 +208,16 @@ class ArithInstantiator : public Instantiator
                                     Node delta_coeff);
   /** Return the rewritten form of the negation of t */
   Node negate(const Node& t) const;
+  /**
+   * Make the node from base value, with infinity and delta coefficients.
+   */
+  Node mkVtsSum(const Node& val,
+                const Node& inf_coeff,
+                const Node& delta_coeff);
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */

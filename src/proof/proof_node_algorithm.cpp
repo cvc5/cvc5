@@ -17,7 +17,7 @@
 
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
@@ -326,4 +326,4 @@ bool isSingletonClause(TNode res,
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

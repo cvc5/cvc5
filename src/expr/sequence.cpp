@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Sequence::Sequence(const TypeNode& t, const std::vector<Node>& s)
     : d_type(new TypeNode(t)), d_seq(s)
@@ -380,4 +380,4 @@ size_t SequenceHashFunction::operator()(const Sequence& s) const
   return static_cast<size_t>(ret);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

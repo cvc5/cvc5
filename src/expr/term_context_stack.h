@@ -20,7 +20,7 @@
 
 #include "expr/term_context_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A stack for term-context-sensitive terms. Its main advantage is that
@@ -69,6 +69,6 @@ class TCtxStack
   const TermContext* d_tctx;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TERM_CONTEXT_STACK_H */

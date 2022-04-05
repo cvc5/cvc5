@@ -103,7 +103,7 @@
  * NOTE IN 1(b) AND 2(b) THAT we can NOT create Node wrapper
  * temporary for the NodeValue in the NodeBuilder::operator Node()
  * member function.  If we create a temporary (for example by writing
- * Debug("builder") << Node(nv) << endl), the NodeValue will have its
+ * Trace("builder") << Node(nv) << endl), the NodeValue will have its
  * reference count incremented from zero to one, then decremented,
  * which makes it eligible for collection before the builder has even
  * returned it!  So this is a no-no.
@@ -148,7 +148,7 @@
 #include "expr/node_value.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 
@@ -404,6 +404,6 @@ class NodeBuilder {
 // isn't yet a Node..
 std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_BUILDER_H */

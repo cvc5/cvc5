@@ -23,7 +23,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 // attribute for "contains instantiation constants from"
@@ -68,7 +68,14 @@ class TermUtil
   static size_t getVariableNum(Node q, Node v);
 
   static Node getInstConstAttr( Node n );
-  static bool hasInstConstAttr( Node n );
+  /**
+   * Does n (or its original form) contain instantiation constants? This method
+   * is used for determining when a term is ineligible for instantiation.
+   *
+   * @param n the node to check.
+   * @return true if n has instantiation constants.
+   */
+  static bool hasInstConstAttr(Node n);
   static Node getBoundVarAttr( Node n );
   static bool hasBoundVarAttr( Node n );
   
@@ -205,6 +212,6 @@ public:
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_UTIL_H */

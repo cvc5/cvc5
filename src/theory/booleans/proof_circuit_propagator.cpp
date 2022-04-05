@@ -21,9 +21,9 @@
 #include "proof/proof_node_manager.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -243,7 +243,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkProof(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  if (Trace.isOn("circuit-prop"))
+  if (TraceIsOn("circuit-prop"))
   {
     std::stringstream ss;
     ss << "Constructing (" << rule;
@@ -593,4 +593,4 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

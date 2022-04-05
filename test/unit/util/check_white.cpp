@@ -19,7 +19,7 @@
 #include "base/check.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilWhiteCheck : public TestInternal
@@ -62,4 +62,4 @@ TEST_F(TestUtilWhiteCheck, expect_abort)
   ASSERT_DEATH(AlwaysAssert(false), "false");
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

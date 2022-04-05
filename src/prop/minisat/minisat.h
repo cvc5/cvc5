@@ -22,7 +22,7 @@
 #include "smt/env_obj.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <class Solver>
 prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
@@ -50,7 +50,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
-                  cvc5::context::UserContext* userContext,
+                  context::UserContext* userContext,
                   ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -152,4 +152,4 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 }; /* class MinisatSatSolver */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

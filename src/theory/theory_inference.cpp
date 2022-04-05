@@ -17,9 +17,9 @@
 
 #include "theory/theory_inference_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id, 
@@ -54,4 +54,4 @@ Node SimpleTheoryInternalFact::processFact(std::vector<Node>& exp,
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

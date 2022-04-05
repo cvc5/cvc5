@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 signed int Integer::s_fastSignedIntMin = -(1 << 29);
 signed int Integer::s_fastSignedIntMax = (1 << 29) - 1;
@@ -609,4 +609,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n)
 {
   return os << n.toString();
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

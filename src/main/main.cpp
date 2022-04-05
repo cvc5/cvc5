@@ -21,19 +21,20 @@
 #include "main/command_executor.h"
 #include "options/option_exception.h"
 
-using namespace cvc5;
+using namespace cvc5::internal;
+using namespace cvc5::main;
 
 /**
  * cvc5's main() routine is just an exception-safe wrapper around runCvc5.
  */
 int main(int argc, char* argv[])
 {
-  std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
   try
   {
     return runCvc5(argc, argv, solver);
   }
-  catch (cvc5::api::CVC5ApiOptionException& e)
+  catch (cvc5::CVC5ApiOptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;
@@ -68,13 +69,12 @@ int main(int argc, char* argv[])
       solver->getDriverOptions().err()
           << "(error \"" << e << "\")" << std::endl;
     }
-    if (solver->getOptionInfo("stats").boolValue()
-        && main::pExecutor != nullptr)
+    if (solver->getOptionInfo("stats").boolValue() && pExecutor != nullptr)
     {
-      main::pExecutor->printStatistics(solver->getDriverOptions().err());
+      pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
   // Make sure that the command executor is destroyed before the node manager.
-  main::pExecutor.reset();
+  pExecutor.reset();
   exit(1);
 }

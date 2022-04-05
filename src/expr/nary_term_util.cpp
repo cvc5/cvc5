@@ -23,9 +23,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 struct IsListTag
@@ -138,7 +138,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
       break;
     case REGEXP_INTER:
       // universal language
-      nullTerm = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+      nullTerm = nm->mkNode(REGEXP_ALL);
       break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
@@ -256,4 +256,4 @@ Node narySubstitute(Node src,
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

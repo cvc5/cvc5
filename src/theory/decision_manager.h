@@ -23,7 +23,7 @@
 #include "context/cdlist.h"
 #include "theory/decision_strategy.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** DecisionManager
@@ -142,6 +142,6 @@ class DecisionManager
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DECISION_MANAGER__H */

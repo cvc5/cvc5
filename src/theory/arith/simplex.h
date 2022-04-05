@@ -65,7 +65,7 @@
 #include "util/result.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -168,7 +168,7 @@ public:
   *
   * Corresponds to the "check()" procedure in [Cav06].
   */
- virtual Result::Sat findModel(bool exactResult) = 0;
+ virtual Result::Status findModel(bool exactResult) = 0;
 
  void increaseMax() { d_numVariables++; }
 
@@ -232,4 +232,4 @@ protected:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

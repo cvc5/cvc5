@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 struct InstantiationVec
 {
@@ -67,6 +67,6 @@ struct SkolemList
 /** Print the skolem list to stream out */
 std::ostream& operator<<(std::ostream& out, const SkolemList& skl);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H */

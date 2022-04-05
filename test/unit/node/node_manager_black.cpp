@@ -23,7 +23,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace expr;
@@ -162,7 +162,7 @@ TEST_F(TestNodeBlackNodeManager, booleanType)
   ASSERT_FALSE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_FALSE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
   ASSERT_EQ(t, t2);
   ASSERT_NE(t, t3);
 
@@ -180,7 +180,7 @@ TEST_F(TestNodeBlackNodeManager, mkFunctionType_bool_to_bool)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_TRUE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -208,7 +208,7 @@ TEST_F(TestNodeBlackNodeManager, mkFunctionType_vector_args_with_return_type)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_FALSE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -238,7 +238,7 @@ TEST_F(TestNodeBlackNodeManager, mkFunctionType_vector_of_arguments)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_FALSE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -269,7 +269,7 @@ TEST_F(TestNodeBlackNodeManager, mkPredicateType)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_TRUE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -313,4 +313,4 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 #endif
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

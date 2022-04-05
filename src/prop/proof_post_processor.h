@@ -24,7 +24,7 @@
 #include "proof/proof_node_updater.h"
 #include "prop/proof_cnf_stream.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace prop {
 
@@ -109,6 +109,6 @@ class ProofPostproccess
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

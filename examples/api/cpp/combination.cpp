@@ -22,7 +22,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 {
@@ -46,8 +46,8 @@ int main()
   Sort u = slv.mkUninterpretedSort("u");
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
-  Sort uToInt = slv.mkFunctionSort(u, integer);
-  Sort intPred = slv.mkFunctionSort(integer, boolean);
+  Sort uToInt = slv.mkFunctionSort({u}, integer);
+  Sort intPred = slv.mkFunctionSort({integer}, boolean);
 
   // Variables
   Term x = slv.mkConst(u, "x");
@@ -62,28 +62,29 @@ int main()
   Term one = slv.mkInteger(1);
 
   // Terms
-  Term f_x = slv.mkTerm(APPLY_UF, f, x);
-  Term f_y = slv.mkTerm(APPLY_UF, f, y);
-  Term sum = slv.mkTerm(ADD, f_x, f_y);
-  Term p_0 = slv.mkTerm(APPLY_UF, p, zero);
-  Term p_f_y = slv.mkTerm(APPLY_UF, p, f_y);
+  Term f_x = slv.mkTerm(APPLY_UF, {f, x});
+  Term f_y = slv.mkTerm(APPLY_UF, {f, y});
+  Term sum = slv.mkTerm(ADD, {f_x, f_y});
+  Term p_0 = slv.mkTerm(APPLY_UF, {p, zero});
+  Term p_f_y = slv.mkTerm(APPLY_UF, {p, f_y});
 
   // Construct the assertions
-  Term assertions = slv.mkTerm(AND,
-      vector<Term>{
-      slv.mkTerm(LEQ, zero, f_x),  // 0 <= f(x)
-      slv.mkTerm(LEQ, zero, f_y),  // 0 <= f(y)
-      slv.mkTerm(LEQ, sum, one),   // f(x) + f(y) <= 1
-      p_0.notTerm(),               // not p(0)
-      p_f_y                        // p(f(y))
-      });
+  Term assertions =
+      slv.mkTerm(AND,
+                 {
+                     slv.mkTerm(LEQ, {zero, f_x}),  // 0 <= f(x)
+                     slv.mkTerm(LEQ, {zero, f_y}),  // 0 <= f(y)
+                     slv.mkTerm(LEQ, {sum, one}),   // f(x) + f(y) <= 1
+                     p_0.notTerm(),                 // not p(0)
+                     p_f_y                          // p(f(y))
+                 });
   slv.assertFormula(assertions);
 
   cout << "Given the following assertions:" << endl
        << assertions << endl << endl;
 
   cout << "Prove x /= y is entailed. " << endl
-       << "cvc5: " << slv.checkEntailed(slv.mkTerm(DISTINCT, x, y)) << "."
+       << "cvc5: " << slv.checkSatAssuming(slv.mkTerm(EQUAL, {x, y})) << "."
        << endl
        << endl;
 

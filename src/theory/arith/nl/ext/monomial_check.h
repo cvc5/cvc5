@@ -21,7 +21,7 @@
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -196,6 +196,6 @@ class MonomialCheck : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

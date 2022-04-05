@@ -21,7 +21,7 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -58,4 +58,4 @@ void TheoryBuiltin::finishInit()
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

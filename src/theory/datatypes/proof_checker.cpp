@@ -19,7 +19,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -82,7 +82,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = args[0];
-    if (t.getKind() != kind::APPLY_SELECTOR_TOTAL
+    if (t.getKind() != kind::APPLY_SELECTOR
         || t[0].getKind() != kind::APPLY_CONSTRUCTOR)
     {
       return Node::null();
@@ -126,4 +126,4 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -21,7 +21,7 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace kind;
@@ -678,15 +678,6 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_card)
   RewriteResponse response2 = d_rewriter->postRewrite(n2);
   ASSERT_TRUE(response2.d_node == c
               && response2.d_status == REWRITE_AGAIN_FULL);
-
-  // (bag.card (bag.union_disjoint A B)) = (+ (bag.card A) (bag.card B))
-  Node n3 = d_nodeManager->mkNode(BAG_CARD, unionDisjointAB);
-  Node cardA = d_nodeManager->mkNode(BAG_CARD, A);
-  Node cardB = d_nodeManager->mkNode(BAG_CARD, B);
-  Node plus = d_nodeManager->mkNode(ADD, cardA, cardB);
-  RewriteResponse response3 = d_rewriter->postRewrite(n3);
-  ASSERT_TRUE(response3.d_node == plus
-              && response3.d_status == REWRITE_AGAIN_FULL);
 }
 
 TEST_F(TestTheoryWhiteBagsRewriter, is_singleton)
@@ -858,4 +849,4 @@ TEST_F(TestTheoryWhiteBagsRewriter, fold)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

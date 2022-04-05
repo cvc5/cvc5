@@ -19,7 +19,7 @@
 #include <iostream>
 #include <numeric>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -69,17 +69,17 @@ int main()
   Term one = solver.mkReal(1);
 
   // Next, we construct the term x + y
-  Term xPlusY = solver.mkTerm(ADD, x, y);
+  Term xPlusY = solver.mkTerm(ADD, {x, y});
 
   // Now we can define the constraints.
   // They use the operators +, <=, and <.
   // In the API, these are denoted by ADD, LEQ, and LT.
   // A list of available operators is available in:
   // src/api/cpp/cvc5_kind.h
-  Term constraint1 = solver.mkTerm(LT, zero, x);
-  Term constraint2 = solver.mkTerm(LT, zero, y);
-  Term constraint3 = solver.mkTerm(LT, xPlusY, one);
-  Term constraint4 = solver.mkTerm(LEQ, x, y);
+  Term constraint1 = solver.mkTerm(LT, {zero, x});
+  Term constraint2 = solver.mkTerm(LT, {zero, y});
+  Term constraint3 = solver.mkTerm(LT, {xPlusY, one});
+  Term constraint4 = solver.mkTerm(LEQ, {x, y});
 
   // Now we assert the constraints to the solver.
   solver.assertFormula(constraint1);
@@ -102,7 +102,7 @@ int main()
 
   // It is also possible to get values for compound terms,
   // even if those did not appear in the original formula.
-  Term xMinusY = solver.mkTerm(SUB, x, y);
+  Term xMinusY = solver.mkTerm(SUB, {x, y});
   Term xMinusYVal = solver.getValue(xMinusY);
 
   // We can now obtain the string representations of the values.
@@ -151,11 +151,11 @@ int main()
   // Next, we assert the same assertions above with integers.
   // This time, we inline the construction of terms
   // to the assertion command.
-  solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), a));
-  solver.assertFormula(solver.mkTerm(LT, solver.mkInteger(0), b));
+  solver.assertFormula(solver.mkTerm(LT, {solver.mkInteger(0), a}));
+  solver.assertFormula(solver.mkTerm(LT, {solver.mkInteger(0), b}));
   solver.assertFormula(
-      solver.mkTerm(LT, solver.mkTerm(ADD, a, b), solver.mkInteger(1)));
-  solver.assertFormula(solver.mkTerm(LEQ, a, b));
+      solver.mkTerm(LT, {solver.mkTerm(ADD, {a, b}), solver.mkInteger(1)}));
+  solver.assertFormula(solver.mkTerm(LEQ, {a, b}));
 
   // We check whether the revised assertion is satisfiable.
   Result r2 = solver.checkSat();

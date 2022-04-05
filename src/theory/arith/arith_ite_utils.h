@@ -31,7 +31,7 @@
 #include "smt/env_obj.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace util {
 class ContainsTermITEVisitor;
@@ -113,6 +113,6 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__ARITH_ITE_UTILS_H */

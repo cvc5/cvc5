@@ -20,7 +20,7 @@
 #include "expr/term_context.h"
 #include "theory/bv/bitblast/node_bitblaster.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TConvProofGenerator;
 
@@ -81,5 +81,5 @@ class BBProof : protected EnvObj
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

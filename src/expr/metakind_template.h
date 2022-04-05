@@ -23,7 +23,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // clang-format off
 ${metakind_fwd_decls}
@@ -38,9 +38,9 @@ namespace metakind {
 
 struct NodeValueCompare {
   template <bool pool>
-  static bool compare(const ::cvc5::expr::NodeValue* nv1,
-                      const ::cvc5::expr::NodeValue* nv2);
-  static size_t constHash(const ::cvc5::expr::NodeValue* nv);
+  static bool compare(const cvc5::internal::expr::NodeValue* nv1,
+                      const cvc5::internal::expr::NodeValue* nv2);
+  static size_t constHash(const cvc5::internal::expr::NodeValue* nv);
 };/* struct NodeValueCompare */
 
 /**
@@ -67,7 +67,7 @@ enum MetaKind_t {
  * @param nv the node value representing a constant node
  */
 void nodeValueConstantToStream(std::ostream& out,
-                               const ::cvc5::expr::NodeValue* nv);
+                               const cvc5::internal::expr::NodeValue* nv);
 
 /**
  * Cleanup to be performed when a NodeValue zombie is collected, and
@@ -78,18 +78,18 @@ void nodeValueConstantToStream(std::ostream& out,
  * This doesn't support "non-inlined" NodeValues, which shouldn't need this
  * kind of cleanup.
  */
-void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv);
+void deleteNodeValueConstant(cvc5::internal::expr::NodeValue* nv);
 
 /** Return the minimum arity of the given kind. */
-uint32_t getMinArityForKind(::cvc5::Kind k);
+uint32_t getMinArityForKind(cvc5::internal::Kind k);
 /** Return the maximum arity of the given kind. */
-uint32_t getMaxArityForKind(::cvc5::Kind k);
+uint32_t getMaxArityForKind(cvc5::internal::Kind k);
 
 }  // namespace metakind
 
-// import MetaKind into the "cvc5::kind" namespace but keep the
+// import MetaKind into the "cvc5::internal::kind" namespace but keep the
 // individual MetaKind constants under kind::metakind::
-typedef ::cvc5::kind::metakind::MetaKind_t MetaKind;
+typedef cvc5::internal::kind::metakind::MetaKind_t MetaKind;
 
 /**
  * Get the metakind for a particular kind.
@@ -101,7 +101,7 @@ MetaKind metaKindOf(Kind k);
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.
  */
-Kind operatorToKind(::cvc5::expr::NodeValue* nv);
+Kind operatorToKind(cvc5::internal::expr::NodeValue* nv);
 
 }  // namespace kind
 
@@ -111,11 +111,12 @@ namespace expr {
 struct NodeValuePoolEq {
   bool operator()(const NodeValue* nv1, const NodeValue* nv2) const
   {
-    return ::cvc5::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
+    return cvc5::internal::kind::metakind::NodeValueCompare::compare<true>(nv1,
+                                                                           nv2);
   }
 };
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__KIND__METAKIND_H */

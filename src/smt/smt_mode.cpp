@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, SmtMode m)
 {
@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& out, SmtMode m)
     case SmtMode::START: out << "START"; break;
     case SmtMode::ASSERT: out << "ASSERT"; break;
     case SmtMode::SAT: out << "SAT"; break;
-    case SmtMode::SAT_UNKNOWN: out << "SAT_UNKNOWN"; break;
+    case SmtMode::SAT_UNKNOWN: out << "UNKNOWN"; break;
     case SmtMode::UNSAT: out << "UNSAT"; break;
     case SmtMode::ABDUCT: out << "ABDUCT"; break;
     case SmtMode::INTERPOL: out << "INTERPOL"; break;
@@ -36,4 +36,4 @@ std::ostream& operator<<(std::ostream& out, SmtMode m)
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

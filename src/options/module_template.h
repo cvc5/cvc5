@@ -27,7 +27,7 @@
 ${includes}$
 // clang-format on
 
-namespace cvc5::options {
+namespace cvc5::internal::options {
 
 // clang-format off
 ${modes_decl}$
@@ -52,6 +52,6 @@ struct Holder${id_cap}$
 ${wrapper_functions}$
 // clang-format on
 
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options
 
 #endif /* CVC5__OPTIONS__${id_cap}$_H */

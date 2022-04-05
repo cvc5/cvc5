@@ -20,7 +20,7 @@
 #include "test.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackInteger : public TestInternal
@@ -614,4 +614,4 @@ TEST_F(TestUtilBlackInteger, modInverse)
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

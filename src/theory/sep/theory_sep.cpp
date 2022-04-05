@@ -36,9 +36,9 @@
 #include "util/cardinality.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -145,7 +145,7 @@ bool TheorySep::propagateLit(TNode literal)
 
 TrustNode TheorySep::explain(TNode literal)
 {
-  Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
+  Trace("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
   return d_im.explainLit(literal);
 }
 
@@ -155,7 +155,7 @@ TrustNode TheorySep::explain(TNode literal)
 /////////////////////////////////////////////////////////////////////////////
 
 void TheorySep::computeCareGraph() {
-  Debug("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
+  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
   for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
     TNode a = d_sharedTerms[i];
     TypeNode aType = a.getType();
@@ -645,7 +645,7 @@ void TheorySep::postCheck(Effort level)
     }
   }
   // debug print
-  if (Trace.isOn("sep-process"))
+  if (TraceIsOn("sep-process"))
   {
     Trace("sep-process") << "--- Current spatial assertions : " << std::endl;
     for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
@@ -659,7 +659,7 @@ void TheorySep::postCheck(Effort level)
     }
     Trace("sep-process") << "---" << std::endl;
   }
-  if (Trace.isOn("sep-eqc"))
+  if (TraceIsOn("sep-eqc"))
   {
     Trace("sep-eqc") << d_equalityEngine->debugPrintEqc();
   }
@@ -667,36 +667,11 @@ void TheorySep::postCheck(Effort level)
   bool addedLemma = false;
   bool needAddLemma = false;
   // check negated star / positive wand
-  if (options().sep.sepCheckNeg)
-  {
-    // get active labels
-    std::map<Node, bool> active_lbl;
-    if (options().sep.sepMinimalRefine)
-    {
-      for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
-        Node fact = (*i);
-        bool polarity = fact.getKind() != NOT;
-        TNode atom = polarity ? fact : fact[0];
-        TNode satom = atom[0];
-        bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
-        if( !use_polarity ){
-          Assert(assert_active.find(fact) != assert_active.end());
-          if( assert_active[fact] ){
-            Assert(atom.getKind() == SEP_LABEL);
-            TNode slbl = atom[1];
-            std::map<Node, std::map<int, Node> >& lms = d_label_map[satom];
-            if (lms.find(slbl) != lms.end())
-            {
-              Trace("sep-process-debug")
-                  << "Active lbl : " << slbl << std::endl;
-              active_lbl[slbl] = true;
-            }
-          }
-        }
-      }
-    }
 
-    // process spatial assertions
+  // get active labels
+  std::map<Node, bool> active_lbl;
+  if (options().sep.sepMinimalRefine)
+  {
     for (NodeList::const_iterator i = d_spatial_assertions.begin();
          i != d_spatial_assertions.end();
          ++i)
@@ -705,123 +680,143 @@ void TheorySep::postCheck(Effort level)
       bool polarity = fact.getKind() != NOT;
       TNode atom = polarity ? fact : fact[0];
       TNode satom = atom[0];
-
       bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
+      if (!use_polarity)
+      {
+        Assert(assert_active.find(fact) != assert_active.end());
+        if (assert_active[fact])
+        {
+          Assert(atom.getKind() == SEP_LABEL);
+          TNode slbl = atom[1];
+          std::map<Node, std::map<int, Node> >& lms = d_label_map[satom];
+          if (lms.find(slbl) != lms.end())
+          {
+            Trace("sep-process-debug") << "Active lbl : " << slbl << std::endl;
+            active_lbl[slbl] = true;
+          }
+        }
+      }
+    }
+  }
+
+  // process spatial assertions
+  for (NodeList::const_iterator i = d_spatial_assertions.begin();
+       i != d_spatial_assertions.end();
+       ++i)
+  {
+    Node fact = (*i);
+    bool polarity = fact.getKind() != NOT;
+    TNode atom = polarity ? fact : fact[0];
+    TNode satom = atom[0];
+
+    bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
+    Trace("sep-process-debug") << "  check atom : " << satom << " use polarity "
+                               << use_polarity << std::endl;
+    if (use_polarity)
+    {
+      continue;
+    }
+    Assert(assert_active.find(fact) != assert_active.end());
+    if (!assert_active[fact])
+    {
       Trace("sep-process-debug")
-          << "  check atom : " << satom << " use polarity " << use_polarity
-          << std::endl;
-      if (use_polarity)
-      {
-        continue;
-      }
-      Assert(assert_active.find(fact) != assert_active.end());
-      if (!assert_active[fact])
-      {
-        Trace("sep-process-debug")
-            << "--> inactive negated assertion " << satom << std::endl;
-        continue;
-      }
-      Assert(atom.getKind() == SEP_LABEL);
-      TNode slbl = atom[1];
-      Trace("sep-process") << "--> Active negated atom : " << satom
-                           << ", lbl = " << slbl << std::endl;
-      // add refinement lemma
-      if (!ContainsKey(d_label_map[satom], slbl))
-      {
-        Trace("sep-process-debug") << "  no children." << std::endl;
-        Assert(satom.getKind() == SEP_PTO || satom.getKind() == SEP_EMP);
-        continue;
-      }
-      needAddLemma = true;
-      TypeNode tn = getReferenceType();
-      tn = nm->mkSetType(tn);
-      // tn = nm->mkSetType(nm->mkRefType(tn));
-      Node o_b_lbl_mval = d_label_model[slbl].getValue(tn);
-      Trace("sep-process") << "    Model for " << slbl << " : " << o_b_lbl_mval
-                           << std::endl;
+          << "--> inactive negated assertion " << satom << std::endl;
+      continue;
+    }
+    Assert(atom.getKind() == SEP_LABEL);
+    TNode slbl = atom[1];
+    Trace("sep-process") << "--> Active negated atom : " << satom
+                         << ", lbl = " << slbl << std::endl;
+    // add refinement lemma
+    if (!ContainsKey(d_label_map[satom], slbl))
+    {
+      Trace("sep-process-debug") << "  no children." << std::endl;
+      Assert(satom.getKind() == SEP_PTO || satom.getKind() == SEP_EMP);
+      continue;
+    }
+    needAddLemma = true;
+    TypeNode tn = getReferenceType();
+    tn = nm->mkSetType(tn);
+    // tn = nm->mkSetType(nm->mkRefType(tn));
+    Node o_b_lbl_mval = d_label_model[slbl].getValue(tn);
+    Trace("sep-process") << "    Model for " << slbl << " : " << o_b_lbl_mval
+                         << std::endl;
 
-      // get model values
-      std::map<int, Node> mvals;
-      for (const std::pair<const int, Node>& sub_element : d_label_map[satom][slbl])
-      {
-        int sub_index = sub_element.first;
-        Node sub_lbl = sub_element.second;
-        computeLabelModel(sub_lbl);
-        Node lbl_mval = d_label_model[sub_lbl].getValue(tn);
-        Trace("sep-process-debug")
-            << "  child " << sub_index << " : " << sub_lbl
-            << ", mval = " << lbl_mval << std::endl;
-        mvals[sub_index] = lbl_mval;
-      }
+    // get model values
+    std::map<int, Node> mvals;
+    for (const std::pair<const int, Node>& sub_element :
+         d_label_map[satom][slbl])
+    {
+      int sub_index = sub_element.first;
+      Node sub_lbl = sub_element.second;
+      computeLabelModel(sub_lbl);
+      Node lbl_mval = d_label_model[sub_lbl].getValue(tn);
+      Trace("sep-process-debug") << "  child " << sub_index << " : " << sub_lbl
+                                 << ", mval = " << lbl_mval << std::endl;
+      mvals[sub_index] = lbl_mval;
+    }
 
-      // Now, assert model-instantiated implication based on the negation
-      Assert(d_label_model.find(slbl) != d_label_model.end());
-      std::vector<Node> conc;
-      bool inst_success = true;
-      // new refinement
-      // instantiate the label
-      std::map<Node, Node> visited;
-      Node inst = instantiateLabel(satom,
-                                   slbl,
-                                   slbl,
-                                   o_b_lbl_mval,
-                                   visited,
-                                   d_pto_model,
-                                   tn,
-                                   active_lbl);
-      Trace("sep-inst-debug") << "    applied inst : " << inst << std::endl;
-      if (inst.isNull())
+    // Now, assert model-instantiated implication based on the negation
+    Assert(d_label_model.find(slbl) != d_label_model.end());
+    std::vector<Node> conc;
+    bool inst_success = true;
+    // new refinement
+    // instantiate the label
+    std::map<Node, Node> visited;
+    Node inst = instantiateLabel(
+        satom, slbl, slbl, o_b_lbl_mval, visited, d_pto_model, tn, active_lbl);
+    Trace("sep-inst-debug") << "    applied inst : " << inst << std::endl;
+    if (inst.isNull())
+    {
+      inst_success = false;
+    }
+    else
+    {
+      inst = rewrite(inst);
+      if (inst == (polarity ? d_true : d_false))
       {
         inst_success = false;
       }
-      else
-      {
-        inst = rewrite(inst);
-        if (inst == (polarity ? d_true : d_false))
-        {
-          inst_success = false;
-        }
-        conc.push_back(polarity ? inst : inst.negate());
-      }
-      if (!inst_success)
-      {
-        continue;
-      }
-      std::vector<Node> lemc;
-      Node pol_atom = atom;
-      if (polarity)
-      {
-        pol_atom = atom.negate();
-      }
-      lemc.push_back(pol_atom);
-      lemc.insert(lemc.end(), conc.begin(), conc.end());
-      Node lem = nm->mkNode(OR, lemc);
-      std::vector<Node>& rlems = d_refinement_lem[satom][slbl];
-      if (std::find(rlems.begin(), rlems.end(), lem) == rlems.end())
-      {
-        rlems.push_back(lem);
-        Trace("sep-process") << "-----> refinement lemma (#" << rlems.size()
-                             << ") : " << lem << std::endl;
-        Trace("sep-lemma") << "Sep::Lemma : negated star/wand refinement : "
-                           << lem << std::endl;
-        d_im.lemma(lem, InferenceId::SEP_REFINEMENT);
-        addedLemma = true;
-      }
-      else
-      {
-        // this typically should not happen, should never happen for complete
-        // base theories
-        Trace("sep-process")
-            << "*** repeated refinement lemma : " << lem << std::endl;
-        Trace("sep-warn")
-            << "TheorySep : WARNING : repeated refinement lemma : " << lem
-            << "!!!" << std::endl;
-      }
+      conc.push_back(polarity ? inst : inst.negate());
     }
-    Trace("sep-process")
-        << "...finished check of negated assertions, addedLemma=" << addedLemma
-        << ", needAddLemma=" << needAddLemma << std::endl;
+    if (!inst_success)
+    {
+      continue;
+    }
+    std::vector<Node> lemc;
+    Node pol_atom = atom;
+    if (polarity)
+    {
+      pol_atom = atom.negate();
+    }
+    lemc.push_back(pol_atom);
+    lemc.insert(lemc.end(), conc.begin(), conc.end());
+    Node lem = nm->mkNode(OR, lemc);
+    std::vector<Node>& rlems = d_refinement_lem[satom][slbl];
+    if (std::find(rlems.begin(), rlems.end(), lem) == rlems.end())
+    {
+      rlems.push_back(lem);
+      Trace("sep-process") << "-----> refinement lemma (#" << rlems.size()
+                           << ") : " << lem << std::endl;
+      Trace("sep-lemma") << "Sep::Lemma : negated star/wand refinement : "
+                         << lem << std::endl;
+      d_im.lemma(lem, InferenceId::SEP_REFINEMENT);
+      addedLemma = true;
+    }
+    else
+    {
+      // this typically should not happen, should never happen for complete
+      // base theories
+      Trace("sep-process") << "*** repeated refinement lemma : " << lem
+                           << std::endl;
+      Trace("sep-warn") << "TheorySep : WARNING : repeated refinement lemma : "
+                        << lem << "!!!" << std::endl;
+    }
   }
+  Trace("sep-process") << "...finished check of negated assertions, addedLemma="
+                       << addedLemma << ", needAddLemma=" << needAddLemma
+                       << std::endl;
+
   if (addedLemma)
   {
     return;
@@ -927,9 +922,9 @@ void TheorySep::conflict(TNode a, TNode b) {
   d_im.conflictEqConstantMerge(a, b);
 }
 
-
-TheorySep::HeapAssertInfo::HeapAssertInfo( context::Context* c ) : d_pto(c), d_has_neg_pto(c,false) {
-
+TheorySep::HeapAssertInfo::HeapAssertInfo(context::Context* c)
+    : d_pto(c), d_has_neg_pto(c, false)
+{
 }
 
 TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
@@ -1202,14 +1197,17 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
 
     //check whether monotonic (elements can be added to tn without effecting satisfiability)
     bool tn_is_monotonic = true;
-    if( tn.isSort() ){
+    if (tn.isUninterpretedSort())
+    {
       //TODO: use monotonicity inference
       tn_is_monotonic = !logicInfo().isQuantified();
-    }else{
+    }
+    else
+    {
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }
     //add a reference type for maximum occurrences of empty in a constraint
-    if (options().sep.sepDisequalC && tn_is_monotonic)
+    if (tn_is_monotonic)
     {
       for( unsigned r=0; r<d_type_references_card[tn].size(); r++ ){
         Node e = d_type_references_card[tn][r];
@@ -1382,7 +1380,7 @@ Node TheorySep::instantiateLabel(Node n,
   }
   else
   {
-    if( Trace.isOn("sep-inst") ){
+    if( TraceIsOn("sep-inst") ){
       if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND  || n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_EMP ){
         for( unsigned j=0; j<ind; j++ ){ Trace("sep-inst") << "  "; }
         Trace("sep-inst") << n << "[" << lbl << "] :: " << lbl_v << std::endl;
@@ -1449,33 +1447,7 @@ Node TheorySep::instantiateLabel(Node n,
 
           Assert(bchildren.size() > 1);
           conj.push_back( NodeManager::currentNM()->mkNode( kind::AND, bchildren ) );
-
-          if (options().sep.sepChildRefine)
-          {
-            //child-specific refinements (TODO: use ?)
-            for( unsigned i=0; i<children.size(); i++ ){
-              std::vector< Node > tchildren;
-              Node mval = mvals[i];
-              tchildren.push_back(NodeManager::currentNM()->mkNode(
-                  kind::SET_SUBSET, mval, lbl));
-              tchildren.push_back( children[i] );
-              std::vector< Node > rem_children;
-              for( unsigned j=0; j<children.size(); j++ ){
-                if( j!=i ){
-                  rem_children.push_back( n[j] );
-                }
-              }
-              std::map< Node, Node > rvisited;
-              Node rem = rem_children.size()==1 ? rem_children[0] : NodeManager::currentNM()->mkNode( kind::SEP_STAR, rem_children );
-              rem = applyLabel(
-                  rem,
-                  NodeManager::currentNM()->mkNode(kind::SET_MINUS, lbl, mval),
-                  rvisited);
-              tchildren.push_back( rem );
-              conj.push_back( NodeManager::currentNM()->mkNode( kind::AND, tchildren ) );
-            }
-          }
-          return conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( kind::OR, conj );
+          return NodeManager::currentNM()->mkOr(conj);
         }else{
           std::vector< Node > wchildren;
           //disjoint constraints
@@ -1850,4 +1822,4 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

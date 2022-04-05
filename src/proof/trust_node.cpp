@@ -18,7 +18,7 @@
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 const char* toString(TrustNodeKind tnk)
 {
@@ -151,4 +151,4 @@ std::ostream& operator<<(std::ostream& out, TrustNode n)
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

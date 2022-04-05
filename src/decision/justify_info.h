@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 /** A pair indicating a node and its desired value */
@@ -55,6 +55,6 @@ class JustifyInfo
 };
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__JUSTIFY_INFO_H */

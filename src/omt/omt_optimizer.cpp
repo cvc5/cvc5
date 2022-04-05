@@ -18,9 +18,9 @@
 #include "omt/bitvector_optimizer.h"
 #include "omt/integer_optimizer.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::smt;
-namespace cvc5::omt {
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::smt;
+namespace cvc5::internal::omt {
 
 bool OMTOptimizer::nodeSupportsOptimization(TNode node)
 {
@@ -182,4 +182,4 @@ Node OMTOptimizer::mkWeakIncrementalExpression(
   Unreachable();
 }
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt

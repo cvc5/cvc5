@@ -7,8 +7,12 @@ inputs:
     default: ""
   build-shared:
     default: true
+    type: boolean
   build-static:
     default: true
+    type: boolean
+  strip-bin:
+    default: ""
 outputs:
   shared-build-dir:
     description: build directory of the shared build
@@ -21,10 +25,12 @@ runs:
   steps:
     - name: Shared build
       id: shared-build
+      # Boolean inputs are actually strings:
+      # https://github.com/actions/runner/issues/1483
+      if: inputs.build-shared == '' || inputs.build-shared == 'true'
       shell: bash
       run: |
         echo "::group::Shared build"
-        if [[ "${{ inputs.build-shared }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build-shared/install --werror --name=build-shared
         
@@ -39,10 +45,12 @@ runs:
 
     - name: Static build
       id: static-build
+      # Boolean inputs are actually strings:
+      # https://github.com/actions/runner/issues/1483
+      if: inputs.build-static == '' || inputs.build-static == 'true'
       shell: bash
       run: |
         echo "::group::Static build"
-        if [[ "${{ inputs.build-static }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings
 
@@ -50,6 +58,10 @@ runs:
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
 
         make -j${{ env.num_proc }}
+
+        if [[ "${{ inputs.strip-bin }}" != "" ]]; then
+          ${{ inputs.strip-bin }} bin/cvc5*
+        fi
 
         echo "::set-output name=build-dir::$pwd"
         echo "::endgroup::"

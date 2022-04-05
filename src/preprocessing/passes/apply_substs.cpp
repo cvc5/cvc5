@@ -24,7 +24,7 @@
 #include "smt/env.h"
 #include "theory/substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -65,4 +65,4 @@ PreprocessingPassResult ApplySubsts::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

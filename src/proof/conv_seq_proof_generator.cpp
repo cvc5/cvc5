@@ -19,7 +19,7 @@
 
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TConvSeqProofGenerator::TConvSeqProofGenerator(
     ProofNodeManager* pnm,
@@ -102,7 +102,7 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
     serr << "expected after conversions: " << f[1] << std::endl;
     serr << "  actual after conversions: " << curr << std::endl;
 
-    if (Trace.isOn("tconv-seq-pf-gen-debug"))
+    if (TraceIsOn("tconv-seq-pf-gen-debug"))
     {
       Trace("tconv-pf-gen-debug")
           << "Printing conversion steps..." << std::endl;
@@ -168,4 +168,4 @@ TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

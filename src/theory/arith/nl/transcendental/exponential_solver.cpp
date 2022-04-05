@@ -29,9 +29,9 @@
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -44,11 +44,11 @@ ExponentialSolver::ExponentialSolver(Env& env, TranscendentalState* tstate)
 
 ExponentialSolver::~ExponentialSolver() {}
 
-void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
+void ExponentialSolver::doPurification(TNode a, TNode new_a)
 {
   NodeManager* nm = NodeManager::currentNM();
   // do both equalities to ensure that new_a becomes a preregistered term
-  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
+  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
@@ -153,6 +153,14 @@ void ExponentialSolver::checkMonotonic()
 
   for (const Node& tf : it->second)
   {
+    Node mva = d_data->d_model.computeAbstractModelValue(tf);
+    if (mva == tf)
+    {
+      // if it was not assigned a model value by the linear solver, it is
+      // not a relevant term. This can happen for terms like (exp (exp 1.0)),
+      // where (exp 1.0) is not relevant until we purify (exp (exp 1.0)).
+      continue;
+    }
     Node a = tf[0];
     Node mvaa = d_data->d_model.computeAbstractModelValue(a);
     if (mvaa.isConst())
@@ -178,7 +186,8 @@ void ExponentialSolver::checkMonotonic()
     Assert(sargval.isConst());
     Node s = tf_arg_to_term[sarg];
     Node sval = d_data->d_model.computeAbstractModelValue(s);
-    Assert(sval.isConst());
+    Assert(sval.isConst()) << "non-constant model value " << sval << " for "
+                           << s;
 
     // store the concavity region
     d_data->d_tf_region[s] = 1;
@@ -219,8 +228,6 @@ void ExponentialSolver::doTangentLemma(TNode e,
                         nm->mkNode(Kind::GEQ, e, poly_approx));
   Trace("nl-ext-exp") << "*** Tangent plane lemma (pre-rewrite): " << lem
                       << std::endl;
-  lem = rewrite(lem);
-  Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
   CDProof* proof = nullptr;
@@ -230,7 +237,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
     proof->addStep(lem,
                    PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
-                   {nm->mkConstInt(Rational(d)), e[0]});
+                   {nm->mkConstInt(Rational(d)), c, e[0]});
   }
   d_data->d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
@@ -279,4 +286,4 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

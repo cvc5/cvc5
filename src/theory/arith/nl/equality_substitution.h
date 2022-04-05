@@ -25,7 +25,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -97,6 +97,6 @@ class EqualitySubstitution : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NL__EQUALITY_SUBSTITUTION_H */

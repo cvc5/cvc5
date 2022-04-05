@@ -22,7 +22,13 @@
 #include <memory>
 
 #include "expr/node.h"
-namespace cvc5 {
+
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
+namespace cvc5::internal {
 
 class Env;
 class LogicInfo;
@@ -30,10 +36,6 @@ class NodeManager;
 class Options;
 class StatisticsRegistry;
 
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 namespace options {
 enum class OutputTag;
 }
@@ -110,5 +112,5 @@ class EnvObj
   Env& d_env;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

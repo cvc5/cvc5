@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace printer {
 namespace tptp {
 
@@ -99,4 +99,4 @@ void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
 
 }  // namespace tptp
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal

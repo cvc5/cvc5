@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 bool WallClockTimer::on() const
 {
@@ -205,7 +205,7 @@ void ResourceManager::spendResource(uint64_t amount)
   ++d_statistics->d_spendResourceCalls;
   d_cumulativeResourceUsed += amount;
 
-  Debug("limit") << "ResourceManager::spendResource()" << std::endl;
+  Trace("limit") << "ResourceManager::spendResource()" << std::endl;
   d_thisCallResourceUsed += amount;
   if (out())
   {
@@ -308,4 +308,4 @@ void ResourceManager::registerListener(Listener* listener)
   return d_listeners.push_back(listener);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

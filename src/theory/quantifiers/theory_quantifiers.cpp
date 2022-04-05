@@ -23,10 +23,10 @@
 #include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -89,18 +89,18 @@ void TheoryQuantifiers::preRegisterTerm(TNode n)
   {
     return;
   }
-  Debug("quantifiers-prereg")
+  Trace("quantifiers-prereg")
       << "TheoryQuantifiers::preRegisterTerm() " << n << std::endl;
   // Preregister the quantified formula.
   // This initializes the modules used for handling n in this user context.
   getQuantifiersEngine()->preRegisterQuantifier(n);
-  Debug("quantifiers-prereg")
+  Trace("quantifiers-prereg")
       << "TheoryQuantifiers::preRegisterTerm() done " << n << std::endl;
 }
 
 
 void TheoryQuantifiers::presolve() {
-  Debug("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
+  Trace("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
   if( getQuantifiersEngine() ){
     getQuantifiersEngine()->presolve();
   }
@@ -141,7 +141,7 @@ bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
     if ((*i).d_assertion.getKind() == NOT)
     {
-      Debug("quantifiers::collectModelInfo")
+      Trace("quantifiers::collectModelInfo")
           << "got quant FALSE: " << (*i).d_assertion[0] << std::endl;
       if (!m->assertPredicate((*i).d_assertion[0], false))
       {
@@ -150,7 +150,7 @@ bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
     }
     else
     {
-      Debug("quantifiers::collectModelInfo")
+      Trace("quantifiers::collectModelInfo")
           << "got quant TRUE : " << *i << std::endl;
       if (!m->assertPredicate(*i, true))
       {
@@ -185,4 +185,4 @@ bool TheoryQuantifiers::preNotifyFact(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

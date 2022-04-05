@@ -24,7 +24,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -43,10 +43,10 @@ int main()
   // (a + (b + c)) != ((a + b) + c)
   Term rm = solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN);
   Term lhs = solver.mkTerm(
-      FLOATINGPOINT_ADD, rm, a, solver.mkTerm(FLOATINGPOINT_ADD, rm, b, c));
+      FLOATINGPOINT_ADD, {rm, a, solver.mkTerm(FLOATINGPOINT_ADD, {rm, b, c})});
   Term rhs = solver.mkTerm(
-      FLOATINGPOINT_ADD, rm, solver.mkTerm(FLOATINGPOINT_ADD, rm, a, b), c);
-  solver.assertFormula(solver.mkTerm(NOT, solver.mkTerm(EQUAL, a, b)));
+      FLOATINGPOINT_ADD, {rm, solver.mkTerm(FLOATINGPOINT_ADD, {rm, a, b}), c});
+  solver.assertFormula(solver.mkTerm(NOT, {solver.mkTerm(EQUAL, {a, b})}));
 
   Result r = solver.checkSat();  // result is sat
   assert (r.isSat());
@@ -59,7 +59,7 @@ int main()
   Term nan = solver.mkFloatingPointNaN(8, 24);
   Term inf = solver.mkFloatingPointPosInf(8, 24);
   solver.assertFormula(solver.mkTerm(
-      OR, solver.mkTerm(EQUAL, a, inf), solver.mkTerm(EQUAL, a, nan)));
+      OR, {solver.mkTerm(EQUAL, {a, inf}), solver.mkTerm(EQUAL, {a, nan})}));
 
   r = solver.checkSat();  // result is sat
   assert (r.isSat());
@@ -73,18 +73,18 @@ int main()
   // different rounding modes.
   Term rtp = solver.mkRoundingMode(ROUND_TOWARD_POSITIVE);
   Term rtn = solver.mkRoundingMode(ROUND_TOWARD_NEGATIVE);
-  Op op = solver.mkOp(FLOATINGPOINT_TO_SBV, 16);  // (_ fp.to_sbv 16)
-  lhs = solver.mkTerm(op, rtp, d);
-  rhs = solver.mkTerm(op, rtn, d);
-  solver.assertFormula(solver.mkTerm(FLOATINGPOINT_IS_NORMAL, d));
-  solver.assertFormula(solver.mkTerm(NOT, solver.mkTerm(EQUAL, lhs, rhs)));
+  Op op = solver.mkOp(FLOATINGPOINT_TO_SBV, {16});  // (_ fp.to_sbv 16)
+  lhs = solver.mkTerm(op, {rtp, d});
+  rhs = solver.mkTerm(op, {rtn, d});
+  solver.assertFormula(solver.mkTerm(FLOATINGPOINT_IS_NORMAL, {d}));
+  solver.assertFormula(solver.mkTerm(NOT, {solver.mkTerm(EQUAL, {lhs, rhs})}));
 
   r = solver.checkSat();  // result is sat
   assert (r.isSat());
 
   // Convert the result to a rational and print it
   Term val = solver.getValue(d);
-  Term realVal = solver.getValue(solver.mkTerm(FLOATINGPOINT_TO_REAL, val));
+  Term realVal = solver.getValue(solver.mkTerm(FLOATINGPOINT_TO_REAL, {val}));
   cout << "d = " << val << " = " << realVal << endl;
   cout << "((_ fp.to_sbv 16) RTP d) = " << solver.getValue(lhs) << endl;
   cout << "((_ fp.to_sbv 16) RTN d) = " << solver.getValue(rhs) << endl;
@@ -95,8 +95,8 @@ int main()
   Term smallest = solver.mkFloatingPoint(8, 24, solver.mkBitVector(32, 0b001));
   solver.assertFormula(
       solver.mkTerm(AND,
-                    solver.mkTerm(FLOATINGPOINT_LT, zero, e),
-                    solver.mkTerm(FLOATINGPOINT_LT, e, smallest)));
+                    {solver.mkTerm(FLOATINGPOINT_LT, {zero, e}),
+                     solver.mkTerm(FLOATINGPOINT_LT, {e, smallest})}));
 
   r = solver.checkSat();  // result is unsat
   assert (!r.isSat());

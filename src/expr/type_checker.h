@@ -21,7 +21,7 @@
 #ifndef CVC5__EXPR__TYPE_CHECKER_H
 #define CVC5__EXPR__TYPE_CHECKER_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 class TypeChecker {
@@ -35,6 +35,6 @@ public:
 };/* class TypeChecker */
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TYPE_CHECKER_H */

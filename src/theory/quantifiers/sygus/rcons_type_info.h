@@ -21,7 +21,7 @@
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -105,6 +105,6 @@ class RConsTypeInfo
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H

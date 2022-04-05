@@ -22,7 +22,7 @@
 #include "expr/type_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 
@@ -128,6 +128,6 @@ class AbductionSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__ABDUCTION_SOLVER_H */

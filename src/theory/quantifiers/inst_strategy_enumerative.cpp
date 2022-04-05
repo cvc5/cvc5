@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -93,7 +93,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
   Assert(!d_qstate.isInConflict());
   double clSet = 0;
-  if (Trace.isOn("enum-engine"))
+  if (TraceIsOn("enum-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
@@ -160,7 +160,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       }
     }
   }
-  if (Trace.isOn("enum-engine"))
+  if (TraceIsOn("enum-engine"))
   {
     Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
@@ -222,4 +222,4 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

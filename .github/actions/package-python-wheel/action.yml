@@ -1,0 +1,108 @@
+name: Package python wheels
+description: Package cvc5 into python wheels for all supported python versions
+inputs:
+  upload-to-pypi:
+    default: false
+  upload-to-test-pypi:
+    default: false
+  pypi-token:
+    default: ""
+  test-pypi-token:
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Build wheels for Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        echo "::group::Create docker image"
+        if ! docker image inspect pycvc5-manylinux2014 > /dev/null 2>&1; then
+          echo "Need to build docker image"
+          docker build -q -t pycvc5-manylinux2014 contrib/packaging_python/manylinux2014
+        fi
+        echo "::endgroup::"
+
+        OPTS="production --auto-download"
+        for version in cp36 cp37 cp38 cp39 cp310 pp37 pp38
+        do
+          echo "::group::Build extension for python $version"
+          docker run --rm \
+            -v `pwd`:/home/pycvc5 \
+            pycvc5-manylinux2014 \
+            ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/${version}*/bin/python "$OPTS"
+          echo "::endgroup::"
+        done
+
+        ls *.whl
+      
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.6'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.7'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.8'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.9'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.10'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 'pypy-3.7'
+        
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 'pypy-3.8'
+
+    - name: Upload wheels to pypi.org
+      if: inputs.upload-to-pypi == 'true'
+      shell: bash
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ inputs.pypi-token }}
+      run: |
+        echo "::group::Upload to pypi.org"
+        for wheel in `ls *.whl`
+        do
+          twine upload $wheel
+        done
+        echo "::endgroup::"
+
+    - name: Upload wheels to test.pypi.org
+      if: inputs.upload-to-test-pypi == 'true'
+      shell: bash
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ inputs.test-pypi-token }}
+      run: |
+        echo "::group::Upload to test.pypi.org"
+        for wheel in `ls *.whl`
+        do
+          twine upload --repository testpypi $wheel
+        done
+        echo "::endgroup::"
+

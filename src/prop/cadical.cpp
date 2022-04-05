@@ -21,7 +21,7 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 using CadicalLit = int;
@@ -202,12 +202,12 @@ bool CadicalSolver::ok() const { return d_inSatMode; }
 
 CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                       const std::string& prefix)
-    : d_numSatCalls(registry.registerInt(prefix + "cadical::calls_to_solve", 0)),
-      d_numVariables(registry.registerInt(prefix + "cadical::variables", 0)),
-      d_numClauses(registry.registerInt(prefix + "cadical::clauses", 0)),
+    : d_numSatCalls(registry.registerInt(prefix + "cadical::calls_to_solve")),
+      d_numVariables(registry.registerInt(prefix + "cadical::variables")),
+      d_numClauses(registry.registerInt(prefix + "cadical::clauses")),
       d_solveTime(registry.registerTimer(prefix + "cadical::solve_time"))
   {
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

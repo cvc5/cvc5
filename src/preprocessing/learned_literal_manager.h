@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 /**
@@ -56,12 +56,12 @@ class LearnedLiteralManager : protected EnvObj
 
  private:
   /** Learned literal map */
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
   /** Learned literals */
   NodeSet d_learnedLits;
 };
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__LEARNED_LITERAL_MANAGER_H */

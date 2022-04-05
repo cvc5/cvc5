@@ -37,7 +37,7 @@
 #include "smt/env_obj.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -78,6 +78,6 @@ class PreprocessingPass : protected EnvObj
 };
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_H */

@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TCtxStack;
 class TermContext;
@@ -75,6 +75,6 @@ class TCtxNode
   const TermContext* d_tctx;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main() {
   Solver slv;
@@ -27,24 +27,24 @@ int main() {
 
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
-  Sort integerPredicate = slv.mkFunctionSort(integer, boolean);
+  Sort integerPredicate = slv.mkFunctionSort({integer}, boolean);
 
   Term p = slv.mkConst(integerPredicate, "P");
   Term x = slv.mkVar(integer, "x");
 
   // make forall x. P( x )
-  Term var_list = slv.mkTerm(Kind::VARIABLE_LIST, x);
-  Term px = slv.mkTerm(Kind::APPLY_UF, p, x);
-  Term quantpospx = slv.mkTerm(Kind::FORALL, var_list, px);
+  Term var_list = slv.mkTerm(Kind::VARIABLE_LIST, {x});
+  Term px = slv.mkTerm(Kind::APPLY_UF, {p, x});
+  Term quantpospx = slv.mkTerm(Kind::FORALL, {var_list, px});
   std::cout << "Made expression : " << quantpospx << std::endl;
 
   //make ~P( 5 )
   Term five = slv.mkInteger(5);
-  Term pfive = slv.mkTerm(Kind::APPLY_UF, p, five);
-  Term negpfive = slv.mkTerm(Kind::NOT, pfive);
+  Term pfive = slv.mkTerm(Kind::APPLY_UF, {p, five});
+  Term negpfive = slv.mkTerm(Kind::NOT, {pfive});
   std::cout << "Made expression : " << negpfive << std::endl;
 
-  Term formula = slv.mkTerm(Kind::AND, quantpospx, negpfive);
+  Term formula = slv.mkTerm(Kind::AND, {quantpospx, negpfive});
 
   slv.assertFormula(formula);
 
@@ -56,13 +56,13 @@ int main() {
   slv.resetAssertions();
 
   // this version has a pattern e.g. in smt2 syntax (forall ((x Int)) (! (P x ) :pattern ((P x))))
-  Term pattern = slv.mkTerm(Kind::INST_PATTERN, px);
-  Term pattern_list = slv.mkTerm(Kind::INST_PATTERN_LIST, pattern);
+  Term pattern = slv.mkTerm(Kind::INST_PATTERN, {px});
+  Term pattern_list = slv.mkTerm(Kind::INST_PATTERN_LIST, {pattern});
   Term quantpospx_pattern =
-      slv.mkTerm(Kind::FORALL, var_list, px, pattern_list);
+      slv.mkTerm(Kind::FORALL, {var_list, px, pattern_list});
   std::cout << "Made expression : " << quantpospx_pattern << std::endl;
 
-  Term formula_pattern = slv.mkTerm(Kind::AND, quantpospx_pattern, negpfive);
+  Term formula_pattern = slv.mkTerm(Kind::AND, {quantpospx_pattern, negpfive});
 
   slv.assertFormula(formula_pattern);
 

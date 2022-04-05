@@ -28,7 +28,7 @@
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -333,6 +333,6 @@ class TransitionInference : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -17,10 +17,10 @@
 
 #include "theory/quantifiers/quant_util.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -49,7 +49,7 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
     return false;
   }
 
-  if (Trace.isOn("ex-infer"))
+  if (TraceIsOn("ex-infer"))
   {
     for (unsigned i = 0; i < candidates.size(); i++)
     {
@@ -273,4 +273,4 @@ bool ExampleInfer::hasExamplesOut(Node f) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

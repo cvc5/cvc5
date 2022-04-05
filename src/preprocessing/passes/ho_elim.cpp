@@ -26,9 +26,9 @@
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -553,4 +553,4 @@ TypeNode HoElim::getUSort(TypeNode tn)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

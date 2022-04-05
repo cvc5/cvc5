@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
@@ -113,8 +113,7 @@ void SmtSolver::interrupt()
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
-                                      const std::vector<Node>& assumptions,
-                                      bool isEntailmentCheck)
+                                      const std::vector<Node>& assumptions)
 {
   Result result;
 
@@ -126,7 +125,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     d_state.notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
-    as.initializeCheckSat(assumptions, isEntailmentCheck);
+    as.initializeCheckSat(assumptions);
 
     // make the check, where notice smt engine should be fully inited by now
 
@@ -135,9 +134,10 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     ResourceManager* rm = d_env.getResourceManager();
     if (rm->out())
     {
-      Result::UnknownExplanation why =
-          rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
-      result = Result(Result::ENTAILMENT_UNKNOWN, why);
+      UnknownExplanation why = rm->outOfResources()
+                                   ? UnknownExplanation::RESOURCEOUT
+                                   : UnknownExplanation::TIMEOUT;
+      result = Result(Result::UNKNOWN, why);
     }
     else
     {
@@ -162,20 +162,20 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
       if ((d_env.getOptions().smt.solveRealAsInt
            || d_env.getOptions().smt.solveIntAsBV > 0)
-          && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
+          && result.getStatus() == Result::UNSAT)
       {
-        result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
       }
       // flipped if we did a global negation
       if (as.isGlobalNegated())
       {
         Trace("smt") << "SmtSolver::process global negate " << result
                      << std::endl;
-        if (result.asSatisfiabilityResult().isSat() == Result::UNSAT)
+        if (result.getStatus() == Result::UNSAT)
         {
           result = Result(Result::SAT);
         }
-        else if (result.asSatisfiabilityResult().isSat() == Result::SAT)
+        else if (result.getStatus() == Result::SAT)
         {
           // Only can answer unsat if the theory is satisfaction complete. This
           // includes linear arithmetic and bitvectors, which are the primary
@@ -189,7 +189,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
           }
           else
           {
-            result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+            result =
+                Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
           }
         }
         Trace("smt") << "SmtSolver::global negate returned " << result
@@ -239,12 +240,14 @@ void SmtSolver::processAssertions(Assertions& as)
   {
     d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
-    const std::vector<Node>& ppl = d_pp.getLearnedLiterals();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter
-    // specially.
+    // specially. Note that we don't pass the preprocess learned literals
+    // d_pp.getLearnedLiterals() here, since they may not exactly correspond
+    // to the actual preprocessed learned literals, as the input may have
+    // undergone further preprocessing.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    d_propEngine->assertInputFormulas(assertions, ism, ppl);
+    d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions
@@ -264,4 +267,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

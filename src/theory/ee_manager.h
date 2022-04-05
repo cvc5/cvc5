@@ -26,7 +26,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -97,6 +97,6 @@ class EqEngineManager : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__EE_MANAGER__H */

@@ -25,19 +25,11 @@ if(CMAKE_SCRIPT_MODE_FILE)
 else()
   # was run within the overall cmake project
   # add target to update versioninfo.cpp at build time
-  add_custom_command(
-    OUTPUT
-      ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
+  add_custom_target(gen-versioninfo
     COMMAND ${CMAKE_COMMAND}
       -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
       -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
       -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake
-    DEPENDS
-      ${PROJECT_SOURCE_DIR}/cmake/version-base.cmake
-      ${PROJECT_SOURCE_DIR}/cmake/version.cmake
-  )
-  add_custom_target(gen-versioninfo
-    DEPENDS ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
   )
 endif()
 

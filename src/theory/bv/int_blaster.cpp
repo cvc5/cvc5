@@ -33,11 +33,11 @@
 #include "util/iand.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace {
 
@@ -255,6 +255,7 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_SREM);
   Assert(oldKind != kind::BITVECTOR_SMOD);
   Assert(oldKind != kind::BITVECTOR_XNOR);
+  Assert(oldKind != kind::BITVECTOR_NOR);
   Assert(oldKind != kind::BITVECTOR_NAND);
   Assert(oldKind != kind::BITVECTOR_SUB);
   Assert(oldKind != kind::BITVECTOR_REPEAT);
@@ -1080,8 +1081,8 @@ Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
 {
   // Based on Hacker's Delight section 2-2 equation a:
   // -x = ~x+1
-  Node p2 = pow2(bvsize);
-  return d_nm->mkNode(kind::SUB, p2, n);
+  Node bvNotNode = createBVNotNode(n, bvsize);
+  return createBVAddNode(bvNotNode, d_one, bvsize);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
@@ -1089,4 +1090,4 @@ Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
   return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

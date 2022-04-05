@@ -25,7 +25,7 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
@@ -130,4 +130,4 @@ TEST_F(TestTheoryBlack, array_const)
   ASSERT_TRUE(arr2.isConst());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

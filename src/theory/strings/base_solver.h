@@ -29,7 +29,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -248,6 +248,6 @@ class BaseSolver : protected EnvObj
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__BASE_SOLVER_H */

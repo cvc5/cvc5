@@ -24,7 +24,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/int_blaster.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -51,6 +51,6 @@ class BVToInt : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H */

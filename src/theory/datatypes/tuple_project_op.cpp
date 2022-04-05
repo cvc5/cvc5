@@ -19,7 +19,7 @@
 
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const TupleProjectOp& op)
 {
@@ -54,4 +54,4 @@ bool TupleProjectOp::operator==(const TupleProjectOp& op) const
   return d_indices == op.d_indices;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

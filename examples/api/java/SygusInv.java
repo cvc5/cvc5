@@ -13,32 +13,12 @@
  * A simple demonstration of the Sygus API.
  *
  * A simple demonstration of how to use the Sygus API to synthesize a simple
- * invariant. Here is the same problem written in Sygus V2 format:
- *
- * (set-logic LIA)
- *
- * (synth-inv inv-f ((x Int)))
- *
- * (define-fun pre-f ((x Int)) Bool
- *   (= x 0))
- * (define-fun trans-f ((x Int) (xp Int)) Bool
- *   (ite (< x 10) (= xp (+ x 1)) (= xp x)))
- * (define-fun post-f ((x Int)) Bool
- *   (<= x 10))
- *
- * (inv-constraint inv-f pre-f trans-f post-f)
- *
- * (check-synth)
- *
- * The printed output for this example should be equivalent to:
- * (
- *   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
- * )
+ * invariant. This is a direct translation of sygus-inv.cpp.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class SygusInv
 {
@@ -47,7 +27,7 @@ public class SygusInv
     try (Solver slv = new Solver())
     {
       // required options
-      slv.setOption("lang", "sygus2");
+      slv.setOption("sygus", "true");
       slv.setOption("incremental", "false");
 
       // set the logic
@@ -81,7 +61,7 @@ public class SygusInv
       slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 
       // print solutions if available
-      if (slv.checkSynth().isUnsat())
+      if (slv.checkSynth().hasSolution())
       {
         // Output should be equivalent to:
         // (

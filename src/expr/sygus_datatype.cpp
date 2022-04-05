@@ -18,9 +18,9 @@
 #include <sstream>
 #include "expr/skolem_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SygusDatatype::SygusDatatype(const std::string& name) : d_dt(DType(name)) {}
 
@@ -102,4 +102,4 @@ const DType& SygusDatatype::getDatatype() const
 
 bool SygusDatatype::isInitialized() const { return d_dt.isSygus(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

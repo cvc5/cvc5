@@ -27,7 +27,7 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -40,6 +40,12 @@ class SequencesRewriter : public TheoryRewriter
   StringsEntail& getStringsEntail();
 
  protected:
+  /** rewrite regular expression all
+   *
+   * This is the entry point for post-rewriting applications of re.all.
+   * Returns the rewritten form of node.
+   */
+  Node rewriteAllRegExp(TNode node);
   /** rewrite regular expression concatenation
    *
    * This is the entry point for post-rewriting applications of re.++.
@@ -318,6 +324,6 @@ class SequencesRewriter : public TheoryRewriter
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H */

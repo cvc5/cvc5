@@ -23,7 +23,7 @@
 #include "theory/inference_id.h"
 #include "theory/theory_inference.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -70,6 +70,6 @@ class DatatypesInference : public SimpleTheoryInternalFact
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

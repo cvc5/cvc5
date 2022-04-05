@@ -17,9 +17,9 @@
 
 #include "theory/subs_minimize.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ModelCoreBuilder::ModelCoreBuilder(Env& env) : EnvObj(env) {}
 
@@ -32,7 +32,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
     // already computed
     return true;
   }
-  if (Trace.isOn("model-core"))
+  if (TraceIsOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;
     for (const Node& a : assertions)
@@ -111,4 +111,4 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

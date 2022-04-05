@@ -20,10 +20,10 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -228,7 +228,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       }
       else if (contr.getConst<bool>() == d_isUniversal)
       {
-        if (Trace.isOn("sygus-pbe-cterm"))
+        if (TraceIsOn("sygus-pbe-cterm"))
         {
           Trace("sygus-pbe-cterm")
               << "PBE-cterm : enumerator : do not consider ";
@@ -257,4 +257,4 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

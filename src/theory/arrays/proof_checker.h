@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "proof/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -44,6 +44,6 @@ class ArraysProofRuleChecker : public ProofRuleChecker
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARRAYS__PROOF_CHECKER_H */

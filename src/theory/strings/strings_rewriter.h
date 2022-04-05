@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/strings/sequences_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -57,7 +57,7 @@ class StringsRewriter : public SequencesRewriter
   /** rewrite string convert
    *
    * This is the entry point for post-rewriting terms n of the form
-   *   str.tolower( s ) and str.toupper( s )
+   *   str.to_lower( s ) and str.toupper( s )
    * Returns the rewritten form of n.
    */
   Node rewriteStrConvert(Node n);
@@ -109,6 +109,6 @@ class StringsRewriter : public SequencesRewriter
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__STRINGS_REWRITER_H */

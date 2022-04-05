@@ -13,44 +13,12 @@
  * A simple demonstration of the Sygus API.
  *
  * A simple demonstration of how to use the Sygus API to synthesize max and min
- * functions. Here is the same problem written in Sygus V2 format:
- *
- * (set-logic LIA)
- *
- * (synth-fun max ((x Int) (y Int)) Int
- *   ((Start Int) (StartBool Bool))
- *   ((Start Int (0 1 x y
- *                (+ Start Start)
- *                (- Start Start)
- *                (ite StartBool Start Start)))
- *    (StartBool Bool ((and StartBool StartBool)
- *                     (not StartBool)
- *                     (<= Start Start)))))
- *
- * (synth-fun min ((x Int) (y Int)) Int)
- *
- * (declare-var x Int)
- * (declare-var y Int)
- *
- * (constraint (>= (max x y) x))
- * (constraint (>= (max x y) y))
- * (constraint (or (= x (max x y))
- *                 (= y (max x y))))
- * (constraint (= (+ (max x y) (min x y))
- *                (+ x y)))
- *
- * (check-synth)
- *
- * The printed output for this example should be equivalent to:
- * (
- *   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
- *   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
- * )
+ * functions. This is a direct translation of sygus-fun.cpp.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class SygusFun
 {
@@ -59,7 +27,7 @@ public class SygusFun
     try (Solver slv = new Solver())
     {
       // required options
-      slv.setOption("lang", "sygus2");
+      slv.setOption("sygus", "true");
       slv.setOption("incremental", "false");
 
       // set the logic
@@ -89,7 +57,8 @@ public class SygusFun
       Term leq = slv.mkTerm(LEQ, start, start);
 
       // create the grammar object
-      Grammar g = slv.mkSygusGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
+      Grammar g =
+          slv.mkGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
 
       // bind each non-terminal to its rules
       g.addRules(start, new Term[] {zero, one, x, y, plus, minus, ite});
@@ -101,8 +70,8 @@ public class SygusFun
       Term min = slv.synthFun("min", new Term[] {x, y}, integer);
 
       // declare universal variables.
-      Term varX = slv.mkSygusVar(integer, "x");
-      Term varY = slv.mkSygusVar(integer, "y");
+      Term varX = slv.declareSygusVar("x", integer);
+      Term varY = slv.declareSygusVar("y", integer);
 
       Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
       Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);
@@ -125,7 +94,7 @@ public class SygusFun
           slv.mkTerm(EQUAL, slv.mkTerm(ADD, max_x_y, min_x_y), slv.mkTerm(ADD, varX, varY)));
 
       // print solutions if available
-      if (slv.checkSynth().isUnsat())
+      if (slv.checkSynth().hasSolution())
       {
         // Output should be equivalent to:
         // (

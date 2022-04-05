@@ -28,8 +28,7 @@
 #include "base/output.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 class Context;
 class Scope;
@@ -257,7 +256,7 @@ class Scope {
    *
    * This is either nullptr or list owned by this scope.
    */
-  std::unique_ptr<std::vector<ContextObj*>> d_garbage;
+  std::vector<ContextObj*> d_garbage;
 
   friend std::ostream& operator<<(std::ostream&, const Scope&);
 
@@ -314,7 +313,6 @@ class Scope {
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM)
   {
-    Trace("context_mm") << "Scope::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -577,7 +575,6 @@ class ContextObj {
    * to be done using the restore method.
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM) {
-    Trace("context_mm") << "Context::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -640,7 +637,6 @@ class ContextObj {
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
-    Debug("context") << "deleteSelf(" << this << ") " << typeid(*this).name() << std::endl;
     this->~ContextObj();
     ::operator delete(this);
   }
@@ -738,7 +734,6 @@ inline void Scope::addToChain(ContextObj* pContextObj)
   d_pContextObjList = pContextObj;
 }
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CONTEXT_H */

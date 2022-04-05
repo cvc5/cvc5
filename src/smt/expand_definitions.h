@@ -24,7 +24,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class TConvProofGenerator;
@@ -67,6 +67,6 @@ class ExpandDefs : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

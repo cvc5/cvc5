@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 RemoveTermFormulas::RemoveTermFormulas(Env& env)
     : EnvObj(env),
@@ -162,7 +162,7 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
       TrustNode newLem;
       bool inQuant, inTerm;
       RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
-      Debug("ite") << "removeITEs(" << node << ")"
+      Trace("ite") << "removeITEs(" << node << ")"
                    << " " << inQuant << " " << inTerm << std::endl;
       Assert(!inQuant);
       Node currt =
@@ -516,4 +516,4 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 
 bool RemoveTermFormulas::isProofEnabled() const { return d_tpg != nullptr; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -26,7 +26,7 @@
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class QuantifiersEngine;
@@ -111,6 +111,9 @@ class SygusInst : public QuantifiersModule
    */
   bool sendEvalUnfoldLemmas(const std::vector<Node>& lemmas);
 
+  /** Return true if this module should process quantified formula q */
+  bool shouldProcess(Node q);
+
   /* Maps quantifiers to a vector of instantiation constants. */
   std::unordered_map<Node, std::vector<Node>> d_inst_constants;
 
@@ -145,6 +148,6 @@ class SygusInst : public QuantifiersModule
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

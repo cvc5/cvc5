@@ -20,4 +20,4 @@ from cvc5 import Kind
 if __name__ == "__main__":
     slv = cvc5.Solver()
     helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!")
-    print(helloworld, "is", slv.checkEntailed(helloworld))
+    print(helloworld, "is", slv.checkSatAssuming(helloworld))

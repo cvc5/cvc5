@@ -24,7 +24,7 @@
 ${typechecker_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -47,7 +47,7 @@ ${typerules}
       // clang-format on
 
     default:
-      Debug("getType") << "FAILURE" << std::endl;
+      Trace("getType") << "FAILURE" << std::endl;
       Unhandled() << " " << n.getKind();
   }
 
@@ -79,4 +79,4 @@ ${construles}
 }/* TypeChecker::computeIsConst */
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

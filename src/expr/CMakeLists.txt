@@ -15,6 +15,8 @@
 
 libcvc5_add_sources(
   algorithm/flatten.h
+  annotation_elim_node_converter.cpp
+  annotation_elim_node_converter.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -52,6 +54,8 @@ libcvc5_add_sources(
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
+  node_trie_algorithm.cpp
+  node_trie_algorithm.h
   node_traversal.cpp
   node_traversal.h
   node_value.cpp

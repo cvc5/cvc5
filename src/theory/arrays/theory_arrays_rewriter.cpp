@@ -25,7 +25,7 @@
 #include "theory/arrays/skolem_cache.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -689,4 +689,4 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

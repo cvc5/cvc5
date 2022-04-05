@@ -21,15 +21,15 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
-                                   options::BlockModelsMode mode,
+                                   modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -38,7 +38,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  if (mode == options::BlockModelsMode::LITERALS)
+  if (mode == modes::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());
     // optimization: filter out top-level unit assertions, as they cannot
@@ -229,7 +229,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   }
   else
   {
-    Assert(mode == options::BlockModelsMode::VALUES);
+    Assert(mode == modes::BlockModelsMode::VALUES);
     std::vector<Node> blockers;
     // if specific terms were not specified, block all variables of
     // the model
@@ -255,29 +255,51 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     // otherwise, block all terms that were specified in get-value
     else
     {
+      std::map<TypeNode, std::vector<Node> > nonClosedEnum;
+      std::map<Node, Node> nonClosedValue;
       std::unordered_set<Node> terms;
-      for (Node n : nodesToBlock)
+      for (const Node& n : nodesToBlock)
       {
+        TypeNode tn = n.getType();
         Node v = m->getValue(n);
-        Node a = nm->mkNode(DISTINCT, n, v);
-        blockers.push_back(a);
+        if (tn.isClosedEnumerable())
+        {
+          // if its type is closed enumerable, then we can block its value
+          Node a = n.eqNode(v).notNode();
+          blockers.push_back(a);
+        }
+        else
+        {
+          nonClosedValue[n] = v;
+          // otherwise we will block (dis)equality with other variables of its
+          // type below
+          nonClosedEnum[tn].push_back(n);
+        }
+      }
+      for (const std::pair<const TypeNode, std::vector<Node> >& es :
+           nonClosedEnum)
+      {
+        size_t nenum = es.second.size();
+        for (size_t i = 0; i < nenum; i++)
+        {
+          const Node& vi = nonClosedValue[es.second[i]];
+          for (size_t j = (i + 1); j < nenum; j++)
+          {
+            const Node& vj = nonClosedValue[es.second[j]];
+            Node eq = es.second[i].eqNode(es.second[j]);
+            if (vi == vj)
+            {
+              eq = eq.notNode();
+            }
+            blockers.push_back(eq);
+          }
+        }
       }
     }
-    if (blockers.size() == 0)
-    {
-      blocker = nm->mkConst<bool>(true);
-    }
-    else if (blockers.size() == 1)
-    {
-      blocker = blockers[0];
-    }
-    else
-    {
-      blocker = nm->mkNode(OR, blockers);
-    }
+    blocker = nm->mkOr(blockers);
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
   return blocker;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

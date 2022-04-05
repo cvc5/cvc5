@@ -23,7 +23,7 @@
 #include "decision/justify_info.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 /**
@@ -76,6 +76,6 @@ class JustifyStack
 };
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__JUSTIFY_INFO_H */

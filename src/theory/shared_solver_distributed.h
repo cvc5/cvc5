@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/shared_solver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -58,6 +58,6 @@ class SharedSolverDistributed : public SharedSolver
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H */

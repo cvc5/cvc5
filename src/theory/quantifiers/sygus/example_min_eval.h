@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/node_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -119,6 +119,6 @@ class EmeEvalTds : public EmeEval
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

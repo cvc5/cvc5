@@ -24,7 +24,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node_updater.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 
@@ -98,6 +98,6 @@ class LfscProofPostprocess
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

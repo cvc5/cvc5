@@ -18,9 +18,9 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -33,7 +33,7 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
   TypeNode tn = tuple.getType();
   const DType& dt = tn.getDType();
   return NodeManager::currentNM()->mkNode(
-      APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
+      APPLY_SELECTOR, dt[0].getSelectorInternal(tn, n_th), tuple);
 }
 
 std::vector<Node> TupleUtils::getTupleElements(Node tuple)
@@ -120,4 +120,4 @@ Node TupleUtils::reverseTuple(Node tuple)
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -24,7 +24,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -41,8 +41,8 @@ TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
-  Node a = d_nodeManager->mkConst(::cvc5::String("A"));
-  Node bc = d_nodeManager->mkConst(::cvc5::String("BC"));
+  Node a = d_nodeManager->mkConst(String("A"));
+  Node bc = d_nodeManager->mkConst(String("BC"));
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
 
@@ -61,4 +61,4 @@ TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

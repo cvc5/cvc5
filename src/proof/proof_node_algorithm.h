@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNode;
 
@@ -120,6 +120,6 @@ bool isSingletonClause(TNode res,
                        const std::vector<Node>& args);
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_NODE_ALGORITHM_H */

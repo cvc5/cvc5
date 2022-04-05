@@ -22,7 +22,7 @@
 
 #include "theory/combination_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -48,6 +48,6 @@ class CombinationCareGraph : public CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__COMBINATION_DISTRIBUTED__H */

@@ -21,7 +21,7 @@
 #ifndef CVC5__PROOF__CLAUSE_ID_H
 #define CVC5__PROOF__CLAUSE_ID_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A ClauseId is a shared identifier between the proofs module and the sat
@@ -36,6 +36,6 @@ const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__CLAUSE_ID_H */

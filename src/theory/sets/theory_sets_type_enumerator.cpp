@@ -17,7 +17,7 @@
 
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -130,4 +130,4 @@ bool SetEnumerator::isFinished()
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

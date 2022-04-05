@@ -21,9 +21,9 @@
 #include "util/random.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -119,7 +119,7 @@ Node SygusUnif::constructBestStringToConcat(
 
 void SygusUnif::indent(const char* c, int ind)
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     for (int i = 0; i < ind; i++)
     {
@@ -130,7 +130,7 @@ void SygusUnif::indent(const char* c, int ind)
 
 void SygusUnif::print_val(const char* c, std::vector<Node>& vals, bool pol)
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     for (unsigned i = 0; i < vals.size(); i++)
     {
@@ -143,4 +143,4 @@ void SygusUnif::print_val(const char* c, std::vector<Node>& vals, bool pol)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

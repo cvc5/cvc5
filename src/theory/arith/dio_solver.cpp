@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -74,11 +74,11 @@ DioSolver::Statistics::Statistics()
 }
 
 bool DioSolver::queueConditions(TrailIndex t){
-  Debug("queueConditions") << !inConflict() << std::endl;
-  Debug("queueConditions") << gcdIsOne(t) << std::endl;
-  Debug("queueConditions") << !debugAnySubstitionApplies(t) << std::endl;
-  Debug("queueConditions") << !triviallySat(t) << std::endl;
-  Debug("queueConditions") << !triviallyUnsat(t) << std::endl;
+  Trace("queueConditions") << !inConflict() << std::endl;
+  Trace("queueConditions") << gcdIsOne(t) << std::endl;
+  Trace("queueConditions") << !debugAnySubstitionApplies(t) << std::endl;
+  Trace("queueConditions") << !triviallySat(t) << std::endl;
+  Trace("queueConditions") << !triviallyUnsat(t) << std::endl;
 
   return
     !inConflict() &&
@@ -153,7 +153,7 @@ void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   //Variable proofVariable(makeIntegerVariable());
 
   TrailIndex posInTrail = d_trail.size();
-  Debug("dio::pushInputConstraint") << "pushInputConstraint @ " << posInTrail
+  Trace("dio::pushInputConstraint") << "pushInputConstraint @ " << posInTrail
                                     << " " << eq.getNode()
                                     << " " << reason << endl;
   d_trail.push_back(Constraint(sp,Polynomial::mkPolynomial(proofVariable)));
@@ -181,8 +181,8 @@ DioSolver::TrailIndex DioSolver::scaleEqAtIndex(DioSolver::TrailIndex i, const I
 
   d_trail.push_back(Constraint(newSP, newProof));
 
-  Debug("arith::dio") << "scaleEqAtIndex(" << i <<","<<g<<")"<<endl;
-  Debug("arith::dio") << "derived "<< newSP.getNode()
+  Trace("arith::dio") << "scaleEqAtIndex(" << i <<","<<g<<")"<<endl;
+  Trace("arith::dio") << "derived "<< newSP.getNode()
                       <<" with proof " << newProof.getNode() << endl;
   return j;
 }
@@ -212,7 +212,7 @@ Node DioSolver::proveIndex(TrailIndex i){
   }
 
   Node result = (nb.getNumChildren() == 1) ? nb[0] : (Node)nb;
-  Debug("arith::dio") << "Proof at " << i << " is "
+  Trace("arith::dio") << "Proof at " << i << " is "
                       << d_trail[i].d_eq.getNode() << endl
                       << d_trail[i].d_proof.getNode() << endl
                       << " which becomes " << result << endl;
@@ -226,14 +226,14 @@ bool DioSolver::anyCoefficientExceedsMaximum(TrailIndex j) const{
   bool result =
     nmonos >= 2 &&
     length > d_maxInputCoefficientLength + MAX_GROWTH_RATE;
-  if(Debug.isOn("arith::dio::max") && result){
+  if(TraceIsOn("arith::dio::max") && result){
 
     const SumPair& eq = d_trail[j].d_eq;
     const Polynomial& proof = d_trail[j].d_proof;
 
-    Debug("arith::dio::max") << "about to drop:" << std::endl;
-    Debug("arith::dio::max") << "d_trail[" << j << "].d_eq = " << eq.getNode() << std::endl;
-    Debug("arith::dio::max") << "d_trail[" << j << "].d_proof = " << proof.getNode() << std::endl;
+    Trace("arith::dio::max") << "about to drop:" << std::endl;
+    Trace("arith::dio::max") << "d_trail[" << j << "].d_eq = " << eq.getNode() << std::endl;
+    Trace("arith::dio::max") << "d_trail[" << j << "].d_proof = " << proof.getNode() << std::endl;
   }
   return result;
 }
@@ -371,7 +371,7 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
 
     //For the rest of the equations keep reducing until the coefficient is one
     for(; iter != end; ++iter){
-      Debug("arith::dio") << "next round : " << currentCoeff << " " << currentGcd << endl;
+      Trace("arith::dio") << "next round : " << currentCoeff << " " << currentGcd << endl;
       TrailIndex inQueue = *iter;
       Constant iqc = d_trail[inQueue].d_eq.getPolynomial().getCoefficient(vl);
       if(!iqc.isZero()){
@@ -382,20 +382,20 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
         // g = a*s + b*t
         Integer::extendedGcd(g, s, t, currentCoeff, inQueueCoeff);
 
-        Debug("arith::dio") << "extendedReduction : " << endl;
-        Debug("arith::dio") << g << " = " << s <<"*"<< currentCoeff << " + " << t <<"*"<< inQueueCoeff << endl;
+        Trace("arith::dio") << "extendedReduction : " << endl;
+        Trace("arith::dio") << g << " = " << s <<"*"<< currentCoeff << " + " << t <<"*"<< inQueueCoeff << endl;
 
         Assert(g <= currentGcd);
         if(g < currentGcd){
           if(s.sgn() == 0){
-            Debug("arith::dio") << "extendedReduction drop" << endl;
+            Trace("arith::dio") << "extendedReduction drop" << endl;
             Assert(inQueueCoeff.divides(currentGcd));
             current = *iter;
             currentCoeff = inQueueCoeff;
             currentGcd = inQueueCoeff.abs();
           }else{
 
-            Debug("arith::dio") << "extendedReduction combine" << endl;
+            Trace("arith::dio") << "extendedReduction combine" << endl;
             TrailIndex next = combineEqAtIndexes(current, s, inQueue, t);
 
             Assert(d_trail[next]
@@ -433,7 +433,7 @@ bool DioSolver::processEquations(bool allowDecomposition){
     Assert(inRange(minimum));
     Assert(!inConflict());
 
-    Debug("arith::dio") << "processEquations " << minimum << " : " << d_trail[minimum].d_eq.getNode() << endl;
+    Trace("arith::dio") << "processEquations " << minimum << " : " << d_trail[minimum].d_eq.getNode() << endl;
 
     Assert(queueConditions(minimum));
 
@@ -541,8 +541,8 @@ DioSolver::TrailIndex DioSolver::combineEqAtIndexes(DioSolver::TrailIndex i, con
   const SumPair& si = d_trail[i].d_eq;
   const SumPair& sj = d_trail[j].d_eq;
 
-  Debug("arith::dio") << "combineEqAtIndexes(" << i <<","<<q<<","<<j<<","<<r<<")"<<endl;
-  Debug("arith::dio") << "d_facts[i] = " << si.getNode() << endl
+  Trace("arith::dio") << "combineEqAtIndexes(" << i <<","<<q<<","<<j<<","<<r<<")"<<endl;
+  Trace("arith::dio") << "d_facts[i] = " << si.getNode() << endl
                       << "d_facts[j] = " << sj.getNode() << endl;
 
 
@@ -557,7 +557,7 @@ DioSolver::TrailIndex DioSolver::combineEqAtIndexes(DioSolver::TrailIndex i, con
   d_trail.push_back(Constraint(newSi, newPi));
 
 
-  Debug("arith::dio") << "derived "<< newSi.getNode()
+  Trace("arith::dio") << "derived "<< newSi.getNode()
                       <<" with proof " << newPi.getNode() << endl;
 
   return k;
@@ -565,19 +565,19 @@ DioSolver::TrailIndex DioSolver::combineEqAtIndexes(DioSolver::TrailIndex i, con
 }
 
 void DioSolver::printQueue(){
-  Debug("arith::dio") << "DioSolver::printQueue()" << endl;
+  Trace("arith::dio") << "DioSolver::printQueue()" << endl;
   for(TrailIndex i = 0, last = d_trail.size(); i < last; ++i){
-    Debug("arith::dio") << "d_trail[i].d_eq = " << d_trail[i].d_eq.getNode() << endl;
-    Debug("arith::dio") << "d_trail[i].d_proof = " << d_trail[i].d_proof.getNode() << endl;
+    Trace("arith::dio") << "d_trail[i].d_eq = " << d_trail[i].d_eq.getNode() << endl;
+    Trace("arith::dio") << "d_trail[i].d_proof = " << d_trail[i].d_proof.getNode() << endl;
   }
 
-  Debug("arith::dio") << "DioSolver::printSubs()" << endl;
+  Trace("arith::dio") << "DioSolver::printSubs()" << endl;
   for(SubIndex si=0, sN=d_subs.size(); si < sN; ++si){
-    Debug("arith::dio") << "d_subs[i] = {"
+    Trace("arith::dio") << "d_subs[i] = {"
                         << "d_fresh="<< d_subs[si].d_fresh <<","
                         << "d_eliminated="<< d_subs[si].d_eliminated.getNode() <<","
                         << "d_constraint="<< d_subs[si].d_constraint <<"}" << endl;
-    Debug("arith::dio") << "d_trail[d_subs[i].d_constraint].d_eq="
+    Trace("arith::dio") << "d_trail[d_subs[i].d_constraint].d_eq="
                         << d_trail[d_subs[si].d_constraint].d_eq.getNode() << endl;
   }
 }
@@ -612,7 +612,7 @@ bool DioSolver::debugAnySubstitionApplies(DioSolver::TrailIndex i){
 std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioSolver::TrailIndex i){
   const SumPair& si = d_trail[i].d_eq;
 
-  Debug("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
+  Trace("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
 #ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
@@ -636,7 +636,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
   SubIndex subBy = d_subs.size();
   d_subs.push_back(Substitution(Node::null(), var, ci));
 
-  Debug("arith::dio") << "after solveIndex " <<  d_trail[ci].d_eq.getNode() << " for " << av.getNode() << endl;
+  Trace("arith::dio") << "after solveIndex " <<  d_trail[ci].d_eq.getNode() << " for " << av.getNode() << endl;
   Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
          == Constant::mkConstant(-1));
 
@@ -648,7 +648,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   d_usedDecomposeIndex = true;
 
-  Debug("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
+  Trace("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
 #ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
@@ -693,7 +693,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   // no longer reference av safely!
   addTrailElementAsLemma(ci);
 
-  Debug("arith::dio") << "Decompose ci(" << ci <<":" <<  d_trail[ci].d_eq.getNode()
+  Trace("arith::dio") << "Decompose ci(" << ci <<":" <<  d_trail[ci].d_eq.getNode()
                       << ") for " << d_trail[i].d_minimalMonomial.getNode() << endl;
   Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
          == Constant::mkConstant(-1));
@@ -706,7 +706,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   SubIndex subBy = d_subs.size();
   d_subs.push_back(Substitution(freshNode, var, ci));
 
-  Debug("arith::dio") << "Decompose nextIndex " <<  d_trail[nextIndex].d_eq.getNode() << endl;
+  Trace("arith::dio") << "Decompose nextIndex " <<  d_trail[nextIndex].d_eq.getNode() << endl;
   return make_pair(subBy, nextIndex);
 }
 
@@ -739,11 +739,11 @@ DioSolver::TrailIndex DioSolver::reduceByGCD(DioSolver::TrailIndex ti){
   Polynomial vsum = sp.getPolynomial();
   Constant c = sp.getConstant();
 
-  Debug("arith::dio") << "reduceByGCD " << vsum.getNode() << endl;
+  Trace("arith::dio") << "reduceByGCD " << vsum.getNode() << endl;
   Assert(!vsum.isConstant());
   Integer g = vsum.gcd();
   Assert(g >= 1);
-  Debug("arith::dio") << "gcd("<< vsum.getNode() <<")=" << g << " " << c.getValue() << endl;
+  Trace("arith::dio") << "gcd("<< vsum.getNode() <<")=" << g << " " << c.getValue() << endl;
   if(g.divides(c.getValue().getNumerator())){
     if(g > 1){
       return scaleEqAtIndex(ti, g);
@@ -829,4 +829,4 @@ Node DioSolver::trailIndexToEquality(TrailIndex i) const {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -15,7 +15,7 @@
 
 #include "theory/bv/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -57,4 +57,4 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

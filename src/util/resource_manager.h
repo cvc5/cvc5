@@ -29,7 +29,7 @@
 
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Listener;
 class Options;
@@ -147,13 +147,13 @@ class ResourceManager
   uint64_t getResourceRemaining() const;
 
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(Resource r);
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(theory::InferenceId iid);
 
@@ -209,6 +209,6 @@ class ResourceManager
   std::unique_ptr<Statistics> d_statistics;
 }; /* class ResourceManager */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESOURCE_MANAGER_H */

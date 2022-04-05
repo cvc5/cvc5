@@ -17,7 +17,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
@@ -31,7 +31,6 @@ class TestTheoryArithRewriterBlack : public TestSmt
 
 TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 {
-  Trace.on("arith-rewriter");
   {
     RealAlgebraicNumber two({-8, 0, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(two);
@@ -116,4 +115,4 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

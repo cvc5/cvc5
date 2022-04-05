@@ -20,7 +20,7 @@
 #include "expr/node_converter.h"
 #include "proof/lfsc/lfsc_node_converter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -81,6 +81,6 @@ class LfscListScNodeConverter : public NodeConverter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

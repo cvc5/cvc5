@@ -18,7 +18,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -43,8 +43,7 @@ Info::~Info() {
   in_stores->deleteSelf();
 }
 
-ArrayInfo::ArrayInfo(context::Context* c,
-                     std::string statisticsPrefix)
+ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
     : ct(c),
       info_map(),
       d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(
@@ -136,7 +135,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
       temp_indices->push_back(i);
     }
   }
-  if(Trace.isOn("arrays-ind")) {
+  if(TraceIsOn("arrays-ind")) {
     printList((*(info_map.find(a))).second->indices);
   }
 
@@ -425,12 +424,12 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
   if(ita != info_map.end()) {
     Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<a<<"\n";
-    if(Trace.isOn("arrays-mergei"))
+    if(TraceIsOn("arrays-mergei"))
       (*ita).second->print();
 
     if(itb != info_map.end()) {
       Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<b<<"\n";
-      if(Trace.isOn("arrays-mergei"))
+      if(TraceIsOn("arrays-mergei"))
         (*itb).second->print();
 
       CTNodeList* lista_i = (*ita).second->indices;
@@ -503,4 +502,4 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

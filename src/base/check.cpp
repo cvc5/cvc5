@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 FatalStream::FatalStream(const char* function, const char* file, int line)
 {
@@ -208,4 +208,4 @@ AssertArgumentException::AssertArgumentException(const char* condStr,
             line);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

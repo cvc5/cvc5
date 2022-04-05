@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -78,6 +78,7 @@ enum class Rewrite : uint32_t
   INDEXOF_RE_INVALID_INDEX,
   INDEXOF_RE_MAX_INDEX,
   ITOS_EVAL,
+  RE_ALL_ELIM,
   RE_AND_EMPTY,
   RE_ANDOR_FLATTEN,
   RE_ANDOR_INC_CONFLICT,
@@ -102,6 +103,7 @@ enum class Rewrite : uint32_t
   RE_STAR_EMPTY_STRING,
   RE_STAR_NESTED_STAR,
   RE_STAR_UNION,
+  RE_STAR_UNION_CHAR,
   REPL_CHAR_NCONTRIB_FIND,
   REPL_DUAL_REPL_ITE,
   REPL_REPL_SHORT_CIRCUIT,
@@ -253,6 +255,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__REWRITES_H */

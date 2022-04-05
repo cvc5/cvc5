@@ -1,0 +1,13 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic SLIA)
+(synth-fun f ((firstname String) (lastname String)) String
+((ntString String))
+((ntString String (
+firstname 
+lastname 
+" "
+(str.++ ntString ntString)))
+))
+
+(check-synth)

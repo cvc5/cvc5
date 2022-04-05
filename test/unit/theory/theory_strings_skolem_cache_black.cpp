@@ -21,10 +21,10 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::strings;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::strings;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestTheoryBlackStringsSkolemCache : public TestSmt
@@ -60,4 +60,4 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

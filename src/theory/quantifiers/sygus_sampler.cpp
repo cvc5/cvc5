@@ -32,9 +32,9 @@
 #include "util/sampler.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -231,7 +231,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     }
     if (d_samples_trie.add(sample_pt))
     {
-      if (Trace.isOn("sygus-sample"))
+      if (TraceIsOn("sygus-sample"))
       {
         Trace("sygus-sample") << "Sample point #" << i << " : ";
         for (const Node& r : sample_pt)
@@ -831,15 +831,11 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     out << ptOut.str();
     Assert(bve != bvre);
     out << "where they evaluate to " << bve << " and " << bvre << std::endl;
-
-    if (options().quantifiers.sygusRewVerifyAbort)
-    {
-      AlwaysAssert(false)
-          << "--sygus-rr-verify detected unsoundness in the rewriter!";
-    }
+    AlwaysAssert(false)
+        << "--sygus-rr-verify detected unsoundness in the rewriter!";
   }
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

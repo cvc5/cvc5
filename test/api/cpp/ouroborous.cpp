@@ -35,8 +35,9 @@
 #include "smt/command.h"
 
 using namespace cvc5;
+using namespace cvc5::internal;
 using namespace cvc5::parser;
-using namespace cvc5::language;
+using namespace cvc5::internal::language;
 
 int runTest();
 
@@ -46,11 +47,11 @@ int main()
   {
     return runTest();
   }
-  catch (api::CVC5ApiException& e)
+  catch (cvc5::CVC5ApiException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
-  catch (parser::ParserException& e)
+  catch (ParserException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
@@ -80,27 +81,27 @@ std::string parse(std::string instr,
   (declare-fun a () (Array U (Array U U)))\n\
   ";
 
-  api::Solver solver;
-  std::string ilang = "LANG_SMTLIB_V2_6";
+    cvc5::Solver solver;
+    std::string ilang = "LANG_SMTLIB_V2_6";
 
-  solver.setOption("input-language", input_language);
-  solver.setOption("output-language", output_language);
-  SymbolManager symman(&solver);
-  std::unique_ptr<Parser> parser(
-      ParserBuilder(&solver, &symman, false)
-          .withInputLanguage(solver.getOption("input-language"))
-          .build());
-  parser->setInput(
-      Input::newStringInput(ilang, declarations, "internal-buffer"));
-  // we don't need to execute the commands, but we DO need to parse them to
-  // get the declarations
-  while (Command* c = parser->nextCommand())
-  {
-    delete c;
-  }
+    solver.setOption("input-language", input_language);
+    solver.setOption("output-language", output_language);
+    SymbolManager symman(&solver);
+    std::unique_ptr<Parser> parser(
+        ParserBuilder(&solver, &symman, false)
+            .withInputLanguage(solver.getOption("input-language"))
+            .build());
+    parser->setInput(
+        Input::newStringInput(ilang, declarations, "internal-buffer"));
+    // we don't need to execute the commands, but we DO need to parse them to
+    // get the declarations
+    while (Command* c = parser->nextCommand())
+    {
+      delete c;
+    }
   assert(parser->done());  // parser should be done
   parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
-  api::Term e = parser->nextExpression();
+  cvc5::Term e = parser->nextExpression();
   std::string s = e.toString();
   assert(parser->nextExpression().isNull());  // next expr should be null
   return s;

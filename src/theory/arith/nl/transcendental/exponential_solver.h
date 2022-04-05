@@ -21,13 +21,13 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
 
-struct TranscendentalState;
+class TranscendentalState;
 
 /** Transcendental solver class
  *
@@ -49,9 +49,9 @@ class ExponentialSolver : protected EnvObj
 
   /**
    * Ensures that new_a is properly registered as a term where new_a is the
-   * purified version of a, y being the new skolem used for purification.
+   * purified version of a, new_a[0] being the new skolem used for purification.
    */
-  void doPurification(TNode a, TNode new_a, TNode y);
+  void doPurification(TNode a, TNode new_a);
 
   /**
    * check initial refine
@@ -110,6 +110,6 @@ class ExponentialSolver : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

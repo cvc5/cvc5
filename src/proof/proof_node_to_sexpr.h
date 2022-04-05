@@ -27,7 +27,7 @@
 #include "theory/inference_id.h"
 #include "theory/theory_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNode;
 
@@ -109,6 +109,6 @@ class ProofNodeToSExpr
   ArgFormat getArgumentFormat(const ProofNode* pn, size_t i);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_RULE_H */

@@ -22,7 +22,7 @@
 #include "theory/theory_rewriter.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -186,7 +186,6 @@ class BagsRewriter : public TheoryRewriter
   /**
    * rewrites for n include:
    * - (bag.card (bag x c)) = c where c is a constant > 0
-   * - (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
    * - otherwise = n
    */
   BagsRewriteResponse rewriteCard(const TNode& n) const;
@@ -250,12 +249,13 @@ class BagsRewriter : public TheoryRewriter
   /**
    *  rewrites for n include:
    *  - (bag.product A (as bag.empty T2)) = (as bag.empty T)
-   *  - (bag.product (as bag.empty T2)) = (f t ... (f t (f t x))) n times, where n > 0
+   *  - (bag.product (as bag.empty T2)) = (f t ... (f t (f t x))) n times, where
+   * n > 0
    *  - (bag.fold f t (bag.union_disjoint A B)) =
    *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
    *  where f: T1 -> T2 -> T2
    */
-  BagsRewriteResponse postRewriteProduct(const TNode& n)const;
+  BagsRewriteResponse postRewriteProduct(const TNode& n) const;
 
  private:
   /** Reference to the rewriter statistics. */
@@ -268,6 +268,6 @@ class BagsRewriter : public TheoryRewriter
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__THEORY_BAGS_REWRITER_H */

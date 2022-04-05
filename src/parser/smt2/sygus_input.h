@@ -74,11 +74,11 @@ class SygusInput : public AntlrInput {
 
   /**
    * Parse an expression from the input. Returns a null
-   * <code>api::Term</code> if there is no expression there to parse.
+   * <code>cvc5::Term</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  api::Term parseExpr() override;
+  cvc5::Term parseExpr() override;
 
 };/* class SygusInput */
 

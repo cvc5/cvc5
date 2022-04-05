@@ -14,11 +14,14 @@
  */
 
 package tests;
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,24 +30,28 @@ class OpTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void getKind() throws CVC5ApiException
+  @Test
+  void getKind() throws CVC5ApiException
   {
     Op x;
     x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
     assertDoesNotThrow(() -> x.getKind());
   }
 
-  @Test void isNull() throws CVC5ApiException
+  @Test
+  void isNull() throws CVC5ApiException
   {
     Op x = d_solver.getNullOp();
     assertTrue(x.isNull());
@@ -52,106 +59,133 @@ class OpTest
     assertFalse(x.isNull());
   }
 
-  @Test void opFromKind()
+  @Test
+  void opFromKind()
   {
     assertDoesNotThrow(() -> d_solver.mkOp(ADD));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkOp(BITVECTOR_EXTRACT));
   }
 
-  @Test void getIndicesString() throws CVC5ApiException
+  @Test
+  void getNumIndices() throws CVC5ApiException
   {
-    Op x = d_solver.getNullOp();
-    assertThrows(CVC5ApiException.class, () -> x.getStringIndices());
+    // Operators with 0 indices
+    Op plus = d_solver.mkOp(ADD);
 
-    Op divisible_ot = d_solver.mkOp(DIVISIBLE, 4);
-    assertTrue(divisible_ot.isIndexed());
-    String divisible_idx = divisible_ot.getStringIndices()[0];
-    assertEquals(divisible_idx, "4");
+    assertEquals(0, plus.getNumIndices());
+
+    // Operators with 1 index
+    Op divisible = d_solver.mkOp(DIVISIBLE, 4);
+    Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
+    Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
+    Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
+    Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
+    Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
+    Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, 10);
+    Op iand = d_solver.mkOp(IAND, 11);
+    Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 12);
+    Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
+
+    assertEquals(1, divisible.getNumIndices());
+    assertEquals(1, bvRepeat.getNumIndices());
+    assertEquals(1, bvZeroExtend.getNumIndices());
+    assertEquals(1, bvSignExtend.getNumIndices());
+    assertEquals(1, bvRotateLeft.getNumIndices());
+    assertEquals(1, bvRotateRight.getNumIndices());
+    assertEquals(1, intToBv.getNumIndices());
+    assertEquals(1, iand.getNumIndices());
+    assertEquals(1, fpToUbv.getNumIndices());
+    assertEquals(1, fpToSbv.getNumIndices());
+
+    // Operators with 2 indices
+    Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, 1, 0);
+    Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 3, 2);
+    Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 5, 4);
+    Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
+    Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
+    Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
+    Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
+
+    assertEquals(2, bvExtract.getNumIndices());
+    assertEquals(2, toFpFromIeeeBv.getNumIndices());
+    assertEquals(2, toFpFromFp.getNumIndices());
+    assertEquals(2, toFpFromReal.getNumIndices());
+    assertEquals(2, toFpFromSbv.getNumIndices());
+    assertEquals(2, toFpFromUbv.getNumIndices());
+    assertEquals(2, regexpLoop.getNumIndices());
+
+    // Operators with n indices
+    int[] indices = {0, 3, 2, 0, 1, 2};
+    Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
+    assertEquals(6, tupleProject.getNumIndices());
   }
 
-  @Test void getIndicesUint() throws CVC5ApiException
+  @Test
+  void opSubscriptOperator() throws CVC5ApiException
   {
-    Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
-    assertTrue(bitvector_repeat_ot.isIndexed());
-    int bitvector_repeat_idx = bitvector_repeat_ot.getIntegerIndices()[0];
-    assertEquals(bitvector_repeat_idx, 5);
+    // Operators with 0 indices
+    Op plus = d_solver.mkOp(ADD);
 
-    // unlike bitvector_repeat_ot.getIndices<std::pair<uint32_t, uint32_t>>() in
-    // c++, this does not throw in Java
-    // assertThrows(CVC5ApiException.class,
-    //              () -> bitvector_repeat_ot.getIntegerIndices());
+    assertThrows(CVC5ApiException.class, () -> plus.get(0));
 
-    Op bitvector_zero_extend_ot = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
-    int bitvector_zero_extend_idx = bitvector_zero_extend_ot.getIntegerIndices()[0];
-    assertEquals(bitvector_zero_extend_idx, 6);
+    // Operators with 1 index
+    Op divisible = d_solver.mkOp(DIVISIBLE, 4);
+    Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
+    Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
+    Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
+    Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
+    Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
+    Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, 10);
+    Op iand = d_solver.mkOp(IAND, 11);
+    Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 12);
+    Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
 
-    Op bitvector_sign_extend_ot = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
-    int bitvector_sign_extend_idx = bitvector_sign_extend_ot.getIntegerIndices()[0];
-    assertEquals(bitvector_sign_extend_idx, 7);
+    assertEquals(4, divisible.get(0).getIntegerValue().intValue());
+    assertEquals(5, bvRepeat.get(0).getIntegerValue().intValue());
+    assertEquals(6, bvZeroExtend.get(0).getIntegerValue().intValue());
+    assertEquals(7, bvSignExtend.get(0).getIntegerValue().intValue());
+    assertEquals(8, bvRotateLeft.get(0).getIntegerValue().intValue());
+    assertEquals(9, bvRotateRight.get(0).getIntegerValue().intValue());
+    assertEquals(10, intToBv.get(0).getIntegerValue().intValue());
+    assertEquals(11, iand.get(0).getIntegerValue().intValue());
+    assertEquals(12, fpToUbv.get(0).getIntegerValue().intValue());
+    assertEquals(13, fpToSbv.get(0).getIntegerValue().intValue());
 
-    Op bitvector_rotate_left_ot = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
-    int bitvector_rotate_left_idx = bitvector_rotate_left_ot.getIntegerIndices()[0];
-    assertEquals(bitvector_rotate_left_idx, 8);
+    // Operators with 2 indices
+    Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, 1, 0);
+    Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 3, 2);
+    Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 5, 4);
+    Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
+    Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
+    Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
+    Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
 
-    Op bitvector_rotate_right_ot = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
-    int bitvector_rotate_right_idx = bitvector_rotate_right_ot.getIntegerIndices()[0];
-    assertEquals(bitvector_rotate_right_idx, 9);
+    assertEquals(1, bvExtract.get(0).getIntegerValue().intValue());
+    assertEquals(0, bvExtract.get(1).getIntegerValue().intValue());
+    assertEquals(3, toFpFromIeeeBv.get(0).getIntegerValue().intValue());
+    assertEquals(2, toFpFromIeeeBv.get(1).getIntegerValue().intValue());
+    assertEquals(5, toFpFromFp.get(0).getIntegerValue().intValue());
+    assertEquals(4, toFpFromFp.get(1).getIntegerValue().intValue());
+    assertEquals(7, toFpFromReal.get(0).getIntegerValue().intValue());
+    assertEquals(6, toFpFromReal.get(1).getIntegerValue().intValue());
+    assertEquals(9, toFpFromSbv.get(0).getIntegerValue().intValue());
+    assertEquals(8, toFpFromSbv.get(1).getIntegerValue().intValue());
+    assertEquals(11, toFpFromUbv.get(0).getIntegerValue().intValue());
+    assertEquals(10, toFpFromUbv.get(1).getIntegerValue().intValue());
+    assertEquals(15, regexpLoop.get(0).getIntegerValue().intValue());
+    assertEquals(14, regexpLoop.get(1).getIntegerValue().intValue());
 
-    Op int_to_bitvector_ot = d_solver.mkOp(INT_TO_BITVECTOR, 10);
-    int int_to_bitvector_idx = int_to_bitvector_ot.getIntegerIndices()[0];
-    assertEquals(int_to_bitvector_idx, 10);
-
-    Op floatingpoint_to_ubv_ot = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 11);
-    int floatingpoint_to_ubv_idx = floatingpoint_to_ubv_ot.getIntegerIndices()[0];
-    assertEquals(floatingpoint_to_ubv_idx, 11);
-
-    Op floatingpoint_to_sbv_ot = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
-    int floatingpoint_to_sbv_idx = floatingpoint_to_sbv_ot.getIntegerIndices()[0];
-    assertEquals(floatingpoint_to_sbv_idx, 13);
+    // Operators with n indices
+    int[] indices = {0, 3, 2, 0, 1, 2};
+    Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
+    for (int i = 0, size = tupleProject.getNumIndices(); i < size; i++)
+    {
+      assertEquals(indices[i], tupleProject.get(i).getIntegerValue().intValue());
+    }
   }
 
-  @Test void getIndicesPairUint() throws CVC5ApiException
-  {
-    Op bitvector_extract_ot = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
-    assertTrue(bitvector_extract_ot.isIndexed());
-    int[] bitvector_extract_indices = bitvector_extract_ot.getIntegerIndices();
-    assertArrayEquals(bitvector_extract_indices, new int[] {4, 0});
-
-    Op floatingpoint_to_fp_ieee_bitvector_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
-    int[] floatingpoint_to_fp_ieee_bitvector_indices =
-        floatingpoint_to_fp_ieee_bitvector_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_ieee_bitvector_indices, new int[] {4, 25});
-
-    Op floatingpoint_to_fp_floatingpoint_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25);
-    int[] floatingpoint_to_fp_floatingpoint_indices =
-        floatingpoint_to_fp_floatingpoint_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_floatingpoint_indices, new int[] {4, 25});
-
-    Op floatingpoint_to_fp_real_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25);
-    int[] floatingpoint_to_fp_real_indices = floatingpoint_to_fp_real_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_real_indices, new int[] {4, 25});
-
-    Op floatingpoint_to_fp_signed_bitvector_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25);
-    int[] floatingpoint_to_fp_signed_bitvector_indices =
-        floatingpoint_to_fp_signed_bitvector_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_signed_bitvector_indices, new int[] {4, 25});
-
-    Op floatingpoint_to_fp_unsigned_bitvector_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25);
-    int[] floatingpoint_to_fp_unsigned_bitvector_indices =
-        floatingpoint_to_fp_unsigned_bitvector_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_unsigned_bitvector_indices, new int[] {4, 25});
-
-    Op floatingpoint_to_fp_generic_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
-    int[] floatingpoint_to_fp_generic_indices = floatingpoint_to_fp_generic_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_generic_indices, new int[] {4, 25});
-    assertThrows(CVC5ApiException.class, () -> floatingpoint_to_fp_generic_ot.getStringIndices());
-  }
-
-  @Test void opScopingToString() throws CVC5ApiException
+  @Test
+  void opScopingToString() throws CVC5ApiException
   {
     Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
     String op_repr = bitvector_repeat_ot.toString();

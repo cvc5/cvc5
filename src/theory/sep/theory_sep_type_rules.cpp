@@ -15,7 +15,7 @@
 
 #include "theory/sep/theory_sep_type_rules.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -117,4 +117,4 @@ TypeNode SepNilTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

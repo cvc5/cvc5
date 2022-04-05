@@ -22,7 +22,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -157,6 +157,6 @@ class ExampleInfer
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

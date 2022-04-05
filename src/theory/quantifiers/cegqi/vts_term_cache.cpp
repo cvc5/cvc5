@@ -22,9 +22,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -177,7 +177,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
       std::map<Node, Node> msum;
       if (ArithMSum::getMonomialSumLit(n, msum))
       {
-        if (Trace.isOn("quant-vts-debug"))
+        if (TraceIsOn("quant-vts-debug"))
         {
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
           ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
@@ -306,4 +306,4 @@ bool VtsTermCache::containsVtsInfinity(Node n, bool isFree)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

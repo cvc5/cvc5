@@ -20,7 +20,7 @@
 
 #include <string>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * SMT-LIB 2 quoting for symbols
@@ -32,6 +32,6 @@ std::string quoteSymbol(const std::string& s);
  */
 std::string quoteString(const std::string& s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTIL__SMT2_QUOTE_STRING_H */

@@ -25,7 +25,7 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 class Env;
@@ -93,12 +93,9 @@ class SmtSolver
    * during this call.
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
-   * @param isEntailmentCheck Whether this is an entailment check (assumptions
-   * are negated in this case).
    */
   Result checkSatisfiability(Assertions& as,
-                             const std::vector<Node>& assumptions,
-                             bool isEntailmentCheck);
+                             const std::vector<Node>& assumptions);
   /**
    * Process the assertions that have been asserted in as. This moves the set of
    * assertions that have been buffered into as, preprocesses them, pushes them
@@ -132,6 +129,6 @@ class SmtSolver
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SMT_SOLVER_H */

@@ -30,9 +30,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -236,7 +236,7 @@ bool CegSingleInv::solve()
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
-  Result::Sat res = r.asSatisfiabilityResult().isSat();
+  Result::Status res = r.getStatus();
   if (res != Result::UNSAT)
   {
     warning() << "Warning : the single invocation solver determined the SyGuS "
@@ -565,4 +565,4 @@ bool CegSingleInv::solveTrivial(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

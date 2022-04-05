@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class Rewriter;
@@ -210,6 +210,6 @@ class SkolemCache
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SKOLEM_CACHE_H */

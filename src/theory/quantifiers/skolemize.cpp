@@ -30,9 +30,9 @@
 #include "theory/sort_inference.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -168,8 +168,8 @@ void Skolemize::getSelfSel(const DType& dt,
     }
     for (unsigned k = 0; k < ssc.size(); k++)
     {
-      Node ss = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
+      Node ss =
+          nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(n.getType(), j), n);
       if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
       {
         selfSel.push_back(ss);
@@ -403,4 +403,4 @@ bool Skolemize::isProofEnabled() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

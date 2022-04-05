@@ -23,7 +23,7 @@
 
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /* Type set
@@ -84,6 +84,6 @@ class TypeSet
 }; /* class TypeSet */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__TYPE_SET_H */

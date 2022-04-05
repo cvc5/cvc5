@@ -25,11 +25,11 @@
 #include "expr/subs.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
-
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+
+namespace cvc5::internal {
 
 namespace theory {
 
@@ -172,15 +172,12 @@ class NlModel : protected EnvObj
    * call to checkModel above.
    *
    * The mapping arithModel is updated by this method to map arithmetic terms v
-   * to their (exact) value that was computed during checkModel; the mapping
-   * approximations is updated to store approximate values in the form of a
-   * pair (P, w), where P is a predicate that describes the possible values of
-   * v and w is a witness point that satisfies this predicate.
+   * to their (exact) value that was computed during checkModel.
    */
-  void getModelValueRepair(
-      std::map<Node, Node>& arithModel,
-      std::map<Node, std::pair<Node, Node>>& approximations,
-      bool witnessToValue);
+  void getModelValueRepair(std::map<Node, Node>& arithModel);
+
+  /** Return the substituted form of s */
+  Node getSubstitutedForm(TNode s) const;
 
  private:
   /** Cache for concrete model values */
@@ -307,6 +304,6 @@ class NlModel : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

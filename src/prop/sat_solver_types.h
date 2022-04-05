@@ -30,7 +30,7 @@
 
 #include "cvc5_private.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 /**
@@ -236,4 +236,4 @@ enum SatSolverLifespan
 };
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

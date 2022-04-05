@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class TConvProofGenerator;
@@ -35,7 +35,7 @@ class Evaluator;
  * The main rewriter class.
  */
 class Rewriter {
-  friend class cvc5::Env;  // to set the resource manager
+  friend class cvc5::internal::Env;  // to set the resource manager
  public:
   Rewriter();
 
@@ -180,4 +180,4 @@ class Rewriter {
 };/* class Rewriter */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

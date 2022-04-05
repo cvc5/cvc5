@@ -27,7 +27,7 @@
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -366,8 +366,8 @@ class CardinalityExtension : protected EnvObj
    */
   std::map<Node, std::vector<std::pair<Node, Node>>> d_cardParent;
   /**
-   * Maps equivalence classes + set terms in that equivalence class to their
-   * "flat form" (see checkNormalForms).
+   * Maps equivalence classes + "base" terms of set terms in that equivalence
+   * class to their "flat form" (see checkNormalForms).
    */
   std::map<Node, std::map<Node, std::vector<Node> > > d_ff;
   /** Maps equivalence classes to their "normal form" (see checkNormalForms). */
@@ -418,6 +418,6 @@ class CardinalityExtension : protected EnvObj
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

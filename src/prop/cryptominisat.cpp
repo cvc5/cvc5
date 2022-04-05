@@ -25,7 +25,7 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 using CMSatVar = unsigned;
@@ -114,10 +114,10 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
                                            bool rhs,
                                            bool removable)
 {
-  Debug("sat::cryptominisat") << "Add xor clause " << clause <<" = " << rhs << "\n";
+  Trace("sat::cryptominisat") << "Add xor clause " << clause <<" = " << rhs << "\n";
 
   if (!d_okay) {
-    Debug("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
+    Trace("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
     return ClauseIdError;
   }
 
@@ -136,10 +136,10 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
 }
 
 ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
-  Debug("sat::cryptominisat") << "Add clause " << clause <<"\n";
+  Trace("sat::cryptominisat") << "Add clause " << clause <<"\n";
 
   if (!d_okay) {
-    Debug("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
+    Trace("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
     return ClauseIdError;
   }
 
@@ -246,5 +246,5 @@ CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry& registry,
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

@@ -18,9 +18,9 @@
 #include "expr/term_context.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
     : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
@@ -77,4 +77,4 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   return h[0];
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

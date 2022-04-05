@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -155,7 +155,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
 
 TrustNode BVSolverBitblastInternal::explain(TNode n)
 {
-  Debug("bv-bitblast-internal") << "explain called on " << n << std::endl;
+  Trace("bv-bitblast-internal") << "explain called on " << n << std::endl;
   return d_im.explainLit(n);
 }
 
@@ -206,4 +206,4 @@ BVProofRuleChecker* BVSolverBitblastInternal::getProofChecker()
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

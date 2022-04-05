@@ -17,7 +17,7 @@
 
 #include "expr/skolem_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SkolemLemma::SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
@@ -25,22 +25,7 @@ SkolemLemma::SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
   Assert(lem.getKind() == TrustNodeKind::LEMMA);
 }
 
-SkolemLemma::SkolemLemma(Node k, ProofGenerator* pg) : d_lemma(), d_skolem(k)
-{
-  Node lem = getSkolemLemmaFor(k);
-  d_lemma = TrustNode::mkTrustLemma(lem, pg);
-}
-
 Node SkolemLemma::getProven() const { return d_lemma.getProven(); }
 
-Node SkolemLemma::getSkolemLemmaFor(Node k)
-{
-  Node w = SkolemManager::getWitnessForm(k);
-  Assert(w.getKind() == kind::WITNESS);
-  TNode tx = w[0][0];
-  TNode tk = k;
-  return w[1].substitute(tx, tk);
-}
-
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

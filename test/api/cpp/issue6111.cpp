@@ -18,7 +18,7 @@
 
 #include "api/cpp/cvc5.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 using namespace std;
 
 int main()
@@ -32,7 +32,7 @@ int main()
   vector<Term> args1;
   args1.push_back(zero);
   args1.push_back(input2_1);
-  Term bvult_res = solver.mkTerm(BITVECTOR_ULT, args1);
+  Term bvult_res = solver.mkTerm(BITVECTOR_ULT, {args1});
   solver.assertFormula(bvult_res);
 
   Sort bvsort4 = solver.mkBitVectorSort(4);
@@ -42,15 +42,15 @@ int main()
 
   vector<Term> args2;
   args2.push_back(concat_result_42);
-  args2.push_back(
-      solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, 7, 4), {concat_result_43}));
-  solver.assertFormula(solver.mkTerm(EQUAL, args2));
+  args2.push_back(solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, {7, 4}),
+                                {concat_result_43}));
+  solver.assertFormula(solver.mkTerm(EQUAL, {args2}));
 
   vector<Term> args3;
   args3.push_back(concat_result_42);
-  args3.push_back(
-      solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, 3, 0), {concat_result_43}));
-  solver.assertFormula(solver.mkTerm(EQUAL, args3));
+  args3.push_back(solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, {3, 0}),
+                                {concat_result_43}));
+  solver.assertFormula(solver.mkTerm(EQUAL, {args3}));
 
   cout << solver.checkSat() << endl;
 

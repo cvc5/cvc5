@@ -19,7 +19,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -92,4 +92,4 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -22,9 +22,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -415,7 +415,7 @@ void PatternTermSelector::collectInternal(
     std::vector<Node> temp;
     temp.insert(temp.begin(), patTerms2.begin(), patTerms2.end());
     filterInstances(temp);
-    if (Trace.isOn("trigger-filter-instance"))
+    if (TraceIsOn("trigger-filter-instance"))
     {
       if (temp.size() != patTerms2.size())
       {
@@ -729,4 +729,4 @@ void PatternTermSelector::getTriggerVariables(Node n,
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

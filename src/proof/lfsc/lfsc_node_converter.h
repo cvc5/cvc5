@@ -24,7 +24,7 @@
 #include "expr/node_converter.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -36,9 +36,11 @@ class LfscNodeConverter : public NodeConverter
  public:
   LfscNodeConverter();
   ~LfscNodeConverter() {}
-  /** convert to internal */
+  /** convert at pre-order traversal */
+  Node preConvert(Node n) override;
+  /** convert at post-order traversal */
   Node postConvert(Node n) override;
-  /** convert to internal */
+  /** convert type at post-order traversal */
   TypeNode postConvertType(TypeNode tn) override;
   /**
    * Get the null terminator for kind k and type tn. The type tn can be
@@ -95,14 +97,24 @@ class LfscNodeConverter : public NodeConverter
    * has a distinguished status so that it is *not* printed as (bvar ...). The
    * returned variable is always fresh.
    */
-  Node mkInternalSymbol(const std::string& name, TypeNode tn);
+  Node mkInternalSymbol(const std::string& name,
+                        TypeNode tn,
+                        bool useRawSym = true);
   /**
    * Get builtin kind for internal symbol op
    */
   Kind getBuiltinKindForInternalSymbol(Node op) const;
 
-  /** get name for user name */
-  static std::string getNameForUserName(const std::string& name);
+  /**
+   * get name for user name
+   * @param name The user provided name for the symbol
+   * @param variant A unique index for the symbol to resolve multiple symbols
+   * with the same name.
+   */
+  static std::string getNameForUserName(const std::string& name,
+                                        size_t variant = 0);
+  /** get name for the name of node v, where v should be a variable */
+  std::string getNameForUserNameOf(Node v);
 
  private:
   /** Should we traverse n? */
@@ -124,18 +136,25 @@ class LfscNodeConverter : public NodeConverter
    * Get symbol for term, a special case of the method below for the type and
    * kind of n.
    */
-  Node getSymbolInternalFor(Node n, const std::string& name);
+  Node getSymbolInternalFor(Node n,
+                            const std::string& name,
+                            bool useRawSym = true);
   /**
    * Get symbol internal, (k,tn,name) are for caching, name is the name. This
    * method returns a fresh symbol of the given name and type. It is frequently
    * used when the type of a native operator does not match the type of the
    * LFSC operator.
    */
-  Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name);
+  Node getSymbolInternal(Kind k,
+                         TypeNode tn,
+                         const std::string& name,
+                         bool useRawSym = true);
   /**
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
+  /** convert bitvector to its LFSC term (of LFSC sort bitvec) */
+  Node convertBitVector(const BitVector& bv);
   /** Is k a kind that is printed as an indexed operator in LFSC? */
   static bool isIndexedOperatorKind(Kind k);
   /** get indices for printing the operator of n in the LFSC format */
@@ -144,6 +163,11 @@ class LfscNodeConverter : public NodeConverter
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
   std::unordered_set<Node> d_symbols;
+  /**
+   * Mapping from user symbols to the (list of) symbols with that name. This
+   * is used to resolve symbol overloading, which is forbidden in LFSC.
+   */
+  std::map<std::string, std::vector<Node> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */
@@ -159,6 +183,6 @@ class LfscNodeConverter : public NodeConverter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

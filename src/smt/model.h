@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 class Model;
@@ -113,6 +113,6 @@ class Model {
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__MODEL_H */

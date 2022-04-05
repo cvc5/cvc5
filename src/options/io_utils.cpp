@@ -18,7 +18,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace cvc5::options::ioutils {
+namespace cvc5::internal::options::ioutils {
 namespace {
 
 template <typename T>
@@ -102,4 +102,4 @@ Scope::Scope(std::ios_base& ios)
 }
 Scope::~Scope() { apply(d_ios, d_dagThresh, d_nodeDepth, d_outputLang); }
 
-}  // namespace cvc5::options::ioutils
+}  // namespace cvc5::internal::options::ioutils

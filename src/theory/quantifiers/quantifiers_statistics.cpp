@@ -17,15 +17,15 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 QuantifiersStatistics::QuantifiersStatistics()
     : d_time(smtStatisticsRegistry().registerTimer(
         "theory::QuantifiersEngine::time")),
-      d_qcf_time(smtStatisticsRegistry().registerTimer(
-          "theory::QuantifiersEngine::time_qcf")),
+      d_cbqi_time(smtStatisticsRegistry().registerTimer(
+          "theory::QuantifiersEngine::time_conflict_based_inst")),
       d_ematching_time(smtStatisticsRegistry().registerTimer(
           "theory::QuantifiersEngine::time_ematching")),
       d_num_quant(smtStatisticsRegistry().registerInt(
@@ -47,4 +47,4 @@ QuantifiersStatistics::QuantifiersStatistics()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,0 +1,48 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-enum=fast
+(set-logic BV)
+
+(define-fun hd05 ((x (_ BitVec 32))) (_ BitVec 32) (bvor x (bvsub x #x00000001)))
+
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32)
+	((Start (_ BitVec 32)) (NT0 (_ BitVec 32)) (NT4 (_ BitVec 32))) (
+	(Start (_ BitVec 32) (
+		#x00000001
+		#x00000000
+		#xffffffff
+		x
+		(bvsrem NT0 NT0)
+		(bvudiv NT0 NT0)
+		(bvsdiv NT0 NT0)
+		(bvurem NT0 NT0)
+		(bvsrem NT4 NT0)
+		(bvudiv NT4 NT0)
+		(bvurem NT4 NT0)
+		(bvsdiv NT4 NT0)
+		(bvnot NT0)
+		(bvneg NT0)
+		(bvadd NT0 NT0)
+		(bvor NT0 NT0)
+		(bvor NT4 NT0)
+		(bvadd NT4 NT0)
+))
+	(NT0 (_ BitVec 32) (
+		#x00000001
+		#x00000000
+		#xffffffff
+		x
+))
+	(NT4 (_ BitVec 32) (
+		(bvnot NT0)
+		(bvneg NT0)
+		(bvadd NT0 NT0)
+		(bvor NT0 NT0)
+		(bvsrem NT0 NT0)
+		(bvudiv NT0 NT0)
+		(bvsdiv NT0 NT0)
+		(bvurem NT0 NT0)
+))
+))
+(declare-var x (_ BitVec 32))
+(constraint (= (hd05 x) (f x)))
+(check-synth)

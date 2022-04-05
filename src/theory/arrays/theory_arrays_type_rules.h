@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -68,6 +68,6 @@ struct ArrayEqRangeTypeRule
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */

@@ -23,7 +23,7 @@
 
 #include <gmpxx.h>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /** Hashes the gmp integer primitive in a word by word fashion. */
 inline size_t gmpz_hash(const mpz_t toHash) {
@@ -36,6 +36,6 @@ inline size_t gmpz_hash(const mpz_t toHash) {
   return hash;
 }/* gmpz_hash() */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__GMP_UTIL_H */

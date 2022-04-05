@@ -27,9 +27,9 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 AbductionSolver::AbductionSolver(Env& env) : EnvObj(env) {}
@@ -181,7 +181,7 @@ void AbductionSolver::checkAbduct(Node a)
     bool isError = false;
     if (j == 0)
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      if (r.getStatus() != Result::SAT)
       {
         isError = true;
         serr
@@ -197,7 +197,7 @@ void AbductionSolver::checkAbduct(Node a)
     }
     else
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         isError = true;
         serr << "SolverEngine::checkAbduct(): negated goal cannot be shown "
@@ -214,4 +214,4 @@ void AbductionSolver::checkAbduct(Node a)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

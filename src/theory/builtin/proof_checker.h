@@ -23,7 +23,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -120,6 +120,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BUILTIN__PROOF_CHECKER_H */

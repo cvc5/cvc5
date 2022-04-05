@@ -30,7 +30,7 @@
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -447,11 +447,11 @@ public:
   {
     if (!checkApplies || applies(node))
     {
-      Debug("theory::bv::rewrite")
+      Trace("theory::bv::rewrite")
           << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
       Node result = apply(node);
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
+      Trace("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
                                    << ") => " << result << std::endl;
       return result;
     }
@@ -620,7 +620,7 @@ bool RewriteRule<EmptyRule>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<EmptyRule>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
+  Trace("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
   Unreachable();
   return node;
 }
@@ -760,4 +760,4 @@ struct FixpointRewriteStrategy {
 
 } // End namespace bv
 } // End namespace theory
-}  // End namespace cvc5
+}  // End namespace cvc5::internal

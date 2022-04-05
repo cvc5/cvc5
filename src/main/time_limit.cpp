@@ -58,8 +58,7 @@
 #include "base/exception.h"
 #include "signal_handlers.h"
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 
 #if HAVE_SETITIMER
 TimeLimit::~TimeLimit() {}
@@ -92,8 +91,8 @@ TimeLimit install_time_limit(uint64_t ms)
   sigemptyset(&sact.sa_mask);
   if (sigaction(SIGALRM, &sact, NULL))
   {
-    throw Exception(std::string("sigaction(SIGALRM) failure: ")
-                    + strerror(errno));
+    throw internal::Exception(std::string("sigaction(SIGALRM) failure: ")
+                              + strerror(errno));
   }
 
   // Check https://linux.die.net/man/2/setitimer
@@ -108,7 +107,8 @@ TimeLimit install_time_limit(uint64_t ms)
   // Argument 3: old timer configuration, we don't want to know
   if (setitimer(ITIMER_REAL, &timerspec, nullptr))
   {
-    throw Exception(std::string("timer_settime() failure: ") + strerror(errno));
+    throw internal::Exception(std::string("timer_settime() failure: ")
+                              + strerror(errno));
   }
 #else
   abort_timer_flag.store(false);
@@ -131,5 +131,4 @@ TimeLimit install_time_limit(uint64_t ms)
   return TimeLimit();
 }
 
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main

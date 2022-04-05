@@ -21,7 +21,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -165,6 +165,6 @@ class ExampleEvalCache
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

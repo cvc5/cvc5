@@ -17,7 +17,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
@@ -79,4 +79,4 @@ TrustNode TheoryRewriter::expandDefinition(Node node)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

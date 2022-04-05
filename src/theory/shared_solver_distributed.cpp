@@ -17,7 +17,7 @@
 
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SharedSolverDistributed::SharedSolverDistributed(Env& env, TheoryEngine& te)
@@ -59,8 +59,10 @@ EqualityStatus SharedSolverDistributed::getEqualityStatus(TNode a, TNode b)
       return EQUALITY_FALSE_AND_PROPAGATED;
     }
   }
-  // otherwise, ask the theory
-  return d_te.theoryOf(Theory::theoryOf(a.getType()))->getEqualityStatus(a, b);
+  // otherwise, ask the theory, which may depend on the uninterpreted sort owner
+  TheoryId tid =
+      Theory::theoryOf(a.getType(), d_env.getUninterpretedSortOwner());
+  return d_te.theoryOf(tid)->getEqualityStatus(a, b);
 }
 
 TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
@@ -91,4 +93,4 @@ void SharedSolverDistributed::assertShared(TNode n, bool polarity, TNode reason)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

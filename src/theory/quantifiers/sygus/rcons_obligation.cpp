@@ -21,7 +21,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -123,4 +123,4 @@ std::ostream& operator<<(std::ostream& out, const RConsObligation& ob)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -28,8 +28,7 @@
 #include "context/context.h"
 #include "context/cdlist.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
 class CDQueue;
@@ -65,13 +64,6 @@ protected:
     // We save the d_size in d_lastsave and we should never destruct below this
     // indices before the corresponding restore.
     d_lastsave = ParentType::d_size;
-    Debug("cdqueue") << "save " << this
-                     << " at level " << this->getContext()->getLevel()
-                     << " size at " << this->d_size
-                     << " iter at " << this->d_iter
-                     << " lastsave at " << this->d_lastsave
-                     << " d_list is " << this->d_list
-                     << " data:" << data << std::endl;
     return data;
   }
 
@@ -162,7 +154,6 @@ public:
 
 };/* class CDQueue<> */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDQUEUE_H */

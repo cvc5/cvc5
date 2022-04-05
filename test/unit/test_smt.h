@@ -30,9 +30,8 @@
 #include "theory/theory_state.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
-#include "util/unsafe_interrupt_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 /* -------------------------------------------------------------------------- */
@@ -104,7 +103,7 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
-class DummyOutputChannel : public cvc5::theory::OutputChannel
+class DummyOutputChannel : public theory::OutputChannel
 {
  public:
   DummyOutputChannel() {}
@@ -259,5 +258,5 @@ class DummyTheory : public theory::Theory
 
 /* -------------------------------------------------------------------------- */
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

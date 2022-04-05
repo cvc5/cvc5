@@ -38,7 +38,7 @@
 
 #include "util/safe_print.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class StatisticsRegistry;
 
@@ -67,7 +67,7 @@ struct StatisticBaseValue
    */
   virtual void printSafe(int fd) const = 0;
 
-  bool d_expert = true;
+  bool d_internal = true;
 };
 /** Writes the data to an output stream */
 std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv);
@@ -369,6 +369,6 @@ struct StatisticTimerValue : StatisticBaseValue
   bool d_running;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

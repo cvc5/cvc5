@@ -22,9 +22,9 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -110,7 +110,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
       tat = nullptr;
     }
   }
-  Debug("simple-trigger-debug")
+  Trace("simple-trigger-debug")
       << "Adding instantiations based on " << tat << " from " << d_op << " "
       << d_eqc << std::endl;
   if (tat && !d_qstate.isInConflict())
@@ -126,20 +126,20 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
                                                  size_t argIndex,
                                                  TNodeTrie* tat)
 {
-  Debug("simple-trigger-debug")
+  Trace("simple-trigger-debug")
       << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if (argIndex == d_match_pattern.getNumChildren())
   {
     Assert(!tat->d_data.empty());
     TNode t = tat->getData();
-    Debug("simple-trigger") << "Actual term is " << t << std::endl;
+    Trace("simple-trigger") << "Actual term is " << t << std::endl;
     // convert to actual used terms
     for (const auto& v : d_var_num)
     {
       if (v.second >= 0)
       {
         Assert(v.first < t.getNumChildren());
-        Debug("simple-trigger")
+        Trace("simple-trigger")
             << "...set " << v.second << " " << t[v.first] << std::endl;
         m.setValue(v.second, t[v.first]);
       }
@@ -149,7 +149,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     if (sendInstantiation(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
     {
       addedLemmas++;
-      Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;
+      Trace("simple-trigger") << "-> Produced instantiation " << m << std::endl;
     }
     return;
   }
@@ -200,4 +200,4 @@ int InstMatchGeneratorSimple::getActiveScore()
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -21,7 +21,7 @@
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -54,6 +54,6 @@ class ModelManagerDistributed : public ModelManager
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H */

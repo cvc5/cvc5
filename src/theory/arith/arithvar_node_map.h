@@ -27,7 +27,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -90,6 +90,6 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__ARITHVAR_NODE_MAP_H */

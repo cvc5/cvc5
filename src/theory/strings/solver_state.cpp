@@ -22,9 +22,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -95,7 +95,7 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
   {
     lengthTerm = lengthTerm[0];
   }
-  Debug("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
+  Trace("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
                    << std::endl;
   if (te != lengthTerm)
   {
@@ -230,4 +230,4 @@ void SolverState::separateByLength(
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

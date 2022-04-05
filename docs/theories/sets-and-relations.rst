@@ -1,3 +1,5 @@
+.. _theory_reference_sets:
+
 Theory Reference: Sets and Relations
 ====================================
 
@@ -8,55 +10,55 @@ cvc5 supports the theory of finite sets using the following sorts, constants,
 functions and predicates.  More details can be found in :cite:`BansalBRT17`.
 
 For the C++ API examples in the table below, we assume that we have created
-a `cvc5::api::Solver solver` object.
+a `cvc5::Solver solver` object.
 
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-|                      | SMTLIB language                              | C++ API                                                                 |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Logic String         | append `FS` for finite sets                  | append `FS` for finite sets                                             |
-|                      |                                              |                                                                         |
-|                      | ``(set-logic QF_UFLIAFS)``                   | ``solver.setLogic("QF_UFLIAFS");``                                      |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Sort                 | ``(Set <Sort>)``                             | ``solver.mkSetSort(cvc5::api::Sort elementSort);``                      |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Set Int)``               | ``Sort s = solver.mkSetSort(solver.getIntegerSort());``                 |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term X = solver.mkConst(s, "X");``                                    |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Union                | ``(set.union X Y)``                          | ``Term Y = solver.mkConst(s, "Y");``                                    |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_UNION, X, Y);``                      |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Intersection         | ``(set.inter X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_INTER, X, Y);``                      |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Minus                | ``(set.minus X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_MINUS, X, Y);``                      |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Membership           | ``(set.member x X)``                         | ``Term x = solver.mkConst(solver.getIntegerSort(), "x");``              |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_MEMBER, x, X);``                     |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Subset               | ``(set.subset X Y)``                         | ``Term t = solver.mkTerm(Kind::SET_SUBSET, X, Y);``                     |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Emptyset             | ``(as set.empty (Set Int)``                  | ``Term t = solver.mkEmptySet(s);``                                      |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Singleton Set        | ``(set.singleton 1)``                        | ``Term t = solver.mkTerm(Kind::SET_SINGLETON, solver.mkInteger(1));``   |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Cardinality          | ``(set.card X)``                             | ``Term t = solver.mkTerm(Kind::SET_CARD, X);``                          |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Insert / Finite Sets | ``(set.insert 1 2 3 (set.singleton 4))``     | ``Term one = solver.mkInteger(1);``                                     |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term two = solver.mkInteger(2);``                                     |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term three = solver.mkInteger(3);``                                   |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term sgl = solver.mkTerm(Kind::SET_SINGLETON, solver.mkInteger(4));`` |
-|                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_INSERT, {one, two, three, sgl});``   |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Complement           | ``(set.complement X)``                       | ``Term t = solver.mkTerm(Kind::SET_COMPLEMENT, X);``                    |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Universe Set         | ``(as set.universe (Set Int))``              | ``Term t = solver.mkUniverseSet(s);``                                   |
-+----------------------+----------------------------------------------+-------------------------------------------------------------------------+
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+|                      | SMTLIB language                              | C++ API                                                                   |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Logic String         | append `FS` for finite sets                  | append `FS` for finite sets                                               |
+|                      |                                              |                                                                           |
+|                      | ``(set-logic QF_UFLIAFS)``                   | ``solver.setLogic("QF_UFLIAFS");``                                        |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Sort                 | ``(Set <Sort>)``                             | ``solver.mkSetSort(cvc5::Sort elementSort);``                             |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Constants            | ``(declare-const X (Set Int)``               | ``Sort s = solver.mkSetSort(solver.getIntegerSort());``                   |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term X = solver.mkConst(s, "X");``                                      |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Union                | ``(set.union X Y)``                          | ``Term Y = solver.mkConst(s, "Y");``                                      |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_UNION, {X, Y});``                      |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Intersection         | ``(set.inter X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_INTER, {X, Y});``                      |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Minus                | ``(set.minus X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_MINUS, {X, Y});``                      |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Membership           | ``(set.member x X)``                         | ``Term x = solver.mkConst(solver.getIntegerSort(), "x");``                |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_MEMBER, {x, X});``                     |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Subset               | ``(set.subset X Y)``                         | ``Term t = solver.mkTerm(Kind::SET_SUBSET, {X, Y});``                     |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Emptyset             | ``(as set.empty (Set Int)``                  | ``Term t = solver.mkEmptySet(s);``                                        |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Singleton Set        | ``(set.singleton 1)``                        | ``Term t = solver.mkTerm(Kind::SET_SINGLETON, {solver.mkInteger(1)});``   |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Cardinality          | ``(set.card X)``                             | ``Term t = solver.mkTerm(Kind::SET_CARD, {X});``                          |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Insert / Finite Sets | ``(set.insert 1 2 3 (set.singleton 4))``     | ``Term one = solver.mkInteger(1);``                                       |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term two = solver.mkInteger(2);``                                       |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term three = solver.mkInteger(3);``                                     |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term sgl = solver.mkTerm(Kind::SET_SINGLETON, {solver.mkInteger(4)});`` |
+|                      |                                              |                                                                           |
+|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_INSERT, {one, two, three, sgl});``     |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Complement           | ``(set.complement X)``                       | ``Term t = solver.mkTerm(Kind::SET_COMPLEMENT, {X});``                    |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Universe Set         | ``(as set.universe (Set Int))``              | ``Term t = solver.mkUniverseSet(s);``                                     |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 
 
 Semantics
@@ -81,8 +83,8 @@ For example:
   (declare-fun x () (Set Int))
   (declare-fun y () (Set Int))
   (declare-fun z () (Set Int))
-  (assert (member 0 x))
-  (assert (member 1 y))
+  (assert (set.member 0 x))
+  (assert (set.member 1 y))
   (assert (= z (as set.universe (Set Int))))
   (check-sat)
 
@@ -149,7 +151,7 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Logic String         | ``(set-logic QF_ALL)``                       | ``solver.setLogic("QF_ALL");``                                                     |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Sort           | ``(Tuple <Sort_1>, ..., <Sort_n>)``          | ``std::vector<cvc5::api::Sort> sorts = { ... };``                                  |
+| Tuple Sort           | ``(Tuple <Sort_1>, ..., <Sort_n>)``          | ``std::vector<cvc5::Sort> sorts = { ... };``                                       |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
@@ -169,7 +171,7 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Relation Sort        | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::api::Sort tupleSort);``                          |
+| Relation Sort        | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::Sort tupleSort);``                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Constants            | ``(declare-const X (Set (Tuple Int Int)``    | ``Sort s = solver.mkSetSort(solver.mkTupleSort({s_int, s_int});``                  |
 |                      |                                              |                                                                                    |
@@ -187,4 +189,7 @@ More details can be found in :cite:`MengRTB17`.
 Example:
 
 .. api-examples::
+    <examples>/api/cpp/relations.cpp
+    <examples>/api/java/Relations.java
+    <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2

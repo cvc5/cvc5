@@ -17,7 +17,7 @@
 
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
 {
@@ -144,4 +144,4 @@ uint32_t TheoryLeafTermContext::computeValue(TNode t,
   return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

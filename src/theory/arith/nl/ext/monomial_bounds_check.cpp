@@ -25,9 +25,9 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -152,7 +152,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
       }
       // add to status if maximal degree
       d_ci_max[x][coeff][rhs] = d_cdb.isMaximal(atom, x);
-      if (Trace.isOn("nl-ext-bound-debug2"))
+      if (TraceIsOn("nl-ext-bound-debug2"))
       {
         Node t = ArithMSum::mkCoeffTerm(coeff, x);
         Trace("nl-ext-bound-debug2") << "Add Bound: " << t << " " << type << " "
@@ -193,7 +193,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           updated = false;
         }
       }
-      if (Trace.isOn("nl-ext-bound"))
+      if (TraceIsOn("nl-ext-bound"))
       {
         if (updated)
         {
@@ -511,7 +511,7 @@ void MonomialBoundsCheck::checkResBounds()
               }
               Kind type_b = itcbr->second;
               exp.push_back(d_ci_exp[b][coeff_b][rhs_b]);
-              if (Trace.isOn("nl-ext-rbound"))
+              if (TraceIsOn("nl-ext-rbound"))
               {
                 Trace("nl-ext-rbound") << "* try bounds : ";
                 debugPrintBound("nl-ext-rbound", coeff_a, a, type_a, rhs_a);
@@ -579,4 +579,4 @@ void MonomialBoundsCheck::checkResBounds()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

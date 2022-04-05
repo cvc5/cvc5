@@ -24,7 +24,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -103,6 +103,6 @@ class LearnedRewrite : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PREPROCESSING__PASSES__LEARNED_REWRITE_H */

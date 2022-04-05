@@ -32,7 +32,7 @@
 #include "cvc5_export.h"
 #include "options/options.h"
 
-namespace cvc5::options {
+namespace cvc5::internal::options {
 
 /**
  * Get a (sorted) list of all option names that are available.
@@ -119,6 +119,6 @@ struct CVC5_EXPORT OptionInfo
  */
 OptionInfo getInfo(const Options& opts, const std::string& name) CVC5_EXPORT;
 
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options
 
 #endif

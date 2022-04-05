@@ -20,9 +20,9 @@
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -121,7 +121,6 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
     size_t ii = (ncond - 1) - i;
     Node v = odef->d_value[ii];
     Trace("fmc-model-func") << "Value is : " << v << std::endl;
-    Assert(v.isConst());
     if (curr.isNull())
     {
       Trace("fmc-model-func") << "base : " << v << std::endl;
@@ -159,4 +158,4 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

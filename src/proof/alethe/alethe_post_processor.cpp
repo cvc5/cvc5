@@ -24,9 +24,9 @@
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -43,6 +43,15 @@ bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   bool& continueUpdate)
 {
   return pn->getRule() != PfRule::ALETHE_RULE;
+}
+
+bool AletheProofPostprocessCallback::shouldUpdatePost(
+    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
+{
+  Assert(!pn->getArguments().empty());
+  AletheRule rule = getAletheRule(pn->getArguments()[0]);
+  return rule == AletheRule::RESOLUTION || rule == AletheRule::REORDERING
+         || rule == AletheRule::CONTRACTION;
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
@@ -201,10 +210,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------------------------------- RESOLUTION
     //          (cl (not (and F1 ... Fn)))*
     //
-    // VP8: (cl (=> (and F1 ... Fn))) (cl (not (=> (and F1 ... Fn) false))
-    //      (not (and F1 ... Fn)))
+    // VP8: (cl (=> (and F1 ... Fn) false))
     // VP9: (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
-    //
+    // VP10: (cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn)))
     //
     // Otherwise,
     //                T1
@@ -325,8 +333,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     case PfRule::THEORY_REWRITE:
-    { 
-       return addAletheStep(AletheRule::ALL_SIMPLIFY,
+    {
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
@@ -447,13 +455,14 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = nm->mkNode(kind::SEXPR,
-                              d_cl,
-                              args[0].notNode().notNode().notNode().notNode(),
-                              args[0].notNode());
+                            d_cl,
+                            args[0].notNode().notNode().notNode().notNode(),
+                            args[0].notNode());
 
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
-          && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
-          && addAletheStepFromOr(AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
+             && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
+             && addAletheStepFromOr(
+                 AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // See proof_rule.h for documentation on the EQ_RESOLVE rule. This
@@ -644,7 +653,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (and F1 ... Fn)
     case PfRule::AND_INTRO:
     {
-      std::vector<Node> neg_Nodes = {d_cl,res};
+      std::vector<Node> neg_Nodes = {d_cl, res};
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
         neg_Nodes.push_back(children[i].notNode());
@@ -986,7 +995,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           Node vpi = children[0][0][i].eqNode(children[0][1][i]);
           new_args.push_back(vpi);
-          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
+          vpi = nm->mkNode(kind::SEXPR, d_cl, vpi);
+          vpis.push_back(vpi);
           success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
         vpis.push_back(children[1]);
@@ -1467,16 +1477,17 @@ bool AletheProofPostprocessCallback::update(Node res,
 }
 
 // Adds an OR rule to the premises of a step if the premise is not a clause and
-// should not be a singleton. Since FACTORING and REORDERING always take
+// should not be a singleton. Since CONTRACTION and REORDERING always take
 // non-singletons, this function adds an OR step to their premise if it was
 // formerly printed as (cl (or F1 ... Fn)). For resolution, it is necessary to
 // check all children to find out whether they're singleton before determining
 // if they are already printed correctly.
-bool AletheProofPostprocessCallback::finalize(Node res,
-                                              PfRule id,
-                                              const std::vector<Node>& children,
-                                              const std::vector<Node>& args,
-                                              CDProof* cdp)
+bool AletheProofPostprocessCallback::updatePost(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
   AletheRule rule = getAletheRule(args[0]);
@@ -1671,7 +1682,11 @@ bool AletheProofPostprocessCallback::finalize(Node res,
       }
       return false;
     }
-    default: return false;
+    default:
+    {
+      Unreachable();
+      return false;
+    }
   }
   return false;
 }
@@ -1813,9 +1828,10 @@ AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+{
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb,true,false);
+  ProofNodeUpdater updater(d_pnm, d_cb, false, false);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after
@@ -1847,4 +1863,4 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

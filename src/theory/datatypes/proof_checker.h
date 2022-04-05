@@ -22,7 +22,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -45,6 +45,6 @@ class DatatypesProofRuleChecker : public ProofRuleChecker
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__PROOF_CHECKER_H */

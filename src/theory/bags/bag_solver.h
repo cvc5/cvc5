@@ -23,7 +23,7 @@
 
 #include "theory/bags/inference_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -110,11 +110,19 @@ class BagSolver : protected EnvObj
   /** Reference to the term registry of theory of bags */
   TermRegistry& d_termReg;
 
-  /** a cache that stores bags of kind BAG_MAP and those element representatives
-   * which we generated their inferences.
+  /**
+   * a map where the keys are nodes of the form (bag.map f A)
+   * where f is a function (-> E T), A a bag of type (Bag E),
+   * and values are maps where keys are elements y's of (bag.map f A)
+   * and values are pairs <uf, preImageSize> such that
+   * uf is an uninterpreted function Int -> E represents the and
+   * preImageSize is the cardinality of the distinct elements in A that are
+   * mapped to each y
+   *
    */
-  using BagElementsMap =
-      context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node> > >;
+  using BagElementsMap = context::CDHashMap<
+      Node,
+      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node> > > >;
   BagElementsMap d_mapCache;
 
   /** Commonly used constants */
@@ -126,6 +134,6 @@ class BagSolver : protected EnvObj
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAG__SOLVER_H */

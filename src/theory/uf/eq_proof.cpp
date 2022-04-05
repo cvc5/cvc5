@@ -20,7 +20,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -28,7 +28,7 @@ void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
-  Debug(c) << ss.str();
+  Trace(c) << ss.str();
 }
 
 void EqProof::debug_print(std::ostream& os, unsigned tb) const
@@ -1319,7 +1319,7 @@ Node EqProof::addToProof(CDProof* p,
           << "EqProof::addToProof: New conclusion " << conclusion << "\n";
     }
   }
-  if (Trace.isOn("eqproof-conv"))
+  if (TraceIsOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong of " << conclusion
@@ -1452,4 +1452,4 @@ Node EqProof::addToProof(CDProof* p,
 
 }  // namespace eq
 }  // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

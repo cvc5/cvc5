@@ -21,7 +21,7 @@
 #include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -105,6 +105,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SETS__INFERENCE_MANAGER_H */

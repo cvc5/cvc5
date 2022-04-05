@@ -22,9 +22,9 @@
 #include "util/rational.h"
 
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -424,4 +424,4 @@ const std::map<Node, Node>& ArraySolver::getConnectedSequences()
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

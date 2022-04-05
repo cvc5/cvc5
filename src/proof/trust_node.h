@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofGenerator;
 class ProofNode;
@@ -173,6 +173,6 @@ class TrustNode
  */
 std::ostream& operator<<(std::ostream& out, TrustNode n);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__TRUST_NODE_H */

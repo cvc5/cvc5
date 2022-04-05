@@ -20,7 +20,7 @@
 #include "expr/kind.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -86,4 +86,4 @@ TEST_F(TestNodeBlackKind, output_concat)
   ASSERT_EQ(act.str(), exp.str());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

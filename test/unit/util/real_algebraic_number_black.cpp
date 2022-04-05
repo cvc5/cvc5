@@ -16,7 +16,7 @@
 #include "test.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 #ifndef CVC5_POLY_IMP
@@ -91,4 +91,4 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, division)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

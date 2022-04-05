@@ -24,9 +24,9 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -215,7 +215,7 @@ bool ArithEntail::checkApprox(Node ar)
     {
       return false;
     }
-    if (Trace.isOn("strings-ent-approx"))
+    if (TraceIsOn("strings-ent-approx"))
     {
       Trace("strings-ent-approx")
           << "---- Check arithmetic entailment by under-approximation " << ar
@@ -982,4 +982,4 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

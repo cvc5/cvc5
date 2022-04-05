@@ -26,10 +26,10 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -110,11 +110,17 @@ Result SynthVerify::verify(Node query,
   }
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
   query = rewrite(query);
-  Result r = checkWithSubsolver(query, vars, mvs, d_subOptions, d_subLogicInfo);
+  Result r = checkWithSubsolver(query,
+                                vars,
+                                mvs,
+                                d_subOptions,
+                                d_subLogicInfo,
+                                options().quantifiers.sygusVerifyTimeout != 0,
+                                options().quantifiers.sygusVerifyTimeout);
   Trace("sygus-engine") << "  ...got " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  if (r.getStatus() == Result::SAT)
   {
-    if (Trace.isOn("sygus-engine"))
+    if (TraceIsOn("sygus-engine"))
     {
       Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
       for (unsigned i = 0, size = vars.size(); i < size; i++)
@@ -140,4 +146,4 @@ Result SynthVerify::verify(Node query,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

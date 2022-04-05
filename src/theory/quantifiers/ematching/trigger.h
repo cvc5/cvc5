@@ -22,7 +22,7 @@
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class QuantifiersEngine;
@@ -221,6 +221,6 @@ class Trigger : protected EnvObj
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TRIGGER_H */

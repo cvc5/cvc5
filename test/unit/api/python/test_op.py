@@ -28,46 +28,41 @@ def solver():
 
 
 def test_get_kind(solver):
-    x = solver.mkOp(Kind.BVExtract, 31, 1)
+    x = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
     x.getKind()
 
 
 def test_is_null(solver):
     x = Op(solver)
     assert x.isNull()
-    x = solver.mkOp(Kind.BVExtract, 31, 1)
+    x = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
     assert not x.isNull()
 
 
 def test_op_from_kind(solver):
-    solver.mkOp(Kind.Add)
+    solver.mkOp(Kind.ADD)
     with pytest.raises(RuntimeError):
-        solver.mkOp(Kind.BVExtract)
+        solver.mkOp(Kind.BITVECTOR_EXTRACT)
 
 
 def test_get_num_indices(solver):
-    plus = solver.mkOp(Kind.Add)
-    divisible = solver.mkOp(Kind.Divisible, 4)
-    bitvector_repeat = solver.mkOp(Kind.BVRepeat, 5)
-    bitvector_zero_extend = solver.mkOp(Kind.BVZeroExtend, 6)
-    bitvector_sign_extend = solver.mkOp(Kind.BVSignExtend, 7)
-    bitvector_rotate_left = solver.mkOp(Kind.BVRotateLeft, 8)
-    bitvector_rotate_right = solver.mkOp(Kind.BVRotateRight, 9)
-    int_to_bitvector = solver.mkOp(Kind.IntToBV, 10)
-    iand = solver.mkOp(Kind.Iand, 3)
-    floatingpoint_to_ubv = solver.mkOp(Kind.FPToUbv, 11)
-    floatingopint_to_sbv = solver.mkOp(Kind.FPToSbv, 13)
-    floatingpoint_to_fp_ieee_bitvector = solver.mkOp(Kind.FPToFpIeeeBV, 4, 25)
-    floatingpoint_to_fp_floatingpoint = solver.mkOp(Kind.FPToFpFP, 4, 25)
-    floatingpoint_to_fp_real = solver.mkOp(Kind.FPToFpReal, 4, 25)
-    floatingpoint_to_fp_signed_bitvector = solver.mkOp(Kind.FPToFpSignedBV, 4,
-                                                       25)
-    floatingpoint_to_fp_unsigned_bitvector = solver.mkOp(
-        Kind.FPToFpUnsignedBV, 4, 25)
-    floatingpoint_to_fp_generic = solver.mkOp(Kind.FPToFpGeneric, 4, 25)
-    regexp_loop = solver.mkOp(Kind.RegexpLoop, 2, 3)
+    # Operators with 0 indices
+    plus = solver.mkOp(Kind.ADD)
 
     assert 0 == plus.getNumIndices()
+
+    # Operators with 1 index
+    divisible = solver.mkOp(Kind.DIVISIBLE, 4)
+    bitvector_repeat = solver.mkOp(Kind.BITVECTOR_REPEAT, 5)
+    bitvector_zero_extend = solver.mkOp(Kind.BITVECTOR_ZERO_EXTEND, 6)
+    bitvector_sign_extend = solver.mkOp(Kind.BITVECTOR_SIGN_EXTEND, 7)
+    bitvector_rotate_left = solver.mkOp(Kind.BITVECTOR_ROTATE_LEFT, 8)
+    bitvector_rotate_right = solver.mkOp(Kind.BITVECTOR_ROTATE_RIGHT, 9)
+    int_to_bitvector = solver.mkOp(Kind.INT_TO_BITVECTOR, 10)
+    iand = solver.mkOp(Kind.IAND, 3)
+    floatingpoint_to_ubv = solver.mkOp(Kind.FLOATINGPOINT_TO_UBV, 11)
+    floatingopint_to_sbv = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 13)
+
     assert 1 == divisible.getNumIndices()
     assert 1 == bitvector_repeat.getNumIndices()
     assert 1 == bitvector_zero_extend.getNumIndices()
@@ -78,104 +73,102 @@ def test_get_num_indices(solver):
     assert 1 == iand.getNumIndices()
     assert 1 == floatingpoint_to_ubv.getNumIndices()
     assert 1 == floatingopint_to_sbv.getNumIndices()
-    assert 2 == floatingpoint_to_fp_ieee_bitvector.getNumIndices()
-    assert 2 == floatingpoint_to_fp_floatingpoint.getNumIndices()
-    assert 2 == floatingpoint_to_fp_real.getNumIndices()
-    assert 2 == floatingpoint_to_fp_signed_bitvector.getNumIndices()
-    assert 2 == floatingpoint_to_fp_unsigned_bitvector.getNumIndices()
-    assert 2 == floatingpoint_to_fp_generic.getNumIndices()
+
+    # Operators with 2 indices
+    bitvector_extract = solver.mkOp(Kind.BITVECTOR_EXTRACT, 4, 25)
+    floatingpoint_to_fp_from_ieee_bv = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 4, 25)
+    floatingpoint_to_fp_from_fp = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_FP, 4, 25)
+    floatingpoint_to_fp_from_real = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_REAL, 4, 25)
+    floatingpoint_to_fp_from_sbv = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_SBV, 4, 25)
+    floatingpoint_to_fp_from_ubv = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_UBV, 4, 25)
+    regexp_loop = solver.mkOp(Kind.REGEXP_LOOP, 2, 3)
+
+    assert 2 == bitvector_extract.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_ieee_bv.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_fp.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_real.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_sbv.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_ubv.getNumIndices()
     assert 2 == regexp_loop.getNumIndices()
 
-def test_op_indices_list(solver):
-    with_list = solver.mkOp(Kind.TupleProject, [4, 25])
-    assert 2 == with_list.getNumIndices()
+    # Operators with n indices
+    indices = [0, 3, 2, 0, 1, 2]
+    tuple_project_op = solver.mkOp(Kind.TUPLE_PROJECT, *indices)
+    assert len(indices) == tuple_project_op.getNumIndices()
 
-def test_get_indices_string(solver):
-    x = Op(solver)
+
+def test_subscript_operator(solver):
+    # Operators with 0 indices
+    plus = solver.mkOp(Kind.ADD)
+
     with pytest.raises(RuntimeError):
-        x.getIndices()
+        plus[0]
 
-    divisible_ot = solver.mkOp(Kind.Divisible, 4)
-    assert divisible_ot.isIndexed()
-    divisible_idx = divisible_ot.getIndices()
-    assert divisible_idx == "4"
+    # Operators with 1 index
+    divisible = solver.mkOp(Kind.DIVISIBLE, 4)
+    bitvector_repeat = solver.mkOp(Kind.BITVECTOR_REPEAT, 5)
+    bitvector_zero_extend = solver.mkOp(Kind.BITVECTOR_ZERO_EXTEND, 6)
+    bitvector_sign_extend = solver.mkOp(Kind.BITVECTOR_SIGN_EXTEND, 7)
+    bitvector_rotate_left = solver.mkOp(Kind.BITVECTOR_ROTATE_LEFT, 8)
+    bitvector_rotate_right = solver.mkOp(Kind.BITVECTOR_ROTATE_RIGHT, 9)
+    int_to_bitvector = solver.mkOp(Kind.INT_TO_BITVECTOR, 10)
+    iand = solver.mkOp(Kind.IAND, 11)
+    floatingpoint_to_ubv = solver.mkOp(Kind.FLOATINGPOINT_TO_UBV, 12)
+    floatingopint_to_sbv = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 13)
 
+    assert 4 == divisible[0].getIntegerValue()
+    assert 5 == bitvector_repeat[0].getIntegerValue()
+    assert 6 == bitvector_zero_extend[0].getIntegerValue()
+    assert 7 == bitvector_sign_extend[0].getIntegerValue()
+    assert 8 == bitvector_rotate_left[0].getIntegerValue()
+    assert 9 == bitvector_rotate_right[0].getIntegerValue()
+    assert 10 == int_to_bitvector[0].getIntegerValue()
+    assert 11 == iand[0].getIntegerValue()
+    assert 12 == floatingpoint_to_ubv[0].getIntegerValue()
+    assert 13 == floatingopint_to_sbv[0].getIntegerValue()
 
-def test_get_indices_uint(solver):
-    bitvector_repeat_ot = solver.mkOp(Kind.BVRepeat, 5)
-    assert bitvector_repeat_ot.isIndexed()
-    bitvector_repeat_idx = bitvector_repeat_ot.getIndices()
-    assert bitvector_repeat_idx == 5
+    # Operators with 2 indices
+    bitvector_extract = solver.mkOp(Kind.BITVECTOR_EXTRACT, 1, 0)
+    floatingpoint_to_fp_from_ieee_bv = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 3, 2)
+    floatingpoint_to_fp_from_fp = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_FP, 5, 4)
+    floatingpoint_to_fp_from_real = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6)
+    floatingpoint_to_fp_from_sbv = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8)
+    floatingpoint_to_fp_from_ubv = solver.mkOp(
+            Kind.FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10)
+    regexp_loop = solver.mkOp(Kind.REGEXP_LOOP, 15, 14)
 
-    bitvector_zero_extend_ot = solver.mkOp(Kind.BVZeroExtend, 6)
-    bitvector_zero_extend_idx = bitvector_zero_extend_ot.getIndices()
-    assert bitvector_zero_extend_idx == 6
+    assert 1 == bitvector_extract[0].getIntegerValue()
+    assert 0 == bitvector_extract[1].getIntegerValue()
+    assert 3 == floatingpoint_to_fp_from_ieee_bv[0].getIntegerValue()
+    assert 2 == floatingpoint_to_fp_from_ieee_bv[1].getIntegerValue()
+    assert 5 == floatingpoint_to_fp_from_fp[0].getIntegerValue()
+    assert 4 == floatingpoint_to_fp_from_fp[1].getIntegerValue()
+    assert 7 == floatingpoint_to_fp_from_real[0].getIntegerValue()
+    assert 6 == floatingpoint_to_fp_from_real[1].getIntegerValue()
+    assert 9 == floatingpoint_to_fp_from_sbv[0].getIntegerValue()
+    assert 8 == floatingpoint_to_fp_from_sbv[1].getIntegerValue()
+    assert 11 == floatingpoint_to_fp_from_ubv[0].getIntegerValue()
+    assert 10 == floatingpoint_to_fp_from_ubv[1].getIntegerValue()
+    assert 15 == regexp_loop[0].getIntegerValue()
+    assert 14 == regexp_loop[1].getIntegerValue()
 
-    bitvector_sign_extend_ot = solver.mkOp(Kind.BVSignExtend, 7)
-    bitvector_sign_extend_idx = bitvector_sign_extend_ot.getIndices()
-    assert bitvector_sign_extend_idx == 7
-
-    bitvector_rotate_left_ot = solver.mkOp(Kind.BVRotateLeft, 8)
-    bitvector_rotate_left_idx = bitvector_rotate_left_ot.getIndices()
-    assert bitvector_rotate_left_idx == 8
-
-    bitvector_rotate_right_ot = solver.mkOp(Kind.BVRotateRight, 9)
-    bitvector_rotate_right_idx = bitvector_rotate_right_ot.getIndices()
-    assert bitvector_rotate_right_idx == 9
-
-    int_to_bitvector_ot = solver.mkOp(Kind.IntToBV, 10)
-    int_to_bitvector_idx = int_to_bitvector_ot.getIndices()
-    assert int_to_bitvector_idx == 10
-
-    floatingpoint_to_ubv_ot = solver.mkOp(Kind.FPToUbv, 11)
-    floatingpoint_to_ubv_idx = floatingpoint_to_ubv_ot.getIndices()
-    assert floatingpoint_to_ubv_idx == 11
-
-    floatingpoint_to_sbv_ot = solver.mkOp(Kind.FPToSbv, 13)
-    floatingpoint_to_sbv_idx = floatingpoint_to_sbv_ot.getIndices()
-    assert floatingpoint_to_sbv_idx == 13
-
-
-def test_get_indices_pair_uint(solver):
-    bitvector_extract_ot = solver.mkOp(Kind.BVExtract, 4, 0)
-    assert bitvector_extract_ot.isIndexed()
-    bitvector_extract_indices = bitvector_extract_ot.getIndices()
-    assert bitvector_extract_indices == (4, 0)
-
-    floatingpoint_to_fp_ieee_bitvector_ot = solver.mkOp(
-        Kind.FPToFpIeeeBV, 4, 25)
-    floatingpoint_to_fp_ieee_bitvector_indices = floatingpoint_to_fp_ieee_bitvector_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_ieee_bitvector_indices == (4, 25)
-
-    floatingpoint_to_fp_floatingpoint_ot = solver.mkOp(Kind.FPToFpFP, 4, 25)
-    floatingpoint_to_fp_floatingpoint_indices = floatingpoint_to_fp_floatingpoint_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_floatingpoint_indices == (4, 25)
-
-    floatingpoint_to_fp_real_ot = solver.mkOp(Kind.FPToFpReal, 4, 25)
-    floatingpoint_to_fp_real_indices = floatingpoint_to_fp_real_ot.getIndices()
-    assert floatingpoint_to_fp_real_indices == (4, 25)
-
-    floatingpoint_to_fp_signed_bitvector_ot = solver.mkOp(
-        Kind.FPToFpSignedBV, 4, 25)
-    floatingpoint_to_fp_signed_bitvector_indices = floatingpoint_to_fp_signed_bitvector_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_signed_bitvector_indices == (4, 25)
-
-    floatingpoint_to_fp_unsigned_bitvector_ot = solver.mkOp(
-        Kind.FPToFpUnsignedBV, 4, 25)
-    floatingpoint_to_fp_unsigned_bitvector_indices = floatingpoint_to_fp_unsigned_bitvector_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_unsigned_bitvector_indices == (4, 25)
-
-    floatingpoint_to_fp_generic_ot = solver.mkOp(Kind.FPToFpGeneric, 4, 25)
-    floatingpoint_to_fp_generic_indices = floatingpoint_to_fp_generic_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_generic_indices == (4, 25)
+    # Operators with n indices
+    indices = [0, 3, 2, 0, 1, 2]
+    tuple_project_op = solver.mkOp(Kind.TUPLE_PROJECT, *indices)
+    for i in range(len(indices)):
+        assert indices[i] == tuple_project_op[i].getIntegerValue()
 
 
 def test_op_scoping_to_string(solver):
-    bitvector_repeat_ot = solver.mkOp(Kind.BVRepeat, 5)
+    bitvector_repeat_ot = solver.mkOp(Kind.BITVECTOR_REPEAT, 5)
     op_repr = str(bitvector_repeat_ot)
     assert str(bitvector_repeat_ot) == op_repr

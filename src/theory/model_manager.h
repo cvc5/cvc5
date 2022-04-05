@@ -24,7 +24,7 @@
 #include "theory/ee_manager.h"
 #include "theory/logic_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 class Env;
@@ -136,6 +136,6 @@ class ModelManager : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__MODEL_MANAGER__H */

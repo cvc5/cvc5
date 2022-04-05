@@ -21,8 +21,7 @@
 #include <map>
 #include "expr/node.h"
 
-namespace cvc5 {
-namespace theory {
+namespace cvc5::internal {
 
 /** NodeTemplate trie class
  *
@@ -107,7 +106,6 @@ typedef NodeTemplateTrie<true> NodeTrie;
 /** Non-reference-counted version of the above data structure */
 typedef NodeTemplateTrie<false> TNodeTrie;
 
-}  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__NODE_TRIE_H */

@@ -29,7 +29,7 @@
 ${theory_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 template <TheoryId theoryId>
@@ -52,7 +52,7 @@ ${theory_constructors}
       default: Unhandled() << id;
     }
   }
-}; /* struct cvc5::theory::TheoryConstructor */
+}; /* struct cvc5::internal::theory::TheoryConstructor */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

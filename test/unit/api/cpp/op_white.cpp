@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -29,8 +27,8 @@ TEST_F(TestApiWhiteOp, opFromKind)
 {
   Op plus(&d_solver, ADD);
   ASSERT_FALSE(plus.isIndexed());
-  ASSERT_THROW(plus.getIndices<uint32_t>(), CVC5ApiException);
+  ASSERT_EQ(0, plus.getNumIndices());
   ASSERT_EQ(plus, d_solver.mkOp(ADD));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Cardinality classes. A type has exactly one cardinality class. The
@@ -93,6 +93,6 @@ CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2);
  */
 bool isCardinalityClassFinite(CardinalityClass c, bool fmfEnabled);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

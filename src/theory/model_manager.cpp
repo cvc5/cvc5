@@ -24,7 +24,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 ModelManager::ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem)
@@ -94,7 +94,7 @@ bool ModelManager::buildModel()
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
 
-  if (Trace.isOn("model-final"))
+  if (TraceIsOn("model-final"))
   {
     Trace("model-final") << "Final model:" << std::endl;
     Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;
@@ -175,4 +175,4 @@ bool ModelManager::collectModelBooleanVariables()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

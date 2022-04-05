@@ -22,7 +22,7 @@
 
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -72,4 +72,4 @@ struct UninterpretedSortValueHashFunction
   }
 }; /* struct UninterpretedSortValueHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

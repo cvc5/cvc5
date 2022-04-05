@@ -21,7 +21,7 @@
 #include <vector>
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class RepSetIterator;
@@ -123,6 +123,6 @@ class QuantifiersBoundInference
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H */

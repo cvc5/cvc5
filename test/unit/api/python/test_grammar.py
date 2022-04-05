@@ -25,6 +25,7 @@ def solver():
 
 
 def test_add_rule(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -33,7 +34,7 @@ def test_add_rule(solver):
     nts = solver.mkVar(boolean)
 
     # expecting no error
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
 
     g.addRule(start, solver.mkBoolean(False))
 
@@ -58,6 +59,7 @@ def test_add_rule(solver):
 
 
 def test_add_rules(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -65,7 +67,7 @@ def test_add_rules(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
 
     g.addRules(start, {solver.mkBoolean(False)})
 
@@ -89,13 +91,14 @@ def test_add_rules(solver):
 
 
 def test_add_any_constant(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
 
     null_term = Term(solver)
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g = solver.mkSygusGrammar({}, {start})
+    g = solver.mkGrammar({}, {start})
 
     g.addAnyConstant(start)
     g.addAnyConstant(start)
@@ -112,6 +115,7 @@ def test_add_any_constant(solver):
 
 
 def test_add_any_variable(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
 
     null_term = Term(solver)
@@ -119,8 +123,8 @@ def test_add_any_variable(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g1 = solver.mkSygusGrammar({x}, {start})
-    g2 = solver.mkSygusGrammar({}, {start})
+    g1 = solver.mkGrammar({x}, {start})
+    g2 = solver.mkGrammar({}, {start})
 
     g1.addAnyVariable(start)
     g1.addAnyVariable(start)

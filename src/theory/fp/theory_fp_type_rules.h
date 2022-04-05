@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 
@@ -138,13 +138,6 @@ class FloatingPointToFPUnsignedBitVectorTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-/** Generic type rule for floating-point to_fp conversion. */
-class FloatingPointToFPGenericTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 /** Type rule for conversion from floating-point to unsigned bit-vector. */
 class FloatingPointToUBVTypeRule
 {
@@ -230,6 +223,6 @@ class CardinalityComputer
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

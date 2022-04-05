@@ -20,7 +20,7 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -115,4 +115,4 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

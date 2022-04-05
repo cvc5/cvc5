@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -75,7 +75,7 @@ bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat&
 
       if(!d_conflictVariables.isMember(curr) && checkBasicForConflict(curr)){
 
-        Debug("recentlyViolated")
+        Trace("recentlyViolated")
           << "It worked? "
           << conflicts.get()
           << " " << curr
@@ -200,7 +200,7 @@ void SimplexDecisionProcedure::removeFromInfeasFunc(TimerStat& timer, ArithVar i
 }
 
 ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& timer, const ArithVarVec& set){
-  Debug("constructInfeasiblityFunction") << "constructInfeasiblityFunction start" << endl;
+  Trace("constructInfeasiblityFunction") << "constructInfeasiblityFunction start" << endl;
 
   TimerStat::CodeTimer codeTimer(timer);
   Assert(!d_errorSet.focusEmpty());
@@ -224,7 +224,7 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
     coeffs.push_back(violatedCoeff);
     variables.push_back(e);
 
-    Debug("constructInfeasiblityFunction") << violatedCoeff << " " << e << endl;
+    Trace("constructInfeasiblityFunction") << violatedCoeff << " " << e << endl;
 
   }
   d_tableau.addRow(inf, coeffs, variables);
@@ -234,8 +234,8 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   //d_linEq.trackVariable(inf);
   d_linEq.trackRowIndex(d_tableau.basicToRowIndex(inf));
 
-  Debug("constructInfeasiblityFunction") << inf << " " << newAssignment << endl;
-  Debug("constructInfeasiblityFunction") << "constructInfeasiblityFunction done" << endl;
+  Trace("constructInfeasiblityFunction") << inf << " " << newAssignment << endl;
+  Trace("constructInfeasiblityFunction") << "constructInfeasiblityFunction done" << endl;
   return inf;
 }
 
@@ -287,4 +287,4 @@ SimplexDecisionProcedure::sgn_table::const_iterator SimplexDecisionProcedure::fi
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

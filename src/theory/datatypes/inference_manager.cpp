@@ -24,9 +24,9 @@
 #include "theory/theory_state.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -177,4 +177,4 @@ Node InferenceManager::prepareDtInference(Node conc,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

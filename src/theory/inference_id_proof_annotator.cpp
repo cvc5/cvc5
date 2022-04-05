@@ -18,7 +18,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 InferenceIdProofAnnotator::InferenceIdProofAnnotator(ProofNodeManager* pnm,
@@ -52,4 +52,4 @@ std::shared_ptr<ProofNode> InferenceIdProofAnnotator::annotate(
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -15,9 +15,9 @@
 
 #include "expr/dtype_selector.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 DTypeSelector::DTypeSelector(std::string name, Node selector, Node updater)
     : d_name(name), d_selector(selector), d_updater(updater), d_resolved(false)
@@ -44,7 +44,11 @@ Node DTypeSelector::getConstructor() const
   return d_constructor;
 }
 
-TypeNode DTypeSelector::getType() const { return d_selector.getType(); }
+TypeNode DTypeSelector::getType() const
+{
+  Assert(!d_selector.isNull());
+  return d_selector.getType();
+}
 
 TypeNode DTypeSelector::getRangeType() const
 {
@@ -85,4 +89,4 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

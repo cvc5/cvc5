@@ -18,7 +18,7 @@
 #include "test.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackRational : public TestInternal
@@ -43,4 +43,4 @@ TEST_F(TestUtilBlackRational, fromDecimal)
   ASSERT_THROW(Rational::fromDecimal("Hello, world!");, std::invalid_argument);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

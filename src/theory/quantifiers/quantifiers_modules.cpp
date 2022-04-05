@@ -20,7 +20,7 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -51,7 +51,7 @@ void QuantifiersModules::initialize(Env& env,
 {
   // add quantifiers modules
   const Options& options = env.getOptions();
-  if (options.quantifiers.quantConflictFind)
+  if (options.quantifiers.conflictBasedInst)
   {
     d_qcf.reset(new QuantConflictFind(env, qs, qim, qr, tr));
     modules.push_back(d_qcf.get());
@@ -61,7 +61,7 @@ void QuantifiersModules::initialize(Env& env,
     d_sg_gen.reset(new ConjectureGenerator(env, qs, qim, qr, tr));
     modules.push_back(d_sg_gen.get());
   }
-  if (!options.quantifiers.finiteModelFind || options.quantifiers.fmfInstEngine)
+  if (options.quantifiers.eMatching)
   {
     d_inst_engine.reset(new InstantiationEngine(env, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());
@@ -121,4 +121,4 @@ void QuantifiersModules::initialize(Env& env,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

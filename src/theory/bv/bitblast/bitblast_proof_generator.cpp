@@ -17,7 +17,7 @@
 #include "proof/conv_proof_generator.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -121,4 +121,4 @@ void BitblastProofGenerator::addBitblastStep(TNode t, TNode bbt, TNode eq)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

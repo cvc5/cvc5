@@ -13,13 +13,13 @@
  * A class for singleton operator for sets.
  */
 
-#include "singleton_op.h"
+#include "theory/sets/singleton_op.h"
 
 #include <iostream>
 
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op)
 {
@@ -48,4 +48,4 @@ bool SetSingletonOp::operator==(const SetSingletonOp& op) const
   return getType() == op.getType();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

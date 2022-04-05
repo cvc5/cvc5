@@ -18,15 +18,15 @@
 #ifndef CVC5__UTIL__STATISTICS_PUBLIC_H
 #define CVC5__UTIL__STATISTICS_PUBLIC_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class StatisticsRegistry;
 
 /**
- * Preregisters all public (non-expert) statistics.
+ * Preregisters all public statistics.
  */
 void registerPublicStatistics(StatisticsRegistry& reg);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -15,12 +15,12 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__SINGLETON_OP_H
-#define CVC5__SINGLETON_OP_H
+#ifndef CVC5__THEORY__SETS__SINGLETON_OP_H
+#define CVC5__THEORY__SETS__SINGLETON_OP_H
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -51,13 +51,13 @@ class SetSingletonOp
 std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op);
 
 /**
- * Hash function for the SingletonHashFunction objects.
+ * Hash function for the SetSingletonOp objects.
  */
 struct SetSingletonOpHashFunction
 {
   size_t operator()(const SetSingletonOp& op) const;
 }; /* struct SetSingletonOpHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
-#endif /* CVC5__SINGLETON_OP_H */
+#endif /* CVC5__THEORY__SETS__SINGLETON_OP_H */

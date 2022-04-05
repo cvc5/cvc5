@@ -29,7 +29,7 @@
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -443,6 +443,6 @@ class TermDbSygus : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_H */

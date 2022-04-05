@@ -20,7 +20,7 @@
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -73,7 +73,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         {
           subs.push_back(s);
         }
-        if (Trace.isOn("uf-ho-beta"))
+        if (TraceIsOn("uf-ho-beta"))
         {
           Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
                               << " vars into " << subs.size() << " terms :\n";
@@ -262,4 +262,4 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

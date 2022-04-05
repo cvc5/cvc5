@@ -37,9 +37,9 @@
 #include "util/string.h"
 #include "printer/smt2/smt2_printer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -196,14 +196,6 @@ Node CegGrammarConstructor::process(Node q,
       Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
       Assert(!templ_arg.isNull());
-      // if there is a template for this argument, make a sygus type on top of it
-      if (options().quantifiers.sygusTemplEmbedGrammar)
-      {
-        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
-                             << " with arg " << templ_arg << std::endl;
-        Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
-        tn = mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
-      }
     }
 
     // ev is the first-order variable corresponding to this synth fun
@@ -246,35 +238,39 @@ Node CegGrammarConstructor::process(Node q,
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of
       // it
-      if (!options().quantifiers.sygusTemplEmbedGrammar)
+      // otherwise, apply it as a preprocessing pass
+      Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
+                           << " with arg " << templ_arg << std::endl;
+      Trace("cegqi-debug")
+          << "  apply this template as a substituion during preprocess..."
+          << std::endl;
+      std::vector<Node> schildren;
+      std::vector<Node> largs;
+      for (unsigned j = 0; j < sfvl.getNumChildren(); j++)
       {
-        // otherwise, apply it as a preprocessing pass
-        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
-                             << " with arg " << templ_arg << std::endl;
-        Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
-        std::vector< Node > schildren;
-        std::vector< Node > largs;
-        for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
-          schildren.push_back( sfvl[j] );
-          largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
-        }
-        std::vector< Node > subsfn_children;
-        subsfn_children.push_back( sf );
-        subsfn_children.insert( subsfn_children.end(), schildren.begin(), schildren.end() );
-        Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
-        TNode subsf = subsfn;
-        Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> " << subsf << std::endl;
-        templ = templ.substitute( templ_arg, subsf );
-        // substitute lambda arguments
-        templ = templ.substitute( schildren.begin(), schildren.end(), largs.begin(), largs.end() );
-        Node subsn =
-            nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
-        TNode var = sf;
-        TNode subs = subsn;
-        Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs << std::endl;
-        qbody_subs = qbody_subs.substitute( var, subs );
-        Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
+        schildren.push_back(sfvl[j]);
+        largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
       }
+      std::vector<Node> subsfn_children;
+      subsfn_children.push_back(sf);
+      subsfn_children.insert(
+          subsfn_children.end(), schildren.begin(), schildren.end());
+      Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
+      TNode subsf = subsfn;
+      Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> "
+                           << subsf << std::endl;
+      templ = templ.substitute(templ_arg, subsf);
+      // substitute lambda arguments
+      templ = templ.substitute(
+          schildren.begin(), schildren.end(), largs.begin(), largs.end());
+      Node subsn =
+          nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
+      TNode var = sf;
+      TNode subs = subsn;
+      Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs
+                           << std::endl;
+      qbody_subs = qbody_subs.substitute(var, subs);
+      Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
     }
     d_tds->registerSygusType(tn);
     Assert(tn.isDatatype());
@@ -399,8 +395,8 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
 TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
                                                  std::set<TypeNode>& unres)
 {
-  TypeNode unresolved = NodeManager::currentNM()->mkSort(
-      name, NodeManager::SORT_FLAG_PLACEHOLDER);
+  TypeNode unresolved =
+      NodeManager::currentNM()->mkUnresolvedDatatypeSort(name);
   unres.insert(unresolved);
   return unresolved;
 }
@@ -537,7 +533,7 @@ bool CegGrammarConstructor::isHandledType(TypeNode t)
   collectSygusGrammarTypesFor(t, types);
   for (const TypeNode& tn : types)
   {
-    if (tn.isSort() || tn.isFloatingPoint())
+    if (tn.isUninterpretedSort() || tn.isFloatingPoint())
     {
       return false;
     }
@@ -938,7 +934,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
         std::vector<TypeNode> cargsSeqUnit;
         cargsSeqUnit.push_back(unresElemType);
-        sdts[i].addConstructor(SEQ_UNIT, cargsSeqUnit);
+        // lambda x . (seq.unit (seq_unit_op T) x) where T = x.getType()
+        Node x = nm->mkBoundVar(etype);
+        Node vars = nm->mkNode(BOUND_VAR_LIST, x);
+        Node seqUnit = nm->mkSeqUnit(etype, x);
+        Node lambda = nm->mkNode(LAMBDA, vars, seqUnit);
+        sdts[i].addConstructor(lambda, "seq.unit", cargsSeqUnit);
       }
     }
     else if (types[i].isArray())
@@ -1049,7 +1050,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(cop, dt[l].getName(), cargsCons);
       }
     }
-    else if (types[i].isSort() || types[i].isFunction()
+    else if (types[i].isUninterpretedSort() || types[i].isFunction()
              || types[i].isRoundingMode())
     {
       // do nothing
@@ -1544,7 +1545,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
   std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
-      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
   return types[0];
@@ -1591,7 +1592,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     }
     std::vector<TypeNode> types =
         NodeManager::currentNM()->mkMutualDatatypeTypes(
-            datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+            datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
     Assert(types.size() == 1);
     return types[0];
   }
@@ -1649,4 +1650,4 @@ bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

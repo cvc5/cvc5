@@ -19,7 +19,7 @@
 
 #include "expr/skolem_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 bool Subs::empty() const { return d_vars.empty(); }
 
@@ -186,4 +186,4 @@ std::ostream& operator<<(std::ostream& out, const Subs& s)
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

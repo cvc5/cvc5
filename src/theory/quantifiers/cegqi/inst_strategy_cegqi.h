@@ -28,7 +28,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -220,6 +220,6 @@ class InstStrategyCegqi : public QuantifiersModule
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

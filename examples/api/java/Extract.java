@@ -15,7 +15,7 @@
  *
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class Extract
 {
@@ -47,8 +47,8 @@ public class Extract
 
       Term eq2 = slv.mkTerm(Kind.EQUAL, x_31_31, x_0_0);
       System.out.println(" Check entailment assuming: " + eq2);
-      System.out.println(" Expect ENTAILED. ");
-      System.out.println(" cvc5: " + slv.checkEntailed(eq2));
+      System.out.println(" Expect UNSAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(eq2.notTerm()));
     }
   }
 }

@@ -1,0 +1,34 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic SLIA)
+(synth-fun f ((firstname String) (lastname String)) String
+((ntString String) (ntInt Int) (ntBool Bool))
+
+((ntString String (
+firstname
+lastname
+" "
+(str.++ ntString ntString)))
+
+(ntInt Int (
+0
+1
+2
+(+ ntInt ntInt)
+(- ntInt ntInt)
+(str.len ntString)
+(str.to_int ntString)
+(str.indexof ntString ntString ntInt)))
+
+(ntBool Bool (
+true
+false
+(str.prefixof ntString ntString)
+(str.suffixof ntString ntString)
+(str.contains ntString ntString)))
+
+))
+
+(constraint (= (f "Nancy" "FreeHafer") "Nancy FreeHafer"))
+
+(check-synth)

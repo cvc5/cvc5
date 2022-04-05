@@ -23,10 +23,10 @@
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -153,7 +153,7 @@ void SygusExplain::getExplanationForEquality(Node n,
     if (cexc.find(j) == cexc.end())
     {
       Node sel = NodeManager::currentNM()->mkNode(
-          kind::APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(tn, j), n);
+          kind::APPLY_SELECTOR, dt[i].getSelectorInternal(tn, j), n);
       getExplanationForEquality(sel, vn[j], exp);
     }
   }
@@ -249,7 +249,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   for (unsigned i = 0; i < vn.getNumChildren(); i++)
   {
     Node sel = NodeManager::currentNM()->mkNode(
-        kind::APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(ntn, i), n);
+        kind::APPLY_SELECTOR, dt[cindex].getSelectorInternal(ntn, i), n);
     Node vnr_c = vnr.isNull() ? vnr : (vn[i] == vnr[i] ? Node::null() : vnr[i]);
     if (cexc.find(i) == cexc.end())
     {
@@ -359,4 +359,4 @@ void SygusExplain::getExplanationFor(Node n,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

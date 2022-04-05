@@ -39,15 +39,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace prop {
 class PropEngine;
 class TheoryProxy;
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace Minisat {
 
 //=================================================================================================
@@ -56,9 +56,9 @@ namespace Minisat {
 class Solver : protected EnvObj
 {
   /** The only two cvc5 entry points to the private solver data */
-  friend class cvc5::prop::PropEngine;
-  friend class cvc5::prop::TheoryProxy;
-  friend class cvc5::prop::SatProofManager;
+  friend class cvc5::internal::prop::PropEngine;
+  friend class cvc5::internal::prop::TheoryProxy;
+  friend class cvc5::internal::prop::SatProofManager;
 
  public:
   static CRef TCRef_Undef;
@@ -72,10 +72,10 @@ class Solver : protected EnvObj
 
  protected:
   /** The pointer to the proxy that provides interfaces to the SMT engine */
-  cvc5::prop::TheoryProxy* d_proxy;
+  cvc5::internal::prop::TheoryProxy* d_proxy;
 
-  /** The context from the SMT solver */
-  cvc5::context::Context* d_context;
+  /** The contexts from the SMT solver */
+  context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -87,24 +87,13 @@ class Solver : protected EnvObj
   Var varFalse;
 
   /** The resolution proof manager */
-  std::unique_ptr<cvc5::prop::SatProofManager> d_pfManager;
+  std::unique_ptr<cvc5::internal::prop::SatProofManager> d_pfManager;
 
  public:
   /** Returns the current user assertion level */
   int getAssertionLevel() const { return assertionLevel; }
 
  protected:
-  /*
-   * Returns true if the solver should add all clauses at the current assertion
-   * level.
-   *
-   * FIXME: This is a workaround. Currently, our resolution proofs do not
-   * handle clauses with a lower-than-assertion-level correctly because the
-   * resolution proofs get removed when popping the context but the SAT solver
-   * keeps using them.
-   */
-  const bool d_assertionLevelOnly;
-
   /** Do we allow incremental solving */
   bool d_enable_incremental;
 
@@ -142,9 +131,9 @@ public:
     // Constructor/Destructor:
     //
  Solver(Env& env,
-        cvc5::prop::TheoryProxy* proxy,
-        cvc5::context::Context* context,
-        cvc5::context::UserContext* userContext,
+        cvc5::internal::prop::TheoryProxy* proxy,
+        context::Context* context,
+        context::UserContext* userContext,
         ProofNodeManager* pnm,
         bool enableIncremental = false);
  virtual ~Solver();
@@ -161,7 +150,7 @@ public:
  Var falseVar() const { return varFalse; }
 
  /** Retrive the SAT proof manager */
- cvc5::prop::SatProofManager* getProofManager();
+ cvc5::internal::prop::SatProofManager* getProofManager();
 
  /** Retrive the refutation proof */
  std::shared_ptr<ProofNode> getProof();
@@ -175,6 +164,16 @@ public:
   * SAT proofs are not required for assumption-based unsat cores.
   */
  bool needProof() const;
+
+ /*
+  * Returns true if the solver should add all clauses at the current assertion
+  * level.
+  *
+  * FIXME (cvc5-projects/issues/503): This is a workaround. While proofs are now
+  * compatible with the assertion level optimization, it has to be seen for
+  * non-sat-proofs-based unsat cores.
+  */
+ bool assertionLevelOnly() const;
 
  // Less than for literals in a lemma
  struct lemma_lt
@@ -500,7 +499,7 @@ protected:
     CRef     propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
     void     propagateTheory  ();                                                      // Perform Theory propagation.
     void theoryCheck(
-        cvc5::theory::Theory::Effort
+        cvc5::internal::theory::Theory::Effort
             effort);  // Perform a theory satisfiability check. Adds lemmas.
     CRef     updateLemmas     ();                                                      // Add the lemmas, backtraking if necessary and return a conflict if there is one
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
@@ -586,7 +585,7 @@ inline bool Solver::isPropagatedBy(Var x, const Clause& c) const
 
 inline bool Solver::isDecision(Var x) const
 {
-  Debug("minisat") << "var " << x << " is a decision iff "
+  Trace("minisat") << "var " << x << " is a decision iff "
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;
@@ -725,6 +724,6 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 //=================================================================================================
 }  // namespace Minisat
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

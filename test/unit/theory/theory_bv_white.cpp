@@ -25,7 +25,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace theory::bv;
@@ -57,9 +57,9 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
     Node eq = d_nodeManager->mkNode(kind::DISTINCT, lhs, rhs);
     d_slvEngine->assertFormula(eq);
     Result res = d_slvEngine->checkSat();
-    ASSERT_EQ(res.isSat(), Result::UNSAT);
+    ASSERT_EQ(res.getStatus(), Result::UNSAT);
     d_slvEngine->pop();
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

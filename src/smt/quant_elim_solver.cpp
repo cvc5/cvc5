@@ -25,10 +25,10 @@
 #include "util/string.h"
 #include "expr/subtype_elim_node_converter.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
@@ -72,13 +72,12 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
-  // We consider this to be an entailment check, which also avoids incorrect
-  // status reporting (see SolverEngineState::d_expectedStatus).
-  Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
+  Result r =
+      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne.notNode()});
   Trace("smt-qe") << "Query returned " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  if (r.getStatus() != Result::UNSAT)
   {
-    if (r.asSatisfiabilityResult().isSat() != Result::SAT && doFull)
+    if (r.getStatus() != Result::SAT && doFull)
     {
       verbose(1)
           << "While performing quantifier elimination, unexpected result : "
@@ -143,4 +142,4 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

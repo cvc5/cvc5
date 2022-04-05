@@ -20,7 +20,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 EqEngineManagerDistributed::EqEngineManagerDistributed(Env& env,
@@ -109,4 +109,4 @@ void EqEngineManagerDistributed::notifyModel(bool incomplete)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

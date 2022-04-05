@@ -25,7 +25,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_step_buffer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNode;
 class ProofNodeManager;
@@ -275,6 +275,6 @@ class CDProof : public ProofGenerator
   void notifyNewProof(Node expected);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_MANAGER_H */

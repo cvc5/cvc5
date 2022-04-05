@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 NodeBuilder::NodeBuilder()
     : d_nv(&d_inlineNv),
@@ -418,11 +418,11 @@ expr::NodeValue* NodeBuilder::constructNV()
     nv->d_id = d_nm->next_id++;  // FIXME multithreading
     nv->d_rc = 0;
     setUsed();
-    if (Debug.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
-      Debug("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
-      nv->printAst(Debug("gc"));
-      Debug("gc") << std::endl;
+      Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
+      nv->printAst(Trace("gc"));
+      Trace("gc") << std::endl;
     }
     return nv;
   }
@@ -509,12 +509,12 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      if (Debug.isOn("gc"))
+      if (TraceIsOn("gc"))
       {
-        Debug("gc") << "creating node value " << nv << " [" << nv->d_id
+        Trace("gc") << "creating node value " << nv << " [" << nv->d_id
                     << "]: ";
-        nv->printAst(Debug("gc"));
-        Debug("gc") << std::endl;
+        nv->printAst(Trace("gc"));
+        Trace("gc") << std::endl;
       }
       return nv;
     }
@@ -564,7 +564,7 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      Debug("gc") << "creating node value " << nv << " [" << nv->d_id
+      Trace("gc") << "creating node value " << nv << " [" << nv->d_id
                   << "]: " << *nv << "\n";
       return nv;
     }
@@ -709,4 +709,4 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb)
   return out << *nb.d_nv;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

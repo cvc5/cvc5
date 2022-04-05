@@ -31,7 +31,7 @@
 #include "util/string.h"
 #include "util/uninterpreted_sort_value.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -177,6 +177,6 @@ class Evaluator
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__EVALUATOR_H */

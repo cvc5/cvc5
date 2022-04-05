@@ -29,7 +29,7 @@
 #include "proof/lazy_proof.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class ProofNode;
@@ -302,6 +302,6 @@ class ProofEqEngine : protected EnvObj, public EagerProofGenerator
 
 }  // namespace eq
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__PROOF_MANAGER_H */

@@ -20,10 +20,10 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace cvc5::expr;
-using namespace cvc5::kind;
+using namespace cvc5::internal::expr;
+using namespace cvc5::internal::kind;
 
 namespace test {
 
@@ -81,4 +81,4 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

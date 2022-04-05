@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Helper substitution class. Stores a substitution in parallel vectors
@@ -87,6 +87,6 @@ class Subs
  */
 std::ostream& operator<<(std::ostream& out, const Subs& s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__SUBS_H */

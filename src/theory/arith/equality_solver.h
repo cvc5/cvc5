@@ -26,7 +26,7 @@
 #include "theory/ee_setup_info.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -111,6 +111,6 @@ class EqualitySolver : protected EnvObj
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

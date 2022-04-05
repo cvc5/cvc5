@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -27,7 +27,7 @@ namespace arith {
  * Generates a string representation of std::optional and inserts it into a
  * stream.
  *
- * Note: We define this function here in the cvc5::theory::arith namespace,
+ * Note: We define this function here in the cvc5::internal::theory::arith namespace,
  * because it would otherwise not be found for std::optional<int>. This is due
  * to the argument-dependent lookup rules.
  *
@@ -37,7 +37,7 @@ namespace arith {
  */
 std::ostream& operator<<(std::ostream& out, const std::optional<int>& m)
 {
-  return cvc5::operator<<(out, m);
+  return cvc5::internal::operator<<(out, m);
 }
 
 UpdateInfo::UpdateInfo():
@@ -204,4 +204,4 @@ std::ostream& operator<<(std::ostream& out,  WitnessImprovement w){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

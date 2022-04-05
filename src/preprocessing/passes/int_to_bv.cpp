@@ -35,12 +35,12 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 
 namespace {
@@ -288,4 +288,4 @@ PreprocessingPassResult IntToBV::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

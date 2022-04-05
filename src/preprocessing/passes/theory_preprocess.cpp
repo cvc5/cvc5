@@ -24,11 +24,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 TheoryPreprocess::TheoryPreprocess(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "theory-preprocess"){};
@@ -64,4 +64,4 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

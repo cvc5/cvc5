@@ -18,7 +18,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
@@ -42,7 +42,7 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
       core.push_back(a);
     }
   }
-  if (Trace.isOn("unsat-core"))
+  if (TraceIsOn("unsat-core"))
   {
     Trace("unsat-core") << "UCManager::getUnsatCore():\n";
     for (const Node& n : core)
@@ -111,4 +111,4 @@ void UnsatCoreManager::getRelevantInstantiations(
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

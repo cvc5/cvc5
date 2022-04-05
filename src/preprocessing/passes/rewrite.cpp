@@ -20,11 +20,11 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 Rewrite::Rewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "rewrite"){};
@@ -43,4 +43,4 @@ PreprocessingPassResult Rewrite::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

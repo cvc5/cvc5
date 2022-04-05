@@ -24,7 +24,7 @@
 #include "util/cardinality.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -511,4 +511,4 @@ Node BagsProperties::mkGroundTerm(TypeNode type)
 }
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

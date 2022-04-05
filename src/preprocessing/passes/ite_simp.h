@@ -22,7 +22,7 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -49,10 +49,12 @@ class ITESimp : public PreprocessingPass
   util::ITEUtilities d_iteUtilities;
 
   Statistics d_statistics;
+
+  static const uint32_t zombieHuntThreshold = 524288;
 };
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

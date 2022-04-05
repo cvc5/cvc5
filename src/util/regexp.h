@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 struct RegExpRepeat
 {
@@ -70,6 +70,6 @@ std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv);
 
 std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTIL__REGEXP_H */

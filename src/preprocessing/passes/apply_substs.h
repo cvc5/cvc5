@@ -23,7 +23,7 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 class PreprocessingPassContext;
@@ -47,6 +47,6 @@ class ApplySubsts : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

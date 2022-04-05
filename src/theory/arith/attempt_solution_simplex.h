@@ -59,7 +59,7 @@
 #include "theory/arith/simplex.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -71,9 +71,9 @@ public:
                     RaiseConflict conflictChannel,
                     TempVarMalloc tvmalloc);
 
- Result::Sat attempt(const ApproximateSimplex::Solution& sol);
+ Result::Status attempt(const ApproximateSimplex::Solution& sol);
 
- Result::Sat findModel(bool exactResult) override { Unreachable(); }
+ Result::Status findModel(bool exactResult) override { Unreachable(); }
 
 private:
  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
@@ -97,4 +97,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

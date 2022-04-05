@@ -39,9 +39,8 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "util/unsafe_interrupt_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class ResourceManager;
@@ -172,10 +171,15 @@ class TheoryEngine : protected EnvObj
   }
 
   /**
-   * Preprocess rewrite equality, called by the preprocessor to rewrite
-   * equalities appearing in the input.
+   * Preprocess rewrite, called:
+   * (1) on equalities by the preprocessor to rewrite equalities appearing in
+   * the input,
+   * (2) on non-equalities by the theory preprocessor.
+   *
+   * Calls the ppRewrite of the theory of term and adds the associated skolem
+   * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -258,7 +262,7 @@ class TheoryEngine : protected EnvObj
     for (; d_propagatedLiteralsIndex < d_propagatedLiterals.size();
          d_propagatedLiteralsIndex = d_propagatedLiteralsIndex + 1)
     {
-      Debug("getPropagatedLiterals")
+      Trace("getPropagatedLiterals")
           << "TheoryEngine::getPropagatedLiterals: propagating: "
           << d_propagatedLiterals[d_propagatedLiteralsIndex] << std::endl;
       literals.push_back(d_propagatedLiterals[d_propagatedLiteralsIndex]);
@@ -314,7 +318,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* theoryOf(TNode node) const
   {
-    return d_theoryTable[theory::Theory::theoryOf(node)];
+    return d_theoryTable[d_env.theoryOf(node)];
   }
 
   /**
@@ -640,6 +644,6 @@ class TheoryEngine : protected EnvObj
 
 }; /* class TheoryEngine */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY_ENGINE_H */

@@ -29,7 +29,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -48,7 +48,7 @@ bool RewriteRule<ExtractBitwise>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ExtractBitwise>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ExtractBitwise>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ExtractBitwise>(" << node << ")" << std::endl;
   unsigned high = utils::getExtractHigh(node);
   unsigned low = utils::getExtractLow(node);
   std::vector<Node> children; 
@@ -73,7 +73,7 @@ bool RewriteRule<ExtractNot>::applies(TNode node) {
 template <>
 inline Node RewriteRule<ExtractNot>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<ExtractNot>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ExtractNot>(" << node << ")" << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
   Node a = utils::mkExtract(node[0][0], high, low);
@@ -100,7 +100,7 @@ bool RewriteRule<ExtractSignExtend>::applies(TNode node) {
 template <>
 inline Node RewriteRule<ExtractSignExtend>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<ExtractSignExtend>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<ExtractSignExtend>(" << node << ")"
                       << std::endl;
   TNode extendee = node[0][0];
   unsigned extendee_size = utils::getSize(extendee);
@@ -134,7 +134,7 @@ inline Node RewriteRule<ExtractSignExtend>::apply(TNode node)
     }
     resultNode = utils::mkConcat(bits);
   }
-  Debug("bv-rewrite") << "                           =>" << resultNode
+  Trace("bv-rewrite") << "                           =>" << resultNode
                       << std::endl;
   return resultNode;
 }
@@ -156,7 +156,7 @@ bool RewriteRule<ExtractArith>::applies(TNode node) {
 template <>
 inline Node RewriteRule<ExtractArith>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")"
                       << std::endl;
   unsigned low = utils::getExtractLow(node);
   Assert(low == 0);
@@ -187,7 +187,7 @@ bool RewriteRule<ExtractArith2>::applies(TNode node) {
 template <>
 inline Node RewriteRule<ExtractArith2>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")"
                       << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
@@ -221,7 +221,7 @@ bool RewriteRule<FlattenAssocCommut>::applies(TNode node) {
 template <>
 inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")"
                       << std::endl;
   std::vector<Node> processingStack;
   processingStack.push_back(node);
@@ -379,7 +379,7 @@ inline bool RewriteRule<AddCombineLikeTerms>::applies(TNode node)
 template <>
 inline Node RewriteRule<AddCombineLikeTerms>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<AddCombineLikeTerms>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<AddCombineLikeTerms>(" << node << ")"
                       << std::endl;
   unsigned size = utils::getSize(node);
   BitVector constSum(size, (unsigned)0);
@@ -431,7 +431,7 @@ bool RewriteRule<MultSimplify>::applies(TNode node) {
 template <>
 inline Node RewriteRule<MultSimplify>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<MultSimplify>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<MultSimplify>(" << node << ")"
                       << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   unsigned size = utils::getSize(node);
@@ -515,7 +515,7 @@ bool RewriteRule<MultDistribConst>::applies(TNode node) {
 template <>
 inline Node RewriteRule<MultDistribConst>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")"
                       << std::endl;
 
   NodeManager *nm = NodeManager::currentNM();
@@ -559,7 +559,7 @@ bool RewriteRule<MultDistrib>::applies(TNode node) {
 template <>
 inline Node RewriteRule<MultDistrib>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")"
                       << std::endl;
 
   NodeManager *nm = NodeManager::currentNM();
@@ -604,7 +604,7 @@ bool RewriteRule<ConcatToMult>::applies(TNode node) {
 template <>
 inline Node RewriteRule<ConcatToMult>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<ConcatToMult>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<ConcatToMult>(" << node << ")"
                       << std::endl;
   unsigned size = utils::getSize(node);
   Node factor = node[0][0];
@@ -631,7 +631,7 @@ inline bool RewriteRule<SolveEq>::applies(TNode node)
 template <>
 inline Node RewriteRule<SolveEq>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<SolveEq>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<SolveEq>(" << node << ")" << std::endl;
 
   TNode left = node[0];
   TNode right = node[1];
@@ -901,7 +901,7 @@ static inline Node mkNodeKind(Kind k, TNode node, TNode c) {
 
 template<> inline
 Node RewriteRule<BitwiseEq>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<BitwiseEq>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<BitwiseEq>(" << node << ")" << std::endl;
 
   TNode term;
   BitVector c;
@@ -984,7 +984,7 @@ bool RewriteRule<NegMult>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NegMult>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<NegMult>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NegMult>(" << node << ")" << std::endl;
   TNode mult = node[0];
   NodeBuilder nb(kind::BITVECTOR_MULT);
   BitVector bv(utils::getSize(node), (unsigned)1);
@@ -1007,7 +1007,7 @@ bool RewriteRule<NegSub>::applies(TNode node) {
 template <>
 inline Node RewriteRule<NegSub>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<NegSub>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NegSub>(" << node << ")" << std::endl;
   return NodeManager::currentNM()->mkNode(
       kind::BITVECTOR_SUB, node[0][1], node[0][0]);
 }
@@ -1022,7 +1022,7 @@ inline bool RewriteRule<NegAdd>::applies(TNode node)
 template <>
 inline Node RewriteRule<NegAdd>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<NegAdd>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NegAdd>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (unsigned i = 0; i < node[0].getNumChildren(); ++i)
@@ -1066,7 +1066,7 @@ bool RewriteRule<AndSimplify>::applies(TNode node) {
 template <>
 inline Node RewriteRule<AndSimplify>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")"
                       << std::endl;
 
   NodeManager *nm = NodeManager::currentNM();
@@ -1157,7 +1157,7 @@ bool RewriteRule<FlattenAssocCommutNoDuplicates>::applies(TNode node) {
   
 template<> inline
 Node RewriteRule<FlattenAssocCommutNoDuplicates>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
   std::vector<Node> processingStack;
   processingStack.push_back(node);
   std::unordered_set<TNode> processed;
@@ -1193,7 +1193,7 @@ bool RewriteRule<OrSimplify>::applies(TNode node) {
 template <>
 inline Node RewriteRule<OrSimplify>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<OrSimplify>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<OrSimplify>(" << node << ")" << std::endl;
 
   NodeManager *nm = NodeManager::currentNM();
   // this will remove duplicates
@@ -1275,7 +1275,7 @@ bool RewriteRule<XorSimplify>::applies(TNode node) {
 template <>
 inline Node RewriteRule<XorSimplify>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")"
                       << std::endl;
 
   NodeManager *nm = NodeManager::currentNM();
@@ -1418,7 +1418,7 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
 template <>
 inline Node RewriteRule<BitwiseSlicing>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")"
                       << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   // get the constant
@@ -1470,7 +1470,7 @@ inline Node RewriteRule<BitwiseSlicing>::apply(TNode node)
     }
   }
   Node result = utils::mkConcat(concat_children);
-  Debug("bv-rewrite") << "    =>" << result << std::endl;
+  Trace("bv-rewrite") << "    =>" << result << std::endl;
   return result;
 }
 
@@ -1485,7 +1485,7 @@ inline bool RewriteRule<NormalizeEqAddNeg>::applies(TNode node)
 template <>
 inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<NormalizeEqAddNeg>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<NormalizeEqAddNeg>(" << node << ")"
                       << std::endl;
 
   NodeBuilder nb_lhs(kind::BITVECTOR_ADD);
@@ -1559,7 +1559,7 @@ inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
 
 // template<> inline
 // Node RewriteRule<>::apply(TNode node) {
-//   Debug("bv-rewrite") << "RewriteRule<>(" << node << ")" << std::endl;
+//   Trace("bv-rewrite") << "RewriteRule<>(" << node << ")" << std::endl;
 //   return resultNode;
 // }
 
@@ -1567,4 +1567,4 @@ inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

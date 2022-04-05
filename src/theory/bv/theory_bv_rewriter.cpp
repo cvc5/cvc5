@@ -26,9 +26,9 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 
-using namespace cvc5;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
 TheoryBVRewriter::TheoryBVRewriter() { initializeRewrites(); }
 
@@ -36,8 +36,8 @@ RewriteResponse TheoryBVRewriter::preRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, true);
   if (res.d_node != node)
   {
-    Debug("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite")
+    Trace("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
+    Trace("bitvector-rewrite")
         << "TheoryBV::preRewrite to " << res.d_node << std::endl;
   }
   return res; 
@@ -47,8 +47,8 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, false);
   if (res.d_node != node)
   {
-    Debug("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite")
+    Trace("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
+    Trace("bitvector-rewrite")
         << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
@@ -56,7 +56,7 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
 
 TrustNode TheoryBVRewriter::expandDefinition(Node node)
 {
-  Debug("bitvector-expandDefinition")
+  Trace("bitvector-expandDefinition")
       << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
   Node ret;
   switch (node.getKind())
@@ -225,16 +225,14 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
   Node resultNode = node;
-  
-  // // if(RewriteRule<NotXor>::applies(node)) {
-  // //   resultNode = RewriteRule<NotXor>::run<false>(node);
-  // //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  // // }
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalNot>,
-      RewriteRule<NotIdemp>
-    >::apply(node);
-  
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<NotIdemp>, RewriteRule<EvalNot>>::apply(
+          node);
+
+  // It is is safe to return REWRITE_DONE here, because `NotIdemp` removes all
+  // pairs of `bvnot` and then `EvalNot` evaluates the remaining `bvnot` if
+  // applicable.
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
@@ -486,7 +484,11 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
     }
   }
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  // There are cases where we need to rewrite the resulting term again. For
+  // example, if we rewrite (bvneg (bvneg (bvneg #b0))) to (bvneg #b0) then we
+  // have to rewrite again.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite){
@@ -709,7 +711,7 @@ RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite) {
 }
 
 RewriteResponse TheoryBVRewriter::UndefinedRewrite(TNode node, bool prerewrite) {
-  Debug("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
+  Trace("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
   Unimplemented(); 
 } 
 

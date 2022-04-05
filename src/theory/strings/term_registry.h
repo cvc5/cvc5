@@ -31,7 +31,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class Theory;
@@ -323,6 +323,6 @@ class TermRegistry : protected EnvObj
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__TERM_REGISTRY_H */

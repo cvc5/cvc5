@@ -24,7 +24,7 @@
 
 #include <unordered_map>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 // ATTRIBUTE HASH FUNCTIONS ====================================================
@@ -289,7 +289,7 @@ public:
       return BitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
@@ -313,7 +313,7 @@ public:
       return ConstBitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
@@ -498,6 +498,6 @@ const uint64_t Attribute<T, bool>::s_id =
     Attribute<T, bool>::registerAttribute();
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__ATTRIBUTE_INTERNALS_H */

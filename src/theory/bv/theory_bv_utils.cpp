@@ -23,9 +23,9 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 namespace utils {
@@ -161,7 +161,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
       continue;
     }
 
-    if (theory::Theory::theoryOf(options::TheoryOfMode::THEORY_OF_TERM_BASED, n)
+    if (theory::Theory::theoryOf(n, options::TheoryOfMode::THEORY_OF_TERM_BASED)
         == theory::THEORY_BV)
     {
       Kind k = n.getKind();
@@ -516,4 +516,4 @@ Node eliminateInt2Bv(TNode node)
 }  // namespace utils
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

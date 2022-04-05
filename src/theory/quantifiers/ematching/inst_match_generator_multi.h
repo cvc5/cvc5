@@ -24,7 +24,7 @@
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/inst_match_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -107,6 +107,6 @@ class InstMatchGeneratorMulti : public IMGenerator
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

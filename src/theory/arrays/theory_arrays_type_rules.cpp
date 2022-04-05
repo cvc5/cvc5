@@ -22,7 +22,7 @@
 #include "theory/type_enumerator.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -72,10 +72,10 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       if (!valueType.isSubtypeOf(arrayType.getArrayConstituentType()))
       {
-        Debug("array-types")
+        Trace("array-types")
             << "array type: " << arrayType.getArrayConstituentType()
             << std::endl;
-        Debug("array-types") << "value types: " << valueType << std::endl;
+        Trace("array-types") << "value types: " << valueType << std::endl;
         throw TypeCheckingExceptionPrivate(
             n, "array store not assigned with correct type for array");
       }
@@ -330,4 +330,4 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

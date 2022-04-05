@@ -24,7 +24,7 @@
 #include "util/bitvector.h"
 #include "util/random.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 BitVector Sampler::pickBvUniform(unsigned sz)
 {
@@ -173,4 +173,4 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
   return FloatingPoint(e, s, bv);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

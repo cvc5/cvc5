@@ -25,7 +25,7 @@
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LogicInfo;
 class ProofNodeManager;
@@ -145,6 +145,6 @@ class SharedSolver : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SHARED_SOLVER__H */

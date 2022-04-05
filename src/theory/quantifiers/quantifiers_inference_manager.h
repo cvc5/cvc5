@@ -21,7 +21,7 @@
 #include "theory/inference_manager_buffered.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -60,6 +60,6 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H */

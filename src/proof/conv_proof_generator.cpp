@@ -23,9 +23,9 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
@@ -197,7 +197,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     Node conc = getProofForRewriting(f[0], lpf, d_tcontext);
     if (conc != f)
     {
-      bool debugTraceEnabled = Trace.isOn("tconv-pf-gen-debug");
+      bool debugTraceEnabled = TraceIsOn("tconv-pf-gen-debug");
       Assert(conc.getKind() == EQUAL && conc[0] == f[0]);
       std::stringstream serr;
       serr << "TConvProofGenerator::getProofFor: " << toStringDebug()
@@ -621,4 +621,4 @@ std::string TConvProofGenerator::toStringDebug() const
   return ss.str();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

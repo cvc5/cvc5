@@ -43,7 +43,6 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
-  --python2                force Python 2 (deprecated)
   --python-bindings        build Python bindings based on new C++ API
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
@@ -117,7 +116,6 @@ cocoa=default
 muzzle=default
 ninja=default
 profiling=default
-python2=default
 python_bindings=default
 java_bindings=default
 editline=default
@@ -249,9 +247,6 @@ do
     --unit-testing) unit_testing=ON;;
     --no-unit-testing) unit_testing=OFF;;
 
-    --python2) python2=ON;;
-    --no-python2) python2=OFF;;
-
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
 
@@ -343,8 +338,6 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
-[ $python2 != default ] \
-  && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $python_bindings != default ] \

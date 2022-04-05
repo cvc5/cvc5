@@ -19,10 +19,10 @@
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::quantifiers::inst;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::quantifiers::inst;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -122,7 +122,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
   std::vector<Trigger*>& ug = d_user_gen[q];
   for (Trigger* t : ug)
   {
-    if (Trace.isOn("process-trigger"))
+    if (TraceIsOn("process-trigger"))
     {
       Trace("process-trigger") << "  Process (user) ";
       t->debugPrint("process-trigger");
@@ -182,4 +182,4 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

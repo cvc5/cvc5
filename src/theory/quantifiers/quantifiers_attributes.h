@@ -21,7 +21,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Attribute true for function definition quantifiers */
@@ -227,8 +227,14 @@ class QuantAttributes
   std::map< Node, bool > d_fun_defs;
 };
 
+/**
+ * Make a named quantified formula. This is a quantified formula that will
+ * print like:
+ *   (<k> <bvl> (! <body> :qid name))
+ */
+Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name);
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

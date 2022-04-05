@@ -17,7 +17,7 @@
 
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
@@ -27,10 +27,16 @@ TheoryState::TheoryState(Env& env, Valuation val)
 
 void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
 
-bool TheoryState::hasTerm(TNode a) const
+bool TheoryState::hasTerm(TNode t) const
 {
   Assert(d_ee != nullptr);
-  return d_ee->hasTerm(a);
+  return d_ee->hasTerm(t);
+}
+
+void TheoryState::addTerm(TNode t)
+{
+  Assert(d_ee != nullptr);
+  d_ee->addTerm(t);
 }
 
 TNode TheoryState::getRepresentative(TNode t) const
@@ -165,4 +171,4 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

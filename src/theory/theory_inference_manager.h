@@ -29,7 +29,7 @@
 #include "theory/output_channel.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class AnnotationProofGenerator;
@@ -483,6 +483,6 @@ class TheoryInferenceManager : protected EnvObj
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_INFERENCE_MANAGER_H */
