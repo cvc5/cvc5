@@ -752,7 +752,7 @@ def _sphinx_help_render_option(res, opt):
 '''
 
     res.append(desc)
-    res.append('    ' + opt.help)
+    res.append('    ' + opt.help.replace("*", "\\*"))
 
     if opt.mode:
         res.append('    ')

@@ -518,7 +518,7 @@ enum class PfRule : uint32_t
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
-   * C_i'`
+   *   C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
    * representation, to :math:`C_n'`

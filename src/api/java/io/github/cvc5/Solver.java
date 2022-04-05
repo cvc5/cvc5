@@ -651,7 +651,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
-   * (e.g. {@link Kind#BITVECTOR_EXTRACT}).
+   * (e.g., {@link Kind#BITVECTOR_EXTRACT}).
    *
    * @api.note In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
