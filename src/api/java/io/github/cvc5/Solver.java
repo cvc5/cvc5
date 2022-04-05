@@ -83,7 +83,7 @@ public class Solver implements IPointer, AutoCloseable
   /* .................................................................... */
 
   /**
-   * @return sort null
+   * @return Sort null.
    */
 
   public Sort getNullSort()
@@ -95,7 +95,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getNullSort(long pointer);
 
   /**
-   * @return sort Boolean
+   * @return Sort Boolean.
    */
   public Sort getBooleanSort()
   {
@@ -106,7 +106,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getBooleanSort(long pointer);
 
   /**
-   * @return sort Integer (in cvc5, Integer is a subtype of Real)
+   * @return Sort Integer (in cvc5, Integer is a subtype of Real).
    */
   public Sort getIntegerSort()
   {
@@ -116,7 +116,7 @@ public class Solver implements IPointer, AutoCloseable
 
   public native long getIntegerSort(long pointer);
   /**
-   * @return sort Real
+   * @return Sort Real.
    */
   public Sort getRealSort()
   {
@@ -126,7 +126,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long getRealSort(long pointer);
   /**
-   * @return sort RegExp
+   * @return Sort RegExp.
    */
   public Sort getRegExpSort()
   {
@@ -136,7 +136,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long getRegExpSort(long pointer);
   /**
-   * @return sort RoundingMode
+   * @return Sort RoundingMode.
    * @throws CVC5ApiException
    */
   public Sort getRoundingModeSort() throws CVC5ApiException
@@ -147,7 +147,7 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
   /**
-   * @return sort String
+   * @return Sort String.
    */
   public Sort getStringSort()
   {
@@ -158,9 +158,9 @@ public class Solver implements IPointer, AutoCloseable
   private native long getStringSort(long solverPointer);
   /**
    * Create an array sort.
-   * @param indexSort the array index sort
-   * @param elemSort the array element sort
-   * @return the array sort
+   * @param indexSort The array index sort.
+   * @param elemSort The array element sort.
+   * @return The array sort.
    */
   public Sort mkArraySort(Sort indexSort, Sort elemSort)
   {
@@ -172,8 +172,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a bit-vector sort.
-   * @param size the bit-width of the bit-vector sort
-   * @return the bit-vector sort
+   * @param size The bit-width of the bit-vector sort.
+   * @return The bit-vector sort.
    * @throws CVC5ApiException
    */
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
@@ -187,8 +187,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a floating-point sort.
-   * @param exp the bit-width of the exponent of the floating-point sort.
-   * @param sig the bit-width of the significand of the floating-point sort.
+   * @param exp The bit-width of the exponent of the floating-point sort.
+   * @param sig The bit-width of the significand of the floating-point sort.
    * @throws CVC5ApiException
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
@@ -203,9 +203,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a datatype sort.
-   * @param dtypedecl the datatype declaration from which the sort is
-   *     created
-   * @return the datatype sort
+   * @param dtypedecl The datatype declaration from which the sort is created.
+   * @return The datatype sort.
    * @throws CVC5ApiException
    */
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
@@ -218,12 +217,12 @@ public class Solver implements IPointer, AutoCloseable
       throws CVC5ApiException;
 
   /**
-   * Create a vector of datatype sorts. The names of the datatype
-   * declarations must be distinct.
+   * Create a vector of datatype sorts.
    *
-   * @param dtypedecls the datatype declarations from which the sort is
-   *     created
-   * @return the datatype sorts
+   * The names of the datatype declarations must be distinct.
+   *
+   * @param dtypedecls The datatype declarations from which the sort is created.
+   * @return The datatype sorts.
    * @throws CVC5ApiException
    */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
@@ -238,9 +237,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create function sort.
-   * @param domain the sort of the fuction argument
-   * @param codomain the sort of the function return value
-   * @return the function sort
+   * @param domain The sort of the fuction argument.
+   * @param codomain The sort of the function return value.
+   * @return The function sort.
    */
   public Sort mkFunctionSort(Sort domain, Sort codomain)
   {
@@ -249,9 +248,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create function sort.
-   * @param sorts the sort of the function arguments
-   * @param codomain the sort of the function return value
-   * @return the function sort
+   * @param sorts The sort of the function arguments.
+   * @param codomain The sort of the function return value.
+   * @return The function sort.
    */
   public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
   {
@@ -266,8 +265,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param symbol the name of the sort
-   * @return the sort parameter
+   * @param symbol The name of the sort.
+   * @return The sort parameter.
    */
   public Sort mkParamSort(String symbol)
   {
@@ -282,7 +281,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return the sort parameter
+   * @return The sort parameter.
    */
   public Sort mkParamSort()
   {
@@ -294,8 +293,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a predicate sort.
-   * @param sorts the list of sorts of the predicate
-   * @return the predicate sort
+   * @param sorts The list of sorts of the predicate.
+   * @return The predicate sort.
    */
   public Sort mkPredicateSort(Sort[] sorts)
   {
@@ -310,8 +309,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param fields the list of fields of the record
-   * @return the record sort
+   * @param fields The list of fields of the record.
+   * @return The record sort.
    */
   public Sort mkRecordSort(Pair<String, Sort>[] fields)
   {
@@ -323,8 +322,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a set sort.
-   * @param elemSort the sort of the set elements
-   * @return the set sort
+   * @param elemSort The sort of the set elements.
+   * @return The set sort.
    */
   public Sort mkSetSort(Sort elemSort)
   {
@@ -335,8 +334,8 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkSetSort(long pointer, long elemSortPointer);
   /**
    * Create a bag sort.
-   * @param elemSort the sort of the bag elements
-   * @return the bag sort
+   * @param elemSort The sort of the bag elements.
+   * @return The bag sort.
    */
   public Sort mkBagSort(Sort elemSort)
   {
@@ -348,8 +347,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sequence sort.
-   * @param elemSort the sort of the sequence elements
-   * @return the sequence sort
+   * @param elemSort The sort of the sequence elements.
+   * @return The sequence sort.
    */
   public Sort mkSequenceSort(Sort elemSort)
   {
@@ -361,8 +360,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create an uninterpreted sort.
-   * @param symbol the name of the sort
-   * @return the uninterpreted sort
+   * @param symbol The name of the sort.
+   * @return The uninterpreted sort.
    */
   public Sort mkUninterpretedSort(String symbol)
   {
@@ -374,7 +373,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create an uninterpreted sort.
-   * @return the uninterpreted sort
+   * @return The uninterpreted sort.
    */
   public Sort mkUninterpretedSort()
   {
@@ -390,9 +389,9 @@ public class Solver implements IPointer, AutoCloseable
    * This is for creating yet unresolved sort placeholders for mutually
    * recursive parametric datatypes.
    *
-   * @param symbol the symbol of the sort
-   * @param arity the number of sort parameters of the sort
-   * @return the unresolved sort
+   * @param symbol The symbol of the sort.
+   * @param arity The number of sort parameters of the sort.
+   * @return The unresolved sort.
    * @throws CVC5ApiException
    */
   public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
@@ -410,8 +409,8 @@ public class Solver implements IPointer, AutoCloseable
    * This is for creating yet unresolved sort placeholders for mutually
    * recursive datatypes without sort parameters.
    *
-   * @param symbol the symbol of the sort
-   * @return the unresolved sort
+   * @param symbol The symbol of the sort.
+   * @return The unresolved sort.
    * @throws CVC5ApiException
    */
   public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException
@@ -425,9 +424,9 @@ public class Solver implements IPointer, AutoCloseable
    * An uninterpreted sort constructor is an uninterpreted sort with
    * arity &gt; 0.
    *
-   * @param arity the arity of the sort (must be &gt; 0)
-   * @param symbol the symbol of the sort
-   * @return the sort constructor sort
+   * @param arity The arity of the sort (must be &gt; 0)
+   * @param symbol The symbol of the sort.
+   * @return The sort constructor sort.
    * @throws CVC5ApiException
    */
   public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
@@ -445,8 +444,8 @@ public class Solver implements IPointer, AutoCloseable
    * An uninterpreted sort constructor is an uninterpreted sort with
    * arity &gt; 0.
    *
-   * @param arity the arity of the sort (must be &gt; 0)
-   * @return the sort constructor sort
+   * @param arity The arity of the sort (must be &gt; 0)
+   * @return The sort constructor sort.
    * @throws CVC5ApiException
    */
   public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
@@ -460,8 +459,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a tuple sort.
-   * @param sorts of the elements of the tuple
-   * @return the tuple sort
+   * @param sorts Of the elements of the tuple.
+   * @return The tuple sort.
    */
   public Sort mkTupleSort(Sort[] sorts)
   {
@@ -478,8 +477,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create 0-ary term of given kind.
-   * @param kind the kind of the term
-   * @return the Term
+   * @param kind The kind of the term.
+   * @return The Term.
    */
   public Term mkTerm(Kind kind)
   {
@@ -491,9 +490,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a unary term of given kind.
-   * @param kind the kind of the term
-   * @param child the child of the term
-   * @return the Term
+   * @param kind The kind of the term.
+   * @param child The child of the term.
+   * @return The Term.
    */
   public Term mkTerm(Kind kind, Term child)
   {
@@ -505,10 +504,10 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create binary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
+   * @param kind The kind of the term.
+   * @param child1 The first child of the term.
+   * @param child2 The second child of the term.
+   * @return The Term.
    */
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
@@ -520,11 +519,11 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create ternary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
+   * @param kind The kind of the term.
+   * @param child1 The first child of the term.
+   * @param child2 The second child of the term.
+   * @param child3 The third child of the term.
+   * @return The Term.
    */
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
@@ -537,9 +536,9 @@ public class Solver implements IPointer, AutoCloseable
       long pointer, int kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
   /**
    * Create n-ary term of given kind.
-   * @param kind the kind of the term
-   * @param children the children of the term
-   * @return the Term
+   * @param kind The kind of the term.
+   * @param children The children of the term.
+   * @return The Term.
    */
   public Term mkTerm(Kind kind, Term[] children)
   {
@@ -553,8 +552,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create nullary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param op the operator
-   * @return the Term
+   * @param op The operator.
+   * @return The Term.
    */
   public Term mkTerm(Op op)
   {
@@ -566,9 +565,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create unary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param op the operator
-   * @param child the child of the term
-   * @return the Term
+   * @param op The operator.
+   * @param child The child of the term.
+   * @return The Term.
    */
   public Term mkTerm(Op op, Term child)
   {
@@ -581,10 +580,10 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create binary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
+   * @param op The operator.
+   * @param child1 The first child of the term.
+   * @param child2 The second child of the term.
+   * @return The Term.
    */
   public Term mkTerm(Op op, Term child1, Term child2)
   {
@@ -596,11 +595,11 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create ternary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
+   * @param op The operator.
+   * @param child1 The first child of the term.
+   * @param child2 The second child of the term.
+   * @param child3 The third child of the term.
+   * @return The Term.
    */
   public Term mkTerm(Op op, Term child1, Term child2, Term child3)
   {
@@ -615,9 +614,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param op the operator
-   * @param children the children of the term
-   * @return the Term
+   * @param op The operator.
+   * @param children The children of the term.
+   * @return The Term.
    */
   public Term mkTerm(Op op, Term[] children)
   {
@@ -631,9 +630,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
    * compatible.
-   * @param sorts The sorts of the elements in the tuple
-   * @param terms The elements in the tuple
-   * @return the tuple Term
+   * @param sorts The sorts of the elements in the tuple.
+   * @param terms The elements in the tuple.
+   * @return The tuple Term.
    */
   public Term mkTuple(Sort[] sorts, Term[] terms)
   {
@@ -657,7 +656,7 @@ public class Solver implements IPointer, AutoCloseable
    * @api.note In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
    *
-   * @param kind the kind to wrap
+   * @param kind The kind to wrap.
    */
   public Op mkOp(Kind kind)
   {
@@ -671,8 +670,8 @@ public class Solver implements IPointer, AutoCloseable
    *   - RECORD_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum {@link Kind} for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the string argument to this operator
+   * @param kind The kind of the operator.
+   * @param arg The string argument to this operator.
    */
   public Op mkOp(Kind kind, String arg)
   {
@@ -697,8 +696,8 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_SBV_TOTAL
    *   - TUPLE_UPDATE
    * See enum {@link Kind} for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the unsigned int argument to this operator
+   * @param kind The kind of the operator.
+   * @param arg The unsigned int argument to this operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
@@ -719,9 +718,9 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
    * See enum {@link Kind} for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg1 the first unsigned int argument to this operator
-   * @param arg2 the second unsigned int argument to this operator
+   * @param kind The kind of the operator.
+   * @param arg1 The first unsigned int argument to this operator.
+   * @param arg2 The second unsigned int argument to this operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
@@ -738,8 +737,8 @@ public class Solver implements IPointer, AutoCloseable
    * Create operator of Kind:
    *   - TUPLE_PROJECT
    * See enum {@link Kind} for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param args the arguments (indices) of the operator
+   * @param kind The kind of the operator.
+   * @param args The arguments (indices) of the operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
@@ -757,7 +756,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a Boolean true constant.
-   * @return the true constant
+   * @return The true constant.
    */
   public Term mkTrue()
   {
@@ -768,7 +767,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkTrue(long pointer);
   /**
    * Create a Boolean false constant.
-   * @return the false constant
+   * @return The false constant.
    */
   public Term mkFalse()
   {
@@ -779,8 +778,8 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkFalse(long pointer);
   /**
    * Create a Boolean constant.
-   * @return the Boolean constant
-   * @param val the value of the constant
+   * @return The Boolean constant.
+   * @param val The value of the constant.
    */
   public Term mkBoolean(boolean val)
   {
@@ -791,7 +790,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkBoolean(long pointer, boolean val);
   /**
    * Create a constant representing the number Pi.
-   * @return a constant representing Pi
+   * @return A constant representing Pi.
    */
   public Term mkPi()
   {
@@ -802,9 +801,9 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkPi(long pointer);
   /**
    * Create an integer constant from a string.
-   * @param s the string representation of the constant, may represent an
+   * @param s The string representation of the constant, may represent an.
    *          integer (e.g., "123").
-   * @return a constant of sort Integer assuming 's' represents an integer)
+   * @return A constant of sort Integer assuming 's' represents an integer)
    * @throws CVC5ApiException
    */
   public Term mkInteger(String s) throws CVC5ApiException
@@ -817,8 +816,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create an integer constant from a c++ int.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
+   * @param val The value of the constant.
+   * @return A constant of sort Integer.
    */
   public Term mkInteger(long val)
   {
@@ -829,10 +828,10 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkInteger(long pointer, long val);
   /**
    * Create a real constant from a string.
-   * @param s the string representation of the constant, may represent an
+   * @param s The string representation of the constant, may represent an.
    *          integer (e.g., "123") or real constant (e.g., "12.34" or
    * "12/34").
-   * @return a constant of sort Real
+   * @return A constant of sort Real.
    * @throws CVC5ApiException
    */
   public Term mkReal(String s) throws CVC5ApiException
@@ -844,8 +843,8 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkReal(long pointer, String s) throws CVC5ApiException;
   /**
    * Create a real constant from an integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
+   * @param val The value of the constant.
+   * @return A constant of sort Integer.
    */
   public Term mkReal(long val)
   {
@@ -856,9 +855,9 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkRealValue(long pointer, long val);
   /**
    * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real
+   * @param num The value of the numerator.
+   * @param den The value of the denominator.
+   * @return A constant of sort Real.
    */
   public Term mkReal(long num, long den)
   {
@@ -870,7 +869,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a regular expression none (re.none) term.
-   * @return the none term
+   * @return The none term.
    */
   public Term mkRegexpNone()
   {
@@ -882,7 +881,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a regular expression all (re.all) term.
-   * @return the all term
+   * @return The all term.
    */
   public Term mkRegexpAll()
   {
@@ -894,7 +893,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a regular expression allchar (re.allchar) term.
-   * @return the allchar term
+   * @return The allchar term.
    */
   public Term mkRegexpAllchar()
   {
@@ -906,8 +905,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a constant representing an empty set of the given sort.
-   * @param sort the sort of the set elements.
-   * @return the empty set constant
+   * @param sort The sort of the set elements.
+   * @return The empty set constant.
    */
   public Term mkEmptySet(Sort sort)
   {
@@ -918,8 +917,8 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkEmptySet(long pointer, long sortPointer);
   /**
    * Create a constant representing an empty bag of the given sort.
-   * @param sort the sort of the bag elements.
-   * @return the empty bag constant
+   * @param sort The sort of the bag elements.
+   * @return The empty bag constant.
    */
   public Term mkEmptyBag(Sort sort)
   {
@@ -934,7 +933,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return the separation logic empty term
+   * @return The separation logic empty term.
    */
   public Term mkSepEmp()
   {
@@ -949,8 +948,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param sort the sort of the nil term
-   * @return the separation logic nil term
+   * @param sort The sort of the nil term.
+   * @return The separation logic nil term.
    */
   public Term mkSepNil(Sort sort)
   {
@@ -962,8 +961,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a String constant.
-   * @param s the string this constant represents
-   * @return the String constant
+   * @param s The string this constant represents.
+   * @return The String constant.
    */
   public Term mkString(String s)
   {
@@ -972,10 +971,10 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a String constant.
-   * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in `s`
+   * @param s The string this constant represents.
+   * @param useEscSequences Determines whether escape sequences in `s`
    * should be converted to the corresponding unicode character
-   * @return the String constant
+   * @return The String constant.
    */
   public Term mkString(String s, boolean useEscSequences)
   {
@@ -988,10 +987,10 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a String constant.
-   * @param s a list of unsigned (unicode) values this constant represents
+   * @param s A list of unsigned (unicode) values this constant represents.
    *     as
    * string
-   * @return the String constant
+   * @return The String constant.
    * @throws CVC5ApiException
    */
   public Term mkString(int[] s) throws CVC5ApiException
@@ -1006,7 +1005,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
-   * @return the empty sequence with given element sort.
+   * @return The empty sequence with given element sort.
    */
   public Term mkEmptySequence(Sort sort)
   {
@@ -1018,8 +1017,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a universe set of the given sort.
-   * @param sort the sort of the set elements
-   * @return the universe set constant
+   * @param sort The sort of the set elements.
+   * @return The universe set constant.
    */
   public Term mkUniverseSet(Sort sort)
   {
@@ -1031,8 +1030,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a bit-vector constant of given size and value = 0.
-   * @param size the bit-width of the bit-vector sort
-   * @return the bit-vector constant
+   * @param size The bit-width of the bit-vector sort.
+   * @return The bit-vector constant.
    */
   public Term mkBitVector(int size) throws CVC5ApiException
   {
@@ -1044,9 +1043,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note The given value must fit into a bit-vector of the given size.
    *
-   * @param size the bit-width of the bit-vector sort
-   * @param val the value of the constant
-   * @return the bit-vector constant
+   * @param size The bit-width of the bit-vector sort.
+   * @param val The value of the constant.
+   * @return The bit-vector constant.
    * @throws CVC5ApiException
    */
   public Term mkBitVector(int size, long val) throws CVC5ApiException
@@ -1065,10 +1064,10 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note The given value must fit into a bit-vector of the given size.
    *
-   * @param size the bit-width of the constant
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
+   * @param size The bit-width of the constant.
+   * @param s The string representation of the constant.
+   * @param base The base of the string representation (2, 10, or 16)
+   * @return The bit-vector constant.
    * @throws CVC5ApiException
    */
   public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
@@ -1084,10 +1083,10 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a constant array with the provided constant value stored at
    * every index
-   * @param sort the sort of the constant array (must be an array sort)
-   * @param val the constant value to store (must match the sort's element
+   * @param sort The sort of the constant array (must be an array sort)
+   * @param val The constant value to store (must match the sort's element.
    *     sort)
-   * @return the constant array term
+   * @return The constant array term.
    */
   public Term mkConstArray(Sort sort, Term val)
   {
@@ -1098,9 +1097,9 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkConstArray(long pointer, long sortPointer, long valPointer);
   /**
    * Create a positive infinity floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
@@ -1114,9 +1113,9 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
   /**
    * Create a negative infinity floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
@@ -1130,9 +1129,9 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
   /**
    * Create a not-a-number (NaN) floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
@@ -1147,9 +1146,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
@@ -1164,9 +1163,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
@@ -1181,7 +1180,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a roundingmode constant.
-   * @param rm the floating point rounding mode this constant represents
+   * @param rm The floating point rounding mode this constant represents.
    */
   public Term mkRoundingMode(RoundingMode rm)
   {
@@ -1193,9 +1192,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a floating-point constant.
-   * @param exp Size of the exponent
-   * @param sig Size of the significand
-   * @param val Value of the floating-point constant as a bit-vector term
+   * @param exp Size of the exponent.
+   * @param sig Size of the significand.
+   * @param val Value of the floating-point constant as a bit-vector term.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
@@ -1213,9 +1212,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param sort the sort the cardinality constraint is for
-   * @param upperBound the upper bound on the cardinality of the sort
-   * @return the cardinality constraint
+   * @param sort The sort the cardinality constraint is for.
+   * @param upperBound The upper bound on the cardinality of the sort.
+   * @return The cardinality constraint.
    * @throws CVC5ApiException
    */
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
@@ -1239,9 +1238,9 @@ public class Solver implements IPointer, AutoCloseable
    *   ( declare-fun <symbol> ( ) <sort> )
    * }
    *
-   * @param sort the sort of the constant
-   * @param symbol the name of the constant
-   * @return the first-order constant
+   * @param sort The sort of the constant.
+   * @param symbol The name of the constant.
+   * @return The first-order constant.
    */
   public Term mkConst(Sort sort, String symbol)
   {
@@ -1255,8 +1254,8 @@ public class Solver implements IPointer, AutoCloseable
    * Create (first-order) constant (0-arity function symbol), with a default
    * symbol name.
    *
-   * @param sort the sort of the constant
-   * @return the first-order constant
+   * @param sort The sort of the constant.
+   * @return The first-order constant.
    */
   public Term mkConst(Sort sort)
   {
@@ -1269,8 +1268,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
    * lambda, or a witness binder).
-   * @param sort the sort of the variable
-   * @return the variable
+   * @param sort The sort of the variable.
+   * @return The variable.
    */
   public Term mkVar(Sort sort)
   {
@@ -1280,9 +1279,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
    * lambda, or a witness binder).
-   * @param sort the sort of the variable
-   * @param symbol the name of the variable
-   * @return the variable
+   * @param sort The sort of the variable.
+   * @param symbol The name of the variable.
+   * @return The variable.
    */
   public Term mkVar(Sort sort, String symbol)
   {
@@ -1298,8 +1297,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a datatype constructor declaration.
-   * @param name the name of the datatype constructor
-   * @return the DatatypeConstructorDecl
+   * @param name The name of the datatype constructor.
+   * @return The DatatypeConstructorDecl.
    */
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
@@ -1315,8 +1314,8 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a datatype declaration.
-   * @param name the name of the datatype
-   * @return the DatatypeDecl
+   * @param name The name of the datatype.
+   * @return The DatatypeDecl.
    */
   public DatatypeDecl mkDatatypeDecl(String name)
   {
@@ -1325,9 +1324,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a datatype declaration.
-   * @param name the name of the datatype
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
+   * @param name The name of the datatype.
+   * @param isCoDatatype True if a codatatype is to be constructed.
+   * @return The DatatypeDecl.
    */
   public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
@@ -1343,9 +1342,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @return the DatatypeDecl
+   * @param name The name of the datatype.
+   * @param params A list of sort parameters.
+   * @return The DatatypeDecl.
    */
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params)
   {
@@ -1355,10 +1354,10 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
+   * @param name The name of the datatype.
+   * @param params A list of sort parameters.
+   * @param isCoDatatype True if a codatatype is to be constructed.
+   * @return The DatatypeDecl.
    */
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
   {
@@ -1382,8 +1381,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param t the formula to simplify
-   * @return the simplified formula
+   * @param t The formula to simplify.
+   * @return The simplified formula.
    */
   public Term simplify(Term t)
   {
@@ -1399,7 +1398,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( assert <term> )
    * }
-   * @param term the formula to assert
+   * @param term The formula to assert.
    */
   public void assertFormula(Term term)
   {
@@ -1414,7 +1413,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-sat )
    * }
-   * @return the result of the satisfiability check.
+   * @return The result of the satisfiability check.
    */
   public Result checkSat()
   {
@@ -1429,8 +1428,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-sat-assuming ( <prop_literal> ) )
    * }
-   * @param assumption the formula to assume
-   * @return the result of the satisfiability check.
+   * @param assumption The formula to assume.
+   * @return The result of the satisfiability check.
    */
   public Result checkSatAssuming(Term assumption)
   {
@@ -1446,8 +1445,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-sat-assuming ( <prop_literal>+ ) )
    * }
-   * @param assumptions the formulas to assume
-   * @return the result of the satisfiability check.
+   * @param assumptions The formulas to assume.
+   * @return The result of the satisfiability check.
    */
   public Result checkSatAssuming(Term[] assumptions)
   {
@@ -1464,9 +1463,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-datatype <symbol> <datatype_decl> )
    * }
-   * @param symbol the name of the datatype sort
-   * @param ctors the constructor declarations of the datatype sort
-   * @return the datatype sort
+   * @param symbol The name of the datatype sort.
+   * @param ctors The constructor declarations of the datatype sort.
+   * @return The datatype sort.
    */
   public Sort declareDatatype(String symbol, DatatypeConstructorDecl[] ctors)
   {
@@ -1483,10 +1482,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-fun <symbol> ( <sort>* ) <sort> )
    * }
-   * @param symbol the name of the function
-   * @param sorts the sorts of the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @return the function
+   * @param symbol The name of the function.
+   * @param sorts The sorts of the parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @return The function.
    */
   public Term declareFun(String symbol, Sort[] sorts, Sort sort)
   {
@@ -1508,9 +1507,9 @@ public class Solver implements IPointer, AutoCloseable
    * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
    *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
    *
-   * @param symbol the name of the sort
-   * @param arity the arity of the sort
-   * @return the sort
+   * @param symbol The name of the sort.
+   * @param arity The arity of the sort.
+   * @return The sort.
    * @throws CVC5ApiException
    */
   public Sort declareSort(String symbol, int arity) throws CVC5ApiException
@@ -1528,11 +1527,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( define-fun <function_def> )
    * }
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param term the function body
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param term The function body.
+   * @return The function.
    */
   public Term defineFun(String symbol, Term[] boundVars, Sort sort, Term term)
   {
@@ -1545,13 +1544,13 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( define-fun <function_def> )
    * }
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param term The function body.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
+   * @return The function.
    */
   public Term defineFun(String symbol, Term[] boundVars, Sort sort, Term term, boolean global)
   {
@@ -1574,11 +1573,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( define-fun-rec <function_def> )
    * }
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param term the function body
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param term The function body.
+   * @return The function.
    */
   public Term defineFunRec(String symbol, Term[] boundVars, Sort sort, Term term)
   {
@@ -1591,13 +1590,13 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( define-fun-rec <function_def> )
    * }
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param term The function body.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
+   * @return The function.
    */
   public Term defineFunRec(String symbol, Term[] boundVars, Sort sort, Term term, boolean global)
   {
@@ -1621,10 +1620,10 @@ public class Solver implements IPointer, AutoCloseable
    * ( define-fun-rec <function_def> )
    * }
    * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @return the function
+   * @param fun The sorted function.
+   * @param boundVars The parameters to this function.
+   * @param term The function body.
+   * @return The function.
    */
 
   public Term defineFunRec(Term fun, Term[] boundVars, Term term)
@@ -1639,12 +1638,12 @@ public class Solver implements IPointer, AutoCloseable
    * ( define-fun-rec <function_def> )
    * }
    * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
+   * @param fun The sorted function.
+   * @param boundVars The parameters to this function.
+   * @param term The function body.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
+   * @return The function.
    */
   public Term defineFunRec(Term fun, Term[] boundVars, Term term, boolean global)
   {
@@ -1664,9 +1663,9 @@ public class Solver implements IPointer, AutoCloseable
    *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
    * }
    * Create elements of parameter 'funs' with mkConst().
-   * @param funs the sorted functions
-   * @param boundVars the list of parameters to the functions
-   * @param terms the list of function bodies of the functions
+   * @param funs The sorted functions.
+   * @param boundVars The list of parameters to the functions.
+   * @param terms The list of function bodies of the functions.
    */
   public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms)
   {
@@ -1679,11 +1678,11 @@ public class Solver implements IPointer, AutoCloseable
    *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
    * }
    * Create elements of parameter 'funs' with mkConst().
-   * @param funs the sorted functions
-   * @param boundVars the list of parameters to the functions
-   * @param terms the list of function bodies of the functions
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
+   * @param funs The sorted functions.
+   * @param boundVars The list of parameters to the functions.
+   * @param terms The list of function bodies of the functions.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
    */
   public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms, boolean global)
   {
@@ -1708,7 +1707,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return the list of learned literals
+   * @return The list of learned literals.
    */
   public Term[] getLearnedLiterals()
   {
@@ -1724,7 +1723,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-assertions )
    * }
-   * @return the list of asserted formulas
+   * @return The list of asserted formulas.
    */
   public Term[] getAssertions()
   {
@@ -1737,7 +1736,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get info from the solver.
    * SMT-LIB: {@code ( get-info <info_flag> ) }
-   * @return the info
+   * @return The info.
    */
   public String getInfo(String flag)
   {
@@ -1752,8 +1751,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-option <keyword> )
    * }
-   * @param option the option for which the value is queried
-   * @return a string representation of the option value
+   * @param option The option for which the value is queried.
+   * @return A string representation of the option value.
    */
   public String getOption(String option)
   {
@@ -1765,7 +1764,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get all option names that can be used with `setOption`, `getOption` and
    * `getOptionInfo`.
-   * @return all option names
+   * @return All option names.
    */
   public String[] getOptionNames()
   {
@@ -1777,7 +1776,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get some information about the given option. Check the `OptionInfo` class
    * for more details on which information is available.
-   * @return information about the given option
+   * @return Information about the given option.
    */
   public OptionInfo getOptionInfo(String option)
   {
@@ -1794,7 +1793,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-unsat-assumptions )
    * }
    * Requires to enable option 'produce-unsat-assumptions'.
-   * @return the set of unsat assumptions.
+   * @return The set of unsat assumptions.
    */
   public Term[] getUnsatAssumptions()
   {
@@ -1813,12 +1812,12 @@ public class Solver implements IPointer, AutoCloseable
    * Requires to enable option 'produce-unsat-cores'.
    *
    * @api.note In contrast to SMT-LIB, the API does not distinguish between
-   *          named and unnamed assertions when producing an unsatisfiable
-   *          core. Additionally, the API allows this option to be called after
-   *          a check with assumptions. A subset of those assumptions may be
-   *          included in the unsatisfiable core returned by this method.
+   *           named and unnamed assertions when producing an unsatisfiable
+   *           core. Additionally, the API allows this option to be called after
+   *           a check with assumptions. A subset of those assumptions may be
+   *           included in the unsatisfiable core returned by this method.
    *
-   * @return a set of terms representing the unsatisfiable core
+   * @return A set of terms representing the unsatisfiable core.
    */
   public Term[] getUnsatCore()
   {
@@ -1834,7 +1833,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return a map from (a subset of) the input assertions to a real value that
+   * @return A map from (a subset of) the input assertions to a real value that.
    * is an estimate of how difficult each assertion was to solve. Unmentioned
    * assertions can be assumed to have zero difficulty.
    */
@@ -1863,7 +1862,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return a string representing the proof, according to the value of
+   * @return A string representing the proof, according to the value of.
    * proof-format-mode.
    */
   public String getProof()
@@ -1879,8 +1878,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-value ( <term> ) )
    * }
-   * @param term the term for which the value is queried
-   * @return the value of the given term
+   * @param term The term for which the value is queried.
+   * @return The value of the given term.
    */
   public Term getValue(Term term)
   {
@@ -1896,8 +1895,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-value ( <term>+ ) )
    * }
-   * @param terms the terms for which the value is queried
-   * @return the values of the given terms
+   * @param terms The terms for which the value is queried.
+   * @return The values of the given terms.
    */
   public Term[] getValue(Term[] terms)
   {
@@ -1913,8 +1912,8 @@ public class Solver implements IPointer, AutoCloseable
    * current model interprets s as the finite sort whose domain elements are
    * given in the return value of this method.
    *
-   * @param s The uninterpreted sort in question
-   * @return the domain elements of s in the current model
+   * @param s The uninterpreted sort in question.
+   * @return The domain elements of s in the current model.
    */
   public Term[] getModelDomainElements(Sort s)
   {
@@ -1932,8 +1931,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param v The term in question
-   * @return true if v is a model core symbol
+   * @param v The term in question.
+   * @return True if v is a model core symbol.
    */
   public boolean isModelCoreSymbol(Term v)
   {
@@ -1952,11 +1951,12 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param sorts The list of uninterpreted sorts that should be printed in the
-   * model.
-   * @param vars The list of free constants that should be printed in the
-   * model. A subset of these may be printed based on isModelCoreSymbol.
-   * @return a string representing the model.
+   * @param sorts The list of uninterpreted sorts that should be printed in the.
+   *              model.
+   * @param vars The list of free constants that should be printed in the.
+   *             model. A subset of these may be printed based on
+   *             {@link Solver#isModelCoreSymbol(Term)}.
+   * @return A string representing the model.
    */
   public String getModel(Sort[] sorts, Term[] vars)
   {
@@ -1969,23 +1969,25 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Do quantifier elimination.
+   *
    * SMT-LIB:
    * {@code
    * ( get-qe <q> )
    * }
+   *
    * Quantifier Elimination is is only complete for logics such as LRA,
    * LIA and BV.
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param q a quantified formula of the form:
-   *   Q x1...xn. P( x1...xn, y1...yn )
-   * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @return a formula ret such that, given the current set of formulas A
-   * asserted to this solver:
-   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
-   *   - ret is quantifier-free formula containing only free variables in
-   *     y1...yn.
+   * @param q A quantified formula of the form:
+   *          {@code Q x1...xn. P( x1...xn, y1...yn )}
+   *          where {@code P( x1...xn, y1...yn )} is a quantifier-free formula.
+   * @return A formula {@code ret} such that, given the current set of formulas
+   *         {@code A} asserted to this solver:
+   *         - {@code ( A && q )} and {@code ( A && ret )} are equivalent
+   *         - {@code ret} is quantifier-free formula containing only free
+   *           variables in {@code y1...yn}.
    */
   public Term getQuantifierElimination(Term q)
   {
@@ -1998,32 +2000,38 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Do partial quantifier elimination, which can be used for incrementally
    * computing the result of a quantifier elimination.
+   *
    * SMT-LIB:
    * {@code
    * ( get-qe-disjunct <q> )
    * }
+   *
    * Quantifier Elimination is is only complete for logics such as LRA,
    * LIA and BV.
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param q a quantified formula of the form:
-   *   Q x1...xn. P( x1...xn, y1...yn )
-   * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @return a formula ret such that, given the current set of formulas A
-   * asserted to this solver:
-   *   - {@code (A ^ q) => (A ^ ret)} if Q is forall or {@code (A ^ ret) => (A ^ q)} if Q is
-   *     exists,
-   *   - ret is quantifier-free formula containing only free variables in
-   *     y1...yn,
-   *   - If Q is exists, let A^Q_n be the formula
-   *       {@code A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n}
-   *     where for each i=1,...n, formula ret^Q_i is the result of calling
-   *     getQuantifierEliminationDisjunct for q with the set of assertions
-   *     {@code A^Q_{i-1}}. Similarly, if Q is forall, then let {@code A^Q_n} be
-   *       {@code A ^ ret^Q_1 ^ ... ^ ret^Q_n }
-   *     where ret^Q_i is the same as above. In either case, we have
-   *     that ret^Q_j will eventually be true or false, for some finite j.
+   * @param q A quantified formula of the form:
+   *          {@code Q x1...xn. P( x1...xn, y1...yn )}
+   *          where {@code P( x1...xn, y1...yn )} is a quantifier-free formula.
+   * @return A formula ret such that, given the current set of formulas A
+   *         asserted to this solver:
+   *           - {@code (A ^ q) => (A ^ ret)} if {@code Q} is forall or
+   *             {@code (A ^ ret) => (A ^ q)} if {@code Q} is exists,
+   *           - ret is quantifier-free formula containing only free variables
+   *             in {@code y1...yn},
+   *           - If Q is exists, let {@code A && Q_n} be the formula
+   *               {@code A && ~(ret && Q_1) && ... && ~(ret && Q_n)}
+   *             where for each {@code i=1,...n}, formula {@code ret && Q_i}
+   *             is the result of calling
+   *             {@link Solver#getQuantifierEliminationDisjunct(Term)}
+   *             for {@code q} with the set of assertions
+   *             {@code A && Q_{i-1}}. Similarly, if {@code Q} is forall, then
+   *             let {@code A && Q_n} be
+   *             {@code A && (ret && Q_1) && ... && (ret&& Q_n) }
+   *             where {@code ret && Q_i} is the same as above. In either case,
+   *             we have that {@code ret && Q_j} will eventually be true or
+   *             false, for some finite {@code j}.
    */
   public Term getQuantifierEliminationDisjunct(Term q)
   {
@@ -2040,8 +2048,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param locSort The location sort of the heap
-   * @param dataSort The data sort of the heap
+   * @param locSort The location sort of the heap.
+   * @param dataSort The data sort of the heap.
    */
   public void declareSepHeap(Sort locSort, Sort dataSort)
   {
@@ -2055,7 +2063,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return The term for the heap
+   * @return The term for the heap.
    */
   public Term getValueSepHeap()
   {
@@ -2070,7 +2078,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return The term for nil
+   * @return The term for nil.
    */
   public Term getValueSepNil()
   {
@@ -2089,9 +2097,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param symbol The name of the pool
+   * @param symbol The name of the pool.
    * @param sort The sort of the elements of the pool.
-   * @param initValue The initial value of the pool
+   * @param initValue The initial value of the pool.
    */
   public Term declarePool(String symbol, Sort sort, Term[] initValue)
   {
@@ -2122,7 +2130,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( pop <numeral> )
    * }
-   * @param nscopes the number of levels to pop
+   * @param nscopes The number of levels to pop.
    * @throws CVC5ApiException
    */
   public void pop(int nscopes) throws CVC5ApiException
@@ -2143,8 +2151,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
+   * @param conj The conjecture term.
+   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where.
    *        A is the current set of assertions and B is given in the input by
    *        conj, or the null term if such a term cannot be found.
    */
@@ -2166,9 +2174,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @param grammar the grammar for the interpolant I
-   * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
+   * @param conj The conjecture term.
+   * @param grammar The grammar for the interpolant I.
+   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where.
    *        A is the current set of assertions and B is given in the input by
    *        conj, or the null term if such a term cannot be found.
    */
@@ -2199,7 +2207,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return a Term I such that {@code A->I} and {@code I->B} are valid,
+   * @return A Term I such that {@code A->I} and {@code I->B} are valid,
    *        where A is the current set of assertions and B is given in the input
    *        by conj on the last call to getInterpolant, or the null term if such
    *        a term cannot be found.
@@ -2222,8 +2230,8 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @return a term C such that A^C is satisfiable, and A^~B^C is
+   * @param conj The conjecture term.
+   * @return A term C such that A^C is satisfiable, and A^~B^C is.
    *        unsatisfiable, where A is the current set of assertions and B is
    *        given in the input by conj, or the null term if such a term cannot
    *        be found.
@@ -2245,12 +2253,12 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @param grammar the grammar for the abduct C
-   * @return a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj, or the null term if such a term cannot
-   *        be found.
+   * @param conj The conjecture term.
+   * @param grammar The grammar for the abduct C.
+   * @return A term C such that A^C is satisfiable, and A^~B^C is
+   *         unsatisfiable, where A is the current set of assertions and B is
+   *         given in the input by conj, or the null term if such a term cannot
+   *         be found.
    */
   public Term getAbduct(Term conj, Grammar grammar)
   {
@@ -2272,7 +2280,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return a term C such that A^C is satisfiable, and A^~B^C is
+   * @return A term C such that A^C is satisfiable, and A^~B^C is.
    *         unsatisfiable, where A is the current set of assertions and B is
    *         given in the input by conj in the last call to getAbduct, or the
    *         null term if such a term cannot be found.
@@ -2297,7 +2305,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param mode The mode to use for blocking
+   * @param mode The mode to use for blocking.
    */
   public void blockModel(BlockModelsMode mode)
   {
@@ -2357,7 +2365,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( push <numeral> )
    * }
-   * @param nscopes the number of levels to push
+   * @param nscopes The number of levels to push.
    * @throws CVC5ApiException
    */
   public void push(int nscopes) throws CVC5ApiException
@@ -2388,8 +2396,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( set-info <attribute> )
    * }
-   * @param keyword the info flag
-   * @param value the value of the info flag
+   * @param keyword The info flag.
+   * @param value The value of the info flag.
    * @throws CVC5ApiException
    */
   public void setInfo(String keyword, String value) throws CVC5ApiException
@@ -2405,7 +2413,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( set-logic <symbol> )
    * }
-   * @param logic the logic to set
+   * @param logic The logic to set.
    * @throws CVC5ApiException
    */
   public void setLogic(String logic) throws CVC5ApiException
@@ -2421,8 +2429,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( set-option <option> )
    * }
-   * @param option the option name
-   * @param value the option value
+   * @param option The option name.
+   * @param value The option value.
    */
   public void setOption(String option, String value)
   {
@@ -2437,9 +2445,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-var <symbol> <sort> )
    * }
-   * @param sort the sort of the universal variable
-   * @param symbol the name of the universal variable
-   * @return the universal variable
+   * @param sort The sort of the universal variable.
+   * @param symbol The name of the universal variable.
+   * @return The universal variable.
    */
   public Term declareSygusVar(String symbol, Sort sort)
   {
@@ -2450,12 +2458,14 @@ public class Solver implements IPointer, AutoCloseable
   private native long declareSygusVar(long pointer, String symbol, long sortPointer);
 
   /**
-   * Create a Sygus grammar. The first non-terminal is treated as the starting
-   * non-terminal, so the order of non-terminals matters.
+   * Create a Sygus grammar.
    *
-   * @param boundVars the parameters to corresponding synth-fun/synth-inv
-   * @param ntSymbols the pre-declaration of the non-terminal symbols
-   * @return the grammar
+   * The first non-terminal is treated as the starting non-terminal, so the
+   * order of non-terminals matters.
+   *
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
    */
   public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols) {
     long[] boundVarPointers = Utils.getPointers(boundVars);
@@ -2474,10 +2484,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( synth-fun <symbol> ( <boundVars>* ) <sort> )
    * }
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @return The function.
    */
   public Term synthFun(String symbol, Term[] boundVars, Sort sort)
   {
@@ -2495,11 +2505,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
    * }
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param grammar the syntactic constraints
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param grammar The syntactic constraints.
+   * @return The function.
    */
   public Term synthFun(String symbol, Term[] boundVars, Sort sort, Grammar grammar)
   {
@@ -2518,9 +2528,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( synth-inv <symbol> ( <boundVars>* ) )
    * }
-   * @param symbol the name of the invariant
-   * @param boundVars the parameters to this invariant
-   * @return the invariant
+   * @param symbol The name of the invariant.
+   * @param boundVars The parameters to this invariant.
+   * @return The invariant.
    */
   public Term synthInv(String symbol, Term[] boundVars)
   {
@@ -2537,10 +2547,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
    * }
-   * @param symbol the name of the invariant
-   * @param boundVars the parameters to this invariant
-   * @param grammar the syntactic constraints
-   * @return the invariant
+   * @param symbol The name of the invariant.
+   * @param boundVars The parameters to this invariant.
+   * @param grammar The syntactic constraints.
+   * @return The invariant.
    */
   public Term synthInv(String symbol, Term[] boundVars, Grammar grammar)
   {
@@ -2558,7 +2568,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( constraint <term> )
    * }
-   * @param term the formula to add as a constraint
+   * @param term The formula to add as a constraint.
    */
   public void addSygusConstraint(Term term)
   {
@@ -2573,7 +2583,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( assume <term> )
    * }
-   * @param term the formula to add as an assumption
+   * @param term The formula to add as an assumption.
    */
   public void addSygusAssume(Term term)
   {
@@ -2589,10 +2599,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( inv-constraint <inv> <pre> <trans> <post> )
    * }
-   * @param inv the function-to-synthesize
-   * @param pre the pre-condition
-   * @param trans the transition relation
-   * @param post the post-condition
+   * @param inv The function-to-synthesize.
+   * @param pre The pre-condition.
+   * @param trans The transition relation.
+   * @param post The post-condition.
    */
   public void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post)
   {
@@ -2611,7 +2621,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the check, which is "solution" if the check found a
+   * @return The result of the check, which is "solution" if the check found a.
    *         solution in which case solutions are available via
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
@@ -2633,7 +2643,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth-next )
    * }
-   * @return the result of the check, which is "solution" if the check found a
+   * @return The result of the check, which is "solution" if the check found a
    *         solution in which case solutions are available via
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
@@ -2649,8 +2659,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get the synthesis solution of the given term. This method should be called
    * immediately after the solver answers unsat for sygus input.
-   * @param term the term for which the synthesis solution is queried
-   * @return the synthesis solution of the given term
+   * @param term The term for which the synthesis solution is queried.
+   * @return The synthesis solution of the given term.
    */
   public Term getSynthSolution(Term term)
   {
@@ -2663,8 +2673,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Get the synthesis solutions of the given terms. This method should be
    * called immediately after the solver answers unsat for sygus input.
-   * @param terms the terms for which the synthesis solutions is queried
-   * @return the synthesis solutions of the given terms
+   * @param terms The terms for which the synthesis solutions is queried.
+   * @return The synthesis solutions of the given terms.
    */
   public Term[] getSynthSolutions(Term[] terms)
   {
@@ -2689,7 +2699,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getStatistics(long pointer);
 
   /**
-   * @return null term
+   * @return Null term.
    */
   public Term getNullTerm()
   {
@@ -2700,7 +2710,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getNullTerm(long pointer);
 
   /**
-   * @return null result
+   * @return Null result.
    */
   public Result getNullResult()
   {
@@ -2711,7 +2721,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getNullResult(long pointer);
 
   /**
-   * @return null synth result
+   * @return Null synth result.
    */
   public SynthResult getNullSynthResult()
   {
@@ -2722,7 +2732,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getNullSynthResult(long pointer);
 
   /**
-   * @return null op
+   * @return Null op.
    */
   public Op getNullOp()
   {
@@ -2733,7 +2743,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getNullOp(long pointer);
 
   /**
-   * @return null op
+   * @return Null op.
    */
   public DatatypeDecl getNullDatatypeDecl()
   {
