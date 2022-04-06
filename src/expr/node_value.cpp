@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Andrew Reynolds
+ *   Morgan Deters, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,9 +13,9 @@
  * A node value.
  *
  * The actual node implementation.
- * Instances of this class are generally referenced through cvc5::internal::Node rather
- * than by pointer. Note that cvc5::internal::Node maintains the reference count on
- * NodeValue instances.
+ * Instances of this class are generally referenced through cvc5::internal::Node
+ * rather than by pointer. Note that cvc5::internal::Node maintains the
+ * reference count on NodeValue instances.
  */
 #include "expr/node_value.h"
 

@@ -14,7 +14,7 @@
 # Output is to standard out.
 #
 
-copyright=2010-2021
+copyright=2010-2022
 
 filename=`basename "$1" | sed 's,_template,,'`
 

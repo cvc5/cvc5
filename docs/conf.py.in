@@ -160,6 +160,11 @@ examples_types = {
                 'lang': 'java',
                 'group': 'java'
         },
+        '^<examples>.*pythonic.*\.py$': {
+                'title': 'Python (pythonic)',
+                'lang': 'python',
+                'group': 'py-pythonicapi'
+        },
         '^<examples>.*\.py$': {
                 'title': 'Python (base)',
                 'lang': 'python',

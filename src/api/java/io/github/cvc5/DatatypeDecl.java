@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +20,8 @@ package io.github.cvc5;
  * (see {@link Datatype}), but a specification for creating a datatype sort.
  *
  * The interface for a datatype declaration coincides with the syntax for the
- * SMT-LIB 2.6 command `declare-datatype`, or a single datatype within the
- * `declare-datatypes` command.
+ * SMT-LIB 2.6 command {@code declare-datatype}, or a single datatype within the
+ * {@code declare-datatypes} command.
  *
  * Datatype sorts can be constructed from DatatypeDecl using the methods:
  *   - {@link Solver#mkDatatypeSort(DatatypeDecl)}
@@ -45,7 +45,7 @@ public class DatatypeDecl extends AbstractPointer
   // endregion
   /**
    * Add datatype constructor declaration.
-   * @param ctor the datatype constructor declaration to add
+   * @param ctor The datatype constructor declaration to add.
    */
   public void addConstructor(DatatypeConstructorDecl ctor)
   {
@@ -63,7 +63,7 @@ public class DatatypeDecl extends AbstractPointer
   private native int getNumConstructors(long pointer);
 
   /**
-   * @return true if this DatatypeDecl is parametric
+   * @return True if this DatatypeDecl is parametric.
    *
    * @api.note This method is experimental and may change in future versions.
    */
@@ -75,7 +75,7 @@ public class DatatypeDecl extends AbstractPointer
   private native boolean isParametric(long pointer);
 
   /**
-   * @return true if this DatatypeDecl is a null object
+   * @return True if this DatatypeDecl is a null object.
    */
   public boolean isNull()
   {
@@ -85,11 +85,11 @@ public class DatatypeDecl extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return a string representation of this datatype declaration
+   * @return A string representation of this datatype declaration.
    */
   protected native String toString(long pointer);
 
-  /** @return the name of this datatype declaration. */
+  /** @return The name of this datatype declaration. */
   public String getName()
   {
     return getName(pointer);

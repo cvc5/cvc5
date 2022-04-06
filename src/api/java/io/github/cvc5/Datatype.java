@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,8 +40,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   /**
    * Get the datatype constructor at a given index.
-   * @param idx the index of the datatype constructor to return
-   * @return the datatype constructor with the given index
+   * @param idx The index of the datatype constructor to return.
+   * @return The datatype constructor with the given index.
    */
   public DatatypeConstructor getConstructor(int idx)
   {
@@ -55,8 +55,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * Get the datatype constructor with the given name.
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the first is returned.
-   * @param name the name of the datatype constructor
-   * @return the datatype constructor with the given name
+   * @param name The name of the datatype constructor.
+   * @return The datatype constructor with the given name.
    */
   public DatatypeConstructor getConstructor(String name)
   {
@@ -70,8 +70,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * Get the datatype constructor with the given name.
    * This is a linear search through the constructors and their selectors, so
    * in case of multiple, similarly-named selectors, the first is returned.
-   * @param name the name of the datatype selector
-   * @return the datatype selector with the given name
+   * @param name The name of the datatype selector.
+   * @return The datatype selector with the given name.
    */
   public DatatypeSelector getSelector(String name)
   {
@@ -81,7 +81,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native long getSelector(long pointer, String name);
 
-  /** @return the name of this Datatype. */
+  /** @return The name of this Datatype. */
   public String getName()
   {
     return getName(pointer);
@@ -89,7 +89,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native String getName(long pointer);
 
-  /** @return the number of constructors for this Datatype. */
+  /** @return The number of constructors for this Datatype. */
   public int getNumConstructors()
   {
     return getNumConstructors(pointer);
@@ -100,7 +100,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   /**
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return the parameters of this datatype, if it is parametric. An exception
+   * @return The parameters of this datatype, if it is parametric. An exception.
    * is thrown if this datatype is not parametric.
    */
   public Sort[] getParameters()
@@ -115,7 +115,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   /**
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return true if this datatype is parametric
+   * @return True if this datatype is parametric.
    */
   public boolean isParametric()
   {
@@ -124,7 +124,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isParametric(long pointer);
 
-  /** @return true if this datatype corresponds to a co-datatype */
+  /** @return True if this datatype corresponds to a co-datatype */
   public boolean isCodatatype()
   {
     return isCodatatype(pointer);
@@ -132,7 +132,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isCodatatype(long pointer);
 
-  /** @return true if this datatype corresponds to a tuple */
+  /** @return True if this datatype corresponds to a tuple */
   public boolean isTuple()
   {
     return isTuple(pointer);
@@ -143,7 +143,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   /**
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return true if this datatype corresponds to a record
+   * @return True if this datatype corresponds to a record.
    */
   public boolean isRecord()
   {
@@ -152,7 +152,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isRecord(long pointer);
 
-  /** @return true if this datatype is finite */
+  /** @return True if this datatype is finite */
   public boolean isFinite()
   {
     return isFinite(pointer);
@@ -165,7 +165,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * this returns false if there are no values of this datatype that are of
    * finite size.
    *
-   * @return true if this datatype is well-founded
+   * @return True if this datatype is well-founded.
    */
   public boolean isWellFounded()
   {
@@ -175,7 +175,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native boolean isWellFounded(long pointer);
 
   /**
-   * @return true if this Datatype is a null object
+   * @return True if this Datatype is a null object.
    */
   public boolean isNull()
   {
@@ -185,7 +185,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native boolean isNull(long pointer);
 
   /**
-   * @return a string representation of this datatype
+   * @return A string representation of this datatype.
    */
   protected native String toString(long pointer);
 
