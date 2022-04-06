@@ -21,6 +21,8 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/assertions.h"
+#include "smt/env_obj.h"
 #include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
@@ -43,7 +45,6 @@ class QuantifiersEngine;
 
 namespace smt {
 
-class Assertions;
 class SolverEngineState;
 struct SolverEngineStatistics;
 
@@ -61,7 +62,7 @@ struct SolverEngineStatistics;
  * models) can be queries using other classes that examine the state of the
  * TheoryEngine directly, which can be accessed via getTheoryEngine.
  */
-class SmtSolver
+class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
@@ -114,8 +115,6 @@ class SmtSolver
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the environment */
-  Env& d_env;
   /** Reference to the state of the SolverEngine */
   SolverEngineState& d_state;
   /** The preprocessor of this SMT solver */

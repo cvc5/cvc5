@@ -15,6 +15,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
@@ -38,7 +39,7 @@ SmtSolver::SmtSolver(Env& env,
                      SolverEngineState& state,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
-    : d_env(env),
+    : EnvObj(env),
       d_state(state),
       d_pp(env, abs, stats),
       d_stats(stats),
@@ -65,6 +66,9 @@ void SmtSolver::finishInit()
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm)
   {
+    // reset the rule checkers
+    pnm->getChecker()->reset();
+    // add rule checkers from the theory engine
     d_theoryEngine->initializeProofChecker(pnm->getChecker());
   }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -116,13 +120,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions)
 {
   Result result;
-
-  bool hasAssumptions = !assumptions.empty();
-
   try
   {
-    // update the state to indicate we are about to run a check-sat
-    d_state.notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
     as.initializeCheckSat(assumptions);
@@ -208,12 +207,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   // set the filename on the result
   const std::string& filename = d_env.getOptions().driver.filename;
-  result = Result(result, filename);
-
-  // notify our state of the check-sat result
-  d_state.notifyCheckSatResult(hasAssumptions, result);
-
-  return result;
+  return Result(result, filename);
 }
 
 void SmtSolver::processAssertions(Assertions& as)
