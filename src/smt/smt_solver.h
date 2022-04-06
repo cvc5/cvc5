@@ -66,7 +66,6 @@ class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
-            SolverEngineState& state,
             AbstractValues& abs,
             SolverEngineStatistics& stats);
   ~SmtSolver();
@@ -115,8 +114,6 @@ class SmtSolver : protected EnvObj
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the state of the SolverEngine */
-  SolverEngineState& d_state;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */

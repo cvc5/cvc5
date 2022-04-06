@@ -117,7 +117,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics());
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_absValues, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
@@ -752,6 +752,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
   SolverEngineScope smts(this);
   finishInit();
+  // state should be fully ready now
+  Assert(d_state->isFullyReady());
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
