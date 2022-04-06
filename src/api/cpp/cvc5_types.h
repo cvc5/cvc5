@@ -135,19 +135,19 @@ enum BlockModelsMode
 /**
  * Each category excludes those above it.
  */
-enum class LearnedLitType
+enum LearnedLitType
 {
-  // an equality that was turned into a substitution during preprocessing
+  /** an equality that was turned into a substitution during preprocessing */
   PREPROCESS_SOLVED,
-  // a top-level literal during preprocess
+  /** a top-level literal during preprocess */
   PREPROCESS,
-  // a literal from the preprocessed input
+  /** a literal from the preprocessed input */
   INPUT,
-  // a solvable literal
+  /** a solvable literal */
   SOLVABLE,
-  // a literal that can be made into a constant propagation
+  /** a literal that can be made into a constant propagation */
   CONSTANT_PROP,
-  // all literals
+  /** all literals */
   INTERNAL
 };
 /** Writes a learned literal type to a stream. */
