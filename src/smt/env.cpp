@@ -260,7 +260,7 @@ bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
 
 bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
 {
-  if (hasSepHeap())
+  if (!hasSepHeap())
   {
     return false;
   }

@@ -255,7 +255,6 @@ class Env
    * Returns the ID of the theory responsible for the given node.
    */
   theory::TheoryId theoryOf(TNode node) const;
-  ;
 
   /**
    * Declare heap. This is used for separation logics to set the location
