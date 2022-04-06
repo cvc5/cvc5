@@ -176,32 +176,20 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   {
     d_assertNoLearnCount++;
   }
-  else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
+  else if (alevel!=0)
   {
-    if (alevel == 0)
-    {
-      // remember we've processed this
-      d_levelZeroAsserts.insert(assertion);
-      // process what we should do with the learned literal
-      LearnedLitType ltype = computeLearnedLiteralType(assertion);
-      processLearnedLiteral(assertion, ltype);
-    }
-    else
-    {
-      d_nonZeroAssert = true;
-    }
+    Trace("level-zero-dec") << "First non-zero: " << assertion << std::endl;
+    d_nonZeroAssert = true;
     d_assertNoLearnCount++;
   }
-  if (TraceIsOn("level-zero-assert"))
+  else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
   {
-    if (d_assertNoLearnCount % 1000 == 0)
-    {
-      Trace("level-zero-assert")
-          << "#asserts without learning = " << d_assertNoLearnCount
-          << " (#atoms is " << d_ppnAtoms.size()
-          << ", #learned = " << d_ldb.getNumLearnedLiterals() << ")"
-          << std::endl;
-    }
+    // remember we've processed this
+    d_levelZeroAsserts.insert(assertion);
+    // process what we should do with the learned literal
+    LearnedLitType ltype = computeLearnedLiteralType(assertion);
+    processLearnedLiteral(assertion, ltype);
+    return true;
   }
   // request a deep restart?
   if (options().smt.deepRestartMode != options::DeepRestartMode::NONE)
@@ -216,6 +204,15 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
                             << " asserts." << std::endl;
         return false;
       }
+    }
+  }
+  if (TraceIsOn("level-zero-debug"))
+  {
+    if (d_assertNoLearnCount>0 && d_assertNoLearnCount%d_deepRestartThreshold==0)
+    {
+      Trace("level-zero-debug")
+          << "#asserts without learning = " << d_assertNoLearnCount
+          <<  " (" << (d_assertNoLearnCount/d_deepRestartThreshold) << "x)" << std::endl;
     }
   }
   return true;
