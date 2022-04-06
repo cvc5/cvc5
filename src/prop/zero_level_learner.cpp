@@ -88,9 +88,15 @@ void ZeroLevelLearner::getAtoms(TNode a,
   } while (!visit.empty());
 }
 
+void ZeroLevelLearner::notifyTopLevelSubstitution(const Node& lhs, const Node& rhs)
+{
+  // process as a preprocess solved learned literal.
+  Node eq = lhs.eqNode(rhs);
+  processLearnedLiteral(eq, modes::LearnedLitType::PREPROCESS_SOLVED);
+}
+
 void ZeroLevelLearner::notifyInputFormulas(
-    const std::vector<Node>& assertions,
-    const std::unordered_map<size_t, Node>& skolemMap)
+    const std::vector<Node>& assertions)
 {
   d_assertNoLearnCount = 0;
   std::unordered_set<TNode> visited;

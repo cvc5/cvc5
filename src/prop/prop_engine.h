@@ -101,6 +101,14 @@ class PropEngine : protected EnvObj
   TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
 
   /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs,
+                                               const Node& rhs) const;
+  /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
    * These formulas are asserted permanently for the current context.
    * Information about which assertions correspond to skolem definitions is

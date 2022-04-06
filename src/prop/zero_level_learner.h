@@ -53,8 +53,9 @@ class ZeroLevelLearner : protected EnvObj
 
   ~ZeroLevelLearner();
 
-  void notifyInputFormulas(const std::vector<Node>& assertions,
-                           const std::unordered_map<size_t, Node>& skolemMap);
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs);
+  /** Notify the input formulas and the skolem map */
+  void notifyInputFormulas(const std::vector<Node>& assertions);
   /**
    * Notify the given literal was asserted at the given assertion level.
    */

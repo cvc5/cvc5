@@ -71,6 +71,14 @@ class TheoryProxy : protected EnvObj, public Registrar
   void presolve();
 
   /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs,
+                                               const Node& rhs) const;
+  /**
    * Notifies this module of the input assertions.
    * @param assertion The preprocessed input assertions,
    * @param skolemMap Map from indices in assertion to the Skolem they are

@@ -40,6 +40,7 @@
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -163,6 +164,17 @@ TrustNode PropEngine::removeItes(TNode node,
                                  std::vector<theory::SkolemLemma>& newLemmas)
 {
   return d_theoryProxy->removeItes(node, newLemmas);
+}
+
+void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
+                                               const Node& rhs) const
+{
+  d_theoryProxy->notifyTopLevelSubstitution(lhs, rhs);
+  if (isOutputOn(OutputTag::SUBS))
+  {
+    Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
+    output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
+  }
 }
 
 void PropEngine::assertInputFormulas(
