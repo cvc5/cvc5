@@ -255,7 +255,7 @@ class Env
    * Returns the ID of the theory responsible for the given node.
    */
   theory::TheoryId theoryOf(TNode node) const;
-;
+  ;
 
   /**
    * Declare heap. This is used for separation logics to set the location
@@ -263,10 +263,10 @@ class Env
    * logic constraints are asserted to this theory engine.
    */
   void declareSepHeap(TypeNode locT, TypeNode dataT);
-  
+
   /** Have we called declareSepHeap? */
   bool hasSepHeap() const;
-  
+
   /** get the separation logic heap types */
   bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
 
