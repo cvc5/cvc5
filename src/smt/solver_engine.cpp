@@ -1217,6 +1217,16 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
         "Cannot declare heap if not using the separation logic theory.";
     throw RecoverableModalException(msg);
   }
+  TypeNode locT2, dataT2;
+  if (d_env->getSepHeapTypes(locT2, dataT2))
+  {
+    std::stringstream ss;
+    ss << "ERROR: cannot declare heap types for separation logic more than "
+          "once.  We are declaring heap of type ";
+    ss << locT << " -> " << dataT << ", but we already have ";
+    ss << locT2 << " -> " << dataT2;
+    throw LogicException(ss.str());
+  }
   d_env->declareSepHeap(locT, dataT);
 }
 
