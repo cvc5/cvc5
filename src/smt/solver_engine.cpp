@@ -1205,6 +1205,12 @@ Env& SolverEngine::getEnv() { return *d_env.get(); }
 
 void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
+  if (d_state->isFullyInited())
+  {
+    throw ModalException(
+        "Cannot set logic in SolverEngine after the engine has "
+        "finished initializing.");
+  }
   if (!getLogicInfo().isTheoryEnabled(THEORY_SEP))
   {
     const char* msg =
@@ -1212,15 +1218,6 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
     throw RecoverableModalException(msg);
   }
   d_env->declareSepHeap(locT, dataT);
-  SolverEngineScope smts(this);
-  finishInit();
-  // check whether incremental is enabled, where separation logic is not
-  // supported.
-  if (d_env->getOptions().base.incrementalSolving)
-  {
-    throw RecoverableModalException(
-        "Separation logic not supported in incremental mode");
-  }
 }
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)

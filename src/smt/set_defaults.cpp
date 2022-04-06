@@ -989,6 +989,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                                               std::ostream& reason,
                                               std::ostream& suggest) const
 {
+  if (d_env.hasSepHeap())
+  {
+    reason << "separation logic";
+    return true;
+  }
   if (opts.smt.ackermann)
   {
     reason << "ackermann";

@@ -256,9 +256,14 @@ theory::TheoryId Env::theoryOf(TNode node) const
       node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
 }
 
+bool Env::hasSepHeap() const
+{
+  return !d_sepLocType.isNull();
+}
+
 bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
 {
-  if (d_sepLocType.isNull())
+  if (hasSepHeap())
   {
     return false;
   }
@@ -269,6 +274,8 @@ bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
 
 void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
+  Assert (!locT.isNull());
+  Assert (!dataT.isNull());
   // remember the types we have set
   d_sepLocType = locT;
   d_sepDataType = dataT;
