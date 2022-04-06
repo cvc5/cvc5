@@ -73,7 +73,7 @@ void TheorySep::initializeHeapTypes()
 {
   TypeNode locT;
   TypeNode dataT;
-  if (d_env.getSepHeaps(locT, dataT))
+  if (d_env.getSepHeapTypes(locT, dataT))
   {
     // otherwise set it
     Trace("sep-type") << "Sep: assume location type " << locT
