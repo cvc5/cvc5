@@ -752,13 +752,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
   SolverEngineScope smts(this);
   finishInit();
-  // state should be fully ready now
-  Assert(d_state->isFullyReady());
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
   bool hasAssumptions = !assumptions.empty();
   d_state->notifyCheckSat(hasAssumptions);
+
+  // state should be fully ready now
+  Assert(d_state->isFullyReady());
 
   // check the satisfiability with the solver object
   Result r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions);
