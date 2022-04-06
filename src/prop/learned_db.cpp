@@ -20,26 +20,6 @@
 namespace cvc5::internal {
 namespace prop {
 
-const char* toString(LearnedLitType ltype)
-{
-  switch (ltype)
-  {
-    case LearnedLitType::PREPROCESS_SOLVED: return "PREPROCESS_SOLVED";
-    case LearnedLitType::PREPROCESS: return "PREPROCESS";
-    case LearnedLitType::INPUT: return "INPUT";
-    case LearnedLitType::SOLVABLE: return "SOLVABLE";
-    case LearnedLitType::CONSTANT_PROP: return "CONSTANT_PROP";
-    case LearnedLitType::INTERNAL: return "INTERNAL";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
-{
-  out << toString(ltype);
-  return out;
-}
-
 LearnedDb::LearnedDb(context::Context* c)
     : d_preprocessSolvedLits(c),
       d_preprocessLits(c),
@@ -52,13 +32,13 @@ LearnedDb::LearnedDb(context::Context* c)
 
 LearnedDb::~LearnedDb() {}
 
-void LearnedDb::addLearnedLiteral(const Node& lit, LearnedLitType ltype)
+void LearnedDb::addLearnedLiteral(const Node& lit, modes::LearnedLitType ltype)
 {
   NodeSet& lset = getLiteralSet(ltype);
   lset.insert(lit);
 }
 
-std::vector<Node> LearnedDb::getLearnedLiterals(LearnedLitType ltype) const
+std::vector<Node> LearnedDb::getLearnedLiterals(modes::LearnedLitType ltype) const
 {
   const NodeSet& lset = getLiteralSet(ltype);
   std::vector<Node> ret;
@@ -68,37 +48,37 @@ std::vector<Node> LearnedDb::getLearnedLiterals(LearnedLitType ltype) const
   }
   return ret;
 }
-size_t LearnedDb::getNumLearnedLiterals(LearnedLitType ltype) const
+size_t LearnedDb::getNumLearnedLiterals(modes::LearnedLitType ltype) const
 {
   const NodeSet& lset = getLiteralSet(ltype);
   return lset.size();
 }
 
-context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype)
+context::CDHashSet<Node>& LearnedDb::getLiteralSet(modes::LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
-    case LearnedLitType::PREPROCESS: return d_preprocessLits;
-    case LearnedLitType::INPUT: return d_inputLits;
-    case LearnedLitType::SOLVABLE: return d_solvableLits;
-    case LearnedLitType::CONSTANT_PROP: return d_cpropLits;
-    default: Assert(ltype == LearnedLitType::INTERNAL); break;
+    case modes::LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
+    case modes::LearnedLitType::PREPROCESS: return d_preprocessLits;
+    case modes::LearnedLitType::INPUT: return d_inputLits;
+    case modes::LearnedLitType::SOLVABLE: return d_solvableLits;
+    case modes::LearnedLitType::CONSTANT_PROP: return d_cpropLits;
+    default: Assert(ltype == modes::LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
 }
 
 const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
-    LearnedLitType ltype) const
+    modes::LearnedLitType ltype) const
 {
   switch (ltype)
   {
-    case LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
-    case LearnedLitType::PREPROCESS: return d_preprocessLits;
-    case LearnedLitType::INPUT: return d_inputLits;
-    case LearnedLitType::SOLVABLE: return d_solvableLits;
-    case LearnedLitType::CONSTANT_PROP: return d_cpropLits;
-    default: Assert(ltype == LearnedLitType::INTERNAL); break;
+    case modes::LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
+    case modes::LearnedLitType::PREPROCESS: return d_preprocessLits;
+    case modes::LearnedLitType::INPUT: return d_inputLits;
+    case modes::LearnedLitType::SOLVABLE: return d_solvableLits;
+    case modes::LearnedLitType::CONSTANT_PROP: return d_cpropLits;
+    default: Assert(ltype == modes::LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
 }
@@ -106,16 +86,16 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
 std::string LearnedDb::toStringDebug() const
 {
   std::stringstream ss;
-  ss << toStringDebugType(LearnedLitType::PREPROCESS_SOLVED);
-  ss << toStringDebugType(LearnedLitType::PREPROCESS);
-  ss << toStringDebugType(LearnedLitType::INPUT);
-  ss << toStringDebugType(LearnedLitType::SOLVABLE);
-  ss << toStringDebugType(LearnedLitType::CONSTANT_PROP);
-  ss << toStringDebugType(LearnedLitType::INTERNAL);
+  ss << toStringDebugType(modes::LearnedLitType::PREPROCESS_SOLVED);
+  ss << toStringDebugType(modes::LearnedLitType::PREPROCESS);
+  ss << toStringDebugType(modes::LearnedLitType::INPUT);
+  ss << toStringDebugType(modes::LearnedLitType::SOLVABLE);
+  ss << toStringDebugType(modes::LearnedLitType::CONSTANT_PROP);
+  ss << toStringDebugType(modes::LearnedLitType::INTERNAL);
   return ss.str();
 }
 
-std::string LearnedDb::toStringDebugType(LearnedLitType ltype) const
+std::string LearnedDb::toStringDebugType(modes::LearnedLitType ltype) const
 {
   std::stringstream ss;
   const NodeSet& lset = getLiteralSet(ltype);

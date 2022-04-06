@@ -132,6 +132,27 @@ enum BlockModelsMode
   VALUES
 };
 
+/**
+ * Each category excludes those above it.
+ */
+enum class LearnedLitType
+{
+  // an equality that was turned into a substitution during preprocessing
+  PREPROCESS_SOLVED,
+  // a top-level literal during preprocess
+  PREPROCESS,
+  // a literal from the preprocessed input
+  INPUT,
+  // a solvable literal
+  SOLVABLE,
+  // a literal that can be made into a constant propagation
+  CONSTANT_PROP,
+  // all literals
+  INTERNAL
+};
+/** Writes a learned literal type to a stream. */
+std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
+
 }
 
 #endif

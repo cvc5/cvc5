@@ -61,7 +61,7 @@ class ZeroLevelLearner : protected EnvObj
   bool notifyAsserted(TNode assertion, int32_t alevel);
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(modes::LearnedLitType ltype) const;
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
@@ -70,11 +70,11 @@ class ZeroLevelLearner : protected EnvObj
                        std::unordered_set<TNode>& visited,
                        std::unordered_set<Node>& atoms);
   /** Process learned literal */
-  void processLearnedLiteral(const Node& lit, LearnedLitType ltype);
+  void processLearnedLiteral(const Node& lit, modes::LearnedLitType ltype);
   /** compute type for learned literal */
-  LearnedLitType computeLearnedLiteralType(const Node& lit);
+  modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
   /** is learnable based on the value of options */
-  bool isLearnable(LearnedLitType ltype) const;
+  bool isLearnable(modes::LearnedLitType ltype) const;
   /** get solved */
   bool getSolved(const Node& lit, Subs& subs);
   /** has learned literal */
@@ -113,7 +113,7 @@ class ZeroLevelLearner : protected EnvObj
   /** Dummy context, used for getSolved */
   context::Context d_dummyContext;
   /** learned types, based on option */
-  std::unordered_set<LearnedLitType> d_learnedTypes;
+  std::unordered_set<modes::LearnedLitType> d_learnedTypes;
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop

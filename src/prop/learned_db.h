@@ -23,32 +23,10 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "api/cpp/cvc5_types.h"
 
 namespace cvc5::internal {
 namespace prop {
-
-/**
- * Each category excludes those above it.
- */
-enum class LearnedLitType
-{
-  // an equality that was turned into a substitution during preprocessing
-  PREPROCESS_SOLVED,
-  // a top-level literal during preprocess
-  PREPROCESS,
-  // a literal from the preprocessed input
-  INPUT,
-  // a solvable literal
-  SOLVABLE,
-  // a literal that can be made into a constant propagation
-  CONSTANT_PROP,
-  // all literals
-  INTERNAL
-};
-/** Converts a learned literal type to a string. */
-const char* toString(LearnedLitType ltype);
-/** Writes a learned literal type to a stream. */
-std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
 
 /**
  */
@@ -60,22 +38,22 @@ class LearnedDb
   LearnedDb(context::Context* c);
   ~LearnedDb();
   /** Add learned literal */
-  void addLearnedLiteral(const Node& lit, LearnedLitType ltype);
+  void addLearnedLiteral(const Node& lit, modes::LearnedLitType ltype);
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedLiterals(
-      LearnedLitType ltype = LearnedLitType::INPUT) const;
+      modes::LearnedLitType ltype = modes::LearnedLitType::INPUT) const;
   /** Get number of learned literals */
   size_t getNumLearnedLiterals(
-      LearnedLitType ltype = LearnedLitType::INPUT) const;
+      modes::LearnedLitType ltype = modes::LearnedLitType::INPUT) const;
   /** To string debug */
   std::string toStringDebug() const;
 
  private:
   /** Get literal set, const and non-const versions */
-  context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype);
-  const context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype) const;
+  context::CDHashSet<Node>& getLiteralSet(modes::LearnedLitType ltype);
+  const context::CDHashSet<Node>& getLiteralSet(modes::LearnedLitType ltype) const;
   /** To string debug for type of literals */
-  std::string toStringDebugType(LearnedLitType ltype) const;
+  std::string toStringDebugType(modes::LearnedLitType ltype) const;
   /** preprocess solved lits */
   NodeSet d_preprocessSolvedLits;
   /** preprocess lits */

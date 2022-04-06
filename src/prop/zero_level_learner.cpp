@@ -43,21 +43,21 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
   options::DeepRestartMode lmode = options().smt.deepRestartMode;
   if (lmode != options::DeepRestartMode::NONE)
   {
-    d_learnedTypes.insert(LearnedLitType::INPUT);
+    d_learnedTypes.insert(modes::LearnedLitType::INPUT);
     if (lmode == options::DeepRestartMode::ALL)
     {
-      d_learnedTypes.insert(LearnedLitType::INTERNAL);
-      d_learnedTypes.insert(LearnedLitType::SOLVABLE);
-      d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
+      d_learnedTypes.insert(modes::LearnedLitType::INTERNAL);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
     }
     else if (lmode == options::DeepRestartMode::INPUT_AND_SOLVABLE)
     {
-      d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
     }
     else if (lmode == options::DeepRestartMode::INPUT_AND_PROP)
     {
-      d_learnedTypes.insert(LearnedLitType::SOLVABLE);
-      d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
     }
   }
 }
@@ -122,7 +122,7 @@ void ZeroLevelLearner::notifyInputFormulas(
     // we mark that we visited this
     visited.insert(atom);
     // output learned literals from preprocessing
-    processLearnedLiteral(lit, LearnedLitType::PREPROCESS);
+    processLearnedLiteral(lit, modes::LearnedLitType::PREPROCESS);
     // also get its symbols
     expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
     // remember we've seen it
@@ -187,7 +187,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
     // remember we've processed this
     d_levelZeroAsserts.insert(assertion);
     // process what we should do with the learned literal
-    LearnedLitType ltype = computeLearnedLiteralType(assertion);
+    modes::LearnedLitType ltype = computeLearnedLiteralType(assertion);
     processLearnedLiteral(assertion, ltype);
     return true;
   }
@@ -218,13 +218,13 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   return true;
 }
 
-LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
+modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
 {
   // literal was learned, determine its type
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
-  LearnedLitType ltype =
-      internal ? LearnedLitType::INTERNAL : LearnedLitType::INPUT;
+  modes::LearnedLitType ltype =
+      internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
   // compute if solvable
   if (internal)
   {
@@ -237,12 +237,12 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
         if (d_ppnSyms.find(v) == d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
-          ltype = LearnedLitType::SOLVABLE;
+          ltype = modes::LearnedLitType::SOLVABLE;
           break;
         }
       }
     }
-    if (ltype != LearnedLitType::SOLVABLE)
+    if (ltype != modes::LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == kind::EQUAL)
@@ -252,7 +252,7 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
           if (lit[i].isConst()
               && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
           {
-            ltype = LearnedLitType::CONSTANT_PROP;
+            ltype = modes::LearnedLitType::CONSTANT_PROP;
             break;
           }
         }
@@ -265,7 +265,7 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
 }
 
 void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
-                                             LearnedLitType ltype)
+                                             modes::LearnedLitType ltype)
 {
   // add to the database
   d_ldb.addLearnedLiteral(lit, ltype);
@@ -281,7 +281,7 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
     // are mapped back to their original form
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << SkolemManager::getOriginalForm(lit);
-    if (ltype != LearnedLitType::INPUT)
+    if (ltype != modes::LearnedLitType::INPUT)
     {
       std::stringstream tss;
       tss << ltype;
@@ -297,7 +297,7 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
 }
 
 std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
-    LearnedLitType ltype) const
+    modes::LearnedLitType ltype) const
 {
   std::vector<Node> ret = d_ldb.getLearnedLiterals(ltype);
   if (TraceIsOn("level-zero"))
@@ -315,7 +315,7 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
     const
 {
   std::vector<Node> ret;
-  for (LearnedLitType ltype : d_learnedTypes)
+  for (modes::LearnedLitType ltype : d_learnedTypes)
   {
     std::vector<Node> rett = getLearnedZeroLevelLiterals(ltype);
     ret.insert(ret.end(), rett.begin(), rett.end());
@@ -325,7 +325,7 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
 
 bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
 {
-  for (LearnedLitType ltype : d_learnedTypes)
+  for (modes::LearnedLitType ltype : d_learnedTypes)
   {
     if (d_ldb.getNumLearnedLiterals(ltype) > 0)
     {
@@ -335,7 +335,7 @@ bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
   return false;
 }
 
-bool ZeroLevelLearner::isLearnable(LearnedLitType ltype) const
+bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const
 {
   return d_learnedTypes.find(ltype) != d_learnedTypes.end();
 }

@@ -332,7 +332,7 @@ void TheoryProxy::getSkolems(TNode node,
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
-    LearnedLitType ltype) const
+    modes::LearnedLitType ltype) const
 {
   if (d_zll != nullptr)
   {

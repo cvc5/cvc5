@@ -683,7 +683,7 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
-    LearnedLitType ltype) const
+    modes::LearnedLitType ltype) const
 {
   return d_theoryProxy->getLearnedZeroLevelLiterals(ltype);
 }
