@@ -256,4 +256,23 @@ theory::TheoryId Env::theoryOf(TNode node) const
       node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
 }
 
+
+bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
+{
+  if (d_sepLocType.isNull())
+  {
+    return false;
+  }
+  locType = d_sepLocType;
+  dataType = d_sepDataType;
+  return true;
+}
+
+void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  // remember the types we have set
+  d_sepLocType = locT;
+  d_sepDataType = dataT;
+}
+
 }  // namespace cvc5::internal

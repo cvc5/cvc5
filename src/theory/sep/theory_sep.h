@@ -80,15 +80,6 @@ class TheorySep : public Theory {
   TheorySep(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySep();
 
-  /**
-   * Declare heap. For smt2 inputs, this is called when the command
-   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
-   * location type and dataT is the data type for the heap. This command can be
-   * executed once only, and must be invoked before solving separation logic
-   * inputs.
-   */
-  void declareSepHeap(TypeNode locT, TypeNode dataT) override;
-
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;

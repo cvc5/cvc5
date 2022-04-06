@@ -1059,42 +1059,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
-bool TheoryEngine::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
-{
-  if (d_sepLocType.isNull())
-  {
-    return false;
-  }
-  locType = d_sepLocType;
-  dataType = d_sepDataType;
-  return true;
-}
-
-void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
-{
-  Theory* tsep = theoryOf(THEORY_SEP);
-  if (tsep == nullptr)
-  {
-    Assert(false) << "TheoryEngine::declareSepHeap called without the "
-                     "separation logic theory enabled";
-    return;
-  }
-
-  // Definition of the statement that is to be run by every theory
-#ifdef CVC5_FOR_EACH_THEORY_STATEMENT
-#undef CVC5_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  theoryOf(THEORY)->declareSepHeap(locT, dataT);
-
-  // notify each theory using the statement above
-  CVC5_FOR_EACH_THEORY;
-
-  // remember the types we have set
-  d_sepLocType = locT;
-  d_sepDataType = dataT;
-}
-
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType().isComparableTo(b.getType()));
   return d_sharedSolver->getEqualityStatus(a, b);

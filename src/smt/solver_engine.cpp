@@ -1220,16 +1220,14 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
     throw RecoverableModalException(
         "Separation logic not supported in incremental mode");
   }
-  TheoryEngine* te = getTheoryEngine();
-  te->declareSepHeap(locT, dataT);
+  d_env->declareSepHeap(locT, dataT);
 }
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
   SolverEngineScope smts(this);
   finishInit();
-  TheoryEngine* te = getTheoryEngine();
-  return te->getSepHeapTypes(locT, dataT);
+  return d_env->getSepHeapTypes(locT, dataT);
 }
 
 Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }

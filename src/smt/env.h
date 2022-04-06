@@ -256,6 +256,16 @@ class Env
    */
   theory::TheoryId theoryOf(TNode node) const;
 
+  /** get the separation logic heap types */
+  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
+
+  /**
+   * Declare heap. This is used for separation logics to set the location
+   * and data types. It should be called only once, and before any separation
+   * logic constraints are asserted to this theory engine.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -331,6 +341,9 @@ class Env
   std::unique_ptr<ResourceManager> d_resourceManager;
   /** The theory that owns the uninterpreted sort. */
   theory::TheoryId d_uninterpretedSortOwner;
+  /** The separation logic location and data types */
+  TypeNode d_sepLocType;
+  TypeNode d_sepDataType;
 }; /* class Env */
 
 }  // namespace cvc5::internal
