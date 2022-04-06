@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Makai Mann
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -123,27 +123,27 @@ enum Kind : int32_t
   /**
    * Free constant symbol.
    *
-   * \rst
-   * .. note:: Not permitted in bindings (e.g., :cpp:enumerator:`FORALL`,
-   *           :cpp:enumerator:`EXISTS`).
-   * \endrst
-   *
    * - Create Term of this Kind with:
    *
    *   - Solver::mkConst(const Sort&, const std::string&) const
    *   - Solver::mkConst(const Sort&) const
+   *
+   * \rst
+   * .. note:: Not permitted in bindings (e.g., :cpp:enumerator:`FORALL`,
+   *           :cpp:enumerator:`EXISTS`).
+   * \endrst
    */
   CONSTANT,
   /**
    * (Bound) variable.
    *
-   * \rst
-   * .. note:: Only permitted in bindings and in lambda and quantifier bodies.
-   * \endrst
-   *
    * - Create Term of this Kind with:
    *
    *   - Solver::mkVar(const Sort&, const std::string&) const
+   *
+   * \rst
+   * .. note:: Only permitted in bindings and in lambda and quantifier bodies.
+   * \endrst
    */
   VARIABLE,
   /**
@@ -219,6 +219,24 @@ enum Kind : int32_t
    *        (witness ((x Int)) F)
    *        (witness ((x Int)) F))
    *
+   * \endrst
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1:`` Term of kind :cpp:enumerator:`VARIABLE_LIST`
+   *   - ``2:`` Term of Sort Bool (the body of the witness)
+   *   - ``3:`` (optional) Term of kind :cpp:enumerator:`INST_PATTERN_LIST`
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
    * .. note::
    *
    *     This kind is primarily used internally, but may be returned in
@@ -233,21 +251,6 @@ enum Kind : int32_t
    *     false) 0))``, whereas notice that ``(or (= z 0) (not (= z 0)))`` is
    *     true for any :math:`z`.
    * \endrst
-   *
-   * - Arity: ``3``
-   *
-   *   - ``1:`` Term of kind :cpp:enumerator:`VARIABLE_LIST`
-   *   - ``2:`` Term of Sort Bool (the body of the witness)
-   *   - ``3:`` (optional) Term of kind :cpp:enumerator:`INST_PATTERN`_LIST
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   WITNESS,
 
@@ -396,8 +399,6 @@ enum Kind : int32_t
    * uinterpreted Sort :math:`S` is less than or equal to an upper bound.
    * \endrst
    *
-   * - Arity: ``0``
-   *
    * - Create Term of this Kind with:
    *
    *   - Solver::mkCardinalityConstraint(const Sort&, uint32_t) const
@@ -474,12 +475,14 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *     ((_ iand k) i_1 i_2)
+   *
    * is equivalent to
    *
    * .. code:: smtlib
    *
    *     ((_ iand k) i_1 i_2)
    *     (bv2int (bvand ((_ int2bv k) i_1) ((_ int2bv k) i_2)))
+   *
    * for all integers ``i_1``, ``i_2``.
    *
    * - Arity: ``2``
@@ -1033,15 +1036,15 @@ enum Kind : int32_t
   /**
    * Pi constant.
    *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkPi() const
+   *
    * \rst
    * .. note:: :cpp:enumerator:`PI` is considered a special symbol of Sort
    *            Real, but is not a Real value, i.e.,
    *            :cpp:func:`Term::isRealValue()` will return ``false``.
    * \endrst
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkPi() const
    */
   PI,
 
@@ -2497,10 +2500,6 @@ enum Kind : int32_t
    *
    *   \forall k . i \leq k \leq j \Rightarrow a[k] = b[k]
    *
-   * .. note:: We currently support the creation of array equalities over index
-   *           Sorts bit-vector, floating-point, Int and Real.
-   *           Requires to enable option
-   *           :ref:`arrays-exp<lbl-option-arrays-exp>`.
    * \endrst
    *
    * - Arity: ``4``
@@ -2522,6 +2521,11 @@ enum Kind : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   *
+   * .. note:: We currently support the creation of array equalities over index
+   *           Sorts bit-vector, floating-point, Int and Real.
+   *           Requires to enable option
+   *           :ref:`arrays-exp<lbl-option-arrays-exp>`.
    * \endrst
    */
   EQ_RANGE,
@@ -2549,10 +2553,6 @@ enum Kind : int32_t
   /**
    * Datatype selector application.
    *
-   * \rst
-   * .. note:: Undefined if misapplied.
-   * \endrst
-   *
    * - Arity: ``2``
    *
    *   - ``1:`` DatatypeSelector Term (see DatatypeSelector::getTerm() const)
@@ -2566,6 +2566,10 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. note:: Undefined if misapplied.
+   * \endrst
    */
   APPLY_SELECTOR,
   /**
@@ -2589,10 +2593,6 @@ enum Kind : int32_t
   /**
    * Datatype update application.
    *
-   * \rst
-   * .. note:: Does not change the datatype argument if misapplied.
-   * \endrst
-   *
    * - Arity: ``3``
    *
    *   - ``1:`` Datatype updater Term (see DatatypeSelector::getUpdaterTerm() const)
@@ -2607,6 +2607,10 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. note:: Does not change the datatype argument if misapplied.
+   * \endrst
    */
   APPLY_UPDATER,
   /**
@@ -2620,6 +2624,7 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *      (match l (((cons h t) h) (nil 0)))
+   *
    * is represented by the AST
    *
    * .. code:: lisp
@@ -3018,15 +3023,15 @@ enum Kind : int32_t
    *
    * All set variables must be interpreted as subsets of it.
    *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkUniverseSet(const Sort&) const
+   *
    * \rst
    * .. note:: :cpp:enumerator:`SET_UNIVERSE` is considered a special symbol of
    *           the theory of sets and is not considered as a set value, i.e.,
    *           Term::isSetValue() will return ``false``.
    * \endrst
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkUniverseSet(const Sort&) const
    */
   SET_UNIVERSE,
   /**
@@ -3388,7 +3393,7 @@ enum Kind : int32_t
   /**
    * Bag element multiplicity.
    *
-   * Create with:
+   * - Create Term of this Kind with:
    *
    *   - Solver::mkTerm(Kind, const Term&, const Term&) const
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -4771,6 +4776,7 @@ enum Kind : int32_t
    * .. code:: smtlib
    *
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
+   *
    * where :math:`n \leq 0` and :math:`c_1, ..., c_n` are constants of some
    * sort. The elements can be extracted with Term::getSequenceValue().
    * \endrst
@@ -4893,11 +4899,6 @@ enum Kind : int32_t
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.
    *
-   * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator`INST_PATTERN_LIST`.
-   * \endrst
-   *
    * - Arity: ``n > 0``
    *
    *   - ``1..n:`` Terms of any Sort
@@ -4910,6 +4911,11 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. note:: Should only be used as a child of
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   * \endrst
    */
   INST_PATTERN,
   /**
@@ -4918,11 +4924,6 @@ enum Kind : int32_t
    * Specifies a (list of) terms that should not be used as a pattern for
    * quantifier instantiation.
    *
-   * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
-   * \endrst
-   *
    * - Arity: ``n > 0``
    *
    *   - ``1..n:`` Terms of any Sort
@@ -4935,17 +4936,17 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. note:: Should only be used as a child of
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   * \endrst
    */
   INST_NO_PATTERN,
   /**
    * Instantiation pool annotation.
    *
    * Specifies an annotation for pool based instantiation.
-   *
-   * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
-   * \endrst
    *
    * In detail, pool symbols can be declared via the method
    *  - Solver::declarePool(const std::string&, const Sort&, const std::vector<Term>&) const
@@ -4983,16 +4984,14 @@ enum Kind : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   *
+   * .. note:: Should only be used as a child of
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   INST_POOL,
   /**
    * A instantantiation-add-to-pool annotation.
-   *
-   * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
-   * \endrst
    *
    * An instantantiation-add-to-pool annotation indicates that when a quantified
    * formula is instantiated, the instantiated version of a term should be
@@ -5028,16 +5027,14 @@ enum Kind : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   *
+   * .. note:: Should only be used as a child of
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   INST_ADD_TO_POOL,
   /**
    * A skolemization-add-to-pool annotation.
-   *
-   * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
-   * \endrst
    *
    * An skolemization-add-to-pool annotation indicates that when a quantified
    * formula is skolemized, the skolemized version of a term should be added to
@@ -5073,6 +5070,9 @@ enum Kind : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   *
+   * .. note:: Should only be used as a child of
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   SKOLEM_ADD_TO_POOL,
@@ -5082,15 +5082,10 @@ enum Kind : int32_t
    * Specifies a custom property for a quantified formula given by a
    * term that is ascribed a user attribute.
    *
-   * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
-   *
    * - Arity: ``n > 0``
    *
    *   - ``1:`` Term of Kind :cpp:enumerator:`CONST_STRING` (the keyword of the attribute)
    *   - ``2...n:`` Terms representing the values of the attribute
-   * \endrst
    *
    * - Create Term of this Kind with:
    *
@@ -5100,6 +5095,11 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. note:: Should only be used as a child of
+   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   * \endrst
    */
   INST_ATTRIBUTE,
   /**

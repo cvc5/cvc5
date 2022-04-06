@@ -16,6 +16,6 @@ Alternatively, cvc5 features :doc:`several APIs <../api/api>` for different prog
 
 
 .. toctree::
-    :maxdepth: 2
+    :hidden:
 
     quickstart

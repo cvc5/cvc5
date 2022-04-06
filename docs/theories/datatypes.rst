@@ -118,6 +118,7 @@ Datatype updaters are a (non-standard) extension available in datatype logics.
 The term:
 
 .. code:: smtlib
+
    ((_ update Sij) t u)
 
 is equivalent to replacing the field of ``t`` denoted by the selector ``Sij``
@@ -125,6 +126,7 @@ with the value ``u``, or ``t`` itself if that selector does not apply to the
 constructor symbol of ``t``.  For example, for the list datatype, we have that:
 
 .. code:: smtlib
+
    ((_ update head) (cons 4 nil) 7) = (cons 7 nil)
    ((_ update tail) (cons 4 nil) (cons 5 nil)) = (cons 4 (cons 5 nil))
    ((_ update head) nil 5) = nil

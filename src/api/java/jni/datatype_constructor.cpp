@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,17 +63,17 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeConstructor_getTerm(
 
 /*
  * Class:     io_github_cvc5_DatatypeConstructor
- * Method:    getInstantiatedConstructorTerm
+ * Method:    getInstantiatedTerm
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_DatatypeConstructor_getInstantiatedConstructorTerm(
+Java_io_github_cvc5_DatatypeConstructor_getInstantiatedTerm(
     JNIEnv* env, jobject, jlong pointer, jlong retSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructor* current = (DatatypeConstructor*)pointer;
   Sort* sort = (Sort*)retSortPointer;
-  Term* retPointer = new Term(current->getInstantiatedConstructorTerm(*sort));
+  Term* retPointer = new Term(current->getInstantiatedTerm(*sort));
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

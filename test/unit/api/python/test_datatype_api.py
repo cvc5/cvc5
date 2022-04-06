@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Yoni Zohar, Andrew Reynolds, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -557,8 +557,8 @@ def test_datatype_specialized_cons(solver):
 
     testConsTerm = Term(solver)
     # get the specialized constructor term for list[Int]
-    testConsTerm = nilc.getInstantiatedConstructorTerm(listInt)
+    testConsTerm = nilc.getInstantiatedTerm(listInt)
     assert testConsTerm != nilc.getTerm()
     # error to get the specialized constructor term for Int
     with pytest.raises(RuntimeError):
-        nilc.getInstantiatedConstructorTerm(isort)
+        nilc.getInstantiatedTerm(isort)

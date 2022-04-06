@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -587,10 +587,10 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
 
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
-  ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedConstructorTerm(listInt));
+  ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedTerm(listInt));
   ASSERT_NE(testConsTerm, nilc.getTerm());
   // error to get the specialized constructor term for Int
-  ASSERT_THROW(nilc.getInstantiatedConstructorTerm(isort), CVC5ApiException);
+  ASSERT_THROW(nilc.getInstantiatedTerm(isort), CVC5ApiException);
 }
 }  // namespace test
 }  // namespace cvc5::internal

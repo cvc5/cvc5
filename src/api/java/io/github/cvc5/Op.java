@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,8 +17,10 @@ package io.github.cvc5;
 
 /**
  * A cvc5 operator.
+ *
  * An operator is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind {@link Kind#BITVECTOR_EXTRACT}.
+ * with its required parameters, e.g., a Term of kind
+ * {@link Kind#BITVECTOR_EXTRACT}.
  */
 public class Op extends AbstractPointer
 {
@@ -39,10 +41,9 @@ public class Op extends AbstractPointer
 
   /**
    * Syntactic equality operator.
-   * Return true if both operators are syntactically identical.
-   * Both operators must belong to the same solver object.
-   * @param t the operator to compare to for equality
-   * @return true if the operators are equal
+   * @api.note Both operators must belong to the same solver object.
+   * @param t The operator to compare to for equality.
+   * @return True if the operators are syntactically identical.
    */
   @Override
   public boolean equals(Object t)
@@ -57,7 +58,7 @@ public class Op extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
-   * @return the kind of this operator
+   * @return The kind of this operator.
    */
   public Kind getKind()
   {
@@ -76,7 +77,7 @@ public class Op extends AbstractPointer
   private native int getKind(long pointer);
 
   /**
-   * @return true if this operator is a null term
+   * @return True if this operator is a null term.
    */
   public boolean isNull()
   {
@@ -86,7 +87,7 @@ public class Op extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return true iff this operator is indexed
+   * @return True iff this operator is indexed.
    */
   public boolean isIndexed()
   {
@@ -96,7 +97,7 @@ public class Op extends AbstractPointer
   private native boolean isIndexed(long pointer);
 
   /**
-   * @return the number of indices of this op
+   * @return The number of indices of this op.
    */
   public int getNumIndices()
   {
@@ -106,9 +107,9 @@ public class Op extends AbstractPointer
   private native int getNumIndices(long pointer);
 
   /**
-   * Get the index at position i.
-   * @param i the position of the index to return
-   * @return the index at position i
+   * Get the index at position {@code i}.
+   * @param i The position of the index to return.
+   * @return The index at position {@code i}.
    */
   public Term get(int i) throws CVC5ApiException
   {
@@ -120,7 +121,7 @@ public class Op extends AbstractPointer
   private native long get(long pointer, int i);
 
   /**
-   * @return a string representation of this operator
+   * @return A string representation of this operator.
    */
   protected native String toString(long pointer);
 }

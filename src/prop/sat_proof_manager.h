@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Gereon Kremer
+ *   Haniel Barbosa, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -364,6 +364,10 @@ class SatProofManager : protected EnvObj
   /** Notify this proof manager that the SAT solver has user-context popped. */
   void notifyPop();
 
+  /** Notify this proof manager that a SAT assumption has had its level
+   * optmized. */
+  void notifyAssumptionInsertedAtLevel(int level, Node assumption);
+
  private:
   /** Ends resolution chain concluding clause
    *
@@ -385,7 +389,8 @@ class SatProofManager : protected EnvObj
    * - <(or ~l6 l7), l6>
    * - <(or l4 ~l7), l7>
    *
-   * The resulting children and arguments for the CHAIN_RESOLUTION proof step would be:
+   * The resulting children and arguments for the CHAIN_RESOLUTION proof step
+   * would be:
    * - [(or l3 l5 l6 l7), ~l5, (or ~l6 l7), (or l4 ~l7)]
    * - [l5, l6, l7]
    * and the proof step
@@ -598,6 +603,12 @@ class SatProofManager : protected EnvObj
    * manager when the context pops.
    */
   std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optResProofs;
+  /** Maps assertion level to assumptions
+   *
+   * As above, used by d_optResManager to update the assumption set as the
+   * context pops, so that we track the correct current SAT assumptions.
+   */
+  std::map<int, std::vector<Node>> d_assumptionLevels;
   /** Manager for optimized resolution conclusions inserted at assertion levels
    * below the current user level. */
   OptimizedClausesManager d_optResManager;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1094,6 +1094,15 @@ Node NodeManager::mkInstConstant(const TypeNode& type)
   Node n = NodeBuilder(this, kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
+  return n;
+}
+
+Node NodeManager::mkRawSymbol(const std::string& name, const TypeNode& type)
+{
+  Node n = NodeBuilder(this, kind::RAW_SYMBOL);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  setAttribute(n, expr::VarNameAttr(), name);
   return n;
 }
 

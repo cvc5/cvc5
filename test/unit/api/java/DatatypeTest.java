@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -590,10 +590,10 @@ class DatatypeTest
 
     AtomicReference<Term> atomicTerm = new AtomicReference<>();
     // get the specialized constructor term for list[Int]
-    assertDoesNotThrow(() -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
+    assertDoesNotThrow(() -> atomicTerm.set(nilc.getInstantiatedTerm(listInt)));
     Term testConsTerm = atomicTerm.get();
     assertNotEquals(testConsTerm, nilc.getTerm());
     // error to get the specialized constructor term for Int
-    assertThrows(CVC5ApiException.class, () -> nilc.getInstantiatedConstructorTerm(isort));
+    assertThrows(CVC5ApiException.class, () -> nilc.getInstantiatedTerm(isort));
   }
 }

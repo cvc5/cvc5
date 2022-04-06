@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
+ *   Aina Niemetz, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3692,8 +3692,7 @@ Term DatatypeConstructor::getTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeConstructor::getInstantiatedConstructorTerm(
-    const Sort& retSort) const
+Term DatatypeConstructor::getInstantiatedTerm(const Sort& retSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -6400,7 +6399,12 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_CHECK(term.getSort() == sort)
+  // We are permissive with subtypes so that integers are allowed to define
+  // the body of a function whose codomain is real. This is to accomodate
+  // SMT-LIB inputs in the Reals theory, where NUMERAL can be used to specify
+  // reals. Instead of making our parser for numerals dependent on the logic,
+  // we instead allow integers here in this case.
+  CVC5_API_CHECK(term.d_node->getType().isSubtypeOf(*sort.d_type))
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6444,7 +6448,8 @@ Term Solver::defineFunRec(const std::string& symbol,
 
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
-  CVC5_API_CHECK(sort == term.getSort())
+  // we are permissive with subtypes, similar to defineFun
+  CVC5_API_CHECK(term.d_node->getType().isSubtypeOf(*sort.d_type))
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6493,7 +6498,8 @@ Term Solver::defineFunRec(const Term& fun,
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
     Sort codomain = fun.getSort().getFunctionCodomainSort();
-    CVC5_API_CHECK(codomain == term.getSort())
+    // we are permissive with subtypes, similar to defineFun
+    CVC5_API_CHECK(codomain.d_type->isSubtypeOf(term.d_node->getType()))
         << "Invalid sort of function body '" << term << "', expected '"
         << codomain << "'";
   }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,11 @@
 package io.github.cvc5;
 
 /**
- * A Sygus Grammar. This class can be used to define a context-free grammar
- * of terms. Its interface coincides with the definition of grammars
- * (``GrammarDef``) in the SyGuS IF 2.1 standard.
+ * A Sygus Grammar.
+ *
+ * This class can be used to define a context-free grammar of terms. Its
+ * interface coincides with the definition of grammars ({@code GrammarDef}) in
+ * the SyGuS IF 2.1 standard.
  */
 public class Grammar extends AbstractPointer
 {
@@ -45,9 +47,9 @@ public class Grammar extends AbstractPointer
   // endregion
 
   /**
-   * Add \p rule to the set of rules corresponding to \p ntSymbol.
-   * @param ntSymbol the non-terminal to which the rule is added
-   * @param rule the rule to add
+   * Add {@code rule} to the set of rules corresponding to {@code ntSymbol}.
+   * @param ntSymbol the non-terminal to which the rule is added.
+   * @param rule the rule to add.
    */
   public void addRule(Term ntSymbol, Term rule)
   {
@@ -57,9 +59,9 @@ public class Grammar extends AbstractPointer
   private native void addRule(long pointer, long ntSymbolPointer, long rulePointer);
 
   /**
-   * Add \p rules to the set of rules corresponding to \p ntSymbol.
-   * @param ntSymbol the non-terminal to which the rules are added
-   * @param rules the rules to add
+   * Add {@code rules} to the set of rules corresponding to {@code ntSymbol}.
+   * @param ntSymbol the non-terminal to which the rules are added.
+   * @param rules the rules to add.
    */
   public void addRules(Term ntSymbol, Term[] rules)
   {
@@ -70,8 +72,8 @@ public class Grammar extends AbstractPointer
   public native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
 
   /**
-   * Allow \p ntSymbol to be an arbitrary constant.
-   * @param ntSymbol the non-terminal allowed to be any constant
+   * Allow {@code ntSymbol} to be an arbitrary constant.
+   * @param ntSymbol the non-terminal allowed to be any constant.
    */
   public void addAnyConstant(Term ntSymbol)
   {
@@ -81,9 +83,10 @@ public class Grammar extends AbstractPointer
   private native void addAnyConstant(long pointer, long ntSymbolPointer);
 
   /**
-   * Allow \p ntSymbol to be any input variable to corresponding
-   * synth-fun/synth-inv with the same sort as \p ntSymbol.
-   * @param ntSymbol the non-terminal allowed to be any input constant
+   * Allow {@code ntSymbol} to be any input variable to corresponding
+   * {@code synth-fun} or {@code synth-inv} with the same sort as
+   * {@code ntSymbol}.
+   * @param ntSymbol the non-terminal allowed to be any input constant.
    */
   public void addAnyVariable(Term ntSymbol)
   {
@@ -93,7 +96,7 @@ public class Grammar extends AbstractPointer
   private native void addAnyVariable(long pointer, long ntSymbolPointer);
 
   /**
-   * @return a string representation of this grammar.
+   * @return A String representation of this grammar.
    */
   protected native String toString(long pointer);
 }

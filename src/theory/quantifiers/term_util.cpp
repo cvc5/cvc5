@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
@@ -90,7 +91,9 @@ Node TermUtil::getInstConstAttr( Node n ) {
   return n.getAttribute(InstConstantAttribute());
 }
 
-bool TermUtil::hasInstConstAttr( Node n ) {
+bool TermUtil::hasInstConstAttr(Node n)
+{
+  n = SkolemManager::getOriginalForm(n);
   return !getInstConstAttr(n).isNull();
 }
 

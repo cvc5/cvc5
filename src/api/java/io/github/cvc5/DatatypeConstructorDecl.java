@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,8 +38,8 @@ public class DatatypeConstructorDecl extends AbstractPointer
 
   /**
    * Add datatype selector declaration.
-   * @param name the name of the datatype selector declaration to add
-   * @param sort the codomain sort of the datatype selector declaration to add
+   * @param name The name of the datatype selector declaration to add.
+   * @param sort The codomain sort of the datatype selector declaration to add.
    */
   public void addSelector(String name, Sort sort)
   {
@@ -51,7 +51,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
   /**
    * Add datatype selector declaration whose codomain type is the datatype
    * itself.
-   * @param name the name of the datatype selector declaration to add
+   * @param name The name of the datatype selector declaration to add.
    */
   public void addSelectorSelf(String name)
   {
@@ -63,8 +63,8 @@ public class DatatypeConstructorDecl extends AbstractPointer
   /**
    * Add datatype selector declaration whose codomain sort is an unresolved
    * datatype with the given name.
-   * @param name the name of the datatype selector declaration to add
-   * @param unresDataypeName the name of the unresolved datatype. The codomain
+   * @param name The name of the datatype selector declaration to add.
+   * @param unresDataypeName The name of the unresolved datatype. The codomain
    *                         of the selector will be the resolved datatype with
    *                         the given name.
    */
@@ -76,7 +76,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
   private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
 
   /**
-   * @return true if this DatatypeConstructorDecl is a null declaration.
+   * @return True If this DatatypeConstructorDecl is a null declaration.
    */
   public boolean isNull()
   {
@@ -86,7 +86,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return a string representation of this datatype constructor declaration
+   * @return A String representation of this datatype constructor declaration
    */
   protected native String toString(long pointer);
 }

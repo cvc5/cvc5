@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -101,9 +101,9 @@ Node LfscNodeConverter::postConvert(Node n)
       << "postConvert " << n << " " << k << std::endl;
   if (k == BOUND_VARIABLE)
   {
-    // ignore internally generated symbols
     if (d_symbols.find(n) != d_symbols.end())
     {
+      // ignore internally generated symbols
       return n;
     }
     // bound variable v is (bvar x T)
@@ -113,6 +113,11 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
+  }
+  else if (k == RAW_SYMBOL)
+  {
+    // ignore internally generated symbols
+    return n;
   }
   else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
   {
@@ -566,7 +571,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str());
+        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
         cur = nm->mkSort(sss.str());
       }
       else
@@ -603,7 +608,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getAttribute(expr::VarNameAttr(), name);
-      op = getSymbolInternal(k, ftype, name);
+      op = getSymbolInternal(k, ftype, name, false);
     }
     else
     {
@@ -767,21 +772,28 @@ Node LfscNodeConverter::typeAsNode(TypeNode tni) const
   return it->second;
 }
 
-Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn)
+Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
+                                         TypeNode tn,
+                                         bool useRawSym)
 {
-  Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
+  // use raw symbol so that it is never quoted
+  NodeManager* nm = NodeManager::currentNM();
+  Node sym = useRawSym ? nm->mkRawSymbol(name, tn) : nm->mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
 
-Node LfscNodeConverter::getSymbolInternalFor(Node n, const std::string& name)
+Node LfscNodeConverter::getSymbolInternalFor(Node n,
+                                             const std::string& name,
+                                             bool useRawSym)
 {
-  return getSymbolInternal(n.getKind(), n.getType(), name);
+  return getSymbolInternal(n.getKind(), n.getType(), name, useRawSym);
 }
 
 Node LfscNodeConverter::getSymbolInternal(Kind k,
                                           TypeNode tn,
-                                          const std::string& name)
+                                          const std::string& name,
+                                          bool useRawSym)
 {
   std::tuple<Kind, TypeNode, std::string> key(k, tn, name);
   std::map<std::tuple<Kind, TypeNode, std::string>, Node>::iterator it =
@@ -790,7 +802,7 @@ Node LfscNodeConverter::getSymbolInternal(Kind k,
   {
     return it->second;
   }
-  Node sym = mkInternalSymbol(name, tn);
+  Node sym = mkInternalSymbol(name, tn, useRawSym);
   d_symbolToBuiltinKind[sym] = k;
   d_symbolsMap[key] = sym;
   return sym;

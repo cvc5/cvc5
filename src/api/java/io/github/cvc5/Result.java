@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@ public class Result extends AbstractPointer
   // endregion
 
   /**
-   * @return true if Result is empty, i.e., a nullary Result, and not an actual
+   * @return True if Result is empty, i.e., a nullary Result, and not an actual
    * result returned from a checkSat() (and friends) query.
    */
   public boolean isNull()
@@ -50,7 +50,7 @@ public class Result extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return true if query was a satisfiable checkSat() or checkSatAssuming()
+   * @return True if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */
   public boolean isSat()
@@ -61,7 +61,7 @@ public class Result extends AbstractPointer
   private native boolean isSat(long pointer);
 
   /**
-   * @return true if query was an unsatisfiable checkSat() or
+   * @return True if query was an unsatisfiable checkSat() or
    * checkSatAssuming() query.
    */
   public boolean isUnsat()
@@ -72,7 +72,7 @@ public class Result extends AbstractPointer
   private native boolean isUnsat(long pointer);
 
   /**
-   * @return true if query was a checkSat() or checkSatAssuming() query and
+   * @return True if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
   public boolean isUnknown()
@@ -85,7 +85,7 @@ public class Result extends AbstractPointer
   /**
    * Operator overloading for equality of two results.
    * @param r the result to compare to for equality
-   * @return true if the results are equal
+   * @return True if the results are equal
    */
   @Override
   public boolean equals(Object r)
@@ -105,7 +105,7 @@ public class Result extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
-   * @return an explanation for an unknown query result.
+   * @return An explanation for an unknown query result.
    */
   public UnknownExplanation getUnknownExplanation()
   {
@@ -124,7 +124,7 @@ public class Result extends AbstractPointer
   private native int getUnknownExplanation(long pointer);
 
   /**
-   * @return a string representation of this result.
+   * @return A string representation of this result.
    */
   protected native String toString(long pointer);
 }

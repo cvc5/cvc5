@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ public class DatatypeSelector extends AbstractPointer
 
   // endregion
 
-  /** @return the name of this Datatype selector. */
+  /** @return The Name of this Datatype selector. */
   public String getName()
   {
     return getName(pointer);
@@ -44,8 +44,13 @@ public class DatatypeSelector extends AbstractPointer
   private native String getName(long pointer);
 
   /**
-   * Get the selector operator of this datatype selector.
-   * @return the selector term
+   * Get the selector term of this datatype selector.
+   *
+   * Selector terms are a class of function-like terms of selector
+   * sort (Sort::isDatatypeSelector), and should be used as the first
+   * argument of Terms of kind APPLY_SELECTOR.
+   *
+   * @return The Selector term.
    */
   public Term getTerm()
   {
@@ -56,8 +61,13 @@ public class DatatypeSelector extends AbstractPointer
   private native long getTerm(long pointer);
 
   /**
-   * Get the upater operator of this datatype selector.
-   * @return the updater term
+   * Get the updater term of this datatype selector.
+   *
+   * Similar to selectors, updater terms are a class of function-like terms of
+   * updater Sort (Sort::isDatatypeUpdater), and should be used as the first
+   * argument of Terms of kind APPLY_UPDATER.
+   *
+   * @return The Updater term.
    */
   public Term getUpdaterTerm()
   {
@@ -67,7 +77,7 @@ public class DatatypeSelector extends AbstractPointer
 
   private native long getUpdaterTerm(long pointer);
 
-  /** @return the codomain sort of this selector. */
+  /** @return The Codomain sort of this selector. */
   public Sort getCodomainSort()
   {
     long sortPointer = getCodomainSort(pointer);
@@ -77,7 +87,7 @@ public class DatatypeSelector extends AbstractPointer
   private native long getCodomainSort(long pointer);
 
   /**
-   * @return true if this DatatypeSelector is a null object
+   * @return True If this DatatypeSelector is a null object.
    */
   public boolean isNull()
   {
@@ -87,7 +97,7 @@ public class DatatypeSelector extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * @return a string representation of this datatype selector
+   * @return A String representation of this datatype selector.
    */
   protected native String toString(long pointer);
 }

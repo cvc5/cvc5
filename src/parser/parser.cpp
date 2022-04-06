@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -567,7 +567,7 @@ cvc5::Term Parser::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
       // lookup by name
       cvc5::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getInstantiatedConstructorTerm(s);
+      t = dc.getInstantiatedTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
@@ -731,9 +731,19 @@ void Parser::pushGetValueScope()
   for (const cvc5::Sort& s : declareSorts)
   {
     std::vector<cvc5::Term> elements = d_solver->getModelDomainElements(s);
+    Trace("parser") << "elements for " << s << ":" << std::endl;
     for (const cvc5::Term& e : elements)
     {
-      defineVar(e.getUninterpretedSortValue(), e);
+      Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
+      if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+      {
+        defineVar(e.getUninterpretedSortValue(), e);
+      }
+      else
+      {
+        Assert(false)
+            << "model domain element is not an uninterpreted sort value: " << e;
+      }
     }
   }
 }

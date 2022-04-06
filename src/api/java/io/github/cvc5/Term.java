@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,8 +48,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Return true if both terms are syntactically identical.
    * Both terms must belong to the same solver object.
    *
-   * @param t the term to compare to for equality
-   * @return true if the terms are equal
+   * @param t The term to compare to for equality.
+   * @return True if the terms are equal.
    */
   @Override
   public boolean equals(Object t)
@@ -71,8 +71,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Comparison for ordering on terms.
    *
-   * @param t the term to compare to
-   * @return a negative integer, zero, or a positive integer as this term
+   * @param t The term to compare to.
+   * @return A negative integer, zero, or a positive integer as this term.
    * is less than, equal to, or greater than the specified term.
    */
   @Override
@@ -84,7 +84,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native int compareTo(long pointer1, long pointer2);
 
   /**
-   * @return the number of children of this term
+   * @return The number of children of this term.
    */
   public int getNumChildren()
   {
@@ -96,8 +96,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Get the child term at a given index.
    *
-   * @param index the index of the child term to return
-   * @return the child term with the given index
+   * @param index The index of the child term to return.
+   * @return The child term with the given index.
    */
   public Term getChild(int index) throws CVC5ApiException
   {
@@ -109,7 +109,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getChild(long pointer, int index);
 
   /**
-   * @return the id of this term
+   * @return The id of this term.
    */
   public long getId()
   {
@@ -119,7 +119,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getId(long pointer);
 
   /**
-   * @return the kind of this term
+   * @return The kind of this term.
    */
   public Kind getKind() throws CVC5ApiException
   {
@@ -130,7 +130,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native int getKind(long pointer);
 
   /**
-   * @return the sort of this term
+   * @return The sort of this term.
    */
   public Sort getSort()
   {
@@ -141,10 +141,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getSort(long pointer);
 
   /**
-   * @return the result of replacing 'term' by 'replacement' in this term
+   * Replace {@code term} with {@code replacement} in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point.
+   * @return The result of replacing {@code term} with {@code replacement} in
+   *         this term.
+   *
+   * @api.note This replacement is applied during a pre-order traversal and
+   *           only once (it is not run until fixed point).
    */
   public Term substitute(Term term, Term replacement)
   {
@@ -155,8 +158,20 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long substitute(long pointer, long termPointer, long replacementPointer);
 
   /**
-   * @return the result of simultaneously replacing 'terms' by 'replacements'
-   * in this term
+   * Simultaneously replace {@code terms} with {@code replacements} in this
+   * term.
+   *
+   * In the case that terms contains duplicates, the replacement earliest in
+   * the vector takes priority. For example, calling substitute on
+   * {@code f(x,y)} with {@code terms = { x, z }},
+   * {@code replacements = { g(z), w }} results in the term
+   * {@code f(g(z),y)}.
+   *
+   * @api.note This replacement is applied during a pre-order traversal and
+   *           only once (it is not run until fixed point).
+   *
+   * @return The result of simultaneously replacing {@code terms} with
+   *         {@code replacements} in this term.
    */
   public Term substitute(Term[] terms, Term[] replacements)
   {
@@ -178,7 +193,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long substitute(long pointer, long[] termPointers, long[] replacementPointers);
 
   /**
-   * @return true iff this term has an operator
+   * @return True iff this term has an operator.
    */
   public boolean hasOp()
   {
@@ -188,8 +203,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean hasOp(long pointer);
 
   /**
-   * @return the Op used to create this term
-   * @api.note This is safe to call when hasOp() returns true.
+   * @return The Op used to create this term.
+   * @api.note This is safe to call when {@link Term#hasOp()} returns true.
    */
   public Op getOp()
   {
@@ -200,7 +215,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getOp(long pointer);
 
   /**
-   * @return true if the term has a symbol.
+   * @return True if the term has a symbol.
    */
   public boolean hasSymbol()
   {
@@ -211,7 +226,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts hasSymbol().
-   * @return the raw symbol of the term.
+   * @return The raw symbol of the term.
    */
   public String getSymbol()
   {
@@ -221,7 +236,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getSymbol(long pointer);
 
   /**
-   * @return true if this Term is a null term
+   * @return True if this Term is a null term.
    */
   public boolean isNull()
   {
@@ -233,7 +248,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Boolean negation.
    *
-   * @return the Boolean negation of this term
+   * @return The Boolean negation of this term.
    */
   public Term notTerm()
   {
@@ -246,8 +261,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Boolean and.
    *
-   * @param t a Boolean term
-   * @return the conjunction of this term and the given term
+   * @param t A Boolean term.
+   * @return The conjunction of this term and the given term.
    */
   public Term andTerm(Term t)
   {
@@ -260,8 +275,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Boolean or.
    *
-   * @param t a Boolean term
-   * @return the disjunction of this term and the given term
+   * @param t A Boolean term.
+   * @return The disjunction of this term and the given term.
    */
   public Term orTerm(Term t)
   {
@@ -274,8 +289,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Boolean exclusive or.
    *
-   * @param t a Boolean term
-   * @return the exclusive disjunction of this term and the given term
+   * @param t A Boolean term.
+   * @return The exclusive disjunction of this term and the given term.
    */
   public Term xorTerm(Term t)
   {
@@ -288,8 +303,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Equality.
    *
-   * @param t a Boolean term
-   * @return the Boolean equivalence of this term and the given term
+   * @param t A Boolean term.
+   * @return The Boolean equivalence of this term and the given term.
    */
   public Term eqTerm(Term t)
   {
@@ -302,8 +317,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Boolean implication.
    *
-   * @param t a Boolean term
-   * @return the implication of this term and the given term
+   * @param t A Boolean term.
+   * @return The implication of this term and the given term.
    */
   public Term impTerm(Term t)
   {
@@ -316,9 +331,9 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * If-then-else with this term as the Boolean condition.
    *
-   * @param thenTerm the 'then' term
-   * @param elseTerm the 'else' term
-   * @return the if-then-else term with this term as the Boolean condition
+   * @param thenTerm The 'then' term.
+   * @param elseTerm The 'else' term.
+   * @return The if-then-else term with this term as the Boolean condition.
    */
   public Term iteTerm(Term thenTerm, Term elseTerm)
   {
@@ -329,7 +344,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long iteTerm(long pointer, long thenPointer, long elsePointer);
 
   /**
-   * @return a string representation of this term.
+   * @return A string representation of this term.
    */
   protected native String toString(long pointer);
 
@@ -337,7 +352,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Get integer or real value sign. Must be called on integer or real values,
    * or otherwise an exception is thrown.
    * @return 0 if this term is zero, -1 if this term is a negative real or
-   * integer value, 1 if this term is a positive real or integer value.
+   *         integer value, 1 if this term is a positive real or integer value.
    */
   public int getRealOrIntegerValueSign()
   {
@@ -347,7 +362,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native int getRealOrIntegerValueSign(long pointer);
 
   /**
-   * @return true if the term is an integer value.
+   * @return True if the term is an integer value.
    */
   public boolean isIntegerValue()
   {
@@ -358,7 +373,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isIntegerValue().
-   * @return the integer represented by this term.
+   * @return The integer represented by this term.
    */
   public BigInteger getIntegerValue()
   {
@@ -368,7 +383,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getIntegerValue(long pointer);
 
   /**
-   * @return true if the term is a string constant.
+   * @return True if the term is a string constant.
    */
   public boolean isStringValue()
   {
@@ -378,12 +393,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isStringValue(long pointer);
 
   /**
-   * @return the stored string constant.
+   * @return The stored string constant.
    *
    * Asserts isString().
    *
-   * @api.note This method is not to be confused with toString() which returns
-   *          the term in some string representation, whatever data it may hold.
+   * @api.note This method is not to be confused with {@link Term#toString()})
+   *           which returns the term in some string representation, whatever
+   *           data it may hold.
    */
   public String getStringValue()
   {
@@ -393,7 +409,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getStringValue(long pointer);
 
   /**
-   * @return true if the term is a rational value.
+   * @return True if the term is a rational value.
    */
   public boolean isRealValue()
   {
@@ -404,8 +420,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isRealValue().
-   * @return the representation of a rational value as a pair of its numerator
-   * and denominator.
+   * @return The representation of a rational value as a pair of its numerator.
+   *         and denominator.
    */
   public Pair<BigInteger, BigInteger> getRealValue()
   {
@@ -416,7 +432,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getRealValue(long pointer);
 
   /**
-   * @return true if the term is a constant array.
+   * @return True if the term is a constant array.
    */
   public boolean isConstArray()
   {
@@ -427,7 +443,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isConstArray().
-   * @return the base (element stored at all indices) of a constant array
+   * @return The base (element stored at all indices) of a constant array.
    */
   public Term getConstArrayBase()
   {
@@ -438,7 +454,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getConstArrayBase(long pointer);
 
   /**
-   * @return true if the term is a Boolean value.
+   * @return True if the term is a Boolean value.
    */
   public boolean isBooleanValue()
   {
@@ -448,7 +464,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isBooleanValue(long pointer);
   /**
    * Asserts isBooleanValue().
-   * @return the representation of a Boolean value as a native Boolean value.
+   * @return The representation of a Boolean value as a native Boolean value.
    */
   public boolean getBooleanValue()
   {
@@ -458,7 +474,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean getBooleanValue(long pointer);
 
   /**
-   * @return true if the term is a bit-vector value.
+   * @return True if the term is a bit-vector value.
    */
   public boolean isBitVectorValue()
   {
@@ -469,7 +485,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isBitVectorValue().
-   * @return the representation of a bit-vector value in bit string representation.
+   * @return The representation of a bit-vector value in bit string
+   *         representation.
    */
   public String getBitVectorValue() throws CVC5ApiException
   {
@@ -477,10 +494,14 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   /**
-   * Asserts isBitVectorValue().
-   * @return the representation of a bit-vector value in string representation.
-   * Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal
-   * string).
+   * Get the string representation of a bit-vector value.
+   *
+   * Supported values for {@code base} are {@code 2} (bit string), {@code 10}
+   * (decimal string) or {@code 16} (hexadecimal string).
+   *
+   * @api.note Asserts {@code Term#isBitVectorValue()}.
+   *
+   * @return The string representation of a bit-vector value.
    */
   public String getBitVectorValue(int base) throws CVC5ApiException
   {
@@ -491,7 +512,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getBitVectorValue(long pointer, int base);
 
   /**
-   * @return true if the term is an uninterpreted sort value.
+   * @return True if the term is an uninterpreted sort value.
    */
   public boolean isUninterpretedSortValue()
   {
@@ -502,7 +523,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isUninterpretedSortValue().
-   * @return the representation of an uninterpreted sort value as a string.
+   * @return The representation of an uninterpreted sort value as a string.
    */
   public String getUninterpretedSortValue()
   {
@@ -512,7 +533,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getUninterpretedSortValue(long pointer);
 
   /**
-   * @return true if the term is a floating-point rounding mode value.
+   * @return True if the term is a floating-point rounding mode value.
    */
   public boolean isRoundingModeValue()
   {
@@ -523,7 +544,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isRoundingModeValue().
-   * @return the floating-point rounding mode value held by the term.
+   * @return The floating-point rounding mode value held by the term.
    */
   public RoundingMode getRoundingModeValue() throws CVC5ApiException
   {
@@ -534,7 +555,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native int getRoundingModeValue(long pointer);
 
   /**
-   * @return true if the term is a tuple value.
+   * @return True if the term is a tuple value.
    */
   public boolean isTupleValue()
   {
@@ -545,7 +566,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isTupleValue().
-   * @return the representation of a tuple value as a vector of terms.
+   * @return The representation of a tuple value as a vector of terms.
    */
   public Term[] getTupleValue()
   {
@@ -556,7 +577,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long[] getTupleValue(long pointer);
 
   /**
-   * @return true if the term is the floating-point value for positive zero.
+   * @return True if the term is the floating-point value for positive zero.
    */
   public boolean isFloatingPointPosZero()
   {
@@ -565,7 +586,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native boolean isFloatingPointPosZero(long pointer);
   /**
-   * @return true if the term is the floating-point value for negative zero.
+   * @return True if the term is the floating-point value for negative zero.
    */
   public boolean isFloatingPointNegZero()
   {
@@ -574,7 +595,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native boolean isFloatingPointNegZero(long pointer);
   /**
-   * @return true if the term is the floating-point value for positive
+   * @return True if the term is the floating-point value for positive.
    * infinity.
    */
   public boolean isFloatingPointPosInf()
@@ -584,7 +605,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native boolean isFloatingPointPosInf(long pointer);
   /**
-   * @return true if the term is the floating-point value for negative
+   * @return True if the term is the floating-point value for negative.
    * infinity.
    */
   public boolean isFloatingPointNegInf()
@@ -594,7 +615,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native boolean isFloatingPointNegInf(long pointer);
   /**
-   * @return true if the term is the floating-point value for not a number.
+   * @return True if the term is the floating-point value for not a number.
    */
   public boolean isFloatingPointNaN()
   {
@@ -603,7 +624,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native boolean isFloatingPointNaN(long pointer);
   /**
-   * @return true if the term is a floating-point value.
+   * @return True if the term is a floating-point value.
    */
   public boolean isFloatingPointValue()
   {
@@ -613,7 +634,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isFloatingPointValue(long pointer);
   /**
    * Asserts isFloatingPointValue().
-   * @return the representation of a floating-point value as a tuple of the
+   * @return The representation of a floating-point value as a tuple of the.
    * exponent width, the significand width and a bit-vector value.
    */
   public Triplet<Long, Long, Term> getFloatingPointValue()
@@ -625,7 +646,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native Triplet<Long, Long, Long> getFloatingPointValue(long pointer);
 
   /**
-   * @return true if the term is a set value.
+   * @return True if the term is a set value.
    */
   public boolean isSetValue()
   {
@@ -635,7 +656,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isSetValue(long pointer);
   /**
    * Asserts isSetValue().
-   * @return the representation of a set value as a set of terms.
+   * @return The representation of a set value as a set of terms.
    */
   public Set<Term> getSetValue()
   {
@@ -647,7 +668,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long[] getSetValue(long pointer);
 
   /**
-   * @return true if the term is a sequence value.
+   * @return True if the term is a sequence value.
    */
   public boolean isSequenceValue()
   {
@@ -659,9 +680,10 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Asserts isSequenceValue().
    * @api.note It is usually necessary for sequences to call
-   *          `Solver::simplify()` to turn a sequence that is constructed by,
-   *          e.g., concatenation of unit sequences, into a sequence value.
-   * @return the representation of a sequence value as a vector of terms.
+   *           {@link Solver#simplify(Term)} to turn a sequence that is
+   *           constructed by, e.g., concatenation of unit sequences, into a
+   *           sequence value.
+   * @return The representation of a sequence value as a vector of terms.
    */
   public Term[] getSequenceValue()
   {
@@ -672,7 +694,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long[] getSequenceValue(long pointer);
 
   /**
-   * @return true if the term is a cardinality constraint
+   * @return True if the term is a cardinality constraint.
    */
   public boolean isCardinalityConstraint()
   {
@@ -683,7 +705,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isCardinalityConstraint().
-   * @return the sort the cardinality constraint is for and its upper bound.
+   * @return The sort the cardinality constraint is for and its upper bound.
    */
   public Pair<Sort, BigInteger> getCardinalityConstraint()
   {

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -217,33 +217,33 @@ class CVC5_EXPORT Result
 
   /**
    * Operator overloading for equality of two results.
-   * @param r the result to compare to for equality
-   * @return true if the results are equal
+   * @param r The result to compare to for equality.
+   * @return True if the results are equal.
    */
   bool operator==(const Result& r) const;
 
   /**
    * Operator overloading for disequality of two results.
-   * @param r the result to compare to for disequality
-   * @return true if the results are disequal
+   * @param r The result to compare to for disequality.
+   * @return True if the results are disequal.
    */
   bool operator!=(const Result& r) const;
 
   /**
-   * @return an explanation for an unknown query result.
+   * @return An explanation for an unknown query result.
    */
   UnknownExplanation getUnknownExplanation() const;
 
   /**
-   * @return a string representation of this result.
+   * @return A string representation of this result.
    */
   std::string toString() const;
 
  private:
   /**
    * Constructor.
-   * @param r the internal result that is to be wrapped by this result
-   * @return the Result
+   * @param r The internal result that is to be wrapped by this result.
+   * @return The Result.
    */
   Result(const internal::Result& r);
 
@@ -258,9 +258,9 @@ class CVC5_EXPORT Result
 
 /**
  * Serialize a Result to given stream.
- * @param out the output stream
- * @param r the result to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream.
+ * @param r The result to be serialized to the given output stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
 
@@ -287,38 +287,38 @@ class CVC5_EXPORT SynthResult
   SynthResult();
 
   /**
-   * @return true if SynthResult is null, i.e., not a SynthResult returned
-   * from a synthesis query.
+   * @return True if SynthResult is null, i.e., not a SynthResult returned
+   *         from a synthesis query.
    */
   bool isNull() const;
 
   /**
-   * @return true if the synthesis query has a solution.
+   * @return True if the synthesis query has a solution.
    */
   bool hasSolution() const;
 
   /**
-   * @return true if the synthesis query has no solution. In this case, it
-   * was determined that there was no solution.
+   * @return True if the synthesis query has no solution. In this case, it
+   *         was determined that there was no solution.
    */
   bool hasNoSolution() const;
 
   /**
-   * @return true if the result of the synthesis query could not be determined.
+   * @return True if the result of the synthesis query could not be determined.
    */
   bool isUnknown() const;
 
   /**
-   * @return a string representation of this synthesis result.
+   * @return A string representation of this synthesis result.
    */
   std::string toString() const;
 
  private:
   /**
    * Constructor.
-   * @param r the internal synth result that is to be wrapped by this synth
+   * @param r The internal synth result that is to be wrapped by this synth.
    *          result
-   * @return the SynthResult
+   * @return The SynthResult.
    */
   SynthResult(const internal::SynthResult& r);
   /**
@@ -332,9 +332,9 @@ class CVC5_EXPORT SynthResult
 
 /**
  * Serialize a SynthResult to given stream.
- * @param out the output stream
- * @param r the result to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream.
+ * @param r The result to be serialized to the given output stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const SynthResult& r) CVC5_EXPORT;
 
@@ -374,223 +374,231 @@ class CVC5_EXPORT Sort
 
   /**
    * Comparison for structural equality.
-   * @param s the sort to compare to
-   * @return true if the sorts are equal
+   * @param s The sort to compare to.
+   * @return True if the sorts are equal.
    */
   bool operator==(const Sort& s) const;
 
   /**
    * Comparison for structural disequality.
-   * @param s the sort to compare to
-   * @return true if the sorts are not equal
+   * @param s The sort to compare to.
+   * @return True if the sorts are not equal.
    */
   bool operator!=(const Sort& s) const;
 
   /**
    * Comparison for ordering on sorts.
-   * @param s the sort to compare to
-   * @return true if this sort is less than s
+   * @param s The sort to compare to.
+   * @return True if this sort is less than s.
    */
   bool operator<(const Sort& s) const;
 
   /**
    * Comparison for ordering on sorts.
-   * @param s the sort to compare to
-   * @return true if this sort is greater than s
+   * @param s The sort to compare to.
+   * @return True if this sort is greater than s.
    */
   bool operator>(const Sort& s) const;
 
   /**
    * Comparison for ordering on sorts.
-   * @param s the sort to compare to
-   * @return true if this sort is less than or equal to s
+   * @param s The sort to compare to.
+   * @return True if this sort is less than or equal to s.
    */
   bool operator<=(const Sort& s) const;
 
   /**
    * Comparison for ordering on sorts.
-   * @param s the sort to compare to
-   * @return true if this sort is greater than or equal to s
+   * @param s The sort to compare to.
+   * @return True if this sort is greater than or equal to s.
    */
   bool operator>=(const Sort& s) const;
 
   /**
-   * Does the sort have a symbol, i.e., a name?
+   * Does this sort have a symbol, that is, a name?
    *
-   * For example, uninterpreted sorts and uninterpreted sort constructors have symbols.
-   * @return true if the sort has a symbol.
+   * For example, uninterpreted sorts and uninterpreted sort constructors have
+   * symbols.
+   * @return True if the sort has a symbol.
    */
   bool hasSymbol() const;
 
   /**
    * Get the symbol of this Sort.
    *
-   * Asserts hasSymbol(). The symbol of this sort is the string that was
+   * @note Asserts hasSymbol().
+   *
+   * The symbol of this sort is the string that was
    * provided when constructing it via
    * Solver::mkUninterpretedSort(const std::string&) const,
    * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
    * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
-   * @return the raw symbol of the sort.
+   *
+   * @return The raw symbol of the sort.
    */
   std::string getSymbol() const;
 
   /**
-   * @return true if this Sort is a null sort.
+   * Determine if this is the null sort (Sort::Sort()).
+   * @return True if this Sort is the null sort.
    */
   bool isNull() const;
 
   /**
-   * Is this a Boolean sort?
-   * @return true if the sort is the Boolean sort
+   * Determine if this is the Boolean sort (SMT-LIB: `Bool`).
+   * @return True if this sort is the Boolean sort.
    */
   bool isBoolean() const;
 
   /**
-   * Is this a integer sort?
-   * @return true if the sort is the integer sort
+   * Determine if this is the integer sort (SMT-LIB: `Int`).
+   * @return True if this sort is the integer sort.
    */
   bool isInteger() const;
 
   /**
-   * Is this a real sort?
-   * @return true if the sort is the real sort
+   * Determine if this is the real sort (SMT-LIB: `Real`).
+   * @return True if this sort is the real sort.
    */
   bool isReal() const;
 
   /**
-   * Is this a string sort?
-   * @return true if the sort is the string sort
+   * Determine if this is the string sort (SMT-LIB: `String`).
+   * @return True if this sort is the string sort.
    */
   bool isString() const;
 
   /**
-   * Is this a regexp sort?
-   * @return true if the sort is the regexp sort
+   * Determine if this is the regular expression sort (SMT-LIB: `RegLan`).
+   * @return True if this sort is the regular expression sort.
    */
   bool isRegExp() const;
 
   /**
-   * Is this a rounding mode sort?
-   * @return true if the sort is the rounding mode sort
+   * Determine if this is the rounding mode sort (SMT-LIB: `RoundingMode`).
+   * @return True if this sort is the rounding mode sort.
    */
   bool isRoundingMode() const;
 
   /**
-   * Is this a bit-vector sort?
-   * @return true if the sort is a bit-vector sort
+   * Determine if this is a bit-vector sort (SMT-LIB: `(_ BitVec i)`).
+   * @return True if this sort is a bit-vector sort.
    */
   bool isBitVector() const;
 
   /**
-   * Is this a floating-point sort?
-   * @return true if the sort is a floating-point sort
+   * Determine if this is a floatingpoint sort
+   * (SMT-LIB: `(_ FloatingPoint eb sb)`).
+   * @return True if this sort is a floating-point sort.
    */
   bool isFloatingPoint() const;
 
   /**
-   * Is this a datatype sort?
-   * @return true if the sort is a datatype sort
+   * Determine if this is a datatype sort.
+   * @return True if this sort is a datatype sort.
    */
   bool isDatatype() const;
 
   /**
-   * Is this a datatype constructor sort?
-   * @return true if the sort is a datatype constructor sort
+   * Determine if this is a datatype constructor sort.
+   * @return True if this sort is a datatype constructor sort.
    */
   bool isDatatypeConstructor() const;
 
   /**
-   * Is this a datatype selector sort?
-   * @return true if the sort is a datatype selector sort
+   * Determine if this is a datatype selector sort.
+   * @return True if this sort is a datatype selector sort.
    */
   bool isDatatypeSelector() const;
 
   /**
-   * Is this a datatype tester sort?
-   * @return true if the sort is a datatype tester sort
+   * Determine if this is a datatype tester sort.
+   * @return True if this sort is a datatype tester sort.
    */
   bool isDatatypeTester() const;
   /**
-   * Is this a datatype updater sort?
-   * @return true if the sort is a datatype updater sort
+   * Determine if this is a datatype updater sort.
+   * @return True if this sort is a datatype updater sort.
    */
   bool isDatatypeUpdater() const;
   /**
-   * Is this a function sort?
-   * @return true if the sort is a function sort
+   * Determine if this is a function sort.
+   * @return True if this sort is a function sort.
    */
   bool isFunction() const;
 
   /**
-   * Is this a predicate sort?
-   * That is, is this a function sort mapping to Boolean? All predicate
-   * sorts are also function sorts.
-   * @return true if the sort is a predicate sort
+   * Determine if this is a predicate sort.
+   *
+   * A predicate sort is a function sort that maps to the Boolean sort. All
+   * predicate sorts are also function sorts.
+   *
+   * @return True if this sort is a predicate sort.
    */
   bool isPredicate() const;
 
   /**
-   * Is this a tuple sort?
-   * @return true if the sort is a tuple sort
+   * Determine if this a tuple sort.
+   * @return True if this sort is a tuple sort.
    */
   bool isTuple() const;
 
   /**
-   * Is this a record sort?
+   * Determine if this is a record sort.
    * @warning This method is experimental and may change in future versions.
-   * @return true if the sort is a record sort
+   * @return True if the sort is a record sort.
    */
   bool isRecord() const;
 
   /**
-   * Is this an array sort?
-   * @return true if the sort is an array sort
+   * Determine if this is an array sort.
+   * @return True if the sort is an array sort.
    */
   bool isArray() const;
 
   /**
-   * Is this a Set sort?
-   * @return true if the sort is a Set sort
+   * Determine if this is a Set sort.
+   * @return True if the sort is a Set sort.
    */
   bool isSet() const;
 
   /**
-   * Is this a Bag sort?
-   * @return true if the sort is a Bag sort
+   * Determine if this is a Bag sort.
+   * @return True if the sort is a Bag sort.
    */
   bool isBag() const;
 
   /**
-   * Is this a Sequence sort?
-   * @return true if the sort is a Sequence sort
+   * Determine if this is a Sequence sort.
+   * @return True if the sort is a Sequence sort.
    */
   bool isSequence() const;
 
   /**
-   * Is this an uninterpreted sort?
-   * @return true if this is an uninterpreted sort
+   * Determine if this is an uninterpreted sort.
+   * @return True if this is an uninterpreted sort.
    */
   bool isUninterpretedSort() const;
 
   /**
-   * Is this an uninterpreted sort constructor kind?
+   * Determine if this is an uninterpreted sort constructor.
    *
    * An uninterpreted sort constructor has arity > 0 and can be instantiated to
    * construct uninterpreted sorts with given sort parameters.
    *
-   * @return true if this is a sort constructor kind
+   * @return True if this is a sort constructor kind.
    */
   bool isUninterpretedSortConstructor() const;
 
   /**
-   * Is this an instantiated (parametric datatype or uninterpreted sort
-   * constructor) sort?
+   * Determine if this is an instantiated (parametric datatype or uninterpreted
+   * sort constructor) sort.
    *
    * An instantiated sort is a sort that has been constructed from
    * instantiating a sort with sort arguments
    * (see Sort::instantiate(const std::vector<Sort>&) const)).
    *
-   * @return true if this is an instantiated sort
+   * @return True if this is an instantiated sort.
    */
   bool isInstantiated() const;
 
@@ -598,12 +606,12 @@ class CVC5_EXPORT Sort
    * Get the associated uninterpreted sort constructor of an instantiated
    * uninterpreted sort.
    *
-   * @return the uninterpreted sort constructor sort
+   * @return The uninterpreted sort constructor sort.
    */
   Sort getUninterpretedSortConstructor() const;
 
   /**
-   * @return the underlying datatype of a datatype sort
+   * @return The underlying datatype of a datatype sort.
    */
   Datatype getDatatype() const;
 
@@ -613,8 +621,8 @@ class CVC5_EXPORT Sort
    *
    * Create sort parameters with Solver::mkParamSort().
    *
-   * @param params the list of sort parameters to instantiate with
-   * @return the instantiated sort
+   * @param params The list of sort parameters to instantiate with.
+   * @return The instantiated sort.
    */
   Sort instantiate(const std::vector<Sort>& params) const;
 
@@ -623,7 +631,7 @@ class CVC5_EXPORT Sort
    * sort (parametric datatype or uninterpreted sort constructor sort,
    * see Sort::instantiate(const std::vector<Sort>& const)).
    *
-   * @return the sorts used to instantiate the sort parameters of a
+   * @return The sorts used to instantiate the sort parameters of a
    *         parametric sort
    */
   std::vector<Sort> getInstantiatedParameters() const;
@@ -635,13 +643,13 @@ class CVC5_EXPORT Sort
    * only once to the sort. It is not run until fix point.
    *
    * For example,
-   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
-   * return (Array (Array C D) B).
+   * `(Array A B).substitute({A, C}, {(Array C D), (Array A B)})` will
+   * return `(Array (Array C D) B)`.
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param sort the subsort to be substituted within this sort.
-   * @param replacement the sort replacing the substituted subsort.
+   * @param sort The subsort to be substituted within this sort.
+   * @param replacement The sort replacing the substituted subsort.
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
@@ -655,62 +663,62 @@ class CVC5_EXPORT Sort
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param sorts the subsorts to be substituted within this sort.
-   * @param replacements the sort replacing the substituted subsorts.
+   * @param sorts The subsorts to be substituted within this sort.
+   * @param replacements The sort replacing the substituted subsorts.
    */
   Sort substitute(const std::vector<Sort>& sorts,
                   const std::vector<Sort>& replacements) const;
 
   /**
    * Output a string representation of this sort to a given stream.
-   * @param out the output stream
+   * @param out The output stream.
    */
   void toStream(std::ostream& out) const;
 
   /**
-   * @return a string representation of this sort
+   * @return A string representation of this sort.
    */
   std::string toString() const;
 
   /* Datatype constructor sort ------------------------------------------- */
 
   /**
-   * @return the arity of a datatype constructor sort
+   * @return The arity of a datatype constructor sort.
    */
   size_t getDatatypeConstructorArity() const;
 
   /**
-   * @return the domain sorts of a datatype constructor sort
+   * @return The domain sorts of a datatype constructor sort.
    */
   std::vector<Sort> getDatatypeConstructorDomainSorts() const;
 
   /**
-   * @return the codomain sort of a constructor sort
+   * @return The codomain sort of a constructor sort.
    */
   Sort getDatatypeConstructorCodomainSort() const;
 
   /* Selector sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a datatype selector sort
+   * @return The domain sort of a datatype selector sort.
    */
   Sort getDatatypeSelectorDomainSort() const;
 
   /**
-   * @return the codomain sort of a datatype selector sort
+   * @return The codomain sort of a datatype selector sort.
    */
   Sort getDatatypeSelectorCodomainSort() const;
 
   /* Tester sort ------------------------------------------------------- */
 
   /**
-   * @return the domain sort of a datatype tester sort
+   * @return The domain sort of a datatype tester sort.
    */
   Sort getDatatypeTesterDomainSort() const;
 
   /**
-   * @return the codomain sort of a datatype tester sort, which is the Boolean
-   *         sort
+   * @return The codomain sort of a datatype tester sort, which is the Boolean
+   *         sort.
    *
    * @note We mainly need this for the symbol table, which doesn't have
    *       access to the solver object.
@@ -720,76 +728,76 @@ class CVC5_EXPORT Sort
   /* Function sort ------------------------------------------------------- */
 
   /**
-   * @return the arity of a function sort
+   * @return The arity of a function sort.
    */
   size_t getFunctionArity() const;
 
   /**
-   * @return the domain sorts of a function sort
+   * @return The domain sorts of a function sort.
    */
   std::vector<Sort> getFunctionDomainSorts() const;
 
   /**
-   * @return the codomain sort of a function sort
+   * @return The codomain sort of a function sort.
    */
   Sort getFunctionCodomainSort() const;
 
   /* Array sort ---------------------------------------------------------- */
 
   /**
-   * @return the array index sort of an array sort
+   * @return The array index sort of an array sort.
    */
   Sort getArrayIndexSort() const;
 
   /**
-   * @return the array element sort of an array sort
+   * @return The array element sort of an array sort.
    */
   Sort getArrayElementSort() const;
 
   /* Set sort ------------------------------------------------------------ */
 
   /**
-   * @return the element sort of a set sort
+   * @return The element sort of a set sort.
    */
   Sort getSetElementSort() const;
 
   /* Bag sort ------------------------------------------------------------ */
 
   /**
-   * @return the element sort of a bag sort
+   * @return The element sort of a bag sort.
    */
   Sort getBagElementSort() const;
 
   /* Sequence sort ------------------------------------------------------- */
 
   /**
-   * @return the element sort of a sequence sort
+   * @return The element sort of a sequence sort.
    */
   Sort getSequenceElementSort() const;
 
   /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
-   * @return the arity of an uninterpreted sort constructor sort
+   * @return The arity of an uninterpreted sort constructor sort.
    */
   size_t getUninterpretedSortConstructorArity() const;
 
   /* Bit-vector sort ----------------------------------------------------- */
 
   /**
-   * @return the bit-width of the bit-vector sort
+   * @return The bit-width of the bit-vector sort.
    */
   uint32_t getBitVectorSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
   /**
-   * @return the bit-width of the exponent of the floating-point sort
+   * @return The bit-width of the exponent of the floating-point sort.
    */
   uint32_t getFloatingPointExponentSize() const;
 
   /**
-   * @return the width of the significand of the floating-point sort
+   * @return The width of the significand of the floating-point sort.
    */
   uint32_t getFloatingPointSignificandSize() const;
 
@@ -798,24 +806,24 @@ class CVC5_EXPORT Sort
   /**
    * Get the arity of a datatype sort, which is the number of type parameters
    * if the datatype is parametric, or 0 otherwise.
-   * @return the arity of a datatype sort
+   * @return The arity of a datatype sort.
    */
   size_t getDatatypeArity() const;
 
   /* Tuple sort ---------------------------------------------------------- */
 
   /**
-   * @return the length of a tuple sort
+   * @return The length of a tuple sort.
    */
   size_t getTupleLength() const;
 
   /**
-   * @return the element sorts of a tuple sort
+   * @return The element sorts of a tuple sort.
    */
   std::vector<Sort> getTupleSorts() const;
 
  private:
-  /** @return the internal wrapped TypeNode of this sort. */
+  /** @return The internal wrapped TypeNode of this sort. */
   const internal::TypeNode& getTypeNode(void) const;
 
   /** Helper to convert a set of Sorts to internal TypeNodes. */
@@ -830,9 +838,9 @@ class CVC5_EXPORT Sort
 
   /**
    * Constructor.
-   * @param slv the associated solver object
-   * @param t the internal type that is to be wrapped by this sort
-   * @return the Sort
+   * @param slv The associated solver object.
+   * @param t The internal type that is to be wrapped by this sort.
+   * @return The Sort.
    */
   Sort(const Solver* slv, const internal::TypeNode& t);
 
@@ -859,9 +867,9 @@ class CVC5_EXPORT Sort
 
 /**
  * Serialize a sort to given stream.
- * @param out the output stream
- * @param s the sort to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream.
+ * @param s The sort to be serialized to the given output stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
 
@@ -888,8 +896,9 @@ namespace cvc5 {
 
 /**
  * A cvc5 operator.
+ *
  * An operator is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ * with its required parameters, e.g., a Term of kind #BITVECTOR_EXTRACT.
  */
 class CVC5_EXPORT Op
 {
@@ -910,68 +919,70 @@ class CVC5_EXPORT Op
 
   /**
    * Syntactic equality operator.
-   * Return true if both operators are syntactically identical.
-   * Both operators must belong to the same solver object.
-   * @param t the operator to compare to for equality
-   * @return true if the operators are equal
+   *
+   * @note Both operators must belong to the same solver object.
+   *
+   * @param t The operator to compare to for equality.
+   * @return True if both operators are syntactically identical.
    */
   bool operator==(const Op& t) const;
 
   /**
    * Syntactic disequality operator.
-   * Return true if both operators differ syntactically.
-   * Both terms must belong to the same solver object.
-   * @param t the operator to compare to for disequality
-   * @return true if operators are disequal
+   *
+   * @note Both terms must belong to the same solver object.
+   *
+   * @param t The operator to compare to for disequality.
+   * @return True if operators differ syntactically.
    */
   bool operator!=(const Op& t) const;
 
   /**
-   * @return the kind of this operator
+   * @return The kind of this operator.
    */
   Kind getKind() const;
 
   /**
-   * @return true if this operator is a null term
+   * @return True if this operator is a null term.
    */
   bool isNull() const;
 
   /**
-   * @return true iff this operator is indexed
+   * @return True iff this operator is indexed.
    */
   bool isIndexed() const;
 
   /**
-   * @return the number of indices of this op
+   * @return The number of indices of this op.
    */
   size_t getNumIndices() const;
 
   /**
-   * Get the index at position i.
-   * @param i the position of the index to return
-   * @return the index at position i
+   * Get the index at position `i`.
+   * @param i The position of the index to return.
+   * @return The index at position i.
    */
   Term operator[](size_t i) const;
 
   /**
-   * @return a string representation of this operator
+   * @return A string representation of this operator.
    */
   std::string toString() const;
 
  private:
   /**
    * Constructor for a single kind (non-indexed operator).
-   * @param slv the associated solver object
-   * @param k the kind of this Op
+   * @param slv The associated solver object.
+   * @param k The kind of this Op.
    */
   Op(const Solver* slv, const Kind k);
 
   /**
    * Constructor.
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   * @param n the internal node that is to be wrapped by this term
-   * @return the Term
+   * @param slv The associated solver object.
+   * @param k The kind of this Op.
+   * @param n The internal node that is to be wrapped by this term.
+   * @return The Term.
    */
   Op(const Solver* slv, const Kind k, const internal::Node& n);
 
@@ -987,20 +998,21 @@ class CVC5_EXPORT Op
    * @note We use a helper method to avoid having API functions call other API
    *       functions (we need to call this internally).
    *
-   * @return true iff this Op is indexed
+   * @return True iff this Op is indexed.
    */
   bool isIndexedHelper() const;
 
   /**
    * Helper for getNumIndices
-   * @return the number of indices of this op
+   * @return The number of indices of this op.
    */
   size_t getNumIndicesHelper() const;
 
   /**
    * Helper for operator[](size_t index).
-   * @param index position of the index. Should be less than getNumIndicesHelper().
-   * @return the index at position index
+   * @param index Position of the index. Should be less than
+   *              getNumIndicesHelper().
+   * @return The index at position index.
    */
   Term getIndexHelper(size_t index) const;
 
@@ -1024,9 +1036,9 @@ class CVC5_EXPORT Op
 
 /**
  * Serialize an operator to given stream.
- * @param out the output stream
- * @param t the operator to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream.
+ * @param t The operator to be serialized to the given output stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
 
@@ -1077,8 +1089,8 @@ class CVC5_EXPORT Term
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
    * Both terms must belong to the same solver object.
-   * @param t the term to compare to for equality
-   * @return true if the terms are equal
+   * @param t The term to compare to for equality.
+   * @return True if the terms are equal.
    */
   bool operator==(const Term& t) const;
 
@@ -1086,95 +1098,100 @@ class CVC5_EXPORT Term
    * Syntactic disequality operator.
    * Return true if both terms differ syntactically.
    * Both terms must belong to the same solver object.
-   * @param t the term to compare to for disequality
-   * @return true if terms are disequal
+   * @param t The term to compare to for disequality.
+   * @return True if terms are disequal.
    */
   bool operator!=(const Term& t) const;
 
   /**
    * Comparison for ordering on terms by their id.
-   * @param t the term to compare to
-   * @return true if this term is less than t
+   * @param t The term to compare to.
+   * @return True if this term is less than t.
    */
   bool operator<(const Term& t) const;
 
   /**
    * Comparison for ordering on terms by their id.
-   * @param t the term to compare to
-   * @return true if this term is greater than t
+   * @param t The term to compare to.
+   * @return True if this term is greater than t.
    */
   bool operator>(const Term& t) const;
 
   /**
    * Comparison for ordering on terms by their id.
-   * @param t the term to compare to
-   * @return true if this term is less than or equal to t
+   * @param t The term to compare to.
+   * @return True if this term is less than or equal to t.
    */
   bool operator<=(const Term& t) const;
 
   /**
    * Comparison for ordering on terms by their id.
-   * @param t the term to compare to
-   * @return true if this term is greater than or equal to t
+   * @param t The term to compare to.
+   * @return True if this term is greater than or equal to t.
    */
   bool operator>=(const Term& t) const;
 
-  /** @return the number of children of this term  */
+  /** @return The number of children of this term  */
   size_t getNumChildren() const;
 
   /**
    * Get the child term at a given index.
-   * @param index the index of the child term to return
-   * @return the child term with the given index
+   * @param index The index of the child term to return.
+   * @return The child term with the given index.
    */
   Term operator[](size_t index) const;
 
   /**
-   * @return the id of this term
+   * @return The id of this term.
    */
   uint64_t getId() const;
 
   /**
-   * @return the kind of this term
+   * @return The kind of this term.
    */
   Kind getKind() const;
 
   /**
-   * @return the sort of this term
+   * @return The sort of this term.
    */
   Sort getSort() const;
 
   /**
-   * @return the result of replacing 'term' by 'replacement' in this term.
+   * Replace `term` with `replacement` in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point.
+   * @return The result of replacing `term` with `replacement` in this term.
+   *
+   * @note This replacement is applied during a pre-order traversal and
+   *       only once (it is not run until fixed point).
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return the result of simultaneously replacing 'terms' by 'replacements'
-   * in this term
+   * Simultaneously replace `terms` with `replacements` in this term.
    *
-   * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point. In the case that
-   * terms contains duplicates, the replacement earliest in the vector takes
-   * priority. For example, calling substitute on f(x,y) with
-   *   terms = { x, z }, replacements = { g(z), w }
-   * results in the term f(g(z),y).
+   * In the case that terms contains duplicates, the replacement earliest in
+   * the vector takes priority. For example, calling substitute on `f(x,y)`
+   * with `terms = { x, z }`, `replacements = { g(z), w }` results in the term
+   * `f(g(z),y)`.
+   *
+   * @note This replacement is applied during a pre-order traversal and
+   *       only once (it is not run until fixed point).
+   *
+   * @return The result of simultaneously replacing `terms` with `replacements`
+   *         in this term.
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
 
   /**
-   * @return true iff this term has an operator
+   * @return True iff this term has an operator.
    */
   bool hasOp() const;
 
   /**
    * @note This is safe to call when hasOp() returns true.
    *
-   * @return the Op used to create this term
+   * @return The Op used to create this term.
    */
   Op getOp() const;
 
@@ -1182,75 +1199,78 @@ class CVC5_EXPORT Term
    * Does the term have a symbol, i.e., a name?
    *
    * For example, free constants and variables have symbols.
-   * @return true if the term has a symbol.
+   * @return True if the term has a symbol.
    */
   bool hasSymbol() const;
 
   /**
    * Get the symbol of this Term.
    *
-   * Asserts hasSymbol(). The symbol of the term is the string that was
+   * @note Asserts hasSymbol().
+   *
+   * The symbol of the term is the string that was
    * provided when constructing it via Solver::mkConst() or Solver::mkVar().
-   * @return the raw symbol of the term.
+   *
+   * @return The raw symbol of the term.
    */
   std::string getSymbol() const;
 
   /**
-   * @return true if this Term is a null term
+   * @return True if this Term is a null term.
    */
   bool isNull() const;
 
   /**
    * Boolean negation.
-   * @return the Boolean negation of this term
+   * @return The Boolean negation of this term.
    */
   Term notTerm() const;
 
   /**
    * Boolean and.
-   * @param t a Boolean term
-   * @return the conjunction of this term and the given term
+   * @param t A Boolean term.
+   * @return The conjunction of this term and the given term.
    */
   Term andTerm(const Term& t) const;
 
   /**
    * Boolean or.
-   * @param t a Boolean term
-   * @return the disjunction of this term and the given term
+   * @param t A Boolean term.
+   * @return The disjunction of this term and the given term.
    */
   Term orTerm(const Term& t) const;
 
   /**
    * Boolean exclusive or.
-   * @param t a Boolean term
-   * @return the exclusive disjunction of this term and the given term
+   * @param t A Boolean term.
+   * @return The exclusive disjunction of this term and the given term.
    */
   Term xorTerm(const Term& t) const;
 
   /**
    * Equality.
-   * @param t a Boolean term
-   * @return the Boolean equivalence of this term and the given term
+   * @param t A Boolean term.
+   * @return The Boolean equivalence of this term and the given term.
    */
   Term eqTerm(const Term& t) const;
 
   /**
    * Boolean implication.
-   * @param t a Boolean term
-   * @return the implication of this term and the given term
+   * @param t A Boolean term.
+   * @return The implication of this term and the given term.
    */
   Term impTerm(const Term& t) const;
 
   /**
    * If-then-else with this term as the Boolean condition.
-   * @param then_t the 'then' term
-   * @param else_t the 'else' term
-   * @return the if-then-else term with this term as the Boolean condition
+   * @param then_t The 'then' term.
+   * @param else_t The 'else' term.
+   * @return The if-then-else term with this term as the Boolean condition.
    */
   Term iteTerm(const Term& then_t, const Term& else_t) const;
 
   /**
-   * @return a string representation of this term
+   * @return A string representation of this term.
    */
   std::string toString() const;
 
@@ -1291,9 +1311,9 @@ class CVC5_EXPORT Term
 
     /**
      * Constructor
-     * @param slv the associated solver object
-     * @param e a ``std::shared pointer`` to the node that we're iterating over
-     * @param p the position of the iterator (e.g. which child it's on)
+     * @param slv The associated solver object.
+     * @param e A ``std::shared pointer`` to the node that we're iterating over.
+     * @param p The position of the iterator (e.g. which child it's on).
      */
     const_iterator(const Solver* slv,
                    const std::shared_ptr<internal::Node>& e,
@@ -1306,40 +1326,40 @@ class CVC5_EXPORT Term
 
     /**
      * Assignment operator.
-     * @param it the iterator to assign to
-     * @return the reference to the iterator after assignment
+     * @param it The iterator to assign to.
+     * @return The reference to the iterator after assignment.
      */
     const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
-     * @param it the iterator to compare to for equality
-     * @return true if the iterators are equal
+     * @param it The iterator to compare to for equality.
+     * @return True if the iterators are equal.
      */
     bool operator==(const const_iterator& it) const;
 
     /**
      * Disequality operator.
-     * @param it the iterator to compare to for disequality
-     * @return true if the iterators are disequal
+     * @param it The iterator to compare to for disequality.
+     * @return True if the iterators are disequal.
      */
     bool operator!=(const const_iterator& it) const;
 
     /**
      * Increment operator (prefix).
-     * @return a reference to the iterator after incrementing by one
+     * @return A reference to the iterator after incrementing by one.
      */
     const_iterator& operator++();
 
     /**
      * Increment operator (postfix).
-     * @return a reference to the iterator after incrementing by one
+     * @return A reference to the iterator after incrementing by one.
      */
     const_iterator operator++(int);
 
     /**
      * Dereference operator.
-     * @return the term this iterator points to
+     * @return The term this iterator points to.
      */
     Term operator*() const;
 
@@ -1355,12 +1375,12 @@ class CVC5_EXPORT Term
   };
 
   /**
-   * @return an iterator to the first child of this Term
+   * @return An iterator to the first child of this Term.
    */
   const_iterator begin() const;
 
   /**
-   * @return an iterator to one-off-the-last child of this Term
+   * @return An iterator to one-off-the-last child of this Term.
    */
   const_iterator end() const;
 
@@ -1368,197 +1388,205 @@ class CVC5_EXPORT Term
    * Get integer or real value sign. Must be called on integer or real values,
    * or otherwise an exception is thrown.
    * @return 0 if this term is zero, -1 if this term is a negative real or
-   * integer value, 1 if this term is a positive real or integer value.
+   *         integer value, 1 if this term is a positive real or integer value.
    */
   int32_t getRealOrIntegerValueSign() const;
   /**
-   * @return true if the term is an integer value that fits within int32_t.
+   * @return True if the term is an integer value that fits within int32_t.
    */
   bool isInt32Value() const;
   /**
-   * Asserts isInt32Value().
-   * @return the integer term as a int32_t.
+   * Get the `int32_t` representation of  this integer value.
+   * @note Asserts isInt32Value().
+   * @return This integer value as a `int32_t`.
    */
   int32_t getInt32Value() const;
   /**
-   * @return true if the term is an integer value that fits within uint32_t.
+   * @return True if the term is an integer value that fits within uint32_t.
    */
   bool isUInt32Value() const;
   /**
-   * Asserts isUInt32Value().
-   * @return the integer term as a uint32_t.
+   * Get the `uint32_t` representation of this integer value.
+   * @note Asserts isUInt32Value().
+   * @return This integer value as a `uint32_t`.
    */
   uint32_t getUInt32Value() const;
   /**
-   * @return true if the term is an integer value that fits within int64_t.
+   * @return True if the term is an integer value that fits within int64_t.
    */
   bool isInt64Value() const;
   /**
-   * Asserts isInt64Value().
-   * @return the integer term as a int64_t.
+   * Get the `int64_t` representation of this integer value.
+   * @note Asserts isInt64Value().
+   * @return This integer value as a `int64_t`.
    */
   int64_t getInt64Value() const;
   /**
-   * @return true if the term is an integer value that fits within uint64_t.
+   * @return True if the term is an integer value that fits within uint64_t.
    */
   bool isUInt64Value() const;
   /**
-   * Asserts isUInt64Value().
-   * @return the integer term as a uint64_t.
+   * Get the `uint64_t` representation of this integer value.
+   * @note Asserts isUInt64Value().
+   * @return This integer value as a `uint64_t`.
    */
   uint64_t getUInt64Value() const;
   /**
-   * @return true if the term is an integer value.
+   * @return True if the term is an integer value.
    */
   bool isIntegerValue() const;
   /**
-   * Asserts isIntegerValue().
-   * @return the integer term in (decimal) string representation.
+   * @note Asserts isIntegerValue().
+   * @return The integer term in (decimal) string representation.
    */
   std::string getIntegerValue() const;
 
   /**
-   * @return true if the term is a string value.
+   * @return True if the term is a string value.
    */
   bool isStringValue() const;
   /**
-   * Asserts isStringValue().
+   * @note Asserts isStringValue().
    * @note This method is not to be confused with toString(), which returns
    *       some string representation of the term, whatever data it may hold.
-   * @return the string term as a native string value.
+   * @return The string term as a native string value.
    */
   std::wstring getStringValue() const;
 
   /**
-   * @return true if the term is a rational value whose numerator and
-   * denominator fit within int32_t and uint32_t, respectively.
+   * @return True if the term is a rational value whose numerator and
+   *         denominator fit within int32_t and uint32_t, respectively.
    */
   bool isReal32Value() const;
   /**
-   * Asserts isReal32Value().
-   * @return the representation of a rational value as a pair of its numerator
-   * and denominator.
+   * @note Asserts isReal32Value().
+   * @return The representation of a rational value as a pair of its numerator
+   *         and denominator.
    */
   std::pair<int32_t, uint32_t> getReal32Value() const;
   /**
-   * @return true if the term is a rational value whose numerator and
-   * denominator fit within int64_t and uint64_t, respectively.
+   * @return True if the term is a rational value whose numerator and
+   *         denominator fit within int64_t and uint64_t, respectively.
    */
   bool isReal64Value() const;
   /**
-   * Asserts isReal64Value().
-   * @return the representation of a rational value as a pair of its numerator
-   * and denominator.
+   * @note Asserts isReal64Value().
+   * @return The representation of a rational value as a pair of its numerator
+   *         and denominator.
    */
   std::pair<int64_t, uint64_t> getReal64Value() const;
   /**
    * @note A term of kind PI is not considered to be a real value.
-   * @return true if the term is a rational value.
+   * @return True if the term is a rational value.
    */
   bool isRealValue() const;
   /**
-   * Asserts isRealValue().
-   * @return the representation of a rational value as a (rational) string.
+   * @note Asserts isRealValue().
+   * @return The representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
 
   /**
-   * @return true if the term is a constant array.
+   * @return True if the term is a constant array.
    */
   bool isConstArray() const;
   /**
-   * Asserts isConstArray().
-   * @return the base (element stored at all indices) of a constant array
+   * @note Asserts isConstArray().
+   * @return The base (element stored at all indices) of a constant array.
    */
   Term getConstArrayBase() const;
 
   /**
-   * @return true if the term is a Boolean value.
+   * @return True if the term is a Boolean value.
    */
   bool isBooleanValue() const;
   /**
-   * Asserts isBooleanValue().
-   * @return the representation of a Boolean value as a native Boolean value.
+   * @note Asserts isBooleanValue().
+   * @return The representation of a Boolean value as a native Boolean value.
    */
   bool getBooleanValue() const;
 
   /**
-   * @return true if the term is a bit-vector value.
+   * @return True if the term is a bit-vector value.
    */
   bool isBitVectorValue() const;
   /**
-   * Asserts isBitVectorValue().
-   * @return the representation of a bit-vector value in string representation.
-   * Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal
-   * string).
+   * Get the string representation of a bit-vector value.
+   *
+   * Supported values for `base` are `2` (bit string), `10` (decimal string) or
+   * `16` (hexadecimal string).
+   *
+   * @note Asserts isBitVectorValue().
+   *
+   * @return The string representation of a bit-vector value.
    */
   std::string getBitVectorValue(uint32_t base = 2) const;
 
   /**
-   * @return true if the term is an abstract value.
+   * @return True if the term is an abstract value.
    */
   bool isUninterpretedSortValue() const;
   /**
-   * Asserts isUninterpretedSortValue().
-   * @return the representation of an uninterpreted sort value as a string.
+   * @note Asserts isUninterpretedSortValue().
+   * @return The representation of an uninterpreted sort value as a string.
    */
   std::string getUninterpretedSortValue() const;
 
   /**
-   * @return true if the term is a tuple value.
+   * @return True if the term is a tuple value.
    */
   bool isTupleValue() const;
   /**
-   * Asserts isTupleValue().
-   * @return the representation of a tuple value as a vector of terms.
+   * @note Asserts isTupleValue().
+   * @return The representation of a tuple value as a vector of terms.
    */
   std::vector<Term> getTupleValue() const;
 
   /**
-   * @return true if the term is a floating-point rounding mode value.
+   * @return True if the term is a floating-point rounding mode value.
    */
   bool isRoundingModeValue() const;
   /**
-   * Asserts isRoundingModeValue().
-   * @return the floating-point rounding mode value held by the term.
+   * @note Asserts isRoundingModeValue().
+   * @return The floating-point rounding mode value held by the term.
    */
   RoundingMode getRoundingModeValue() const;
 
   /**
-   * @return true if the term is the floating-point value for positive zero.
+   * @return True if the term is the floating-point value for positive zero.
    */
   bool isFloatingPointPosZero() const;
   /**
-   * @return true if the term is the floating-point value for negative zero.
+   * @return True if the term is the floating-point value for negative zero.
    */
   bool isFloatingPointNegZero() const;
   /**
-   * @return true if the term is the floating-point value for positive
+   * @return True if the term is the floating-point value for positive.
    * infinity.
    */
   bool isFloatingPointPosInf() const;
   /**
-   * @return true if the term is the floating-point value for negative
+   * @return True if the term is the floating-point value for negative.
    * infinity.
    */
   bool isFloatingPointNegInf() const;
   /**
-   * @return true if the term is the floating-point value for not a number.
+   * @return True if the term is the floating-point value for not a number.
    */
   bool isFloatingPointNaN() const;
   /**
-   * @return true if the term is a floating-point value.
+   * @return True if the term is a floating-point value.
    */
   bool isFloatingPointValue() const;
   /**
-   * Asserts isFloatingPointValue().
-   * @return the representation of a floating-point value as a tuple of the
-   * exponent width, the significand width and a bit-vector value.
+   * @note Asserts isFloatingPointValue().
+   * @return The representation of a floating-point value as a tuple of the
+   *         exponent width, the significand width and a bit-vector value.
    */
   std::tuple<uint32_t, uint32_t, Term> getFloatingPointValue() const;
 
   /**
-   * @return true if the term is a set value.
+   * @return True if the term is a set value.
    *
    * A term is a set value if it is considered to be a (canonical) constant set
    * value.  A canonical set value is one whose AST is:
@@ -1577,8 +1605,8 @@ class CVC5_EXPORT Term
    */
   bool isSetValue() const;
   /**
-   * Asserts isSetValue().
-   * @return the representation of a set value as a set of terms.
+   * @note Asserts isSetValue().
+   * @return The representation of a set value as a set of terms.
    */
   std::set<Term> getSetValue() const;
 
@@ -1626,22 +1654,22 @@ class CVC5_EXPORT Term
    * returned in response to API calls such Solver::getValue() and
    * Solver::simplify().
    *
-   * @return true if the term is a sequence value.
+   * @return True if the term is a sequence value.
    */
   bool isSequenceValue() const;
   /**
-   * Asserts isSequenceValue().
-   * @return the representation of a sequence value as a vector of terms.
+   * @note Asserts isSequenceValue().
+   * @return The representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
 
   /**
-   * @return true if the term is a cardinality constraint
+   * @return True if the term is a cardinality constraint.
    */
   bool isCardinalityConstraint() const;
   /**
-   * Asserts isCardinalityConstraint().
-   * @return the sort the cardinality constraint is for and its upper bound.
+   * @note Asserts isCardinalityConstraint().
+   * @return The sort the cardinality constraint is for and its upper bound.
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
 
@@ -1670,13 +1698,13 @@ class CVC5_EXPORT Term
 
   /**
    * Constructor.
-   * @param slv the associated solver object
-   * @param n the internal node that is to be wrapped by this term
-   * @return the Term
+   * @param slv The associated solver object.
+   * @param n The internal node that is to be wrapped by this term.
+   * @return The Term.
    */
   Term(const Solver* slv, const internal::Node& n);
 
-  /** @return the internal wrapped Node of this term. */
+  /** @return The internal wrapped Node of this term. */
   const internal::Node& getNode(void) const;
 
   /**
@@ -1688,13 +1716,13 @@ class CVC5_EXPORT Term
   /**
    * Helper function that returns the kind of the term, which takes into
    * account special cases of the conversion for internal to external kinds.
-   * @return the kind of this term
+   * @return The kind of this term.
    */
   Kind getKindHelper() const;
 
   /**
-   * @return true if the current term is a constant integer that is casted into
-   * real using the operator CAST_TO_REAL, and returns false otherwise
+   * @return True if the current term is a constant integer that is casted into
+   *         real using the operator CAST_TO_REAL, and returns false otherwise
    */
   bool isCastedReal() const;
   /**
@@ -1708,26 +1736,26 @@ class CVC5_EXPORT Term
 
 /**
  * Serialize a term to given stream.
- * @param out the output stream
- * @param t the term to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream.
+ * @param t The term to be serialized to the given output stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Term& t) CVC5_EXPORT;
 
 /**
  * Serialize a vector of terms to given stream.
- * @param out the output stream
- * @param vector the vector of terms to be serialized to the given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param vector The vector of terms to be serialized to the given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::vector<Term>& vector) CVC5_EXPORT;
 
 /**
  * Serialize a set of terms to the given stream.
- * @param out the output stream
- * @param set the set of terms to be serialized to the given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param set The set of terms to be serialized to the given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::set<Term>& set) CVC5_EXPORT;
@@ -1735,9 +1763,9 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * Serialize an unordered_set of terms to the given stream.
  *
- * @param out the output stream
- * @param unordered_set the set of terms to be serialized to the given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param unordered_set The set of terms to be serialized to the given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_set<Term>& unordered_set)
@@ -1746,9 +1774,9 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * Serialize a map of terms to the given stream.
  *
- * @param out the output stream
- * @param map the map of terms to be serialized to the given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param map The map of terms to be serialized to the given stream.
+ * @return The output stream.
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
@@ -1757,9 +1785,9 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * Serialize an unordered_map of terms to the given stream.
  *
- * @param out the output stream
- * @param unordered_map the map of terms to be serialized to the given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param unordered_map The map of terms to be serialized to the given stream.
+ * @return The output stream.
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
@@ -1808,22 +1836,22 @@ class CVC5_EXPORT DatatypeConstructorDecl
 
   /**
    * Add datatype selector declaration.
-   * @param name the name of the datatype selector declaration to add
-   * @param sort the codomain sort of the datatype selector declaration to add
+   * @param name The name of the datatype selector declaration to add.
+   * @param sort The codomain sort of the datatype selector declaration to add.
    */
   void addSelector(const std::string& name, const Sort& sort);
   /**
    * Add datatype selector declaration whose codomain type is the datatype
    * itself.
-   * @param name the name of the datatype selector declaration to add
+   * @param name The name of the datatype selector declaration to add.
    */
   void addSelectorSelf(const std::string& name);
 
   /**
    * Add datatype selector declaration whose codomain sort is an unresolved
    * datatype with the given name.
-   * @param name the name of the datatype selector declaration to add
-   * @param unresDataypeName the name of the unresolved datatype. The codomain
+   * @param name The name of the datatype selector declaration to add.
+   * @param unresDataypeName The name of the unresolved datatype. The codomain
    *                         of the selector will be the resolved datatype with
    *                         the given name.
    */
@@ -1831,21 +1859,21 @@ class CVC5_EXPORT DatatypeConstructorDecl
                              const std::string& unresDataypeName);
 
   /**
-   * @return true if this DatatypeConstructorDecl is a null declaration.
+   * @return True if this DatatypeConstructorDecl is a null declaration.
    */
   bool isNull() const;
 
   /**
-   * @return a string representation of this datatype constructor declaration
+   * @return A string representation of this datatype constructor declaration.
    */
   std::string toString() const;
 
  private:
   /**
    * Constructor.
-   * @param slv the associated solver object
-   * @param name the name of the datatype constructor
-   * @return the DatatypeConstructorDecl
+   * @param slv The associated solver object.
+   * @param name The name of the datatype constructor.
+   * @return The DatatypeConstructorDecl.
    */
   DatatypeConstructorDecl(const Solver* slv, const std::string& name);
 
@@ -1856,7 +1884,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isNullHelper() const;
 
   /**
-   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * Is the underlying constructor resolved (i.e,. has it been used to declare
    * a datatype already)?
    */
   bool isResolved() const;
@@ -1906,7 +1934,7 @@ class CVC5_EXPORT DatatypeDecl
 
   /**
    * Add datatype constructor declaration.
-   * @param ctor the datatype constructor declaration to add
+   * @param ctor The datatype constructor declaration to add.
    */
   void addConstructor(const DatatypeConstructorDecl& ctor);
 
@@ -1914,32 +1942,32 @@ class CVC5_EXPORT DatatypeDecl
   size_t getNumConstructors() const;
 
   /**
-   * Is this Datatype declaration parametric?
+   * Determine if this Datatype declaration is parametric.
    *
    * @warning This method is experimental and may change in future versions.
    */
   bool isParametric() const;
 
   /**
-   * @return true if this DatatypeDecl is a null object
+   * @return True if this DatatypeDecl is a null object.
    */
   bool isNull() const;
 
   /**
-   * @return a string representation of this datatype declaration
+   * @return A string representation of this datatype declaration.
    */
   std::string toString() const;
 
-  /** @return the name of this datatype declaration. */
+  /** @return The name of this datatype declaration. */
   std::string getName() const;
 
  private:
   /**
    * Constructor.
-   * @param slv the associated solver object
-   * @param name the name of the datatype
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
+   * @param slv The associated solver object.
+   * @param name The name of the datatype.
+   * @param isCoDatatype True if a codatatype is to be constructed.
+   * @return The DatatypeDecl.
    */
   DatatypeDecl(const Solver* slv,
                const std::string& name,
@@ -1948,10 +1976,10 @@ class CVC5_EXPORT DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv the associated solver object
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @param isCoDatatype true if a codatatype is to be constructed
+   * @param slv The associated solver object.
+   * @param name The name of the datatype.
+   * @param param The sort parameter.
+   * @param isCoDatatype True if a codatatype is to be constructed.
    */
   DatatypeDecl(const Solver* slv,
                const std::string& name,
@@ -1961,17 +1989,17 @@ class CVC5_EXPORT DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv the associated solver object
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @param isCoDatatype true if a codatatype is to be constructed
+   * @param slv The associated solver object.
+   * @param name The name of the datatype.
+   * @param params A list of sort parameters.
+   * @param isCoDatatype True if a codatatype is to be constructed.
    */
   DatatypeDecl(const Solver* slv,
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 
-  /** @return the internal wrapped Dtype of this datatype declaration. */
+  /** @return The internal wrapped Dtype of this datatype declaration. */
   internal::DType& getDatatype(void) const;
 
   /**
@@ -2014,40 +2042,50 @@ class CVC5_EXPORT DatatypeSelector
    */
   ~DatatypeSelector();
 
-  /** @return the name of this Datatype selector. */
+  /** @return The name of this Datatype selector. */
   std::string getName() const;
 
   /**
-   * Get the selector operator of this datatype selector.
-   * @return the selector term
+   * Get the selector term of this datatype selector.
+   *
+   * Selector terms are a class of function-like terms of selector
+   * sort (Sort::isDatatypeSelector()), and should be used as the first
+   * argument of Terms of kind #APPLY_SELECTOR.
+   *
+   * @return The selector term.
    */
   Term getTerm() const;
 
   /**
-   * Get the updater operator of this datatype selector.
-   * @return the updater term
+   * Get the updater term of this datatype selector.
+   *
+   * Similar to selectors, updater terms are a class of function-like terms of
+   * updater Sort (Sort::isDatatypeUpdater()), and should be used as the first
+   * argument of Terms of kind #APPLY_UPDATER.
+   *
+   * @return The updater term.
    */
   Term getUpdaterTerm() const;
 
-  /** @return the codomain sort of this selector. */
+  /** @return The codomain sort of this selector. */
   Sort getCodomainSort() const;
 
   /**
-   * @return true if this DatatypeSelector is a null object
+   * @return True if this DatatypeSelector is a null object.
    */
   bool isNull() const;
 
   /**
-   * @return a string representation of this datatype selector
+   * @return A string representation of this datatype selector.
    */
   std::string toString() const;
 
  private:
   /**
    * Constructor.
-   * @param slv the associated solver object
-   * @param stor the internal datatype selector to be wrapped
-   * @return the DatatypeSelector
+   * @param slv The associated solver object.
+   * @param stor The internal datatype selector to be wrapped.
+   * @return The DatatypeSelector.
    */
   DatatypeSelector(const Solver* slv, const internal::DTypeSelector& stor);
 
@@ -2089,20 +2127,34 @@ class CVC5_EXPORT DatatypeConstructor
    */
   ~DatatypeConstructor();
 
-  /** @return the name of this Datatype constructor. */
+  /** @return The name of this Datatype constructor. */
   std::string getName() const;
 
   /**
-   * Get the constructor operator of this datatype constructor.
-   * @return the constructor term
+   * Get the constructor term of this datatype constructor.
+   *
+   * Datatype constructors are a special class of function-like terms whose sort
+   * is datatype constructor (Sort::isDatatypeConstructor()). All datatype
+   * constructors, including nullary ones, should be used as the
+   * first argument to Terms whose kind is #APPLY_CONSTRUCTOR. For example,
+   * the nil list can be constructed by
+   * `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`, where `t` is the term returned
+   * by this method.
+   *
+   * @note This method should not be used for parametric datatypes. Instead,
+   *       use the method DatatypeConstructor::getInstantiatedTerm() below.
+   *
+   * @return The constructor term.
    */
   Term getTerm() const;
 
   /**
-   * Get the constructor operator of this datatype constructor whose return
-   * type is retSort. This method is intended to be used on constructors of
-   * parametric datatypes and can be seen as returning the constructor
-   * term that has been explicitly cast to the given sort.
+   * Get the constructor term of this datatype constructor whose return
+   * type is `retSort`.
+   *
+   * This method is intended to be used on constructors of parametric datatypes
+   * and can be seen as returning the constructor term that has been explicitly
+   * cast to the given sort.
    *
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
@@ -2124,57 +2176,62 @@ class CVC5_EXPORT DatatypeConstructor
    * \endverbatim
    *
    * This method is equivalent of applying the above, where this
-   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * DatatypeConstructor is the one corresponding to `nil`, and `retSort` is
    * `(List Int)`.
    *
-   * @note the returned constructor term `t` is an operator, while
-   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
-   *       above (nullary) application of nil.
+   * @note The returned constructor term `t` is used to construct the above
+   *       (nullary) application of `nil` with
+   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`.
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param retSort the desired return sort of the constructor
-   * @return the constructor term
+   * @param retSort The desired return sort of the constructor.
+   * @return The constructor term.
    */
-  Term getInstantiatedConstructorTerm(const Sort& retSort) const;
+  Term getInstantiatedTerm(const Sort& retSort) const;
 
   /**
-   * Get the tester operator of this datatype constructor.
-   * @return the tester operator
+   * Get the tester term of this datatype constructor.
+   *
+   * Similar to constructors, testers are a class of function-like terms of
+   * tester sort (Sort::isDatatypeConstructor()) which should be used as the
+   * first argument of Terms of kind #APPLY_TESTER.
+   *
+   * @return The tester term.
    */
   Term getTesterTerm() const;
 
   /**
-   * @return the number of selectors (so far) of this Datatype constructor.
+   * @return The number of selectors (so far) of this Datatype constructor.
    */
   size_t getNumSelectors() const;
 
-  /** @return the i^th DatatypeSelector. */
+  /** @return The i^th DatatypeSelector. */
   DatatypeSelector operator[](size_t index) const;
   /**
    * Get the datatype selector with the given name.
    * This is a linear search through the selectors, so in case of
    * multiple, similarly-named selectors, the first is returned.
-   * @param name the name of the datatype selector
-   * @return the first datatype selector with the given name
+   * @param name The name of the datatype selector.
+   * @return The first datatype selector with the given name.
    */
   DatatypeSelector operator[](const std::string& name) const;
   /**
    * Get the datatype selector with the given name.
    * This is a linear search through the selectors, so in case of
    * multiple, similarly-named selectors, the first is returned.
-   * @param name the name of the datatype selector
-   * @return the first datatype selector with the given name
+   * @param name The name of the datatype selector.
+   * @return The first datatype selector with the given name.
    */
   DatatypeSelector getSelector(const std::string& name) const;
 
   /**
-   * @return true if this DatatypeConstructor is a null object
+   * @return True if this DatatypeConstructor is a null object.
    */
   bool isNull() const;
 
   /**
-   * @return a string representation of this datatype constructor
+   * @return A string representation of this datatype constructor.
    */
   std::string toString() const;
 
@@ -2210,55 +2267,55 @@ class CVC5_EXPORT DatatypeConstructor
 
     /**
      * Assignment operator.
-     * @param it the iterator to assign to
-     * @return the reference to the iterator after assignment
+     * @param it The iterator to assign to.
+     * @return The reference to the iterator after assignment.
      */
     const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
-     * @param it the iterator to compare to for equality
-     * @return true if the iterators are equal
+     * @param it The iterator to compare to for equality.
+     * @return True if the iterators are equal.
      */
     bool operator==(const const_iterator& it) const;
 
     /**
      * Disequality operator.
-     * @param it the iterator to compare to for disequality
-     * @return true if the iterators are disequal
+     * @param it The iterator to compare to for disequality.
+     * @return True if the iterators are disequal.
      */
     bool operator!=(const const_iterator& it) const;
 
     /**
      * Increment operator (prefix).
-     * @return a reference to the iterator after incrementing by one
+     * @return A reference to the iterator after incrementing by one.
      */
     const_iterator& operator++();
 
     /**
      * Increment operator (postfix).
-     * @return a reference to the iterator after incrementing by one
+     * @return A reference to the iterator after incrementing by one.
      */
     const_iterator operator++(int);
 
     /**
      * Dereference operator.
-     * @return a reference to the selector this iterator points to
+     * @return A reference to the selector this iterator points to.
      */
     const DatatypeSelector& operator*() const;
 
     /**
      * Dereference operator.
-     * @return a pointer to the selector this iterator points to
+     * @return A pointer to the selector this iterator points to.
      */
     const DatatypeSelector* operator->() const;
 
    private:
     /**
      * Constructor.
-     * @param slv the associated Solver object
-     * @param ctor the internal datatype constructor to iterate over
-     * @param begin true if this is a begin() iterator
+     * @param slv The associated Solver object.
+     * @param ctor The internal datatype constructor to iterate over.
+     * @param begin True if this is a `begin()` iterator.
      */
     const_iterator(const Solver* slv,
                    const internal::DTypeConstructor& ctor,
@@ -2284,29 +2341,29 @@ class CVC5_EXPORT DatatypeConstructor
   };
 
   /**
-   * @return an iterator to the first selector of this constructor
+   * @return An iterator to the first selector of this constructor.
    */
   const_iterator begin() const;
 
   /**
-   * @return an iterator to one-off-the-last selector of this constructor
+   * @return An iterator to one-off-the-last selector of this constructor.
    */
   const_iterator end() const;
 
  private:
   /**
    * Constructor.
-   * @param slv the associated solver instance
-   * @param ctor the internal datatype constructor to be wrapped
-   * @return the DatatypeConstructor
+   * @param slv The associated solver instance.
+   * @param ctor The internal datatype constructor to be wrapped.
+   * @return The DatatypeConstructor.
    */
   DatatypeConstructor(const Solver* slv,
                       const internal::DTypeConstructor& ctor);
 
   /**
    * Return selector for name.
-   * @param name The name of selector to find
-   * @return the selector object for the name
+   * @param name The name of selector to find.
+   * @return The selector object for the name.
    */
   DatatypeSelector getSelectorForName(const std::string& name) const;
 
@@ -2348,8 +2405,8 @@ class CVC5_EXPORT Datatype
 
   /**
    * Get the datatype constructor at a given index.
-   * @param idx the index of the datatype constructor to return
-   * @return the datatype constructor with the given index
+   * @param idx The index of the datatype constructor to return.
+   * @return The datatype constructor with the given index.
    */
   DatatypeConstructor operator[](size_t idx) const;
 
@@ -2357,8 +2414,8 @@ class CVC5_EXPORT Datatype
    * Get the datatype constructor with the given name.
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the first is returned.
-   * @param name the name of the datatype constructor
-   * @return the datatype constructor with the given name
+   * @param name The name of the datatype constructor.
+   * @return The datatype constructor with the given name.
    */
   DatatypeConstructor operator[](const std::string& name) const;
   DatatypeConstructor getConstructor(const std::string& name) const;
@@ -2367,62 +2424,66 @@ class CVC5_EXPORT Datatype
    * Get the datatype constructor with the given name.
    * This is a linear search through the constructors and their selectors, so
    * in case of multiple, similarly-named selectors, the first is returned.
-   * @param name the name of the datatype selector
-   * @return the datatype selector with the given name
+   * @param name The name of the datatype selector.
+   * @return The datatype selector with the given name.
    */
   DatatypeSelector getSelector(const std::string& name) const;
 
-  /** @return the name of this Datatype. */
+  /** @return The name of this Datatype. */
   std::string getName() const;
 
-  /** @return the number of constructors for this Datatype. */
+  /** @return The number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
   /**
+   * Get the parameters of this datatype, if it is parametric.
+   *
+   * @note Asserts that this datatype is parametric.
+   *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return the parameters of this datatype, if it is parametric. An exception
-   * is thrown if this datatype is not parametric.
+   * @return The parameters of this datatype.
    */
   std::vector<Sort> getParameters() const;
 
   /**
    * @warning This method is experimental and may change in future versions.
-   * @return true if this datatype is parametric
+   * @return True if this datatype is parametric.
    */
   bool isParametric() const;
 
-  /** @return true if this datatype corresponds to a co-datatype */
+  /** @return True if this datatype corresponds to a co-datatype */
   bool isCodatatype() const;
 
-  /** @return true if this datatype corresponds to a tuple */
+  /** @return True if this datatype corresponds to a tuple */
   bool isTuple() const;
 
   /**
    * @warning This method is experimental and may change in future versions.
-   * @return true if this datatype corresponds to a record
+   * @return True if this datatype corresponds to a record.
    */
   bool isRecord() const;
 
-  /** @return true if this datatype is finite */
+  /** @return True if this datatype is finite */
   bool isFinite() const;
 
   /**
-   * Is this datatype well-founded? If this datatype is not a codatatype,
-   * this returns false if there are no values of this datatype that are of
-   * finite size.
+   * Determine if this datatype is well-founded.
    *
-   * @return true if this datatype is well-founded
+   * If this datatype is not a codatatype, this returns false if there are no
+   * values of this datatype that are of finite size.
+   *
+   * @return True if this datatype is well-founded.
    */
   bool isWellFounded() const;
 
   /**
-   * @return true if this Datatype is a null object
+   * @return True if this Datatype is a null object.
    */
   bool isNull() const;
 
   /**
-   * @return a string representation of this datatype
+   * @return A string representation of this datatype.
    */
   std::string toString() const;
 
@@ -2458,55 +2519,55 @@ class CVC5_EXPORT Datatype
 
     /**
      * Assignment operator.
-     * @param it the iterator to assign to
-     * @return the reference to the iterator after assignment
+     * @param it The iterator to assign to.
+     * @return The reference to the iterator after assignment.
      */
     const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
-     * @param it the iterator to compare to for equality
-     * @return true if the iterators are equal
+     * @param it The iterator to compare to for equality.
+     * @return True if the iterators are equal.
      */
     bool operator==(const const_iterator& it) const;
 
     /**
      * Disequality operator.
-     * @param it the iterator to compare to for disequality
-     * @return true if the iterators are disequal
+     * @param it The iterator to compare to for disequality.
+     * @return True if the iterators are disequal.
      */
     bool operator!=(const const_iterator& it) const;
 
     /**
      * Increment operator (prefix).
-     * @return a reference to the iterator after incrementing by one
+     * @return A reference to the iterator after incrementing by one.
      */
     const_iterator& operator++();
 
     /**
      * Increment operator (postfix).
-     * @return a reference to the iterator after incrementing by one
+     * @return A reference to the iterator after incrementing by one.
      */
     const_iterator operator++(int);
 
     /**
      * Dereference operator.
-     * @return a reference to the constructor this iterator points to
+     * @return A reference to the constructor this iterator points to.
      */
     const DatatypeConstructor& operator*() const;
 
     /**
      * Dereference operator.
-     * @return a pointer to the constructor this iterator points to
+     * @return A pointer to the constructor this iterator points to.
      */
     const DatatypeConstructor* operator->() const;
 
    private:
     /**
      * Constructor.
-     * @param slv the associated Solver object
-     * @param dtype the internal datatype to iterate over
-     * @param begin true if this is a begin() iterator
+     * @param slv The associated Solver object.
+     * @param dtype The internal datatype to iterate over.
+     * @param begin True if this is a begin() iterator.
      */
     const_iterator(const Solver* slv, const internal::DType& dtype, bool begin);
 
@@ -2530,35 +2591,35 @@ class CVC5_EXPORT Datatype
   };
 
   /**
-   * @return an iterator to the first constructor of this datatype
+   * @return An iterator to the first constructor of this datatype.
    */
   const_iterator begin() const;
 
   /**
-   * @return an iterator to one-off-the-last constructor of this datatype
+   * @return An iterator to one-off-the-last constructor of this datatype.
    */
   const_iterator end() const;
 
  private:
   /**
    * Constructor.
-   * @param slv the associated solver instance
-   * @param dtype the internal datatype to be wrapped
-   * @return the Datatype
+   * @param slv The associated solver instance.
+   * @param dtype The internal datatype to be wrapped.
+   * @return The Datatype.
    */
   Datatype(const Solver* slv, const internal::DType& dtype);
 
   /**
    * Return constructor for name.
-   * @param name The name of constructor to find
-   * @return the constructor object for the name
+   * @param name The name of constructor to find.
+   * @return The constructor object for the name.
    */
   DatatypeConstructor getConstructorForName(const std::string& name) const;
 
   /**
    * Return selector for name.
-   * @param name The name of selector to find
-   * @return the selector object for the name
+   * @param name The name of selector to find.
+   * @return The selector object for the name.
    */
   DatatypeSelector getSelectorForName(const std::string& name) const;
 
@@ -2583,28 +2644,28 @@ class CVC5_EXPORT Datatype
 
 /**
  * Serialize a datatype declaration to given stream.
- * @param out the output stream
- * @param dtdecl the datatype declaration to be serialized to the given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param dtdecl The datatype declaration to be serialized to the given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeDecl& dtdecl) CVC5_EXPORT;
 
 /**
  * Serialize a datatype constructor declaration to given stream.
- * @param out the output stream
- * @param ctordecl the datatype constructor declaration to be serialized
- * @return the output stream
+ * @param out The output stream.
+ * @param ctordecl The datatype constructor declaration to be serialized.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructorDecl& ctordecl) CVC5_EXPORT;
 
 /**
  * Serialize a vector of datatype constructor declarations to given stream.
- * @param out the output stream
- * @param vector the vector of datatype constructor declarations to be
+ * @param out The output stream.
+ * @param vector The vector of datatype constructor declarations to be.
  * serialized to the given stream
- * @return the output stream
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::vector<DatatypeConstructorDecl>& vector)
@@ -2612,26 +2673,26 @@ std::ostream& operator<<(std::ostream& out,
 
 /**
  * Serialize a datatype to given stream.
- * @param out the output stream
- * @param dtype the datatype to be serialized to given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param dtype The datatype to be serialized to given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC5_EXPORT;
 
 /**
  * Serialize a datatype constructor to given stream.
- * @param out the output stream
- * @param ctor the datatype constructor to be serialized to given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param ctor The datatype constructor to be serialized to given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructor& ctor) CVC5_EXPORT;
 
 /**
  * Serialize a datatype selector to given stream.
- * @param out the output stream
- * @param stor the datatype selector to be serialized to given stream
- * @return the output stream
+ * @param out The output stream.
+ * @param stor The datatype selector to be serialized to given stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelector& stor) CVC5_EXPORT;
@@ -2653,33 +2714,33 @@ class CVC5_EXPORT Grammar
  public:
   /**
    * Add \p rule to the set of rules corresponding to \p ntSymbol.
-   * @param ntSymbol the non-terminal to which the rule is added
-   * @param rule the rule to add
+   * @param ntSymbol The non-terminal to which the rule is added.
+   * @param rule The rule to add.
    */
   void addRule(const Term& ntSymbol, const Term& rule);
 
   /**
    * Add \p rules to the set of rules corresponding to \p ntSymbol.
-   * @param ntSymbol the non-terminal to which the rules are added
-   * @param rules the rules to add
+   * @param ntSymbol The non-terminal to which the rules are added.
+   * @param rules The rules to add.
    */
   void addRules(const Term& ntSymbol, const std::vector<Term>& rules);
 
   /**
    * Allow \p ntSymbol to be an arbitrary constant.
-   * @param ntSymbol the non-terminal allowed to be any constant
+   * @param ntSymbol The non-terminal allowed to be any constant.
    */
   void addAnyConstant(const Term& ntSymbol);
 
   /**
    * Allow \p ntSymbol to be any input variable to corresponding
    * synth-fun/synth-inv with the same sort as \p ntSymbol.
-   * @param ntSymbol the non-terminal allowed to be any input variable
+   * @param ntSymbol The non-terminal allowed to be any input variable.
    */
   void addAnyVariable(const Term& ntSymbol);
 
   /**
-   * @return a string representation of this grammar.
+   * @return A string representation of this grammar.
    */
   std::string toString() const;
 
@@ -2691,16 +2752,16 @@ class CVC5_EXPORT Grammar
  private:
   /**
    * Constructor.
-   * @param slv the solver that created this grammar
-   * @param sygusVars the input variables to synth-fun/synth-var
-   * @param ntSymbols the non-terminals of this grammar
+   * @param slv The solver that created this grammar.
+   * @param sygusVars The input variables to synth-fun/synth-var.
+   * @param ntSymbols The non-terminals of this grammar.
    */
   Grammar(const Solver* slv,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
   /**
-   * @return the resolved datatype of the Start symbol of the grammar
+   * @return The resolved datatype of the Start symbol of the grammar.
    */
   Sort resolve();
 
@@ -2717,9 +2778,9 @@ class CVC5_EXPORT Grammar
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
-   * @param dt the non-terminal's datatype to which a constructor is added
-   * @param term the sygus operator of the constructor
-   * @param ntsToUnres mapping from non-terminals to their unresolved sorts
+   * @param dt The non-terminal's datatype to which a constructor is added.
+   * @param term The sygus operator of the constructor.
+   * @param ntsToUnres Mapping from non-terminals to their unresolved sorts.
    */
   void addSygusConstructorTerm(
       DatatypeDecl& dt,
@@ -2738,11 +2799,11 @@ class CVC5_EXPORT Grammar
    * (which should be bound by a lambda), and \p cargs contains the sorts of
    * the arguments of the sygus constructor.
    *
-   * @param term the term to purify
-   * @param args the free variables in the term returned by this method
-   * @param cargs the sorts of the arguments of the sygus constructor
-   * @param ntsToUnres mapping from non-terminals to their unresolved sorts
-   * @return the purfied term
+   * @param term The term to purify.
+   * @param args The free variables in the term returned by this method.
+   * @param cargs The sorts of the arguments of the sygus constructor.
+   * @param ntsToUnres Mapping from non-terminals to their unresolved sorts.
+   * @return The purfied term.
    */
   Term purifySygusGTerm(const Term& term,
                         std::vector<Term>& args,
@@ -2754,16 +2815,16 @@ class CVC5_EXPORT Grammar
    * whose sort is argument \p sort. This method should be called when the
    * sygus grammar term (Variable sort) is encountered.
    *
-   * @param dt the non-terminal's datatype to which the constructors are added
-   * @param sort the sort of the sygus variables to add
+   * @param dt The non-terminal's datatype to which the constructors are added.
+   * @param sort The sort of the sygus variables to add.
    */
   void addSygusConstructorVariables(DatatypeDecl& dt, const Sort& sort) const;
 
   /**
    * Check if \p rule contains variables that are neither parameters of
    * the corresponding synthFun/synthInv nor non-terminals.
-   * @param rule the non-terminal allowed to be any constant
-   * @return true if \p rule contains free variables and false otherwise
+   * @param rule The non-terminal allowed to be any constant.
+   * @return True if \p rule contains free variables and false otherwise.
    */
   bool containsFreeVariables(const Term& rule) const;
 
@@ -2785,9 +2846,9 @@ class CVC5_EXPORT Grammar
 
 /**
  * Serialize a grammar to given stream.
- * @param out the output stream
- * @param g the grammar to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream.
+ * @param g The grammar to be serialized to the given output stream.
+ * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
 
@@ -2918,23 +2979,35 @@ struct CVC5_EXPORT OptionInfo
                                          ModeInfo>;
   /** The option value information */
   OptionInfoVariant valueInfo;
-  /** Obtain the current value as a `bool`. Asserts that `valueInfo` holds a
-   * `bool`.
+  /**
+   * Get the current value as a `bool`.
+   * @note Asserts that `valueInfo` holds a `bool`.
+   * @return The current value as a `bool`.
    */
   bool boolValue() const;
-  /** Obtain the current value as a `std::string`. Asserts that `valueInfo`
-   * holds a `std::string`. */
+  /**
+   * Get the current value as a `std::string`.
+   * @note Asserts that `valueInfo` holds a `std::string`.
+   * @return The current value as a `std::string`.
+   */
   std::string stringValue() const;
-  /** Obtain the current value as an `int64_t`. Asserts that `valueInfo` holds
-   * an `int64_t`.
+  /**
+   * Get the current value as an `int64_t`.
+   * @note Asserts that `valueInfo` holds an `int64_t`.
+   * @return The current value as a `int64_t`.
    */
   int64_t intValue() const;
-  /** Obtain the current value as a `uint64_t`. Asserts that `valueInfo` holds a
-   * `uint64_t`.
+  /**
+   * Get the current value as a `uint64_t`.
+   * @note Asserts that `valueInfo` holds a `uint64_t`.
+   * @return The current value as a `uint64_t`.
    */
   uint64_t uintValue() const;
-  /** Obtain the current value as a `double`. Asserts that `valueInfo` holds a
-   * `double`. */
+  /**
+   * Obtain the current value as a `double`.
+   * @note Asserts that `valueInfo` holds a `double`.
+   * @return The current value as a `double`.
+   */
   double doubleValue() const;
 };
 
@@ -2984,19 +3057,19 @@ class CVC5_EXPORT Stat
   Stat& operator=(const Stat& s);
 
   /**
-   * Is this value intended for internal use only?
-   * @return Whether this is an internal statistic.
+   * Determine if this value is intended for internal use only.
+   * @return True if this is an internal statistic.
    */
   bool isInternal() const;
   /**
-   * Does this value hold the default value?
-   * @return Whether this is a defaulted statistic.
+   * Determine if this value holds the default value.
+   * @return True if this is a defaulted statistic.
    */
   bool isDefault() const;
 
   /**
-   * Is this value an integer?
-   * @return Whether the value is an integer.
+   * Determine if  this value is an integer.
+   * @return True if this value is an integer.
    */
   bool isInt() const;
   /**
@@ -3005,8 +3078,8 @@ class CVC5_EXPORT Stat
    */
   int64_t getInt() const;
   /**
-   * Is this value a double?
-   * @return Whether the value is a double.
+   * Determine if this value is a double.
+   * @return True if this value is a double.
    */
   bool isDouble() const;
   /**
@@ -3015,8 +3088,8 @@ class CVC5_EXPORT Stat
    */
   double getDouble() const;
   /**
-   * Is this value a string?
-   * @return Whether the value is a string.
+   * Determine if this value is a string.
+   * @return True if this value is a string.
    */
   bool isString() const;
   /**
@@ -3025,8 +3098,8 @@ class CVC5_EXPORT Stat
    */
   const std::string& getString() const;
   /**
-   * Is this value a histogram?
-   * @return Whether the value is a histogram.
+   * Determine if this value is a histogram.
+   * @return True if this value is a histogram.
    */
   bool isHistogram() const;
   /**
@@ -3103,9 +3176,9 @@ class CVC5_EXPORT Statistics
 
   /**
    * Retrieve the statistic with the given name.
-   * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC5ApiRecoverableException` if it does not.
-   * @param name Name of the statistic.
+   * @note Asserts that a statistic with the given name actually exists and
+   *       throws a CVC5ApiRecoverableException if it does not.
+   * @param name The name of the statistic.
    * @return The statistic with the given name.
    */
   const Stat& get(const std::string& name);
@@ -3164,7 +3237,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @return the Solver
+   * @return The Solver.
    */
   Solver();
 
@@ -3184,66 +3257,66 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * @return sort null
+   * @return Sort null.
    */
   Sort getNullSort() const;
 
   /**
-   * @return sort Boolean
+   * @return Sort Boolean.
    */
   Sort getBooleanSort() const;
 
   /**
-   * @return sort Integer (in cvc5, Integer is a subtype of Real)
+   * @return Sort Integer.
    */
   Sort getIntegerSort() const;
 
   /**
-   * @return sort Real
+   * @return Sort Real.
    */
   Sort getRealSort() const;
 
   /**
-   * @return sort RegExp
+   * @return Sort RegExp.
    */
   Sort getRegExpSort() const;
 
   /**
-   * @return sort RoundingMode
+   * @return Sort RoundingMode.
    */
   Sort getRoundingModeSort() const;
 
   /**
-   * @return sort String
+   * @return Sort String.
    */
   Sort getStringSort() const;
 
   /**
    * Create an array sort.
-   * @param indexSort the array index sort
-   * @param elemSort the array element sort
-   * @return the array sort
+   * @param indexSort The array index sort.
+   * @param elemSort The array element sort.
+   * @return The array sort.
    */
   Sort mkArraySort(const Sort& indexSort, const Sort& elemSort) const;
 
   /**
    * Create a bit-vector sort.
-   * @param size the bit-width of the bit-vector sort
-   * @return the bit-vector sort
+   * @param size The bit-width of the bit-vector sort.
+   * @return The bit-vector sort.
    */
   Sort mkBitVectorSort(uint32_t size) const;
 
   /**
    * Create a floating-point sort.
-   * @param exp the bit-width of the exponent of the floating-point sort.
-   * @param sig the bit-width of the significand of the floating-point sort.
+   * @param exp The bit-width of the exponent of the floating-point sort.
+   * @param sig The bit-width of the significand of the floating-point sort.
    */
   Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a datatype sort.
-   * @param dtypedecl the datatype declaration from which the sort is created
-   * @return the datatype sort
+   * @param dtypedecl The datatype declaration from which the sort is created.
+   * @return The datatype sort.
    */
   Sort mkDatatypeSort(const DatatypeDecl& dtypedecl) const;
 
@@ -3251,17 +3324,17 @@ class CVC5_EXPORT Solver
    * Create a vector of datatype sorts. The names of the datatype declarations
    * must be distinct.
    *
-   * @param dtypedecls the datatype declarations from which the sort is created
-   * @return the datatype sorts
+   * @param dtypedecls The datatype declarations from which the sort is created.
+   * @return The datatype sorts.
    */
   std::vector<Sort> mkDatatypeSorts(
       const std::vector<DatatypeDecl>& dtypedecls) const;
 
   /**
    * Create function sort.
-   * @param sorts the sort of the function arguments
-   * @param codomain the sort of the function return value
-   * @return the function sort
+   * @param sorts The sort of the function arguments.
+   * @param codomain The sort of the function return value.
+   * @return The function sort.
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts,
                       const Sort& codomain) const;
@@ -3271,8 +3344,8 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param symbol the name of the sort
-   * @return the sort parameter
+   * @param symbol The name of the sort.
+   * @return The sort parameter.
    */
   Sort mkParamSort(
       const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3282,8 +3355,8 @@ class CVC5_EXPORT Solver
    *
    * This is equivalent to calling mkFunctionSort() with the Boolean sort as the
    * codomain.
-   * @param sorts the list of sorts of the predicate
-   * @return the predicate sort
+   * @param sorts The list of sorts of the predicate.
+   * @return The predicate sort.
    */
   Sort mkPredicateSort(const std::vector<Sort>& sorts) const;
 
@@ -3292,37 +3365,37 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param fields the list of fields of the record
-   * @return the record sort
+   * @param fields The list of fields of the record.
+   * @return The record sort.
    */
   Sort mkRecordSort(
       const std::vector<std::pair<std::string, Sort>>& fields) const;
 
   /**
    * Create a set sort.
-   * @param elemSort the sort of the set elements
-   * @return the set sort
+   * @param elemSort The sort of the set elements.
+   * @return The set sort.
    */
   Sort mkSetSort(const Sort& elemSort) const;
 
   /**
    * Create a bag sort.
-   * @param elemSort the sort of the bag elements
-   * @return the bag sort
+   * @param elemSort The sort of the bag elements.
+   * @return The bag sort.
    */
   Sort mkBagSort(const Sort& elemSort) const;
 
   /**
    * Create a sequence sort.
-   * @param elemSort the sort of the sequence elements
-   * @return the sequence sort
+   * @param elemSort The sort of the sequence elements.
+   * @return The sequence sort.
    */
   Sort mkSequenceSort(const Sort& elemSort) const;
 
   /**
    * Create an uninterpreted sort.
-   * @param symbol the name of the sort
-   * @return the uninterpreted sort
+   * @param symbol The name of the sort.
+   * @return The uninterpreted sort.
    */
   Sort mkUninterpretedSort(
       const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3333,9 +3406,9 @@ class CVC5_EXPORT Solver
    * This is for creating yet unresolved sort placeholders for mutually
    * recursive parametric datatypes.
    *
-   * @param symbol the symbol of the sort
-   * @param arity the number of sort parameters of the sort
-   * @return the unresolved sort
+   * @param symbol The symbol of the sort.
+   * @param arity The number of sort parameters of the sort.
+   * @return The unresolved sort.
    *
    * @warning This method is experimental and may change in future versions.
    */
@@ -3347,9 +3420,9 @@ class CVC5_EXPORT Solver
    *
    * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
    *
-   * @param symbol the symbol of the sort
-   * @param arity the arity of the sort (must be > 0)
-   * @return the uninterpreted sort constructor sort
+   * @param symbol The symbol of the sort.
+   * @param arity The arity of the sort (must be > 0)
+   * @return The uninterpreted sort constructor sort.
    */
   Sort mkUninterpretedSortConstructorSort(
       size_t arity,
@@ -3357,8 +3430,8 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a tuple sort.
-   * @param sorts of the elements of the tuple
-   * @return the tuple sort
+   * @param sorts Of the elements of the tuple.
+   * @return The tuple sort.
    */
   Sort mkTupleSort(const std::vector<Sort>& sorts) const;
 
@@ -3368,26 +3441,26 @@ class CVC5_EXPORT Solver
 
   /**
    * Create n-ary term of given kind.
-   * @param kind the kind of the term
-   * @param children the children of the term
-   * @return the Term */
+   * @param kind The kind of the term.
+   * @param children The children of the term.
+   * @return The Term */
   Term mkTerm(Kind kind, const std::vector<Term>& children = {}) const;
 
   /**
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param op the operator
-   * @param children the children of the term
-   * @return the Term
+   * @param op The operator.
+   * @param children The children of the term.
+   * @return The Term.
    */
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
    * compatible.
-   * @param sorts The sorts of the elements in the tuple
-   * @param terms The elements in the tuple
-   * @return the tuple Term
+   * @param sorts The sorts of the elements in the tuple.
+   * @param terms The elements in the tuple.
+   * @return The tuple Term.
    */
   Term mkTuple(const std::vector<Sort>& sorts,
                const std::vector<Term>& terms) const;
@@ -3416,8 +3489,8 @@ class CVC5_EXPORT Solver
    *   - #TUPLE_PROJECT
    *
    * See cvc5::Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param args the arguments (indices) of the operator
+   * @param kind The kind of the operator.
+   * @param args The arguments (indices) of the operator.
    *
    * @note If ``args`` is empty, the Op simply wraps the cvc5::Kind.  The
    * Kind can be used in Solver::mkTerm directly without creating an Op
@@ -3435,8 +3508,8 @@ class CVC5_EXPORT Solver
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
    * See cvc5::Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the string argument to this operator
+   * @param kind The kind of the operator.
+   * @param arg The string argument to this operator.
    */
   Op mkOp(Kind kind, const std::string& arg) const;
 
@@ -3446,95 +3519,95 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a Boolean true constant.
-   * @return the true constant
+   * @return The true constant.
    */
   Term mkTrue() const;
 
   /**
    * Create a Boolean false constant.
-   * @return the false constant
+   * @return The false constant.
    */
   Term mkFalse() const;
 
   /**
    * Create a Boolean constant.
-   * @return the Boolean constant
-   * @param val the value of the constant
+   * @return The Boolean constant.
+   * @param val The value of the constant.
    */
   Term mkBoolean(bool val) const;
 
   /**
    * Create a constant representing the number Pi.
-   * @return a constant representing Pi
+   * @return A constant representing Pi.
    */
   Term mkPi() const;
   /**
    * Create an integer constant from a string.
-   * @param s the string representation of the constant, may represent an
+   * @param s The string representation of the constant, may represent an
    *          integer (e.g., "123").
-   * @return a constant of sort Integer assuming 's' represents an integer)
+   * @return A constant of sort Integer assuming 's' represents an integer)
    */
   Term mkInteger(const std::string& s) const;
 
   /**
    * Create an integer constant from a c++ int.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
+   * @param val The value of the constant.
+   * @return A constant of sort Integer.
    */
   Term mkInteger(int64_t val) const;
 
   /**
    * Create a real constant from a string.
-   * @param s the string representation of the constant, may represent an
+   * @param s The string representation of the constant, may represent an
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real
+   * @return A constant of sort Real.
    */
   Term mkReal(const std::string& s) const;
 
   /**
    * Create a real constant from an integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
+   * @param val The value of the constant.
+   * @return A constant of sort Integer.
    */
   Term mkReal(int64_t val) const;
 
   /**
    * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real
+   * @param num The value of the numerator.
+   * @param den The value of the denominator.
+   * @return A constant of sort Real.
    */
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
    * Create a regular expression all (re.all) term.
-   * @return the all term
+   * @return The all term.
    */
   Term mkRegexpAll() const;
 
   /**
    * Create a regular expression allchar (re.allchar) term.
-   * @return the allchar term
+   * @return The allchar term.
    */
   Term mkRegexpAllchar() const;
 
   /**
    * Create a regular expression none (re.none) term.
-   * @return the none term
+   * @return The none term.
    */
   Term mkRegexpNone() const;
 
   /**
    * Create a constant representing an empty set of the given sort.
-   * @param sort the sort of the set elements.
-   * @return the empty set constant
+   * @param sort The sort of the set elements.
+   * @return The empty set constant.
    */
   Term mkEmptySet(const Sort& sort) const;
 
   /**
    * Create a constant representing an empty bag of the given sort.
-   * @param sort the sort of the bag elements.
-   * @return the empty bag constant
+   * @param sort The sort of the bag elements.
+   * @return The empty bag constant.
    */
   Term mkEmptyBag(const Sort& sort) const;
 
@@ -3543,7 +3616,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return the separation logic empty term
+   * @return The separation logic empty term.
    */
   Term mkSepEmp() const;
 
@@ -3552,18 +3625,18 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param sort the sort of the nil term
-   * @return the separation logic nil term
+   * @param sort The sort of the nil term.
+   * @return The separation logic nil term.
    */
   Term mkSepNil(const Sort& sort) const;
 
   /**
    * Create a String constant from a `std::string` which may contain SMT-LIB
    * compatible escape sequences like `\u1234` to encode unicode characters.
-   * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in `s` should
+   * @param s The string this constant represents.
+   * @param useEscSequences Determines whether escape sequences in `s` should.
    * be converted to the corresponding unicode character
-   * @return the String constant
+   * @return The String constant.
    */
   Term mkString(const std::string& s, bool useEscSequences = false) const;
 
@@ -3571,22 +3644,22 @@ class CVC5_EXPORT Solver
    * Create a String constant from a `std::wstring`.
    * This method does not support escape sequences as `std::wstring` already
    * supports unicode characters.
-   * @param s the string this constant represents
-   * @return the String constant
+   * @param s The string this constant represents.
+   * @return The String constant.
    */
   Term mkString(const std::wstring& s) const;
 
   /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
-   * @return the empty sequence with given element sort.
+   * @return The empty sequence with given element sort.
    */
   Term mkEmptySequence(const Sort& sort) const;
 
   /**
    * Create a universe set of the given sort.
-   * @param sort the sort of the set elements
-   * @return the universe set constant
+   * @param sort The sort of the set elements.
+   * @return The universe set constant.
    */
   Term mkUniverseSet(const Sort& sort) const;
 
@@ -3595,9 +3668,9 @@ class CVC5_EXPORT Solver
    *
    * @note The given value must fit into a bit-vector of the given size.
    *
-   * @param size the bit-width of the bit-vector sort
-   * @param val the value of the constant
-   * @return the bit-vector constant
+   * @param size The bit-width of the bit-vector sort.
+   * @param val The value of the constant.
+   * @return The bit-vector constant.
    */
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
@@ -3607,73 +3680,74 @@ class CVC5_EXPORT Solver
    *
    * @note The given value must fit into a bit-vector of the given size.
    *
-   * @param size the bit-width of the constant
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
+   * @param size The bit-width of the constant.
+   * @param s The string representation of the constant.
+   * @param base The base of the string representation (2, 10, or 16)
+   * @return The bit-vector constant.
    */
   Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
    * index
-   * @param sort the sort of the constant array (must be an array sort)
-   * @param val the constant value to store (must match the sort's element sort)
-   * @return the constant array term
+   * @param sort The sort of the constant array (must be an array sort).
+   * @param val The constant value to store (must match the sort's element
+   *            sort).
+   * @return The constant array term.
    */
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    */
   Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    */
   Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * Create a not-a-number floating-point constant (SMT-LIB: `NaN`).
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    */
   Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * Create a positive zero floating-point constant (SMT-LIB: +zero).
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    */
   Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant.
-   * @param exp Number of bits in the exponent
-   * @param sig Number of bits in the significand
-   * @return the floating-point constant
+   * Create a negative zero floating-point constant (SMT-LIB: -zero).
+   * @param exp Number of bits in the exponent.
+   * @param sig Number of bits in the significand.
+   * @return The floating-point constant.
    */
   Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a roundingmode constant.
-   * @param rm the floating point rounding mode this constant represents
+   * Create a rounding mode constant.
+   * @param rm The floating point rounding mode this constant represents.
    */
   Term mkRoundingMode(RoundingMode rm) const;
 
   /**
    * Create a floating-point constant.
-   * @param exp Size of the exponent
-   * @param sig Size of the significand
-   * @param val Value of the floating-point constant as a bit-vector term
+   * @param exp Size of the exponent.
+   * @param sig Size of the significand.
+   * @param val Value of the floating-point constant as a bit-vector term.
    */
   Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
 
@@ -3682,9 +3756,9 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param sort the sort the cardinality constraint is for
-   * @param upperBound the upper bound on the cardinality of the sort
-   * @return the cardinality constraint
+   * @param sort The sort the cardinality constraint is for.
+   * @param upperBound The upper bound on the cardinality of the sort.
+   * @return The cardinality constraint.
    */
   Term mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
 
@@ -3704,19 +3778,19 @@ class CVC5_EXPORT Solver
    *     (declare-fun <symbol> () <sort>)
    * \endverbatim
    *
-   * @param sort the sort of the constant
-   * @param symbol the name of the constant (optional)
-   * @return the constant
+   * @param sort The sort of the constant.
+   * @param symbol The name of the constant (optional).
+   * @return The constant.
    */
   Term mkConst(const Sort& sort,
                const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
-   * @param sort the sort of the variable
-   * @param symbol the name of the variable (optional)
-   * @return the variable
+   * @param sort The sort of the variable.
+   * @param symbol The name of the variable (optional).
+   * @return The variable.
    */
   Term mkVar(const Sort& sort,
              const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3727,8 +3801,8 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a datatype constructor declaration.
-   * @param name the name of the datatype constructor
-   * @return the DatatypeConstructorDecl
+   * @param name The name of the datatype constructor.
+   * @return The DatatypeConstructorDecl.
    */
   DatatypeConstructorDecl mkDatatypeConstructorDecl(const std::string& name);
 
@@ -3738,9 +3812,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a datatype declaration.
-   * @param name the name of the datatype
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
+   * @param name The name of the datatype.
+   * @param isCoDatatype True if a codatatype is to be constructed.
+   * @return The DatatypeDecl.
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               bool isCoDatatype = false);
@@ -3751,10 +3825,10 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
+   * @param name The name of the datatype.
+   * @param params A list of sort parameters.
+   * @param isCoDatatype True if a codatatype is to be constructed.
+   * @return The DatatypeDecl.
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               const std::vector<Sort>& params,
@@ -3765,14 +3839,16 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, and assertions.  It also involves theory normalization.
+   * Simplify a formula without doing "much" work.
+   *
+   * Does not involve the SAT Engine in the simplification, but uses the
+   * current definitions, and assertions.  It also involves theory
+   * normalization.
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param t the formula to simplify
-   * @return the simplified formula
+   * @param t The formula to simplify.
+   * @return The simplified formula.
    */
   Term simplify(const Term& t);
 
@@ -3787,7 +3863,7 @@ class CVC5_EXPORT Solver
    *     (assert <term>)
    * \endverbatim
    *
-   * @param term the formula to assert
+   * @param term The formula to assert.
    */
   void assertFormula(const Term& term) const;
 
@@ -3802,7 +3878,7 @@ class CVC5_EXPORT Solver
    *     (check-sat)
    * \endverbatim
    *
-   * @return the result of the satisfiability check.
+   * @return The result of the satisfiability check.
    */
   Result checkSat() const;
 
@@ -3817,8 +3893,8 @@ class CVC5_EXPORT Solver
    *     (check-sat-assuming ( <prop_literal> ))
    * \endverbatim
    *
-   * @param assumption the formula to assume
-   * @return the result of the satisfiability check.
+   * @param assumption The formula to assume.
+   * @return The result of the satisfiability check.
    */
   Result checkSatAssuming(const Term& assumption) const;
 
@@ -3833,8 +3909,8 @@ class CVC5_EXPORT Solver
    *     (check-sat-assuming ( <prop_literal>+ ))
    * \endverbatim
    *
-   * @param assumptions the formulas to assume
-   * @return the result of the satisfiability check.
+   * @param assumptions The formulas to assume.
+   * @return The result of the satisfiability check.
    */
   Result checkSatAssuming(const std::vector<Term>& assumptions) const;
 
@@ -3849,9 +3925,9 @@ class CVC5_EXPORT Solver
    *     (declare-datatype <symbol> <datatype_decl>)
    * \endverbatim
    *
-   * @param symbol the name of the datatype sort
-   * @param ctors the constructor declarations of the datatype sort
-   * @return the datatype sort
+   * @param symbol The name of the datatype sort.
+   * @param ctors The constructor declarations of the datatype sort.
+   * @return The datatype sort.
    */
   Sort declareDatatype(const std::string& symbol,
                        const std::vector<DatatypeConstructorDecl>& ctors) const;
@@ -3867,10 +3943,10 @@ class CVC5_EXPORT Solver
    *     (declare-fun <symbol> ( <sort>* ) <sort>)
    * \endverbatim
    *
-   * @param symbol the name of the function
-   * @param sorts the sorts of the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @return the function
+   * @param symbol The name of the function.
+   * @param sorts The sorts of the parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @return The function.
    */
   Term declareFun(const std::string& symbol,
                   const std::vector<Sort>& sorts,
@@ -3887,14 +3963,15 @@ class CVC5_EXPORT Solver
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
    *
-   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
-   *       arity = 0, and to
-   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   * @note This corresponds to
+   *       mkUninterpretedSort(const std::optional<std::string>&) const
+   *       if arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(size_t arity, const std::optional<std::string>&) const
    *       if arity > 0.
    *
-   * @param symbol the name of the sort
-   * @param arity the arity of the sort
-   * @return the sort
+   * @param symbol The name of the sort.
+   * @param arity The arity of the sort.
+   * @return The sort.
    */
   Sort declareSort(const std::string& symbol, uint32_t arity) const;
 
@@ -3909,13 +3986,13 @@ class CVC5_EXPORT Solver
    *     (define-fun <function_def>)
    * \endverbatim
    *
-   * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
+   * @param symbol The name of the function.
+   * @param bound_vars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param term The function body.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
+   * @return The function.
    */
   Term defineFun(const std::string& symbol,
                  const std::vector<Term>& bound_vars,
@@ -3934,13 +4011,13 @@ class CVC5_EXPORT Solver
    *     (define-fun-rec <function_def>)
    * \endverbatim
    *
-   * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
+   * @param symbol The name of the function.
+   * @param bound_vars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param term The function body.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
+   * @return The function.
    */
   Term defineFunRec(const std::string& symbol,
                     const std::vector<Term>& bound_vars,
@@ -3959,13 +4036,14 @@ class CVC5_EXPORT Solver
    *     (define-fun-rec <function_def>)
    * \endverbatim
    *
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param bound_vars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
+   * Create parameter `fun` with mkConst().
+   *
+   * @param fun The sorted function.
+   * @param bound_vars The parameters to this function.
+   * @param term The function body.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
+   * @return The function.
    */
   Term defineFunRec(const Term& fun,
                     const std::vector<Term>& bound_vars,
@@ -3987,11 +4065,11 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * Create elements of parameter 'funs' with mkConst().
-   * @param funs the sorted functions
-   * @param bound_vars the list of parameters to the functions
-   * @param terms the list of function bodies of the functions
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
+   * @param funs The sorted functions.
+   * @param bound_vars The list of parameters to the functions.
+   * @param terms The list of function bodies of the functions.
+   * @param global Determines whether this definition is global (i.e., persists
+   *               when popping the context).
    */
   void defineFunsRec(const std::vector<Term>& funs,
                      const std::vector<std::vector<Term>>& bound_vars,
@@ -4009,7 +4087,7 @@ class CVC5_EXPORT Solver
    *     (get-assertions)
    * \endverbatim
    *
-   * @return the list of asserted formulas
+   * @return The list of asserted formulas.
    */
   std::vector<Term> getAssertions() const;
 
@@ -4024,7 +4102,7 @@ class CVC5_EXPORT Solver
    *     (get-info <info_flag>)
    * \endverbatim
    *
-   * @return the info
+   * @return The info.
    */
   std::string getInfo(const std::string& flag) const;
 
@@ -4039,29 +4117,32 @@ class CVC5_EXPORT Solver
    *     (get-option <keyword>)
    * \endverbatim
    *
-   * @param option the option for which the value is queried
-   * @return a string representation of the option value
+   * @param option The option for which the value is queried.
+   * @return A string representation of the option value.
    */
   std::string getOption(const std::string& option) const;
 
   /**
-   * Get all option names that can be used with `setOption`, `getOption` and
-   * `getOptionInfo`.
-   * @return all option names
+   * Get all option names that can be used with setOption(), getOption() and
+   * getOptionInfo().
+   * @return All option names.
    */
   std::vector<std::string> getOptionNames() const;
 
   /**
-   * Get some information about the given option. Check the `OptionInfo` class
-   * for more details on which information is available.
-   * @return information about the given option
+   * Get some information about the given option.
+   *
+   * Check the OptionInfo class for more details on which information is
+   * available.
+   *
+   * @return Information about the given option.
    */
   OptionInfo getOptionInfo(const std::string& option) const;
 
   /**
    * Get the driver options, which provide access to options that can not be
    * communicated properly via getOption() and getOptionInfo().
-   * @return a DriverOptions object.
+   * @return A DriverOptions object.
    */
   DriverOptions getDriverOptions() const;
 
@@ -4079,7 +4160,7 @@ class CVC5_EXPORT Solver
    * :ref:`produce-unsat-assumptions <lbl-option-produce-unsat-assumptions>`.
    * \endverbatim
    *
-   * @return the set of unsat assumptions.
+   * @return The set of unsat assumptions.
    */
   std::vector<Term> getUnsatAssumptions() const;
 
@@ -4097,14 +4178,14 @@ class CVC5_EXPORT Solver
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
    *
    * .. note::
-   *   In contrast to SMT-LIB, the API does not distinguish between named and
-   *   unnamed assertions when producing an unsatisfiable core. Additionally,
-   *   the API allows this option to be called after a check with assumptions.
-   *   A subset of those assumptions may be included in the unsatisfiable core
-   *   returned by this method.
+   *   In contrast to SMT-LIB, cvc5's API does not distinguish between named
+   *   and unnamed assertions when producing an unsatisfiable core.
+   *   Additionally, the API allows this option to be called after a check with
+   *   assumptions. A subset of those assumptions may be included in the
+   *   unsatisfiable core returned by this method.
    * \endverbatim
    *
-   * @return a set of terms representing the unsatisfiable core
+   * @return A set of terms representing the unsatisfiable core.
    */
   std::vector<Term> getUnsatCore() const;
 
@@ -4114,7 +4195,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return a map from (a subset of) the input assertions to a real value that
+   * @return A map from (a subset of) the input assertions to a real value that.
    *         is an estimate of how difficult each assertion was to solve.
    *         Unmentioned assertions can be assumed to have zero difficulty.
    */
@@ -4132,12 +4213,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-proofs <lbl-option-produce-proofs>`.
+   * The string representation depends on the value of option
+   * :ref:`produce-proofs <lbl-option-proof-format-mode>`.
    * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return a string representing the proof, according to the value of
-   * proof-format-mode.
+   * @return A string representing the proof.
    */
   std::string getProof() const;
 
@@ -4147,7 +4229,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return a list of literals that were learned at top-level.
+   * @return A list of literals that were learned at top-level.
    */
   std::vector<Term> getLearnedLiterals() const;
 
@@ -4162,8 +4244,8 @@ class CVC5_EXPORT Solver
    *     (get-value ( <term> ))
    * \endverbatim
    *
-   * @param term the term for which the value is queried
-   * @return the value of the given term
+   * @param term The term for which the value is queried.
+   * @return The value of the given term.
    */
   Term getValue(const Term& term) const;
 
@@ -4178,8 +4260,8 @@ class CVC5_EXPORT Solver
    *     (get-value ( <term>* ))
    * \endverbatim
    *
-   * @param terms the terms for which the value is queried
-   * @return the values of the given terms
+   * @param terms The terms for which the value is queried.
+   * @return The values of the given terms.
    */
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
@@ -4188,23 +4270,23 @@ class CVC5_EXPORT Solver
    * current model interprets s as the finite sort whose domain elements are
    * given in the return value of this method.
    *
-   * @param s The uninterpreted sort in question
-   * @return the domain elements of s in the current model
+   * @param s The uninterpreted sort in question.
+   * @return The domain elements of s in the current model.
    */
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
-   * current model. This method will only return false (for any v) if
+   * current model. This method will only return false (for any `v`) if
    * option
-   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim has been set.
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`\endverbatim
+   * has been set.
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param v The term in question
-   * @return true if v is a model core symbol
+   * @param v The term in question.
+   * @return True if `v` is a model core symbol.
    */
   bool isModelCoreSymbol(const Term& v) const;
 
@@ -4224,11 +4306,12 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param sorts The list of uninterpreted sorts that should be printed in the
-   * model.
+   * @param sorts The list of uninterpreted sorts that should be printed in
+   *              the model.
    * @param vars The list of free constants that should be printed in the
-   * model. A subset of these may be printed based on isModelCoreSymbol.
-   * @return a string representing the model.
+   *             model. A subset of these may be printed based on
+   *             isModelCoreSymbol().
+   * @return A string representing the model.
    */
   std::string getModel(const std::vector<Sort>& sorts,
                        const std::vector<Term>& vars) const;
@@ -4249,13 +4332,13 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param q a quantified formula of the form
+   * @param q A quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
    *          where
    *          @f$Q\bar{x}@f$ is a set of quantified variables of the form
    *          @f$Q x_1...x_k@f$ and
    *          @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
-   * @return a formula @f$\phi@f$  such that, given the current set of formulas
+   * @return A formula @f$\phi@f$  such that, given the current set of formulas
    *         @f$A@f$ asserted to this solver:
    *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
    *         - @f$\phi@f$ is quantifier-free formula containing only free
@@ -4280,13 +4363,13 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param q a quantified formula of the form
+   * @param q A quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
    *          where
    *          @f$Q\bar{x}@f$ is a set of quantified variables of the form
    *          @f$Q x_1...x_k@f$ and
    *          @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
-   * @return a formula @f$\phi@f$ such that, given the current set of formulas
+   * @return A formula @f$\phi@f$ such that, given the current set of formulas
    *         @f$A@f$ asserted to this solver:
    *         - @f$(A \wedge q \implies A \wedge \phi)@f$ if @f$Q@f$ is
    *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
@@ -4318,8 +4401,8 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param locSort The location sort of the heap
-   * @param dataSort The data sort of the heap
+   * @param locSort The location sort of the heap.
+   * @param dataSort The data sort of the heap.
    */
   void declareSepHeap(const Sort& locSort, const Sort& dataSort) const;
 
@@ -4328,7 +4411,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return The term for the heap
+   * @return The term for the heap.
    */
   Term getValueSepHeap() const;
 
@@ -4337,7 +4420,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return The term for nil
+   * @return The term for nil.
    */
   Term getValueSepNil() const;
 
@@ -4357,10 +4440,10 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param symbol The name of the pool
+   * @param symbol The name of the pool.
    * @param sort The sort of the elements of the pool.
-   * @param initValue The initial value of the pool
-   * @return The pool symbol
+   * @param initValue The initial value of the pool.
+   * @return The pool symbol.
    */
   Term declarePool(const std::string& symbol,
                    const Sort& sort,
@@ -4376,7 +4459,7 @@ class CVC5_EXPORT Solver
    *     (pop <numeral>)
    * \endverbatim
    *
-   * @param nscopes the number of levels to pop
+   * @param nscopes The number of levels to pop.
    */
   void pop(uint32_t nscopes = 1) const;
 
@@ -4396,10 +4479,11 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @return a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj,
-   *        or the null term if such a term cannot be found.
+   * @param conj The conjecture term.
+   * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
+   *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
+   *         current set of assertions and @f$B@f$ is given in the input by
+   *         `conj`, or the null term if such a term cannot be found.
    */
   Term getInterpolant(const Term& conj) const;
 
@@ -4419,11 +4503,12 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @param grammar the grammar for the interpolant I
-   * @return a Term I such that A->I and I->B are valid, where A is the
-   *         current set of assertions and B is given in the input by conj,
-   *         or the null term if such a term cannot be found.
+   * @param conj The conjecture term.
+   * @param grammar The grammar for the interpolant I.
+   * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
+   *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
+   *         current set of assertions and @f$B@f$ is given in the input by
+   *         `conj`, or the null term if such a term cannot be found.
    */
   Term getInterpolant(const Term& conj, Grammar& grammar) const;
 
@@ -4446,9 +4531,10 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return a Term I such that A->I and I->B are valid, where A is the
-   *         current set of assertions and B is given in the input by conj
-   *         on the last call to getInterpolant.
+   * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
+   *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
+   *         current set of assertions and @f$B@f$ is given in the input by
+   *         `conj`, or the null term if such a term cannot be found.
    */
   Term getInterpolantNext() const;
 
@@ -4468,8 +4554,8 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param conj the conjecture term
-   * @return a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
+   * @param conj The conjecture term.
+   * @return A term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
    *         and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
    *         @f$A@f$ is the current set of assertions and @f$B@f$ is
    *         given in the input by ``conj``, or the null term if such a term
@@ -4494,12 +4580,12 @@ class CVC5_EXPORT Solver
    * @warning This method is experimental and may change in future versions.
    *
    *
-   * @param conj the conjecture term
-   * @param grammar the grammar for the abduct @f$C@f$
-   * @return a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   * @param conj The conjecture term.
+   * @param grammar The grammar for the abduct @f$C@f$
+   * @return A term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        ``conj``, or the null term if such a term cannot be found.
+   *        `conj`, or the null term if such a term cannot be found.
    */
   Term getAbduct(const Term& conj, Grammar& grammar) const;
 
@@ -4521,11 +4607,11 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   * @return A term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        the last call to getAbduct, or the null term if such a term cannot
-   *        be found.
+   *        the last call to getAbduct(), or the null term if such a term
+   *        cannot be found.
    */
   Term getAbductNext() const;
 
@@ -4541,15 +4627,12 @@ class CVC5_EXPORT Solver
    *     (block-model)
    *
    * Requires enabling option
-   * :ref:`produce-models <lbl-option-produce-models>`
-   * and setting option
-   * :ref:`block-models <lbl-option-block-models>`
-   * to a mode other than ``none``.
+   * :ref:`produce-models <lbl-option-produce-models>`.
    * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param mode The mode to use for blocking
+   * @param mode The mode to use for blocking.
    */
   void blockModel(modes::BlockModelsMode mode) const;
 
@@ -4575,8 +4658,8 @@ class CVC5_EXPORT Solver
   /**
    * @warning This method is experimental and may change in future versions.
    *
-   * @return a string that contains information about all instantiations made by
-   * the quantifiers module.
+   * @return A string that contains information about all instantiations made
+   *         by the quantifiers module.
    */
   std::string getInstantiations() const;
 
@@ -4591,7 +4674,7 @@ class CVC5_EXPORT Solver
    *     (push <numeral>)
    * \endverbatim
    *
-   * @param nscopes the number of levels to push
+   * @param nscopes The number of levels to push.
    */
   void push(uint32_t nscopes = 1) const;
 
@@ -4620,8 +4703,8 @@ class CVC5_EXPORT Solver
    *     (set-info <attribute>)
    * \endverbatim
    *
-   * @param keyword the info flag
-   * @param value the value of the info flag
+   * @param keyword The info flag.
+   * @param value The value of the info flag.
    */
   void setInfo(const std::string& keyword, const std::string& value) const;
 
@@ -4636,7 +4719,7 @@ class CVC5_EXPORT Solver
    *     (set-logic <symbol>)
    * \endverbatim
    *
-   * @param logic the logic to set
+   * @param logic The logic to set.
    */
   void setLogic(const std::string& logic) const;
 
@@ -4651,8 +4734,8 @@ class CVC5_EXPORT Solver
    *     (set-option :<option> <value>)
    * \endverbatim
    *
-   * @param option the option name
-   * @param value the option value
+   * @param option The option name.
+   * @param value The option value.
    */
   void setOption(const std::string& option, const std::string& value) const;
 
@@ -4667,9 +4750,9 @@ class CVC5_EXPORT Solver
    *     (declare-var <symbol> <sort>)
    * \endverbatim
    *
-   * @param sort the sort of the universal variable
-   * @param symbol the name of the universal variable
-   * @return the universal variable
+   * @param sort The sort of the universal variable.
+   * @param symbol The name of the universal variable.
+   * @return The universal variable.
    */
   Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
 
@@ -4677,9 +4760,9 @@ class CVC5_EXPORT Solver
    * Create a Sygus grammar. The first non-terminal is treated as the starting
    * non-terminal, so the order of non-terminals matters.
    *
-   * @param boundVars the parameters to corresponding synth-fun/synth-inv
-   * @param ntSymbols the pre-declaration of the non-terminal symbols
-   * @return the grammar
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
    */
   Grammar mkGrammar(const std::vector<Term>& boundVars,
                     const std::vector<Term>& ntSymbols) const;
@@ -4695,10 +4778,10 @@ class CVC5_EXPORT Solver
    *     (synth-fun <symbol> ( <boundVars>* ) <sort>)
    * \endverbatim
    *
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @return The function.
    */
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
@@ -4715,11 +4798,11 @@ class CVC5_EXPORT Solver
    *     (synth-fun <symbol> ( <boundVars>* ) <sort> <grammar>)
    * \endverbatim
    *
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param grammar the syntactic constraints
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param grammar The syntactic constraints.
+   * @return The function.
    */
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
@@ -4737,9 +4820,9 @@ class CVC5_EXPORT Solver
    *     (synth-inv <symbol> ( <boundVars>* ))
    * \endverbatim
    *
-   * @param symbol the name of the invariant
-   * @param boundVars the parameters to this invariant
-   * @return the invariant
+   * @param symbol The name of the invariant.
+   * @param boundVars The parameters to this invariant.
+   * @return The invariant.
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars) const;
@@ -4755,10 +4838,10 @@ class CVC5_EXPORT Solver
    *     (synth-inv <symbol> ( <boundVars>* ) <grammar>)
    * \endverbatim
    *
-   * @param symbol the name of the invariant
-   * @param boundVars the parameters to this invariant
-   * @param grammar the syntactic constraints
-   * @return the invariant
+   * @param symbol The name of the invariant.
+   * @param boundVars The parameters to this invariant.
+   * @param grammar The syntactic constraints.
+   * @return The invariant.
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars,
@@ -4775,7 +4858,7 @@ class CVC5_EXPORT Solver
    *     (constraint <term>)
    * \endverbatim
    *
-   * @param term the formula to add as a constraint
+   * @param term The formula to add as a constraint.
    */
   void addSygusConstraint(const Term& term) const;
 
@@ -4790,7 +4873,7 @@ class CVC5_EXPORT Solver
    *     (assume <term>)
    * \endverbatim
    *
-   * @param term the formula to add as an assumption
+   * @param term The formula to add as an assumption.
    */
   void addSygusAssume(const Term& term) const;
 
@@ -4806,10 +4889,10 @@ class CVC5_EXPORT Solver
    *     (inv-constraint <inv> <pre> <trans> <post>)
    * \endverbatim
    *
-   * @param inv the function-to-synthesize
-   * @param pre the pre-condition
-   * @param trans the transition relation
-   * @param post the post-condition
+   * @param inv The function-to-synthesize.
+   * @param pre The pre-condition.
+   * @param trans The transition relation.
+   * @param post The post-condition.
    */
   void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post) const;
 
@@ -4826,7 +4909,7 @@ class CVC5_EXPORT Solver
    *     (check-synth)
    * \endverbatim
    *
-   * @return the result of the check, which is "solution" if the check found a
+   * @return The result of the check, which is "solution" if the check found a
    *         solution in which case solutions are available via
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
@@ -4847,7 +4930,7 @@ class CVC5_EXPORT Solver
    *     (check-synth-next)
    * \endverbatim
    *
-   * @return the result of the check, which is "solution" if the check found a
+   * @return The result of the check, which is "solution" if the check found a
    *         solution in which case solutions are available via
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
@@ -4857,16 +4940,16 @@ class CVC5_EXPORT Solver
   /**
    * Get the synthesis solution of the given term. This method should be called
    * immediately after the solver answers unsat for sygus input.
-   * @param term the term for which the synthesis solution is queried
-   * @return the synthesis solution of the given term
+   * @param term The term for which the synthesis solution is queried.
+   * @return The synthesis solution of the given term.
    */
   Term getSynthSolution(Term term) const;
 
   /**
    * Get the synthesis solutions of the given terms. This method should be
    * called immediately after the solver answers unsat for sygus input.
-   * @param terms the terms for which the synthesis solutions is queried
-   * @return the synthesis solutions of the given terms
+   * @param terms The terms for which the synthesis solutions is queried.
+   * @return The synthesis solutions of the given terms.
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
@@ -4874,7 +4957,7 @@ class CVC5_EXPORT Solver
    * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
-   * @return A snapshot of the current state of the statistic values
+   * @return A snapshot of the current state of the statistic values.
    */
   Statistics getStatistics() const;
 
@@ -4882,7 +4965,7 @@ class CVC5_EXPORT Solver
    * Determione the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
    * Raises an exception when an invalid tag is given.
-   * @return True if the given tag is enabled
+   * @return True if the given tag is enabled.
    */
   bool isOutputOn(const std::string& tag) const;
 
@@ -4890,12 +4973,12 @@ class CVC5_EXPORT Solver
    * Get an output stream for the given tag. Tags can be enabled with the
    * `output` option (and `-o <tag>` on the command line). Raises an exception
    * when an invalid tag is given.
-   * @return The output stream
+   * @return The output stream.
    */
   std::ostream& getOutput(const std::string& tag) const;
 
  private:
-  /** @return the node manager of this solver */
+  /** @return The node manager of this solver */
   internal::NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
@@ -4943,8 +5026,8 @@ class CVC5_EXPORT Solver
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
    * to being of sort integer).
-   * @param t a term of sort integer or real
-   * @return a term of sort real
+   * @param t A term of sort integer or real.
+   * @return A term of sort real.
    */
   Term ensureRealSort(const Term& t) const;
 
@@ -4952,17 +5035,17 @@ class CVC5_EXPORT Solver
    * Create n-ary term of given kind. This handles the cases of left/right
    * associative operators, chainable operators, and cases when the number of
    * children exceeds the maximum arity for the kind.
-   * @param kind the kind of the term
-   * @param children the children of the term
-   * @return the Term
+   * @param kind The kind of the term.
+   * @param children The children of the term.
+   * @return The Term.
    */
   Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
 
   /**
    * Create n-ary term of given kind from a given operator.
-   * @param op the operator
-   * @param children the children of the term
-   * @return the Term
+   * @param op The operator.
+   * @param children The children of the term.
+   * @return The Term.
    */
   Term mkTermHelper(const Op& op, const std::vector<Term>& children) const;
 
@@ -4977,12 +5060,12 @@ class CVC5_EXPORT Solver
    *     (synth-fun <symbol> ( <boundVars>* ) <sort> <grammar>?)
    * \endverbatim
    *
-   * @param symbol the name of the function
-   * @param boundVars the parameters to this function
-   * @param sort the sort of the return value of this function
-   * @param isInv determines whether this is synth-fun or synth-inv
-   * @param grammar the syntactic constraints
-   * @return the function
+   * @param symbol The name of the function.
+   * @param boundVars The parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param isInv Determines whether this is `synth-fun` or `synth-inv`.
+   * @param grammar The syntactic constraints.
+   * @return The function.
    */
   Term synthFunHelper(const std::string& symbol,
                       const std::vector<Term>& boundVars,
@@ -4999,9 +5082,9 @@ class CVC5_EXPORT Solver
    * The sort of the term must be convertible into the target sort.
    * Currently only Int to Real conversions are supported.
    *
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
+   * @param t The term.
+   * @param s The target sort.
+   * @return The term wrapped into a sort conversion if needed.
    */
   Term ensureTermSort(const Term& t, const Sort& s) const;
 
@@ -5009,7 +5092,7 @@ class CVC5_EXPORT Solver
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *
-   * @param t The term to check
+   * @param t The term to check.
    */
   void ensureWellFormedTerm(const Term& t) const;
   /** Vector version of above. */
