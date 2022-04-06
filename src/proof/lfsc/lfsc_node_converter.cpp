@@ -1101,7 +1101,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         opName << getNameForUserNameOf(dt[cindex][index].getSelector());
       }
     }
-    else if (k == SET_SINGLETON || k == BAG_MAKE)
+    else if (k == SET_SINGLETON || k == BAG_MAKE || k == SEQ_UNIT)
     {
       if (!macroApply)
       {
