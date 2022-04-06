@@ -1211,6 +1211,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
         "Cannot declare heap if not using the separation logic theory.";
     throw RecoverableModalException(msg);
   }
+  d_env->declareSepHeap(locT, dataT);
   SolverEngineScope smts(this);
   finishInit();
   // check whether incremental is enabled, where separation logic is not
@@ -1220,7 +1221,6 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
     throw RecoverableModalException(
         "Separation logic not supported in incremental mode");
   }
-  d_env->declareSepHeap(locT, dataT);
 }
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
