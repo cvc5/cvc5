@@ -256,7 +256,6 @@ theory::TheoryId Env::theoryOf(TNode node) const
       node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
 }
 
-
 bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
 {
   if (d_sepLocType.isNull())

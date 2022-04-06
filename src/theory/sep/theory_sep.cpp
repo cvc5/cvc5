@@ -58,7 +58,7 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-  
+
   // initialize the heap types
   initializeHeapTypes();
 }

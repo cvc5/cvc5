@@ -108,7 +108,6 @@ class TheorySep : public Theory {
   void postProcessModel(TheoryModel* m) override;
 
  private:
-
   /**
    * Initialize heap. For smt2 inputs, this will initialize the heap types
    * based on if a command (declare-heap (locT datat)) was used. This command
