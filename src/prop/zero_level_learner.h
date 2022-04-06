@@ -48,8 +48,7 @@ class ZeroLevelLearner : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  ZeroLevelLearner(Env& env,
-                   TheoryEngine* theoryEngine);
+  ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine);
 
   ~ZeroLevelLearner();
 
@@ -62,7 +61,8 @@ class ZeroLevelLearner : protected EnvObj
   bool notifyAsserted(TNode assertion, int32_t alevel);
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(modes::LearnedLitType ltype) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 

@@ -27,8 +27,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-ZeroLevelLearner::ZeroLevelLearner(Env& env,
-                                   TheoryEngine* theoryEngine)
+ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
     : EnvObj(env),
       d_theoryEngine(theoryEngine),
       d_levelZeroAsserts(userContext()),
@@ -88,15 +87,15 @@ void ZeroLevelLearner::getAtoms(TNode a,
   } while (!visit.empty());
 }
 
-void ZeroLevelLearner::notifyTopLevelSubstitution(const Node& lhs, const Node& rhs)
+void ZeroLevelLearner::notifyTopLevelSubstitution(const Node& lhs,
+                                                  const Node& rhs)
 {
   // process as a preprocess solved learned literal.
   Node eq = lhs.eqNode(rhs);
   processLearnedLiteral(eq, modes::LearnedLitType::PREPROCESS_SOLVED);
 }
 
-void ZeroLevelLearner::notifyInputFormulas(
-    const std::vector<Node>& assertions)
+void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
 {
   d_assertNoLearnCount = 0;
   std::unordered_set<TNode> visited;
@@ -182,7 +181,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   {
     d_assertNoLearnCount++;
   }
-  else if (alevel!=0)
+  else if (alevel != 0)
   {
     Trace("level-zero-dec") << "First non-zero: " << assertion << std::endl;
     d_nonZeroAssert = true;
@@ -214,17 +213,20 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   }
   if (TraceIsOn("level-zero-debug"))
   {
-    if (d_assertNoLearnCount>0 && d_assertNoLearnCount%d_deepRestartThreshold==0)
+    if (d_assertNoLearnCount > 0
+        && d_assertNoLearnCount % d_deepRestartThreshold == 0)
     {
       Trace("level-zero-debug")
-          << "#asserts without learning = " << d_assertNoLearnCount
-          <<  " (" << (d_assertNoLearnCount/d_deepRestartThreshold) << "x)" << std::endl;
+          << "#asserts without learning = " << d_assertNoLearnCount << " ("
+          << (d_assertNoLearnCount / d_deepRestartThreshold) << "x)"
+          << std::endl;
     }
   }
   return true;
 }
 
-modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
+modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
+    const Node& lit)
 {
   // literal was learned, determine its type
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;

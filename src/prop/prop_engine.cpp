@@ -22,6 +22,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/justification_strategy.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -40,7 +41,6 @@
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -167,7 +167,7 @@ TrustNode PropEngine::removeItes(TNode node,
 }
 
 void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
-                                               const Node& rhs) const
+                                            const Node& rhs) const
 {
   d_theoryProxy->notifyTopLevelSubstitution(lhs, rhs);
   if (isOutputOn(OutputTag::SUBS))

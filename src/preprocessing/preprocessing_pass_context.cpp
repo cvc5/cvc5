@@ -17,9 +17,9 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
-#include "prop/prop_engine.h"
 #include "theory/theory_model.h"
 
 namespace cvc5::internal {

@@ -106,8 +106,7 @@ class PropEngine : protected EnvObj
    * @param lhs The left-hand side of the substitution
    * @param rhs The right-hand side of the substitution
    */
-  void notifyTopLevelSubstitution(const Node& lhs,
-                                               const Node& rhs) const;
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
    * These formulas are asserted permanently for the current context.
@@ -303,7 +302,8 @@ class PropEngine : protected EnvObj
   std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions of the given type */
-  std::vector<Node> getLearnedZeroLevelLiterals(modes::LearnedLitType ltype) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
 
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;

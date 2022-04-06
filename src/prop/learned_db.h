@@ -20,10 +20,10 @@
 
 #include <unordered_set>
 
+#include "api/cpp/cvc5_types.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "api/cpp/cvc5_types.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -51,7 +51,8 @@ class LearnedDb
  private:
   /** Get literal set, const and non-const versions */
   context::CDHashSet<Node>& getLiteralSet(modes::LearnedLitType ltype);
-  const context::CDHashSet<Node>& getLiteralSet(modes::LearnedLitType ltype) const;
+  const context::CDHashSet<Node>& getLiteralSet(
+      modes::LearnedLitType ltype) const;
   /** To string debug for type of literals */
   std::string toStringDebugType(modes::LearnedLitType ltype) const;
   /** preprocess solved lits */

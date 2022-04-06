@@ -76,8 +76,7 @@ class TheoryProxy : protected EnvObj, public Registrar
    * @param lhs The left-hand side of the substitution
    * @param rhs The right-hand side of the substitution
    */
-  void notifyTopLevelSubstitution(const Node& lhs,
-                                               const Node& rhs) const;
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
   /**
    * Notifies this module of the input assertions.
    * @param assertion The preprocessed input assertions,
@@ -178,7 +177,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(modes::LearnedLitType ltype) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 

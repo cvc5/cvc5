@@ -152,7 +152,6 @@ enum class LearnedLitType
 };
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
-
 }
 
 #endif

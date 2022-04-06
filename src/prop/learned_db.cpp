@@ -38,7 +38,8 @@ void LearnedDb::addLearnedLiteral(const Node& lit, modes::LearnedLitType ltype)
   lset.insert(lit);
 }
 
-std::vector<Node> LearnedDb::getLearnedLiterals(modes::LearnedLitType ltype) const
+std::vector<Node> LearnedDb::getLearnedLiterals(
+    modes::LearnedLitType ltype) const
 {
   const NodeSet& lset = getLiteralSet(ltype);
   std::vector<Node> ret;
@@ -58,7 +59,8 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(modes::LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case modes::LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
+    case modes::LearnedLitType::PREPROCESS_SOLVED:
+      return d_preprocessSolvedLits;
     case modes::LearnedLitType::PREPROCESS: return d_preprocessLits;
     case modes::LearnedLitType::INPUT: return d_inputLits;
     case modes::LearnedLitType::SOLVABLE: return d_solvableLits;
@@ -73,7 +75,8 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
 {
   switch (ltype)
   {
-    case modes::LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
+    case modes::LearnedLitType::PREPROCESS_SOLVED:
+      return d_preprocessSolvedLits;
     case modes::LearnedLitType::PREPROCESS: return d_preprocessLits;
     case modes::LearnedLitType::INPUT: return d_inputLits;
     case modes::LearnedLitType::SOLVABLE: return d_solvableLits;
