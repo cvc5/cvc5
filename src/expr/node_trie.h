@@ -92,6 +92,14 @@ class NodeTemplateTrie
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
   bool empty() const { return d_data.empty(); }
+  /**
+   * Get leaves at the given depth, where depth>0. This argument is necessary
+   * since we do not know apriori the depth of where data occurs.
+   *
+   * If this trie stores applications of a function f, then depth should be set
+   * to the arity of f.
+   */
+  std::vector<Node> getLeaves(size_t depth) const;
 }; /* class NodeTemplateTrie */
 
 template <bool ref_count>
