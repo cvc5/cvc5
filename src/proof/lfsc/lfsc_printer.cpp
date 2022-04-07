@@ -258,7 +258,12 @@ void LfscPrinter::printTypeDefinition(
       if (tupleArityProcessed.find(arity) == tupleArityProcessed.end())
       {
         tupleArityProcessed.insert(arity);
-        os << "(declare Tuple_" << arity << " ";
+        os << "(declare Tuple";
+        if (arity>0)
+        {
+          os << "_" << arity;
+        }
+        os << " ";
         std::stringstream tcparen;
         for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
         {
