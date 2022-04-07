@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Makai Mann, Mathias Preiner
+#   Mudathir Mohamed, Andres Noetzli, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -97,64 +97,73 @@ ENUM_JAVA_BOTTOM = \
 CPP_JAVA_MAPPING = \
     {
         r"\bbool\b": "boolean",
-        r"\bconst\b\s?": "",
+        r"\bconst\b ?": "",
         r"\bint32_t\b": "int",
         r"\bint64_t\b": "long",
         r"\buint32_t\b": "int",
         r"\buint64_t\b": "long",
         r"\bunsigned char\b": "byte",
         r"cvc5::": "cvc5.",
-        r"Term::Term\(\)": "{@link Solver#getNullTerm()",
-        r"Term::": "{@link Term#",
-        r"Solver::": "{@link Solver#",
-        r"Datatype::": "{@link Datatype#",
-        r"DatatypeConstructor::": "{@link DatatypeConstructor#",
-        r"DatatypeConstructorDecl::": "{@link DatatypeConstructorDecl#",
-        r"DatatypeDecl::": "{@link DatatypeDecl#",
-        r"DatatypeSelector::": "{@link DatatypeSelector#",
-        r"Grammar::": "{@link Grammar#",
-        r"Op::": "{@link Op#",
-        r"OptionInfo::": "{@link OptionInfo#",
-        r"Result::": "{@link Result#",
-        r"Sort::": "{@link Sort#",
-        r"Stat::": "{@link Stat#",
-        r"Statistics::": "{@link Statistics#",
-        r"SynthResult::": "{@link SynthResult#",
+        r"Term::Term\(\)": "{@link Solver#getNullTerm()}",
+        r"([a-zA-Z]*)::(.*?\))": r"{@link \1#\2}",
         r"std::vector<int>": "int[]",
         r"std::vector<Term>": "Term[]",
         r"std::string": "String",
+        r".. note::": "@api.note",
+        r".. warning::": "@api.note",
         r"&": "",
         r"::": ".",
         r">": "&gt;",
         r"<": "&lt;",
-        r"@f\[": "",
-        r"@f\]": "",
-        r"@note": "",
+        r"@note": "@api.note",
+        r"\\rst": "",
+        r"\\endrst": "",
+        r"``(.*?)``": r"{@code \1}",
+        r":cpp:[a-z]*:`(.*?)`": r"\1",
+        r":math:`(.*?)`": r"{@code \1}",
+        r"({@code.*)&gt;": r"\1>",
     }
 
+def format_list(comment):
+    lines = []
+    ul_open = 0
+    for line in comment.split('\n'):
+        l = line[4:]
+        if l.strip().startswith('- Arity') or l.strip().startswith('- Create'):
+            if ul_open > 0:
+                if ul_open == 2:
+                    lines.append('   * </ul></li>')
+                    ul_open -= 1
+                lines.append('   * </ul>')
+                ul_open -= 1
+            ul_open += 2
+            lines.append('   * <ul>')
+            lines.append('   * <li>{}'.format(l.strip()[2:]))
+            lines.append('   * <ul>')
+        elif l.strip().startswith('- '):
+            if not ul_open:
+                lines.append('   * <ul>')
+                ul_open += 1
+            lines.append('   * <li>{}</li>'.format(l.strip()[2:]))
+        elif ul_open > 0 and l.strip() and not l.strip().startswith('- '):
+            if ul_open == 2:
+                lines.append('   * </ul></li>')
+                ul_open -= 1
+            lines.append('   * </ul>')
+            lines.append(line)
+            ul_open -= 1
+        else:
+            lines.append(line)
+    return '\n'.join(lines)
 
 # convert from c++ doc to java doc
 def format_comment(comment):
     for pattern, replacement in CPP_JAVA_MAPPING.items():
         comment = re.sub(pattern, replacement, comment)
-    comment = """  /**\n{}\n   */""".format(textwrap.indent(comment, '   * '))
-
-    # e.g. {@link Solver#mkBitVector(int, long) becomes {@link Solver#mkBitVector(int,long)}
-    def close_link(match):
-        link = match.group()
-        link = link.replace(" ", "")
-        link = link.replace("@link", "@link ")
-        if "}" in link:
-            return link
-        return "{0}}} ".format(link)
-
-    # e.g. {@link Solver#mkBitVector(int, long)
-    function_pattern = re.compile(r"{@link (.*?\))")
-    comment = re.sub(function_pattern, close_link, comment)
-    # e.g. {@link BigInteger#Ten
-    field_pattern = re.compile(r"{@link [a-zA-Z.#]*\s")
-    comment = re.sub(field_pattern, close_link, comment)
+    comment = """  /**\n{}\n   */""".format(
+            textwrap.indent(comment, '   * ', lambda line: True))
     comment = comment.replace("- {@link Solver#mkString(std.wstring)}", "")
+    comment = format_list(comment)
     return comment
 
 

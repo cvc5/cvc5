@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1101,7 +1101,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         opName << getNameForUserNameOf(dt[cindex][index].getSelector());
       }
     }
-    else if (k == SET_SINGLETON || k == BAG_MAKE)
+    else if (k == SET_SINGLETON || k == BAG_MAKE || k == SEQ_UNIT)
     {
       if (!macroApply)
       {

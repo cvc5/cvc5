@@ -2235,6 +2235,7 @@ set(regress_1_tests
   regress1/quantifiers/issue8497-syqi-str-fmf.smt2
   regress1/quantifiers/issue8517-exp-exp.smt2
   regress1/quantifiers/issue8520-cegqi-nl-cov.smt2
+  regress1/quantifiers/issue8572-sygus-inst-ic-purify.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
