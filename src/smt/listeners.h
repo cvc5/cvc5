@@ -25,7 +25,6 @@
 
 namespace cvc5::internal {
 
-class OutputManager;
 class SolverEngine;
 
 namespace smt {
