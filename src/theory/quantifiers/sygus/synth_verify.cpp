@@ -115,8 +115,7 @@ Result SynthVerify::verify(Node query,
         // went wrong or the answer is unknown (for debugging).
         if (squery.isConst() && !squery.getConst<bool>())
         {
-          Assert(!options().quantifiers.sygusRecFun
-                 || r.getStatus() == Result::UNKNOWN)
+          Assert(r.getStatus() == Result::UNKNOWN)
               << "Expected model from verification step to satisfy query";
         }
       }
