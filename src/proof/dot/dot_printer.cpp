@@ -38,7 +38,7 @@ DotPrinter::DotPrinter()
   const std::string colors[5] = {"purple", "yellow", "green", "brown", "blue"};
   d_subgraphsStr = new std::ostringstream[5];
 
-  for (int i = 0; i < 5; i++)
+  for (unsigned i = 0; i < 5; i++)
   {
     d_subgraphsStr[i] << "\n\tsubgraph cluster_" << acronyms[i]
                       << " {\n\t\tlabel=\"" << acronyms[i]
