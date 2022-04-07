@@ -116,7 +116,7 @@ Result SynthVerify::verify(Node query,
         if (!squery.isConst() || !squery.getConst<bool>())
         {
           Assert(!options().quantifiers.sygusRecFun
-                  || r.getStatus() == Result::UNKNOWN)
+                 || r.getStatus() == Result::UNKNOWN)
               << "Expected model from verification step to satisfy query";
         }
       }
@@ -159,9 +159,8 @@ Node SynthVerify::preprocessQueryInternal(Node query)
         }
       }
       query = nm->mkAnd(qconj);
-      Trace("cegqi-debug")
-          << "after function definitions, query is " << query
-          << std::endl;
+      Trace("cegqi-debug") << "after function definitions, query is " << query
+                           << std::endl;
     }
   }
   return query;
