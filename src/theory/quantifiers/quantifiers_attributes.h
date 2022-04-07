@@ -40,8 +40,21 @@ typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAtt
 struct SygusAttributeId {};
 typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 
-/** Attribute set to the name of the binary for quantifiers that are oracle
- * interfaces */
+/**
+ * Attribute set to the name of the binary for quantifiers that are oracle
+ * interfaces. In detail, an oracle interface is a quantified formula of the
+ * form:
+ *   (FORALL
+ *     (BOUND_VAR_LIST i1 ... in o1 ... om)
+ *     (ORACLE_FORMULA_GEN A C)
+ *     (INST_PATTERN_LIST k))
+ * where i1 ... in are the inputs to the interface, o1 ... om are the outputs
+ * of the interface, A is the "assumption" formula, C is the "constraint"
+ * formula, and k is a dummy skolem that has been marked with this attribute.
+ * The string value of this attribute specifies a binary whose I/O behavior
+ * should match the types of inputs and outputs specified by i1 ... in and
+ * o1 ... om respectively.
+ */
 struct OracleInterfaceAttributeId
 {
 };
