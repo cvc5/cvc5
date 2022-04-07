@@ -199,7 +199,7 @@ class DotPrinter
   std::vector<std::reference_wrapper<const std::vector<Node>>> d_scopesArgs;
 
   /** Array with all the subgraphs description strings */
-  std::ostringstream* d_subgraphsStr;
+  std::vector<std::ostringstream> d_subgraphsStr;
 };
 
 }  // namespace proof

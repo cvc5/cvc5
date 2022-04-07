@@ -36,17 +36,17 @@ DotPrinter::DotPrinter()
 {
   const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};
   const std::string colors[5] = {"purple", "yellow", "green", "brown", "blue"};
-  d_subgraphsStr = new std::ostringstream[5];
 
   for (unsigned i = 0; i < 5; i++)
   {
+    d_subgraphsStr.push_back(std::ostringstream());
     d_subgraphsStr[i] << "\n\tsubgraph cluster_" << acronyms[i]
                       << " {\n\t\tlabel=\"" << acronyms[i]
                       << "\"\n\t\tbgcolor=\"" << colors[i] << "\"\n\t\t";
   }
 }
 
-DotPrinter::~DotPrinter() { delete[] d_subgraphsStr; }
+DotPrinter::~DotPrinter() {}
 
 std::string DotPrinter::sanitizeStringDoubleQuotes(const std::string& s)
 {
