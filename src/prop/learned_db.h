@@ -29,6 +29,9 @@ namespace cvc5::internal {
 namespace prop {
 
 /**
+ * This class stores high-level information learned during a run of the
+ * PropEngine. This includes the set of learned literals for each category
+ * (modes::LearnedLitType).
  */
 class LearnedDb
 {
@@ -37,12 +40,12 @@ class LearnedDb
  public:
   LearnedDb(context::Context* c);
   ~LearnedDb();
-  /** Add learned literal */
+  /** Add learned literal of the given type */
   void addLearnedLiteral(const Node& lit, modes::LearnedLitType ltype);
-  /** Get the zero-level assertions */
+  /** Get the learned literals for the given type */
   std::vector<Node> getLearnedLiterals(
       modes::LearnedLitType ltype = modes::LearnedLitType::INPUT) const;
-  /** Get number of learned literals */
+  /** Get number of learned literals for the given type */
   size_t getNumLearnedLiterals(
       modes::LearnedLitType ltype = modes::LearnedLitType::INPUT) const;
   /** To string debug */
