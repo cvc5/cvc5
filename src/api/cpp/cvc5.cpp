@@ -5052,8 +5052,9 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
         || kind == HO_APPLY || kind == REGEXP_DIFF || kind == SET_UNION
-        || kind == SET_INTER || kind == SET_MINUS || kind == BAG_INTER_MIN || kind == BAG_UNION_MAX
-        || kind == BAG_UNION_DISJOINT || kind == BAG_DIFFERENCE_REMOVE || kind == BAG_DIFFERENCE_SUBTRACT)
+        || kind == SET_INTER || kind == SET_MINUS || kind == BAG_INTER_MIN
+        || kind == BAG_UNION_MAX || kind == BAG_UNION_DISJOINT
+        || kind == BAG_DIFFERENCE_REMOVE || kind == BAG_DIFFERENCE_SUBTRACT)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);
