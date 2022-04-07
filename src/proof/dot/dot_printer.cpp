@@ -213,7 +213,7 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
                                    std::map<size_t, uint64_t>& pfLet,
                                    NodeClusterType parentType,
                                    uint64_t scopeCounter,
-                                   bool inPropositionalView)
+                                   bool inSatCluster)
 {
   uint64_t currentRuleID = d_ruleID;
 
@@ -246,7 +246,7 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
 
   d_ruleID++;
 
-  printNodeInfo(out, pn, currentRuleID, scopeCounter, inPropositionalView);
+  printNodeInfo(out, pn, currentRuleID, scopeCounter, inSatCluster);
 
   PfRule r = pn->getRule();
 
@@ -254,7 +254,7 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     uint64_t childId = printInternal(
-        out, c.get(), pfLet, nodeType, scopeCounter, inPropositionalView);
+        out, c.get(), pfLet, nodeType, scopeCounter, inSatCluster);
     out << "\t" << childId << " -> " << currentRuleID << ";\n";
   }
 
@@ -271,7 +271,7 @@ void DotPrinter::printNodeInfo(std::ostream& out,
                                const ProofNode* pn,
                                uint64_t currentRuleID,
                                uint64_t& scopeCounter,
-                               bool& inPropositionalView)
+                               bool& inSatCluster)
 {
   std::ostringstream currentArguments, resultStr, classes, colors;
 
@@ -296,7 +296,7 @@ void DotPrinter::printNodeInfo(std::ostream& out,
       {
         classes << " basic";
         colors << ", color = blue ";
-        inPropositionalView = true;
+        inSatCluster = true;
       }
       scopeCounter++;
       break;
@@ -308,7 +308,7 @@ void DotPrinter::printNodeInfo(std::ostream& out,
         classes << " basic";
         colors << ", color = blue ";
       }
-      if (inPropositionalView)
+      if (inSatCluster)
       {
         classes << " propositional";
         colors << ", fillcolor = aquamarine4, style = filled ";
@@ -317,13 +317,13 @@ void DotPrinter::printNodeInfo(std::ostream& out,
     case PfRule::CHAIN_RESOLUTION:
     case PfRule::FACTORING:
     case PfRule::REORDERING:
-      if (inPropositionalView)
+      if (inSatCluster)
       {
         classes << " propositional";
         colors << ", fillcolor = aquamarine4, style = filled ";
       }
       break;
-    default: inPropositionalView = false;
+    default: inSatCluster = false;
   }
   classes << " \"";
   out << classes.str() << colors.str();
