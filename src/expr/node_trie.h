@@ -98,6 +98,12 @@ class NodeTemplateTrie
    *
    * If this trie stores applications of a function f, then depth should be set
    * to the arity of f.
+   *
+   * Notice this method will never throw an assertion error, even if the
+   * depth is not set to the proper value. In particular, it will return
+   * the empty vector if the provided depth is larger than the actual depth,
+   * and will return internal nodes if the provided depth is less than the
+   * actual depth of the trie.
    */
   std::vector<Node> getLeaves(size_t depth) const;
 }; /* class NodeTemplateTrie */
