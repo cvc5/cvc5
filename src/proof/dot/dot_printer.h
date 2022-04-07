@@ -180,7 +180,7 @@ class DotPrinter
    */
   inline bool isSCOPE(const PfRule& rule);
 
-  /** Verify if the rule is a ASSUME
+  /** Verify if the rule is an ASSUME
    * @param pn The rule to be verified.
    * @return The bool indicating if the rule is or not an ASSUME.
    */
