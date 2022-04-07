@@ -55,7 +55,7 @@ class SynthVerify : protected EnvObj
   /**
    * Preprocess query internal. This returns the rewritten form of query
    * and includes all relevant function definitions, i.e. those that occur
-   * in query.
+   * in query. These are added as top-level conjuncts to the returned formula.
    */
   Node preprocessQueryInternal(Node query);
   /** Pointer to the term database sygus */
