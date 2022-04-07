@@ -195,7 +195,7 @@ class DotPrinter
   /** Counter that indicates the current rule ID */
   uint64_t d_ruleID;
 
-  /** Vector that holds all the scopes args */
+  /** The arguments (assumptions), per level, of all scopes under which the traversal is currently under. */
   std::vector<std::reference_wrapper<const std::vector<Node>>> d_scopesArgs;
 
   /** Array with all the subgraphs description strings */
