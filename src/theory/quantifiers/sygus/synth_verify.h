@@ -52,7 +52,11 @@ class SynthVerify : protected EnvObj
                 std::vector<Node>& mvs);
 
  private:
-  /** Get query internal */
+  /**
+   * Preprocess query internal. This returns the rewritten form of query
+   * and includes all relevant function definitions, i.e. those that occur
+   * in query.
+   */
   Node preprocessQueryInternal(Node query);
   /** Pointer to the term database sygus */
   TermDbSygus* d_tds;
