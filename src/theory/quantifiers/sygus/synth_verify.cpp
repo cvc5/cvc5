@@ -111,9 +111,9 @@ Result SynthVerify::verify(Node query,
         Trace("cegqi-debug") << "...squery : " << squery << std::endl;
         squery = d_tds->rewriteNode(squery);
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-        // if the query did not simplify to true, then something unexpected
+        // if the query simplifies to false, then something
         // went wrong or the answer is unknown (for debugging).
-        if (!squery.isConst() || !squery.getConst<bool>())
+        if (squery.isConst() && !squery.getConst<bool>())
         {
           Assert(!options().quantifiers.sygusRecFun
                  || r.getStatus() == Result::UNKNOWN)
