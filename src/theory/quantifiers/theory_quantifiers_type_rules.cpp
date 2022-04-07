@@ -143,6 +143,25 @@ TypeNode QuantifierInstPatternListTypeRule::computeType(
   }
   return nodeManager->instPatternListType();
 }
+TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
+{
+  Assert(n.getKind() == kind::ORACLE_FORMULA_GEN);
+  if (check)
+  {
+    if (!n[0].getType().isBoolean())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expected Boolean for oracle interface assumption");
+    }
+    if (!n[1].getType().isBoolean())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expected Boolean for oracle interface constraint");
+    }
+  }
+  return nodeManager->booleanType();
+}
 
 }  // namespace quantifiers
 }  // namespace theory
