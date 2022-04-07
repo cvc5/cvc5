@@ -36,11 +36,9 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     SolverEngineState& state,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_state(state),
       d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
@@ -214,7 +212,6 @@ void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
-  Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
