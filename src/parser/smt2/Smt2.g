@@ -154,7 +154,7 @@ parseCommand returns [cvc5::Command* cmd_return = NULL]
     /* This extended command has to be in the outermost production so that
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
-  | LPAREN_TOK INCLUDE_TOK str[name,true] RPAREN_TOK
+  | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
     { if(!PARSER_STATE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this "
                                  "run.");
@@ -791,7 +791,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( str[s, true]
+    ( str[s]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
@@ -1749,7 +1749,7 @@ termAtomic[cvc5::Term& atomTerm]
     }
 
   // String constant
-  | str[s,false] { atomTerm = PARSER_STATE->mkStringConstant(s); }
+  | str[s] { atomTerm = PARSER_STATE->mkStringConstant(s); }
 
   // NOTE: Theory constants go here
 
@@ -1839,7 +1839,7 @@ termList[std::vector<cvc5::Term>& formulas, cvc5::Term& expr]
 /**
  * Matches a string, and strips off the quotes.
  */
-str[std::string& s, bool fsmtlib]
+str[std::string& s]
   : STRING_LITERAL
     {
       s = AntlrInput::tokenText($STRING_LITERAL);
@@ -1855,34 +1855,21 @@ str[std::string& s, bool fsmtlib]
               "as escape sequences");
         }
       }
-      if (fsmtlib || PARSER_STATE->escapeDupDblQuote())
+      char* p_orig = strdup(s.c_str());
+      char *p = p_orig, *q = p_orig;
+      while (*q != '\0')
       {
-        char* p_orig = strdup(s.c_str());
-        char *p = p_orig, *q = p_orig;
-        while (*q != '\0')
+        if (*q == '"')
         {
-          if (PARSER_STATE->escapeDupDblQuote() && *q == '"')
-          {
-            // Handle SMT-LIB >=2.5 standard escape '""'.
-            ++q;
-            Assert(*q == '"');
-          }
-          else if (!PARSER_STATE->escapeDupDblQuote() && *q == '\\')
-          {
-            ++q;
-            // Handle SMT-LIB 2.0 standard escapes '\\' and '\"'.
-            if (*q != '\\' && *q != '"')
-            {
-              Assert(*q != '\0');
-              *p++ = '\\';
-            }
-          }
-          *p++ = *q++;
+          // Handle SMT-LIB >=2.5 standard escape '""'.
+          ++q;
+          Assert(*q == '"');
         }
-        *p = '\0';
-        s = p_orig;
-        free(p_orig);
+        *p++ = *q++;
       }
+      *p = '\0';
+      s = p_orig;
+      free(p_orig);
     }
   ;
 
@@ -2209,17 +2196,15 @@ AS_TOK : 'as';
 CONST_TOK : { !PARSER_STATE->strictModeEnabled() }? 'const';
 
 // extended commands
-DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-codatatype';
-DECLARE_DATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-datatype';
-DECLARE_DATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-datatypes';
-DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-datatypes';
-DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
-DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
-PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
+DECLARE_CODATATYPE_TOK : 'declare-codatatype';
+DECLARE_DATATYPE_TOK : 'declare-datatype';
+DECLARE_DATATYPES_TOK : 'declare-datatypes';
+DECLARE_CODATATYPES_TOK : 'declare-codatatypes';
+PAR_TOK : 'par';
 SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }?'set.comprehension';
-TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
-UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
-MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
+TESTER_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
+UPDATE_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
+MATCH_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
@@ -2366,24 +2351,15 @@ BINARY_LITERAL
   ;
 
 /**
- * Matches a double-quoted string literal. Depending on the language that is
- * being parsed, different escape sequences are supported:
+ * Matches a double-quoted string literal. A double-quote inside a string is
+ * escaped with "", e.g., "This is a string literal with "" a single, embedded
+ * double quote."
  *
- * For SMT-LIB 2.0 the sequence \" is interpreted as a double quote (") and the
- * sequence \\ is interpreted as a backslash (\).
- *
- * For SMT-LIB >=2.5 and SyGuS a double-quote inside a string is escaped with
- * "", e.g., "This is a string literal with "" a single, embedded double
- * quote."
- *
- * You shouldn't generally use this in parser rules, as the quotes
- * will be part of the token text.  Use the str[] parser rule instead.
+ * You shouldn't generally use this in parser rules, as the quotes will be part
+ * of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
-  : { !PARSER_STATE->escapeDupDblQuote() }?=>
-    '"' ('\\' . | ~('\\' | '"'))* '"'
-  | { PARSER_STATE->escapeDupDblQuote() }?=>
-    '"' (~('"') | '""')* '"'
+  : '"' (~('"') | '""')* '"' 
   ;
 
 /**
