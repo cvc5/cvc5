@@ -704,10 +704,19 @@ void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
 
 void QuantifiersEngine::declareOracleFun(Node f, const std::string& binName)
 {
+  if (d_qmodules->d_oracleEngine.get()==nullptr)
+  {
+    warning() << "Cannot declare oracle function when oracles are disabled" << std::endl;
+    return;
+  }
   d_qmodules->d_oracleEngine->declareOracleFun(f, binName);
 }
 std::vector<Node> QuantifiersEngine::getOracleFuns() const
 {
+  if (d_qmodules->d_oracleEngine.get()==nullptr)
+  {
+    return {};
+  }
   return d_qmodules->d_oracleEngine->getOracleFuns();
 }
 
