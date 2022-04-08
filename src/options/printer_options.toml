@@ -30,7 +30,7 @@ name   = "Printing"
   long       = "print-dot-clusters"
   type       = "bool"
   default    = "false"
-  help       = "Whether the nodes clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
+  help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
 
 [[option]]
   name       = "printUnsatCoresFull"
