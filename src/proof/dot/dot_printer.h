@@ -33,12 +33,12 @@ namespace proof {
  */
 enum class ProofNodeClusterType : uint8_t
 {
-  // ======== First Scope
+  // ======== FIRST_SCOPE
   // Type of proof node cluster that is always in the root of the graph.
   // The rule is always SCOPE.
   FIRST_SCOPE = 0,
   // ======== SAT
-  // Type of proof node cluster that is between First Scope and CNF.
+  // Type of proof node cluster that is between FIRST_SCOPE and CNF.
   // The rules are: CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION
   // and MACRO_RESOLUTION_TRUST.
   SAT,
@@ -50,18 +50,19 @@ enum class ProofNodeClusterType : uint8_t
   CNF,
   // ======== THEORY_LEMMA
   // Proof nodes contained in a SCOPE which starts just after a SAT or CNF proof
-  // nodes.
+  // cluster.
   THEORY_LEMMA,
   // ======== PRE_PROCESSING
   // Type of proof node cluster that is in the middle of the proof.
-  // The rules can be any type. The proof nodes that aren't THEORY LEMMA after
-  // CNF are PRE PROCESSING. Therefore, the root of this cluster type can't be a
-  // SCOPE proof node.
+  // The rules can be of any type. The proof nodes that aren't THEORY_LEMMA
+  // after CNF are PRE_PROCESSING. Therefore, the root of this cluster type
+  // can't be a SCOPE proof node.
   PRE_PROCESSING,
   // ======== INPUT
-  // Type of proof node that is always a leaf with regard to the FIRST SCOPE.
+  // Type of proof node that is always a leaf with regard to the FIRST_SCOPE.
   // The rules are always ASSUME and the argument assumed by it was only scoped
-  // by the FIRST SCOPE and no other SCOPE.
+  // by the FIRST_SCOPE and no other SCOPE, i.e., it was not shadowed by an
+  // inner scope.
   INPUT,
   // ======== NOT_DEFINED
   NOT_DEFINED
@@ -83,8 +84,8 @@ class DotPrinter
  private:
   /**
    * Print the nodes of the proof in the format:
-   * $NODE_ID [ label = "{$CONCLUSION|$RULE_NAME($RULE_ARGUMENTS)}",
-   * $COLORS_AND_CLASSES_RELATED_TO_THE_RULE ]; and then for each child of the
+   * $NODE_ID [ label = "{$CONCLUSION|$RULE_NAME($RULE_ARGUMENTS)}", comment =
+   * "{\"subProofQty\":$SUB_PROOF_QUANTITY}" ]; and then for each child of the
    * node $CHILD_ID -> $NODE_ID; and then recursively calls the function with
    * the child as argument.
    * @param out the output stream
@@ -101,8 +102,8 @@ class DotPrinter
 
   /**
    * Print the nodes of the proof in the format:
-   * $NODE_ID [ label = "{$CONCLUSION|$RULE_NAME($RULE_ARGUMENTS)}",
-   * $COLORS_AND_CLASSES_RELATED_TO_THE_RULE ];
+   * $NODE_ID [ label = "{$CONCLUSION|$RULE_NAME($RULE_ARGUMENTS)}", comment =
+   * "{\"subProofQty\":$SUB_PROOF_QUANTITY}" ];
    * @param out the output stream
    * @param pn the proof node to print
    * @param currentRuleID the current rule ID
@@ -153,7 +154,7 @@ class DotPrinter
   /** Verify if the proof node is an input node. An input node is a proof node
    * that has an ASSUME rule and the argument assumed by it must be scoped only
    * by the FIRST SCOPE. In other words, if there is at least one SCOPE (other
-   * than the FIRST SCOPE) that is ancestor of this ASSUME proof node and it's
+   * than the FIRST SCOPE) that is an ancestor of this ASSUME proof node and its
    * argument is scoped by this ancestor, then the ASSUME is no longer an
    * input.
    * @param pn The proof node to be verified.
