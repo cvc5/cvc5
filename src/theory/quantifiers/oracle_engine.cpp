@@ -49,8 +49,7 @@ OracleEngine::OracleEngine(Env& env,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,
                            TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr),
-      d_oracleFuns(userContext())
+    : QuantifiersModule(env, qs, qim, qr, tr), d_oracleFuns(userContext())
 {
 }
 
@@ -71,19 +70,11 @@ void OracleEngine::reset_round(Theory::Effort e) {}
 
 void OracleEngine::registerQuantifier(Node q) {}
 
-void OracleEngine::check(Theory::Effort e, QEffort quant_e)
-{
+void OracleEngine::check(Theory::Effort e, QEffort quant_e) {}
 
-}
+bool OracleEngine::checkCompleteFor(Node q) { return false; }
 
-bool OracleEngine::checkCompleteFor(Node q)
-{
-  return false;
-}
-
-void OracleEngine::checkOwnership(Node q)
-{
-}
+void OracleEngine::checkOwnership(Node q) {}
 
 std::string OracleEngine::identify() const
 {

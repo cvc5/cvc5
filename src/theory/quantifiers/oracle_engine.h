@@ -26,7 +26,7 @@ namespace quantifiers {
 
 /**
  * Oracle engine
- * 
+ *
  * This class manages the list of declared oracle functions and asserted
  * oracle interfaces.
  *
@@ -86,6 +86,7 @@ class OracleEngine : public QuantifiersModule
                                 Node assume,
                                 Node constraint,
                                 const std::string& binName);
+
  private:
   /** The oracle functions (user-context dependent) */
   context::CDList<Node> d_oracleFuns;
