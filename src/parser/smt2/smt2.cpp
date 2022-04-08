@@ -842,7 +842,8 @@ bool Smt2::isAbstractValue(const std::string& name)
 cvc5::Term Smt2::mkIntOrRealFromNumeral(const std::string& str)
 {
   // if integers are used, it is an integer
-  if(d_logic.areIntegersUsed()) {
+  if (d_logic.areIntegersUsed())
+  {
     return d_solver->mkInteger(str);
   }
   // otherwise, numerals specify (integral) reals

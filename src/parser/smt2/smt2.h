@@ -291,7 +291,7 @@ class Smt2 : public Parser
 
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
-  
+
   /**
    * Make int or real from numeral string.
    */
