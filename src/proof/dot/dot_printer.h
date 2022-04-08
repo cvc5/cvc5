@@ -60,7 +60,7 @@ enum class NodeClusterType : uint8_t
   PRE_PROCESSING,
   // ======== INPUT
   // Type of proof node that is always a leaf with regard to the FIRST SCOPE.
-  // The rules are always ASSUME and the argument assumed by it was only scopped
+  // The rules are always ASSUME and the argument assumed by it was only scoped
   // by the FIRST SCOPE and no other SCOPE.
   INPUT,
   // ======== NOT_DEFINED
@@ -163,10 +163,10 @@ class DotPrinter
   NodeClusterType defineNodeType(const ProofNode* pn, NodeClusterType last);
 
   /** Verify if the proof node is an input node. An input node is a proof node
-   * that has an ASSUME rule and the argument assumed by it must be scopped only
+   * that has an ASSUME rule and the argument assumed by it must be scoped only
    * by the FIRST SCOPE. In other words, if there is at least one SCOPE (other
    * than the FIRST SCOPE) that is ancestor of this ASSUME proof node and it's
-   * argument is scopped by this ancestor, then the ASSUME is no longer an
+   * argument is scoped by this ancestor, then the ASSUME is no longer an
    * input.
    * @param pn The proof node to be verified.
    * @return The bool indicating if the proof node is or not an input.
