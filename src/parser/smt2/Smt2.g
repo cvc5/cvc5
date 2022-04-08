@@ -1704,7 +1704,7 @@ termAtomic[cvc5::Term& atomTerm]
   : INTEGER_LITERAL
     {
       std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
-      atomTerm = SOLVER->mkInteger(intStr);
+      atomTerm = PARSER_STATE->mkRealOrIntFromNumeral(intStr);
     }
   | DECIMAL_LITERAL
     {
