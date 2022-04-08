@@ -282,7 +282,8 @@ class Smt2Printer : public cvc5::internal::Printer
   /**
    * Prints the vector as a sorted variable list
    */
-  void toStreamSortedVarList(std::ostream& out, const std::vector<Node>& vars) const;
+  void toStreamSortedVarList(std::ostream& out,
+                             const std::vector<Node>& vars) const;
   /**
    * Prints a type as part of e.g. a declare-fun command. This prints either
    * `() T` if the type T is not a function, or `(T1 ... Tn) Tr` if T is
