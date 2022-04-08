@@ -18,7 +18,6 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 
-#include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
