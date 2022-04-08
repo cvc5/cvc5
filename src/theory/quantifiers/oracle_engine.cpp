@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/oracle_engine.h"
 
+#include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
