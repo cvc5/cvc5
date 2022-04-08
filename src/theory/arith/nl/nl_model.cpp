@@ -324,6 +324,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
 
 bool NlModel::addBound(TNode v, TNode l, TNode u)
 {
+  Assert(l.getType().isSubtypeOf(v.getType()));
+  Assert(u.getType().isSubtypeOf(v.getType()));
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " "
                         << u << "]" << std::endl;
   if (l == u)
