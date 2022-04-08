@@ -839,6 +839,16 @@ bool Smt2::isAbstractValue(const std::string& name)
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
+cvc5::Term Smt2::mkIntOrRealFromNumeral(const std::string& str)
+{
+  // if integers are used, it is an integer
+  if(d_logic.areIntegersUsed()) {
+    return d_solver->mkInteger(str);
+  }
+  // otherwise, numerals specify (integral) reals
+  return d_solver->mkReal(str);
+}
+
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
 {
   Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
