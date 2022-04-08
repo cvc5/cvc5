@@ -328,7 +328,7 @@ bool Smt2::logicIsSet() {
 
 bool Smt2::getTesterName(cvc5::Term cons, std::string& name)
 {
-  if ((v2_6() || sygus()) && strictModeEnabled())
+  if (strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.

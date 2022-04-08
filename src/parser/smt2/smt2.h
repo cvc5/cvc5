@@ -225,23 +225,8 @@ class Smt2 : public Parser
   cvc5::Grammar* mkGrammar(const std::vector<cvc5::Term>& boundVars,
                            const std::vector<cvc5::Term>& ntSymbols);
 
-  /**
-   * Are we using smtlib 2.6 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6.
-   */
-  bool v2_6(bool exact = false) const
-  {
-    return d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6";
-  }
   /** Are we using a sygus language? */
   bool sygus() const;
-
-  /**
-   * Returns true if the language that we are parsing (SMT-LIB version >=2.5
-   * and SyGuS) treats duplicate double quotes ("") as an escape sequence
-   * denoting a single double quote (").
-   */
-  bool escapeDupDblQuote() const { return v2_6() || sygus(); }
 
   void checkThatLogicIsSet();
 
