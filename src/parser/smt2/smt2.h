@@ -292,12 +292,13 @@ class Smt2 : public Parser
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
 
-  /** Make abstract value
+  /**
+   * Make real or int from numeral string.
    *
-   * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isUninterpretedSortValue(name) is true.
+   * In particular, if arithmetic is enabled, but integers are disabled, then
+   * we construct a real. Otherwise, we construct an integer.
    */
-  cvc5::Term mkUninterpretedSortValue(const std::string& name);
+  cvc5::Term mkRealOrIntFromNumeral(const std::string& str);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the

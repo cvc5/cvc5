@@ -181,7 +181,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
   if(d_gcds.find(n) != d_gcds.end()){
     return d_gcds[n];
   }
-  if(n.getKind() == kind::CONST_RATIONAL){
+  if (n.isConst())
+  {
     const Rational& q = n.getConst<Rational>();
     if(q.isIntegral()){
       d_gcds[n] = q.getNumerator();
