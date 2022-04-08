@@ -2377,19 +2377,7 @@ BINARY_LITERAL
  * of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
-  : '"' (~('"') | '""' ~('\n' | '\r'))* '"' 
-  ;
-
-STRING_LITERAL_BEGIN
-  : '"'
-  ;
-
-STRING_LITERAL_MID
-  : (~('"' | '\n' | '\r') | '""')*
-  ;
-
-STRING_LITERAL_END
-  : '"' 
+  : '"' (~('"') | '""')* '"' 
   ;
 
 /**
