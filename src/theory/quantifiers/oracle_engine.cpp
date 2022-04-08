@@ -114,13 +114,13 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
   Node ipl = nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oiVar));
   std::vector<Node> vars;
   OracleInputVarAttribute oiva;
-  for (Node v : inputs)
+  for (const Node& v : inputs)
   {
     v.setAttribute(oiva, true);
     vars.push_back(v);
   }
   OracleOutputVarAttribute oova;
-  for (Node v : outputs)
+  for (const Node& v : outputs)
   {
     v.setAttribute(oova, true);
     vars.push_back(v);
