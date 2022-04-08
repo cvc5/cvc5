@@ -839,7 +839,7 @@ bool Smt2::isAbstractValue(const std::string& name)
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-cvc5::Term Smt2::mkIntOrRealFromNumeral(const std::string& str)
+cvc5::Term Smt2::mkRealOrIntFromNumeral(const std::string& str)
 {
   // if arithmetic is enabled, and integers are disabled
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
