@@ -298,7 +298,7 @@ Kind joinKinds(Kind k1, Kind k2);
  */
 Kind transKinds(Kind k1, Kind k2);
 
-/** Is zero */
+/** Is n (integer or real) zero? */
 bool isZero(const Node& n);
 
 /** Is k a transcendental function kind? */
