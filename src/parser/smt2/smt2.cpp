@@ -842,7 +842,9 @@ bool Smt2::isAbstractValue(const std::string& name)
 cvc5::Term Smt2::mkIntOrRealFromNumeral(const std::string& str)
 {
   // if arithmetic is enabled, and integers are disabled
-  if(d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH) && !d_logic.areIntegersUsed()) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
+      && !d_logic.areIntegersUsed())
+  {
     return d_solver->mkReal(str);
   }
   return d_solver->mkInteger(str);
