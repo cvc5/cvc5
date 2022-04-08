@@ -27,7 +27,6 @@ namespace nl {
 
 NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
@@ -73,7 +72,7 @@ bool NlExtTheoryCallback::isExtfReduced(
     // we do not handle reductions of transcendental functions here
     return false;
   }
-  if (n != d_zero)
+  if (!isZero(n))
   {
     Kind k = n.getKind();
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
@@ -91,7 +90,6 @@ bool NlExtTheoryCallback::isExtfReduced(
   // As an optimization, we minimize the explanation for why a term can be
   // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
   // we minimize the explanation to (= x 0) => (= (* x y) 0).
-  Assert(n == d_zero);
   id = ExtReducedId::ARITH_SR_ZERO;
   if (on.getKind() == NONLINEAR_MULT)
   {
@@ -124,7 +122,7 @@ bool NlExtTheoryCallback::isExtfReduced(
       {
         for (unsigned r = 0; r < 2; r++)
         {
-          if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end())
+          if (isZero(eqs[j][r]) && vars.find(eqs[j][1 - r]) != vars.end())
           {
             Trace("nl-ext-zero-exp")
                 << "...single exp : " << eqs[j] << std::endl;

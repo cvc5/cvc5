@@ -738,7 +738,7 @@ Node BagsUtils::evaluateBagFilter(TNode n)
 
   for (const auto& [e, count] : elements)
   {
-    Node multiplicity = nm->mkConst(CONST_RATIONAL, count);
+    Node multiplicity = nm->mkConstInt(count);
     Node bag = nm->mkBag(bagType.getBagElementType(), e, multiplicity);
     Node pOfe = nm->mkNode(APPLY_UF, P, e);
     Node ite = nm->mkNode(ITE, pOfe, bag, empty);
