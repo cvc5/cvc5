@@ -68,8 +68,6 @@ class NlExtTheoryCallback : public ExtTheoryCallback
  private:
   /** The underlying equality engine. */
   eq::EqualityEngine* d_ee;
-  /** Commonly used nodes */
-  Node d_zero;
 };
 
 }  // namespace nl
