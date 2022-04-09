@@ -37,9 +37,12 @@ ExtState::ExtState(InferenceManager& im, NlModel& model, Env& env)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
+  // Note that we use reals for these constants. They are used in some contexts
+  // for e.g. comparing whether a monomial is greater than 1, where this is
+  // done in a way that is agnostic to types.
+  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstReal(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(new CDProofSet<CDProof>(

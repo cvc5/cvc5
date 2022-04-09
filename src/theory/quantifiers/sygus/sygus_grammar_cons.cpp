@@ -794,10 +794,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // make data type for positive constant integers
         sdts.push_back(SygusDatatypeGenerator(pos_int_name));
         /* Add operator 1 */
-        Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
+        Trace("sygus-grammar-def") << "\t...add for 1.0 to Pos_Int\n";
         std::vector<TypeNode> cargsEmpty;
         sdts.back().addConstructor(
-            nm->mkConstInt(Rational(1)), "1", cargsEmpty);
+            nm->mkConstReal(Rational(1)), "1", cargsEmpty);
         /* Add operator ADD */
         Kind kind = ADD;
         Trace("sygus-grammar-def") << "\t...add for ADD to Pos_Int\n";
