@@ -417,12 +417,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           if (value[t] != d_zero && !d_mbp_coeff[rr][j].isNull())
           {
             Assert(d_mbp_coeff[rr][j].isConst());
-            value[t] = nm->mkNode(
-                MULT,
-                nm->mkConstReal(Rational(1)
-                                / d_mbp_coeff[rr][j].getConst<Rational>()),
-                value[t]);
-            value[t] = rewrite(value[t]);
+            value[t] =
+                nm->mkConstReal(value[t].getConst<Rational>()
+                                / d_mbp_coeff[rr][j].getConst<Rational>());
           }
           // check if new best, if we have not already set it.
           if (best != -1 && !new_best_set)
@@ -430,15 +427,20 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
             {
-              Kind k = rr == 0 ? GEQ : LEQ;
-              Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
-              cmp_bound = rewrite(cmp_bound);
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
               // the new best bound. We might not be comparing constant
               // values (for instance if transcendental functions are
-              // involved), in which case we do update the best bound value.
-              if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
+              // involved), in which case we do not update the best bound value.
+              if (!value[t].isConst() || !best_bound_value[t].isConst())
+              {
+                new_best = false;
+                break;
+              }
+              Rational rt = value[t].getConst<Rational>();
+              Rational brt = best_bound_value[t].getConst<Rational>();
+              bool cmp = rr == 0 ? rt >= brt : rt <= brt;
+              if (!cmp)
               {
                 new_best = false;
                 break;

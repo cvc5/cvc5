@@ -110,6 +110,11 @@ bool isZero(const Node& n)
   return n.isConst() && n.getConst<Rational>().sgn() == 0;
 }
 
+Node mkOne(const TypeNode& tn, bool isNeg)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, isNeg ? -1 : 1);
+}
+
 bool isTranscendentalKind(Kind k)
 {
   // many operators are eliminated during rewriting
