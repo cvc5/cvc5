@@ -1319,6 +1319,24 @@ std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
   return smtKindString(k, v);
 }
 
+void Smt2Printer::toStreamDeclareType(std::ostream& out, TypeNode tn) const
+{
+  out << "(";
+  if (tn.isFunction())
+  {
+    const vector<TypeNode> argTypes = tn.getArgTypes();
+    if (argTypes.size() > 0)
+    {
+      copy(argTypes.begin(),
+           argTypes.end() - 1,
+           ostream_iterator<TypeNode>(out, " "));
+      out << argTypes.back();
+    }
+    tn = tn.getRangeType();
+  }
+  out << ") " << tn;
+}
+
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
@@ -1539,21 +1557,9 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
 {
-  out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " (";
-  if (type.isFunction())
-  {
-    const vector<TypeNode> argTypes = type.getArgTypes();
-    if (argTypes.size() > 0)
-    {
-      copy(argTypes.begin(),
-           argTypes.end() - 1,
-           ostream_iterator<TypeNode>(out, " "));
-      out << argTypes.back();
-    }
-    type = type.getRangeType();
-  }
-
-  out << ") " << type << ')' << std::endl;
+  out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
+  toStreamDeclareType(out, type);
+  out << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclarePool(
@@ -1579,25 +1585,9 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  out << "(define-fun " << cvc5::internal::quoteSymbol(id) << " (";
-  if (!formals.empty())
-  {
-    vector<Node>::const_iterator i = formals.cbegin();
-    for (;;)
-    {
-      out << "(" << (*i) << " " << (*i).getType() << ")";
-      ++i;
-      if (i != formals.cend())
-      {
-        out << " ";
-      }
-      else
-      {
-        break;
-      }
-    }
-  }
-  out << ") " << range << ' ' << formula << ')' << std::endl;
+  out << "(define-fun " << cvc5::internal::quoteSymbol(id) << " ";
+  toStreamSortedVarList(out, formals);
+  out << " " << range << ' ' << formula << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineFunctionRec(
@@ -1626,24 +1616,15 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
       }
       out << "(";
     }
-    out << funcs[i] << " (";
+    out << funcs[i] << " ";
     // print its type signature
-    vector<Node>::const_iterator itf = formals[i].cbegin();
-    while (itf != formals[i].cend())
-    {
-      out << "(" << (*itf) << " " << (*itf).getType() << ")";
-      ++itf;
-      if (itf != formals[i].cend())
-      {
-        out << " ";
-      }
-    }
+    toStreamSortedVarList(out, formals[i]);
     TypeNode type = funcs[i].getType();
     if (type.isFunction())
     {
       type = type.getRangeType();
     }
-    out << ") " << type;
+    out << " " << type;
     if (funcs.size() > 1)
     {
       out << ")";
@@ -1670,6 +1651,21 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
     out << ")";
   }
   out << ")" << std::endl;
+}
+
+void Smt2Printer::toStreamSortedVarList(std::ostream& out,
+                                        const std::vector<Node>& vars) const
+{
+  out << "(";
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  {
+    out << "(" << vars[i] << " " << vars[i].getType() << ")";
+    if (i + 1 < nvars)
+    {
+      out << " ";
+    }
+  }
+  out << ")";
 }
 
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
@@ -1972,20 +1968,9 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
                                       bool isInv,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ' << '(';
-  if (!vars.empty())
-  {
-    // print variable list
-    std::vector<Node>::const_iterator i = vars.cbegin(), i_end = vars.cend();
-    out << '(' << *i << ' ' << i->getType() << ')';
-    ++i;
-    while (i != i_end)
-    {
-      out << " (" << *i << ' ' << i->getType() << ')';
-      ++i;
-    }
-  }
-  out << ')';
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ';
+  // print variable list
+  toStreamSortedVarList(out, vars);
   // if not invariant-to-synthesize, print return type
   if (!isInv)
   {

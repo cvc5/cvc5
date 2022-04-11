@@ -99,6 +99,12 @@ Kind transKinds(Kind k1, Kind k2)
   return UNDEFINED_KIND;
 }
 
+bool isZero(const Node& n)
+{
+  Assert(n.getType().isRealOrInt());
+  return n.isConst() && n.getConst<Rational>().sgn() == 0;
+}
+
 bool isTranscendentalKind(Kind k)
 {
   // many operators are eliminated during rewriting

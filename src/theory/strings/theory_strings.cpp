@@ -775,7 +775,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   TypeNode etn = r.getType().getSequenceElementType();
   for (size_t i = currIndex; i < nextIndex; i++)
   {
-    cacheVals.push_back(nm->mkConst(CONST_RATIONAL, Rational(currIndex)));
+    cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
     Node kv = sm->mkSkolemFunction(
         SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
     skChildren.push_back(nm->mkSeqUnit(etn, kv));
