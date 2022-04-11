@@ -1,4 +1,4 @@
-; COMMAND-LINE: -o post-asserts
+; COMMAND-LINE: -o post-asserts --produce-assertions
 ; SCRUBBER: grep -E '\(assert'
 ; EXPECT: (assert true)
 ; EXPECT: (assert true)
