@@ -205,7 +205,7 @@ void TheoryEngine::finishInit()
 
   if (options().parallel.computePartitions > 1)
   {
-    d_splitter = std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
+    d_partitionGen = std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -401,9 +401,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       d_tc->resetRound();
     }
 
-    if (d_splitter != nullptr)
+    if (d_partitionGen != nullptr)
     {
-      TrustNode tl = d_splitter->makePartitions(effort);
+      TrustNode tl = d_partitionGen->check(effort);
       if (!tl.isNull()){
         lemma(tl, LemmaProperty::NONE, THEORY_LAST);
       }

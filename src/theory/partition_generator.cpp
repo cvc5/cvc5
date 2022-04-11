@@ -141,7 +141,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
   }
 }
 
-TrustNode PartitionGenerator::makePartitions(Theory::Effort e)
+TrustNode PartitionGenerator::check(Theory::Effort e)
 {
   if ((options().parallel.partitionCheck == options::CheckMode::FULL
        && !Theory::fullEffort(e))

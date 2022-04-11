@@ -642,7 +642,7 @@ class TheoryEngine : protected EnvObj
    * The splitter produces partitions when the compute-partitions option is
    * used.
    */
-  std::unique_ptr<cvc5::theory::PartitionGenerator> d_splitter;
+  std::unique_ptr<cvc5::theory::PartitionGenerator> d_partitionGen;
 
 }; /* class TheoryEngine */
 

@@ -43,10 +43,10 @@ class PartitionGenerator : protected EnvObj
                      prop::PropEngine* propEngine);
 
   /**
-   * Make partitions for parallel solving. e communicates the effort at which makePartitions was called.
+   * Make partitions for parallel solving. e communicates the effort at which check was called.
    * Returns a lemma blocking off the emitted cube from the search.
    */
-  TrustNode makePartitions(Theory::Effort e);
+  TrustNode check(Theory::Effort e);
 
  private:
   /**
@@ -75,6 +75,13 @@ class PartitionGenerator : protected EnvObj
    * Get the list of decisions from the SAT solver
    */
   std::vector<TNode> collectDecisionLiterals();
+
+  /**
+   * Returns the d_cubes, the cubes that have been created for partitioning the original problem.  
+   */
+  std::vector<Node> getPartitions() const {
+    return d_cubes;
+  }
 
   /**
    * Current propEngine.
