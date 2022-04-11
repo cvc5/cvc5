@@ -43,3 +43,22 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
 }
 
 }  // namespace cvc5
+
+namespace cvc5::modes {
+
+std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
+{
+  switch (ltype)
+  {
+    case LearnedLitType::PREPROCESS_SOLVED: out << "PREPROCESS_SOLVED"; break;
+    case LearnedLitType::PREPROCESS: out << "PREPROCESS"; break;
+    case LearnedLitType::INPUT: out << "INPUT"; break;
+    case LearnedLitType::SOLVABLE: out << "SOLVABLE"; break;
+    case LearnedLitType::CONSTANT_PROP: out << "CONSTANT_PROP"; break;
+    case LearnedLitType::INTERNAL: out << "INTERNAL"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
+}  // namespace cvc5::modes
