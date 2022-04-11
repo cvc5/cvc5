@@ -99,6 +99,11 @@ Kind transKinds(Kind k1, Kind k2)
   return UNDEFINED_KIND;
 }
 
+Node mkZero(const TypeNode& tn)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+}
+
 bool isZero(const Node& n)
 {
   Assert(n.getType().isRealOrInt());
