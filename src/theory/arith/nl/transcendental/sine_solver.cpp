@@ -187,15 +187,17 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
   CDProof* proof = nullptr;
   Node lem;
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
+  InferenceId iid;
   if (TranscendentalState::isSimplePurify(a))
   {
-    lem = nm->mkNode(AND, a[0].eqNode(new_a[0]), a.eqNode(new_a));
+    lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
     if (d_data->isProofEnabled())
     {
       // simple to justify
       proof = d_data->getProof();
       proof->addStep(lem, PfRule::MACRO_SR_PRED_INTRO, {}, {lem});
     }
+    iid = InferenceId::ARITH_NL_T_PURIFY_ARG;
   }
   else
   {
@@ -209,11 +211,12 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
       proof->addStep(
           lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], new_a[0], shift});
     }
+    iid = InferenceId::ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT;
   }
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_PURIFY_ARG, proof);
+  d_data->d_im.addPendingLemma(lem, iid, proof);
 }
 
 void SineSolver::checkInitialRefine()
