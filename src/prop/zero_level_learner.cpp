@@ -17,6 +17,8 @@
 #include "context/context.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
@@ -253,30 +255,6 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
     }
   }
   return ret;
-}
-
-std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
-    const
-{
-  std::vector<Node> ret;
-  for (modes::LearnedLitType ltype : d_learnedTypes)
-  {
-    std::vector<Node> rett = getLearnedZeroLevelLiterals(ltype);
-    ret.insert(ret.end(), rett.begin(), rett.end());
-  }
-  return ret;
-}
-
-bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
-{
-  for (modes::LearnedLitType ltype : d_learnedTypes)
-  {
-    if (d_ldb.getNumLearnedLiterals(ltype) > 0)
-    {
-      return true;
-    }
-  }
-  return false;
 }
 
 bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const
