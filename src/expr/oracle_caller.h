@@ -30,10 +30,10 @@ namespace cvc5::internal {
 class OracleCaller
 {
  public:
-   /**
-    * @param oracleInterfaceNode The oracle function symbol or oracle interface
-    * quantified formula.
-    */
+  /**
+   * @param oracleInterfaceNode The oracle function symbol or oracle interface
+   * quantified formula.
+   */
   OracleCaller(const Node& oracleInterfaceNode);
 
   ~OracleCaller() {}
