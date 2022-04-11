@@ -31,15 +31,17 @@ namespace quantifiers {
  * oracle interfaces.
  *
  * For SMT modulo oracles (SMTO) queries, this class is responsible for
- * invoking oracles, as specified by assert oracle interface quantifiers,
- * until all oracle functions have consistent definitions with respect to the
- * current model.
+ * invoking oracles, as specified by oracle interface quantifiers (see
+ * OracleInterfaceAttribute), until all oracle functions have consistent
+ * definitions with respect to the current model.
  *
  * In detail, an oracle function f has a consistent definition with respect to
  * the current model M if all invocations f(t) in assertions are such that
  * we have invoked its associated oracle on t^M and that invocation returned
  * the value f(t)^M. This module is complete for oracle interface quantifiers
  * if their associated oracle function has a consistent definition.
+ *
+ * For details, see Polgreen et al VMCAI 2022.
  */
 class OracleEngine : public QuantifiersModule
 {
