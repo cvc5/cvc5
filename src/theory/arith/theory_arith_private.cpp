@@ -4460,11 +4460,11 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         farkasCoefficients.reserve(coeffs->size());
         auto nm = NodeManager::currentNM();
         std::transform(coeffs->begin(),
-	                       coeffs->end(),
-	                       std::back_inserter(farkasCoefficients),
-	                       [nm, type](const Rational& r) {
-	                         return nm->mkConstRealOrInt(type, r);
-	                       });
+                       coeffs->end(),
+                       std::back_inserter(farkasCoefficients),
+                       [nm, type](const Rational& r) {
+                         return nm->mkConstRealOrInt(type, r);
+                       });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(
