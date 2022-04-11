@@ -19,9 +19,6 @@
 
 #include "options/base_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "util/miniParser/miniParser.h"
-#include "util/rational.h"
-#include "util/run.h"
 
 namespace cvc5::internal {
 
