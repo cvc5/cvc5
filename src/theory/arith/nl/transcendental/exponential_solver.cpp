@@ -46,7 +46,7 @@ ExponentialSolver::~ExponentialSolver() {}
 
 void ExponentialSolver::doPurification(TNode a, TNode new_a)
 {
-  Assert (TranscendentalState::isSimplePurify(a));
+  Assert(TranscendentalState::isSimplePurify(a));
   NodeManager* nm = NodeManager::currentNM();
   // do both equalities to ensure that new_a becomes a preregistered term
   Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
