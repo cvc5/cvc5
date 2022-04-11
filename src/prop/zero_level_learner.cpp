@@ -35,7 +35,8 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_nonZeroAssert(context(), false),
       d_ppnAtoms(userContext()),
       d_ppnTerms(userContext()),
-      d_ppnSyms(userContext())
+      d_ppnSyms(userContext()),
+      d_assertNoLearnCount(0)
 {
   // get the learned types
   d_learnedTypes.insert(modes::LearnedLitType::INPUT);
@@ -150,11 +151,13 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   if (d_nonZeroAssert.get())
   {
     // already not at level zero, skip
+    d_assertNoLearnCount++;
   }
   else if (alevel != 0)
   {
     Trace("level-zero-dec") << "First non-zero: " << assertion << std::endl;
     d_nonZeroAssert = true;
+    d_assertNoLearnCount++;
   }
   else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
   {
@@ -220,6 +223,11 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
 {
   // add to the database
   d_ldb.addLearnedLiteral(lit, ltype);
+  // reset the counter for deep restart if the literal was learnable
+  if (isLearnable(ltype))
+  {
+    d_assertNoLearnCount = 0;
+  }
   // print to stream
   if (isOutputOn(OutputTag::LEARNED_LITS))
   {

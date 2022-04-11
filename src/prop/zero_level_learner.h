@@ -103,6 +103,8 @@ class ZeroLevelLearner : protected EnvObj
    */
   NodeSet d_ppnSyms;
 
+  /** Current counter of assertions */
+  size_t d_assertNoLearnCount;
   /** Dummy context, used for getSolved */
   context::Context d_dummyContext;
   /** learned types, based on option */
