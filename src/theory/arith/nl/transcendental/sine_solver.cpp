@@ -37,19 +37,6 @@ namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
-namespace {
-
-/**
- * Ensure a is in the main phase:
- *   -pi <= a <= pi
- */
-inline Node mkValidPhase(TNode a, TNode pi)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  return mkBounded(
-      nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi), a, pi);
-}
-}  // namespace
 
 SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
     : EnvObj(env), d_data(tstate)
