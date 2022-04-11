@@ -417,9 +417,12 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           if (value[t] != d_zero && !d_mbp_coeff[rr][j].isNull())
           {
             Assert(d_mbp_coeff[rr][j].isConst());
-            value[t] =
-                nm->mkConstReal(value[t].getConst<Rational>()
-                                / d_mbp_coeff[rr][j].getConst<Rational>());
+            value[t] = nm->mkNode(
+                MULT,
+                nm->mkConstReal(Rational(1)
+                                / d_mbp_coeff[rr][j].getConst<Rational>()),
+                nm->mkNode(TO_REAL, value[t]));
+            value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
           if (best != -1 && !new_best_set)
