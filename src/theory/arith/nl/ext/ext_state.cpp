@@ -36,7 +36,7 @@ ExtState::ExtState(InferenceManager& im, NlModel& model, Env& env)
     : d_im(im), d_model(model), d_env(env)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_true = NodeManager::currentNM()->mkConst(true);  
+  d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));

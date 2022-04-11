@@ -783,8 +783,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def")
             << "  ...create auxiliary Positive Integers grammar\n";
-        // Creating type for positive integral reals. Notice we can't use the any
-        // constant constructor here, since it admits zero.
+        // Creating type for positive integral reals. Notice we can't use the
+        // any constant constructor here, since it admits zero.
         std::stringstream ss;
         ss << fun << "_PosIReal";
         std::string posIRealName = ss.str();
