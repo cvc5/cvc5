@@ -20,11 +20,11 @@
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
 
+#include "api/cpp/cvc5_types.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "proof/trust_node.h"
-#include "api/cpp/cvc5_types.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
 #include "theory/output_channel.h"

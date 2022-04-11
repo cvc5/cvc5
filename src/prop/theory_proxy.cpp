@@ -52,9 +52,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr)
 {
-  bool trackZeroLevel =
-      isOutputOn(OutputTag::LEARNED_LITS)
-      || options().smt.produceLearnedLiterals;
+  bool trackZeroLevel = isOutputOn(OutputTag::LEARNED_LITS)
+                        || options().smt.produceLearnedLiterals;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
