@@ -236,10 +236,8 @@ libcvc5_add_sources(
   prop/cryptominisat.h
   prop/kissat.cpp
   prop/kissat.h
-  prop/opt_clauses_manager.cpp
-  prop/opt_clauses_manager.h
-  prop/proof_cnf_stream.cpp
-  prop/proof_cnf_stream.h
+  prop/learned_db.cpp
+  prop/learned_db.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -258,6 +256,10 @@ libcvc5_add_sources(
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
+  prop/proof_cnf_stream.cpp
+  prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
   prop/proof_post_processor.h
   prop/prop_engine.cpp
