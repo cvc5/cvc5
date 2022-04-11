@@ -66,21 +66,73 @@ Result SynthVerify::verify(Node query,
                            const std::vector<Node>& vars,
                            std::vector<Node>& mvs)
 {
+  Node queryp = preprocessQueryInternal(query);
+  bool finished;
+  Result r;
+  do
+  {
+    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
+    if (queryp.isConst())
+    {
+      if (!queryp.getConst<bool>())
+      {
+        return Result(Result::UNSAT);
+      }
+      // sat, but we need to get arbtirary model values below
+    }
+    r = checkWithSubsolver(queryp,
+                           vars,
+                           mvs,
+                           d_subOptions,
+                           d_subLogicInfo,
+                           options().quantifiers.sygusVerifyTimeout != 0,
+                           options().quantifiers.sygusVerifyTimeout);
+    finished = true;
+    Trace("sygus-engine") << "  ...got " << r << std::endl;
+    // we try to learn models for "sat" and "unknown" here
+    if (r.getStatus() != Result::UNSAT)
+    {
+      if (TraceIsOn("sygus-engine"))
+      {
+        Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
+        for (unsigned i = 0, size = vars.size(); i < size; i++)
+        {
+          Trace("sygus-engine") << vars[i] << " -> " << mvs[i] << " ";
+        }
+        Trace("sygus-engine") << std::endl;
+      }
+      // check whether the query is satisfied by the model
+      if (Configuration::isAssertionBuild())
+      {
+        Assert(vars.size() == mvs.size());
+        // the values for the query should be a complete model
+        Node squery =
+            query.substitute(vars.begin(), vars.end(), mvs.begin(), mvs.end());
+        Trace("cegqi-debug") << "...squery : " << squery << std::endl;
+        squery = d_tds->rewriteNode(squery);
+        Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
+        // if the query simplifies to false, then something
+        // went wrong or the answer is unknown (for debugging).
+        if (squery.isConst() && !squery.getConst<bool>())
+        {
+          Assert(r.getStatus() == Result::UNKNOWN)
+              << "Expected model from verification step to satisfy query";
+        }
+      }
+    }
+  } while (!finished);
+  return r;
+}
+
+Node SynthVerify::preprocessQueryInternal(Node query)
+{
   NodeManager* nm = NodeManager::currentNM();
+  Trace("cegqi-debug") << "pre-rewritten query : " << query << std::endl;
   // simplify the lemma based on the term database sygus utility
   query = d_tds->rewriteNode(query);
   // eagerly unfold applications of evaluation function
-  Trace("cegqi-debug") << "pre-unfold counterexample : " << query << std::endl;
-
-  if (query.isConst())
-  {
-    if (!query.getConst<bool>())
-    {
-      return Result(Result::UNSAT);
-    }
-    // sat, but we need to get arbtirary model values below
-  }
-  else
+  Trace("cegqi-debug") << "post-rewritten query : " << query << std::endl;
+  if (!query.isConst())
   {
     // if non-constant, we may need to add recursive function definitions
     FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
@@ -98,6 +150,7 @@ Result SynthVerify::verify(Node query,
       qconj.push_back(query);
       for (const Node& f : syms)
       {
+        // get the function definition
         Node q = feval->getDefinitionFor(f);
         if (!q.isNull())
         {
@@ -105,43 +158,11 @@ Result SynthVerify::verify(Node query,
         }
       }
       query = nm->mkAnd(qconj);
-      Trace("cegqi-debug") << "query is " << query << std::endl;
+      Trace("cegqi-debug") << "after function definitions, query is " << query
+                           << std::endl;
     }
   }
-  Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-  query = rewrite(query);
-  Result r = checkWithSubsolver(query,
-                                vars,
-                                mvs,
-                                d_subOptions,
-                                d_subLogicInfo,
-                                options().quantifiers.sygusVerifyTimeout != 0,
-                                options().quantifiers.sygusVerifyTimeout);
-  Trace("sygus-engine") << "  ...got " << r << std::endl;
-  if (r.getStatus() == Result::SAT)
-  {
-    if (TraceIsOn("sygus-engine"))
-    {
-      Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
-      for (unsigned i = 0, size = vars.size(); i < size; i++)
-      {
-        Trace("sygus-engine") << vars[i] << " -> " << mvs[i] << " ";
-      }
-      Trace("sygus-engine") << std::endl;
-    }
-    if (Configuration::isAssertionBuild())
-    {
-      // the values for the query should be a complete model
-      Node squery =
-          query.substitute(vars.begin(), vars.end(), mvs.begin(), mvs.end());
-      Trace("cegqi-debug") << "...squery : " << squery << std::endl;
-      squery = rewrite(squery);
-      Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-      Assert(options().quantifiers.sygusRecFun
-             || (squery.isConst() && squery.getConst<bool>()));
-    }
-  }
-  return r;
+  return query;
 }
 
 }  // namespace quantifiers
