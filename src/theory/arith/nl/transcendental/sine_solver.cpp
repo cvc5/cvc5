@@ -165,21 +165,18 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
   Node mone = nm->mkConstReal(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), PI);
   return nm->mkAnd(std::vector<Node>{
-        nm->mkNode(GEQ, y, nm->mkNode(MULT, mone, pi)),
-        nm->mkNode(LEQ, y, pi),
-        nm->mkNode(IS_INTEGER, s),
-        nm->mkNode(
-            ITE,
-            nm->mkAnd(std::vector<Node>{
-                nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
-                nm->mkNode(LEQ, x, pi),
-            }),
-            x.eqNode(y),
-            x.eqNode(nm->mkNode(
-                ADD,
-                y,
-                nm->mkNode(MULT, nm->mkConstReal(2), s, pi)))),
-        nm->mkNode(SINE, y).eqNode(nm->mkNode(SINE, x))});
+      nm->mkNode(GEQ, y, nm->mkNode(MULT, mone, pi)),
+      nm->mkNode(LEQ, y, pi),
+      nm->mkNode(IS_INTEGER, s),
+      nm->mkNode(ITE,
+                 nm->mkAnd(std::vector<Node>{
+                     nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
+                     nm->mkNode(LEQ, x, pi),
+                 }),
+                 x.eqNode(y),
+                 x.eqNode(nm->mkNode(
+                     ADD, y, nm->mkNode(MULT, nm->mkConstReal(2), s, pi)))),
+      nm->mkNode(SINE, y).eqNode(nm->mkNode(SINE, x))});
 }
 
 void SineSolver::doPhaseShift(TNode a, TNode new_a)
@@ -203,13 +200,14 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
   else
   {
     Node shift = sm->mkDummySkolem("s", nm->realType(), "number of shifts");
-    // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
-    // refinement for constant shifts (cvc4-projects #1284)
+    // TODO (cvc4-projects #47) : do not introduce shift here, instead needs
+    // model-based refinement for constant shifts (cvc4-projects #1284)
     lem = getPhaseShiftLemma(a[0], new_a[0], shift);
     if (d_data->isProofEnabled())
     {
       proof = d_data->getProof();
-      proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], new_a[0], shift});
+      proof->addStep(
+          lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], new_a[0], shift});
     }
   }
   // note we must do preprocess on this lemma

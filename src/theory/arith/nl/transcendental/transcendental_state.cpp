@@ -492,7 +492,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
 
 bool TranscendentalState::isSimplePurify(TNode n)
 {
-  if (n.getKind()!=kind::SINE)
+  if (n.getKind() != kind::SINE)
   {
     return true;
   }
@@ -503,7 +503,7 @@ bool TranscendentalState::isSimplePurify(TNode n)
   Rational r = n[0].getConst<Rational>();
   // use a fixed value of pi
   Rational piLower = Rational(103993) / Rational(33102);
-  return -piLower<=r && r<=piLower;
+  return -piLower <= r && r <= piLower;
 }
 
 bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)

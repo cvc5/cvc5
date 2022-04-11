@@ -118,6 +118,7 @@ class SineSolver : protected EnvObj
    * Make the lemma for the phase shift
    */
   static Node getPhaseShiftLemma(const Node& x, const Node& y, const Node& s);
+
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,
                                         TNode c,
