@@ -39,7 +39,8 @@ class OracleCaller
   ~OracleCaller() {}
 
   /**
-   * Call an oracle with a set of arguments, store in result res.
+   * Call an oracle with a set of arguments given as children of the application
+   * fapp. Store in result res.
    *
    * Return true if the call was made, and false if it was already cached.
    *

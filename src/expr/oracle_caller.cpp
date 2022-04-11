@@ -38,6 +38,8 @@ bool OracleCaller::callOracle(const Node& fapp, Node& res, int& runResult)
     // don't bother setting runResult
     return false;
   }
+  Assert (fapp.getKind()==kind::APPLY_UF);
+  Assert (getBinaryName(fapp.getOperator())==d_binaryName);
   std::vector<std::string> sargs;
   sargs.push_back(d_binaryName);
 
