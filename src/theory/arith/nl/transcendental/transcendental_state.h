@@ -170,6 +170,13 @@ class TranscendentalState : protected EnvObj
   /** get the purified form of node n */
   Node getPurifiedForm(TNode n);
   /**
+   * Can we do "simple" purification for n? If this is the case, then
+   * f(x) is purified by f(k) where k is the purification variable for x.
+   *
+   * This is false for sin(x) where x is not a constant in the bound [-pi, pi].
+   */
+  static bool isSimplePurify(TNode n);
+  /**
    * Add bound for n, and for what (if anything) it purifies
    */
   bool addModelBoundForPurifyTerm(TNode n, TNode l, TNode u);

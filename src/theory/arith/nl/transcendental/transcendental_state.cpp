@@ -472,14 +472,38 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   }
   Kind k = n.getKind();
   Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-  Node y = sm->mkSkolemFunction(
-      SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  Node y;
+  if (isSimplePurify(n))
+  {
+    y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  }
+  else
+  {
+    y = sm->mkPurifySkolem(n[0], "transk");
+  }
   Node new_n = nm->mkNode(k, y);
   d_trPurify[n] = new_n;
   d_trPurify[new_n] = new_n;
   d_trPurifies[new_n] = n;
   d_trPurifyVars.insert(y);
   return new_n;
+}
+
+bool TranscendentalState::isSimplePurify(TNode n)
+{
+  if (n.getKind()!=kind::SINE)
+  {
+    return true;
+  }
+  if (!n[0].isConst())
+  {
+    return false;
+  }
+  Rational r = n[0].getConst<Rational>();
+  // use a fixed value of pi
+  Rational piLower = Rational(103993) / Rational(33102);
+  return -piLower<=r && r<=piLower;
 }
 
 bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)

@@ -161,42 +161,56 @@ void SineSolver::doReductions()
 
 Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Node mone = nm->mkConstReal(Rational(-1));
-  Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+  Node pi = nm->mkNullaryOperator(nm->realType(), PI);
   return nm->mkAnd(std::vector<Node>{
-        nm->mkAnd(std::vector<Node>{
-            nm->mkNode(Kind::GEQ, y, nm->mkNode(Kind::MULT, mone, pi)),
-            nm->mkNode(Kind::LEQ, y, pi)}),
+        nm->mkNode(GEQ, y, nm->mkNode(MULT, mone, pi)),
+        nm->mkNode(LEQ, y, pi),
+        nm->mkNode(IS_INTEGER, s),
         nm->mkNode(
-            Kind::ITE,
+            ITE,
             nm->mkAnd(std::vector<Node>{
-                nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
-                nm->mkNode(Kind::LEQ, x, pi),
+                nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
+                nm->mkNode(LEQ, x, pi),
             }),
             x.eqNode(y),
             x.eqNode(nm->mkNode(
-                Kind::ADD,
+                ADD,
                 y,
-                nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
-        nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
+                nm->mkNode(MULT, nm->mkConstReal(2), s, pi)))),
+        nm->mkNode(SINE, y).eqNode(nm->mkNode(SINE, x))});
 }
 
 void SineSolver::doPhaseShift(TNode a, TNode new_a)
 {
-  TNode y = new_a[0];
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
-  Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
-  Node shift = sm->mkDummySkolem("s", nm->integerType(), "number of shifts");
-  // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
-  // refinement for constant shifts (cvc4-projects #1284)
-  Node lem = getPhaseShiftLemma(a[0], y, s);
   CDProof* proof = nullptr;
-  if (d_data->isProofEnabled())
+  Node lem;
+  Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
+  if (TranscendentalState::isSimplePurify(a))
   {
-    proof = d_data->getProof();
-    proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], y, shift});
+    lem = nm->mkNode(AND, a[0].eqNode(new_a[0]), a.eqNode(new_a));
+    if (d_data->isProofEnabled())
+    {
+      // simple to justify
+      proof = d_data->getProof();
+      proof->addStep(lem, PfRule::MACRO_SR_PRED_INTRO, {}, {lem});
+    }
+  }
+  else
+  {
+    Node shift = sm->mkDummySkolem("s", nm->realType(), "number of shifts");
+    // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
+    // refinement for constant shifts (cvc4-projects #1284)
+    lem = getPhaseShiftLemma(a[0], new_a[0], shift);
+    if (d_data->isProofEnabled())
+    {
+      proof = d_data->getProof();
+      proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], new_a[0], shift});
+    }
   }
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
