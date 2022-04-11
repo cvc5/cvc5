@@ -151,7 +151,7 @@ enum LearnedLitType
    */
   PREPROCESS_SOLVED,
   /**
-   * A top-level literal (unit claused) from the preprocessed set of input
+   * A top-level literal (unit clause) from the preprocessed set of input
    * formulas.
    */
   PREPROCESS,
