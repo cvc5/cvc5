@@ -475,12 +475,12 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   Node y;
   if (isSimplePurify(n))
   {
-    y = sm->mkSkolemFunction(
-        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+    y = sm->mkPurifySkolem(n[0], "transk");
   }
   else
   {
-    y = sm->mkPurifySkolem(n[0], "transk");
+    y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
   }
   Node new_n = nm->mkNode(k, y);
   d_trPurify[n] = new_n;
