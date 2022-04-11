@@ -159,6 +159,28 @@ void SineSolver::doReductions()
   }
 }
 
+Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
+{
+  Node mone = nm->mkConstReal(Rational(-1));
+  Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+  return nm->mkAnd(std::vector<Node>{
+        nm->mkAnd(std::vector<Node>{
+            nm->mkNode(Kind::GEQ, y, nm->mkNode(Kind::MULT, mone, pi)),
+            nm->mkNode(Kind::LEQ, y, pi)}),
+        nm->mkNode(
+            Kind::ITE,
+            nm->mkAnd(std::vector<Node>{
+                nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
+                nm->mkNode(Kind::LEQ, x, pi),
+            }),
+            x.eqNode(y),
+            x.eqNode(nm->mkNode(
+                Kind::ADD,
+                y,
+                nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
+        nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
+}
+
 void SineSolver::doPhaseShift(TNode a, TNode new_a)
 {
   TNode y = new_a[0];
@@ -169,19 +191,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
   Node shift = sm->mkDummySkolem("s", nm->integerType(), "number of shifts");
   // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
   // refinement for constant shifts (cvc4-projects #1284)
-  Node lem = nm->mkNode(
-      Kind::AND,
-      mkValidPhase(y, d_pi),
-      nm->mkNode(
-          Kind::ITE,
-          mkValidPhase(a[0], d_pi),
-          a[0].eqNode(y),
-          a[0].eqNode(nm->mkNode(
-              Kind::ADD,
-              y,
-              nm->mkNode(
-                  Kind::MULT, nm->mkConstReal(Rational(2)), shift, d_pi)))),
-      new_a.eqNode(a));
+  Node lem = getPhaseShiftLemma(a[0], y, s);
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())
   {
