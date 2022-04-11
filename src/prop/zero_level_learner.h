@@ -101,8 +101,6 @@ class ZeroLevelLearner : protected EnvObj
   NodeSet d_ppnSyms;
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
-  /** Dummy context, used for getSolved */
-  context::Context d_dummyContext;
   /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
 }; /* class ZeroLevelLearner */

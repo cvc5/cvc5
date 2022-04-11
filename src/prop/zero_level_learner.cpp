@@ -272,7 +272,8 @@ bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const
 
 bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
 {
-  theory::TrustSubstitutionMap subsOut(&d_dummyContext);
+  context::Context dummyContext;
+  theory::TrustSubstitutionMap subsOut(&dummyContext);
   TrustNode tlit = TrustNode::mkTrustLemma(lit);
   theory::Theory::PPAssertStatus status = d_theoryEngine->solve(tlit, subsOut);
   if (status == theory::Theory::PP_ASSERT_STATUS_SOLVED)
