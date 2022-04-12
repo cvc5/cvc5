@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner
+ *   Gereon Kremer, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Represents a real algebraic number based on poly::AlgebraicNumber.
@@ -186,11 +186,11 @@ RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran);
 
 using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 template <>
-struct hash<cvc5::RealAlgebraicNumber>
+struct hash<cvc5::internal::RealAlgebraicNumber>
 {
   /**
    * Computes a hash of the given real algebraic number. Given that the internal
@@ -198,7 +198,7 @@ struct hash<cvc5::RealAlgebraicNumber>
    * interval may be refined for comparisons) we hash a well-defined rational
    * approximation.
    */
-  size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
+  size_t operator()(const cvc5::internal::RealAlgebraicNumber& ran) const;
 };
 }  // namespace std
 

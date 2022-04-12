@@ -1,0 +1,27 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic LIA)
+
+(synth-fun eq1 ((x Int) (y Int)) Int
+    ((Start Int) (StartBool Bool))
+    ((Start Int (x
+                 y
+                 0
+                 (+ Start Start)
+                 (- Start Start)
+                 (ite StartBool Start Start)))
+     (StartBool Bool ((and StartBool StartBool)
+                      (<=  Start Start)
+                      (=   Start Start)))))
+
+(define-fun iteB ((b1 Bool) (b2 Bool) (b3 Bool)) Bool (or (and b1 b2) (and (not b1) b3)))
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (iteB (>= x 0)
+                  (= (eq1 x y) (+ x x))
+                  (= (eq1 x y) x)
+))
+
+(check-synth)

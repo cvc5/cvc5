@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Paul Meng
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "theory/sets/theory_sets_private.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -141,10 +141,12 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_allCompSets.push_back(n);
     Trace("sets-debug2") << "Comp-set[" << r << "] : " << n << std::endl;
   }
-  else if (n.isVar() && !d_skCache.isSkolem(n))
+  else if (Theory::isLeafOf(n, THEORY_SETS) && !d_skCache.isSkolem(n))
   {
-    // it is important that we check it is a variable, but not an internally
-    // introduced skolem, due to the semantics of the universe set.
+    // It is important that we check it is a leaf, due to parametric theories
+    // that may be used to construct terms of set type. It is also important to
+    // exclude internally introduced skolems, due to the semantics of the
+    // universe set.
     if (tnn.isSet())
     {
       if (d_var_set.find(r) == d_var_set.end())
@@ -593,4 +595,4 @@ bool SolverState::merge(TNode t1,
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +25,10 @@
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -457,7 +457,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 
   // must convert all constructors to version with variables in "vars"
   std::vector<SygusDatatype> sdts;
-  std::set<TypeNode> unres;
 
   Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
   Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
@@ -469,9 +468,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   dtToProcess.push_back(sdt);
   std::stringstream ssutn0;
   ssutn0 << sdtd.getName() << "_s";
-  TypeNode abdTNew =
-      nm->mkSort(ssutn0.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert(abdTNew);
+  TypeNode abdTNew = nm->mkUnresolvedDatatypeSort(ssutn0.str());
   dtProcessed[sdt] = abdTNew;
 
   // We must convert all symbols in the sygus datatype type sdt to
@@ -511,11 +508,9 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
           {
             std::stringstream ssutn;
             ssutn << argt.getDType().getName() << "_s";
-            argtNew =
-                nm->mkSort(ssutn.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
+            argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
-            unres.insert(argtNew);
             dtProcessed[argt] = argtNew;
             dtNextToProcess.push_back(argt);
           }
@@ -552,9 +547,9 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   }
   // make the datatype types
   std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
-      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   TypeNode sdtS = datatypeTypes[0];
-  if (Trace.isOn("dtsygus-gen-debug"))
+  if (TraceIsOn("dtsygus-gen-debug"))
   {
     Trace("dtsygus-gen-debug") << "Made datatype types:" << std::endl;
     for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
@@ -622,4 +617,4 @@ Node getExpandedDefinitionForm(Node op)
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

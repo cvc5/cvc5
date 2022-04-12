@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Types of inferences used in the procedure
@@ -124,6 +124,10 @@ enum class InferenceId
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
   //-------------------- nonlinear transcendental solver
+  // sine symmetry
+  ARITH_NL_T_SINE_SYMM,
+  // boundary reduction
+  ARITH_NL_T_SINE_BOUNDARY_REDUCE,
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
@@ -154,11 +158,11 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
-  //-------------------- nonlinear cad solver
-  // conflict / infeasible subset obtained from cad
-  ARITH_NL_CAD_CONFLICT,
+  //-------------------- nonlinear coverings solver
+  // conflict / infeasible subset obtained from coverings
+  ARITH_NL_COVERING_CONFLICT,
   // excludes an interval for a single variable
-  ARITH_NL_CAD_EXCLUDED_INTERVAL,
+  ARITH_NL_COVERING_EXCLUDED_INTERVAL,
   //-------------------- nonlinear icp solver
   // conflict obtained from icp
   ARITH_NL_ICP_CONFLICT,
@@ -181,7 +185,7 @@ enum class InferenceId
   BAGS_NON_NEGATIVE_COUNT,
   BAGS_BAG_MAKE,
   BAGS_BAG_MAKE_SPLIT,
-  BAGS_COUNT_SKOLEM,
+  BAGS_SKOLEM,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
@@ -191,11 +195,13 @@ enum class InferenceId
   BAGS_DIFFERENCE_SUBTRACT,
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
-  BAGS_MAP,
+  BAGS_MAP_DOWN,
+  BAGS_MAP_UP,
   BAGS_FILTER_DOWN,
   BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
+  BAGS_CARD_EMPTY,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
@@ -473,10 +479,11 @@ enum class InferenceId
   SETS_UP_CLOSURE,
   SETS_UP_CLOSURE_2,
   SETS_UP_UNIV,
-  SETS_UNIV_TYPE,
   //-------------------- sets cardinality solver
   // split on emptyset
   SETS_CARD_SPLIT_EMPTY,
+  // split on equality between two distinct Venn regions
+  SETS_CARD_SPLIT_EQ,
   // cycle of cardinalities, hence all sets have the same
   SETS_CARD_CYCLE,
   // two sets have the same cardinality
@@ -912,6 +919,6 @@ Node mkInferenceIdNode(InferenceId i);
 bool getInferenceId(TNode n, InferenceId& i);
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__INFERENCE_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Morgan Deters
+ *   Tim King, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "util/dense_map.h"
 #include "util/index.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -368,8 +368,8 @@ public:
   typedef MatrixEntry<T> Entry;
 
 protected:
- typedef cvc5::theory::arith::RowVector<T> RowVectorT;
- typedef cvc5::theory::arith::ColumnVector<T> ColumnVectorT;
+ typedef cvc5::internal::theory::arith::RowVector<T> RowVectorT;
+ typedef cvc5::internal::theory::arith::ColumnVector<T> ColumnVectorT;
 
 public:
   typedef typename RowVectorT::const_iterator RowIterator;
@@ -466,7 +466,7 @@ public:
 protected:
 
   void addEntry(RowIndex row, ArithVar col, const T& coeff){
-    Debug("tableau") << "addEntry(" << row << "," << col <<"," << coeff << ")" << std::endl;
+    Trace("tableau") << "addEntry(" << row << "," << col <<"," << coeff << ")" << std::endl;
 
     Assert(coeff != 0);
     Assert(row < d_rows.size());
@@ -640,7 +640,7 @@ public:
     Assert(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
     Assert(to != ROW_INDEX_SENTINEL);
 
-    Debug("tableau") << "rowPlusRowTimesConstant("
+    Trace("tableau") << "rowPlusRowTimesConstant("
                      << to << "," << mult << "," << d_rowInMergeBuffer << ")"
                      << std::endl;
 
@@ -691,7 +691,7 @@ public:
 
     Assert(mergeBufferIsClear());
 
-    if(Debug.isOn("matrix")) { printMatrix(); }
+    if(TraceIsOn("matrix")) { printMatrix(); }
   }
 
   /**  to += mult * buffer. */
@@ -699,7 +699,7 @@ public:
     Assert(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
     Assert(to != ROW_INDEX_SENTINEL);
 
-    Debug("tableau") << "rowPlusRowTimesConstant("
+    Trace("tableau") << "rowPlusRowTimesConstant("
                      << to << "," << mult << "," << d_rowInMergeBuffer << ")"
                      << std::endl;
 
@@ -758,7 +758,7 @@ public:
 
     Assert(mergeBufferIsClear());
 
-    if(Debug.isOn("matrix")) { printMatrix(); }
+    if(TraceIsOn("matrix")) { printMatrix(); }
   }
 
   bool mergeBufferIsClear() const{
@@ -822,7 +822,7 @@ public:
   }
 
   /**
-   * Prints the contents of the Matrix to Debug("matrix")
+   * Prints the contents of the Matrix to Trace("matrix")
    */
   void printMatrix(std::ostream& out) const {
     out << "Matrix::printMatrix"  << std::endl;
@@ -832,7 +832,7 @@ public:
     }
   }
   void printMatrix() const {
-    printMatrix(Debug("matrix"));
+    printMatrix(Trace("matrix"));
   }
 
   void printRow(RowIndex rid, std::ostream& out) const {
@@ -847,14 +847,14 @@ public:
     out << "}" << std::endl;
   }
   void printRow(RowIndex rid) const {
-    printRow(rid, Debug("matrix"));
+    printRow(rid, Trace("matrix"));
   }
 
   void printEntry(const MatrixEntry<T>& entry, std::ostream& out) const {
     out << entry.getColVar() << "*" << entry.getCoefficient();
   }
   void printEntry(const MatrixEntry<T>& entry) const {
-    printEntry(entry, Debug("matrix"));
+    printEntry(entry, Trace("matrix"));
   }
 public:
   uint32_t size() const {
@@ -966,7 +966,7 @@ protected:
       const Entry& entry = *i;
       ArithVar colVar = entry.getColVar();
       uint32_t count = debugCountColLength(colVar);
-      Debug("tableau") << "debugMatchingCountsForRow "
+      Trace("tableau") << "debugMatchingCountsForRow "
                        << ridx << ":" << colVar << " " << count
                        <<" "<< getColLength(colVar) << std::endl;
       if( count != getColLength(colVar) ){
@@ -977,14 +977,14 @@ protected:
   }
 
   uint32_t debugCountColLength(ArithVar var){
-    Debug("tableau") << var << " ";
+    Trace("tableau") << var << " ";
     uint32_t count = 0;
     for(ColIterator i=getColumn(var).begin(); !i.atEnd(); ++i){
       const Entry& entry = *i;
-      Debug("tableau") << "(" << entry.getRowIndex() << ", " << i.getID() << ") ";
+      Trace("tableau") << "(" << entry.getRowIndex() << ", " << i.getID() << ") ";
       ++count;
     }
-    Debug("tableau") << std::endl;
+    Trace("tableau") << std::endl;
     return count;
   }
   uint32_t debugCountRowLength(RowIndex ridx){
@@ -999,4 +999,4 @@ protected:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

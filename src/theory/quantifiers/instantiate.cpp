@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,10 +35,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -345,15 +345,15 @@ bool Instantiate::addInstantiation(Node q,
   ill->d_list.push_back(body);
   // add to temporary debug statistics (# inst on this round)
   d_instDebugTemp[q]++;
-  if (Trace.isOn("inst"))
+  if (TraceIsOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
-      if (Trace.isOn("inst"))
+      if (TraceIsOn("inst"))
       {
         Trace("inst") << "   " << terms[i];
-        if (Trace.isOn("inst-debug"))
+        if (TraceIsOn("inst-debug"))
         {
           Trace("inst-debug") << ", type=" << terms[i].getType()
                               << ", var_type=" << q[0][i].getType();
@@ -477,7 +477,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
       }
     }
   }
-  if (Trace.isOn("inst-exp-fail"))
+  if (TraceIsOn("inst-exp-fail"))
   {
     Trace("inst-exp-fail") << "Fail mask: ";
     for (bool b : failMask)
@@ -698,7 +698,7 @@ bool Instantiate::isProofEnabled() const
 void Instantiate::notifyEndRound()
 {
   // debug information
-  if (Trace.isOn("inst-per-quant-round"))
+  if (TraceIsOn("inst-per-quant-round"))
   {
     for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
@@ -724,7 +724,7 @@ void Instantiate::notifyEndRound()
 
 void Instantiate::debugPrintModel()
 {
-  if (Trace.isOn("inst-per-quant"))
+  if (TraceIsOn("inst-per-quant"))
   {
     for (NodeInstListMap::iterator it = d_insts.begin(); it != d_insts.end();
          ++it)
@@ -778,4 +778,4 @@ Instantiate::Statistics::Statistics()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

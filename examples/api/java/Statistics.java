@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Mudathir Mohamed, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,9 +13,9 @@
  * An example of accessing cvc5's statistics using the Java API.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +27,7 @@ public class Statistics
     {
       // Get the statistics from the `Solver` and iterate over them. The
       // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
-      io.github.cvc5.api.Statistics stats = solver.getStatistics();
+      io.github.cvc5.Statistics stats = solver.getStatistics();
       // short version
       System.out.println("Short version:");
       System.out.println(stats);
@@ -37,25 +37,25 @@ public class Statistics
       System.out.println("Long version:");
 
       // long version
-      for (Pair<String, Stat> pair : stats)
+      for (Map.Entry<String, Stat> pair : stats)
       {
-        Stat stat = pair.second;
+        Stat stat = pair.getValue();
         if (stat.isInt())
         {
-          System.out.println(pair.first + " = " + stat.getInt());
+          System.out.println(pair.getKey() + " = " + stat.getInt());
         }
         else if (stat.isDouble())
         {
-          System.out.println(pair.first + " = " + stat.getDouble());
+          System.out.println(pair.getKey() + " = " + stat.getDouble());
         }
         else if (stat.isString())
         {
-          System.out.println(pair.first + " = " + stat.getString());
+          System.out.println(pair.getKey() + " = " + stat.getString());
         }
         else if (stat.isHistogram())
         {
           System.out.println("-------------------------------------------------------");
-          System.out.println(pair.first + " : Map");
+          System.out.println(pair.getKey() + " : Map");
           for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
           {
             System.out.println(entry.getKey() + " = " + entry.getValue());
@@ -202,7 +202,7 @@ public class Statistics
     // (assert (forall ((x Person)) (not (set.member (mkTuple x x) ancestor))))
     Term var = solver.mkVar(personSort, "x");
     DatatypeConstructor constructor = tupleArity2.getDatatype().getConstructor(0);
-    Term xxTuple = solver.mkTerm(APPLY_CONSTRUCTOR, constructor.getConstructorTerm(), var, var);
+    Term xxTuple = solver.mkTerm(APPLY_CONSTRUCTOR, constructor.getTerm(), var, var);
     Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
     Term notMember = solver.mkTerm(NOT, member);
 

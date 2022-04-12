@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Mathias Preiner
+ *   Tim King, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -168,8 +168,6 @@ ApproximateStatistics::ApproximateStatistics()
 {
 }
 
-Integer ApproximateSimplex::s_defaultMaxDenom(1<<26);
-
 ApproximateSimplex::ApproximateSimplex(const ArithVariables& v, TreeLog& l,
                                        ApproximateStatistics& s)
   : d_vars(v)
@@ -194,9 +192,6 @@ void ApproximateSimplex::setBranchOnVariableLimit(int bl){
   Assert(bl >= 0);
   d_branchLimit = bl;
 }
-
-const double ApproximateSimplex::SMALL_FIXED_DELTA = .000000001;
-const double ApproximateSimplex::TOLERENCE = 1 + .000000001;
 
 bool ApproximateSimplex::roughlyEqual(double a, double b){
   if (a == 0){
@@ -234,7 +229,7 @@ std::vector<Integer> ApproximateSimplex::rationalToCfe(const Rational& q, int de
       mods.push_back(Integer());
       Integer& back = mods.back();
       back = carry.floor();
-      Debug("rationalToCfe") << "  cfe["<<i<<"]: " << back << endl;
+      Trace("rationalToCfe") << "  cfe["<<i<<"]: " << back << endl;
       carry -= back;
       if(carry.isZero()){
         break;
@@ -250,7 +245,7 @@ std::vector<Integer> ApproximateSimplex::rationalToCfe(const Rational& q, int de
 
 
 Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K){
-  Debug("estimateWithCFE") << "estimateWithCFE(" << r << ", " << K << ")" <<endl;
+  Trace("estimateWithCFE") << "estimateWithCFE(" << r << ", " << K << ")" <<endl;
   // references
   // page 4: http://carlossicoli.free.fr/C/Cassels_J.W.S.-An_introduction_to_diophantine_approximation-University_Press(1965).pdf
   // http://en.wikipedia.org/wiki/Continued_fraction
@@ -279,7 +274,7 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
 
   q[2] = q[0] + quot*q[1];
   p[2] = p[0] + quot*p[1];
-  Debug("estimateWithCFE") <<  "  cfe["<<t<<"]: " << p[2] <<"/"<< q[2] << endl;
+  Trace("estimateWithCFE") <<  "  cfe["<<t<<"]: " << p[2] <<"/"<< q[2] << endl;
   while( q[2] <= K ){
     p[0] = p[1]; p[1] = p[2];
     q[0] = q[1]; q[1] = q[2];
@@ -291,7 +286,7 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
     p[2] = p[0]+quot*p[1];
     q[2] = q[0]+quot*q[1];
     ++t;
-    Debug("estimateWithCFE") << "  cfe["<<t<<"]: " << p[2] <<"/"<< q[2] << endl;
+    Trace("estimateWithCFE") << "  cfe["<<t<<"]: " << p[2] <<"/"<< q[2] << endl;
   }
 
   Integer k = (K-q[0]).floorDivideQuotient(q[1]);
@@ -300,10 +295,10 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
   Rational dist_prev = (cand_prev - r).abs();
   Rational dist_curr = (cand_curr - r).abs();
   if(dist_prev <= dist_curr){
-    Debug("estimateWithCFE") << cand_prev << " is closer than " << cand_curr << endl;
+    Trace("estimateWithCFE") << cand_prev << " is closer than " << cand_curr << endl;
     return cand_prev;
   }else{
-    Debug("estimateWithCFE") << cand_curr << " is closer than " << cand_prev << endl;
+    Trace("estimateWithCFE") << cand_curr << " is closer than " << cand_prev << endl;
     return cand_curr;
   }
 }
@@ -320,7 +315,7 @@ std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d,
 
 std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d)
 {
-  return estimateWithCFE(d, s_defaultMaxDenom);
+  return estimateWithCFE(d, Integer(s_defaultMaxDenom));
 }
 
 class ApproxNoOp : public ApproximateSimplex {
@@ -360,7 +355,7 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 /* Begin the declaration of GLPK specific code. */
 #ifdef CVC5_USE_GLPK
@@ -368,7 +363,7 @@ extern "C" {
 #include <glpk.h>
 }/* extern "C" */
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -399,8 +394,6 @@ private:
   NodeLog::RowIdMap d_rootRowIds;
   //DenseMap<ArithVar> d_rowToArithVar;
   DenseMap<ArithVar> d_colToArithVar;
-
-  int d_instanceID;
 
   bool d_solvedRelaxation;
   bool d_solvedMIP;
@@ -524,12 +517,12 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif /*#ifdef CVC5_USE_GLPK */
 /* End the declaration of GLPK specific code. */
 
 /* Begin GPLK/NOGLPK Glue code. */
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s){
@@ -548,12 +541,12 @@ bool ApproximateSimplex::enabled() {
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 /* End GPLK/NOGLPK Glue code. */
 
 /* Begin GPLK implementation. */
 #ifdef CVC5_USE_GLPK
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -579,12 +572,9 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
       d_solvedRelaxation(false),
       d_solvedMIP(false)
 {
-  static int instance = 0;
-  ++instance;
-  d_instanceID = instance;
 
   d_denomGuesses.push_back(Integer(1<<22));
-  d_denomGuesses.push_back(ApproximateSimplex::s_defaultMaxDenom);
+  d_denomGuesses.push_back(Integer(ApproximateSimplex::s_defaultMaxDenom));
   d_denomGuesses.push_back(Integer(1ul<<29));
   d_denomGuesses.push_back(Integer(1ul<<31));
 
@@ -607,12 +597,12 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
       //mapRowId(d_log.getRootId(), numRows, v);
       d_rootRowIds.insert(make_pair(numRows, v));
       //d_rowToArithVar.set(numRows, v);
-      Debug("approx") << "Row vars: " << v << "<->" << numRows << endl;
+      Trace("approx") << "Row vars: " << v << "<->" << numRows << endl;
     }else{
       ++numCols;
       d_colIndices.set(v, numCols);
       d_colToArithVar.set(numCols, v);
-      Debug("approx") << "Col vars: " << v << "<->" << numCols << endl;
+      Trace("approx") << "Col vars: " << v << "<->" << numCols << endl;
     }
   }
   Assert(numRows > 0);
@@ -1112,7 +1102,7 @@ double ApproxGLPK::sumInfeasibilities(glp_prob* prob, bool mip) const{
       if(newAssign > ub){
         double ubinf = newAssign - ub;
         infeas += ubinf;
-        Debug("approx::soi") << "ub inf" << vi << " " << ubinf << " " << infeas << endl;
+        Trace("approx::soi") << "ub inf" << vi << " " << ubinf << " " << infeas << endl;
       }
     }
     if(lb != -DBL_MAX){
@@ -1120,7 +1110,7 @@ double ApproxGLPK::sumInfeasibilities(glp_prob* prob, bool mip) const{
         double lbinf = lb - newAssign;
         infeas  += lbinf;
 
-        Debug("approx::soi") << "lb inf" << vi << " " << lbinf << " " << infeas << endl;
+        Trace("approx::soi") << "lb inf" << vi << " " << lbinf << " " << infeas << endl;
       }
     }
   }
@@ -1304,7 +1294,7 @@ static void loadCut(glp_tree *tree, CutInfo* cut){
 
 
 static MirInfo* mirCut(glp_tree *tree, int exec_ord, int cut_ord){
-  Debug("approx::mirCut") << "mirCut()" << exec_ord << endl;
+  Trace("approx::mirCut") << "mirCut()" << exec_ord << endl;
 
   MirInfo* mir;
   mir = new MirInfo(exec_ord, cut_ord);
@@ -1323,16 +1313,16 @@ static MirInfo* mirCut(glp_tree *tree, int exec_ord, int cut_ord){
   glp_ios_cut_get_mir_subst(tree, cut_ord, mir->subst);
   glp_ios_cut_get_mir_virtual_rows(tree, cut_ord, mir->vlbRows, mir->vubRows);
 
-  if(Debug.isOn("approx::mirCut")){
-    Debug("approx::mirCut") << "mir_id: " << exec_ord << endl;
-    row_sum.print(Debug("approx::mirCut"));
+  if(TraceIsOn("approx::mirCut")){
+    Trace("approx::mirCut") << "mir_id: " << exec_ord << endl;
+    row_sum.print(Trace("approx::mirCut"));
   }
 
   return mir;
 }
 
 static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
-  Debug("approx::gmiCut") << "gmiCut()" << exec_ord << endl;
+  Trace("approx::gmiCut") << "gmiCut()" << exec_ord << endl;
 
   int gmi_var;
   int write_pos;
@@ -1362,17 +1352,17 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
   gmi->init_tab(N);
   gmi->basic = M+gmi_var;
 
-  Debug("approx::gmiCut")
+  Trace("approx::gmiCut")
     << gmi <<" " << gmi->basic << " "
     << cut_ord<<" "  << M <<" " << gmi_var << endl;
 
   PrimitiveVec& tab_row = gmi->tab_row;
-  Debug("approx::gmiCut") << "Is N sufficient here?" << endl;
+  Trace("approx::gmiCut") << "Is N sufficient here?" << endl;
   tab_row.len = glp_eval_tab_row(lp, gmi->basic, tab_row.inds, tab_row.coeffs);
 
-  Debug("approx::gmiCut") << "gmi_var " << gmi_var << endl;
+  Trace("approx::gmiCut") << "gmi_var " << gmi_var << endl;
 
-  Debug("approx::gmiCut") << "tab_pos " << tab_row.len << endl;
+  Trace("approx::gmiCut") << "tab_pos " << tab_row.len << endl;
   write_pos = 1;
   for(read_pos = 1; read_pos <= tab_row.len; ++read_pos){
     if (fabs(tab_row.coeffs[read_pos]) < 1e-10){
@@ -1383,16 +1373,16 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
     }
   }
   tab_row.len = write_pos-1;
-  Debug("approx::gmiCut") << "write_pos " << write_pos << endl;
+  Trace("approx::gmiCut") << "write_pos " << write_pos << endl;
   Assert(tab_row.len > 0);
 
   for(i = 1; i <= tab_row.len; ++i){
     ind = tab_row.inds[i];
-    Debug("approx::gmiCut") << "ind " << i << " " << ind << endl;
+    Trace("approx::gmiCut") << "ind " << i << " " << ind << endl;
     stat = (ind <= M) ?
       glp_get_row_stat(lp, ind) : glp_get_col_stat(lp, ind - M);
 
-    Debug("approx::gmiCut") << "ind " << i << " " << ind << " stat " << stat << endl;
+    Trace("approx::gmiCut") << "ind " << i << " " << ind << " stat " << stat << endl;
     switch (stat){
     case GLP_NL:
     case GLP_NU:
@@ -1405,8 +1395,8 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
     }
   }
 
-  if(Debug.isOn("approx::gmiCut")){
-    gmi->print(Debug("approx::gmiCut"));
+  if(TraceIsOn("approx::gmiCut")){
+    gmi->print(Trace("approx::gmiCut"));
   }
   return gmi;
 }
@@ -1465,7 +1455,7 @@ static void glpkCallback(glp_tree *tree, void *info){
         glpk_node_p = glp_ios_curr_node(tree);
         node_ord = glp_ios_node_ord(tree, glpk_node_p);
         Assert(cut_ord > 0);
-        Debug("approx") << "curr node " << glpk_node_p
+        Trace("approx") << "curr node " << glpk_node_p
                         << " cut ordinal " << cut_ord
                         << " node depth " << glp_ios_node_level(tree, glpk_node_p)
                         << endl;
@@ -1487,10 +1477,10 @@ static void glpkCallback(glp_tree *tree, void *info){
           }
           break;
         case GLP_RF_COV:
-          Debug("approx") << "GLP_RF_COV" << endl;
+          Trace("approx") << "GLP_RF_COV" << endl;
           break;
         case GLP_RF_CLQ:
-          Debug("approx") << "GLP_RF_CLQ" << endl;
+          Trace("approx") << "GLP_RF_CLQ" << endl;
           break;
         default:
           break;
@@ -1507,9 +1497,9 @@ static void glpkCallback(glp_tree *tree, void *info){
         int N = glp_ios_selected_cuts(tree, ords, rows);
 
         NodeLog& nl = tl.getNode(node_ord);
-        Debug("approx") << glpk_node_p << " " << node_ord << " " << cuts << " " << N << std::endl;
+        Trace("approx") << glpk_node_p << " " << node_ord << " " << cuts << " " << N << std::endl;
         for(int i = 1; i <= N; ++i){
-          Debug("approx") << "adding to " << node_ord <<" @ i= " << i
+          Trace("approx") << "adding to " << node_ord <<" @ i= " << i
                           << " ords[i] = " << ords[i]
                           << " rows[i] = " << rows[i] << endl;
           nl.addSelected(ords[i], rows[i]);
@@ -1532,21 +1522,21 @@ static void glpkCallback(glp_tree *tree, void *info){
       dn_ord = (dn >= 0) ? glp_ios_node_ord(tree, dn) : -1;
       up_ord = (up >= 0) ? glp_ios_node_ord(tree, up) : -1;
 
-      Debug("approx::") << "branch: "<< br_var << " "  << br_val << " tree " << p << " " << dn << " " << up << endl;
-      Debug("approx::") << "\t " << p_ord << " " << dn_ord << " " << up_ord << endl;
+      Trace("approx::") << "branch: "<< br_var << " "  << br_val << " tree " << p << " " << dn << " " << up << endl;
+      Trace("approx::") << "\t " << p_ord << " " << dn_ord << " " << up_ord << endl;
       if(dn < 0 && up < 0){
-        Debug("approx::") << "branch close " << exec << endl;
+        Trace("approx::") << "branch close " << exec << endl;
         NodeLog& node = tl.getNode(p_ord);
         BranchCutInfo* cut_br = branchCut(tree, exec, br_var, br_val, dn < 0);
         node.addCut(cut_br);
         tl.close(p_ord);
       }else if(dn < 0 || up < 0){
-        Debug("approx::") << "branch cut" << exec << endl;
+        Trace("approx::") << "branch cut" << exec << endl;
         NodeLog& node = tl.getNode(p_ord);
         BranchCutInfo* cut_br = branchCut(tree, exec, br_var, br_val, dn < 0);
         node.addCut(cut_br);
       }else{
-        Debug("approx::") << "normal branch" << endl;
+        Trace("approx::") << "normal branch" << endl;
         tl.branch(p_ord, br_var, br_val, dn_ord, up_ord);
       }
     }
@@ -1555,7 +1545,7 @@ static void glpkCallback(glp_tree *tree, void *info){
       {
         glpk_node_p = glp_ios_curr_node(tree);
         node_ord = glp_ios_node_ord(tree, glpk_node_p);
-        Debug("approx::") << "close " << glpk_node_p << endl;
+        Trace("approx::") << "close " << glpk_node_p << endl;
         tl.close(node_ord);
       }
       break;
@@ -1566,7 +1556,7 @@ static void glpkCallback(glp_tree *tree, void *info){
 
   switch(glp_ios_reason(tree)){
   case GLP_IBINGO:
-    Debug("approx::") << "bingo" << endl;
+    Trace("approx::") << "bingo" << endl;
     aux->term = MipBingo;
     glp_ios_terminate(tree);
     break;
@@ -1673,19 +1663,19 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
 
   int res = glp_intopt(d_mipProb, &parm);
 
-  Debug("approx::solveMIP") << "res "<<res<<" aux.term "<< aux.term << endl;
+  Trace("approx::solveMIP") << "res "<<res<<" aux.term "<< aux.term << endl;
 
   switch(res){
   case 0:
   case GLP_ESTOP:
     {
       int status = glp_mip_status(d_mipProb);
-      Debug("approx::") << "status " << status << endl;
+      Trace("approx::") << "status " << status << endl;
       switch(status){
       case GLP_OPT:
       case GLP_FEAS:
         d_solvedMIP = true;
-        Debug("approx::") << "bingo here!" << endl;
+        Trace("approx::") << "bingo here!" << endl;
         return MipBingo;
       case GLP_NOFEAS:
         d_solvedMIP = true;
@@ -1693,7 +1683,7 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
       default:
         if(aux.term == MipBingo){
           d_solvedMIP = true;
-          Debug("approx::") << "bingo here?" << endl;
+          Trace("approx::") << "bingo here?" << endl;
         }
         return aux.term;
       }
@@ -1713,7 +1703,7 @@ DeltaRational sumConstraints(const DenseMap<Rational>& xs, const DenseMap<Constr
   iter = xs.begin();
   end = xs.end();
 
-  Debug("approx::sumConstraints") << "sumConstraints";
+  Trace("approx::sumConstraints") << "sumConstraints";
   for(; iter != end; ++iter){
     ArithVar x = *iter;
     const Rational& psi = xs[x];
@@ -1722,12 +1712,12 @@ DeltaRational sumConstraints(const DenseMap<Rational>& xs, const DenseMap<Constr
 
     const DeltaRational& bound = c->getValue();
     beta += bound * psi;
-    Debug("approx::sumConstraints") << " +("<<bound << "*" << psi <<")";
+    Trace("approx::sumConstraints") << " +("<<bound << "*" << psi <<")";
     if(anyinf != NULL ){
       *anyinf = *anyinf || !bound.infinitesimalIsZero();
     }
   }
-  Debug("approx::sumConstraints") << "= " << beta << endl;
+  Trace("approx::sumConstraints") << "= " << beta << endl;
 
   return beta;
 }
@@ -1758,10 +1748,10 @@ void removeFixed(const ArithVariables& vars, DenseVector& dv, set<ConstraintP>& 
 
     std::pair<ConstraintP, ConstraintP> p = vars.explainEqualBounds(x);
     exp.insert(p.first);
-    Debug("removeFixed") << "remove fixed " << p.first << endl;
+    Trace("removeFixed") << "remove fixed " << p.first << endl;
     if(p.second != NullConstraint){
       exp.insert(p.second);
-      Debug("removeFixed") << "remove fixed " << p.second << endl;
+      Trace("removeFixed") << "remove fixed " << p.second << endl;
     }
   }
 }
@@ -1841,11 +1831,11 @@ bool ApproxGLPK::guessIsConstructable(const DenseMap<Rational>& guess) const {
   DenseMap<Rational> g = guess;
   removeAuxillaryVariables(d_vars, g);
 
-  if(Debug.isOn("guessIsConstructable")){
+  if(TraceIsOn("guessIsConstructable")){
     if(!g.empty()){
-      Debug("approx::guessIsConstructable") << "guessIsConstructable failed " << g.size() << endl;
-      DenseVector::print(Debug("approx::guessIsConstructable"), g);
-      Debug("approx::guessIsConstructable") << endl;
+      Trace("approx::guessIsConstructable") << "guessIsConstructable failed " << g.size() << endl;
+      DenseVector::print(Trace("approx::guessIsConstructable"), g);
+      Trace("approx::guessIsConstructable") << endl;
     }
   }
   return g.empty();
@@ -1872,7 +1862,7 @@ bool ApproxGLPK::loadToBound(int nid, int M, int len, int* inds, int* statuses, 
       return true;
     }
     if(c == NullConstraint){
-      Debug("approx::") << "couldn't find " << v << " @ " << nid << endl;
+      Trace("approx::") << "couldn't find " << v << " @ " << nid << endl;
       return true;
     }
     Assert(c != NullConstraint);
@@ -1883,18 +1873,18 @@ bool ApproxGLPK::loadToBound(int nid, int M, int len, int* inds, int* statuses, 
 
 bool ApproxGLPK::checkCutOnPad(int nid, const CutInfo& cut) const{
 
-  Debug("approx::checkCutOnPad") << "checkCutOnPad(" << nid <<", " << cut.getId() <<")"<<endl;
+  Trace("approx::checkCutOnPad") << "checkCutOnPad(" << nid <<", " << cut.getId() <<")"<<endl;
 
   const DenseMap<Rational>& constructedLhs = d_pad.d_cut.lhs;
   const Rational& constructedRhs = d_pad.d_cut.rhs;
   std::unordered_set<ArithVar> visited;
 
   if(constructedLhs.empty()){
-    Debug("approx::checkCutOnPad") << "its empty?" <<endl;
+    Trace("approx::checkCutOnPad") << "its empty?" <<endl;
     return true;
   }
   if(cut.getKind() != d_pad.d_cutKind) {
-    Debug("approx::checkCutOnPad") << "rel doesn't match" << endl;
+    Trace("approx::checkCutOnPad") << "rel doesn't match" << endl;
     return true;
   }
 
@@ -1912,34 +1902,34 @@ bool ApproxGLPK::checkCutOnPad(int nid, const CutInfo& cut) const{
 
 
     if(!constructedLhs.isKey(x)){
-      if(Debug.isOn("approx::checkCutOnPad")){
-        Debug("approx::checkCutOnPad") << " didn't find key for " << x << std::endl;
-        cut.print(Debug("approx::checkCutOnPad"));
-        Debug("approx::checkCutOnPad") << endl;
-        d_pad.d_cut.print(Debug("approx::checkCutOnPad"));
-        Debug("approx::checkCutOnPad") << endl;
+      if(TraceIsOn("approx::checkCutOnPad")){
+        Trace("approx::checkCutOnPad") << " didn't find key for " << x << std::endl;
+        cut.print(Trace("approx::checkCutOnPad"));
+        Trace("approx::checkCutOnPad") << endl;
+        d_pad.d_cut.print(Trace("approx::checkCutOnPad"));
+        Trace("approx::checkCutOnPad") << endl;
       }
       return true;
     }
 
     const Rational& onConstructed = constructedLhs[x];
 
-    Debug("approx::checkCutOnPad") << ind << " " << coeff  << " " << endl;
-    Debug("approx::checkCutOnPad") << " " << x << " " << onConstructed << endl;
+    Trace("approx::checkCutOnPad") << ind << " " << coeff  << " " << endl;
+    Trace("approx::checkCutOnPad") << " " << x << " " << onConstructed << endl;
 
     if(!roughlyEqual(coeff, onConstructed.getDouble())){
-      Debug("approx::checkCutOnPad") << "coeff failure" << endl;
+      Trace("approx::checkCutOnPad") << "coeff failure" << endl;
       return true;
     }
   }
   if(visited.size() != constructedLhs.size()){
-    Debug("approx::checkCutOnPad") << "size mismatch" << endl;
+    Trace("approx::checkCutOnPad") << "size mismatch" << endl;
     return true;
   }
 
 
   if(!roughlyEqual(cut.getRhs(), constructedRhs.getDouble())){
-    Debug("approx::checkCutOnPad")
+    Trace("approx::checkCutOnPad")
       << "norm rhs is off " << cut.getRhs() << " " << constructedRhs << endl;
     return true;
   }
@@ -2034,7 +2024,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
   d_pad.d_failure = (delta->sgn() <= 0);
   if(d_pad.d_failure){ return true; }
 
-  Debug("approx::mir") << "applyCMIRRule() " << delta << " " << mir.delta << endl;
+  Trace("approx::mir") << "applyCMIRRule() " << delta << " " << mir.delta << endl;
 
   DenseMap<Rational>::const_iterator iter, iend;
   iter = alpha.begin(), iend = alpha.end();
@@ -2142,31 +2132,30 @@ bool ApproxGLPK::attemptMir(int nid, const MirInfo& mir){
 bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp){
   if(ri <= 0) { return true; }
 
-  static int instance = 0;
-  ++instance;
-  Debug("glpk::loadVB") << "loadVB() " << instance << endl;
+  Trace("glpk::loadVB") << "loadVB()" << endl;
 
   ArithVar rowVar = _getArithVar(nid, M, ri);
   ArithVar contVar = _getArithVar(nid, M, j);
   if(rowVar == ARITHVAR_SENTINEL){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Trace("glpk::loadVB") << "loadVB()"
                           << " rowVar is ARITHVAR_SENTINEL " << rowVar << endl;
     return true;
   }
   if(contVar == ARITHVAR_SENTINEL){
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " contVar is ARITHVAR_SENTINEL " << contVar << endl;        
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " contVar is ARITHVAR_SENTINEL " << contVar
+                          << endl;
     return true; }
 
   if(!d_vars.isAuxiliary(rowVar)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " rowVar is not auxilliary " << rowVar << endl;    
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " rowVar is not auxilliary " << rowVar << endl;
     return true;
   }
   // is integer is correct here
   if(d_vars.isInteger(contVar)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " contVar is integer " << contVar << endl;    
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " contVar is integer " << contVar << endl;
     return true;
   }
 
@@ -2174,33 +2163,38 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   ConstraintP ub = d_vars.getUpperBoundConstraint(rowVar);
 
   if(lb != NullConstraint && ub != NullConstraint){
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " lb and ub are both NULL " << lb << " " << ub << endl;    
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " lb and ub are both NULL " << lb << " " << ub
+                          << endl;
     return true;
   }
 
   ConstraintP rcon = lb == NullConstraint ? ub : lb;
   if(rcon == NullConstraint) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " rcon is NULL " << rcon << endl;    
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " rcon is NULL " << rcon << endl;
     return true;
   }
 
   if(!rcon->getValue().isZero()){
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " rcon value is not 0 " << rcon->getValue() << endl;
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " rcon value is not 0 " << rcon->getValue()
+                          << endl;
     return true;
   }
 
   if(!d_vars.hasNode(rowVar)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Trace("glpk::loadVB") << "loadVB()"
                           << " does not have node " << rowVar << endl;
     return true;
   }
 
   Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(rowVar));
-  if(p.size() != 2) {  
-    Debug("glpk::loadVB") << "loadVB() " << instance << " polynomial is not binary: " << p.getNode() << endl;
+  if (p.size() != 2)
+  {
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " polynomial is not binary: " << p.getNode()
+                          << endl;
     return true;
   }
 
@@ -2211,13 +2205,15 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Node nx2 = second.getVarList().getNode();
 
   if(!d_vars.hasArithVar(nx1)) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " does not have a variable for nx1: " << nx1 << endl;
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " does not have a variable for nx1: " << nx1
+                          << endl;
     return true;
   }
   if(!d_vars.hasArithVar(nx2)) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " does not have a variable for nx2 " << nx2 << endl;
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " does not have a variable for nx2 " << nx2
+                          << endl;
     return true;
   }
   ArithVar x1 = d_vars.asArithVar(nx1), x2 = d_vars.asArithVar(nx2);
@@ -2226,7 +2222,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Assert(!c1.isZero());
   Assert(!c2.isZero());
 
-  Debug("glpk::loadVB")
+  Trace("glpk::loadVB")
     << " lb " << lb
     << " ub " << ub
     << " rcon " << rcon
@@ -2239,15 +2235,16 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Rational& cc = (x1 == contVar) ? c1 : c2;
   Rational& ic = (x1 == contVar) ? c2 : c1;
 
-  Debug("glpk::loadVB")
+  Trace("glpk::loadVB")
     << " cv " << contVar
     << " cc " << cc
     << " iv " << iv
     << " c2 " << ic << endl;
 
   if(!d_vars.isIntegerInput(iv)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " iv is not an integer input variable " << iv << endl;    
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " iv is not an integer input variable " << iv
+                          << endl;
     return true;
   }
   // cc * cv + ic * iv <= 0 or
@@ -2256,7 +2253,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   if(rcon == ub){ // multiply by -1
     cc = -cc; ic = - ic;
   }
-  Debug("glpk::loadVB") << " cv " << contVar
+  Trace("glpk::loadVB") << " cv " << contVar
                         << " cc " << cc
                         << " iv " << iv
                         << " c2 " << ic << endl;
@@ -2269,19 +2266,21 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   //   cv >= -ic/cc * iv
   Assert(!cc.isZero());
   Rational d = -ic/cc;
-  Debug("glpk::loadVB") << d << " " << cc.sgn() << endl;
+  Trace("glpk::loadVB") << d << " " << cc.sgn() << endl;
   bool nowUb = cc.sgn() < 0;
   if(wantUb != nowUb) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
-                          << " wantUb is not nowUb " << wantUb << " " << nowUb << endl;    
-    
+    Trace("glpk::loadVB") << "loadVB()"
+                          << " wantUb is not nowUb " << wantUb << " " << nowUb
+                          << endl;
+
     return true;
   }
 
   Kind rel = wantUb ? kind::LEQ : kind::GEQ;
 
   tmp = VirtualBound(contVar, rel, d, iv, rcon);
-    Debug("glpk::loadVB") << "loadVB() " << instance << " was successful" << endl;    
+  Trace("glpk::loadVB") << "loadVB()"
+                        << " was successful" << endl;
   return false;
 }
 
@@ -2299,13 +2298,13 @@ bool ApproxGLPK::loadVirtualBoundsIntoPad(int nid, const MirInfo& mir){
       if(d_pad.d_vlb.isKey(tmp.x)){ return true; }
       d_pad.d_vlb.set(tmp.x, tmp);
     }else if(mir.vlbRows[j] > 0){
-      Debug("approx::mir") << "expected vlb to work" << endl;
+      Trace("approx::mir") << "expected vlb to work" << endl;
     }
     if(!loadVB(nid, M, j, mir.vubRows[j], true, tmp)){
       if(d_pad.d_vub.isKey(tmp.x)){ return true; }
       d_pad.d_vub.set(tmp.x, tmp);
     }else if(mir.vubRows[j] > 0){
-      Debug("approx::mir") << "expected vub to work" << endl;
+      Trace("approx::mir") << "expected vub to work" << endl;
     }
   }
   return false;
@@ -2323,11 +2322,11 @@ bool ApproxGLPK::loadSlacksIntoPad(int nid, const MirInfo& mir){
   SlackReplace rep;
   bool lb;
   ConstraintP b;
-  Debug("approx::mir") << "loadSlacksIntoPad(): N="<<N<<", M=" << M << std::endl;
+  Trace("approx::mir") << "loadSlacksIntoPad(): N="<<N<<", M=" << M << std::endl;
   for(int j=1; j <= N+M; ++j){
     ArithVar v = _getArithVar(nid, M, j);
     if(v == ARITHVAR_SENTINEL){
-      Debug("approx::mir") << " for: " << j << " no variable" << endl;
+      Trace("approx::mir") << " for: " << j << " no variable" << endl;
       continue;
     }
     rep = SlackUndef;
@@ -2351,9 +2350,9 @@ bool ApproxGLPK::loadSlacksIntoPad(int nid, const MirInfo& mir){
         }
       }
 
-      Debug("approx::mir") << " for: " << j << ", " << v;
-      Debug("approx::mir") << " " << ((rep != SlackUndef) ? "succ" : "fail") << " ";
-      Debug("approx::mir") << sub << " " << rep << " " << mir.vlbRows[j] << " " << mir.vubRows[j]
+      Trace("approx::mir") << " for: " << j << ", " << v;
+      Trace("approx::mir") << " " << ((rep != SlackUndef) ? "succ" : "fail") << " ";
+      Trace("approx::mir") << sub << " " << rep << " " << mir.vlbRows[j] << " " << mir.vubRows[j]
                            << endl;
       if(rep != SlackUndef){
         d_pad.d_slacks.set(v,rep);
@@ -2362,7 +2361,7 @@ bool ApproxGLPK::loadSlacksIntoPad(int nid, const MirInfo& mir){
     case '?':
       continue;
     default:
-      Debug("approx::mir") << " for: " << j << " got subst " << (int)sub << endl;
+      Trace("approx::mir") << " for: " << j << " got subst " << (int)sub << endl;
       continue;
     }
   }
@@ -2483,15 +2482,15 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     }
   }
 
-  Debug("approx::mir") << "beg loadRowSumIntoAgg() 1" << endl;
-  if(Debug.isOn("approx::mir")) { DenseVector::print(Debug("approx::mir"), lhs); }
+  Trace("approx::mir") << "beg loadRowSumIntoAgg() 1" << endl;
+  if(TraceIsOn("approx::mir")) { DenseVector::print(Trace("approx::mir"), lhs); }
   removeAuxillaryVariables(d_vars, lhs);
-  Debug("approx::mir") << "end loadRowSumIntoAgg() 1" << endl;
+  Trace("approx::mir") << "end loadRowSumIntoAgg() 1" << endl;
 
-  if(Debug.isOn("approx::mir")){
-    Debug("approx::mir") << "loadRowSumIntoAgg() 2" << endl;
-    DenseVector::print(Debug("approx::mir"), lhs);
-    Debug("approx::mir") << "end loadRowSumIntoAgg() 2" << endl;
+  if(TraceIsOn("approx::mir")){
+    Trace("approx::mir") << "loadRowSumIntoAgg() 2" << endl;
+    DenseVector::print(Trace("approx::mir"), lhs);
+    Trace("approx::mir") << "end loadRowSumIntoAgg() 2" << endl;
   }
 
   for(int i = 1; i <= len; ++i){
@@ -2508,10 +2507,10 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     lhs.set(x, *c);
   }
 
-  if(Debug.isOn("approx::mir")){
-    Debug("approx::mir") << "loadRowSumIntoAgg() 2" << endl;
-    DenseVector::print(Debug("approx::mir"), lhs);
-    Debug("approx::mir") << "end loadRowSumIntoAgg() 3" << endl;
+  if(TraceIsOn("approx::mir")){
+    Trace("approx::mir") << "loadRowSumIntoAgg() 2" << endl;
+    DenseVector::print(Trace("approx::mir"), lhs);
+    Trace("approx::mir") << "end loadRowSumIntoAgg() 3" << endl;
   }
   return false;
 }
@@ -2522,7 +2521,7 @@ bool ApproxGLPK::buildModifiedRow(int nid, const MirInfo& mir){
   DenseMap<Rational>& mod = d_pad.d_mod.lhs;
   Rational& modRhs = d_pad.d_mod.rhs;
 
-  Debug("approx::mir")
+  Trace("approx::mir")
     << "buildModifiedRow()"
     << " |agg|=" << d_pad.d_agg.lhs.size()
     << " |mod|=" << d_pad.d_mod.lhs.size()
@@ -2537,7 +2536,7 @@ bool ApproxGLPK::buildModifiedRow(int nid, const MirInfo& mir){
     ArithVar x = *iter;
     const Rational& c = mod[x];
     if(!d_pad.d_slacks.isKey(x)){
-      Debug("approx::mir") << "missed x: " << x << endl;
+      Trace("approx::mir") << "missed x: " << x << endl;
       return true;
     }
     SlackReplace rep = d_pad.d_slacks[x];
@@ -2649,7 +2648,7 @@ bool ApproxGLPK::makeRangeForComplemented(int nid, const MirInfo& mir){
     }
   }
 
-  Debug("approx::mir") <<  "makeRangeForComplemented()" << complemented << endl;
+  Trace("approx::mir") <<  "makeRangeForComplemented()" << complemented << endl;
   return false;
 }
 
@@ -2682,7 +2681,7 @@ bool ApproxGLPK::constructMixedKnapsack(){
     }
   }
 
-  Debug("approx::mir")
+  Trace("approx::mir")
     << "constructMixedKnapsack() "
     <<" dropped " << dropped
     <<" remain " << remain
@@ -2714,10 +2713,10 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
 
   if(d_vars.isAuxiliary(basic)) { return true; }
 
-  if(Debug.isOn("gaussianElimConstructTableRow")){
-    Debug("gaussianElimConstructTableRow") << "1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
-    vec.print(Debug("gaussianElimConstructTableRow"));
-    Debug("gaussianElimConstructTableRow") << "match " << basic << "("<<d_vars.asNode(basic)<<")"<<endl;
+  if(TraceIsOn("gaussianElimConstructTableRow")){
+    Trace("gaussianElimConstructTableRow") << "1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+    vec.print(Trace("gaussianElimConstructTableRow"));
+    Trace("gaussianElimConstructTableRow") << "match " << basic << "("<<d_vars.asNode(basic)<<")"<<endl;
   }
 
   set<ArithVar> onrow;
@@ -2725,14 +2724,14 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
     int ind = vec.inds[i];
     ArithVar var = _getArithVar(nid, M, ind);
     if(var == ARITHVAR_SENTINEL){
-      Debug("gaussianElimConstructTableRow") << "couldn't find" << ind << " " << M << " " << nid << endl;
+      Trace("gaussianElimConstructTableRow") << "couldn't find" << ind << " " << M << " " << nid << endl;
       return true;
     }
     onrow.insert(var);
   }
 
 
-  Debug("gaussianElimConstructTableRow") << "2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+  Trace("gaussianElimConstructTableRow") << "2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
 
   Matrix<Rational> A;
   A.increaseSizeTo(d_vars.getNumberOfVariables());
@@ -2765,7 +2764,7 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
       rows.push_back(make_pair(rid, ARITHVAR_SENTINEL));
     }
   }
-  Debug("gaussianElimConstructTableRow") << "3 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+  Trace("gaussianElimConstructTableRow") << "3 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
 
   for(size_t i=0; i < rows.size(); ++i){
     RowIndex rid = rows[i].first;
@@ -2785,13 +2784,13 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
         Assert(!e.getCoefficient().isZero());
 
         Rational cp = e.getCoefficient();
-        Debug("gaussianElimConstructTableRow")
+        Trace("gaussianElimConstructTableRow")
           << "on " << rid << " subst " << cp << "*" << prevRow << " " << other << endl;
         A.rowPlusRowTimesConstant(rid, prevRow, cp);
       }
     }
-    if(Debug.isOn("gaussianElimConstructTableRow")){
-      A.printMatrix(Debug("gaussianElimConstructTableRow"));
+    if(TraceIsOn("gaussianElimConstructTableRow")){
+      A.printMatrix(Trace("gaussianElimConstructTableRow"));
     }
 
     // solve the row for anything other than non-basics
@@ -2815,29 +2814,29 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
       }
     }
     if(s == ARITHVAR_SENTINEL || q.isZero()){
-      Debug("gaussianElimConstructTableRow") << "3 fail gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+      Trace("gaussianElimConstructTableRow") << "3 fail gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
       return true;
     }else{
       // 0 = q * s + sum c_i * x_i
       Rational mult = -(q.inverse());
-      Debug("gaussianElimConstructTableRow") << "selecting " << s << " : " << mult << endl;
-      Debug("gaussianElimConstructTableRow") << "selecting " << rid << " " << s << endl;
+      Trace("gaussianElimConstructTableRow") << "selecting " << s << " : " << mult << endl;
+      Trace("gaussianElimConstructTableRow") << "selecting " << rid << " " << s << endl;
       //cout << "selecting " << s << " : complexity " << mult.complexity() << " " << mult << endl;
       //cout << "selecting " << rid << " " << s << endl;
       A.multiplyRowByConstant(rid, mult);
       rows[i].second = s;
     }
   }
-  Debug("gaussianElimConstructTableRow") << "4 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+  Trace("gaussianElimConstructTableRow") << "4 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
 
   if(rows.empty()) {
-    Debug("gaussianElimConstructTableRow") << "4 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+    Trace("gaussianElimConstructTableRow") << "4 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
     return true;
   }
   RowIndex rid_last = rows.back().first;
   ArithVar rid_var = rows.back().second;
   if(rid_var != basic){
-    Debug("gaussianElimConstructTableRow") << "4 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+    Trace("gaussianElimConstructTableRow") << "4 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
     return true;
   }
 
@@ -2849,29 +2848,29 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
     const Matrix<Rational>::Entry& e = *k;
     tab.set(e.getColVar(), e.getCoefficient());
   }
-  Debug("gaussianElimConstructTableRow") << "5 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+  Trace("gaussianElimConstructTableRow") << "5 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
   if(!tab.isKey(basic)){
-    Debug("gaussianElimConstructTableRow") << "5 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+    Trace("gaussianElimConstructTableRow") << "5 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
     return true;
   }
   if(tab[basic] != Rational(-1)){
-    Debug("gaussianElimConstructTableRow") << "5 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+    Trace("gaussianElimConstructTableRow") << "5 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
     return true;
   }
 
   tab.remove(basic);
-  Debug("gaussianElimConstructTableRow") << "6 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+  Trace("gaussianElimConstructTableRow") << "6 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
 
   if(vec.len < 0 ){
-    Debug("gaussianElimConstructTableRow") << "6 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+    Trace("gaussianElimConstructTableRow") << "6 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
     return true;
   }
   if(tab.size() != ((unsigned)vec.len) ) {
-    Debug("gaussianElimConstructTableRow") << "6 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<< tab.size() <<  " " << vec.len << endl;
+    Trace("gaussianElimConstructTableRow") << "6 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<< tab.size() <<  " " << vec.len << endl;
     return true;
   }
 
-  Debug("gaussianElimConstructTableRow") << "7 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+  Trace("gaussianElimConstructTableRow") << "7 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
 
   for(int i = 1; i <= vec.len; ++i){
     int ind = vec.inds[i];
@@ -2879,21 +2878,21 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
     ArithVar var = _getArithVar(nid, M, ind);
     Assert(var != ARITHVAR_SENTINEL);
     if(!tab.isKey(var)){
-      Debug("gaussianElimConstructTableRow") << "7 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
+      Trace("gaussianElimConstructTableRow") << "7 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
       return true;
     }
 
     double est = tab[var].getDouble();
 
     if(!ApproximateSimplex::roughlyEqual(coeff, est)){
-      Debug("gaussianElimConstructTableRow") << "7 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"
+      Trace("gaussianElimConstructTableRow") << "7 fail 2 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"
            << " boink on " << ind << " " << var << " " << est <<endl;
       return true;
     }
-    Debug("gaussianElimConstructTableRow") << var << " cfe " << coeff << endl;
+    Trace("gaussianElimConstructTableRow") << var << " cfe " << coeff << endl;
   }
 
-  Debug("gaussianElimConstructTableRow")
+  Trace("gaussianElimConstructTableRow")
     << "gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"
     << " superduper" << endl;
 
@@ -2904,7 +2903,7 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
     const Integer& D = d_denomGuesses[i];
     if(!guessCoefficientsConstructTableRow(nid, M, vec, D)){
       d_stats.d_averageGuesses << i+1;
-      Debug("approx::gmi") << "guesseditat " << i << " D=" << D << endl;
+      Trace("approx::gmi") << "guesseditat " << i << " D=" << D << endl;
       return false;
     }
   }
@@ -2919,10 +2918,10 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
   Assert(tab.empty());
   Assert(d_pad.d_tabRow.rhs.isZero());
 
-  if(Debug.isOn("guessCoefficientsConstructTableRow")){
-    Debug("guessCoefficientsConstructTableRow")  << "attemptConstructTableRow("<<nid <<", "<< basic<<",...," << D<< ")"<<endl;
-    vec.print(Debug("guessCoefficientsConstructTableRow"));
-    Debug("guessCoefficientsConstructTableRow") << "match " << basic << "("<<d_vars.asNode(basic)<<")"<<endl;
+  if(TraceIsOn("guessCoefficientsConstructTableRow")){
+    Trace("guessCoefficientsConstructTableRow")  << "attemptConstructTableRow("<<nid <<", "<< basic<<",...," << D<< ")"<<endl;
+    vec.print(Trace("guessCoefficientsConstructTableRow"));
+    Trace("guessCoefficientsConstructTableRow") << "match " << basic << "("<<d_vars.asNode(basic)<<")"<<endl;
   }
 
   tab.set(basic, Rational(-1));
@@ -2931,10 +2930,10 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
     double coeff = vec.coeffs[i];
     ArithVar var = _getArithVar(nid, M, ind);
     if(var == ARITHVAR_SENTINEL){
-      Debug("guessCoefficientsConstructTableRow") << "couldn't find" << ind << " " << M << " " << nid << endl;
+      Trace("guessCoefficientsConstructTableRow") << "couldn't find" << ind << " " << M << " " << nid << endl;
       return true;
     }
-    Debug("guessCoefficientsConstructTableRow") << "match " << ind << "," << var << "("<<d_vars.asNode(var)<<")"<<endl;
+    Trace("guessCoefficientsConstructTableRow") << "match " << ind << "," << var << "("<<d_vars.asNode(var)<<")"<<endl;
 
     std::optional<Rational> cfe = estimateWithCFE(coeff, D);
     if (!cfe)
@@ -2942,10 +2941,10 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
       return true;
     }
     tab.set(var, *cfe);
-    Debug("guessCoefficientsConstructTableRow") << var << " cfe " << cfe << endl;
+    Trace("guessCoefficientsConstructTableRow") << var << " cfe " << cfe << endl;
   }
   if(!guessIsConstructable(tab)){
-    Debug("guessCoefficientsConstructTableRow") << "failed to construct with " << D  << endl;
+    Trace("guessCoefficientsConstructTableRow") << "failed to construct with " << D  << endl;
     return true;
   }
   tab.remove(basic);
@@ -2967,7 +2966,7 @@ bool ApproxGLPK::constructGmiCut(){
   bool anyInf;
   DeltaRational dbeta = sumConstraints(tabRow, toBound, &anyInf);
   const Rational& beta = dbeta.getNoninfinitesimalPart();
-  Debug("approx::gmi") << dbeta << endl;
+  Trace("approx::gmi") << dbeta << endl;
   if(anyInf || beta.isIntegral()){ return true; }
 
   Rational one = Rational(1);
@@ -2992,7 +2991,7 @@ bool ApproxGLPK::constructGmiCut(){
     }else if(d_vars.isIntegerInput(x) && psi.isIntegral()){
       // do not add a coefficient
       // nothing to explain
-      Debug("approx::gmi") << "skipping " << x << endl;
+      Trace("approx::gmi") << "skipping " << x << endl;
     }else{
       explanation.insert(c);
       Rational phi;
@@ -3021,24 +3020,24 @@ bool ApproxGLPK::constructGmiCut(){
       }
     }
   }
-  if(Debug.isOn("approx::gmi")){
-    Debug("approx::gmi") << "pre removeSlackVariables";
-    d_pad.d_cut.print(Debug("approx::gmi"));
-    Debug("approx::gmi") << endl;
+  if(TraceIsOn("approx::gmi")){
+    Trace("approx::gmi") << "pre removeSlackVariables";
+    d_pad.d_cut.print(Trace("approx::gmi"));
+    Trace("approx::gmi") << endl;
   }
   removeAuxillaryVariables(d_vars, cut);
 
-  if(Debug.isOn("approx::gmi")){
-    Debug("approx::gmi") << "post removeAuxillaryVariables";
-    d_pad.d_cut.print(Debug("approx::gmi"));
-    Debug("approx::gmi") << endl;
+  if(TraceIsOn("approx::gmi")){
+    Trace("approx::gmi") << "post removeAuxillaryVariables";
+    d_pad.d_cut.print(Trace("approx::gmi"));
+    Trace("approx::gmi") << endl;
   }
   removeFixed(d_vars, d_pad.d_cut, explanation);
 
-  if(Debug.isOn("approx::gmi")){
-    Debug("approx::gmi") << "post removeFixed";
-    d_pad.d_cut.print(Debug("approx::gmi"));
-    Debug("approx::gmi") << endl;
+  if(TraceIsOn("approx::gmi")){
+    Trace("approx::gmi") << "post removeFixed";
+    d_pad.d_cut.print(Trace("approx::gmi"));
+    Trace("approx::gmi") << endl;
   }
   return false;
 }
@@ -3073,12 +3072,12 @@ void ApproxGLPK::tryCut(int nid, CutInfo& cut)
       cut.swapExplanation(asvec);
     }
   }else{
-    Debug("approx") << "failure " << cut.getKlass() << endl;
+    Trace("approx") << "failure " << cut.getKlass() << endl;
   }
 }
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif /*#ifdef CVC5_USE_GLPK */
 /* End GPLK implementation. */

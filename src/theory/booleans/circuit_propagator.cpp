@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -186,7 +186,7 @@ void CircuitPropagator::makeConflict(Node n)
 
 void CircuitPropagator::computeBackEdges(TNode node)
 {
-  Debug("circuit-prop") << "CircuitPropagator::computeBackEdges(" << node << ")"
+  Trace("circuit-prop") << "CircuitPropagator::computeBackEdges(" << node << ")"
                         << endl;
 
   // Vector of nodes to visit
@@ -207,7 +207,7 @@ void CircuitPropagator::computeBackEdges(TNode node)
   {
     // Node we need to visit
     TNode current = toVisit[i];
-    Debug("circuit-prop")
+    Trace("circuit-prop")
         << "CircuitPropagator::computeBackEdges(): processing " << current
         << endl;
     Assert(d_seen.find(current) != d_seen.end());
@@ -235,7 +235,7 @@ void CircuitPropagator::computeBackEdges(TNode node)
 
 void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 {
-  Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
+  Trace("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
                         << ", " << parentAssignment << ")" << endl;
   ProofCircuitPropagatorBackward prover{d_pnm, parent, parentAssignment};
 
@@ -433,7 +433,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
 {
   // The assignment we have
-  Debug("circuit-prop") << "CircuitPropagator::propagateForward(" << child
+  Trace("circuit-prop") << "CircuitPropagator::propagateForward(" << child
                         << ", " << childAssignment << ")" << endl;
 
   // Get the back any nodes where this is child
@@ -446,7 +446,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
   {
     // The current parent of the child
     TNode parent = *parent_it;
-    Debug("circuit-prop") << "Parent: " << parent << endl;
+    Trace("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
     ProofCircuitPropagatorForward prover{d_pnm, child, childAssignment, parent};
@@ -695,7 +695,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
 
 TrustNode CircuitPropagator::propagate()
 {
-  Debug("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
+  Trace("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
 
   for (unsigned i = 0;
        i < d_propagationQueue.size() && d_conflict.get().isNull();
@@ -703,10 +703,10 @@ TrustNode CircuitPropagator::propagate()
   {
     // The current node we are propagating
     TNode current = d_propagationQueue[i];
-    Debug("circuit-prop") << "CircuitPropagator::propagate(): processing "
+    Trace("circuit-prop") << "CircuitPropagator::propagate(): processing "
                           << current << std::endl;
     bool assignment = getAssignment(current);
-    Debug("circuit-prop") << "CircuitPropagator::propagate(): assigned to "
+    Trace("circuit-prop") << "CircuitPropagator::propagate(): assigned to "
                           << (assignment ? "true" : "false") << std::endl;
 
     // Is this an atom
@@ -719,7 +719,7 @@ TrustNode CircuitPropagator::propagate()
         || (current.getKind() == kind::EQUAL
             && (current[0].isVar() || current[1].isVar())))
     {
-      Debug("circuit-prop")
+      Trace("circuit-prop")
           << "CircuitPropagator::propagate(): adding to learned: "
           << (assignment ? (Node)current : current.notNode()) << std::endl;
       Node lit = assignment ? Node(current) : current.notNode();
@@ -804,7 +804,7 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
                             << "\t" << *pf << std::endl;
       d_epg->setProofFor(f, std::move(pf));
     }
-    else if (Trace.isOn("circuit-prop"))
+    else if (TraceIsOn("circuit-prop"))
     {
       auto prf = d_epg->getProofFor(f);
       Trace("circuit-prop") << "Ignoring proof\n\t" << *pf
@@ -815,4 +815,4 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

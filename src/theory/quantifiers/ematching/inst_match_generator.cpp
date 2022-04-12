@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,9 +33,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -245,7 +245,7 @@ void InstMatchGenerator::initialize(Node q,
   }
   else if (mpk == INST_CONSTANT)
   {
-    if (d_pattern.getKind() == APPLY_SELECTOR_TOTAL)
+    if (d_pattern.getKind() == APPLY_SELECTOR)
     {
       Node selectorExpr = tdb->getMatchOperator(d_pattern);
       size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
@@ -699,4 +699,4 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Env& env,
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Morgan Deters
+ *   Tim King, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -58,15 +58,14 @@ DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
 {
 }
 
-Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
+Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult)
+{
   Assert(d_conflictVariables.empty());
 
-  static thread_local unsigned int instance = 0;
-  instance = instance + 1;
   d_pivots = 0;
 
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
-    Debug("arith::findModel") << "dualFindModel("<< instance <<") trivial" << endl;
+    Trace("arith::findModel") << "dualFindModel() trivial" << endl;
     return Result::SAT;
   }
 
@@ -77,22 +76,23 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   if(processSignals()){
     d_conflictVariables.purge();
 
-    Debug("arith::findModel") << "dualFindModel("<< instance <<") early conflict" << endl;
+    Trace("arith::findModel") << "dualFindModel() early conflict" << endl;
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("arith::findModel") << "dualFindModel("<< instance <<") fixed itself" << endl;
+    Trace("arith::findModel") << "dualFindModel() fixed itself" << endl;
     Assert(!d_errorSet.moreSignals());
     return Result::SAT;
   }
 
-  Debug("arith::findModel") << "dualFindModel(" << instance <<") start non-trivial" << endl;
+  Trace("arith::findModel") << "dualFindModel() start non-trivial" << endl;
 
-  Result::Sat result = Result::SAT_UNKNOWN;
+  Result::Status result = Result::UNKNOWN;
 
   exactResult |= d_varOrderPivotLimit < 0;
 
   uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
-  if(result == Result::SAT_UNKNOWN){
+  if (result == Result::UNKNOWN)
+  {
     uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
                                        ? d_numVariables + 1
                                        : options().arith.arithHeuristicPivots;
@@ -128,7 +128,8 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::SAT_UNKNOWN && d_errorSet.errorEmpty()){
+  if (result == Result::UNKNOWN && d_errorSet.errorEmpty())
+  {
     result = Result::SAT;
   }
 
@@ -136,7 +137,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("arith::findModel") << "end findModel() " << instance << " " << result <<  endl;
+  Trace("arith::findModel") << "end findModel() " << result << endl;
 
   return result;
 }
@@ -146,17 +147,17 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingIterations){
   TimerStat::CodeTimer codeTimer(d_statistics.d_searchTime);
 
-  Debug("arith") << "searchForFeasibleSolution" << endl;
+  Trace("arith") << "searchForFeasibleSolution" << endl;
   Assert(remainingIterations > 0);
 
   while(remainingIterations > 0 && !d_errorSet.focusEmpty()){
-    if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
+    if(TraceIsOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
     Assert(d_conflictVariables.empty());
     ArithVar x_i = d_errorSet.topFocusVariable();
 
-    Debug("arith::update::select") << "selectSmallestInconsistentVar()=" << x_i << endl;
+    Trace("arith::update::select") << "selectSmallestInconsistentVar()=" << x_i << endl;
     if(x_i == ARITHVAR_SENTINEL){
-      Debug("arith::update") << "No inconsistent variables" << endl;
+      Trace("arith::update") << "No inconsistent variables" << endl;
       return false; //sat
     }
 
@@ -168,7 +169,7 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
       d_pivotsInRound.add(x_i);
     }
 
-    Debug("arith::update") << "pivots in rounds: " << d_pivotsInRound.count(x_i)
+    Trace("arith::update") << "pivots in rounds: " << d_pivotsInRound.count(x_i)
                            << " use " << useVarOrderPivot << " threshold "
                            << options().arith.arithPivotThreshold << std::endl;
 
@@ -217,8 +218,8 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
     int32_t currErrorSize CVC5_UNUSED = d_errorSet.errorSize();
     d_pivots++;
 
-    if(Debug.isOn("arith::dual")){
-      Debug("arith::dual")
+    if(TraceIsOn("arith::dual")){
+      Trace("arith::dual")
         << "#" << d_pivots
         << " c" << conflict
         << " d" << (prevErrorSize - currErrorSize)
@@ -241,4 +242,4 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

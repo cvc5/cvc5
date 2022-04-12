@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Mudathir Mohamed, Aina Niemetz
+ *   Andres Noetzli, Mathias Preiner, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 
 #include "api/cpp/cvc5.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -33,7 +33,7 @@ int main()
   Sort real = slv.getRealSort();
   Term x = slv.mkConst(real, "x");
   Term four = slv.mkInteger(4);
-  Term xEqFour = slv.mkTerm(Kind::EQUAL, x, four);
+  Term xEqFour = slv.mkTerm(Kind::EQUAL, {x, four});
   slv.assertFormula(xEqFour);
   std::cout << slv.checkSat() << std::endl;
 
@@ -43,9 +43,9 @@ int main()
   Sort indexType = slv.getIntegerSort();
   Sort arrayType = slv.mkArraySort(indexType, elementType);
   Term array = slv.mkConst(arrayType, "array");
-  Term arrayAtFour = slv.mkTerm(Kind::SELECT, array, four);
+  Term arrayAtFour = slv.mkTerm(Kind::SELECT, {array, four});
   Term ten = slv.mkInteger(10);
-  Term arrayAtFour_eq_ten = slv.mkTerm(Kind::EQUAL, arrayAtFour, ten);
+  Term arrayAtFour_eq_ten = slv.mkTerm(Kind::EQUAL, {arrayAtFour, ten});
   slv.assertFormula(arrayAtFour_eq_ten);
   std::cout << slv.checkSat() << std::endl;
 }

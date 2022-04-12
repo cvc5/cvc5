@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
 #include "smt/env_obj.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
@@ -31,7 +32,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -49,8 +50,6 @@ class TheorySetsPrivate : protected EnvObj
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  private:
-  /** Are a and b trigger terms in the equality engine that may be disequal? */
-  bool areCareDisequal(Node a, Node b);
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -87,12 +86,6 @@ class TheorySetsPrivate : protected EnvObj
    */
   void checkReduceComprehensions();
 
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth,
-                    unsigned& n_pairs);
-
   Node d_true;
   Node d_false;
   Node d_zero;
@@ -107,10 +100,10 @@ class TheorySetsPrivate : protected EnvObj
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    // singleton or emptyset equal to this eqc
-    context::CDO< Node > d_singleton;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // singleton or emptyset equal to this eqc
+   context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -140,7 +133,8 @@ class TheorySetsPrivate : protected EnvObj
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
-                    ProofNodeManager* pnm);
+                    ProofNodeManager* pnm,
+                    CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();
 
@@ -179,6 +173,15 @@ class TheorySetsPrivate : protected EnvObj
 
   /** get the valuation */
   Valuation& getValuation();
+  /** Is formula n entailed to have polarity pol in the current context? */
+  bool isEntailed(Node n, bool pol);
+
+  /**
+   * Adds inferences for splitting on arguments of a and b that are not
+   * equal nor disequal and are sets.
+   */
+  void processCarePairArgs(TNode a, TNode b);
+
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */
@@ -195,17 +198,14 @@ class TheorySetsPrivate : protected EnvObj
 
   bool isCareArg( Node n, unsigned a );
 
- public:
-  /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-
- private:
-
   /** expand the definition of the choose operator */
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
+  /** ensure that the set type is over first class type, throw logic exception
+   * if not */
+  void ensureFirstClassSetType(TypeNode tn) const;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -229,10 +229,12 @@ class TheorySetsPrivate : protected EnvObj
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */
   std::map<Node, Node> d_isSingletonNodes;
+  /** Reference to care pair argument callback, used for theory combination */
+  CarePairArgumentCallback& d_cpacb;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H */

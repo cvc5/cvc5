@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,17 +28,14 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-
-ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
-  d_minMap(userContext),
-  d_maxMap(userContext),
-  d_statistics()
+ArithStaticLearner::ArithStaticLearner(context::Context* userContext)
+    : d_minMap(userContext), d_maxMap(userContext), d_statistics()
 {
 }
 
@@ -101,14 +98,14 @@ void ArithStaticLearner::process(TNode n,
                                  NodeBuilder& learned,
                                  const TNodeSet& defTrue)
 {
-  Debug("arith::static") << "===================== looking at " << n << endl;
+  Trace("arith::static") << "===================== looking at " << n << endl;
 
   switch(n.getKind()){
   case ITE:
     if (expr::hasBoundVar(n))
     {
       // Unsafe with non-ground ITEs; do nothing
-      Debug("arith::static")
+      Trace("arith::static")
           << "(potentially) non-ground ITE, ignoring..." << endl;
       break;
     }
@@ -168,7 +165,7 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
     case LEQ: { // (ite (<= x y) x y)
       Node nLeqX = NodeBuilder(LEQ) << n << t;
       Node nLeqY = NodeBuilder(LEQ) << n << e;
-      Debug("arith::static") << n << "is a min =>"  << nLeqX << nLeqY << endl;
+      Trace("arith::static") << n << "is a min =>"  << nLeqX << nLeqY << endl;
       learned << nLeqX << nLeqY;
       ++(d_statistics.d_iteMinMaxApplications);
       break;
@@ -177,7 +174,7 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
     case GEQ: { // (ite (>= x y) x y)
       Node nGeqX = NodeBuilder(GEQ) << n << t;
       Node nGeqY = NodeBuilder(GEQ) << n << e;
-      Debug("arith::static") << n << "is a max =>"  << nGeqX << nGeqY << endl;
+      Trace("arith::static") << n << "is a max =>"  << nGeqX << nGeqY << endl;
       learned << nGeqX << nGeqY;
       ++(d_statistics.d_iteMinMaxApplications);
       break;
@@ -191,7 +188,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
 {
   Assert(n.getKind() == ITE);
 
-  Debug("arith::static") << "iteConstant(" << n << ")" << endl;
+  Trace("arith::static") << "iteConstant(" << n << ")" << endl;
 
   if (d_minMap.find(n[1]) != d_minMap.end() && d_minMap.find(n[2]) != d_minMap.end()) {
     const DeltaRational& first = d_minMap[n[1]];
@@ -206,7 +203,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
           n,
           nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
       learned << nGeqMin;
-      Debug("arith::static") << n << " iteConstant"  << nGeqMin << endl;
+      Trace("arith::static") << n << " iteConstant"  << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
     }
   }
@@ -224,7 +221,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
           n,
           nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
       learned << nLeqMax;
-      Debug("arith::static") << n << " iteConstant"  << nLeqMax << endl;
+      Trace("arith::static") << n << " iteConstant"  << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);
     }
   }
@@ -254,7 +251,7 @@ void ArithStaticLearner::addBound(TNode n) {
       if (maxFind == d_maxMap.end() || (*maxFind).second > bound)
       {
         d_maxMap.insert(n[0], bound);
-        Debug("arith::static") << "adding bound " << n << endl;
+        Trace("arith::static") << "adding bound " << n << endl;
       }
       break;
     case kind::GT: bound = DeltaRational(constant, 1); CVC5_FALLTHROUGH;
@@ -262,7 +259,7 @@ void ArithStaticLearner::addBound(TNode n) {
       if (minFind == d_minMap.end() || (*minFind).second < bound)
       {
         d_minMap.insert(n[0], bound);
-        Debug("arith::static") << "adding bound " << n << endl;
+        Trace("arith::static") << "adding bound " << n << endl;
       }
       break;
     default: Unhandled() << k; break;
@@ -271,4 +268,4 @@ void ArithStaticLearner::addBound(TNode n) {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

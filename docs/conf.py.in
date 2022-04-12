@@ -19,7 +19,6 @@ sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
 # path to python api
 sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
-sys.path.insert(0, '${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP')
 
 if("${BUILD_BINDINGS_PYTHON}" == "ON"):
         tags.add('bindings_python')
@@ -40,21 +39,22 @@ author = 'The authors of cvc5'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-        'breathe',
+        # sphinx core extensions
         'sphinx.ext.autodoc',
         'sphinx.ext.autosectionlabel',
+        'sphinx.ext.extlinks',
+        'sphinx.ext.mathjax',
+        # other sphinx extensions
+        'breathe',
         'sphinxcontrib.bibtex',
         'sphinxcontrib.programoutput',
         'sphinx_tabs.tabs',
+        # custom cvc5 extensions
         'autoenum',
         'examples',
         'include_build_file',
+        'run_command',
 ]
-
-bibtex_bibfiles = ['references.bib']
-
-# Make sure the target is unique
-autosectionlabel_prefix_document = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -80,11 +80,78 @@ html_show_sourcelink = False
 
 html_extra_path = []
 
-# -- Configuration for examples extension ------------------------------------
+
+# -- SMT-LIB syntax highlighting ---------------------------------------------
+
+from smtliblexer import SmtLibLexer
+from sphinx.highlighting import lexers
+lexers['smtlib'] = SmtLibLexer()
+
+
+# -- Java configuration ------------------------------------------------------
+if tags.has('bindings_java'):
+        html_extra_path.append('${CMAKE_BINARY_DIR}/docs/api/java/build/')
+
+
+# -- core extension:: sphinx.ext.autosectionlabel ----------------------------
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
+
+
+# -- core extension:: sphinx.ext.extlinks ------------------------------------
+
+extlinks = {
+        'cvc5src': ('https://github.com/cvc5/cvc5/blob/main/src/%s', '%s'),
+        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/main/%s', '%s'),
+}
+
+
+# -- core extension:: sphinx.ext.mathjax -------------------------------------
+
+# enforce using mathjax3
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+
+# load additional packages and predefine some macros
+mathjax3_config = {
+  'loader': {
+    'load': ['[tex]/ams', '[tex]/bussproofs'],
+  },
+  'tex': {
+    'packages': {
+      '[+]': ['ams', 'bussproofs'],
+    },
+    'macros': {
+      'xor': '\\mathbin{xor}',
+      'ite': ['#1 \\mathbin{?} #2 \\mathbin{:} #3', 3],
+      'inferrule': ['\\begin{prooftree}\AxiomC{$#1$}\\UnaryInfC{$#2$}\\end{prooftree}', 2],
+      'inferruleSC': ['\\begin{prooftree}\AxiomC{$#1$}\RightLabel{ #3}\\UnaryInfC{$#2$}\\end{prooftree}', 3],
+    }
+  }
+}
+
+# -- extension:: breathe -----------------------------------------------------
+breathe_default_project = "cvc5"
+breathe_domain_by_extension = {"h" : "cpp"}
+cpp_index_common_prefix = ["cvc5::"]
+
+
+# -- extension:: sphinxcontrib.bibtex ----------------------------------------
+
+bibtex_bibfiles = ['references.bib']
+
+
+# -- custom extension:: examples ---------------------------------------------
+
 # Configuration for tabs: title, language and group for detecting missing files
 examples_types = {
         '\.cpp$': {
                 'title': 'C++',
+                'lang': 'c++',
+                'group': 'c++'
+        },
+        '\.h$': {
+                'title': 'C++ (header)',
                 'lang': 'c++',
                 'group': 'c++'
         },
@@ -93,15 +160,20 @@ examples_types = {
                 'lang': 'java',
                 'group': 'java'
         },
+        '^<examples>.*pythonic.*\.py$': {
+                'title': 'Python (pythonic)',
+                'lang': 'python',
+                'group': 'py-pythonicapi'
+        },
         '^<examples>.*\.py$': {
                 'title': 'Python (base)',
                 'lang': 'python',
                 'group': 'py-regular'
         },
-        '^<z3pycompat>.*\.py$': {
+        '^<pythonicapi>.*\.py$': {
                 'title': 'Python (pythonic)',
                 'lang': 'python',
-                'group': 'py-z3pycompat'
+                'group': 'py-pythonicapi'
         },
         '\.smt2$': {
                 'title': 'SMT-LIBv2',
@@ -118,31 +190,23 @@ examples_types = {
 examples_file_patterns = {
         '^<examples>(.*)': {
                 'local': '/../examples{}',
-                'url': 'https://github.com/cvc5/cvc5/tree/master/examples{}',
+                'url': 'https://github.com/cvc5/cvc5/tree/main/examples{}',
                 'urlname': 'examples{}',
         },
-        '<z3pycompat>(.*)': {
-                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
-                'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
-                'urlname': 'cvc5_z3py_compat:{}',
+        '<pythonicapi>(.*)': {
+                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
+                'url': 'https://github.com/cvc5/cvc5_pythonic_api/tree/main{}',
+                'urlname': 'cvc5_pythonic_api:{}',
         }
 }
 
-# -- C++ / Breathe configuration ---------------------------------------------
-breathe_default_project = "cvc5"
-breathe_domain_by_extension = {"h" : "cpp"}
-cpp_index_common_prefix = ["cvc5::api::"]
+
+# -- custom extension:: include_build_file -----------------------------------
 
 # where to look for include-build-file
 ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
 
 
-# -- Java configuration ------------------------------------------------------
-if tags.has('bindings_java'):
-        html_extra_path.append('${CMAKE_BINARY_DIR}/docs/api/java/build/')
+# -- custom extension:: run_command ------------------------------------------
 
-
-# -- SMT-LIB syntax highlighting ---------------------------------------------
-from smtliblexer import SmtLibLexer
-from sphinx.highlighting import lexers
-lexers['smtlib'] = SmtLibLexer()
+runcmd_build = '/' + os.path.relpath('${CMAKE_BINARY_DIR}', '${CMAKE_CURRENT_SOURCE_DIR}')

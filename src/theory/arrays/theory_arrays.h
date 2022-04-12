@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -297,7 +297,7 @@ class TheoryArrays : public Theory {
 
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Debug("arrays::propagate")
+      Trace("arrays::propagate")
           << spaces(d_arrays.context()->getLevel())
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
@@ -313,7 +313,7 @@ class TheoryArrays : public Theory {
                                      TNode t2,
                                      bool value) override
     {
-      Debug("arrays::propagate")
+      Trace("arrays::propagate")
           << spaces(d_arrays.context()->getLevel())
           << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
           << ", " << (value ? "true" : "false") << ")" << std::endl;
@@ -326,7 +326,7 @@ class TheoryArrays : public Theory {
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.context()->getLevel())
+      Trace("arrays::propagate") << spaces(d_arrays.context()->getLevel())
                                  << "NotifyClass::eqNotifyConstantTermMerge("
                                  << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
@@ -371,7 +371,7 @@ class TheoryArrays : public Theory {
   using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
   context::CDQueue<RowLemmaType> d_RowQueue;
-  context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;
+  context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction> d_RowAlreadyAdded;
 
   typedef context::CDHashSet<Node> CDNodeSet;
 
@@ -389,29 +389,30 @@ class TheoryArrays : public Theory {
   context::CDList<TNode> d_constReadsList;
   context::Context* d_constReadsContext;
   /** Helper class to keep d_constReadsContext in sync with satContext */
-  class ContextPopper : public context::ContextNotifyObj {
+  class ContextPopper : public context::ContextNotifyObj
+  {
     context::Context* d_satContext;
     context::Context* d_contextToPop;
-  protected:
-   void contextNotifyPop() override
-   {
-     if (d_contextToPop->getLevel() > d_satContext->getLevel())
-     {
-       d_contextToPop->pop();
-     }
+
+   protected:
+    void contextNotifyPop() override
+    {
+      if (d_contextToPop->getLevel() > d_satContext->getLevel())
+      {
+        d_contextToPop->pop();
+      }
     }
-  public:
+
+   public:
     ContextPopper(context::Context* context, context::Context* contextToPop)
-      :context::ContextNotifyObj(context), d_satContext(context),
-       d_contextToPop(contextToPop)
-    {}
+        : context::ContextNotifyObj(context),
+          d_satContext(context),
+          d_contextToPop(contextToPop)
+    {
+    }
 
-  };/* class ContextPopper */
+  }; /* class ContextPopper */
   ContextPopper d_contextPopper;
-
-  std::unordered_map<Node, Node> d_skolemCache;
-  context::CDO<unsigned> d_skolemIndex;
-  std::vector<Node> d_skolemAssertions;
 
   // The decision requests we have for the core
   context::CDQueue<Node> d_decisionRequests;
@@ -444,10 +445,6 @@ class TheoryArrays : public Theory {
   void propagateRowLemma(RowLemmaType lem);
   void queueRowLemma(RowLemmaType lem);
   bool dischargeLemmas();
-
-  std::vector<Node> d_decisions;
-  bool d_inCheckModel;
-  int d_topLevel;
 
   /**
    * The decision strategy for the theory of arrays, which calls the
@@ -488,6 +485,6 @@ class TheoryArrays : public Theory {
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H */

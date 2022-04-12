@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,11 +24,11 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
-using namespace cvc5::theory::quantifiers::inst;
+using namespace cvc5::internal::theory::quantifiers::inst;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -83,12 +83,12 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   bool finished = false;
   //while unfinished, try effort level=0,1,2....
   while( !finished && e<=eLimit ){
-    Debug("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
+    Trace("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
     finished = true;
     //instantiate each quantifier
     for( unsigned i=0; i<d_quants.size(); i++ ){
       Node q = d_quants[i];
-      Debug("inst-engine-debug") << "IE: Instantiate " << q << "..." << std::endl;
+      Trace("inst-engine-debug") << "IE: Instantiate " << q << "..." << std::endl;
       //int e_use = d_quantEngine->getRelevance( q )==-1 ? e - 1 : e;
       int e_use = e;
       if( e_use>=0 ){
@@ -143,7 +143,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   double clSet = 0;
-  if (Trace.isOn("inst-engine"))
+  if (TraceIsOn("inst-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e
@@ -188,7 +188,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   {
     d_quants.clear();
   }
-  if (Trace.isOn("inst-engine"))
+  if (TraceIsOn("inst-engine"))
   {
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("inst-engine") << "Finished instantiation engine, time = "
@@ -272,4 +272,4 @@ bool InstantiationEngine::shouldProcess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

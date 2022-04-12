@@ -1,0 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-fun c () Int)
+(assert (= (> c 1) (= 6 (* c c))))
+(check-sat)

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,7 @@
 #include "expr/type_properties.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
+#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -43,9 +44,9 @@ ${metakind_includes}
 // clang-format off
 
 using namespace std;
-using namespace cvc5::expr;
+using namespace cvc5::internal::expr;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace {
 
@@ -60,12 +61,12 @@ struct ScopedBool {
   ScopedBool(bool& value) :
     d_value(value) {
 
-    Debug("gc") << ">> setting ScopedBool\n";
+    Trace("gc") << ">> setting ScopedBool\n";
     d_value = true;
   }
 
   ~ScopedBool() {
-    Debug("gc") << "<< clearing ScopedBool\n";
+    Trace("gc") << "<< clearing ScopedBool\n";
     d_value = false;
   }
 };
@@ -80,11 +81,11 @@ struct NVReclaim {
   NVReclaim(NodeValue*& deletionField) :
     d_deletionField(deletionField) {
 
-    Debug("gc") << ">> setting NVRECLAIM field\n";
+    Trace("gc") << ">> setting NVRECLAIM field\n";
   }
 
   ~NVReclaim() {
-    Debug("gc") << "<< clearing NVRECLAIM field\n";
+    Trace("gc") << "<< clearing NVRECLAIM field\n";
     d_deletionField = NULL;
   }
 };
@@ -268,7 +269,7 @@ NodeManager::~NodeManager()
       NodeValue* greatest_maxed_out = order.back();
       order.pop_back();
       Assert(greatest_maxed_out->HasMaximizedReferenceCount());
-      Debug("gc") << "Force zombify " << greatest_maxed_out << std::endl;
+      Trace("gc") << "Force zombify " << greatest_maxed_out << std::endl;
       greatest_maxed_out->d_rc = 0;
       markForDeletion(greatest_maxed_out);
     }
@@ -283,18 +284,18 @@ NodeManager::~NodeManager()
     poolRemove(&expr::NodeValue::null());
   }
 
-  if (Debug.isOn("gc:leaks"))
+  if (TraceIsOn("gc:leaks"))
   {
-    Debug("gc:leaks") << "still in pool:" << endl;
+    Trace("gc:leaks") << "still in pool:" << endl;
     for (NodeValuePool::const_iterator i = d_nodeValuePool.begin(),
                                        iend = d_nodeValuePool.end();
          i != iend;
          ++i)
     {
-      Debug("gc:leaks") << "  " << *i << " id=" << (*i)->d_id
+      Trace("gc:leaks") << "  " << *i << " id=" << (*i)->d_id
                         << " rc=" << (*i)->d_rc << " " << **i << endl;
     }
-    Debug("gc:leaks") << ":end:" << endl;
+    Trace("gc:leaks") << ":end:" << endl;
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
@@ -315,7 +316,7 @@ void NodeManager::reclaimZombies()
   // FIXME multithreading
   Assert(!d_attrManager->inGarbageCollection());
 
-  Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
+  Trace("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
   Assert(!d_inReclaimZombies)
@@ -366,12 +367,12 @@ void NodeManager::reclaimZombies()
     // collect ONLY IF still zero
     if (nv->d_rc == 0)
     {
-      if (Debug.isOn("gc"))
+      if (TraceIsOn("gc"))
       {
-        Debug("gc") << "deleting node value " << nv << " [" << nv->d_id
+        Trace("gc") << "deleting node value " << nv << " [" << nv->d_id
                     << "]: ";
-        nv->printAst(Debug("gc"));
-        Debug("gc") << endl;
+        nv->printAst(Trace("gc"));
+        Trace("gc") << endl;
       }
 
       // remove from the pool
@@ -406,7 +407,7 @@ void NodeManager::reclaimZombies()
       {
         // Destroy (call the destructor for) the C++ type representing
         // the constant in this NodeValue.  This is needed for
-        // e.g. cvc5::Rational, since it has a gmp internal
+        // e.g. cvc5::internal::Rational, since it has a gmp internal
         // representation that mallocs memory and should be cleaned
         // up.  (This won't delete a pointer value if used as a
         // constant, but then, you should probably use a smart-pointer
@@ -440,7 +441,7 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
     {
       NodeValue* current = stack.back().second;
       const bool visited_children = stack.back().first;
-      Debug("gc") << "Topological sort " << current << " " << visited_children
+      Trace("gc") << "Topological sort " << current << " " << visited_children
                   << std::endl;
       if (visited_children)
       {
@@ -476,7 +477,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
 
-  Debug("getType") << this << " getting type for " << &n << " " << n
+  Trace("getType") << this << " getting type for " << &n << " " << n
                    << ", check=" << check << ", needsCheck = " << needsCheck
                    << ", hasType = " << hasType << endl;
 
@@ -535,7 +536,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
   /* The check should have happened, if we asked for it. */
   Assert(!check || getAttribute(n, TypeCheckedAttr()));
 
-  Debug("getType") << "type of " << &n << " " << n << " is " << typeNode
+  Trace("getType") << "type of " << &n << " " << n << " is " << typeNode
                    << endl;
   return typeNode;
 }
@@ -544,7 +545,7 @@ TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
-  Debug("bags") << "making bags type " << elementType << std::endl;
+  Trace("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
@@ -570,10 +571,15 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     const std::vector<DType>& datatypes, uint32_t flags)
 {
   std::set<TypeNode> unresolvedTypes;
-  return mkMutualDatatypeTypes(datatypes, unresolvedTypes, flags);
+  // scan the list of datatypes to find unresolved datatypes
+  for (const DType& dt : datatypes)
+  {
+    dt.collectUnresolvedDatatypeTypes(unresolvedTypes);
+  }
+  return mkMutualDatatypeTypesInternal(datatypes, unresolvedTypes, flags);
 }
 
-std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
+std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     const std::vector<DType>& datatypes,
     const std::set<TypeNode>& unresolvedTypes,
     uint32_t flags)
@@ -644,14 +650,14 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
     // first step, above).
-    if (ut.isSort())
+    if (ut.isUninterpretedSort())
     {
       placeholders.push_back(ut);
       replacements.push_back((*resolver).second);
     }
     else
     {
-      Assert(ut.isSortConstructor());
+      Assert(ut.isUninterpretedSortConstructor());
       paramTypes.push_back(ut);
       paramReplacements.push_back((*resolver).second);
     }
@@ -674,10 +680,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
+      Assert(c.isResolved() && testerType.isDatatypeTester()
+             && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
-      Assert(ctorType.isConstructor()
+      Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
              && ctorType.getRangeType() == ut)
           << "malformed constructor in datatype post-resolution";
@@ -686,12 +693,12 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
       {
         const DTypeSelector& a = c[j];
         TypeNode selectorType = a.getType();
-        Assert(a.isResolved() && selectorType.isSelector()
+        Assert(a.isResolved() && selectorType.isDatatypeSelector()
                && selectorType[0] == ut)
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
-        // cvc5::DType class, but this actually needs to be checked.
+        // cvc5::internal::DType class, but this actually needs to be checked.
         if (!selectorType.getRangeType().isFirstClass())
         {
           throw Exception(
@@ -763,7 +770,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
-      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
+      Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
   }
@@ -799,7 +806,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
-      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
+      Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
   }
@@ -843,16 +850,16 @@ TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
 {
   std::vector<TypeNode> ts;
-  Debug("tuprec-debug") << "Make tuple type : ";
+  Trace("tuprec-debug") << "Make tuple type : ";
   for (unsigned i = 0; i < types.size(); ++i)
   {
     CheckArgument(!types[i].isFunctionLike(),
                   types,
                   "cannot put function-like types in tuples");
     ts.push_back(types[i]);
-    Debug("tuprec-debug") << types[i] << " ";
+    Trace("tuprec-debug") << types[i] << " ";
   }
-  Debug("tuprec-debug") << std::endl;
+  Trace("tuprec-debug") << std::endl;
   return d_tt_cache.getTupleType(this, ts);
 }
 
@@ -878,7 +885,7 @@ void NodeManager::reclaimZombiesUntil(uint32_t k)
 
 size_t NodeManager::poolSize() const { return d_nodeValuePool.size(); }
 
-TypeNode NodeManager::mkSort(uint32_t flags)
+TypeNode NodeManager::mkSort()
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
@@ -886,7 +893,7 @@ TypeNode NodeManager::mkSort(uint32_t flags)
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags)
+TypeNode NodeManager::mkSort(const std::string& name)
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
@@ -897,8 +904,7 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags)
 }
 
 TypeNode NodeManager::mkSort(TypeNode constructor,
-                             const std::vector<TypeNode>& children,
-                             uint32_t flags)
+                             const std::vector<TypeNode>& children)
 {
   Assert(constructor.getKind() == kind::SORT_TYPE
          && constructor.getNumChildren() == 0)
@@ -920,9 +926,7 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return type;
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name,
-                                        size_t arity,
-                                        uint32_t flags)
+TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
 {
   Assert(arity > 0);
   NodeBuilder nb(this, kind::SORT_TYPE);
@@ -932,6 +936,15 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
   return type;
+}
+
+TypeNode NodeManager::mkUnresolvedDatatypeSort(const std::string& name,
+                                               size_t arity)
+{
+  TypeNode usort = arity > 0 ? mkSortConstructor(name, arity) : mkSort(name);
+  // mark that it is an unresolved sort
+  setAttribute(usort, expr::UnresolvedDatatypeAttr(), true);
+  return usort;
 }
 
 Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
@@ -1084,6 +1097,15 @@ Node NodeManager::mkInstConstant(const TypeNode& type)
   return n;
 }
 
+Node NodeManager::mkRawSymbol(const std::string& name, const TypeNode& type)
+{
+  Node n = NodeBuilder(this, kind::RAW_SYMBOL);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  setAttribute(n, expr::VarNameAttr(), name);
+  return n;
+}
+
 Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
 {
   std::map<TypeNode, Node>::iterator it = d_unique_vars[k].find(type);
@@ -1100,6 +1122,17 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   {
     return it->second;
   }
+}
+
+Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(SeqUnitOp(t));
+  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
+  return sunit;
 }
 
 Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
@@ -1201,11 +1234,11 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   new (&nv->d_children) T(val);
 
   poolInsert(nv);
-  if (Debug.isOn("gc"))
+  if (TraceIsOn("gc"))
   {
-    Debug("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
-    nv->printAst(Debug("gc"));
-    Debug("gc") << std::endl;
+    Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
+    nv->printAst(Trace("gc"));
+    Trace("gc") << std::endl;
   }
 
   return NodeClass(nv);
@@ -1246,17 +1279,21 @@ Kind NodeManager::getKindForFunction(TNode fun)
   {
     return kind::APPLY_UF;
   }
-  else if (tn.isConstructor())
+  else if (tn.isDatatypeConstructor())
   {
     return kind::APPLY_CONSTRUCTOR;
   }
-  else if (tn.isSelector())
+  else if (tn.isDatatypeSelector())
   {
     return kind::APPLY_SELECTOR;
   }
-  else if (tn.isTester())
+  else if (tn.isDatatypeTester())
   {
     return kind::APPLY_TESTER;
+  }
+  else if (tn.isDatatypeUpdater())
+  {
+    return kind::APPLY_UPDATER;
   }
   return kind::UNDEFINED_KIND;
 }
@@ -1307,8 +1344,22 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
   {
     return mkConstReal(ran.toRational());
   }
-  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER,
-                mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
+  // Creating this node may refine the ran to the point where isRational returns
+  // true
+  Node inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran);
+
+  // Keep doing this until it either is rational or we have a fixed point.
+  while (true)
+  {
+    const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
+    if (cur.isRational())
+    {
+      return mkConstReal(cur.toRational());
+    }
+    if (cur == ran) break;
+    inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,14 +1,14 @@
-##############################################################################
+###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Andrew Reynolds, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
-# ############################################################################
+# #############################################################################
 #
 # A simple start-up/tear-down test for cvc5.
 #
@@ -20,5 +20,5 @@
 import cvc5
 
 slv = cvc5.Solver()
-r = slv.checkEntailed(slv.mkBoolean(True))
-r.isEntailed()
+r = slv.checkSatAssuming(slv.mkBoolean(False))
+r.isUnsat()

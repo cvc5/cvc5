@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
@@ -30,9 +31,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 namespace utils {
@@ -348,18 +349,18 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
 
 bool isStringKind(Kind k)
 {
-  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
-         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TO_LOWER
+         || k == STRING_TO_UPPER || k == STRING_LEQ || k == STRING_LT
          || k == STRING_FROM_CODE || k == STRING_TO_CODE;
 }
 
 bool isRegExpKind(Kind k)
 {
-  return k == REGEXP_NONE || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
-         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
-         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
-         || k == REGEXP_COMPLEMENT;
+  return k == REGEXP_NONE || k == REGEXP_ALL || k == REGEXP_ALLCHAR
+         || k == STRING_TO_REGEXP || k == REGEXP_CONCAT || k == REGEXP_UNION
+         || k == REGEXP_INTER || k == REGEXP_STAR || k == REGEXP_PLUS
+         || k == REGEXP_OPT || k == REGEXP_RANGE || k == REGEXP_LOOP
+         || k == REGEXP_RV || k == REGEXP_COMPLEMENT;
 }
 
 TypeNode getOwnerStringType(Node n)
@@ -419,7 +420,7 @@ struct StringValueForLengthVarAttributeId
 typedef expr::Attribute<StringValueForLengthVarAttributeId, Node>
     StringValueForLengthVarAttribute;
 
-Node mkAbstractStringValueForLength(Node n, Node len)
+Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
@@ -428,10 +429,13 @@ Node mkAbstractStringValueForLength(Node n, Node len)
       cacheVal, "s", n.getType());
   Node pred = nm->mkNode(STRING_LENGTH, v).eqNode(len);
   // return (witness ((v String)) (= (str.len v) len))
-  return nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, v), pred);
+  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
+  std::stringstream ss;
+  ss << "w" << id;
+  return quantifiers::mkNamedQuant(WITNESS, bvl, pred, ss.str());
 }
 
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

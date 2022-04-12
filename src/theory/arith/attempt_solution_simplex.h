@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Morgan Deters, Mathias Preiner
+ *   Tim King, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +59,7 @@
 #include "theory/arith/simplex.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -71,9 +71,9 @@ public:
                     RaiseConflict conflictChannel,
                     TempVarMalloc tvmalloc);
 
- Result::Sat attempt(const ApproximateSimplex::Solution& sol);
+ Result::Status attempt(const ApproximateSimplex::Solution& sol);
 
- Result::Sat findModel(bool exactResult) override { Unreachable(); }
+ Result::Status findModel(bool exactResult) override { Unreachable(); }
 
 private:
  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
@@ -97,4 +97,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

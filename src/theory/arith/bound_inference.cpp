@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -81,21 +81,20 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
     auto* nm = NodeManager::currentNM();
     switch (relation)
     {
-      case Kind::LEQ:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.floor());
-        break;
+      case Kind::LEQ: bound = nm->mkConstInt(br.floor()); break;
       case Kind::LT:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br - 1).ceiling());
+        bound = nm->mkConstInt((br - 1).ceiling());
         relation = Kind::LEQ;
         break;
       case Kind::GT:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br + 1).floor());
+        bound = nm->mkConstInt((br + 1).floor());
         relation = Kind::GEQ;
         break;
-      case Kind::GEQ:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.ceiling());
+      case Kind::GEQ: bound = nm->mkConstInt(br.ceiling()); break;
+      default:
+        // always ensure integer
+        bound = nm->mkConstInt(br);
         break;
-      default:;
     }
     Trace("bound-inf") << "Strengthened " << n << " to " << lhs << " "
                        << relation << " " << bound << std::endl;
@@ -243,4 +242,4 @@ std::ostream& operator<<(std::ostream& os, const BoundInference& bi)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

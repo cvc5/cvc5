@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@
 #include "expr/node_value.h"
 #include "util/cardinality_class.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 class Cardinality;
@@ -370,7 +370,7 @@ private:
   }
 
   /**
-   * Very basic pretty printer for Node.
+   * Very basic pretty printer for TypeNode.
    *
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -483,16 +483,16 @@ private:
   TypeNode getArrayConstituentType() const;
 
   /** Get the return type (for constructor types) */
-  TypeNode getConstructorRangeType() const;
+  TypeNode getDatatypeConstructorRangeType() const;
 
   /** Get the domain type (for selector types) */
-  TypeNode getSelectorDomainType() const;
+  TypeNode getDatatypeSelectorDomainType() const;
 
   /** Get the return type (for selector types) */
-  TypeNode getSelectorRangeType() const;
+  TypeNode getDatatypeSelectorRangeType() const;
 
   /** Get the domain type (for tester types) */
-  TypeNode getTesterDomainType() const;
+  TypeNode getDatatypeTesterDomainType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -529,10 +529,16 @@ private:
   std::vector<TypeNode> getArgTypes() const;
 
   /**
-   * Get the paramater types of a parameterized datatype.  Fails an
-   * assertion if this type is not a parametric datatype.
+   * Get the types used to instantiate the type parameters of a parametric
+   * type (parametric datatype or uninterpreted sort constructor type,
+   * see TypeNode::instantiate(const std::vector<TypeNode>& const).
+   *
+   * Asserts that this type is an instantiated type.
+   *
+   * @return the types used to instantiate the type parameters of a
+   *         parametric type
    */
-  std::vector<TypeNode> getParamTypes() const;
+  std::vector<TypeNode> getInstantiatedParamTypes() const;
 
   /**
    * Get the range type (i.e., the type of the result) of a function,
@@ -597,54 +603,77 @@ private:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /**
+   * Is this an uninterpreted sort constructed from instantiating an
+   * uninterpreted sort constructor?
+   */
+  bool isInstantiatedUninterpretedSort() const;
+
+  /**
+   * Return true if this is an instantiated parametric datatype or
+   * uninterpreted sort constructor type.
+   */
+  bool isInstantiated() const;
+
   /** Is this a sygus datatype type */
   bool isSygusDatatype() const;
 
   /**
-   * Get instantiated datatype type. The type on which this method is called
-   * should be a parametric datatype whose parameter list is the same size as
-   * argument params. This constructs the instantiated version of this
-   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
-   * method returns (List Int).
+   * Instantiate parametric type (parametric datatype or uninterpreted sort
+   * constructor type).
+   *
+   * The parameter list of this type must be the same size as the list of
+   * argument parameters `params`.
+   *
+   * If this TypeNode is a parametric datatype, this constructs the
+   * instantiated version of this parametric datatype. For example, passing
+   * (par (A) (List A)), { Int } ) to this method returns (List Int).
+   *
+   * If this is an uninterpreted sort constructor type, this constructs the
+   * instantiated version of this sort constructor. For example, for a sort
+   * constructor declared via (declare-sort U 2), passing { Int, Int } will
+   * generate the instantiated sort (U Int Int).
    */
-  TypeNode instantiateParametricDatatype(
-      const std::vector<TypeNode>& params) const;
+  TypeNode instantiate(const std::vector<TypeNode>& params) const;
 
   /** Is this an instantiated datatype parameter */
-  bool isParameterInstantiatedDatatype(unsigned n) const;
+  bool isParameterInstantiatedDatatype(size_t n) const;
 
-  /** Is this a constructor type */
-  bool isConstructor() const;
+  /** Is this a datatype constructor type? */
+  bool isDatatypeConstructor() const;
 
-  /** Is this a selector type */
-  bool isSelector() const;
+  /** Is this a datatype selector type? */
+  bool isDatatypeSelector() const;
 
-  /** Is this a tester type */
-  bool isTester() const;
+  /** Is this a datatype tester type? */
+  bool isDatatypeTester() const;
 
-  /** Is this a datatype updater type */
-  bool isUpdater() const;
+  /** Is this a datatype updater type? */
+  bool isDatatypeUpdater() const;
 
-  /** Get the internal Datatype specification from a datatype type */
+  /** Get the internal Datatype specification from a datatype type. */
   const DType& getDType() const;
 
-  /** Get the exponent size of this floating-point type */
+  /** Get the exponent size of this floating-point type. */
   unsigned getFloatingPointExponentSize() const;
 
-  /** Get the significand size of this floating-point type */
+  /** Get the significand size of this floating-point type. */
   unsigned getFloatingPointSignificandSize() const;
 
-  /** Get the size of this bit-vector type */
+  /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
 
-  /** Is this a sort kind */
-  bool isSort() const;
+  /** Is this a sort kind? */
+  bool isUninterpretedSort() const;
 
-  /** Is this a sort constructor kind */
-  bool isSortConstructor() const;
+  /** Is this a sort constructor kind? */
+  bool isUninterpretedSortConstructor() const;
 
-  /** Get sort constructor arity */
-  uint64_t getSortConstructorArity() const;
+  /** Get sort constructor arity. */
+  uint64_t getUninterpretedSortConstructorArity() const;
+
+  /** Is this an unresolved datatype? */
+  bool isUnresolvedDatatype() const;
 
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
@@ -652,15 +681,12 @@ private:
   std::string getName() const;
 
   /**
-   * Instantiate a sort constructor type. The type on which this method is
-   * called should be a sort constructor type whose parameter list is the
-   * same size as argument params. This constructs the instantiated version of
-   * this sort constructor. For example, this is a sort constructor, e.g.
-   * declared via (declare-sort U 2), then calling this method with
-   * { Int, Int } will generate the instantiated sort (U Int Int).
+   * Get the uninterpreted sort constructor type this instantiated
+   * uninterpreted sort has been constructed from.
+   *
+   * Asserts that this is an instantiated uninterpreted sort.
    */
-  TypeNode instantiateSortConstructor(
-      const std::vector<TypeNode>& params) const;
+  TypeNode getUninterpretedSortConstructor() const;
 
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;
@@ -702,21 +728,21 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
 template <>
-struct hash<cvc5::TypeNode>
+struct hash<cvc5::internal::TypeNode>
 {
-  size_t operator()(const cvc5::TypeNode& tn) const;
+  size_t operator()(const cvc5::internal::TypeNode& tn) const;
 };
 
 }  // namespace std
 
 #include "expr/node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
@@ -894,20 +920,21 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
   return (*this)[1];
 }
 
-inline TypeNode TypeNode::getConstructorRangeType() const {
-  Assert(isConstructor());
+inline TypeNode TypeNode::getDatatypeConstructorRangeType() const
+{
+  Assert(isDatatypeConstructor());
   return (*this)[getNumChildren()-1];
 }
 
-inline TypeNode TypeNode::getSelectorDomainType() const
+inline TypeNode TypeNode::getDatatypeSelectorDomainType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[0];
 }
 
-inline TypeNode TypeNode::getSelectorRangeType() const
+inline TypeNode TypeNode::getDatatypeSelectorRangeType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[1];
 }
 
@@ -965,6 +992,6 @@ inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   return getConst<FloatingPointSize>().significandWidth();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_H */

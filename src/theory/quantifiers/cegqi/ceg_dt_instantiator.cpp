@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -66,9 +66,8 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       // now must solve for selectors applied to pv
       for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
       {
-        Node c = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                            dt[cindex].getSelectorInternal(d_type, j),
-                            pv);
+        Node c = nm->mkNode(
+            APPLY_SELECTOR, dt[cindex].getSelectorInternal(d_type, j), pv);
         ci->pushStackVariable(c);
         children.push_back(c);
       }
@@ -154,7 +153,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)
       {
         Node nn = nm->mkNode(
-            APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), sb);
+            APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), sb);
         Node s = solve_dt(v, a[i], Node::null(), sa[i], nn);
         if (!s.isNull())
         {
@@ -181,4 +180,4 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

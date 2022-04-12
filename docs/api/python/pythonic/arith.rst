@@ -4,20 +4,20 @@ Arithmetic
 
 Basic Arithmetic Term Builders
 -------------------------------
-.. autofunction:: cvc5_z3py_compat.Int
-.. autofunction:: cvc5_z3py_compat.Real
-.. autofunction:: cvc5_z3py_compat.IntVal
-.. autofunction:: cvc5_z3py_compat.RealVal
-.. autofunction:: cvc5_z3py_compat.RatVal
-.. autofunction:: cvc5_z3py_compat.Q
-.. autofunction:: cvc5_z3py_compat.IntSort
-.. autofunction:: cvc5_z3py_compat.RealSort
-.. autofunction:: cvc5_z3py_compat.FreshInt
-.. autofunction:: cvc5_z3py_compat.Ints
-.. autofunction:: cvc5_z3py_compat.IntVector
-.. autofunction:: cvc5_z3py_compat.FreshReal
-.. autofunction:: cvc5_z3py_compat.Reals
-.. autofunction:: cvc5_z3py_compat.RealVector
+.. autofunction:: cvc5.pythonic.Int
+.. autofunction:: cvc5.pythonic.Real
+.. autofunction:: cvc5.pythonic.IntVal
+.. autofunction:: cvc5.pythonic.RealVal
+.. autofunction:: cvc5.pythonic.RatVal
+.. autofunction:: cvc5.pythonic.Q
+.. autofunction:: cvc5.pythonic.IntSort
+.. autofunction:: cvc5.pythonic.RealSort
+.. autofunction:: cvc5.pythonic.FreshInt
+.. autofunction:: cvc5.pythonic.Ints
+.. autofunction:: cvc5.pythonic.IntVector
+.. autofunction:: cvc5.pythonic.FreshReal
+.. autofunction:: cvc5.pythonic.Reals
+.. autofunction:: cvc5.pythonic.RealVector
 
 
 Arithmetic Overloads
@@ -27,96 +27,114 @@ See the following operator overloads for building arithmetic terms. These terms
 can also be built with builder functions listed below.
 
 addition (``+``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__add__`
+  :py:meth:`cvc5.pythonic.ArithRef.__add__`
 
 subtraction (``-``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__sub__`
+  :py:meth:`cvc5.pythonic.ArithRef.__sub__`
 
 multiplication (``*``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__mul__`
+  :py:meth:`cvc5.pythonic.ArithRef.__mul__`
 
 division (``/``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__div__`
+  :py:meth:`cvc5.pythonic.ArithRef.__div__`
 
 power (``**``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__pow__`
+  :py:meth:`cvc5.pythonic.ArithRef.__pow__`
 
 negation (``-``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__neg__`
+  :py:meth:`cvc5.pythonic.ArithRef.__neg__`
 
 greater than (``>``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__gt__`
+  :py:meth:`cvc5.pythonic.ArithRef.__gt__`
 
 less than (``<``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__lt__`
+  :py:meth:`cvc5.pythonic.ArithRef.__lt__`
 
 greater than or equal to (``>=``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__ge__`
+  :py:meth:`cvc5.pythonic.ArithRef.__ge__`
 
 less than or equal to (``<=``)
-  :py:meth:`cvc5_z3py_compat.ArithRef.__le__`
+  :py:meth:`cvc5.pythonic.ArithRef.__le__`
 
 equal (``==``)
-  :py:meth:`cvc5_z3py_compat.ExprRef.__eq__`
+  :py:meth:`cvc5.pythonic.ExprRef.__eq__`
 
 not equal (``!=``)
-  :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
+  :py:meth:`cvc5.pythonic.ExprRef.__ne__`
 
-.. autofunction:: cvc5_z3py_compat.Add
-.. autofunction:: cvc5_z3py_compat.Mult
-.. autofunction:: cvc5_z3py_compat.Sub
-.. autofunction:: cvc5_z3py_compat.UMinus
-.. autofunction:: cvc5_z3py_compat.Div
-.. autofunction:: cvc5_z3py_compat.Pow
-.. autofunction:: cvc5_z3py_compat.IntsModulus
-.. autofunction:: cvc5_z3py_compat.Leq
-.. autofunction:: cvc5_z3py_compat.Geq
-.. autofunction:: cvc5_z3py_compat.Lt
-.. autofunction:: cvc5_z3py_compat.Gt
+.. autofunction:: cvc5.pythonic.Add
+.. autofunction:: cvc5.pythonic.Mult
+.. autofunction:: cvc5.pythonic.Sub
+.. autofunction:: cvc5.pythonic.UMinus
+.. autofunction:: cvc5.pythonic.Div
+.. autofunction:: cvc5.pythonic.Pow
+.. autofunction:: cvc5.pythonic.IntsModulus
+.. autofunction:: cvc5.pythonic.Leq
+.. autofunction:: cvc5.pythonic.Geq
+.. autofunction:: cvc5.pythonic.Lt
+.. autofunction:: cvc5.pythonic.Gt
 
 Other Arithmetic Operators
 --------------------------
 
-.. autofunction:: cvc5_z3py_compat.ToReal
-.. autofunction:: cvc5_z3py_compat.ToInt
-.. autofunction:: cvc5_z3py_compat.IsInt
-.. autofunction:: cvc5_z3py_compat.Sqrt
-.. autofunction:: cvc5_z3py_compat.Cbrt
+.. autofunction:: cvc5.pythonic.ToReal
+.. autofunction:: cvc5.pythonic.ToInt
+.. autofunction:: cvc5.pythonic.IsInt
+.. autofunction:: cvc5.pythonic.Sqrt
+.. autofunction:: cvc5.pythonic.Cbrt
+
+Transcendentals
+--------------------------
+.. autofunction:: cvc5.pythonic.Pi
+.. autofunction:: cvc5.pythonic.Exponential
+.. autofunction:: cvc5.pythonic.Sine
+.. autofunction:: cvc5.pythonic.Cosine
+.. autofunction:: cvc5.pythonic.Tangent
+.. autofunction:: cvc5.pythonic.Arcsine
+.. autofunction:: cvc5.pythonic.Arccosine
+.. autofunction:: cvc5.pythonic.Arctangent
+.. autofunction:: cvc5.pythonic.Secant
+.. autofunction:: cvc5.pythonic.Cosecant
+.. autofunction:: cvc5.pythonic.Cotangent
+.. autofunction:: cvc5.pythonic.Arcsecant
+.. autofunction:: cvc5.pythonic.Arccosecant
+.. autofunction:: cvc5.pythonic.Arccotangent
+
 
 Testers
 -------------------
-.. autofunction:: cvc5_z3py_compat.is_arith
-.. autofunction:: cvc5_z3py_compat.is_int
-.. autofunction:: cvc5_z3py_compat.is_real
-.. autofunction:: cvc5_z3py_compat.is_int_value
-.. autofunction:: cvc5_z3py_compat.is_rational_value
-.. autofunction:: cvc5_z3py_compat.is_arith_sort
-.. autofunction:: cvc5_z3py_compat.is_add
-.. autofunction:: cvc5_z3py_compat.is_mul
-.. autofunction:: cvc5_z3py_compat.is_sub
-.. autofunction:: cvc5_z3py_compat.is_div
-.. autofunction:: cvc5_z3py_compat.is_idiv
-.. autofunction:: cvc5_z3py_compat.is_mod
-.. autofunction:: cvc5_z3py_compat.is_le
-.. autofunction:: cvc5_z3py_compat.is_lt
-.. autofunction:: cvc5_z3py_compat.is_ge
-.. autofunction:: cvc5_z3py_compat.is_gt
-.. autofunction:: cvc5_z3py_compat.is_is_int
-.. autofunction:: cvc5_z3py_compat.is_to_real
-.. autofunction:: cvc5_z3py_compat.is_to_int
+.. autofunction:: cvc5.pythonic.is_arith
+.. autofunction:: cvc5.pythonic.is_int
+.. autofunction:: cvc5.pythonic.is_real
+.. autofunction:: cvc5.pythonic.is_int_value
+.. autofunction:: cvc5.pythonic.is_rational_value
+.. autofunction:: cvc5.pythonic.is_arith_sort
+.. autofunction:: cvc5.pythonic.is_add
+.. autofunction:: cvc5.pythonic.is_mul
+.. autofunction:: cvc5.pythonic.is_sub
+.. autofunction:: cvc5.pythonic.is_div
+.. autofunction:: cvc5.pythonic.is_idiv
+.. autofunction:: cvc5.pythonic.is_mod
+.. autofunction:: cvc5.pythonic.is_le
+.. autofunction:: cvc5.pythonic.is_lt
+.. autofunction:: cvc5.pythonic.is_ge
+.. autofunction:: cvc5.pythonic.is_gt
+.. autofunction:: cvc5.pythonic.is_is_int
+.. autofunction:: cvc5.pythonic.is_to_real
+.. autofunction:: cvc5.pythonic.is_to_int
 
 Classes (with overloads)
 -------------------------
 
-.. autoclass:: cvc5_z3py_compat.ArithSortRef
+.. autoclass:: cvc5.pythonic.ArithSortRef
    :members:
    :special-members:
-.. autoclass:: cvc5_z3py_compat.ArithRef
+.. autoclass:: cvc5.pythonic.ArithRef
    :members:
    :special-members:
-.. autoclass:: cvc5_z3py_compat.IntNumRef
+.. autoclass:: cvc5.pythonic.IntNumRef
    :members:
    :special-members:
-.. autoclass:: cvc5_z3py_compat.RatNumRef
+.. autoclass:: cvc5.pythonic.RatNumRef
    :members:
    :special-members:

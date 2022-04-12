@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 signed int Integer::s_fastSignedIntMin = -(1 << 29);
 signed int Integer::s_fastSignedIntMax = (1 << 29) - 1;
@@ -609,4 +609,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n)
 {
   return os << n.toString();
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

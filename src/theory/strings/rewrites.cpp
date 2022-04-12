@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -73,6 +73,7 @@ const char* toString(Rewrite r)
     case Rewrite::INDEXOF_RE_INVALID_INDEX: return "INDEXOF_RE_INVALID_INDEX";
     case Rewrite::INDEXOF_RE_MAX_INDEX: return "INDEXOF_RE_MAX_INDEX";
     case Rewrite::ITOS_EVAL: return "ITOS_EVAL";
+    case Rewrite::RE_ALL_ELIM: return "RE_ALL_ELIM";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
@@ -99,6 +100,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_STAR_EMPTY_STRING: return "RE_STAR_EMPTY_STRING";
     case Rewrite::RE_STAR_NESTED_STAR: return "RE_STAR_NESTED_STAR";
     case Rewrite::RE_STAR_UNION: return "RE_STAR_UNION";
+    case Rewrite::RE_STAR_UNION_CHAR: return "RE_STAR_UNION_CHAR";
     case Rewrite::REPL_CHAR_NCONTRIB_FIND: return "REPL_CHAR_NCONTRIB_FIND";
     case Rewrite::REPL_DUAL_REPL_ITE: return "REPL_DUAL_REPL_ITE";
     case Rewrite::REPL_REPL_SHORT_CIRCUIT: return "REPL_REPL_SHORT_CIRCUIT";
@@ -240,4 +242,4 @@ std::ostream& operator<<(std::ostream& out, Rewrite r)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters
+ *   Aina Niemetz, Morgan Deters, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "test_node.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -307,7 +307,7 @@ TEST_F(TestNodeBlackTypeCardinality, ternary_functions)
 
 TEST_F(TestNodeBlackTypeCardinality, undefined_sorts)
 {
-  TypeNode foo = d_nodeManager->mkSort("foo", NodeManager::SORT_FLAG_NONE);
+  TypeNode foo = d_nodeManager->mkSort("foo");
   // We've currently assigned them a specific Beth number, which
   // isn't really correct, but...
   ASSERT_FALSE(foo.getCardinality().isFinite());
@@ -331,4 +331,4 @@ TEST_F(TestNodeBlackTypeCardinality, bitvectors)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

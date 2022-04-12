@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,10 +27,10 @@
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -273,7 +273,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   }
   Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
                                << std::endl;
-  if (Trace.isOn("q-ext-rewrite-nf"))
+  if (TraceIsOn("q-ext-rewrite-nf"))
   {
     if (n == ret)
     {
@@ -1334,7 +1334,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   // check subsumptions
   // sort by #atoms
   std::sort(atom_count.begin(), atom_count.end(), sortPairSecond);
-  if (Trace.isOn("ext-rew-eqchain"))
+  if (TraceIsOn("ext-rew-eqchain"))
   {
     for (const std::pair<Node, unsigned>& ac : atom_count)
     {
@@ -1755,7 +1755,7 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
-  if (Trace.isOn("q-ext-rewrite"))
+  if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())
     {
@@ -1768,4 +1768,4 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Morgan Deters
+ *   Tim King, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -73,16 +73,15 @@ SumOfInfeasibilitiesSPD::Statistics::Statistics(const std::string& name,
 {
 }
 
-Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
+Result::Status SumOfInfeasibilitiesSPD::findModel(bool exactResult)
+{
   Assert(d_conflictVariables.empty());
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  static thread_local unsigned int instance = 0;
-  instance = instance + 1;
 
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
-    Debug("soi::findModel") << "soiFindModel("<< instance <<") trivial" << endl;
+    Trace("soi::findModel") << "soiFindModel() trivial" << endl;
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
@@ -95,26 +94,27 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    Debug("soi::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
+    Trace("soi::findModel") << "fcFindModel() early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("soi::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
+    Trace("soi::findModel") << "fcFindModel() fixed itself" << endl;
     Assert(!d_errorSet.moreSignals());
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
 
-  Debug("soi::findModel") << "fcFindModel(" << instance <<") start non-trivial" << endl;
+  Trace("soi::findModel") << "fcFindModel() start non-trivial" << endl;
 
   exactResult |= d_varOrderPivotLimit < 0;
 
   d_prevWitnessImprovement = HeuristicDegenerate;
   d_witnessImprovementInARow = 0;
 
-  Result::Sat result = Result::SAT_UNKNOWN;
+  Result::Status result = Result::UNKNOWN;
 
-  if(result == Result::SAT_UNKNOWN){
+  if (result == Result::UNKNOWN)
+  {
     if(exactResult){
       d_pivotBudget = -1;
     }else{
@@ -133,14 +133,15 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::SAT_UNKNOWN && d_errorSet.errorEmpty()){
+  if (result == Result::UNKNOWN && d_errorSet.errorEmpty())
+  {
     result = Result::SAT;
   }
 
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("soi::findModel") << "end findModel() " << instance << " " << result <<  endl;
+  Trace("soi::findModel") << "end findModel() " << result << endl;
 
   Assert(d_conflictVariables.empty());
   return result;
@@ -168,7 +169,7 @@ void SumOfInfeasibilitiesSPD::logPivot(WitnessImprovement w){
     d_leavingCountSinceImprovement.purge();
   }
 
-  Debug("logPivot") << "logPivot " << d_prevWitnessImprovement << " "  << d_witnessImprovementInARow << endl;
+  Trace("logPivot") << "logPivot " << d_prevWitnessImprovement << " "  << d_witnessImprovementInARow << endl;
 }
 
 uint32_t SumOfInfeasibilitiesSPD::degeneratePivotsInARow() const {
@@ -200,13 +201,10 @@ void SumOfInfeasibilitiesSPD::adjustFocusAndError(const UpdateInfo& up, const AV
 UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf, LinearEqualityModule::VarPreferenceFunction bpf) {
   UpdateInfo selected;
 
-  static int instance = 0 ;
-  ++instance;
-
-  Debug("soi::selectPrimalUpdate")
-    << "selectPrimalUpdate " << instance << endl
-    << d_soiVar << " " << d_tableau.basicRowLength(d_soiVar)
-    << " " << d_linEq.debugBasicAtBoundCount(d_soiVar) << endl;
+  Trace("soi::selectPrimalUpdate")
+      << "selectPrimalUpdate " << endl
+      << d_soiVar << " " << d_tableau.basicRowLength(d_soiVar) << " "
+      << d_linEq.debugBasicAtBoundCount(d_soiVar) << endl;
 
   typedef std::vector<Cand> CandVector;
   CandVector candidates;
@@ -221,7 +219,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
       (sgn > 0 && d_variables.cmpAssignmentUpperBound(curr) < 0) ||
       (sgn < 0 && d_variables.cmpAssignmentLowerBound(curr) > 0);
 
-    Debug("soi::selectPrimalUpdate")
+    Trace("soi::selectPrimalUpdate")
       << "storing " << d_soiVar
       << " " << curr
       << " " << candidate
@@ -256,7 +254,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
     LinearEqualityModule::UpdatePreferenceFunction leavingPrefFunc = selectLeavingFunction(curr);
     UpdateInfo currProposal = d_linEq.speculativeUpdate(curr, coeff, leavingPrefFunc);
 
-    Debug("soi::selectPrimalUpdate")
+    Trace("soi::selectPrimalUpdate")
       << "selected " << selected << endl
       << "currProp " << currProposal << endl
       << "coeff " << coeff << endl;
@@ -270,7 +268,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
     if(selected.uninitialized() || (d_linEq.*upf)(selected, currProposal)){
       selected = currProposal;
       WitnessImprovement w = selected.getWitness(false);
-      Debug("soi::selectPrimalUpdate") << "selected " << w << endl;
+      Trace("soi::selectPrimalUpdate") << "selected " << w << endl;
       //setPenalty(curr, w);
       if(improvement(w)){
         bool exitEarly;
@@ -286,7 +284,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
         if(exitEarly){ break; }
       }
     }else{
-      Debug("soi::selectPrimalUpdate") << "dropped "<< endl;
+      Trace("soi::selectPrimalUpdate") << "dropped "<< endl;
     }
 
   }
@@ -311,20 +309,20 @@ bool debugCheckWitness(const UpdateInfo& inf, WitnessImprovement w, bool useBlan
 
 
 void SumOfInfeasibilitiesSPD::debugPrintSignal(ArithVar updated) const{
-  Debug("updateAndSignal") << "updated basic " << updated;
-  Debug("updateAndSignal") << " length " << d_tableau.basicRowLength(updated);
-  Debug("updateAndSignal") << " consistent " << d_variables.assignmentIsConsistent(updated);
+  Trace("updateAndSignal") << "updated basic " << updated;
+  Trace("updateAndSignal") << " length " << d_tableau.basicRowLength(updated);
+  Trace("updateAndSignal") << " consistent " << d_variables.assignmentIsConsistent(updated);
   int dir = !d_variables.assignmentIsConsistent(updated) ?
     d_errorSet.getSgn(updated) : 0;
-  Debug("updateAndSignal") << " dir " << dir;
-  Debug("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
+  Trace("updateAndSignal") << " dir " << dir;
+  Trace("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
 }
 
 
 void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, WitnessImprovement w){
   ArithVar nonbasic = selected.nonbasic();
 
-  Debug("updateAndSignal") << "updateAndSignal " << selected << endl;
+  Trace("updateAndSignal") << "updateAndSignal " << selected << endl;
 
   if(selected.describesPivot()){
     ConstraintP limiting = selected.limiting();
@@ -351,7 +349,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     if(d_tableau.isBasic(updated)){
       Assert(!d_variables.assignmentIsConsistent(updated)
              == d_errorSet.inError(updated));
-      if(Debug.isOn("updateAndSignal")){debugPrintSignal(updated);}
+      if(TraceIsOn("updateAndSignal")){debugPrintSignal(updated);}
       if(!d_variables.assignmentIsConsistent(updated)){
         if(checkBasicForConflict(updated)){
           reportConflict(updated);
@@ -359,7 +357,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
         }
       }
     }else{
-      Debug("updateAndSignal") << "updated nonbasic " << updated << endl;
+      Trace("updateAndSignal") << "updated nonbasic " << updated << endl;
     }
     int currFocusSgn = d_errorSet.focusSgn(updated);
     if(currFocusSgn != prevFocusSgn){
@@ -368,7 +366,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     }
   }
 
-  if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
+  if(TraceIsOn("error")){ d_errorSet.debugPrint(Trace("error")); }
 
   //Assert(debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
 
@@ -575,7 +573,7 @@ unsigned SumOfInfeasibilitiesSPD::trySet(const ArithVarVec& set){
 }
 
 std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
-  Debug("arith::greedyConflictSubsets") << "greedyConflictSubsets start" << endl;
+  Trace("arith::greedyConflictSubsets") << "greedyConflictSubsets start" << endl;
 
   std::vector< ArithVarVec > subsets;
   Assert(d_soiVar == ARITHVAR_SENTINEL);
@@ -598,10 +596,10 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     ArithVar e = *iter;
     addRowSgns(sgns, e, d_errorSet.getSgn(e));
 
-    Debug("arith::greedyConflictSubsets") << "basic error var: " << e << endl;
-    if(Debug.isOn("arith::greedyConflictSubsets")){
+    Trace("arith::greedyConflictSubsets") << "basic error var: " << e << endl;
+    if(TraceIsOn("arith::greedyConflictSubsets")){
       d_tableau.debugPrintIsBasic(e);
-      d_tableau.printBasicRow(e, Debug("arith::greedyConflictSubsets"));
+      d_tableau.printBasicRow(e, Trace("arith::greedyConflictSubsets"));
     }
   }
 
@@ -630,7 +628,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
       tmp[0] = e;
       tmp[1] = b;
       if(trySet(tmp) == 2){
-        Debug("arith::greedyConflictSubsets")  << "found a pair " << b << " " << e << endl;
+        Trace("arith::greedyConflictSubsets")  << "found a pair " << b << " " << e << endl;
         hasParticipated.softAdd(b);
         hasParticipated.softAdd(e);
         Assert(debugIsASet(tmp));
@@ -660,7 +658,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     underConstruction.push_back(v);
     d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, v);
 
-    Debug("arith::greedyConflictSubsets") << "trying " << v << endl;
+    Trace("arith::greedyConflictSubsets") << "trying " << v << endl;
 
     const Tableau::Entry* spoiler = NULL;
     while( (spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != NULL){
@@ -668,16 +666,16 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
       int oppositeSgn = -(spoiler->getCoefficient().sgn());
       Assert(oppositeSgn != 0);
 
-      Debug("arith::greedyConflictSubsets") << "looking for " << nb << " " << oppositeSgn << endl;
+      Trace("arith::greedyConflictSubsets") << "looking for " << nb << " " << oppositeSgn << endl;
 
       ArithVar basicWithOp = find_basic_in_sgns(sgns, nb, oppositeSgn, hasParticipated, false);
 
       if(basicWithOp == ARITHVAR_SENTINEL){
-        Debug("arith::greedyConflictSubsets") << "search did not work  for " << nb << endl;
+        Trace("arith::greedyConflictSubsets") << "search did not work  for " << nb << endl;
         // greedy construction has failed
         break;
       }else{
-        Debug("arith::greedyConflictSubsets") << "found  " << basicWithOp << endl;
+        Trace("arith::greedyConflictSubsets") << "found  " << basicWithOp << endl;
 
         addToInfeasFunc(d_statistics.d_soiConflictMinimization, d_soiVar, basicWithOp);
         hasParticipated.softAdd(basicWithOp);
@@ -685,7 +683,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
       }
     }
     if(spoiler == NULL){
-      Debug("arith::greedyConflictSubsets") << "success" << endl;
+      Trace("arith::greedyConflictSubsets") << "success" << endl;
       //then underConstruction contains a conflicting subset
       Assert(debugIsASet(underConstruction));
       subsets.push_back(underConstruction);
@@ -696,7 +694,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
         ++d_statistics.d_maybeNotMinimal;
       }
     }else{
-      Debug("arith::greedyConflictSubsets") << "failure" << endl;
+      Trace("arith::greedyConflictSubsets") << "failure" << endl;
     }
     tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
     d_soiVar = ARITHVAR_SENTINEL;
@@ -712,7 +710,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
   }
 
   Assert(d_soiVar == ARITHVAR_SENTINEL);
-  Debug("arith::greedyConflictSubsets") << "greedyConflictSubsets done" << endl;
+  Trace("arith::greedyConflictSubsets") << "greedyConflictSubsets done" << endl;
   return subsets;
 }
 
@@ -722,7 +720,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
   Assert(!subset.empty());
   Assert(!d_conflictBuilder->underConstruction());
 
-  Debug("arith::generateSOIConflict") << "SumOfInfeasibilitiesSPD::generateSOIConflict(...) start" << endl;
+  Trace("arith::generateSOIConflict") << "SumOfInfeasibilitiesSPD::generateSOIConflict(...) start" << endl;
 
   bool success = false;
     
@@ -733,7 +731,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
 
     int sgn = d_errorSet.getSgn(e);
     const Rational& violatedCoeff = sgn > 0 ? d_negOne : d_posOne;
-    Debug("arith::generateSOIConflict") << "basic error var: "
+    Trace("arith::generateSOIConflict") << "basic error var: "
                                         << "(" <<  violatedCoeff << ")"
                                         << " " << violated
                                         << endl;
@@ -765,7 +763,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
         d_variables.getUpperBoundConstraint(v) :
         d_variables.getLowerBoundConstraint(v);
       
-      Debug("arith::generateSOIConflict") << "non-basic var: "
+      Trace("arith::generateSOIConflict") << "non-basic var: "
                                           << "(" <<  coeff << ")"
                                           << " " << c
                                           << endl;
@@ -778,7 +776,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
   d_soiVar = ARITHVAR_SENTINEL;
-  Debug("arith::generateSOIConflict") << "SumOfInfeasibilitiesSPD::generateSOIConflict(...) done" << endl;
+  Trace("arith::generateSOIConflict") << "SumOfInfeasibilitiesSPD::generateSOIConflict(...) done" << endl;
   Assert(d_soiVar == ARITHVAR_SENTINEL);
   Assert(!d_conflictBuilder->underConstruction());
   return success;
@@ -786,15 +784,12 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
 
 
 WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
-  static int instance = 0;
-  instance++;
-  
-  Debug("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() start "
-                              << instance << ": |E| = " << d_errorSize << endl;
-  if(Debug.isOn("arith::SOIConflict")){
+  Trace("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() start "
+                              << ": |E| = " << d_errorSize << endl;
+  if(TraceIsOn("arith::SOIConflict")){
     d_errorSet.debugPrint(cout);
   }
-  Debug("arith::SOIConflict") << endl;
+  Trace("arith::SOIConflict") << endl;
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
   d_soiVar = ARITHVAR_SENTINEL;
@@ -828,8 +823,8 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   //reportConflict(conf); do not do this. We need a custom explanations!
   d_conflictVariables.add(d_soiVar);
 
-  Debug("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() done "
-                              << instance << "end" << endl;
+  Trace("arith::SOIConflict")
+      << "SumOfInfeasibilitiesSPD::SOIConflict() end" << endl;
   return ConflictFound;
 }
 
@@ -852,7 +847,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
   UpdateInfo selected = selectUpdate(upf, bpf);
 
   if(selected.uninitialized()){
-    Debug("selectFocusImproving") << "SOI is optimum, but we don't have sat/conflict yet" << endl;
+    Trace("selectFocusImproving") << "SOI is optimum, but we don't have sat/conflict yet" << endl;
     return SOIConflict();
   }else{
     Assert(!selected.uninitialized());
@@ -865,39 +860,8 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
   }
 }
 
-bool SumOfInfeasibilitiesSPD::debugSOI(WitnessImprovement w, ostream& out, int instance) const{
-  return true;
-  // out << "DLV("<<instance<<") ";
-  // switch(w){
-  // case ConflictFound:
-  //   out << "found conflict" << endl;
-  //   return !d_conflictVariables.empty();
-  // case ErrorDropped:
-  //   return false;
-  //   // out << "dropped " << prevErrorSize - d_errorSize << endl;
-  //   // return d_errorSize < prevErrorSize;
-  // case FocusImproved:
-  //   out << "focus improved"<< endl;
-  //   return d_errorSize == prevErrorSize;
-  // case FocusShrank:
-  //   Unreachable();
-  //   return false;
-  // case BlandsDegenerate:
-  //   out << "bland degenerate"<< endl;
-  //   return true;
-  // case HeuristicDegenerate:
-  //   out << "heuristic degenerate"<< endl;
-  //   return true;
-  // case AntiProductive:
-  // case Degenerate:
-  //   return false;
-  // }
-  // return false;
-}
-
-Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
-  static int instance = 0;
-  
+Result::Status SumOfInfeasibilitiesSPD::sumOfInfeasibilities()
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_soiTimer);
 
   Assert(d_sgnDisagreements.empty());
@@ -912,8 +876,7 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
 
 
   while(d_pivotBudget != 0  && d_errorSize > 0 && d_conflictVariables.empty()){
-    ++instance;
-    Debug("dualLike") << "dualLike " << instance << endl;
+    Trace("dualLike") << "dualLike" << endl;
 
     Assert(d_errorSet.noSignals());
     // Possible outcomes:
@@ -921,11 +884,9 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
     // - budget was exhausted
     // - focus went down
     WitnessImprovement w = soiRound();
-    Debug("dualLike") << "selectFocusImproving -> " << w << endl;
+    Trace("dualLike") << "selectFocusImproving -> " << w << endl;
 
     Assert(d_errorSize == d_errorSet.errorSize());
-
-    Assert(debugSOI(w, Debug("dualLike"), instance));
   }
 
 
@@ -942,10 +903,10 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
     return Result::SAT;
   }else{
     Assert(d_pivotBudget == 0);
-    return Result::SAT_UNKNOWN;
+    return Result::UNKNOWN;
   }
 }
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

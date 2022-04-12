@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -123,7 +123,7 @@ void BaseSolver::checkInit()
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
-              Assert(s.getType() == t.getType());
+              Assert(s.getType().isComparableTo(t.getType()));
               d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }
@@ -290,7 +290,7 @@ void BaseSolver::checkInit()
     }
     ++eqcs_i;
   }
-  if (Trace.isOn("strings-base"))
+  if (TraceIsOn("strings-base"))
   {
     for (const std::pair<const Kind, std::pair<uint32_t, uint32_t>>& cc :
          congruentCount)
@@ -351,7 +351,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     }
     if (!isConst || !d_state.areEqual(n, c))
     {
-      if (Trace.isOn("strings-debug"))
+      if (TraceIsOn("strings-debug"))
       {
         Trace("strings-debug")
             << "Constant eqc : " << c << " for " << n << std::endl;
@@ -793,4 +793,4 @@ Node BaseSolver::TermIndex::add(TNode n,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed
+#   Mudathir Mohamed, Gereon Kremer, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -28,6 +28,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
 )
 

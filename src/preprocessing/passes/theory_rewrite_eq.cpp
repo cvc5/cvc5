@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -50,6 +50,7 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
   NodeManager* nm = NodeManager::currentNM();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
   std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node> rewrittenTo;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
@@ -57,24 +58,32 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
   do
   {
     cur = visit.back();
-    visit.pop_back();
     it = visited.find(cur);
 
     if (it == visited.end())
     {
       if (cur.getNumChildren()==0)
       {
+        visit.pop_back();
         visited[cur] = cur;
       }
       else
       {
         visited[cur] = Node::null();
-        visit.push_back(cur);
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second.isNull())
     {
+      it = rewrittenTo.find(cur);
+      if (it != rewrittenTo.end())
+      {
+        // rewritten form is the rewritten form of what it was rewritten to
+        Assert(visited.find(it->second) != visited.end());
+        visited[cur] = visited[it->second];
+        visit.pop_back();
+        continue;
+      }
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
@@ -94,14 +103,34 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
+      bool wasRewritten = false;
       if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
       {
         // For example, (= x y) ---> (and (>= x y) (<= x y))
-        TrustNode trn = te->ppRewriteEquality(ret);
+        std::vector<SkolemLemma> lems;
+        TrustNode trn = te->ppRewrite(ret, lems);
+        Assert(lems.empty());
         // can make proof producing by using proof generator from trn
-        ret = trn.isNull() ? Node(ret) : trn.getNode();
+        if (!trn.isNull() && trn.getNode() != ret)
+        {
+          Trace("pp-rewrite-eq") << "Rewrite equality " << ret << " to "
+                                 << trn.getNode() << std::endl;
+          wasRewritten = true;
+          Node retr = trn.getNode();
+          rewrittenTo[cur] = retr;
+          rewrittenTo[ret] = retr;
+          visit.push_back(retr);
+        }
       }
-      visited[cur] = ret;
+      if (!wasRewritten)
+      {
+        visit.pop_back();
+        visited[cur] = ret;
+      }
+    }
+    else
+    {
+      visit.pop_back();
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
@@ -117,4 +146,4 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -65,9 +65,8 @@ std::set<Node> CardSolver::getChildren(Node bag)
 
 void CardSolver::checkCardinalityGraph()
 {
-  generateRelatedCardinalityTerms();
-
-  for (const auto& pair : d_state.getCardinalityTerms())
+  const std::map<Node, Node>& cardinalityTerms = d_state.getCardinalityTerms();
+  for (const auto& pair : cardinalityTerms)
   {
     Trace("bags-card") << "CardSolver::checkCardinalityGraph cardTerm: " << pair
                        << std::endl;
@@ -98,108 +97,18 @@ void CardSolver::checkCardinalityGraph()
         case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
         default: break;
       }
+      if (d_im.hasSentLemma())
+      {
+        // exit with each new pending lemma
+        return;
+      }
       it++;
     }
     // if the bag is a leaf in the graph, then we reduce its cardinality
     checkLeafBag(pair, bag);
-  }
-
-  for (const auto& pair : d_state.getCardinalityTerms())
-  {
+    // cardinality term is non-negative
     InferInfo i = d_ig.nonNegativeCardinality(pair.second);
     d_im.lemmaTheoryInference(&i);
-  }
-}
-
-void CardSolver::generateRelatedCardinalityTerms()
-{
-  const set<Node>& bags = d_state.getBags();
-  for (const auto& pair : d_state.getCardinalityTerms())
-  {
-    Assert(pair.first.getKind() == BAG_CARD);
-    // get the representative of the bag in the card term
-    Node rep = d_state.getRepresentative(pair.first[0]);
-    // enumerate all bag terms that are related to the current bag
-    for (const auto& bag : bags)
-    {
-      if (rep == bag)
-      {
-        continue;
-      }
-
-      eq::EqClassIterator it = eq::EqClassIterator(
-          d_state.getRepresentative(bag), d_state.getEqualityEngine());
-      while (!it.isFinished())
-      {
-        Node n = (*it);
-        Kind k = n.getKind();
-        switch (k)
-        {
-          case BAG_EMPTY: break;
-          case BAG_MAKE: break;
-          case BAG_UNION_DISJOINT:
-          {
-            Node A = d_state.getRepresentative(n[0]);
-            Node B = d_state.getRepresentative(n[1]);
-            if (A == rep || B == rep)
-            {
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
-            }
-            break;
-          }
-          case BAG_UNION_MAX:
-          {
-            Node A = d_state.getRepresentative(n[0]);
-            Node B = d_state.getRepresentative(n[1]);
-            if (A == rep || B == rep)
-            {
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
-              // break the intersection symmetry using the node id
-              Node inter = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
-                                  : d_nm->mkNode(BAG_INTER_MIN, B, A);
-              Node subtractAB =
-                  d_nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, A, B);
-              Node subtractBA =
-                  d_nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, B, A);
-              d_state.registerBag(inter);
-              d_state.registerBag(subtractAB);
-              d_state.registerBag(subtractBA);
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
-              d_state.registerCardinalityTerm(
-                  d_nm->mkNode(BAG_CARD, subtractAB));
-              d_state.registerCardinalityTerm(
-                  d_nm->mkNode(BAG_CARD, subtractBA));
-            }
-            break;
-          }
-          case BAG_INTER_MIN: break;
-          case BAG_DIFFERENCE_SUBTRACT:
-          {
-            Node A = d_state.getRepresentative(n[0]);
-            Node B = d_state.getRepresentative(n[1]);
-            if (A == rep || B == rep)
-            {
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
-              // break the intersection symmetry using the node id
-              Node inter = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
-                                  : d_nm->mkNode(BAG_INTER_MIN, B, A);
-              d_state.registerBag(inter);
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
-            }
-            break;
-          }
-          case BAG_DIFFERENCE_REMOVE: break;
-          default: break;
-        }
-        it++;
-      }
-    }
   }
 }
 
@@ -238,9 +147,6 @@ void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
   // break the intersection symmetry using the node id
   Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
                         : d_nm->mkNode(BAG_INTER_MIN, B, A);
-  d_state.registerBag(subtractAB);
-  d_state.registerBag(subtractBA);
-  d_state.registerBag(interAB);
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
@@ -323,6 +229,8 @@ void CardSolver::addChildren(const Node& premise,
       // child.
       const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
       d_cardGraph[parent].insert(children);
+      Trace("bags-card") << "CardSolver::addChildren parent: " << parent
+                         << std::endl;
       Trace("bags-card") << "CardSolver::addChildren set1: " << oldChildren
                          << std::endl;
       Trace("bags-card") << "CardSolver::addChildren set2: " << children
@@ -352,9 +260,6 @@ void CardSolver::checkIntersectionMin(const std::pair<Node, Node>& pair,
   // break the intersection symmetry using the node id
   Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
                         : d_nm->mkNode(BAG_INTER_MIN, B, A);
-  d_state.registerBag(subtractAB);
-  d_state.registerBag(subtractBA);
-  d_state.registerBag(interAB);
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
@@ -372,7 +277,6 @@ void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
   // break the intersection symmetry using the node id
   Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
                         : d_nm->mkNode(BAG_INTER_MIN, B, A);
-  d_state.registerBag(interAB);
   Node interABRep = d_state.getRepresentative(interAB);
   addChildren(bag.eqNode(n), A, {bag, interABRep});
 }
@@ -432,4 +336,4 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

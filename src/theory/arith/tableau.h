@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Morgan Deters
+ *   Tim King, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "util/dense_map.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -65,9 +65,9 @@ public:
 
   void debugPrintIsBasic(ArithVar v) const {
     if(isBasic(v)){
-      Debug("model") << v << " is basic." << std::endl;
+      Trace("model") << v << " is basic." << std::endl;
     }else{
-      Debug("model") << v << " is non-basic." << std::endl;
+      Trace("model") << v << " is non-basic." << std::endl;
     }
   }
 
@@ -160,4 +160,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

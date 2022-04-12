@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +29,9 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -55,6 +55,7 @@ void CardinalityExtension::reset()
   d_eqc_to_card_term.clear();
   d_t_card_enabled.clear();
   d_finite_type_elements.clear();
+  d_finite_type_constants_processed = false;
   d_finite_type_slack_elements.clear();
   d_univProxy.clear();
 }
@@ -386,10 +387,19 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     {
       continue;
     }
+    // should not have universe as children here, since this is either
+    // rewritten, or eliminated via purification from the first argument of
+    // set minus.
+    Assert(n[0].getKind() != SET_UNIVERSE && n[1].getKind() != SET_UNIVERSE);
     Trace("sets-debug") << "Build cardinality parents for " << n << "..."
                         << std::endl;
     std::vector<Node> sib;
     unsigned true_sib = 0;
+    // Note that we use the rewriter to get the form of the siblings here.
+    // This is required to ensure that the lookups in the equality engine are
+    // accurate. However, it may lead to issues if the rewritten form of a
+    // node leads to unexpected relationships in the graph. To avoid this,
+    // we ensure that universe is not a child of a set in the assertions above.
     if (n.getKind() == SET_INTER)
     {
       d_localBase[n] = n;
@@ -762,7 +772,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       }
       if (!only[0].empty() || !only[1].empty())
       {
-        if (Trace.isOn("sets-nf-debug"))
+        if (TraceIsOn("sets-nf-debug"))
         {
           Trace("sets-nf-debug") << "Unique venn regions : " << std::endl;
           for (unsigned e = 0; e < 2; e++)
@@ -812,39 +822,52 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             bool disjoint = false;
             Trace("sets-nf-debug")
                 << "Try split " << o0 << " against " << o1 << std::endl;
-            // split them
-            for (unsigned e = 0; e < 2; e++)
+            if (!d_state.areDisequal(o0, o1))
             {
-              Node r1 = e == 0 ? o0 : o1;
-              Node r2 = e == 0 ? o1 : o0;
-              // check if their intersection exists modulo equality
-              Node r1r2i = d_state.getBinaryOpTerm(SET_INTER, r1, r2);
-              if (!r1r2i.isNull())
-              {
-                Trace("sets-nf-debug")
-                    << "Split term already exists, but not in cardinality "
-                       "graph : "
-                    << r1r2i << ", should be empty." << std::endl;
-                // their intersection is empty (probably?)
-                // e.g. these are two disjoint venn regions, proceed to next
-                // pair
-                Assert(d_state.areEqual(emp_set, r1r2i));
-                disjoint = true;
-                break;
-              }
-            }
-            if (!disjoint)
-            {
-              // simply introduce their intersection
-              Assert(o0 != o1);
-              Node kca = d_treg.getProxy(o0);
-              Node kcb = d_treg.getProxy(o1);
-              Node intro = rewrite(nm->mkNode(SET_INTER, kca, kcb));
-              Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
-                               << ", term is " << intro << std::endl;
-              intro_sets.push_back(intro);
-              Assert(!d_state.hasTerm(intro));
+              // Just try to make them equal. This is analogous
+              // to the STRINGS_LEN_SPLIT inference in strings.
+              d_im.split(
+                  o0.eqNode(o1), InferenceId::SETS_CARD_SPLIT_EQ, 1);
+              Assert(d_im.hasSent());
               return;
+            }
+            else
+            {
+              // split them by introducing an intersection term, which is
+              // analogous to e.g. STRINGS_SSPLIT_VAR in strings.
+              for (unsigned e = 0; e < 2; e++)
+              {
+                Node r1 = e == 0 ? o0 : o1;
+                Node r2 = e == 0 ? o1 : o0;
+                // check if their intersection exists modulo equality
+                Node r1r2i = d_state.getBinaryOpTerm(SET_INTER, r1, r2);
+                if (!r1r2i.isNull())
+                {
+                  Trace("sets-nf-debug")
+                      << "Split term already exists, but not in cardinality "
+                        "graph : "
+                      << r1r2i << ", should be empty." << std::endl;
+                  // their intersection is empty (probably?)
+                  // e.g. these are two disjoint venn regions, proceed to next
+                  // pair
+                  Assert(d_state.areEqual(emp_set, r1r2i));
+                  disjoint = true;
+                  break;
+                }
+              }
+              if (!disjoint)
+              {
+                // simply introduce their intersection
+                Assert(o0 != o1);
+                Node kca = d_treg.getProxy(o0);
+                Node kcb = d_treg.getProxy(o1);
+                Node intro = rewrite(nm->mkNode(SET_INTER, kca, kcb));
+                Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
+                                << ", term is " << intro << std::endl;
+                intro_sets.push_back(intro);
+                Assert(!d_state.hasTerm(intro));
+                return;
+              }
             }
           }
         }
@@ -883,7 +906,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    Assert(d_im.hasSent());
+    Assert(d_im.hasSent())
+        << "failed to send a lemma to resolve why Venn regions are different";
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -925,7 +949,9 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       {
         if (std::find(ffpc.begin(), ffpc.end(), nfeqci) == ffpc.end())
         {
-          ffpc.insert(ffpc.end(), nfeqc.begin(), nfeqc.end());
+          Trace("sets-nf-debug") << "Add to flat form " << nfeqci << " to "
+                                 << cbase << " in " << p << std::endl;
+          ffpc.push_back(nfeqci);
         }
         else
         {
@@ -1004,7 +1030,12 @@ void CardinalityExtension::mkModelValueElementsFor(
 {
   TypeNode elementType = eqc.getType().getSetElementType();
   bool elementTypeFinite = d_env.isFiniteType(elementType);
-  if (isModelValueBasic(eqc))
+  bool isBasic = isModelValueBasic(eqc);
+  Trace("sets-model") << "mkModelValueElementsFor: " << eqc
+                      << ", isBasic = " << isBasic
+                      << ", isFinite = " << elementTypeFinite
+                      << ", els = " << els << std::endl;
+  if (isBasic)
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
     if (it != d_eqc_to_card_term.end())
@@ -1089,21 +1120,26 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
   {
     return;
   }
+  Trace("sets-model-finite") << "Collect finite elements" << std::endl;
   for (const Node& set : getOrderedSetsEqClasses())
   {
+    Trace("sets-model-finite") << "eqc: " << set << std::endl;
     if (!d_env.isFiniteType(set.getType()))
     {
+      Trace("sets-model-finite") << "...not finite" << std::endl;
       continue;
     }
     if (!isModelValueBasic(set))
     {
       // only consider leaves in the cardinality graph
+      Trace("sets-model-finite") << "...not basic value" << std::endl;
       continue;
     }
     for (const std::pair<const Node, Node>& pair : d_state.getMembers(set))
     {
       Node member = pair.first;
       Node modelRepresentative = model->getRepresentative(member);
+      Trace("sets-model-finite") << "  member: " << member << std::endl;
       std::vector<Node>& elements = d_finite_type_elements[member.getType()];
       if (std::find(elements.begin(), elements.end(), modelRepresentative)
           == elements.end())
@@ -1113,6 +1149,7 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
     }
   }
   d_finite_type_constants_processed = true;
+  Trace("sets-model-finite") << "End Collect finite elements" << std::endl;
 }
 
 const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
@@ -1123,4 +1160,4 @@ const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

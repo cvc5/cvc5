@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Morgan Deters
+ *   Andrew Reynolds, Clark Barrett, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,10 +27,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
@@ -59,7 +59,7 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::SELECT);
   // d_equalityEngine->addFunctionKind(kind::STORE);
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH_TOTAL);
@@ -80,8 +80,6 @@ void TheoryModel::reset(){
   d_modelCache.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
-  d_approximations.clear();
-  d_approx_list.clear();
   d_reps.clear();
   d_assignExcSet.clear();
   d_aesMaster.clear();
@@ -110,25 +108,20 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
   return true;
 }
 
-bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
-
-std::vector<std::pair<Node, Node> > TheoryModel::getApproximations() const
-{
-  return d_approx_list;
-}
-
 std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 {
   // must be an uninterpreted sort
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   std::vector<Node> elements;
   const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
   if (type_refs == nullptr || type_refs->empty())
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
+    // We use mkGroundValue here, since domain elements must all be
+    // of UNINTERPRETED_SORT_VALUE kind.
     NodeManager* nm = NodeManager::currentNM();
-    elements.push_back(nm->mkGroundTerm(tn));
+    elements.push_back(nm->mkGroundValue(tn));
     return elements;
   }
   return *type_refs;
@@ -139,7 +132,7 @@ Node TheoryModel::getValue(TNode n) const
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
   nn = rewrite(nn);
-  Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
+  Trace("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
   if (nn.isNull())
@@ -161,8 +154,9 @@ Node TheoryModel::getValue(TNode n) const
     //normalize
     nn = rewrite(nn);
   }
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
+  Trace("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
+  Assert(nn.getType().isSubtypeOf(n.getType()));
   return nn;
 }
 
@@ -179,20 +173,20 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
 Cardinality TheoryModel::getCardinality(TypeNode tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
   if (d_rep_set.hasType(tn))
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get cardinality sort, #rep : "
         << d_rep_set.getNumRepresentatives(tn) << std::endl;
     return Cardinality(d_rep_set.getNumRepresentatives(tn));
   }
-  Debug("model-getvalue-debug")
+  Trace("model-getvalue-debug")
       << "Get cardinality sort, unconstrained, return 1." << std::endl;
   return Cardinality(1);
 }
@@ -203,8 +197,8 @@ Node TheoryModel::getModelValue(TNode n) const
   if (it != d_modelCache.end()) {
     return (*it).second;
   }
-  Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
-  Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
+  Trace("model-getvalue-debug") << "Get model value " << n << " ... ";
+  Trace("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
   Kind nk = n.getKind();
   if (n.isConst() || nk == BOUND_VARIABLE)
   {
@@ -223,13 +217,13 @@ Node TheoryModel::getModelValue(TNode n) const
   // e.g. forall x. P(x) where P = lambda x. true.
   if (n.getNumChildren() > 0)
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF)
     {
       Node op = getModelValue(n.getOperator());
-      Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
+      Trace("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
     else if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -248,20 +242,20 @@ Node TheoryModel::getModelValue(TNode n) const
       {
         ret = getModelValue(n[i]);
       }
-      Debug("model-getvalue-debug")
+      Trace("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
     }
     ret = nm->mkNode(n.getKind(), children);
-    Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
+    Trace("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
     ret = rewrite(ret);
-    Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
+    Trace("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
       const CardinalityConstraint& cc =
           ret.getOperator().getConst<CardinalityConstraint>();
-      Debug("model-getvalue-debug")
+      Trace("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
       ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
                         <= cc.getUpperBound());
@@ -276,18 +270,6 @@ Node TheoryModel::getModelValue(TNode n) const
       d_modelCache[n] = ret;
       return ret;
     }
-  }
-  // it might be approximate
-  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
-  if (ita != d_approximations.end())
-  {
-    // If the value of n is approximate based on predicate P(n), we return
-    // witness z. P(z).
-    Node v = nm->mkBoundVar(n.getType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = answer;
-    return answer;
   }
   // must rewrite the term at this point
   ret = rewrite(n);
@@ -310,7 +292,7 @@ Node TheoryModel::getModelValue(TNode n) const
   }
   if (eeHasTerm)
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
     ret = d_equalityEngine->getRepresentative(ret);
     Assert(d_reps.find(ret) != d_reps.end());
@@ -588,23 +570,6 @@ bool TheoryModel::hasAssignmentExclusionSets() const
   return !d_assignExcSet.empty();
 }
 
-void TheoryModel::recordApproximation(TNode n, TNode pred)
-{
-  Trace("model-builder-debug")
-      << "Record approximation : " << n << " satisfies the predicate " << pred
-      << std::endl;
-  Assert(d_approximations.find(n) == d_approximations.end());
-  Assert(pred.getType().isBoolean());
-  d_approximations[n] = pred;
-  d_approx_list.push_back(std::pair<Node, Node>(n, pred));
-  // model cache is invalid
-  d_modelCache.clear();
-}
-void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
-{
-  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
-  recordApproximation(n, predDisj);
-}
 bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
@@ -864,8 +829,17 @@ bool TheoryModel::isValue(TNode n) const
         finishedComputing = true;
         currentReturn = true;
       }
-      else if (cur.getNumChildren() == 0 || rewrite(cur) != cur)
+      else if (cur.getNumChildren() == 0)
       {
+        // PI is a (non-base) value. We require it as a special case here
+        // since nullary operators are represented internal as variables.
+        // All other non-constant terms with zero children are not values.
+        finishedComputing = true;
+        currentReturn = (cur.getKind() == kind::PI);
+      }
+      else if (rewrite(cur) != cur)
+      {
+        // non-rewritten terms are never model values
         finishedComputing = true;
         currentReturn = false;
       }
@@ -877,7 +851,11 @@ bool TheoryModel::isValue(TNode n) const
     }
     if (!finishedComputing)
     {
-      bool hasOperator = cur.hasOperator();
+      // The only non-constant operators we consider are APPLY_UF and
+      // APPLY_SELECTOR. All other operators are either builtin, or should be
+      // considered constants, e.g. constructors.
+      Kind k = cur.getKind();
+      bool hasOperator = k == kind::APPLY_UF || k == kind::APPLY_SELECTOR;
       size_t nextChildIndex = v.second;
       if (hasOperator && nextChildIndex > 0)
       {
@@ -916,4 +894,4 @@ bool TheoryModel::isValue(TNode n) const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

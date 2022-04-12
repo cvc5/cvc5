@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -358,7 +358,7 @@ void Monomial::combineAdjacentMonomials(std::vector<Monomial>& monos) {
 }
 
 void Monomial::print() const {
-  Debug("normal-form") <<  getNode() << std::endl;
+  Trace("normal-form") <<  getNode() << std::endl;
 }
 
 void Monomial::printList(const std::vector<Monomial>& list) {
@@ -625,8 +625,8 @@ bool Polynomial::variableMonomialAreStrictlyGreater(const Monomial& m) const{
     return true;
   }else{
     Monomial minimum = minimumVariableMonomial();
-    Debug("nf::tmp") << "minimum " << minimum.getNode() << endl;
-    Debug("nf::tmp") << "m " << m.getNode() << endl;
+    Trace("nf::tmp") << "minimum " << minimum.getNode() << endl;
+    Trace("nf::tmp") << "m " << m.getNode() << endl;
     return m < minimum;
   }
 }
@@ -724,8 +724,8 @@ SumPair Comparison::toSumPair() const {
     {
       Polynomial left = getLeft();
       Polynomial right = getRight();
-      Debug("nf::tmp") << "left: " << left.getNode() << endl;
-      Debug("nf::tmp") << "right: " << right.getNode() << endl;
+      Trace("nf::tmp") << "left: " << left.getNode() << endl;
+      Trace("nf::tmp") << "right: " << right.getNode() << endl;
       if(right.isConstant()){
         return SumPair(left, -right.getHead().getConstant());
       }else if(right.containsConstant()){
@@ -887,7 +887,7 @@ std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
 }
 
 Comparison Comparison::parseNormalForm(TNode n) {
-  Debug("polynomial") << "Comparison::parseNormalForm(" << n << ")";
+  Trace("polynomial") << "Comparison::parseNormalForm(" << n << ")";
   Comparison result(n);
   Assert(result.isNormalForm());
   return result;
@@ -996,7 +996,7 @@ Polynomial Comparison::getRight() const {
 bool Comparison::isNormalForm() const {
   Node n = getNode();
   Kind cmpKind = comparisonKind(n);
-  Debug("nf::tmp") << "isNormalForm " << n << " " << cmpKind << endl;
+  Trace("nf::tmp") << "isNormalForm " << n << " " << cmpKind << endl;
   switch(cmpKind){
   case kind::CONST_BOOLEAN:
     return true;
@@ -1038,7 +1038,7 @@ bool Comparison::isNormalGT() const {
 /** This must be (not (> qpolynomial constant)) */
 bool Comparison::isNormalLEQ() const {
   Node n = getNode();
-  Debug("nf::tmp") << "isNormalLEQ " << n << endl;
+  Trace("nf::tmp") << "isNormalLEQ " << n << endl;
   Assert(n.getKind() == kind::NOT);
   Assert(n[0].getKind() == kind::GT);
   if(!rightIsConstant()){
@@ -1061,7 +1061,7 @@ bool Comparison::isNormalGEQ() const {
   Node n = getNode();
   Assert(n.getKind() == kind::GEQ);
 
-  Debug("nf::tmp") << "isNormalGEQ " << n << " " << rightIsConstant() << endl;
+  Trace("nf::tmp") << "isNormalGEQ " << n << " " << rightIsConstant() << endl;
 
   if(!rightIsConstant()){
     return false;
@@ -1122,14 +1122,14 @@ bool Comparison::isNormalEqualityOrDisequality() const {
         }else{
           Integer lcm = lcoeff.getDenominator().lcm(varRight.denominatorLCM());
           Integer g = lcoeff.getNumerator().gcd(varRight.numeratorGCD());
-          Debug("nf::tmp") << lcm << " " << g << endl;
+          Trace("nf::tmp") << lcm << " " << g << endl;
           if(!lcm.isOne()){
             return false;
           }else if(!g.isOne()){
             return false;
           }else{
             Monomial absMinRight = varRight.selectAbsMinimum();
-            Debug("nf::tmp") << mleft.getNode() << " " << absMinRight.getNode() << endl;
+            Trace("nf::tmp") << mleft.getNode() << " " << absMinRight.getNode() << endl;
             if( mleft.absCmp(absMinRight) < 0){
               return true;
             }else{
@@ -1139,7 +1139,7 @@ bool Comparison::isNormalEqualityOrDisequality() const {
         }
       }else{
         if(mleft.coefficientIsOne()){
-          Debug("nf::tmp")
+          Trace("nf::tmp")
             << "dfklj " << mleft.getNode() << endl
             << pright.getNode() << endl
             << pright.variableMonomialAreStrictlyGreater(mleft)
@@ -1424,4 +1424,4 @@ bool Polynomial::isNonlinear() const {
 
 } //namespace arith
 } //namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

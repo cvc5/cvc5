@@ -11,6 +11,7 @@ input mechanisms.
 
     helloworld
     exceptions
+    bags
     bitvectors
     bitvectors_and_arrays
     extract

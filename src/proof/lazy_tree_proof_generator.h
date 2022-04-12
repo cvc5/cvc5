@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace detail {
 /**
  * A single node in the proof tree created by the LazyTreeProofGenerator.
@@ -71,13 +71,13 @@ struct TreeProofNode
  *
  * Consider the example  x*x<1 and x>2  and the intended proof
  *  (SCOPE
- *    (ARITH_NL_CAD_SPLIT
+ *    (ARITH_NL_COVERING_RECURSIVE
  *      (SCOPE
- *        (ARITH_NL_CAD_DIRECT  (x<=2  and  x>2) ==> false)
+ *        (ARITH_NL_COVERING_DIRECT  (x<=2  and  x>2) ==> false)
  *        :args [x<=2]
  *      )
  *      (SCOPE
- *        (ARITH_NL_CAD_DIRECT  (x>=1  and  x*x<1) ==> false)
+ *        (ARITH_NL_COVERING_DIRECT  (x>=1  and  x*x<1) ==> false)
  *        :args [x>=1]
  *      )
  *    )
@@ -104,7 +104,7 @@ struct TreeProofNode
  *  openChild();
  *  setCurrent(SCOPE, {}, {}, false);
  *  openChild();
- *  setCurrent(CAD_DIRECT, {x>2}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_DIRECT, {x>2}, {}, false);
  *  closeChild();
  *  getCurrent().args = {x<=2};
  *  closeChild();
@@ -112,12 +112,12 @@ struct TreeProofNode
  *  openChild();
  *  setCurrent(SCOPE, {}, {}, false);
  *  openChild();
- *  setCurrent(CAD_DIRECT, {x*x<1}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_DIRECT, {x*x<1}, {}, false);
  *  closeChild();
  *  getCurrent().args = {x>=1};
  *  closeChild();
  *  // Finish split
- *  setCurrent(CAD_SPLIT, {}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_RECURSIVE, {}, {}, false);
  *  closeChild();
  *  closeChild();
  *
@@ -211,6 +211,6 @@ class LazyTreeProofGenerator : public ProofGenerator
  */
 std::ostream& operator<<(std::ostream& os, const LazyTreeProofGenerator& ltpg);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

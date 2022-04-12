@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,13 +24,17 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/trust_substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
     : EnvObj(env),
       d_propEngine(propEngine),
+      d_levelZeroAsserts(userContext()),
+      d_levelZeroAssertsLearned(userContext()),
       d_nonZeroAssert(context(), false),
+      d_ppnAtoms(userContext()),
+      d_pplAtoms(userContext()),
       d_assertNoLearnCount(0)
 {
 }
@@ -39,7 +43,7 @@ ZeroLevelLearner::~ZeroLevelLearner() {}
 
 void ZeroLevelLearner::getAtoms(TNode a,
                                 std::unordered_set<TNode>& visited,
-                                std::unordered_set<TNode>& ppLits)
+                                NodeSet& ppLits)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -63,31 +67,47 @@ void ZeroLevelLearner::getAtoms(TNode a,
 
 void ZeroLevelLearner::notifyInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
+    const std::unordered_map<size_t, Node>& skolemMap)
 {
   d_assertNoLearnCount = 0;
-  d_ppnAtoms.clear();
-  // Copy the preprocessed assertions and skolem map information directly
-  // Also, compute the set of literals in the preprocessed assertions
   std::unordered_set<TNode> visited;
-  // learned literals and d_ppnAtoms are disjoint
-  for (const Node& lit : ppl)
+  // We consider top level literals of assertions, including those occurring
+  // as children of AND to be the preprocessed learned literals only, and not
+  // the literals tracked by the preprocessor
+  // (Preprocessor::getLearnedLiterals). This means that a learned literal from
+  // e.g. circuit propagation that is not trivially a top level assertion will
+  // be considered an ordinary learned literal.
+  // Note that d_pplAtoms and d_ppnAtoms are disjoint
+  std::vector<Node> toProcess = assertions;
+  size_t index = 0;
+  while (index < toProcess.size())
   {
+    TNode lit = toProcess[index];
+    index++;
+    if (lit.getKind() == kind::AND)
+    {
+      toProcess.insert(toProcess.end(), lit.begin(), lit.end());
+      continue;
+    }
     TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
+    if (expr::isBooleanConnective(atom))
+    {
+      continue;
+    }
     visited.insert(atom);
     d_pplAtoms.insert(atom);
   }
   if (isOutputOn(OutputTag::LEARNED_LITS))
   {
     // output learned literals from preprocessing
-    for (const Node& lit : ppl)
+    for (const Node& lit : d_pplAtoms)
     {
       output(OutputTag::LEARNED_LITS)
           << "(learned-lit " << SkolemManager::getOriginalForm(lit)
           << " :preprocess)" << std::endl;
     }
   }
+  // Compute the set of literals in the preprocessed assertions
   for (const Node& a : assertions)
   {
     getAtoms(a, visited, d_ppnAtoms);
@@ -96,7 +116,7 @@ void ZeroLevelLearner::notifyInputFormulas(
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
-  Trace("level-zero") << "#Learned lits = " << ppl.size() << std::endl;
+  Trace("level-zero") << "#Learned lits = " << d_pplAtoms.size() << std::endl;
   Trace("level-zero") << "#Top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
@@ -146,11 +166,15 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
   }
 }
 
-const std::unordered_set<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
-    const
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals() const
 {
-  return d_levelZeroAssertsLearned;
+  std::vector<Node> ret;
+  for (const Node& n : d_levelZeroAssertsLearned)
+  {
+    ret.push_back(n);
+  }
+  return ret;
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

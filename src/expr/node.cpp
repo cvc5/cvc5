@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
@@ -80,25 +80,25 @@ typedef expr::Attribute<IsConstComputedTag, bool> IsConstComputedAttr;
 template <bool ref_count>
 bool NodeTemplate<ref_count>::isConst() const {
   assertTNodeNotExpired();
-  Debug("isConst") << "Node::isConst() for: " << *this << std::endl;
+  Trace("isConst") << "Node::isConst() for: " << *this << std::endl;
   if(isNull()) {
     return false;
   }
   switch(getMetaKind()) {
   case kind::metakind::CONSTANT:
-    Debug("isConst") << "Node::isConst() returning true, it's a CONSTANT" << std::endl;
+    Trace("isConst") << "Node::isConst() returning true, it's a CONSTANT" << std::endl;
     return true;
   case kind::metakind::VARIABLE:
-    Debug("isConst") << "Node::isConst() returning false, it's a VARIABLE" << std::endl;
+    Trace("isConst") << "Node::isConst() returning false, it's a VARIABLE" << std::endl;
     return false;
   default:
     if(getAttribute(IsConstComputedAttr())) {
       bool bval = getAttribute(IsConstAttr());
-      Debug("isConst") << "Node::isConst() returning cached value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
+      Trace("isConst") << "Node::isConst() returning cached value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
       return bval;
     } else {
       bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
-      Debug("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
+      Trace("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
       const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
       const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
       return bval;
@@ -109,16 +109,16 @@ bool NodeTemplate<ref_count>::isConst() const {
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::Node>::operator()(const cvc5::Node& node) const
+size_t hash<cvc5::internal::Node>::operator()(const cvc5::internal::Node& node) const
 {
   return node.getId();
 }
 
-size_t hash<cvc5::TNode>::operator()(const cvc5::TNode& node) const
+size_t hash<cvc5::internal::TNode>::operator()(const cvc5::internal::TNode& node) const
 {
   return node.getId();
 }

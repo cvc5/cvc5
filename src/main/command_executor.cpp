@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Kshitij Bansal, Andrew Reynolds, Morgan Deters
+ *   Gereon Kremer, Andrew Reynolds, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +29,7 @@
 #include "smt/command.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
 // This is used for competitions while a solution (proof or model)
@@ -48,10 +47,8 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-CommandExecutor::CommandExecutor(std::unique_ptr<api::Solver>& solver)
-    : d_solver(solver),
-      d_symman(new SymbolManager(d_solver.get())),
-      d_result()
+CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
+    : d_solver(solver), d_symman(new SymbolManager(d_solver.get())), d_result()
 {
 }
 CommandExecutor::~CommandExecutor()
@@ -68,7 +65,7 @@ void CommandExecutor::printStatistics(std::ostream& out) const
   if (d_solver->getOptionInfo("stats").boolValue())
   {
     const auto& stats = d_solver->getStatistics();
-    auto it = stats.begin(d_solver->getOptionInfo("stats-expert").boolValue(),
+    auto it = stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
                           d_solver->getOptionInfo("stats-all").boolValue());
     for (; it != stats.end(); ++it)
     {
@@ -121,7 +118,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   bool status = solverInvoke(
       d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
 
-  api::Result res;
+  cvc5::Result res;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
   if(cs != nullptr) {
     d_result = res = cs->getResult();
@@ -132,21 +129,18 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   {
     d_result = res = csa->getResult();
   }
-  const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
-  if(q != nullptr) {
-    d_result = res = q->getResult();
-  }
 
-  bool isResultUnsat = res.isUnsat() || res.isEntailed();
-  bool isResultSat = res.isSat() || res.isNotEntailed();
+  bool isResultUnsat = res.isUnsat();
+  bool isResultSat = res.isSat();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
-            || (res.isSatUnknown()
-                && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
+            || (res.isUnknown()
+                && res.getUnknownExplanation()
+                       == cvc5::UnknownExplanation::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
@@ -169,7 +163,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     }
 
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
-        && (isResultUnsat || isResultSat || res.isSatUnknown()))
+        && (isResultUnsat || isResultSat || res.isUnknown()))
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }
@@ -192,7 +186,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool solverInvoke(api::Solver* solver,
+bool solverInvoke(cvc5::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
                   std::ostream& out)
@@ -226,5 +220,4 @@ void CommandExecutor::flushOutputStreams() {
   d_solver->getDriverOptions().err() << std::flush;
 }
 
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main

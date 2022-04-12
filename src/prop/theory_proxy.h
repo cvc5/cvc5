@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Tim King
+ *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class TheoryEngine;
@@ -74,12 +74,9 @@ class TheoryProxy : protected EnvObj, public Registrar
    * @param assertion The preprocessed input assertions,
    * @param skolemMap Map from indices in assertion to the Skolem they are
    * the definition for
-   * @param ppl The preprocessed learned literals, that is, the literals that
-   * hold at top-level, as computed by the circuit propagator.
    */
   void notifyInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap,
-                           const std::vector<Node>& ppl);
+                           std::unordered_map<size_t, Node>& skolemMap);
   /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
    * definition.
@@ -90,7 +87,25 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   void theoryCheck(theory::Theory::Effort effort);
 
+  /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
+  /** Notify that current propagation inserted at lower level than current.
+   *
+   * This method should be called by the SAT solver when the explanation of the
+   * current propagation is added at lower level than the current user level.
+   * It'll trigger a call to the ProofCnfStream to notify it that the proof of
+   * this propagation should be saved in case it's needed after this user
+   * context is popped.
+   */
+  void notifyCurrPropagationInsertedAtLevel(int explLevel);
+  /** Notify that added clause was inserted at lower level than current.
+   *
+   * As above, but for clauses asserted into the SAT solver. This cannot be done
+   * in terms of "current added clause" because the clause added at a lower
+   * level could be for example a lemma derived at a prior moment whose
+   * assertion the SAT solver delayed.
+   */
+  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
   void theoryPropagate(SatClause& output);
 
@@ -154,7 +169,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  const std::unordered_set<Node>& getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals() const;
 
  private:
   /** The prop engine we are using. */
@@ -196,6 +211,6 @@ class TheoryProxy : protected EnvObj, public Registrar
 }; /* class TheoryProxy */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

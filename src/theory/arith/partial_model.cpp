@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King
+ *   Tim King, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,24 +23,25 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithVariables::ArithVariables(context::Context* c, DeltaComputeCallback deltaComputingFunc)
- : d_vars(),
-   d_safeAssignment(),
-   d_numberOfVariables(0),
-   d_pool(),
-   d_released(),
-   d_nodeToArithVarMap(),
-   d_boundsQueue(),
-   d_enqueueingBoundCounts(true),
-   d_lbRevertHistory(c, true, LowerBoundCleanUp(this)),
-   d_ubRevertHistory(c, true, UpperBoundCleanUp(this)),
-   d_deltaIsSafe(false),
-   d_delta(-1,1),
-   d_deltaComputingFunc(deltaComputingFunc)
+ArithVariables::ArithVariables(context::Context* c,
+                               DeltaComputeCallback deltaComputingFunc)
+    : d_vars(),
+      d_safeAssignment(),
+      d_numberOfVariables(0),
+      d_pool(),
+      d_released(),
+      d_nodeToArithVarMap(),
+      d_boundsQueue(),
+      d_enqueueingBoundCounts(true),
+      d_lbRevertHistory(c, true, LowerBoundCleanUp(this)),
+      d_ubRevertHistory(c, true, UpperBoundCleanUp(this)),
+      d_deltaIsSafe(false),
+      d_delta(-1, 1),
+      d_deltaComputingFunc(deltaComputingFunc)
 { }
 
 ArithVar ArithVariables::getNumberOfVariables() const {
@@ -332,7 +333,7 @@ std::pair<ConstraintP, ConstraintP> ArithVariables::explainEqualBounds(ArithVar 
 }
 
 void ArithVariables::setAssignment(ArithVar x, const DeltaRational& r){
-  Debug("partial_model") << "pm: updating the assignment to" << x
+  Trace("partial_model") << "pm: updating the assignment to" << x
                          << " now " << r <<endl;
   VarInfo& vi = d_vars.get(x);
   if(!d_safeAssignment.isKey(x)){
@@ -347,7 +348,7 @@ void ArithVariables::setAssignment(ArithVar x, const DeltaRational& r){
 }
 
 void ArithVariables::setAssignment(ArithVar x, const DeltaRational& safe, const DeltaRational& r){
-  Debug("partial_model") << "pm: updating the assignment to" << x
+  Trace("partial_model") << "pm: updating the assignment to" << x
                          << " now " << r <<endl;
   if(safe == r){
     if(d_safeAssignment.isKey(x)){
@@ -437,7 +438,7 @@ void ArithVariables::setLowerBoundConstraint(ConstraintP c){
   AssertArgument(c->isEquality() || c->isLowerBound(),
                  "Constraint type must be set to an equality or UpperBound.");
   ArithVar x = c->getVariable();
-  Debug("partial_model") << "setLowerBoundConstraint(" << x << ":" << c << ")" << endl;
+  Trace("partial_model") << "setLowerBoundConstraint(" << x << ":" << c << ")" << endl;
   Assert(inMaps(x));
   Assert(greaterThanLowerBound(x, c->getValue()));
 
@@ -456,7 +457,7 @@ void ArithVariables::setUpperBoundConstraint(ConstraintP c){
                  "Constraint type must be set to an equality or UpperBound.");
 
   ArithVar x = c->getVariable();
-  Debug("partial_model") << "setUpperBoundConstraint(" << x << ":" << c << ")" << endl;
+  Trace("partial_model") << "setUpperBoundConstraint(" << x << ":" << c << ")" << endl;
   Assert(inMaps(x));
   Assert(lessThanUpperBound(x, c->getValue()));
 
@@ -589,7 +590,7 @@ void ArithVariables::printModel(ArithVar x, std::ostream& out) const{
 }
 
 void ArithVariables::printModel(ArithVar x) const{
-  printModel(x,  Debug("model"));
+  printModel(x,  Trace("model"));
 }
 
 void ArithVariables::pushUpperBound(VarInfo& vi){
@@ -687,4 +688,4 @@ void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

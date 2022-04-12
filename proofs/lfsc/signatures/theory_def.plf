@@ -172,10 +172,10 @@
 (define str.rev (# x term (apply f_str.rev x)))
 (declare f_str.update term)
 (define str.update (# x term (# y term (# z term (apply (apply (apply f_str.update x) y) z)))))
-(declare f_str.tolower term)
-(define str.tolower (# x term (apply f_str.tolower x)))
-(declare f_str.toupper term)
-(define str.toupper (# x term (apply f_str.toupper x)))
+(declare f_str.to_lower term)
+(define str.to_lower (# x term (apply f_str.to_lower x)))
+(declare f_str.to_upper term)
+(define str.to_upper (# x term (apply f_str.to_upper x)))
 (declare f_str.to_code term)
 (define str.to_code (# x term (apply f_str.to_code x)))
 (declare f_str.from_code term)
@@ -190,6 +190,8 @@
 (define str.< (# x term (# y term (apply (apply f_str.< x) y))))
 (declare f_str.<= term)
 (define str.<= (# x term (# y term (apply (apply f_str.<= x) y))))
+(declare f_str.replace_all term)
+(define str.replace_all (# x term (# y term (# z term (apply (apply (apply f_str.replace_all x) y) z)))))
 (declare f_str.indexof_re term)
 (define str.indexof_re (# x term (# y term (# z term (apply (apply (apply f_str.indexof_re x) y) z)))))
 (declare f_str.replace_re term)
@@ -339,14 +341,22 @@
 (define bitOf (# b mpz (# x term (apply (f_bitOf b) x))))
 (declare f_BITVECTOR_EAGER_ATOM term)
 (define BITVECTOR_EAGER_ATOM (# x term (apply f_BITVECTOR_EAGER_ATOM x)))
+(declare f_BITVECTOR_ITE term)
+(define BITVECTOR_ITE (# x term (# y term (# z term (apply (apply (apply f_BITVECTOR_ITE x) y) z)))))
+(declare f_BITVECTOR_SLTBV term)
+(define BITVECTOR_SLTBV (# x term (# y term (apply (apply f_BITVECTOR_SLTBV x) y))))
+(declare f_BITVECTOR_ULTBV term)
+(define BITVECTOR_ULTBV (# x term (# y term (apply (apply f_BITVECTOR_ULTBV x) y))))
 ; The empty bitvector, which is used as the null terminator of bvconcat chains
 (declare emptybv term)
 
 
 ;; ---- Floating points
 
-; a floating point constant is indexed by 3 bitvector constants
-(declare fp (! s bitvec (! e bitvec (! i bitvec term))))
+; A floating point constant is a term having 3 bitvector children.
+; Note this is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT
+(declare f_fp term)
+(define fp (# x term (# y term (# z term (apply (apply (apply f_fp x) y) z)))))
 (declare f_fp.add term)
 (define fp.add (# x term (# y term (# z term (apply (apply (apply f_fp.add x) y) z)))))
 (declare f_fp.sub term)
@@ -410,8 +420,8 @@
 (define to_fp_real (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_real x y) z) w))))))
 (declare f_to_fp_sbv (! i mpz (! j mpz term)))
 (define to_fp_sbv (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_sbv x y) z) w))))))
-(declare f_to_fp_generic (! i mpz (! j mpz term)))
-(define to_fp_generic (# x mpz (# y mpz (# z term (# w term (apply (apply (f_to_fp_generic x y) z) w))))))
+(declare f_to_fp_ieee_bv (! i mpz (! j mpz term)))
+(define to_fp_ieee_bv (# x mpz (# y mpz (# z term (apply (f_to_fp_ieee_bv x y) z)))))
 (declare f_to_fp_bv (! i mpz (! j mpz term)))
 (define to_fp_bv (# x mpz (# y mpz (# z term (apply (f_to_fp_bv x y) z)))))
 ; rounding modes
@@ -420,6 +430,19 @@
 (declare roundTowardPositive term)
 (declare roundTowardNegative term)
 (declare roundTowardZero term)
+; internally generated terms
+(declare f_EXPONENT term)
+(define EXPONENT (# x term (apply f_EXPONENT x)))
+(declare f_SIGN term)
+(define SIGN (# x term (apply f_SIGN x)))
+(declare f_SIGNIFICAND term)
+(define SIGNIFICAND (# x term (apply f_SIGNIFICAND x)))
+(declare f_ZERO term)
+(define ZERO (# x term (apply f_ZERO x)))
+(declare f_INF term)
+(define INF (# x term (apply f_INF x)))
+(declare f_NAN term)
+(define NAN (# x term (apply f_NAN x)))
 
 ;; ---- Sets
 (declare set.empty (! s sort term))

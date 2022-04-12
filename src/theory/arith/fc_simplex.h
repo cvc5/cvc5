@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Morgan Deters, Mathias Preiner
+ *   Tim King, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,7 +62,7 @@
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -74,7 +74,7 @@ public:
                             RaiseConflict conflictChannel,
                             TempVarMalloc tvmalloc);
 
- Result::Sat findModel(bool exactResult) override;
+ Result::Status findModel(bool exactResult) override;
 
  // other error variables are dropping
  WitnessImprovement dualLikeImproveError(ArithVar evar);
@@ -83,22 +83,27 @@ public:
  // dual like
  // - found conflict
  // - satisfied error set
- Result::Sat dualLike();
+ Result::Status dualLike();
 
 private:
-  static const uint32_t PENALTY = 4;
-  DenseMultiset d_scores;
-  void decreasePenalties(){ d_scores.removeOneOfEverything(); }
-  uint32_t penalty(ArithVar x) const { return d_scores.count(x); }
-  void setPenalty(ArithVar x, WitnessImprovement w){
-    if(improvement(w)){
-      if(d_scores.count(x) > 0){
-        d_scores.removeAll(x);
-      }
-    }else{
-      d_scores.setCount(x, PENALTY);
-    }
-  }
+ static constexpr uint32_t PENALTY = 4;
+ DenseMultiset d_scores;
+ void decreasePenalties() { d_scores.removeOneOfEverything(); }
+ uint32_t penalty(ArithVar x) const { return d_scores.count(x); }
+ void setPenalty(ArithVar x, WitnessImprovement w)
+ {
+   if (improvement(w))
+   {
+     if (d_scores.count(x) > 0)
+     {
+       d_scores.removeAll(x);
+     }
+   }
+   else
+   {
+     d_scores.setCount(x, PENALTY);
+   }
+ }
 
   /** The size of the focus set. */
   uint32_t d_focusSize;
@@ -128,21 +133,15 @@ private:
   const Rational& focusCoefficient(ArithVar nb) const;
 
   int32_t d_pivotBudget;
-  // enum PivotImprovement {
-  //   ErrorDropped,
-  //   NonDegenerate,
-  //   HeuristicDegenerate,
-  //   BlandsDegenerate
-  // };
 
   WitnessImprovement d_prevWitnessImprovement;
   uint32_t d_witnessImprovementInARow;
 
   uint32_t degeneratePivotsInARow() const;
 
-  static const uint32_t s_focusThreshold = 6;
-  static const uint32_t s_maxDegeneratePivotsBeforeBlandsOnLeaving = 100;
-  static const uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
+  static constexpr uint32_t s_focusThreshold = 6;
+  static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnLeaving = 100;
+  static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
 
   DenseMap<uint32_t> d_leavingCountSinceImprovement;
   void increaseLeavingCount(ArithVar x){
@@ -163,14 +162,11 @@ private:
   }
 
   bool debugDualLike(WitnessImprovement w, std::ostream& out,
-                     int instance,
                      uint32_t prevFocusSize, uint32_t prevErrorSize) const;
 
   void debugPrintSignal(ArithVar updated) const;
 
   ArithVarVec d_sgnDisagreements;
-
-  //static PivotImprovement pivotImprovement(const UpdateInfo& selected, bool useBlands = false);
 
   void logPivot(WitnessImprovement w);
 
@@ -260,4 +256,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

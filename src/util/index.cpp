@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <limits>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 static_assert(sizeof(Index) <= sizeof(size_t),
               "Index cannot be larger than size_t");
@@ -32,4 +32,4 @@ static_assert(!std::numeric_limits<Index>::is_signed,
  * (Limited testing suggests a ~1/16 of running time.) Interestingly,
  * uint_fast32_t also has a sizeof == 8 on x86_64.
  */
-}  // namespace cvc5
+}  // namespace cvc5::internal

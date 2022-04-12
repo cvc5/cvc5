@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner
+ *   Tim King, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -37,7 +37,7 @@ ErrorInformation::ErrorInformation()
       d_amount(nullptr),
       d_metric(0)
 {
-  Debug("arith::error::mem")
+  Trace("arith::error::mem")
       << "def constructor " << d_variable << " " << d_amount.get() << endl;
 }
 
@@ -52,7 +52,7 @@ ErrorInformation::ErrorInformation(ArithVar var, ConstraintP vio, int sgn)
       d_metric(0)
 {
   Assert(debugInitialized());
-  Debug("arith::error::mem")
+  Trace("arith::error::mem")
       << "constructor " << d_variable << " " << d_amount.get() << endl;
 }
 
@@ -61,8 +61,8 @@ ErrorInformation::~ErrorInformation() {
   Assert(d_relaxed != true);
   if (d_amount != nullptr)
   {
-    Debug("arith::error::mem") << d_amount.get() << endl;
-    Debug("arith::error::mem")
+    Trace("arith::error::mem") << d_amount.get() << endl;
+    Trace("arith::error::mem")
         << "destroy " << d_variable << " " << d_amount.get() << endl;
     d_amount = nullptr;
   }
@@ -85,7 +85,7 @@ ErrorInformation::ErrorInformation(const ErrorInformation& ei)
   {
     d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
   }
-  Debug("arith::error::mem")
+  Trace("arith::error::mem")
       << "copy const " << d_variable << " " << d_amount.get() << endl;
 }
 
@@ -99,19 +99,19 @@ ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
   d_metric = ei.d_metric;
   if (d_amount != nullptr && ei.d_amount != nullptr)
   {
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "assignment assign " << d_variable << " " << d_amount.get() << endl;
     *d_amount = *ei.d_amount;
   }
   else if (ei.d_amount != nullptr)
   {
     d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "assignment alloc " << d_variable << " " << d_amount.get() << endl;
   }
   else if (d_amount != nullptr)
   {
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "assignment release " << d_variable << " " << d_amount.get() << endl;
     d_amount = nullptr;
   }
@@ -130,7 +130,7 @@ void ErrorInformation::reset(ConstraintP c, int sgn){
 
   if (d_amount != nullptr)
   {
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "reset " << d_variable << " " << d_amount.get() << endl;
     d_amount = nullptr;
   }
@@ -140,7 +140,7 @@ void ErrorInformation::setAmount(const DeltaRational& am){
   if (d_amount == nullptr)
   {
     d_amount = std::make_unique<DeltaRational>();
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "setAmount " << d_variable << " " << d_amount.get() << endl;
   }
   (*d_amount) = am;
@@ -446,9 +446,7 @@ DeltaRational ErrorSet::computeDiff(ArithVar v) const{
 }
 
 void ErrorSet::debugPrint(std::ostream& out) const {
-  static int instance = 0;
-  ++instance;
-  out << "error set debugprint " << instance << endl;
+  out << "error set debugprint" << endl;
   for(error_iterator i = errorBegin(), i_end = errorEnd();
       i != i_end; ++i){
     ArithVar e = *i;
@@ -489,4 +487,4 @@ void ErrorSet::pushFocusInto(ArithVarVec& vec) const{
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Tim King, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "theory/type_enumerator.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 void RepSet::clear(){
@@ -287,7 +287,7 @@ bool RepSetIterator::initialize()
     std::vector<unsigned> varOrder;
     if (d_rext->getVariableOrder(d_owner, varOrder))
     {
-      if (Trace.isOn("bound-int-rsi"))
+      if (TraceIsOn("bound-int-rsi"))
       {
         Trace("bound-int-rsi") << "Variable order : ";
         for (unsigned i = 0; i < varOrder.size(); i++)
@@ -303,7 +303,7 @@ bool RepSetIterator::initialize()
         Assert(varOrder[i] < indexOrder.size());
         indexOrder[varOrder[i]] = i;
       }
-      if (Trace.isOn("bound-int-rsi"))
+      if (TraceIsOn("bound-int-rsi"))
       {
         Trace("bound-int-rsi") << "Will use index order : ";
         for (unsigned i = 0; i < indexOrder.size(); i++)
@@ -453,17 +453,17 @@ void RepSetIterator::getCurrentTerms(std::vector<Node>& terms) const
 
 void RepSetIterator::debugPrint( const char* c ){
   for( unsigned v=0; v<d_index.size(); v++ ){
-    Debug( c ) << v << " : " << getCurrentTerm( v ) << std::endl;
+    Trace( c ) << v << " : " << getCurrentTerm( v ) << std::endl;
   }
 }
 
 void RepSetIterator::debugPrintSmall( const char* c ){
-  Debug( c ) << "RI: ";
+  Trace( c ) << "RI: ";
   for( unsigned v=0; v<d_index.size(); v++ ){
-    Debug( c ) << v << ": " << getCurrentTerm( v ) << " ";
+    Trace( c ) << v << ": " << getCurrentTerm( v ) << " ";
   }
-  Debug( c ) << std::endl;
+  Trace( c ) << std::endl;
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

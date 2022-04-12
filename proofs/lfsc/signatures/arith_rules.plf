@@ -94,7 +94,7 @@
 
 ; Returns ok if c2 is the least integer greater than c1. We compute this
 ; via conditions 0 <= c1-c2 ^ (c1-c2)-1 <= 0.
-(program sc_check_int_tight_lb ((t mpq) (c term)) Ok
+(program sc_check_int_tight_lb ((t term) (c term)) Ok
   (mpq_between_zero_one (mp_add (mpz_to_mpq (sc_arith_get_mpz c))
                                 (mp_neg (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))))))
 

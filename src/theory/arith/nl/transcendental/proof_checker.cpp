@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/evaluator.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -192,19 +192,24 @@ Node TranscendentalProofRuleChecker::checkInternal(
   else if (id == PfRule::ARITH_TRANS_EXP_APPROX_BELOW)
   {
     Assert(children.empty());
-    Assert(args.size() == 2);
+    Assert(args.size() == 3);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
+    Assert(args[1].isConst() && args[1].getType().isRealOrInt());
+    Assert(args[2].getType().isReal());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
-    Node t = args[1];
+    Node c = args[1];
+    Node t = args[2];
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
-    tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d, bounds);
+    tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
     Evaluator eval(nullptr);
-    Node evalt = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {t});
+    Node evalt = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {c});
     return nm->mkNode(
-        Kind::GEQ, std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), evalt});
+        Kind::IMPLIES,
+        nm->mkNode(Kind::GEQ, t, c),
+        nm->mkNode(Kind::GEQ,
+                   std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), evalt}));
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
@@ -389,4 +394,4 @@ Node TranscendentalProofRuleChecker::checkInternal(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

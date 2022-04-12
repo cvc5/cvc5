@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -41,11 +41,6 @@ class SkolemLemma
    * Make skolem from trust node lem of kind LEMMA and skolem k.
    */
   SkolemLemma(TrustNode lem, Node k);
-  /**
-   * Make skolem lemma from witness form of skolem k. If non-null, pg is
-   * proof generator that can generator a proof for getSkolemLemmaFor(k).
-   */
-  SkolemLemma(Node k, ProofGenerator* pg);
 
   /** The lemma, a trust node of kind LEMMA */
   TrustNode d_lemma;
@@ -54,14 +49,9 @@ class SkolemLemma
 
   /** Get proven from the lemma */
   Node getProven() const;
-  /**
-   * Get the lemma for skolem k based on its witness form. If k has witness
-   * form (witness ((x T)) (P x)), this is the formula (P k).
-   */
-  static Node getSkolemLemmaFor(Node k);
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SKOLEM_LEMMA_H */

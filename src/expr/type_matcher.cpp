@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,9 @@
 
 #include "type_matcher.h"
 
-namespace cvc5 {
+#include "expr/dtype.h"
+
+namespace cvc5::internal {
 
 TypeMatcher::TypeMatcher(TypeNode dt)
 {
@@ -25,14 +27,22 @@ TypeMatcher::TypeMatcher(TypeNode dt)
 
 void TypeMatcher::addTypesFromDatatype(TypeNode dt)
 {
-  std::vector<TypeNode> argTypes = dt.getParamTypes();
+  std::vector<TypeNode> argTypes;
+  if (dt.isInstantiated())
+  {
+    argTypes = dt.getInstantiatedParamTypes();
+  }
+  else
+  {
+    argTypes = dt.getDType().getParameters();
+  }
   addTypes(argTypes);
-  Debug("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
+  Trace("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
   for (unsigned i = 0, narg = argTypes.size(); i < narg; ++i)
   {
     if (dt.isParameterInstantiatedDatatype(i))
     {
-      Debug("typecheck-idt")
+      Trace("typecheck-idt")
           << "++ instantiate param " << i << " : " << d_types[i] << std::endl;
       d_match[i] = d_types[i];
     }
@@ -55,7 +65,7 @@ void TypeMatcher::addTypes(const std::vector<TypeNode>& types)
 
 bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
 {
-  Debug("typecheck-idt") << "doMatching() : " << pattern << " : " << tn
+  Trace("typecheck-idt") << "doMatching() : " << pattern << " : " << tn
                          << std::endl;
   std::vector<TypeNode>::iterator i =
       std::find(d_types.begin(), d_types.end(), pattern);
@@ -64,7 +74,7 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
     size_t index = i - d_types.begin();
     if (!d_match[index].isNull())
     {
-      Debug("typecheck-idt")
+      Trace("typecheck-idt")
           << "check subtype " << tn << " " << d_match[index] << std::endl;
       TypeNode tnn = TypeNode::leastCommonTypeNode(tn, d_match[index]);
       // recognize subtype relation
@@ -126,4 +136,4 @@ void TypeMatcher::getMatches(std::vector<TypeNode>& types) const
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

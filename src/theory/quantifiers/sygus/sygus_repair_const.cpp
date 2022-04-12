@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,9 +28,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -125,7 +125,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     return false;
   }
-  if (Trace.isOn("sygus-repair-const"))
+  if (TraceIsOn("sygus-repair-const"))
   {
     Trace("sygus-repair-const") << "Repair candidate solutions..." << std::endl;
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
@@ -147,7 +147,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(
         cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
-    if (Trace.isOn("sygus-repair-const"))
+    if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;
       TermDbSygus::toStreamSygus(ss, cv);
@@ -236,15 +236,12 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus
-  repcChecker->setOption("miniscope-quant", "true");
-  repcChecker->setOption("miniscope-quant-fv", "true");
-  repcChecker->setOption("quant-split", "true");
+  repcChecker->setOption("miniscope-quant", "conj-and-fv");
   repcChecker->assertFormula(fo_body);
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
-      || r.asSatisfiabilityResult().isUnknown())
+  if (r.getStatus() == Result::UNSAT || r.isUnknown())
   {
     Trace("sygus-engine") << "...failed" << std::endl;
     return false;
@@ -268,7 +265,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     Node scsk = csk.substitute(
         sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
     repair_cv.push_back(scsk);
-    if (Trace.isOn("sygus-repair-const") || Trace.isOn("sygus-engine"))
+    if (TraceIsOn("sygus-repair-const") || TraceIsOn("sygus-engine"))
     {
       std::stringstream sss;
       TermDbSygus::toStreamSygus(sss, repair_cv[i]);
@@ -623,4 +620,4 @@ bool SygusRepairConst::getFitToLogicExcludeVar(const LogicInfo& logic,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

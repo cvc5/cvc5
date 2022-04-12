@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Abdalrhman Mohamed
+ *   Ying Sheng, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "expr/type_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class SolverEngine;
@@ -32,7 +32,7 @@ class SolverEngine;
 namespace theory {
 namespace quantifiers {
 /**
- * This is an utility for the SMT-LIB command (get-interpol <term>).
+ * This is an utility for the SMT-LIB command (get-interpolant <term>).
  * The utility turns a set of quantifier-free assertions into a sygus
  * conjecture that encodes an interpolation problem, and then solve the
  * interpolation problem by synthesizing it. In detail, if our input formula is
@@ -48,7 +48,7 @@ namespace quantifiers {
  *
  * This class uses a fresh copy of the SMT engine which is used for solving the
  * interpolation problem. In particular, consider the input: (assert A)
- *   (get-interpol s B)
+ *   (get-interpolant s B)
  * In the copy of the SMT engine where these commands are issued, we maintain
  * A in the assertion stack. In solving the interpolation problem, we will
  * need to call a SMT engine solver with a different assertion stack, which is
@@ -238,6 +238,6 @@ class SygusInterpol : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */

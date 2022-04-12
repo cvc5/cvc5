@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer
+ *   Aina Niemetz, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,10 @@
 #include "expr/kind_map.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace kind;
+using namespace internal;
+using namespace internal::kind;
 
 namespace test {
 
@@ -44,4 +45,4 @@ TEST_F(TestNodeBlackKindMap, simple)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

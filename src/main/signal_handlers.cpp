@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Gereon Kremer, Andres Noetzli
+ *   Gereon Kremer, Morgan Deters, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,11 +38,11 @@
 #include "main/main.h"
 #include "util/safe_print.h"
 
-using cvc5::Exception;
+using cvc5::internal::Exception;
 using namespace std;
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
+using namespace cvc5::internal;
 
 /**
  * If true, will not spin on segfault even when CVC5_DEBUG is on.
@@ -344,5 +344,4 @@ void cleanup() noexcept
 }
 
 }  // namespace signal_handlers
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main

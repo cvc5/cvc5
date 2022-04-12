@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Alex Ozdemir
+ *   Tim King, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,7 @@
 #include "util/result.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class EagerProofGenerator;
 
@@ -85,7 +85,7 @@ class InferBoundsResult;
 class TheoryArithPrivate : protected EnvObj
 {
  private:
-  static const uint32_t RESET_START = 2;
+  static constexpr uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
 
@@ -111,7 +111,7 @@ class TheoryArithPrivate : protected EnvObj
    */
   ConstraintDatabase d_constraintDatabase;
 
-  enum Result::Sat d_qflraStatus;
+  enum Result::Status d_qflraStatus;
   // check()
   //   !done() -> d_qflraStatus = Unknown
   //   fullEffort(e) -> simplex returns either sat or unsat
@@ -316,8 +316,7 @@ private:
   bool d_tableauSizeHasBeenModified;
   double d_tableauResetDensity;
   uint32_t d_tableauResetPeriod;
-  static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;
-
+  static constexpr uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
   /** This is only used by simplex at the moment. */
   context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
@@ -720,10 +719,9 @@ private:
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
-  context::CDHashSet<ArithVar, std::hash<ArithVar> > d_cutInContext;
+  context::CDHashSet<ArithVar, std::hash<ArithVar>> d_cutInContext;
 
   context::CDO<bool> d_likelyIntegerInfeasible;
-
 
   context::CDO<bool> d_guessedCoeffSet;
   ArithRatPairVec d_guessedCoeffs;
@@ -774,7 +772,7 @@ private:
   /** Whether there were new facts during preCheck */
   bool d_newFacts;
   /** The previous status, computed during preCheck */
-  Result::Sat d_previousStatus;
+  Result::Status d_previousStatus;
   //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
@@ -879,4 +877,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

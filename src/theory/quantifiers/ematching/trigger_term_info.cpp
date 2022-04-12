@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Yoni Zohar
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,9 +17,9 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -49,16 +49,12 @@ bool TriggerTermInfo::isAtomicTrigger(Node n)
 
 bool TriggerTermInfo::isAtomicTriggerKind(Kind k)
 {
-  // we use both APPLY_SELECTOR and APPLY_SELECTOR_TOTAL since this
-  // method is used both for trigger selection and for ground term registration,
-  // where these two things require those kinds respectively.
   return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
-         || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL
-         || k == APPLY_TESTER || k == SET_UNION || k == SET_INTER
-         || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
-         || k == SET_SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
-         || k == INT_TO_BITVECTOR || k == HO_APPLY || k == STRING_LENGTH
-         || k == SEQ_NTH;
+         || k == APPLY_SELECTOR || k == APPLY_TESTER || k == SET_UNION
+         || k == SET_INTER || k == SET_SUBSET || k == SET_MINUS
+         || k == SET_MEMBER || k == SET_SINGLETON || k == SEP_PTO
+         || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR || k == HO_APPLY
+         || k == STRING_LENGTH || k == SEQ_NTH;
 }
 
 bool TriggerTermInfo::isRelationalTrigger(Node n)
@@ -156,4 +152,4 @@ int32_t TriggerTermInfo::getTriggerWeight(Node n)
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

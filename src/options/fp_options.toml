@@ -3,7 +3,7 @@ name   = "Floating-Point"
 
 [[option]]
   name       = "fpExp"
-  category   = "regular"
+  category   = "expert"
   long       = "fp-exp"
   type       = "bool"
   default    = "false"

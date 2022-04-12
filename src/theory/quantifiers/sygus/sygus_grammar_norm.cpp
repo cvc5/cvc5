@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Tim King
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@
 
 #include <numeric>  // for std::iota
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -58,8 +58,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
     {
       ss << "_" << std::to_string(op_pos[i]);
     }
-    d_unres_tn = NodeManager::currentNM()->mkSort(
-        ss.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
+    d_unres_tn = NodeManager::currentNM()->mkUnresolvedDatatypeSort(ss.str());
     Trace("sygus-grammar-normalize-trie")
         << "\tCreating type " << d_unres_tn << "\n";
     unres_tn = d_unres_tn;
@@ -186,7 +185,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                       claimed.end(),
                       std::back_inserter(difference));
   op_pos = difference;
-  if (Trace.isOn("sygus-grammar-normalize-chain"))
+  if (TraceIsOn("sygus-grammar-normalize-chain"))
   {
     Trace("sygus-grammar-normalize-chain")
         << "OP at " << d_chain_op_pos << "\n"
@@ -247,7 +246,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   /* Creates a type do be added to root representing next step in the chain */
   /* Add + to elems */
   d_elem_pos.push_back(d_chain_op_pos);
-  if (Trace.isOn("sygus-grammar-normalize-chain"))
+  if (TraceIsOn("sygus-grammar-normalize-chain"))
   {
     Trace("sygus-grammar-normalize-chain")
         << "\tCreating type for next entry with sygus_ops ";
@@ -377,7 +376,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Corresponding type node to tn with the given operator positions. To be
    * retrieved (if cached) or defined (otherwise) */
   TypeNode unres_tn;
-  if (Trace.isOn("sygus-grammar-normalize-trie"))
+  if (TraceIsOn("sygus-grammar-normalize-trie"))
   {
     Trace("sygus-grammar-normalize-trie")
         << "\tRecursing on " << tn << " with op_positions ";
@@ -392,7 +391,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   std::sort(op_pos.begin(), op_pos.end());
   if (d_tries[tn].getOrMakeType(tn, unres_tn, op_pos))
   {
-    if (Trace.isOn("sygus-grammar-normalize-trie"))
+    if (TraceIsOn("sygus-grammar-normalize-trie"))
     {
       Trace("sygus-grammar-normalize-trie")
           << "\tTypenode " << tn << " has already been normalized with op_pos ";
@@ -404,7 +403,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     }
     return unres_tn;
   }
-  if (Trace.isOn("sygus-grammar-normalize-trie"))
+  if (TraceIsOn("sygus-grammar-normalize-trie"))
   {
     Trace("sygus-grammar-normalize-trie")
         << "\tTypenode " << tn << " not yet normalized with op_pos ";
@@ -471,7 +470,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     to.addConsInfo(this, dt[oi]);
   }
   /* Build normalize datatype */
-  if (Trace.isOn("sygus-grammar-normalize"))
+  if (TraceIsOn("sygus-grammar-normalize"))
   {
     Trace("sygus-grammar-normalize") << "\nFor positions ";
     for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
@@ -511,7 +510,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   normalizeSygusRec(tn);
   /* Resolve created types */
   Assert(!d_dt_all.empty() && !d_unres_t_all.empty());
-  if (Trace.isOn("sygus-grammar-normalize-build"))
+  if (TraceIsOn("sygus-grammar-normalize-build"))
   {
     Trace("sygus-grammar-normalize-build")
         << "making mutual datatyes with datatypes \n";
@@ -528,7 +527,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   }
   Assert(d_dt_all.size() == d_unres_t_all.size());
   std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
-      d_dt_all, d_unres_t_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      d_dt_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();
@@ -539,4 +538,4 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

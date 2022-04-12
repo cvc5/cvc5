@@ -1,0 +1,15 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic SLIA)
+
+(synth-fun f ((name String)) String
+    ((ntString String))
+    ((ntString String (name "A" "B"
+                        (str.++ ntString ntString)))))
+
+
+(declare-var name String)
+
+(constraint (= (f "B") "AAAAAAAAAAAAAAAAAAAAAAAAA"))
+
+(check-synth)

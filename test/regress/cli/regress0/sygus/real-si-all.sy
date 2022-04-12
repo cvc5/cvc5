@@ -1,0 +1,12 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic LRA)
+
+(synth-fun f ((x Real)) Real)
+
+(declare-var x Real)
+
+(constraint (and (< (/ 1500 3) (f x)) (< (f x) (/ 1507 3))))
+
+(check-synth)

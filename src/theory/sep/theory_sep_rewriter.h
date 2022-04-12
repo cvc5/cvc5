@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Mathias Preiner
+ *   Andres Noetzli, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Theory of separation logic rewriter.
  */
 
 #include "cvc5_private.h"
@@ -24,7 +21,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -50,6 +47,6 @@ class TheorySepRewriter : public TheoryRewriter
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SEP__THEORY_SEP_REWRITER_H */

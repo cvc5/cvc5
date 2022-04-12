@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,10 +14,10 @@
  */
 
 package tests;
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.Arrays;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,18 +27,22 @@ class GrammarTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void addRule()
+  @Test
+  void addRule()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
@@ -46,7 +50,7 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addRule(start, d_solver.mkBoolean(false)));
 
@@ -61,8 +65,10 @@ class GrammarTest
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_solver.mkBoolean(false)));
   }
 
-  @Test void addRules()
+  @Test
+  void addRules()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
@@ -70,7 +76,7 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addRules(start, new Term[] {d_solver.mkBoolean(false)}));
 
@@ -89,15 +95,17 @@ class GrammarTest
         CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_solver.mkBoolean(false)}));
   }
 
-  @Test void addAnyConstant()
+  @Test
+  void addAnyConstant()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
 
     Term nullTerm = d_solver.getNullTerm();
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addAnyConstant(start));
     assertDoesNotThrow(() -> g.addAnyConstant(start));
@@ -110,8 +118,10 @@ class GrammarTest
     assertThrows(CVC5ApiException.class, () -> g.addAnyConstant(start));
   }
 
-  @Test void addAnyVariable()
+  @Test
+  void addAnyVariable()
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
 
     Term nullTerm = d_solver.getNullTerm();
@@ -119,8 +129,8 @@ class GrammarTest
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
-    Grammar g1 = d_solver.mkSygusGrammar(new Term[] {x}, new Term[] {start});
-    Grammar g2 = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start});
+    Grammar g2 = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g1.addAnyVariable(start));
     assertDoesNotThrow(() -> g1.addAnyVariable(start));

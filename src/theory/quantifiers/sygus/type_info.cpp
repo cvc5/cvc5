@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -173,7 +173,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     TypeNode gtn = g.getType();
     AlwaysAssert(gtn.isSubtypeOf(btn))
         << "Sygus datatype " << dt.getName()
-        << " encodes terms that are not of type " << btn << std::endl;
+        << " encodes terms that are not of type " << btn << std::endl
+        << "Due to " << g << " of type " << gtn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
     Kind gk = g.getKind();
     if (gk == ITE)
@@ -190,7 +191,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       d_hasBoolConnective = true;
     }
-    if (Trace.isOn("sygus-db"))
+    if (TraceIsOn("sygus-db"))
     {
       Node eop = datatypes::utils::getExpandedDefinitionForm(sop);
       Trace("sygus-db") << "Expanded form: ";
@@ -515,4 +516,4 @@ bool SygusTypeInfo::isSubclassVarTrivial() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

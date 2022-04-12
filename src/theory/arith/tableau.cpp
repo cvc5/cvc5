@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King
+ *   Tim King, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "theory/arith/tableau.h"
 
 using namespace std;
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -30,7 +30,7 @@ void Tableau::pivot(ArithVar oldBasic, ArithVar newBasic, CoefficientChangeCallb
   Assert(!isBasic(newBasic));
   Assert(d_mergeBuffer.empty());
 
-  Debug("tableau") << "Tableau::pivot(" <<  oldBasic <<", " << newBasic <<")"  << endl;
+  Trace("tableau") << "Tableau::pivot(" <<  oldBasic <<", " << newBasic <<")"  << endl;
 
   RowIndex ridx = basicToRowIndex(oldBasic);
 
@@ -116,7 +116,7 @@ void Tableau::addRow(ArithVar basic,
   d_rowIndex2basic.set(newRow, basic);
 
 
-  if(Debug.isOn("matrix")){ printMatrix(); }
+  if(TraceIsOn("matrix")){ printMatrix(); }
 
   NoEffectCCCB noeffect;
   NoEffectCCCB* nep = &noeffect;
@@ -139,7 +139,7 @@ void Tableau::addRow(ArithVar basic,
     }
   }
 
-  if(Debug.isOn("matrix")) { printMatrix(); }
+  if(TraceIsOn("matrix")) { printMatrix(); }
 
   Assert(debugNoZeroCoefficients(newRow));
   Assert(debugMatchingCountsForRow(newRow));
@@ -193,4 +193,4 @@ void Tableau::printBasicRow(ArithVar basic, std::ostream& out){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

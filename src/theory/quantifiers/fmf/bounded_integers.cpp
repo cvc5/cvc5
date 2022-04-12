@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,9 +31,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -438,7 +438,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && d_env.isFiniteType(tn))
+          if ((tn.isUninterpretedSort() && d_env.isFiniteType(tn))
               || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
@@ -450,7 +450,7 @@ void BoundedIntegers::checkOwnership(Node f)
     }
   }while( success );
   
-  if( Trace.isOn("bound-int") ){
+  if( TraceIsOn("bound-int") ){
     Trace("bound-int") << "Bounds are : " << std::endl;
     for( unsigned i=0; i<f[0].getNumChildren(); i++) {
       Node v = f[0][i];
@@ -787,9 +787,8 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                             dt[index].getSelectorInternal(e.getType(), i),
-                             e);
+        Node se = nm->mkNode(
+            APPLY_SELECTOR, dt[index].getSelectorInternal(e.getType(), i), e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){
@@ -965,4 +964,4 @@ bool BoundedIntegers::isBoundedForallAttribute(Node var)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

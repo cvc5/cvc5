@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Francois Bobot
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -47,7 +47,7 @@ void InstMatch::debugPrint( const char* c ){
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
   {
     if( !d_vals[i].isNull() ){
-      Debug( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
+      Trace( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
   }
 }
@@ -103,4 +103,4 @@ bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

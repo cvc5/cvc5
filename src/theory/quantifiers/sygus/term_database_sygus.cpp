@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +32,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -258,7 +258,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   Trace("sygus-db-canon") << "  CanonizeBuiltin : compute for " << n << "\n";
   Node ret = n;
   // it is symbolic if it represents "any constant"
-  if (n.getKind() == APPLY_SELECTOR_TOTAL)
+  if (n.getKind() == APPLY_SELECTOR)
   {
     ret = getFreeVarInc(n[0].getType(), var_count, true);
   }
@@ -711,7 +711,7 @@ TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
 
 void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     std::stringstream ss;
     toStreamSygus(ss, n);
@@ -900,7 +900,7 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
                     argts.push_back(ntn);
                     argts.push_back(disj_types[r][d]);
                     argts.push_back(disj_types[1 - r][1 - dd]);
-                    if (Trace.isOn("sygus-cons-kind"))
+                    if (TraceIsOn("sygus-cons-kind"))
                     {
                       Trace("sygus-cons-kind")
                           << "Can construct kind " << k << " in " << tn
@@ -960,17 +960,23 @@ bool TermDbSygus::involvesDivByZero( Node n ) {
 }
 
 Node TermDbSygus::getAnchor( Node n ) {
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+  if (n.getKind() == APPLY_SELECTOR)
+  {
     return getAnchor( n[0] );
-  }else{
+  }
+  else
+  {
     return n;
   }
 }
 
 unsigned TermDbSygus::getAnchorDepth( Node n ) {
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+  if (n.getKind() == APPLY_SELECTOR)
+  {
     return 1+getAnchorDepth( n[0] );
-  }else{
+  }
+  else
+  {
     return 0;
   }
 }
@@ -990,7 +996,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   Assert(varlist.size() == args.size());
 
   Node res;
-  if (tryEval && options().quantifiers.sygusEvalOpt)
+  if (tryEval)
   {
     // Try evaluating, which is much faster than substitution+rewriting.
     // This may fail if there is a subterm of bn under the
@@ -1031,4 +1037,4 @@ bool TermDbSygus::isEvaluationPoint(Node n) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

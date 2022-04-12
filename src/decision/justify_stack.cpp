@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
 
 #include "decision/justify_stack.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 JustifyStack::JustifyStack(context::Context* c)
@@ -55,7 +55,7 @@ JustifyInfo* JustifyStack::getCurrent()
 
 void JustifyStack::pushToStack(TNode n, prop::SatValue desiredVal)
 {
-  if (Trace.isOn("jh-stack"))
+  if (TraceIsOn("jh-stack"))
   {
     for (size_t i = 0, ssize = d_stackSizeValid.get(); i < ssize; i++)
     {
@@ -87,4 +87,4 @@ JustifyInfo* JustifyStack::getOrAllocJustifyInfo(size_t i)
 }
 
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal

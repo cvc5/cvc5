@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,9 +13,9 @@
  * A simple demonstration of reasoning about relations with cvc5 via Java API.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class Relations
 {
@@ -113,7 +113,7 @@ public class Relations
 
       // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
       Term x = solver.mkVar(personSort, "x");
-      Term xxTuple = solver.mkTuple(new Sort[]{personSort, personSort}, new Term[] {x, x});
+      Term xxTuple = solver.mkTuple(new Sort[] {personSort, personSort}, new Term[] {x, x});
       Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
       Term notMember = solver.mkTerm(NOT, member);
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,10 +26,10 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5;
-using namespace cvc5::theory;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -208,7 +208,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
     {
       // if false, don't bother to reclaim memory here.
       NodeManager* nm = NodeManager::currentNM();
-      if (nm->poolSize() >= options().smt.zombieHuntThreshold)
+      if (nm->poolSize() >= zombieHuntThreshold)
       {
         verbose(2) << "..ite simplifier did quite a bit of work.. "
                << nm->poolSize() << endl;
@@ -216,7 +216,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
         d_env.getRewriter()->clearCaches();
-        nm->reclaimZombiesUntil(options().smt.zombieHuntThreshold);
+        nm->reclaimZombiesUntil(zombieHuntThreshold);
         verbose(2) << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
       }
@@ -241,12 +241,12 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
         {
           anyItes = true;
           Node res = aiteu.reduceVariablesInItes(curr);
-          Debug("arith::ite::red") << "@ " << i << " ... " << curr << endl
+          Trace("arith::ite::red") << "@ " << i << " ... " << curr << endl
                                    << "   ->" << res << endl;
           if (curr != res)
           {
             Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            Trace("arith::ite::red") << "  gcd->" << more << endl;
             Node morer = rewrite(more);
             assertionsToPreprocess->replace(i, morer);
           }
@@ -266,10 +266,10 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
             Node curr = (*assertionsToPreprocess)[i];
             Node next = rewrite(aiteu.applySubstitutions(curr));
             Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl
+            Trace("arith::ite::red") << "@ " << i << " ... " << next << endl
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            Trace("arith::ite::red") << "  gcd->" << more << endl;
             if (more != next)
             {
               anySuccess = true;
@@ -283,10 +283,10 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
             Node curr = (*assertionsToPreprocess)[i];
             Node next = rewrite(aiteu.applySubstitutions(curr));
             Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl
+            Trace("arith::ite::red") << "@ " << i << " ... " << next << endl
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            Trace("arith::ite::red") << "  gcd->" << more << endl;
             Node morer = rewrite(more);
             assertionsToPreprocess->replace(i, morer);
           }
@@ -336,4 +336,4 @@ PreprocessingPassResult ITESimp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

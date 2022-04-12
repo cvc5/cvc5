@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Morgan Deters
+ *   Tim King, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -101,9 +101,9 @@ void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev
 
     RowIndex ridx = entry.getRowIndex();
     BoundsInfo& counts = d_btracking.get(ridx);
-    Debug("includeBoundUpdate") << d_tableau.rowIndexToBasic(ridx) << " " << counts << " to " ;
+    Trace("includeBoundUpdate") << d_tableau.rowIndexToBasic(ridx) << " " << counts << " to " ;
     counts.addInChange(a_ijSgn, prev, curr);
-    Debug("includeBoundUpdate") << counts << " " << a_ijSgn << std::endl;
+    Trace("includeBoundUpdate") << counts << " " << a_ijSgn << std::endl;
   }
 }
 
@@ -182,7 +182,7 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
   ++(d_statistics.d_statUpdates);
 
 
-  Debug("arith") <<"update " << x_i << ": "
+  Trace("arith") <<"update " << x_i << ": "
                  << assignment_x_i << "|-> " << v << endl;
   DeltaRational diff = v - assignment_x_i;
 
@@ -203,7 +203,7 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
 
   d_variables.setAssignment(x_i, v);
 
-  if(Debug.isOn("paranoid:check_tableau")){  debugCheckTableau(); }
+  if(TraceIsOn("paranoid:check_tableau")){  debugCheckTableau(); }
 }
 
 void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
@@ -215,7 +215,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
   ++(d_statistics.d_statUpdates);
 
   DeltaRational diff =  v - d_variables.getAssignment(x_i);
-  Debug("arith") <<"update " << x_i << ": "
+  Trace("arith") <<"update " << x_i << ": "
                  << d_variables.getAssignment(x_i) << "|-> " << v << endl;
 
 
@@ -236,7 +236,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
 
     const DeltaRational& assignment = d_variables.getAssignment(x_j);
     DeltaRational  nAssignment = assignment+(diff * a_ji);
-    Debug("update") << x_j << " " << a_ji << assignment << " -> " << nAssignment << endl;
+    Trace("update") << x_j << " " << a_ji << assignment << " -> " << nAssignment << endl;
     BoundCounts xjBefore = d_variables.atBoundCounts(x_j);
     d_variables.setAssignment(x_j, nAssignment);
     BoundCounts xjAfter = d_variables.atBoundCounts(x_j);
@@ -253,7 +253,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
     d_basicVariableUpdates(x_j);
   }
 
-  if(Debug.isOn("paranoid:check_tableau")){  debugCheckTableau(); }
+  if(TraceIsOn("paranoid:check_tableau")){  debugCheckTableau(); }
 }
 
 void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& x_i_value){
@@ -261,15 +261,12 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
 
-  static int instance = 0;
-
-  if(Debug.isOn("arith::tracking::pre")){
-    ++instance;
-    Debug("arith::tracking")  << "pre update #" << instance << endl;
+  if(TraceIsOn("arith::tracking::pre")){
+    Trace("arith::tracking") << "pre update" << endl;
     debugCheckTracking();
   }
 
-  if(Debug.isOn("arith::simplex:row")){ debugPivot(x_i, x_j); }
+  if(TraceIsOn("arith::simplex:row")){ debugPivot(x_i, x_j); }
 
   RowIndex ridx = d_tableau.basicToRowIndex(x_i);
   const Tableau::Entry& entry_ij =  d_tableau.findEntry(ridx, x_j);
@@ -282,8 +279,8 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   updateTracked(x_j, x_j_value);
 
-  if(Debug.isOn("arith::tracking::mid")){
-    Debug("arith::tracking")  << "postupdate prepivot #" << instance << endl;
+  if(TraceIsOn("arith::tracking::mid")){
+    Trace("arith::tracking") << "postupdate prepivot" << endl;
     debugCheckTracking();
   }
 
@@ -292,14 +289,14 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   d_tableau.pivot(x_i, x_j, d_trackCallback);
 
-  if(Debug.isOn("arith::tracking::post")){
-    Debug("arith::tracking")  << "postpivot #" << instance << endl;
+  if(TraceIsOn("arith::tracking::post")){
+    Trace("arith::tracking") << "postpivot" << endl;
     debugCheckTracking();
   }
 
   d_basicVariableUpdates(x_j);
 
-  if(Debug.isOn("matrix")){
+  if(TraceIsOn("matrix")){
     d_tableau.printMatrix();
   }
 }
@@ -319,30 +316,30 @@ void LinearEqualityModule::debugCheckTracking(){
     endIter = d_tableau.endBasic();
   for(; basicIter != endIter; ++basicIter){
     ArithVar basic = *basicIter;
-    Debug("arith::tracking") << "arith::tracking row basic: " << basic << endl;
+    Trace("arith::tracking") << "arith::tracking row basic: " << basic << endl;
 
-    for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd() && Debug.isOn("arith::tracking"); ++iter){
+    for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd() && TraceIsOn("arith::tracking"); ++iter){
       const Tableau::Entry& entry = *iter;
 
       ArithVar var = entry.getColVar();
       const Rational& coeff = entry.getCoefficient();
       DeltaRational beta = d_variables.getAssignment(var);
-      Debug("arith::tracking") << var << " " << d_variables.boundsInfo(var)
+      Trace("arith::tracking") << var << " " << d_variables.boundsInfo(var)
                                << " " << beta << coeff;
       if(d_variables.hasLowerBound(var)){
-        Debug("arith::tracking") << "(lb " << d_variables.getLowerBound(var) << ")";
+        Trace("arith::tracking") << "(lb " << d_variables.getLowerBound(var) << ")";
       }
       if(d_variables.hasUpperBound(var)){
-        Debug("arith::tracking") << "(up " << d_variables.getUpperBound(var) << ")";
+        Trace("arith::tracking") << "(up " << d_variables.getUpperBound(var) << ")";
       }
-      Debug("arith::tracking") << endl;
+      Trace("arith::tracking") << endl;
     }
-    Debug("arith::tracking") << "end row"<< endl;
+    Trace("arith::tracking") << "end row"<< endl;
 
     if(basicIsTracked(basic)){
       RowIndex ridx = d_tableau.basicToRowIndex(basic);
       BoundsInfo computed = computeRowBoundInfo(ridx, false);
-      Debug("arith::tracking")
+      Trace("arith::tracking")
         << "computed " << computed
         << " tracking " << d_btracking[ridx] << endl;
       Assert(computed == d_btracking[ridx]);
@@ -351,7 +348,7 @@ void LinearEqualityModule::debugCheckTracking(){
 }
 
 void LinearEqualityModule::debugPivot(ArithVar x_i, ArithVar x_j){
-  Debug("arith::pivot") << "debugPivot("<< x_i  <<"|->"<< x_j << ")" << endl;
+  Trace("arith::pivot") << "debugPivot("<< x_i  <<"|->"<< x_j << ")" << endl;
 
   for(Tableau::RowIterator iter = d_tableau.basicRowIterator(x_i); !iter.atEnd(); ++iter){
     const Tableau::Entry& entry = *iter;
@@ -359,22 +356,22 @@ void LinearEqualityModule::debugPivot(ArithVar x_i, ArithVar x_j){
     ArithVar var = entry.getColVar();
     const Rational& coeff = entry.getCoefficient();
     DeltaRational beta = d_variables.getAssignment(var);
-    Debug("arith::pivot") << var << beta << coeff;
+    Trace("arith::pivot") << var << beta << coeff;
     if(d_variables.hasLowerBound(var)){
-      Debug("arith::pivot") << "(lb " << d_variables.getLowerBound(var) << ")";
+      Trace("arith::pivot") << "(lb " << d_variables.getLowerBound(var) << ")";
     }
     if(d_variables.hasUpperBound(var)){
-      Debug("arith::pivot") << "(up " << d_variables.getUpperBound(var) << ")";
+      Trace("arith::pivot") << "(up " << d_variables.getUpperBound(var) << ")";
     }
-    Debug("arith::pivot") << endl;
+    Trace("arith::pivot") << endl;
   }
-  Debug("arith::pivot") << "end row"<< endl;
+  Trace("arith::pivot") << "end row"<< endl;
 }
 
 /**
  * This check is quite expensive.
- * It should be wrapped in a Debug.isOn() guard.
- *   if(Debug.isOn("paranoid:check_tableau")){
+ * It should be wrapped in a TraceIsOn() guard.
+ *   if(TraceIsOn("paranoid:check_tableau")){
  *      checkTableau();
  *   }
  */
@@ -384,7 +381,7 @@ void LinearEqualityModule::debugCheckTableau(){
   for(; basicIter != endIter; ++basicIter){
     ArithVar basic = *basicIter;
     DeltaRational sum;
-    Debug("paranoid:check_tableau") << "starting row" << basic << endl;
+    Trace("paranoid:check_tableau") << "starting row" << basic << endl;
     Tableau::RowIterator nonbasicIter = d_tableau.basicRowIterator(basic);
     for(; !nonbasicIter.atEnd(); ++nonbasicIter){
       const Tableau::Entry& entry = *nonbasicIter;
@@ -393,11 +390,11 @@ void LinearEqualityModule::debugCheckTableau(){
 
       const Rational& coeff = entry.getCoefficient();
       DeltaRational beta = d_variables.getAssignment(nonbasic);
-      Debug("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;
+      Trace("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;
       sum = sum + (beta*coeff);
     }
     DeltaRational shouldBe = d_variables.getAssignment(basic);
-    Debug("paranoid:check_tableau") << "ending row" << sum
+    Trace("paranoid:check_tableau") << "ending row" << sum
                                     << "," << shouldBe << endl;
 
     Assert(sum == shouldBe);
@@ -523,12 +520,12 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
   }
 
   ArithVar v = c->getVariable();
-  Debug("arith::propagateRow") << "LinearEqualityModule::propagateRow("
+  Trace("arith::propagateRow") << "LinearEqualityModule::propagateRow("
                                    << ridx << ", " << rowUp << ", " << v << ") start" << endl;
 
   const Rational& multiple = rowUp ? d_one : d_negOne;
 
-  Debug("arith::propagateRow") << "multiple: " << multiple << endl;
+  Trace("arith::propagateRow") << "multiple: " << multiple << endl;
 
   Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
   for(; !iter.atEnd(); ++iter){
@@ -544,28 +541,28 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
            || (!rowUp && a_ij.sgn() > 0 && c->isUpperBound())
            || (!rowUp && a_ij.sgn() < 0 && c->isLowerBound()));
 
-    if(Debug.isOn("arith::propagateRow")){
+    if(TraceIsOn("arith::propagateRow")){
       if(nonbasic == v){
-        Debug("arith::propagateRow") << "(target) "
+        Trace("arith::propagateRow") << "(target) "
                                      << rowUp << " "
                                      << a_ij.sgn() << " "
                                      << c->isLowerBound() << " "
                                      << c->isUpperBound() << endl;
 
-        Debug("arith::propagateRow") << "(target) ";
+        Trace("arith::propagateRow") << "(target) ";
       }
-      Debug("arith::propagateRow") << "propagateRow " << a_ij << " * " << nonbasic ;
+      Trace("arith::propagateRow") << "propagateRow " << a_ij << " * " << nonbasic ;
     }
 
     if(nonbasic == v){
       if(farkas != RationalVectorPSentinel){
         Assert(farkas->front().isZero());
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "(" << multAij << ") ";
+        Trace("arith::propagateRow") << "(" << multAij << ") ";
         farkas->front() = multAij;
       }
 
-      Debug("arith::propagateRow") << c << endl;
+      Trace("arith::propagateRow") << c << endl;
     }else{
 
       ConstraintCP bound = selectUb
@@ -574,15 +571,15 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
 
       if(farkas != RationalVectorPSentinel){
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "(" << multAij << ") ";
+        Trace("arith::propagateRow") << "(" << multAij << ") ";
         farkas->push_back(multAij);
       }
       Assert(bound != NullConstraint);
-      Debug("arith::propagateRow") << bound << endl;
+      Trace("arith::propagateRow") << bound << endl;
       into.push_back(bound);
     }
   }
-  Debug("arith::propagateRow") << "LinearEqualityModule::propagateRow("
+  Trace("arith::propagateRow") << "LinearEqualityModule::propagateRow("
                                    << ridx << ", " << rowUp << ", " << v << ") done" << endl;
 
 }
@@ -620,11 +617,11 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
         anyWeakening = true;
         surplus = surplus - diff;
 
-        Debug("arith::weak") << "found:" << endl;
+        Trace("arith::weak") << "found:" << endl;
         if(v == basic){
-          Debug("arith::weak") << "  basic: ";
+          Trace("arith::weak") << "  basic: ";
         }
-        Debug("arith::weak") << "  " << surplus << " "<< diff  << endl
+        Trace("arith::weak") << "  " << surplus << " "<< diff  << endl
                              << "  " << bound << c << endl
                              << "  " << weakerBound << weaker << endl;
 
@@ -675,7 +672,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
   Assert(!fcs.underConstruction());
   TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
 
-  Debug("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
+  Trace("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
                        << aboveUpper <<", "<< basicVar << ", ...) start" << endl;
 
   const Rational& adjustSgn = aboveUpper ? d_negOne : d_one;
@@ -698,7 +695,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
     const Rational& coeff = entry.getCoefficient();
     bool weakening = false;
     ConstraintP c = weakestExplanation(aboveUpper, surplus, v, coeff, weakening, basicVar);
-    Debug("arith::weak") << "weak : " << weakening << " "
+    Trace("arith::weak") << "weak : " << weakening << " "
                          << c->assertedToTheTheory() << " "
                          << d_variables.getAssignment(v) << " "
                          << c << endl;
@@ -718,7 +715,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
   if(anyWeakenings){
     ++d_statistics.d_weakeningSuccesses;
   }
-  Debug("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
+  Trace("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
                        << aboveUpper <<", "<< basicVar << ", ...) done" << endl;
   return conflicted;
 }
@@ -825,7 +822,7 @@ const Tableau::Entry* LinearEqualityModule::selectSlackEntry(ArithVar x_i, bool 
 void LinearEqualityModule::startTrackingBoundCounts(){
   Assert(!d_areTracking);
   d_areTracking = true;
-  if(Debug.isOn("arith::tracking")){
+  if(TraceIsOn("arith::tracking")){
     debugCheckTracking();
   }
   Assert(d_areTracking);
@@ -834,7 +831,7 @@ void LinearEqualityModule::startTrackingBoundCounts(){
 void LinearEqualityModule::stopTrackingBoundCounts(){
   Assert(d_areTracking);
   d_areTracking = false;
-  if(Debug.isOn("arith::tracking")){
+  if(TraceIsOn("arith::tracking")){
     debugCheckTracking();
   }
   Assert(!d_areTracking);
@@ -896,7 +893,7 @@ bool LinearEqualityModule::basicsAtBounds(const UpdateInfo& u) const {
   nonb = nonb.multiplyBySgn(-coeffSgn);
 
   uint32_t length = d_tableau.basicRowLength(basic);
-  Debug("basicsAtBounds")
+  Trace("basicsAtBounds")
     << "bcs " << bcs
     << "nonb " << nonb
     << "length " << length << endl;
@@ -1022,10 +1019,10 @@ bool LinearEqualityModule::accumulateBorder(const Tableau::Entry& entry, bool ub
     //   else, inc
 
     if(increasing){
-      Debug("handleBorders") << "push back increasing " << border << endl;
+      Trace("handleBorders") << "push back increasing " << border << endl;
       d_increasing.push_back(border);
     }else{
-      Debug("handleBorders") << "push back decreasing " << border << endl;
+      Trace("handleBorders") << "push back decreasing " << border << endl;
       d_decreasing.push_back(border);
     }
     return false;
@@ -1118,24 +1115,22 @@ UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& 
 
   int focusCoeffSgn = focusCoeff.sgn();
 
-  static int instance = 0;
-  ++instance;
-  Debug("speculativeUpdate") << "speculativeUpdate " << instance << endl;
-  Debug("speculativeUpdate") << "nb " << nb << endl;
-  Debug("speculativeUpdate") << "focusCoeff " << focusCoeff << endl;
+  Trace("speculativeUpdate") << "speculativeUpdate" << endl;
+  Trace("speculativeUpdate") << "nb " << nb << endl;
+  Trace("speculativeUpdate") << "focusCoeff " << focusCoeff << endl;
 
   if(d_variables.hasUpperBound(nb)){
     ConstraintP ub = d_variables.getUpperBoundConstraint(nb);
     d_upperBoundDifference = ub->getValue() - d_variables.getAssignment(nb);
     Border border(ub, *d_upperBoundDifference, false, NULL, true);
-    Debug("handleBorders") << "push back increasing " << border << endl;
+    Trace("handleBorders") << "push back increasing " << border << endl;
     d_increasing.push_back(border);
   }
   if(d_variables.hasLowerBound(nb)){
     ConstraintP lb = d_variables.getLowerBoundConstraint(nb);
     d_lowerBoundDifference = lb->getValue() - d_variables.getAssignment(nb);
     Border border(lb, *d_lowerBoundDifference, false, NULL, false);
-    Debug("handleBorders") << "push back decreasing " << border << endl;
+    Trace("handleBorders") << "push back decreasing " << border << endl;
     d_decreasing.push_back(border);
   }
 
@@ -1184,7 +1179,7 @@ void LinearEqualityModule::handleBorders(UpdateInfo& selected, ArithVar nb, cons
 
   int fixesRemaining = heap.possibleFixes();
 
-  Debug("handleBorders")
+  Trace("handleBorders")
     << "handleBorders "
     << "nb " << nb
     << "fc " << focusCoeff
@@ -1261,7 +1256,7 @@ void LinearEqualityModule::handleBorders(UpdateInfo& selected, ArithVar nb, cons
     DeltaRational blockChangeToFocus =  diff * effectiveCoefficient;
     totalFocusChange += blockChangeToFocus;
 
-    Debug("handleBorders")
+    Trace("handleBorders")
       << "blockValue " << (blockValue)
       << "diff " << diff
       << "blockChangeToFocus " << totalFocusChange
@@ -1275,7 +1270,7 @@ void LinearEqualityModule::handleBorders(UpdateInfo& selected, ArithVar nb, cons
     for(BorderVec::const_iterator i = startBlock; i != endBlock; ++i){
       const Border& b = *i;
 
-      Debug("handleBorders") << b << endl;
+      Trace("handleBorders") << b << endl;
 
       bool makesImprovement = negErrorChange > 0 ||
         (negErrorChange == 0  && currFocusChangeSgn > 0);
@@ -1377,4 +1372,4 @@ void LinearEqualityModule::directlyAddToCoefficient(ArithVar row, ArithVar col, 
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

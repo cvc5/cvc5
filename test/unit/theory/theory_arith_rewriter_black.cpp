@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
@@ -31,7 +31,6 @@ class TestTheoryArithRewriterBlack : public TestSmt
 
 TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 {
-  Trace.on("arith-rewriter");
   {
     RealAlgebraicNumber two({-8, 0, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(two);
@@ -116,4 +115,4 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

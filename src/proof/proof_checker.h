@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "proof/proof_rule.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 class ProofNode;
@@ -109,6 +109,8 @@ class ProofChecker
                uint32_t pclevel = 0,
                rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
+  /** Reset, which clears the rule checkers */
+  void reset();
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not
    * well-formed. If expected is non-null, then we return null if pn does not
@@ -212,6 +214,6 @@ class ProofChecker
                      bool enableOutput);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_CHECKER_H */

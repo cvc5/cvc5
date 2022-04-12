@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz
+ *   Martin Brain, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace symfpuLiteral {
 
 template <bool isSigned>
@@ -410,4 +410,4 @@ void traits::invariant(const traits::prop& p)
   return;
 }
 }  // namespace symfpuLiteral
-}  // namespace cvc5
+}  // namespace cvc5::internal

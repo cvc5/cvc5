@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Morgan Deters, Mathias Preiner
+ *   Tim King, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,10 +31,10 @@
 #include "util/rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -64,7 +64,6 @@ class DioSolver : protected EnvObj
    * This is the next input constraint to handle.
    */
   context::CDO<size_t> d_nextInputConstraintToEnqueue;
-
 
   /**
    * We maintain a map from the variables associated with proofs to an input constraint.
@@ -109,7 +108,8 @@ class DioSolver : protected EnvObj
   // /** Compare by d_minimal. */
   // struct TrailMinimalCoefficientOrder {
   //   const context::CDList<Constraint>& d_trail;
-  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
+  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>&
+  //   trail):
   //     d_trail(trail)
   //   {}
 
@@ -157,7 +157,7 @@ class DioSolver : protected EnvObj
    * the maximum input constraints length than 2**MAX_GROWTH_RATE.
    */
   context::CDO<uint32_t> d_maxInputCoefficientLength;
-  static const uint32_t MAX_GROWTH_RATE = 3;
+  static constexpr uint32_t MAX_GROWTH_RATE = 3;
 
   /** Returns true if the element on the trail should be dropped.*/
   bool anyCoefficientExceedsMaximum(TrailIndex j) const;
@@ -175,8 +175,7 @@ class DioSolver : protected EnvObj
    */
   context::CDQueue<TrailIndex> d_decompositionLemmaQueue;
 
-public:
-
+ public:
   /** Construct a Diophantine equation solver with the given context. */
  DioSolver(Env& env);
 
@@ -298,7 +297,7 @@ private:
   /** Solves the index at ti for the value in minimumMonomial. */
   std::pair<SubIndex, TrailIndex> solveIndex(TrailIndex ti);
 
-  /** Prints the queue for debugging purposes to Debug("arith::dio"). */
+  /** Prints the queue for debugging purposes to Trace("arith::dio"). */
   void printQueue();
 
   /**
@@ -420,6 +419,6 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__DIO_SOLVER_H */

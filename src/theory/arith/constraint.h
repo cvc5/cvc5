@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Alex Ozdemir, Haniel Barbosa
+ *   Tim King, Alex Ozdemir, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,14 +94,14 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::context {
+class Context;
+}
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
 
-namespace context {
-class Context;
-}
 namespace theory {
 
 namespace arith {
@@ -152,21 +152,21 @@ enum ArithProofType
  */
 enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
-
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
 typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
 typedef size_t ConstraintRuleID;
-static const ConstraintRuleID ConstraintRuleIdSentinel = std::numeric_limits<ConstraintRuleID>::max();
+static constexpr ConstraintRuleID ConstraintRuleIdSentinel =
+    std::numeric_limits<ConstraintRuleID>::max();
 
 typedef size_t AntecedentId;
-static const AntecedentId AntecedentIdSentinel = std::numeric_limits<AntecedentId>::max();
-
+static constexpr AntecedentId AntecedentIdSentinel =
+    std::numeric_limits<AntecedentId>::max();
 
 typedef size_t AssertionOrder;
-static const AssertionOrder AssertionOrderSentinel = std::numeric_limits<AssertionOrder>::max();
-
+static constexpr AssertionOrder AssertionOrderSentinel =
+    std::numeric_limits<AssertionOrder>::max();
 
 /**
  * A ValueCollection binds together convex constraints that have the same
@@ -1033,12 +1033,13 @@ class ConstraintDatabase : protected EnvObj
    */
   CDConstraintList d_antecedents;
 
-  typedef context::CDList<ConstraintRule, Constraint::ConstraintRuleCleanup> ConstraintRuleList;
-  typedef context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup> CBPList;
-  typedef context::CDList<ConstraintP, Constraint::AssertionOrderCleanup> AOList;
+  typedef context::CDList<ConstraintRule, Constraint::ConstraintRuleCleanup>
+      ConstraintRuleList;
+  typedef context::CDList<ConstraintP, Constraint::CanBePropagatedCleanup>
+      CBPList;
+  typedef context::CDList<ConstraintP, Constraint::AssertionOrderCleanup>
+      AOList;
   typedef context::CDList<ConstraintP, Constraint::SplitCleanup> SplitList;
-
-
 
   /**
    * The watch lists are collected together as they need to be garbage collected
@@ -1261,6 +1262,6 @@ class ConstraintDatabase : protected EnvObj
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__CONSTRAINT_H */

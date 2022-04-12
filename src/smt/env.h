@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,15 @@
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
+#include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
+namespace cvc5::internal {
 
 class NodeManager;
 class StatisticsRegistry;
@@ -37,11 +43,6 @@ namespace options {
 enum class OutputTag;
 }
 using OutputTag = options::OutputTag;
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 namespace smt {
 class PfManager;
@@ -156,14 +157,14 @@ class Env
   /**
    * Return the output stream for the given output tag (as a string). If the
    * output tag is enabled, this returns the output stream from the `out`
-   * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
+   * option. Otherwise, a null stream (`cvc5::internal::null_os`) is returned.
    */
   std::ostream& output(const std::string& tag) const;
 
   /**
    * Return the output stream for the given output tag. If the output tag is
    * enabled, this returns the output stream from the `out` option. Otherwise,
-   * a null stream (`cvc5::null_os`) is returned. The user of this method needs
+   * a null stream (`cvc5::internal::null_os`) is returned. The user of this method needs
    * to make sure that a proper S-expression is printed.
    */
   std::ostream& output(OutputTag tag) const;
@@ -177,7 +178,7 @@ class Env
   /**
    * Return the output stream for the given verbosity level. If the verbosity
    * level is enabled, this returns the output stream from the `err` option.
-   * Otherwise, a null stream (`cvc5::null_os`) is returned.
+   * Otherwise, a null stream (`cvc5::internal::null_os`) is returned.
    */
   std::ostream& verbose(int64_t level) const;
 
@@ -234,6 +235,26 @@ class Env
    * based on the assertions.
    */
   bool isFiniteType(TypeNode tn) const;
+
+  /**
+   * Set the owner of the uninterpreted sort.
+   */
+  void setUninterpretedSortOwner(theory::TheoryId theory);
+
+  /**
+   * Get the owner of the uninterpreted sort.
+   */
+  theory::TheoryId getUninterpretedSortOwner() const;
+
+  /**
+   * Return the ID of the theory responsible for the given type.
+   */
+  theory::TheoryId theoryOf(TypeNode typeNode) const;
+
+  /**
+   * Returns the ID of the theory responsible for the given node.
+   */
+  theory::TheoryId theoryOf(TNode node) const;
 
  private:
   /* Private initialization ------------------------------------------------- */
@@ -301,15 +322,17 @@ class Env
    */
   Options d_options;
   /**
-   * A pointer to the original options object as stored in the api::Solver.
+   * A pointer to the original options object as stored in the cvc5::Solver.
    * The referenced objects holds the options as initially parsed before being
    * changed, e.g., by setDefaults().
    */
   const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
+  /** The theory that owns the uninterpreted sort. */
+  theory::TheoryId d_uninterpretedSortOwner;
 }; /* class Env */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__ENV_H */

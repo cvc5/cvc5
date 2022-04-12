@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* stores an index to Datatype residing in NodeManager */
 class DatatypeIndexConstant
@@ -65,6 +65,6 @@ struct DatatypeIndexConstantHashFunction
   size_t operator()(const DatatypeIndexConstant& dic) const;
 }; /* struct DatatypeIndexConstantHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DATATYPE_H */

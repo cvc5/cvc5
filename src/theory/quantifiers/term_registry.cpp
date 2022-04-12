@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -98,7 +98,9 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
       || options().quantifiers.termDbCd)
   {
     d_termDb->addTerm(n);
-    if (d_sygusTdb.get() && options().quantifiers.sygusEvalUnfold)
+    if (d_sygusTdb.get()
+        && options().quantifiers.sygusEvalUnfoldMode
+               != options::SygusEvalUnfoldMode::NONE)
     {
       d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
     }
@@ -152,4 +154,4 @@ FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

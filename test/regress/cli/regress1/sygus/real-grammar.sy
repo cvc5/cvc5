@@ -1,0 +1,14 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none
+
+(set-logic LRA)
+
+(synth-fun f ((x Real)) Real)
+
+(declare-var x Real)
+
+(constraint (and (< 0 (f x)) (< (f x) 1)))
+
+(check-synth)
+
+; any number between 0 and 1 is a solution, e.g. (f x) = (/ 1 (+ 1 1))

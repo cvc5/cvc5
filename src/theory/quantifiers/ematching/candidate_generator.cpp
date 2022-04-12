@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -41,7 +41,7 @@ CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_treg.getTermDatabase()->isTermActive(n)
-         && (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n));
+         && !quantifiers::TermUtil::hasInstConstAttr(n);
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
@@ -110,7 +110,7 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
       d_mode = cand_term_none;
       return Node::null();
     }
-    Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
+    Trace("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     size_t tlLimit = d_termIterList->d_list.size();
     while (d_termIter < tlLimit)
@@ -125,7 +125,7 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
           }else{
             Node r = d_qs.getRepresentative(n);
             if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
-              Debug("cand-gen-qe") << "...returning " << n << std::endl;
+              Trace("cand-gen-qe") << "...returning " << n << std::endl;
               return n;
             }
           }
@@ -133,17 +133,17 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
       }
     }
   }else if( d_mode==cand_term_eqc ){
-    Debug("cand-gen-qe") << "...get next candidate in eqc" << std::endl;
+    Trace("cand-gen-qe") << "...get next candidate in eqc" << std::endl;
     while( !d_eqc_iter.isFinished() ){
       Node n = *d_eqc_iter;
       ++d_eqc_iter;
       if( isLegalOpCandidate( n ) ){
-        Debug("cand-gen-qe") << "...returning " << n << std::endl;
+        Trace("cand-gen-qe") << "...returning " << n << std::endl;
         return n;
       }
     }
   }else if( d_mode==cand_term_ident ){
-    Debug("cand-gen-qe") << "...get next candidate identity" << std::endl;
+    Trace("cand-gen-qe") << "...get next candidate identity" << std::endl;
     if (!d_eqc.isNull())
     {
       Node n = d_eqc;
@@ -291,7 +291,7 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
   for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {
     Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(d_mpat_type, i), curr);
+        APPLY_SELECTOR, dt[0].getSelectorInternal(d_mpat_type, i), curr);
     children.push_back(sel);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, children);
@@ -316,12 +316,12 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   if (mpatExp.getKind() == ITE)
   {
-    Assert(mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
+    Assert(mpatExp[1].getKind() == APPLY_SELECTOR);
     Assert(mpatExp[2].getKind() == APPLY_UF);
     d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[1]);
     d_ufOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[2]);
   }
-  else if (mpatExp.getKind() == APPLY_SELECTOR_TOTAL)
+  else if (mpatExp.getKind() == APPLY_SELECTOR)
   {
     // corner case of datatype with one constructor
     d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);
@@ -372,4 +372,4 @@ Node CandidateGeneratorSelector::getNextCandidate()
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

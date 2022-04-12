@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Piotr Trojanek
+ *   Tim King, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -50,7 +50,7 @@ Node ArithIteUtils::applyReduceVariablesInItes(Node n){
 }
 
 Node ArithIteUtils::reduceVariablesInItes(Node n){
-  using namespace cvc5::kind;
+  using namespace cvc5::internal::kind;
   if(d_reduceVar.find(n) != d_reduceVar.end()){
     Node res = d_reduceVar[n];
     return res.isNull() ? n : res;
@@ -181,7 +181,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
   if(d_gcds.find(n) != d_gcds.end()){
     return d_gcds[n];
   }
-  if(n.getKind() == kind::CONST_RATIONAL){
+  if (n.isConst())
+  {
     const Rational& q = n.getConst<Rational>();
     if(q.isIntegral()){
       d_gcds[n] = q.getNumerator();
@@ -283,7 +284,7 @@ unsigned ArithIteUtils::getSubCount() const{
 }
 
 void ArithIteUtils::addSubstitution(TNode f, TNode t){
-  Debug("arith::ite") << "adding " << f << " -> " << t << endl;
+  Trace("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
   d_subs.addSubstitution(f, t);
 }
@@ -418,7 +419,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   Assert(l.getKind() == kind::EQUAL);
   Assert(r.getKind() == kind::EQUAL);
 
-  Debug("arith::ite") << "bin or " << n << endl;
+  Trace("arith::ite") << "bin or " << n << endl;
 
   bool lArithEq = l.getKind() == kind::EQUAL && l[0].getType().isInteger();
   bool rArithEq = r.getKind() == kind::EQUAL && r[0].getType().isInteger();
@@ -436,10 +437,10 @@ bool ArithIteUtils::solveBinOr(TNode binor){
     }else if(l[1] == r[1]){
       sel = l[1]; otherL = l[0]; otherR = r[0];
     }
-    Debug("arith::ite") << "selected " << sel << endl;
+    Trace("arith::ite") << "selected " << sel << endl;
     if(sel.isVar() && sel.getKind() != kind::SKOLEM){
 
-      Debug("arith::ite") << "others l:" << otherL << " r " << otherR << endl;
+      Trace("arith::ite") << "others l:" << otherL << " r " << otherR << endl;
       Node useForCmpL = selectForCmp(otherL);
       Node useForCmpR = selectForCmp(otherR);
 
@@ -450,7 +451,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       Polynomial rside = Polynomial::parsePolynomial( useForCmpR );
       Polynomial diff = lside-rside;
 
-      Debug("arith::ite") << "diff: " << diff.getNode() << endl;
+      Trace("arith::ite") << "diff: " << diff.getNode() << endl;
       if(diff.isConstant()){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
@@ -472,4 +473,4 @@ bool ArithIteUtils::solveBinOr(TNode binor){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

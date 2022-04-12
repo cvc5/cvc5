@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,19 +29,19 @@
   catch (const CVC5ApiOptionException& e)                                 \
   {                                                                       \
     jclass exceptionClass =                                               \
-        env->FindClass("io/github/cvc5/api/CVC5ApiOptionException");      \
+        env->FindClass("io/github/cvc5/CVC5ApiOptionException");      \
     env->ThrowNew(exceptionClass, e.what());                              \
   }                                                                       \
   catch (const CVC5ApiRecoverableException& e)                            \
   {                                                                       \
     jclass exceptionClass =                                               \
-        env->FindClass("io/github/cvc5/api/CVC5ApiRecoverableException"); \
+        env->FindClass("io/github/cvc5/CVC5ApiRecoverableException"); \
     env->ThrowNew(exceptionClass, e.what());                              \
   }                                                                       \
   catch (const CVC5ApiException& e)                                       \
   {                                                                       \
     jclass exceptionClass =                                               \
-        env->FindClass("io/github/cvc5/api/CVC5ApiException");            \
+        env->FindClass("io/github/cvc5/CVC5ApiException");            \
     env->ThrowNew(exceptionClass, e.what());                              \
   }
 #define CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, returnValue) \
