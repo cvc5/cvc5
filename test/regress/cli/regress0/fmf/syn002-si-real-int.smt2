@@ -6,6 +6,6 @@
 (declare-fun $$rtu (Real) $$unsorted)
 (declare-fun $$utr ($$unsorted) Real)
 (declare-fun p ($$unsorted) Bool)
-(assert (and (= ($$utr ($$rtu 12)) 12) (= ($$utr ($$rtu (/ 41 152))) (/ 41 152)) ))
+(assert (and (= ($$utr ($$rtu 12.0)) 12.0) (= ($$utr ($$rtu (/ 41 152))) (/ 41 152)) ))
 (assert (forall ((x $$unsorted)) (p x)))
 (check-sat)
