@@ -31,9 +31,7 @@ bool OracleChecker::checkConsistent(Node app,
   Node result = evaluateApp(app);
   if (result != val)
   {
-    NodeManager* nm = NodeManager::currentNM();
-    Node lemma = nm->mkNode(kind::EQUAL, result, app);
-    lemmas.push_back(lemma);
+    lemmas.push_back(result.eqNode(app));
     return false;
   }
   return true;
