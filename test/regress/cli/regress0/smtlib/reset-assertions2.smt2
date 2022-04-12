@@ -8,7 +8,7 @@
 (declare-fun y () Real)
 (assert (> x 0.0))
 (assert (> y 0.0))
-(assert (= (+ (* 2 x) y) 4))
+(assert (= (+ (* 2.0 x) y) 4.0))
 (check-sat)
 (reset-assertions)
 

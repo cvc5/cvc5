@@ -329,14 +329,15 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
                                         && c->getValue().sgn() > 0);
       const int cSign = scaleCNegatively ? -1 : 1;
       TNode isZero = d_watchedEqualities[s];
+      TypeNode type = isZero[0].getType();
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
       const auto sumPf =
           d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                         {isZeroPf, pf},
                         // Trick for getting correct, opposing signs.
-                        {nm->mkConst(CONST_RATIONAL, Rational(-1 * cSign)),
-                         nm->mkConst(CONST_RATIONAL, Rational(cSign))});
+                        {nm->mkConstRealOrInt(type, Rational(-1 * cSign)),
+                         nm->mkConstRealOrInt(type, Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};

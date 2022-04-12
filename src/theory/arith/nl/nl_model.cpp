@@ -519,8 +519,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     Assert(false);
     return false;
   }
-  Node val = nm->mkConst(CONST_RATIONAL,
-                         -c.getConst<Rational>() / b.getConst<Rational>());
+  Node val = nm->mkConstReal(-c.getConst<Rational>() / b.getConst<Rational>());
   if (TraceIsOn("nl-ext-cm"))
   {
     Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
@@ -1086,8 +1085,9 @@ Node NlModel::getValueInternal(TNode n)
   // to mapping from the linear solver. This ensures that if the nonlinear
   // solver assumes that n = 0, then this assumption is recorded in the overall
   // model.
-  d_arithVal[n] = d_zero;
-  return d_zero;
+  Node zero = mkZero(n.getType());
+  d_arithVal[n] = zero;
+  return zero;
 }
 
 bool NlModel::hasAssignment(Node v) const
