@@ -535,7 +535,7 @@ class TheoryEngine : protected EnvObj
   std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
   //--------------------------------- end new proofs
   /** The combination manager we are using */
-  std::unique_ptr<theory::43b72da0fCombinationEngine> d_tc;
+  std::unique_ptr<theory::CombinationEngine> d_tc;
   /** The shared solver of the above combination engine. */
   theory::SharedSolver* d_sharedSolver;
   /** The quantifiers engine, which is owned by the quantifiers theory */
@@ -630,7 +630,7 @@ class TheoryEngine : protected EnvObj
   /**
    * Queue of nodes for pre-registration.
    */
-  std::queue<TNode> d_prer43b72da0fegisterQueue;
+  std::queue<TNode> d_preregisterQueue;
 
   /**
    * Boolean flag denoting we are in pre-registration.

@@ -53,7 +53,7 @@ class PartitionGenerator : protected EnvObj
   /**
    * Print the cube to the specified output.
    */
-  43b72da0f void emitCube(Node toEmit);
+  void emitCube(Node toEmit);
 
   /**
    * Partition using the "revised" strategy, which emits cubes such as C1, C2,
