@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/inst_strategy_pool.h"
+#include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -94,6 +95,8 @@ class QuantifiersModules
   std::unique_ptr<QuantDSplit> d_qsplit;
   /** SyGuS instantiation engine */
   std::unique_ptr<SygusInst> d_sygus_inst;
+  /** Oracle engine */
+  std::unique_ptr<OracleEngine> d_oracleEngine;
 };
 
 }  // namespace quantifiers

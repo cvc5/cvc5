@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -783,27 +783,27 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def")
             << "  ...create auxiliary Positive Integers grammar\n";
-        // Creating type for positive integers. Notice we can't use the any
-        // constant constructor here, since it admits zero.
+        // Creating type for positive integral reals. Notice we can't use the
+        // any constant constructor here, since it admits zero.
         std::stringstream ss;
-        ss << fun << "_PosInt";
-        std::string pos_int_name = ss.str();
+        ss << fun << "_PosIReal";
+        std::string posIRealName = ss.str();
         // make unresolved type
-        TypeNode unresPosInt = mkUnresolvedType(pos_int_name, unres);
-        unres_types.push_back(unresPosInt);
-        // make data type for positive constant integers
-        sdts.push_back(SygusDatatypeGenerator(pos_int_name));
+        TypeNode unresPosIReal = mkUnresolvedType(posIRealName, unres);
+        unres_types.push_back(unresPosIReal);
+        // make data type for positive constant integral reals
+        sdts.push_back(SygusDatatypeGenerator(posIRealName));
         /* Add operator 1 */
-        Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
+        Trace("sygus-grammar-def") << "\t...add for 1.0 to PosIReal\n";
         std::vector<TypeNode> cargsEmpty;
         sdts.back().addConstructor(
-            nm->mkConstInt(Rational(1)), "1", cargsEmpty);
+            nm->mkConstReal(Rational(1)), "1", cargsEmpty);
         /* Add operator ADD */
         Kind kind = ADD;
-        Trace("sygus-grammar-def") << "\t...add for ADD to Pos_Int\n";
+        Trace("sygus-grammar-def") << "\t...add for ADD to PosIReal\n";
         std::vector<TypeNode> cargsPlus;
-        cargsPlus.push_back(unresPosInt);
-        cargsPlus.push_back(unresPosInt);
+        cargsPlus.push_back(unresPosIReal);
+        cargsPlus.push_back(unresPosIReal);
         sdts.back().addConstructor(kind, cargsPlus);
         sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
         Trace("sygus-grammar-def")
@@ -813,7 +813,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "\t...add for " << kind << std::endl;
         std::vector<TypeNode> cargsDiv;
         cargsDiv.push_back(unres_t);
-        cargsDiv.push_back(unresPosInt);
+        cargsDiv.push_back(unresPosIReal);
         sdts[i].addConstructor(kind, cargsDiv);
       }
     }

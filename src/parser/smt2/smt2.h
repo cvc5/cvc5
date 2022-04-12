@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -225,23 +225,8 @@ class Smt2 : public Parser
   cvc5::Grammar* mkGrammar(const std::vector<cvc5::Term>& boundVars,
                            const std::vector<cvc5::Term>& ntSymbols);
 
-  /**
-   * Are we using smtlib 2.6 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6.
-   */
-  bool v2_6(bool exact = false) const
-  {
-    return d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6";
-  }
   /** Are we using a sygus language? */
   bool sygus() const;
-
-  /**
-   * Returns true if the language that we are parsing (SMT-LIB version >=2.5
-   * and SyGuS) treats duplicate double quotes ("") as an escape sequence
-   * denoting a single double quote (").
-   */
-  bool escapeDupDblQuote() const { return v2_6() || sygus(); }
 
   void checkThatLogicIsSet();
 
@@ -292,12 +277,13 @@ class Smt2 : public Parser
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
 
-  /** Make abstract value
+  /**
+   * Make real or int from numeral string.
    *
-   * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isUninterpretedSortValue(name) is true.
+   * In particular, if arithmetic is enabled, but integers are disabled, then
+   * we construct a real. Otherwise, we construct an integer.
    */
-  cvc5::Term mkUninterpretedSortValue(const std::string& name);
+  cvc5::Term mkRealOrIntFromNumeral(const std::string& str);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the

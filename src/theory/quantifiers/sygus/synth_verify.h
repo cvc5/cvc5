@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,6 +52,12 @@ class SynthVerify : protected EnvObj
                 std::vector<Node>& mvs);
 
  private:
+  /**
+   * Preprocess query internal. This returns the rewritten form of query
+   * and includes all relevant function definitions, i.e. those that occur
+   * in query. These are added as top-level conjuncts to the returned formula.
+   */
+  Node preprocessQueryInternal(Node query);
   /** Pointer to the term database sygus */
   TermDbSygus* d_tds;
   /** The options for subsolver calls */

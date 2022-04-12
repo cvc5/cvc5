@@ -3984,6 +3984,7 @@ cdef class Term:
     def getRoundingModeValue(self):
         """
             .. note:: Asserts :py:meth:`isRoundingModeValue()`.
+
             :return: The floating-point rounding mode value held by the term.
         """
         return RoundingMode(<int> self.cterm.getRoundingModeValue())
@@ -4030,6 +4031,7 @@ cdef class Term:
     def getBitVectorValue(self, base = 2):
         """
            .. note:: Asserts :py:meth:`isBitVectorValue()`.
+
            Supported bases are 2 (bit string), 10 (decimal string) or 16
            (hexdecimal string).
 

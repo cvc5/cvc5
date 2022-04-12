@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Alex Ozdemir, Haniel Barbosa
+ *   Tim King, Alex Ozdemir, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1114,6 +1114,7 @@ TrustNode Constraint::split()
   TrustNode trustedLemma;
   if (d_database->isProofEnabled())
   {
+    TypeNode type = lhs.getType();
     // Farkas proof that this works.
     auto nm = NodeManager::currentNM();
     auto nLeqPf = d_database->d_pnm->mkAssume(leqNode.negate());
@@ -1125,8 +1126,8 @@ TrustNode Constraint::split()
     auto sumPf =
         d_database->d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                                   {gtPf, ltPf},
-                                  {nm->mkConst(CONST_RATIONAL, Rational(-1)),
-                                   nm->mkConst(CONST_RATIONAL, Rational(1))});
+                                  {nm->mkConstRealOrInt(type, Rational(-1)),
+                                   nm->mkConstRealOrInt(type, Rational(1))});
     auto botPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
@@ -1794,9 +1795,9 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
           // Enumerate child proofs (negation included) in d_farkasCoefficients
           // order
+          Node plit = getNegation()->getProofLiteral();
           std::vector<std::shared_ptr<ProofNode>> farkasChildren;
-          farkasChildren.push_back(
-              pnm->mkAssume(getNegation()->getProofLiteral()));
+          farkasChildren.push_back(pnm->mkAssume(plit));
           farkasChildren.insert(
               farkasChildren.end(), children.rbegin(), children.rend());
 
@@ -1804,9 +1805,10 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
           // Enumerate d_farkasCoefficients as nodes.
           std::vector<Node> farkasCoeffs;
+          TypeNode type = plit[0].getType();
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConst(CONST_RATIONAL, Rational(r)));
+            farkasCoeffs.push_back(nm->mkConstRealOrInt(type, Rational(r)));
           }
 
           // Apply the scaled-sum rule.
@@ -1819,7 +1821,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
           // Scope out the negated constraint, yielding a proof of the
           // constraint.
-          std::vector<Node> assump{getNegation()->getProofLiteral()};
+          std::vector<Node> assump{plit};
           auto maybeDoubleNotPf = pnm->mkScope(botPf, assump, false);
 
           // No need to ensure that the expected node aggrees with `assump`
@@ -2086,8 +2088,8 @@ Node Constraint::getProofLiteral() const
     default: Unreachable() << d_type;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node constPart =
-      nm->mkConst(CONST_RATIONAL, Rational(d_value.getNoninfinitesimalPart()));
+  Node constPart = nm->mkConstRealOrInt(
+      varPart.getType(), Rational(d_value.getNoninfinitesimalPart()));
   Node posLit = nm->mkNode(cmp, varPart, constPart);
   return neg ? posLit.negate() : posLit;
 }
@@ -2104,19 +2106,22 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
   {
     Assert(b->getNegation()->getType() != ConstraintType::Disequality);
     auto nm = NodeManager::currentNM();
+    Node alit = a->getNegation()->getProofLiteral();
+    TypeNode type = alit[0].getType();
     auto pf_neg_la = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
                                    {d_pnm->mkAssume(la.negate())},
-                                   {a->getNegation()->getProofLiteral()});
+                                   {alit});
+    Node blit = b->getNegation()->getProofLiteral();
     auto pf_neg_lb = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
                                    {d_pnm->mkAssume(lb.negate())},
-                                   {b->getNegation()->getProofLiteral()});
+                                   {blit});
     int sndSign = negateSecond ? -1 : 1;
     auto bot_pf = d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM,
         {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                        {pf_neg_la, pf_neg_lb},
-                       {nm->mkConst(CONST_RATIONAL, Rational(-1 * sndSign)),
-                        nm->mkConst(CONST_RATIONAL, Rational(sndSign))})},
+                       {nm->mkConstRealOrInt(type, Rational(-1 * sndSign)),
+                        nm->mkConstRealOrInt(type, Rational(sndSign))})},
         {nm->mkConst(false)});
     std::vector<Node> as;
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {

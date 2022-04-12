@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
+ *   Aina Niemetz, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -5051,7 +5051,10 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   if (echildren.size() > 2)
   {
     if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
-        || kind == HO_APPLY || kind == REGEXP_DIFF)
+        || kind == HO_APPLY || kind == REGEXP_DIFF || kind == SET_UNION
+        || kind == SET_INTER || kind == SET_MINUS || kind == BAG_INTER_MIN
+        || kind == BAG_UNION_MAX || kind == BAG_UNION_DISJOINT
+        || kind == BAG_DIFFERENCE_REMOVE || kind == BAG_DIFFERENCE_SUBTRACT)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);

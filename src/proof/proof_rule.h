@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Gereon Kremer, Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -518,7 +518,7 @@ enum class PfRule : uint32_t
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
-   * C_i'`
+   *   C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
    * representation, to :math:`C_n'`

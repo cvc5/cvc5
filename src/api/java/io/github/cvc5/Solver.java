@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -651,7 +651,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
-   * (e.g. {@link Kind#BITVECTOR_EXTRACT}).
+   * (e.g., {@link Kind#BITVECTOR_EXTRACT}).
    *
    * @api.note In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
