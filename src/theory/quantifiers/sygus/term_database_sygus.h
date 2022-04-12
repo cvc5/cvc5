@@ -291,7 +291,7 @@ class TermDbSygus : protected EnvObj
   SygusTypeInfo& getTypeInfo(TypeNode tn);
   /**
    * Rewrite the given node using the utilities in this class. This may
-   * involve (recursive function) evaluation.
+   * involve (recursive function) evaluation, and oracle evaluation.
    */
   Node rewriteNode(Node n) const;
 
