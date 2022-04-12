@@ -54,16 +54,7 @@ Node OracleChecker::evaluateApp(Node app)
   // get oracle result
   Node ret;
   int runResult;
-  bool ranOracle = caller.callOracle(app, ret, runResult);
-  if (ranOracle)
-  {
-    // prints the result of the oracle, if it was computed in the call above.
-    // this prints the original application, its result, and the exit code
-    // of the binary.
-    d_env.output(options::OutputTag::ORACLES)
-        << "(oracle-call " << app << " " << ret << " " << runResult << ")"
-        << std::endl;
-  }
+  caller.callOracle(app, ret, runResult);
   Assert(!ret.isNull());
   return ret;
 }

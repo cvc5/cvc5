@@ -33,7 +33,10 @@ namespace quantifiers {
  * Oracle checker.
  *
  * This maintains callers for all oracle functions, and can be used to evaluate
- * terms that contain oracle functions.
+ * terms that contain oracle functions. In particular, all oracle functions
+ * that are applied to "value-like" arguments only are invoked and replaced
+ * by their return. A term is "value-like" if it is constant (Node::isConst())
+ * or a closed lambda term.
  *
  * For example, if f is an oracle function, where evaluating the oracle
  * f on 4 returns 5, and evaluating on 7 returns 10, this class acts as a
