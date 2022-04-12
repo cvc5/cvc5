@@ -20,10 +20,10 @@ name   = "Parallel"
 [[option]]
   name       = "partitionConflictSize"
   category   = "expert"
-  long       = "conflict-size=N"
+  long       = "partition-conflict-size=N"
   type       = "uint64_t"
   default    = "0"
-  help       = "number of literals in a cube"
+  help       = "number of literals in a cube; if no partition size is set, then the partition conflict size is chosen to be log2(number of requested partitions)"
 
 [[option]]
   name       = "partitionStrategy"

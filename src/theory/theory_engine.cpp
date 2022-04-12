@@ -407,7 +407,8 @@ void TheoryEngine::check(Theory::Effort effort) {
     if (d_partitionGen != nullptr)
     {
       TrustNode tl = d_partitionGen->check(effort);
-      if (!tl.isNull()){
+      if (!tl.isNull())
+      {
         lemma(tl, LemmaProperty::NONE, THEORY_LAST);
       }
     }

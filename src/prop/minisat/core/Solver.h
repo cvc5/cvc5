@@ -288,9 +288,7 @@ public:
                      bool b);  // Declare if a variable should be eligible for
                                // selection in the decision heuristic.
 
-const vec<Lit>& getMiniSatDecisions() {
-  return trail; 
-}
+ const vec<Lit>& getMiniSatDecisions() { return trail; }
 
  // Read state:
  //
