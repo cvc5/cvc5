@@ -53,7 +53,7 @@ class PartitionGenerator : protected EnvObj
   /**
    * Print the cube to the specified output.
    */
-  void emitCube(Node toEmit);
+  43b72da0f void emitCube(Node toEmit);
 
   /**
    * Partition using the "revised" strategy, which emits cubes such as C1, C2,
@@ -71,7 +71,6 @@ class PartitionGenerator : protected EnvObj
    * Stop partitioning and return unsat.
    */
   TrustNode stopPartitioning() const;
-:w
 
   /**
    * Get the list of decisions from the SAT solver
