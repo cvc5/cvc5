@@ -242,7 +242,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case kind::ABS: return rewriteAbs(t);
       case kind::TO_REAL:
-      case kind::CAST_TO_REAL:return RewriteResponse(REWRITE_DONE, t[0]);
+      case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
       case kind::IS_INTEGER:
       case kind::TO_INTEGER:
       case kind::POW:
@@ -292,7 +292,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
       case kind::ABS: return rewriteAbs(t);
       case kind::TO_REAL:
-      case kind::CAST_TO_REAL:return RewriteResponse(REWRITE_DONE, t[0]);
+      case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
       case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case kind::POW:
       {
