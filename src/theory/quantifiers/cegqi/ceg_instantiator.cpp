@@ -1146,6 +1146,7 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
+  NodeManager* nm = NodeManager::currentNM();
   n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
@@ -1216,31 +1217,31 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           pv_prop.d_coeff = rewrite(pv_prop.d_coeff);
           Trace("sygus-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
           std::vector< Node > children;
+          TypeNode type = n.getType();
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-            Node c_coeff;
-            if( !msum_coeff[it->first].isNull() ){
-              c_coeff = rewrite(NodeManager::currentNM()->mkConstReal(
-                  pv_prop.d_coeff.getConst<Rational>()
-                  / msum_coeff[it->first].getConst<Rational>()));
-            }else{
-              c_coeff = pv_prop.d_coeff;
+            Rational c_coeff = pv_prop.d_coeff.getConst<Rational>();
+            Node mc = msum_coeff[it->first];
+            if (!mc.isNull())
+            {
+              Assert(mc.isConst());
+              c_coeff = c_coeff / mc.getConst<Rational>();
             }
             if( !it->second.isNull() ){
-              c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
+              Assert(it->second.isConst());
+              c_coeff = c_coeff * it->second.getConst<Rational>();
             }
-            Assert(!c_coeff.isNull());
-            Node c;
-            if( msum_term[it->first].isNull() ){
-              c = c_coeff;
-            }else{
-              c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+            Node c = nm->mkConstRealOrInt(type, c_coeff);
+            Node v = msum_term[it->first];
+            if (!v.isNull())
+            {
+              Assert(v.getType() == type);
+              c = nm->mkNode(MULT, c, v);
             }
             children.push_back( c );
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nretc = children.size() == 1
-                           ? children[0]
-                           : NodeManager::currentNM()->mkNode(ADD, children);
+          Node nretc =
+              children.size() == 1 ? children[0] : nm->mkNode(ADD, children);
           nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))

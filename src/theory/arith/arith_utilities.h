@@ -228,6 +228,9 @@ Node mkZero(const TypeNode& tn);
 /** Is n (integer or real) zero? */
 bool isZero(const Node& n);
 
+/** Make one of the given type, maybe negated */
+Node mkOne(const TypeNode& tn, bool isNeg = false);
+
 // Returns an node that is the identity of a select few kinds.
 inline Node getIdentityType(const TypeNode& tn, Kind k)
 {
