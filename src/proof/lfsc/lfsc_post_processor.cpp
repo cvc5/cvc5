@@ -263,7 +263,8 @@ bool LfscProofPostprocessCallback::update(Node res,
                 nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
             uop = d_tproc.getOperatorOfTerm(currApp);
           }
-          Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0] << " and " << children[ii][1] << std::endl;
+          Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0]
+                                << " and " << children[ii][1] << std::endl;
           Node argAppEq =
               nm->mkNode(HO_APPLY, uop, children[ii][0])
                   .eqNode(nm->mkNode(HO_APPLY, uop, children[ii][1]));
