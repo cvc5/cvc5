@@ -25,7 +25,7 @@
 #include "theory/theory.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -43,8 +43,9 @@ class PartitionGenerator : protected EnvObj
                      prop::PropEngine* propEngine);
 
   /**
-   * Make partitions for parallel solving. e communicates the effort at which check was called.
-   * Returns a lemma blocking off the emitted cube from the search.
+   * Make partitions for parallel solving. e communicates the effort at which
+   * check was called. Returns a lemma blocking off the emitted cube from the
+   * search.
    */
   TrustNode check(Theory::Effort e);
 
@@ -70,62 +71,62 @@ class PartitionGenerator : protected EnvObj
    * Stop partitioning and return unsat.
    */
   TrustNode stopPartitioning() const;
+:w
 
   /**
    * Get the list of decisions from the SAT solver
    */
   std::vector<TNode> collectDecisionLiterals();
 
-  /**
-   * Returns the d_cubes, the cubes that have been created for partitioning the original problem.  
-   */
-  std::vector<Node> getPartitions() const {
-    return d_cubes;
-  }
+/**
+ * Returns the d_cubes, the cubes that have been created for partitioning the
+ * original problem.
+ */
+std::vector<Node> getPartitions() const { return d_cubes; }
 
-  /**
-   * Current propEngine.
-   */
-  prop::PropEngine* d_propEngine;
+/**
+ * Current propEngine.
+ */
+prop::PropEngine* d_propEngine;
 
-  /**
-   * Valuation of the theory engine.
-   */
-  std::unique_ptr<Valuation> d_valuation;
+/**
+ * Valuation of the theory engine.
+ */
+std::unique_ptr<Valuation> d_valuation;
 
-  /**
-   * The number of partitions requested through the compute-partitions option.
-   */
-  const uint64_t d_numPartitions;
+/**
+ * The number of partitions requested through the compute-partitions option.
+ */
+const uint64_t d_numPartitions;
 
-  /**
-   * Number of standard or full (depending on partition check mode) checks that
-   * have occured.
-   */
-  uint64_t d_numChecks;
+/**
+ * Number of standard or full (depending on partition check mode) checks that
+ * have occured.
+ */
+uint64_t d_numChecks;
 
-  /**
-   * The number of partitions that have been created.
-   */
-  uint64_t d_numPartitionsSoFar;
+/**
+ * The number of partitions that have been created.
+ */
+uint64_t d_numPartitionsSoFar;
 
-  /**
-   * Lemmas that have been sent to the SAT solver.
-   */
-  std::vector<Node> d_assertedLemmas;
+/**
+ * Lemmas that have been sent to the SAT solver.
+ */
+std::vector<Node> d_assertedLemmas;
 
-  /**
-   * List of the cubes that have been created.
-   */
-  std::vector<Node> d_cubes;
+/**
+ * List of the cubes that have been created.
+ */
+std::vector<Node> d_cubes;
 
-  /**
-   * Minimum number of literals required in the list of decisions for cubes to
-   * be made.
-   */
-  uint64_t d_conflictSize;
+/**
+ * Minimum number of literals required in the list of decisions for cubes to
+ * be made.
+ */
+uint64_t d_conflictSize;
 };
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARTITION__GENERATOR_H */

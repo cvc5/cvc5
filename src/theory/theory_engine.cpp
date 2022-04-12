@@ -205,7 +205,8 @@ void TheoryEngine::finishInit()
 
   if (options().parallel.computePartitions > 1)
   {
-    d_partitionGen = std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
+    d_partitionGen =
+        std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }

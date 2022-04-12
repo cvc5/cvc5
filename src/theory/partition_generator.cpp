@@ -30,7 +30,7 @@
 using namespace std;
 using namespace cvc5::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace theory {
 PartitionGenerator::PartitionGenerator(Env& env,
@@ -167,4 +167,4 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
