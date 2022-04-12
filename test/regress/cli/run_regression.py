@@ -186,6 +186,7 @@ class LfscTester(Tester):
         )
 
     def run(self, benchmark_info):
+        exit_code = None
         tmpf_name = None
         with tempfile.NamedTemporaryFile(delete=False) as tmpf:
             proof_args = [
@@ -193,7 +194,7 @@ class LfscTester(Tester):
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
             ]
-            proof_output, _, _ = run_process(
+            cvc5_output, cvc5_error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + benchmark_info.command_line_args
                 + proof_args
@@ -202,22 +203,56 @@ class LfscTester(Tester):
                 benchmark_info.timeout,
             )
             tmpf_name = tmpf.name
-            tmpf.write(proof_output.strip("unsat\n".encode()))
+            tmpf.write(cvc5_output.strip("unsat\n".encode()))
         if not tmpf_name:
-            return EXIT_FAILURE
-        output, _, _ = run_process(
-            [benchmark_info.lfsc_script, tmpf.name],
-            benchmark_info.benchmark_dir,
-            timeout=benchmark_info.timeout,
-        )
-        output = output.decode()
-        exit_code = EXIT_OK
-        if "Proof checked successfully!" not in output or "ERROR" in output or "WARNING: Empty proof!!!" in output:
+            exit_code = EXIT_FAILURE
+            print("not ok (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
+        elif exit_status == STATUS_TIMEOUT:
+            exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+            print("Timeout (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
+        elif exit_status != 0:
             exit_code = EXIT_FAILURE
             print(
-                "not ok - Flags: {}".format(benchmark_info.command_line_args + proof_args))
-            print("Unexpected LFSC output:\n{}".format(output))
-        os.remove(tmpf.name)
+                'not ok (cvc5) - Expected exit status 0 but got "{}" - Flags: {}'.format(
+                    exit_status,
+                    benchmark_info.command_line_args,
+                )
+            )
+            print()
+            print("Output:")
+            print("=" * 80)
+            print_colored(Color.BLUE, cvc5_output.decode())
+            print("=" * 80)
+            print()
+            print()
+            print("Error output:")
+            print("=" * 80)
+            print_colored(Color.YELLOW, cvc5_error.decode())
+            print("=" * 80)
+            print()
+        else:
+            output, _, exit_status = run_process(
+                [benchmark_info.lfsc_script, tmpf.name],
+                benchmark_info.benchmark_dir,
+                timeout=benchmark_info.timeout,
+            )
+            if exit_status == STATUS_TIMEOUT:
+                exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+                print(
+                    "Timeout (lfsc) - Flags: {}".format(benchmark_info.command_line_args))
+            else:
+                output = output.decode()
+                if "ERROR" in output or "WARNING: Empty proof!!!" in output or "Proof checked successfully!" not in output:
+                    exit_code = EXIT_FAILURE
+                    print("not ok (lfsc) - Output:")
+                    print("=" * 80)
+                    print_colored(Color.YELLOW, output)
+                    print("=" * 80)
+                    print()
+                else:
+                    exit_code = EXIT_OK
+                    print("ok - Flags: {}".format(benchmark_info.command_line_args))
+            os.remove(tmpf.name)
         return exit_code
 
 
