@@ -6,7 +6,7 @@
 (declare-fun x () (Relation Int Int))
 (declare-fun y () (Relation Int Int))
 (declare-fun w () (Relation Int Int))
-(declare-fun z () (Relation (Set (Tuple Int Int) (Relation Int Int))))
+(declare-fun z () (Relation (Relation Int Int) (Relation Int Int)))
 (declare-fun a () (Tuple Int Int))
 (declare-fun b () (Tuple Int Int))
 (assert (not (= a b)))
