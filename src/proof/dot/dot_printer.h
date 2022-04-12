@@ -106,11 +106,8 @@ class DotPrinter
    * "{\"subProofQty\":$SUB_PROOF_QUANTITY}" ];
    * @param out the output stream
    * @param pn the proof node to print
-   * @param currentRuleID the current rule ID
    */
-  inline void printProofNodeInfo(std::ostream& out,
-                                 const ProofNode* pn,
-                                 uint64_t currentRuleID);
+  inline void printProofNodeInfo(std::ostream& out, const ProofNode* pn);
 
   /**
    * Return the arguments of a ProofNode
@@ -144,19 +141,18 @@ class DotPrinter
 
   /** Define the proof node type and populate d_nodesClusterType and
    * d_scopesArgs.
-   * @param pn The proof node to categorized.
+   * @param pn The proof node to categorize.
    * @param last The type of the parent of the current proof node
    * @return the current node type
    */
   ProofNodeClusterType defineProofNodeType(const ProofNode* pn,
                                            ProofNodeClusterType last);
 
-  /** Verify if the proof node is an input node. An input node is a proof node
+  /** Whether the proof node is an input node or not. An input is a proof node
    * that has an ASSUME rule and the argument assumed by it must be scoped only
    * by the FIRST SCOPE. In other words, if there is at least one SCOPE (other
    * than the FIRST SCOPE) that is an ancestor of this ASSUME proof node and its
-   * argument is scoped by this ancestor, then the ASSUME is no longer an
-   * input.
+   * argument is scoped by this ancestor, then the ASSUME is no longer an input.
    * @param pn The proof node to be verified.
    * @return The bool indicating if the proof node is or not an input.
    */
@@ -202,7 +198,7 @@ class DotPrinter
    * traversal is currently under. */
   std::vector<std::reference_wrapper<const std::vector<Node>>> d_scopesArgs;
 
-  /** Array with all the subgraphs description strings */
+  /** All the subgraph description strings */
   std::vector<std::ostringstream> d_subgraphsStr;
 };
 

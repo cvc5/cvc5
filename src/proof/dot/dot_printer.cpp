@@ -239,13 +239,13 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
     if (proofNodeType != ProofNodeClusterType::FIRST_SCOPE
         && proofNodeType != ProofNodeClusterType::NOT_DEFINED)
     {
-      d_subgraphsStr[(int)proofNodeType - 1] << d_ruleID << " ";
+      d_subgraphsStr[static_cast<int>(proofNodeType) - 1] << d_ruleID << " ";
     }
   }
 
-  d_ruleID++;
+  printProofNodeInfo(out, pn);
 
-  printProofNodeInfo(out, pn, currentRuleID);
+  d_ruleID++;
 
   PfRule r = pn->getRule();
 
@@ -265,13 +265,11 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   return currentRuleID;
 }
 
-void DotPrinter::printProofNodeInfo(std::ostream& out,
-                                    const ProofNode* pn,
-                                    uint64_t currentRuleID)
+void DotPrinter::printProofNodeInfo(std::ostream& out, const ProofNode* pn)
 {
   std::ostringstream currentArguments, resultStr, classes, colors;
 
-  out << "\t" << currentRuleID << " [ label = \"{";
+  out << "\t" << d_ruleID << " [ label = \"{";
 
   resultStr << d_lbind.convert(pn->getResult(), "let");
   std::string astring = resultStr.str();
@@ -348,12 +346,12 @@ ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
 
 inline bool DotPrinter::isInput(const ProofNode* pn)
 {
-  auto& thisAssumeArg = pn->getArguments()[0];
+  const TNode& thisAssumeArg = pn->getArguments()[0];
   auto& firstScope = d_scopesArgs[0].get();
 
   // Verifies if the arg of this assume are in the first scope
-  auto it = std::find(firstScope.begin(), firstScope.end(), thisAssumeArg);
-  if (it == firstScope.end())
+  if (std::find(firstScope.begin(), firstScope.end(), thisAssumeArg)
+      == firstScope.end())
   {
     return false;
   }
@@ -362,9 +360,8 @@ inline bool DotPrinter::isInput(const ProofNode* pn)
   for (size_t i = d_scopesArgs.size() - 1; i > 0; i--)
   {
     auto& args = d_scopesArgs[i].get();
-    it = std::find(args.begin(), args.end(), thisAssumeArg);
 
-    if (it != args.end())
+    if (std::find(args.begin(), args.end(), thisAssumeArg) != args.end())
     {
       return false;
     }
