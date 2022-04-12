@@ -165,9 +165,60 @@ class ProofTester(Tester):
     def run(self, benchmark_info):
         return super().run(
             benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args + ["--check-proofs", "--proof-granularity=theory-rewrite"]
+                command_line_args=benchmark_info.command_line_args +
+                ["--check-proofs", "--proof-granularity=theory-rewrite"]
             )
         )
+
+
+class LfscTester(Tester):
+    def applies(self, benchmark_info):
+        return (
+            benchmark_info.benchmark_ext != ".sy"
+            and (
+                "unsat" in benchmark_info.expected_output.split()
+                or "entailed" in benchmark_info.expected_output.split()
+            )
+            and "--incremental" not in benchmark_info.command_line_args
+            and "--no-produce-proofs" not in benchmark_info.command_line_args
+            and "--no-check-proofs" not in benchmark_info.command_line_args
+            and "--check-proofs" not in benchmark_info.command_line_args
+        )
+
+    def run(self, benchmark_info):
+        tmpf_name = None
+        with tempfile.NamedTemporaryFile(delete=False) as tmpf:
+            proof_args = [
+                "--dump-proofs",
+                "--proof-format=lfsc",
+                "--proof-granularity=theory-rewrite",
+            ]
+            proof_output, _, _ = run_process(
+                [benchmark_info.cvc5_binary]
+                + benchmark_info.command_line_args
+                + proof_args
+                + [benchmark_info.benchmark_basename],
+                benchmark_info.benchmark_dir,
+                benchmark_info.timeout,
+            )
+            tmpf_name = tmpf.name
+            tmpf.write(proof_output.strip("unsat\n".encode()))
+        if not tmpf_name:
+            return EXIT_FAILURE
+        output, _, _ = run_process(
+            [benchmark_info.lfsc_script, tmpf.name],
+            benchmark_info.benchmark_dir,
+            timeout=benchmark_info.timeout,
+        )
+        output = output.decode()
+        exit_code = EXIT_OK
+        if "Proof checked successfully!" not in output or "ERROR" in output or "WARNING: Empty proof!!!" in output:
+            exit_code = EXIT_FAILURE
+            print(
+                "not ok - Flags: {}".format(benchmark_info.command_line_args + proof_args))
+            print("Unexpected LFSC output:\n{}".format(output))
+        os.remove(tmpf.name)
+        return exit_code
 
 
 class ModelTester(Tester):
@@ -288,6 +339,7 @@ g_testers = {
     "base": BaseTester(),
     "unsat-core": UnsatCoreTester(),
     "proof": ProofTester(),
+    "lfsc": LfscTester(),
     "model": ModelTester(),
     "synth": SynthTester(),
     "abduct": AbductTester(),
@@ -313,6 +365,7 @@ BenchmarkInfo = collections.namedtuple(
         "error_scrubber",
         "timeout",
         "cvc5_binary",
+        "lfsc_script",
         "benchmark_dir",
         "benchmark_basename",
         "benchmark_ext",
@@ -471,6 +524,7 @@ def run_regression(
     testers,
     wrapper,
     cvc5_binary,
+    lfsc_script,
     benchmark_path,
     timeout,
 ):
@@ -611,6 +665,7 @@ def run_regression(
             error_scrubber=error_scrubber,
             timeout=timeout,
             cvc5_binary=cvc5_binary,
+            lfsc_script=lfsc_script,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
             benchmark_ext=benchmark_ext,
@@ -658,6 +713,7 @@ def main():
     parser.add_argument("--tester", choices=g_testers.keys(), action="append")
     parser.add_argument("wrapper", nargs="*")
     parser.add_argument("cvc5_binary")
+    parser.add_argument("lfsc_script")
     parser.add_argument("benchmark")
 
     argv = sys.argv[1:]
@@ -668,6 +724,7 @@ def main():
     g_args = parser.parse_args(argv)
 
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
+    lfsc_script = os.path.abspath(g_args.lfsc_script)
 
     wrapper = g_args.wrapper
     if os.environ.get("VALGRIND") == "1" and not wrapper:
@@ -683,6 +740,7 @@ def main():
         testers,
         wrapper,
         cvc5_binary,
+        lfsc_script,
         g_args.benchmark,
         timeout,
     )
