@@ -295,23 +295,26 @@ Node buildIntegerEquality(Sum&& sum)
   Trace("arith-rewriter::debug")
       << "\tbuilding " << left << " = " << sum << std::endl;
 
-  return buildRelation(Kind::EQUAL, left, collectSum(sum));
+  return buildRelation(Kind::EQUAL, left, collectSum(sum, left.getType()));
 }
 
 Node buildRealEquality(Sum&& sum)
 {
   Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(sum);
+  auto* nm = NodeManager::currentNM();
+  TypeNode rtype = nm->realType();
   if (isZero(lterm.second))
   {
-    return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
+    return buildRelation(
+        Kind::EQUAL, mkConst(Rational(0), rtype), collectSum(sum, rtype));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
   {
     s.second = s.second / lcoeff;
   }
-  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
+  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum, rtype));
 }
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
@@ -338,15 +341,19 @@ Node buildIntegerInequality(Sum&& sum, Kind k)
     rhs = rhs.ceiling();
   }
   auto* nm = NodeManager::currentNM();
-  return buildRelation(Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
+  TypeNode itype = nm->integerType();
+  return buildRelation(
+      Kind::GEQ, collectSum(sum, itype), nm->mkConstInt(rhs), negate);
 }
 
 Node buildRealInequality(Sum&& sum, Kind k)
 {
   Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
   normalizeLCoeffAbsOne(sum);
-  Node rhs = mkConst(-removeConstant(sum));
-  return buildRelation(k, collectSum(sum), rhs);
+  auto* nm = NodeManager::currentNM();
+  TypeNode rtype = nm->realType();
+  Node rhs = mkConst(-removeConstant(sum), rtype);
+  return buildRelation(k, collectSum(sum, rtype), rhs);
 }
 
 }  // namespace rewriter

@@ -118,9 +118,10 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
  */
 Node collectSumWithBase(const Sum& sum,
                         const RealAlgebraicNumber& basemultiplicity,
-                        const std::vector<Node>& baseproduct)
+                        const std::vector<Node>& baseproduct,
+                        const TypeNode& tn)
 {
-  if (sum.empty()) return mkConst(Rational(0));
+  if (sum.empty()) return mkConst(Rational(0), tn);
   // construct the sum as nodes.
   NodeBuilder nb(Kind::ADD);
   for (const auto& summand : sum)
@@ -129,7 +130,7 @@ Node collectSumWithBase(const Sum& sum,
     RealAlgebraicNumber mult = summand.second * basemultiplicity;
     std::vector<Node> product = baseproduct;
     rewriter::addToProduct(product, mult, summand.first);
-    nb << mkMultTerm(mult, std::move(product));
+    nb << mkMultTerm(mult, std::move(product), tn);
   }
   if (nb.getNumChildren() == 1)
   {
@@ -185,16 +186,16 @@ void addToSum(Sum& sum, TNode n, bool negate)
     multiplicity = Integer(-1);
   }
   addToProduct(monomial, multiplicity, n);
-  addToSum(sum, mkNonlinearMult(monomial), multiplicity);
+  addToSum(sum, mkNonlinearMult(monomial, n.getType()), multiplicity);
 }
 
-Node collectSum(const Sum& sum)
+Node collectSum(const Sum& sum, const TypeNode& tn)
 {
-  if (sum.empty()) return mkConst(Rational(0));
+  if (sum.empty()) return mkConst(Rational(0), tn);
   Trace("arith-rewriter") << "Collecting sum " << sum << std::endl;
   // construct the sum as nodes.
   NodeBuilder nb(Kind::ADD);
-  for (const auto& s : sum)
+  for (const std::pair<const Node, RealAlgebraicNumber>& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);
   }
@@ -205,7 +206,8 @@ Node collectSum(const Sum& sum)
   return nb.constructNode();
 }
 
-Node distributeMultiplication(const std::vector<TNode>& factors)
+Node distributeMultiplication(const std::vector<TNode>& factors,
+                              const TypeNode& tn)
 {
   if (TraceIsOn("arith-rewriter-distribute"))
   {
@@ -223,7 +225,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // base factors).
   Sum sum;
   // Add a base summand
-  sum.emplace(mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
+  sum.emplace(mkConst(Rational(1), tn), RealAlgebraicNumber(Integer(1)));
 
   // multiply factors one by one to basmultiplicity * base * sum
   for (const auto& factor : factors)
@@ -265,7 +267,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToProduct(newProduct, multiplicity, summand.first);
         addToProduct(newProduct, multiplicity, child);
         std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
-        addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
+        addToSum(newsum, mkNonlinearMult(newProduct, tn), multiplicity);
       }
     }
     if (TraceIsOn("arith-rewriter-distribute"))
@@ -286,7 +288,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  return collectSumWithBase(sum, basemultiplicity, base);
+  return collectSumWithBase(sum, basemultiplicity, base, tn);
 }
 
 }  // namespace rewriter
