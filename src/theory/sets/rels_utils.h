@@ -29,7 +29,7 @@ class RelsUtils
    * compute the transitive closure of a binary relation
    * @param members constant nodes of type (Tuple E E) that are known to in the
    * relation rel
-   * @param rel a binary relation of type (Set (Tuple E E))
+   * @param rel a binary relation of type (Relation E E)
    * @pre all members need to be constants
    * @return the transitive closure of the relation
    */
@@ -38,7 +38,7 @@ class RelsUtils
   /**
    * add all pairs (a, c) to the transitive closures where c is reachable from b
    * in the transitive relation in a depth first search manner.
-   * @param rel a binary relation of type (Set (Tuple E E))
+   * @param rel a binary relation of type (Relation E E)
    * @param members constant nodes of type (Tuple E E) that are known to be in
    * the relation rel
    * @param a a node of type E where (a,b) is an element in the transitive
@@ -58,7 +58,7 @@ class RelsUtils
 
   /**
    * construct a pair from two elements
-   * @param rel a node of type (Set (Tuple E E))
+   * @param rel a node of type (Relation E E)
    * @param a a node of type E
    * @param b a node of type E
    * @return  a tuple (tuple a b)
