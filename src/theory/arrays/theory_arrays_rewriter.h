@@ -76,8 +76,8 @@ class TheoryArraysRewriter : public TheoryRewriter
    * from constant terms only.
    */
   static Node normalizeConstant(TNode node);
- private:
 
+ private:
   /** The associated rewriter. */
   Rewriter* d_rewriter;
 

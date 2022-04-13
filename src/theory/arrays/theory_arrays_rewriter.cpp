@@ -23,8 +23,8 @@
 #include "proof/conv_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "theory/arrays/skolem_cache.h"
-#include "util/cardinality.h"
 #include "theory/type_enumerator.h"
+#include "util/cardinality.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -39,8 +39,10 @@ struct ArrayConstantMostFrequentValueCountTag
 };
 }  // namespace attr
 
-using ArrayConstantMostFrequentValueCountAttr = expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t>;
-using ArrayConstantMostFrequentValueAttr = expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node>;
+using ArrayConstantMostFrequentValueCountAttr =
+    expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t>;
+using ArrayConstantMostFrequentValueAttr =
+    expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node>;
 
 Node getMostFrequentValue(TNode store) {
   return store.getAttribute(ArrayConstantMostFrequentValueAttr());
@@ -69,7 +71,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
     return node;
   }
   Node ret = normalizeConstant(node, node[1].getType().getCardinality());
-  Assert (ret.isConst());
+  Assert(ret.isConst());
   return ret;
 }
 

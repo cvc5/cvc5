@@ -17,9 +17,9 @@
 #include "expr/array_store_all.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
-#include "theory/arrays/theory_arrays_rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
