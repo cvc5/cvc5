@@ -384,7 +384,8 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       size_t ii = (numCond - 1) - i;
       Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
-      // normalize it using the array rewriter utility
+      // normalize it using the array rewriter utility, which must be done at
+      // each iteration of this loop
       curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
     }
     Trace("builtin-rewrite-debug")
