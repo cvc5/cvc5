@@ -87,6 +87,10 @@ Node ArrayEnumerator::operator*()
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));
+    // Normalize the constant. We must do this every iteration of this loop,
+    // since this utility requires all children of n to be constant, which
+    // implies the first argument to STORE on the next iteration must be
+    // normalized.
     n = TheoryArraysRewriter::normalizeConstant(n);
   }
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
