@@ -19,6 +19,7 @@
 #include "expr/type_node.h"
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -88,7 +89,7 @@ Node ArrayEnumerator::operator*()
                      *(*(d_constituentVec[i])));
   }
   Trace("array-type-enum") << "operator * prerewrite: " << n << std::endl;
-  n = Rewriter::rewrite(n);
+  n = TheoryArraysRewriter::normalizeConstant(n);
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;
 }

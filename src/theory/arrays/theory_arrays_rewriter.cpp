@@ -24,6 +24,7 @@
 #include "proof/eager_proof_generator.h"
 #include "theory/arrays/skolem_cache.h"
 #include "util/cardinality.h"
+#include "theory/type_enumerator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -63,6 +64,10 @@ TheoryArraysRewriter::TheoryArraysRewriter(Rewriter* rewriter,
 
 Node TheoryArraysRewriter::normalizeConstant(TNode node)
 {
+  if (node.getKind()==kind::STORE_ALL)
+  {
+    return node;
+  }
   return normalizeConstant(node, node[1].getType().getCardinality());
 }
 
