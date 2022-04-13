@@ -15,11 +15,11 @@
 (declare-fun neg_int () Int)
 
 (assert (= pos_int 5))
-(assert (= pos_real_int_value 3))
+(assert (= pos_real_int_value 3.0))
 (assert (= pos_rat (/ 1 3)))
-(assert (= zero 0))
+(assert (= zero 0.0))
 (assert (= neg_rat (/ (- 2) 3)))
-(assert (= neg_real_int_value (- 2)))
+(assert (= neg_real_int_value (- 2.0)))
 (assert (= neg_int (- 6)))
 
 (check-sat)

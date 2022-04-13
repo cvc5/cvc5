@@ -257,6 +257,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         for (size_t i = 0; i < nchildren; i++)
         {
           size_t ii = (nchildren - 1) - i;
+          Trace("lfsc-pp-cong") << "Process child " << ii << std::endl;
           Node uop = op;
           // special case: each bv concat in the chain has a different type,
           // so remake the operator here.
@@ -268,6 +269,8 @@ bool LfscProofPostprocessCallback::update(Node res,
                 nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
             uop = d_tproc.getOperatorOfTerm(currApp);
           }
+          Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0]
+                                << " and " << children[ii][1] << std::endl;
           Node argAppEq =
               nm->mkNode(HO_APPLY, uop, children[ii][0])
                   .eqNode(nm->mkNode(HO_APPLY, uop, children[ii][1]));
@@ -341,7 +344,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::ARITH_SUM_UB:
     {
       // proof of null terminator base 0 = 0
-      Node zero = d_tproc.getNullTerminator(ADD);
+      Node zero = d_tproc.getNullTerminator(ADD, res[0].getType());
       Node cur = zero.eqNode(zero);
       // cdp->addStep(cur, PfRule::REFL, {}, {zero});
       addRefl(cdp, zero);

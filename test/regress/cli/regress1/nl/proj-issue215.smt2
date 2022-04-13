@@ -8,5 +8,5 @@
 (declare-fun g () Real)
 (assert (= (* c f c) a (- d f)))
 (assert (= d (/ a f)))
-(assert (distinct f 0 (/ b g) g))
+(assert (distinct f 0.0 (/ b g) g))
 (check-sat)
