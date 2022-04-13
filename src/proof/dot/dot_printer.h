@@ -90,14 +90,19 @@ class DotPrinter
    * the child as argument.
    * @param out the output stream
    * @param pn the proof node to print
-   * @param pfLet the map of the hashs of proof nodes already printed to their
-   * ids
+   * @param pfLetClosed the map of the hashs of proof nodes already printed to
+   * their ids in the whole proof
+   * @param pfLetOpen the map of the hashs of proof nodes already printed to
+   * their ids in the current scope
+   * @param cfaMap the map from proof nodes to whether they contain assumptions
    * @param parentType the type of the parent node
    * @return the id of the proof node printed
    */
   uint64_t printInternal(std::ostream& out,
                          const ProofNode* pn,
-                         std::map<size_t, uint64_t>& pfLet,
+                         std::map<size_t, uint64_t>& pfLetClosed,
+                         std::map<size_t, uint64_t>& pfLetOpen,
+                         std::unordered_map<const ProofNode*, bool>& cfaMap,
                          ProofNodeClusterType parentType);
 
   /**

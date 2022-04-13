@@ -23,6 +23,7 @@
 #include "options/proof_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -194,8 +195,15 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   }
 
   std::map<size_t, uint64_t> proofLet;
-  DotPrinter::printInternal(
-      out, pn, proofLet, ProofNodeClusterType::NOT_DEFINED);
+  std::map<size_t, uint64_t> firstScopeLet;
+  std::unordered_map<const ProofNode*, bool> cfaMap;
+
+  DotPrinter::printInternal(out,
+                            pn,
+                            proofLet,
+                            firstScopeLet,
+                            cfaMap,
+                            ProofNodeClusterType::NOT_DEFINED);
 
   if (options::printDotClusters())
   {
@@ -208,10 +216,13 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   out << "\n}\n";
 }
 
-uint64_t DotPrinter::printInternal(std::ostream& out,
-                                   const ProofNode* pn,
-                                   std::map<size_t, uint64_t>& pfLet,
-                                   ProofNodeClusterType parentType)
+uint64_t DotPrinter::printInternal(
+    std::ostream& out,
+    const ProofNode* pn,
+    std::map<size_t, uint64_t>& pfLetClosed,
+    std::map<size_t, uint64_t>& pfLetOpen,
+    std::unordered_map<const ProofNode*, bool>& cfaMap,
+    ProofNodeClusterType parentType)
 {
   uint64_t currentRuleID = d_ruleID;
 
@@ -220,15 +231,25 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   {
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
-    auto proofIt = pfLet.find(currentHash);
+    auto openProofIt = pfLetOpen.find(currentHash);
 
-    // If this node has been already counted
-    if (proofIt != pfLet.end())
+    if (openProofIt != pfLetOpen.end())
+    {
+      return openProofIt->second;
+    }
+
+    auto proofIt = pfLetClosed.find(currentHash);
+    // If this node has been already visited
+    if (proofIt != pfLetClosed.end())
     {
       return proofIt->second;
     }
-
-    pfLet[currentHash] = currentRuleID;
+    // If its closed proof
+    if (!expr::containsAssumption(pn, cfaMap))
+    {
+      pfLetClosed[currentHash] = currentRuleID;
+    }
+    pfLetOpen[currentHash] = currentRuleID;
   }
 
   ProofNodeClusterType proofNodeType = ProofNodeClusterType::NOT_DEFINED;
@@ -249,11 +270,28 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
 
   PfRule r = pn->getRule();
 
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
-  for (const std::shared_ptr<ProofNode>& c : children)
+  // Deal with new scopes or not
+  if (isSCOPE(r) && currentRuleID)
   {
-    uint64_t childId = printInternal(out, c.get(), pfLet, proofNodeType);
+    // create a new pfLet
+    std::map<size_t, uint64_t> thisScopeLet;
+    uint64_t childId = printInternal(out,
+                                     pn->getChildren()[0].get(),
+                                     pfLetClosed,
+                                     thisScopeLet,
+                                     cfaMap,
+                                     proofNodeType);
     out << "\t" << childId << " -> " << currentRuleID << ";\n";
+  }
+  else
+  {
+    const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+    for (const std::shared_ptr<ProofNode>& c : children)
+    {
+      uint64_t childId = printInternal(
+          out, c.get(), pfLetClosed, pfLetOpen, cfaMap, proofNodeType);
+      out << "\t" << childId << " -> " << currentRuleID << ";\n";
+    }
   }
 
   // If it's a scope, then remove from the stack
