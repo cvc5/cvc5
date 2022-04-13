@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
 ; EXPECT: (error "Cannot get model unless after a SAT or UNKNOWN response.")
 (set-option :incremental false)

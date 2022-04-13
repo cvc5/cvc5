@@ -179,10 +179,19 @@ class LfscTester(Tester):
                 "unsat" in benchmark_info.expected_output.split()
                 or "entailed" in benchmark_info.expected_output.split()
             )
+            and "-i" not in benchmark_info.command_line_args
             and "--incremental" not in benchmark_info.command_line_args
             and "--no-produce-proofs" not in benchmark_info.command_line_args
             and "--no-check-proofs" not in benchmark_info.command_line_args
             and "--check-proofs" not in benchmark_info.command_line_args
+            and "--produce-unsat-cores" not in benchmark_info.command_line_args
+            and "--dump-unsat-cores" not in benchmark_info.command_line_args
+            and ":incremental true" not in benchmark_info.benchmark_content
+            and ":produce-proofs false" not in benchmark_info.benchmark_content
+            and ":check-proofs" not in benchmark_info.benchmark_content
+            and ":produce-unsat-cores true" not in benchmark_info.benchmark_content
+            and ":dump-unsat-cores true" not in benchmark_info.benchmark_content
+            and "(reset)" not in benchmark_info.benchmark_content
         )
 
     def run(self, benchmark_info):
@@ -460,8 +469,8 @@ def run_process(args, cwd, timeout, s_input=None):
 
     cmd = " ".join([shlex.quote(a) for a in args]) if isinstance(args, list) else args
 
-    out = ""
-    err = ""
+    out = bytes()
+    err = bytes()
     exit_status = STATUS_TIMEOUT
     try:
         # Instead of setting shell=True, we explicitly call bash. Using
