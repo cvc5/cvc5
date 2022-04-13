@@ -53,14 +53,12 @@ bool ProofNodeUpdaterCallback::updatePost(Node res,
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
-                                   bool autoSym,
-                                   bool runFinalize)
+                                   bool autoSym)
     : d_pnm(pnm),
       d_cb(cb),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
-      d_autoSym(autoSym),
-      d_runFinalize(runFinalize)
+      d_autoSym(autoSym)
 {
 }
 

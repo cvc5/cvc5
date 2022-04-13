@@ -99,7 +99,7 @@ Node LfscNodeConverter::postConvert(Node n)
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
       << "postConvert " << n << " " << k << std::endl;
-  if (k==BOUND_VARIABLE)
+  if (k == BOUND_VARIABLE)
   {
     if (d_symbols.find(n) != d_symbols.end())
     {
@@ -571,7 +571,6 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
-        // we cannot use raw symbols for TypeNode currently
         tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
         cur = nm->mkSort(sss.str());
       }
@@ -602,15 +601,13 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       // we must print to get its name.
       std::stringstream ss;
       ss << tn[0];
-      // we cannot use raw symbols for TypeNode currently
-      op = getSymbolInternal(k, ftype, ss.str(), false);
+      op = getSymbolInternal(k, ftype, ss.str());
     }
     else if (k == SORT_TYPE)
     {
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getAttribute(expr::VarNameAttr(), name);
-      // we cannot use raw symbols for TypeNode currently
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -1121,7 +1118,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       Trace("lfsc-term-process-debug2") << "...default symbol" << std::endl;
       ret = getSymbolInternal(k, ftype, opName.str());
     }
-    // TODO: if parametric, instantiate the parameters?
     // if indexed, apply to index
     if (!indices.empty())
     {

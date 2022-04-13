@@ -75,8 +75,7 @@ class Solver : protected EnvObj
   cvc5::internal::prop::TheoryProxy* d_proxy;
 
   /** The contexts from the SMT solver */
-  cvc5::context::Context* d_context;
-  cvc5::context::UserContext* d_userContext;
+  context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
