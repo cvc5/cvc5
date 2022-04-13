@@ -56,7 +56,7 @@ std::vector<TNode> PartitionGenerator::collectDecisionLiterals()
   std::vector<Node> decisionNodes = d_propEngine->getPropDecisions();
   // Make sure the literal does not have a boolean term or skolem in it.
   const std::unordered_set<Kind, kind::KindHashFunction> kinds = {
-      kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE, kind::CONST_BOOLEAN};
+      kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE};
 
   for (const Node& n : decisionNodes)
   {
@@ -68,7 +68,8 @@ std::vector<TNode> PartitionGenerator::collectDecisionLiterals()
     if (expr::hasSubtermKinds(kinds, original)
         || !d_valuation->isSatLiteral(original)
         || !d_valuation->isDecision(original)
-        || Theory::theoryOf(original) == THEORY_BOOL)
+        || Theory::theoryOf(original) == THEORY_BOOL
+        || n.isConst())
     {
       continue;
     }
