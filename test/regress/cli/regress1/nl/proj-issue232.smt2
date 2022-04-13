@@ -4,16 +4,16 @@
 (assert
  (<
  (* a
-  (/ 1
-  (/ (- 2) a
+  (/ 1.0
+  (/ (- 2.0) a
    (- a
    (* a
-    (mod (to_int a)
+    (to_real (mod (to_int a)
     (to_int
      (/ a
      (* a
-      (div (to_int (/ (- 9) 800))
-      (to_int (/ a a))))))))))))
+      (to_real (div (to_int (/ (- 9) 800))
+      (to_int (/ a a))))))))))))))
  (- a)))
-(assert (<= 0 a))
+(assert (<= 0.0 a))
 (check-sat)

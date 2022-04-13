@@ -5,5 +5,5 @@
 (declare-const x5 Real)
 (declare-fun s () Real)
 (assert (exists ((S Real)) (= s (sin 1.0))))
-(assert (xor (and (= 0.0 (/ x5 0.0)) (= x (- 0.0 1 (/ 0.0 x))) (= x 1)) x3))
+(assert (xor (and (= 0.0 (/ x5 0.0)) (= x (- 0.0 1.0 (/ 0.0 x))) (= x 1.0)) x3))
 (check-sat)

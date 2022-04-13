@@ -3,5 +3,5 @@
 (set-option :cegqi-inf-int true)
 (set-option :cegqi-inf-real true)
 (set-option :var-ineq-elim-quant false) 
-(assert (forall (( b Real )) (forall (( c Int )) (and  (> c (* b 2 ))))))
+(assert (forall (( b Real )) (forall (( c Int )) (and  (> (to_real c) (* b 2.0))))))
 (check-sat)    
