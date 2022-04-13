@@ -3,8 +3,8 @@
 (set-logic ALL)
 
 
-(declare-fun x () (Set (Tuple Int Int)))
-(declare-fun y () (Set (Tuple Int Int Int)))
+(declare-fun x () (Relation Int Int))
+(declare-fun y () (Relation Int Int Int))
 (declare-fun z () (Tuple Int Int))
 (assert (= z (tuple 1 2)))
 (declare-fun zt () (Tuple Int Int Int))

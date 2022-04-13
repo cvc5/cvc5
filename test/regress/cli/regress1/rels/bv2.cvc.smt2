@@ -2,8 +2,8 @@
 (set-option :incremental false)
 (set-logic ALL)
 
-(declare-fun x () (Set (Tuple (_ BitVec 2) (_ BitVec 2))))
-(declare-fun y () (Set (Tuple (_ BitVec 2) (_ BitVec 2))))
+(declare-fun x () (Relation (_ BitVec 2) (_ BitVec 2)))
+(declare-fun y () (Relation (_ BitVec 2) (_ BitVec 2)))
 (declare-fun a () (_ BitVec 2))
 (declare-fun b () (_ BitVec 2))
 (declare-fun c () (_ BitVec 2))

@@ -3,8 +3,8 @@
 (set-logic ALL)
 (declare-datatypes ((unit 0)) (((u))))
 
-(declare-fun x () (Set (Tuple (_ BitVec 1) unit (_ BitVec 1))))
-(declare-fun y () (Set (Tuple (_ BitVec 1) unit (_ BitVec 1))))
+(declare-fun x () (Relation (_ BitVec 1) unit (_ BitVec 1)))
+(declare-fun y () (Relation (_ BitVec 1) unit (_ BitVec 1)))
 (declare-fun a () (_ BitVec 1))
 (declare-fun b () (_ BitVec 1))
 (declare-fun c () (_ BitVec 1))

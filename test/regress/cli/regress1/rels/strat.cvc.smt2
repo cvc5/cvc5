@@ -3,10 +3,10 @@
 (set-logic ALL)
 
 
-(declare-fun x () (Set (Tuple (Tuple Int Int) (Tuple Int Int))))
-(declare-fun y () (Set (Tuple (Tuple Int Int) (Tuple Int Int))))
-(declare-fun z () (Set (Tuple Int Int)))
-(declare-fun w () (Set (Tuple Int Int)))
+(declare-fun x () (Relation (Tuple Int Int) (Tuple Int Int)))
+(declare-fun y () (Relation (Tuple Int Int) (Tuple Int Int)))
+(declare-fun z () (Relation Int Int))
+(declare-fun w () (Relation Int Int))
 (declare-fun a () (Tuple Int Int))
 (declare-fun b () (Tuple Int Int))
 (declare-fun c () (Tuple (Tuple Int Int) (Tuple Int Int)))
