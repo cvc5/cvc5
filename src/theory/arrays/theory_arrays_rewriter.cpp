@@ -39,8 +39,8 @@ struct ArrayConstantMostFrequentValueCountTag
 };
 }  // namespace attr
 
-typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
-typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
+using ArrayConstantMostFrequentValueCountAttr = expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t>;
+using ArrayConstantMostFrequentValueAttr = expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node>;
 
 Node getMostFrequentValue(TNode store) {
   return store.getAttribute(ArrayConstantMostFrequentValueAttr());
@@ -64,11 +64,13 @@ TheoryArraysRewriter::TheoryArraysRewriter(Rewriter* rewriter,
 
 Node TheoryArraysRewriter::normalizeConstant(TNode node)
 {
-  if (node.getKind()==kind::STORE_ALL)
+  if (node.isConst())
   {
     return node;
   }
-  return normalizeConstant(node, node[1].getType().getCardinality());
+  Node ret = normalizeConstant(node, node[1].getType().getCardinality());
+  Assert (ret.isConst());
+  return ret;
 }
 
 // this function is called by printers when using the option "--model-u-dt-enum"

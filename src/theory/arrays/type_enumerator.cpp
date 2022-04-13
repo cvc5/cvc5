@@ -87,9 +87,8 @@ Node ArrayEnumerator::operator*()
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));
+    n = TheoryArraysRewriter::normalizeConstant(n);
   }
-  Trace("array-type-enum") << "operator * prerewrite: " << n << std::endl;
-  n = TheoryArraysRewriter::normalizeConstant(n);
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;
 }

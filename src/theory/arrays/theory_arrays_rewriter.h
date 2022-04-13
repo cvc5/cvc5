@@ -71,6 +71,9 @@ class TheoryArraysRewriter : public TheoryRewriter
   /**
    * Puts array constant node into normal form. This is so that array constants
    * that are distinct nodes are semantically disequal.
+   *
+   * This method should only be called on STORE chains whose AST is built
+   * from constant terms only.
    */
   static Node normalizeConstant(TNode node);
  private:
