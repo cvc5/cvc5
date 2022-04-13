@@ -15,8 +15,8 @@
 
 #include "theory/uf/function_const.h"
 
-#include "theory/arrays/theory_arrays_rewriter.h"
 #include "expr/array_store_all.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
