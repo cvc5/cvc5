@@ -13,7 +13,7 @@ ulimit -t $TIMEOUT; $CVC5_CHECK_DIR/cvc5-proof.sh $CVC5_BINARY $@ >& proof.plf
 if grep -q "(check" proof.plf; then
   # ensure it checks with LFSC
   ulimit -t $TIMEOUT; $CVC5_CHECK_DIR/lfsc-check.sh proof.plf >& lfsc-check-res.txt
-  if grep -q "successfully" lfsc-check-res.txt; then
+  if grep -q "success" lfsc-check-res.txt; then
     if grep -q "WARNING" proof.plf; then
       # remove allowed rules
       sed -i '/THEORY_REWRITE/d' proof.plf

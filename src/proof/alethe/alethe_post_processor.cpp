@@ -2503,7 +2503,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   }
 
   Trace("alethe-proof-subtyping") << "\n--------------------------------\n";
-  ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false, true);
+  ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false);
   finalFinal.process(pf->getChildren()[0]);
 }
 
