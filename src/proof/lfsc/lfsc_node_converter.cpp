@@ -273,7 +273,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node sn = convert(nm->mkConst(s));
     Node en = convert(nm->mkConst(e));
     Node in = convert(nm->mkConst(i));
-    TypeNode tnv = nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
+    TypeNode tnv =
+        nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
     return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
   }
