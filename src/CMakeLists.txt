@@ -827,6 +827,8 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/oracle_checker.cpp
+  theory/quantifiers/oracle_checker.h
   theory/quantifiers/oracle_engine.cpp
   theory/quantifiers/oracle_engine.h
   theory/quantifiers/proof_checker.cpp
@@ -1042,6 +1044,8 @@ libcvc5_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/partition_generator.cpp
+  theory/partition_generator.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
@@ -1207,6 +1211,7 @@ set(options_toml_files
   options/expr_options.toml
   options/fp_options.toml
   options/main_options.toml
+  options/parallel_options.toml
   options/parser_options.toml
   options/printer_options.toml
   options/proof_options.toml

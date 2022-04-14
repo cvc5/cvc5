@@ -266,6 +266,18 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }
 
+std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
+{
+  std::vector<SatLiteral> decisions;
+  const Minisat::vec<Minisat::Lit>& miniDecisions =
+      d_minisat->getMiniSatDecisions();
+  for (size_t i = 0, ndec = miniDecisions.size(); i < ndec; ++i)
+  {
+    decisions.push_back(toSatLiteral(miniDecisions[i]));
+  }
+  return decisions;
+}
+
 int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const
 {
   return d_minisat->level(v) + d_minisat->user_level(v);

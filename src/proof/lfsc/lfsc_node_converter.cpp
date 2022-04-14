@@ -273,8 +273,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node sn = convert(nm->mkConst(s));
     Node en = convert(nm->mkConst(e));
     Node in = convert(nm->mkConst(i));
-    TypeNode btn = nm->booleanType();
-    TypeNode tnv = nm->mkFunctionType({btn, btn, btn}, tn);
+    TypeNode tnv =
+        nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
     return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
   }
@@ -1132,7 +1132,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
-    argTypes.push_back(nc.getType());
+    // We take the base type, so that e.g. arithmetic operators are over
+    // real. This avoids issues with subtyping when currying during proof
+    // postprocessing
+    argTypes.push_back(nc.getType().getBaseType());
   }
   // we only use binary operators
   if (NodeManager::isNAryKind(k))

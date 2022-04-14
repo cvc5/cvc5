@@ -28,6 +28,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parallel_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -62,6 +63,11 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+
+  if (opts.quantifiers.oracles)
+  {
+    throw OptionException(std::string("Oracles not yet supported"));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -1053,6 +1059,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                   "incremental solving"
                << std::endl;
     opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+  }
+  if (opts.parallel.computePartitions > 1)
+  {
+    reason << "compute partitions";
+    return true;
   }
 
   // disable modes not supported by incremental
