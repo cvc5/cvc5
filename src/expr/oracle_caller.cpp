@@ -71,7 +71,7 @@ bool OracleCaller::isOracleFunction(Node f)
 
 bool OracleCaller::isOracleFunctionApp(Node n)
 {
-  if (n.getKind()==kind::APPLY_UF)
+  if (n.getKind() == kind::APPLY_UF)
   {
     return isOracleFunction(n.getOperator());
   }

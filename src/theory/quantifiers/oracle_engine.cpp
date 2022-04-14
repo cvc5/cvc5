@@ -203,7 +203,7 @@ void OracleEngine::checkOwnership(Node q)
   {
     return;
   }
-  d_qreg.setOwner(q, this);  
+  d_qreg.setOwner(q, this);
   // We expect oracle interfaces to be limited to definitional SMTO currently.
   if (Configuration::isAssertionBuild())
   {
@@ -211,24 +211,26 @@ void OracleEngine::checkOwnership(Node q)
     Node assume, constraint;
     std::string binName;
     getOracleInterface(q, inputs, outputs, assume, constraint, binName);
-    Assert (constraint.isConst() && constraint.getConst<bool>()) << "Unhandled oracle constraint " << q;
-    bool isOracleFun = false
-    if (OracleCaller::isOracleFunctionApp(assume))
+    Assert(constraint.isConst() && constraint.getConst<bool>())
+        << "Unhandled oracle constraint " << q;
+    bool isOracleFun = false if (OracleCaller::isOracleFunctionApp(assume))
     {
       // predicate case
       isOracleFun = true;
     }
-    else if (assume.getKind()==EQUAL)
+    else if (assume.getKind() == EQUAL)
     {
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
-        if (OracleCaller::isOracleFunctionApp(assume[i]) && assume[1-i].isConst())
+        if (OracleCaller::isOracleFunctionApp(assume[i])
+            && assume[1 - i].isConst())
         {
           isOracleFun = true;
         }
       }
     }
-    Assert (isOracleFun) << "Non-definitional oracle interface quantified formula " << q;
+    Assert(isOracleFun)
+        << "Non-definitional oracle interface quantified formula " << q;
   }
 }
 
@@ -307,17 +309,17 @@ bool OracleEngine::getOracleInterface(Node q,
       }
       else
       {
-        Assert (v.hasAttribute(oova));
+        Assert(v.hasAttribute(oova));
         outputs.push_back(v);
       }
     }
-    Assert (q[1].getKind()==ORACLE_FORMULA_GEN);
+    Assert(q[1].getKind() == ORACLE_FORMULA_GEN);
     assume = q[1][0];
     constraint = q[1][0];
-    Assert (q.getNumChildren()==3);
-    Assert (q[2].getNumChildren()==1);
+    Assert(q.getNumChildren() == 3);
+    Assert(q[2].getNumChildren() == 1);
     OracleInterfaceAttribute oia;
-    Assert (q[2][0].hasAttribute(oia));
+    Assert(q[2][0].hasAttribute(oia));
     binName = q[2][0].getAttribute(oia);
     return true;
   }
