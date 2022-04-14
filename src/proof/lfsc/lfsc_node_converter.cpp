@@ -620,7 +620,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
-      tn.getAttribute(expr::VarNameAttr(), name);
+      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(), name);
       op = getSymbolInternal(k, ftype, name, false);
     }
     else

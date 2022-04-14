@@ -268,6 +268,19 @@ void LfscPrinter::printTypeDefinition(
     printType(os, tn);
     os << " sort)" << std::endl;
   }
+  else if (tn.isUninterpretedSortConstructor())
+  {
+    os << "(declare ";
+    printType(os, tn);
+    std::stringstream tcparen;
+    uint64_t arity = tn.getUninterpretedSortConstructorArity();
+    for (uint64_t i=0; i<arity; i++)
+    {
+      os << " (! s" << i << " sort";
+      tcparen << ")";
+    }
+    os << " sort)" << tcparen.str() << std::endl;
+  }
   else if (tn.isDatatype())
   {
     if (tn.getKind() == PARAMETRIC_DATATYPE)
