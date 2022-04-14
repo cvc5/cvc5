@@ -3,12 +3,12 @@
 (set-logic ALL)
 
 
-(declare-fun x () (Set (Tuple Int Int)))
-(declare-fun y () (Set (Tuple Int Int)))
-(declare-fun r () (Set (Tuple Int Int)))
-(declare-fun w () (Set (Tuple Int)))
-(declare-fun z () (Set (Tuple Int)))
-(declare-fun r2 () (Set (Tuple Int Int)))
+(declare-fun x () (Relation Int Int))
+(declare-fun y () (Relation Int Int))
+(declare-fun r () (Relation Int Int))
+(declare-fun w () (Relation Int))
+(declare-fun z () (Relation Int))
+(declare-fun r2 () (Relation Int Int))
 (declare-fun a () (Tuple Int Int))
 (assert (= a (tuple 3 1)))
 (assert (set.member a x))
