@@ -28,6 +28,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parallel_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -67,6 +68,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     AlwaysAssert(false) << "Fail due to --proof-req "
                         << opts.smt.produceProofsWasSetByUser;
+  }
+  if (opts.quantifiers.oracles)
+  {
+    throw OptionException(std::string("Oracles not yet supported"));
   }
   // implied options
   if (opts.smt.debugCheckModels)
@@ -1048,6 +1053,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   if (opts.smt.solveIntAsBV > 0)
   {
     reason << "solveIntAsBV";
+    return true;
+  }
+  if (opts.parallel.computePartitions > 1)
+  {
+    reason << "compute partitions";
     return true;
   }
 
