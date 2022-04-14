@@ -583,7 +583,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
 /** Is this a sort kind */
 bool TypeNode::isUninterpretedSort() const
 {
-  return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
+  Kind k = getKind();
+  return k = kind::INSTANTIATED_SORT_TYPE || ( k == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
 }
 
 /** Is this a sort constructor kind */
