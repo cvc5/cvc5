@@ -273,8 +273,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node sn = convert(nm->mkConst(s));
     Node en = convert(nm->mkConst(e));
     Node in = convert(nm->mkConst(i));
-    TypeNode tnv =
-        nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
+    TypeNode btn = nm->booleanType();
+    TypeNode tnv = nm->mkFunctionType({btn, btn, btn}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
     return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
   }
@@ -367,7 +367,8 @@ Node LfscNodeConverter::postConvert(Node n)
     {
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
-      // use the partial operator for variables beyond the first
+      // use the partial operator for variables except the last one.  This
+      // avoids type errors in internal representation of LFSC terms.
       Node vop = getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
       ret = nm->mkNode(APPLY_UF, vop, ret);
     }
