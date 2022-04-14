@@ -156,7 +156,7 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
       nm->mkNode(LEQ, y, pi),
       nm->mkNode(IS_INTEGER, s),
       nm->mkNode(ITE,
-                 nm->mkAnd({
+                 nm->mkAnd(std::vector<Node>{
                      nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
                      nm->mkNode(LEQ, x, pi),
                  }),
