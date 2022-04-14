@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
-#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 
 namespace cvc5::internal {
@@ -746,18 +745,6 @@ void getTypes(TNode n,
     {
       visited.insert(cur);
       types.insert(cur.getType());
-      // special case where the type is embedded in the operator
-      Kind k = cur.getKind();
-      if (k == kind::CARDINALITY_CONSTRAINT)
-      {
-        const CardinalityConstraint& cc =
-            cur.getOperator().getConst<CardinalityConstraint>();
-        types.insert(cc.getType());
-      }
-      else if (cur.hasOperator() && !cur.isConst())
-      {
-        visit.push_back(cur.getOperator());
-      }
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());

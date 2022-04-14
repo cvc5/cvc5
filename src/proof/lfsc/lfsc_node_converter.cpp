@@ -156,7 +156,8 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // Otherwise, it is an uncategorized skolem, must use a fresh variable.
     // This case will only apply for terms originating from places with no
-    // proof support.
+    // proof support. Note it is not added as a declared variable, instead it
+    // is used as (var N T) throughout.
     TypeNode intType = nm->integerType();
     TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
     Node var = mkInternalSymbol("var", varType);
@@ -166,6 +167,7 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (n.isVar())
   {
+    d_declVars.insert(n);
     return mkInternalSymbol(getNameForUserNameOf(n), tn);
   }
   else if (k == CARDINALITY_CONSTRAINT)
@@ -188,6 +190,9 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
            || k == APPLY_UPDATER)
   {
+    // must add to declared types
+    const DType& dt = DType::datatypeOf(n.getOperator());
+    d_declTypes.insert(dt.getTypeNode());
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
     Node opc = getOperatorOfTerm(n, true);
@@ -533,6 +538,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   }
   else if (tn.getNumChildren() == 0)
   {
+    // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
+    d_declTypes.insert(tn);
     // special case: tuples must be distinguished by their arity
     if (tn.isTuple())
     {
@@ -593,6 +600,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     Node op;
     if (k == PARAMETRIC_DATATYPE)
     {
+      // note we don't add to declared types here, since the parametric
+      // datatype is traversed and will be declared as a type constructor
       // erase first child, which repeats the datatype
       targs.erase(targs.begin(), targs.begin() + 1);
       types.erase(types.begin(), types.begin() + 1);
@@ -605,6 +614,10 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     }
     else if (k == SORT_TYPE)
     {
+      // Add its uninterpreted sort constructor to the list of declared types.
+      // This is required since the (type) operator is not part of the AST of
+      // the TypeNode.
+      d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getAttribute(expr::VarNameAttr(), name);
@@ -1213,6 +1226,10 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
   d_varIndex[v] = id;
   return id;
 }
+
+const std::unordered_set<Node>& LfscNodeConverter::getDeclaredSymbols() const { return d_declVars; }
+
+const std::unordered_set<TypeNode>& LfscNodeConverter::getDeclaredTypes() const { return d_declTypes; }
 
 }  // namespace proof
 }  // namespace cvc5::internal
