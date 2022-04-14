@@ -180,6 +180,9 @@ class TranscendentalState : protected EnvObj
    * Add bound for n, and for what (if anything) it purifies
    */
   bool addModelBoundForPurifyTerm(TNode n, TNode l, TNode u);
+  /** initial lower and upper bounds for PI */
+  static Rational getPiInitialLowerBound();
+  static Rational getPiInitialUpperBound();
 
   Node d_true;
   Node d_false;

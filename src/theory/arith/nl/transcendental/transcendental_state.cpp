@@ -222,8 +222,8 @@ void TranscendentalState::mkPi()
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
     // initialize bounds
-    d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
+    d_pi_bound[0] = nm->mkConstReal(getPiInitialLowerBound());
+    d_pi_bound[1] = nm->mkConstReal(getPiInitialUpperBound());
   }
 }
 
@@ -502,7 +502,7 @@ bool TranscendentalState::isSimplePurify(TNode n)
   }
   Rational r = n[0].getConst<Rational>();
   // use a fixed value of pi
-  Rational piLower = Rational(103993) / Rational(33102);
+  Rational piLower = getPiInitialLowerBound();
   return -piLower <= r && r <= piLower;
 }
 
@@ -531,6 +531,16 @@ bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
     }
   }
   return true;
+}
+
+Rational TranscendentalState::getPiInitialLowerBound()
+{
+  return Rational(103993) / Rational(33102);
+}
+
+Rational TranscendentalState::getPiInitialUpperBound()
+{
+  return Rational(104348) / Rational(33215);
 }
 
 }  // namespace transcendental
