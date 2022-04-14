@@ -109,6 +109,8 @@ Result SynthVerify::verify(Node query,
         Node squery =
             query.substitute(vars.begin(), vars.end(), mvs.begin(), mvs.end());
         Trace("cegqi-debug") << "...squery : " << squery << std::endl;
+        // Rewrite the node. Notice that if squery contains oracle function
+        // symbols, then this may trigger new calls to oracles.
         squery = d_tds->rewriteNode(squery);
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
         if (!squery.isConst() || !squery.getConst<bool>())
@@ -125,8 +127,10 @@ Result SynthVerify::verify(Node query,
           if (options().quantifiers.oracles)
           {
             // In this case, we reconstruct the query, which may include more
-            // information about oracles than we had previously. We rerun the
-            // satisfiability check above.
+            // information about oracles than we had previously, due to the
+            // call to rewriteNode above. We rerun the satisfiability check
+            // above, which now may conjoin more I/O pairs to the preprocessed
+            // query.
             Node nextQueryp = preprocessQueryInternal(query);
             if (nextQueryp != queryp)
             {
