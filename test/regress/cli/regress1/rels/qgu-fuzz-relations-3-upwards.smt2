@@ -1,11 +1,11 @@
 (set-logic ALL)
 (set-info :status sat)
-(declare-fun b () (Set (Tuple Int Int)))
+(declare-fun b () (Relation Int Int))
 (assert 
-(= (rel.join b (rel.tclosure (rel.join b b))) (as set.empty (Set (Tuple Int Int))))
+(= (rel.join b (rel.tclosure (rel.join b b))) (as set.empty (Relation Int Int)))
 )
 (assert
-(distinct b (as set.empty (Set (Tuple Int Int))))
+(distinct b (as set.empty (Relation Int Int)))
 )
-(assert (= (rel.join b b) (as set.empty (Set (Tuple Int Int)))))
+(assert (= (rel.join b b) (as set.empty (Relation Int Int))))
 (check-sat)

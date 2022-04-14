@@ -2031,6 +2031,12 @@ sortSymbol[cvc5::Sort& t]
           t = SOLVER->mkSequenceSort( args[0] );
         } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
           t = SOLVER->mkTupleSort(args);
+        } else if (name == "Relation" && !PARSER_STATE->strictModeEnabled()) {
+          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
+          t = SOLVER->mkSetSort(tupleSort);
+        } else if (name == "Table" && !PARSER_STATE->strictModeEnabled()) {
+          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
+          t = SOLVER->mkBagSort(tupleSort);
         } else {
           t = PARSER_STATE->getSort(name, args);
         }

@@ -3,9 +3,9 @@
 (set-logic ALL)
 (declare-sort Atom 0)
 
-(declare-fun x () (Set (Tuple Int Int)))
-(declare-fun id () (Set (Tuple Int Int)))
-(declare-fun t () (Set (Tuple Int)))
+(declare-fun x () (Relation Int Int))
+(declare-fun id () (Relation Int Int))
+(declare-fun t () (Relation Int))
 (declare-fun z () (Tuple Int Int))
 (assert (= z (tuple 1 2)))
 (declare-fun zt () (Tuple Int Int))

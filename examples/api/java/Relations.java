@@ -39,12 +39,12 @@ public class Relations
 
       // (Tuple Person)
       Sort tupleArity1 = solver.mkTupleSort(new Sort[] {personSort});
-      // (Set (Tuple Person))
+      // (Relation Person)
       Sort relationArity1 = solver.mkSetSort(tupleArity1);
 
       // (Tuple Person Person)
       Sort tupleArity2 = solver.mkTupleSort(new Sort[] {personSort, personSort});
-      // (Set (Tuple Person Person))
+      // (Relation Person Person)
       Sort relationArity2 = solver.mkSetSort(tupleArity2);
 
       // empty set
@@ -69,21 +69,21 @@ public class Relations
       Term isEmpty1 = solver.mkTerm(EQUAL, males, emptySetTerm);
       Term isEmpty2 = solver.mkTerm(EQUAL, females, emptySetTerm);
 
-      // (assert (= people (as set.universe (Set (Tuple Person)))))
+      // (assert (= people (as set.universe (Relation Person))))
       Term peopleAreTheUniverse = solver.mkTerm(EQUAL, people, universeSet);
-      // (assert (not (= males (as set.empty (Set (Tuple Person))))))
+      // (assert (not (= males (as set.empty (Relation Person)))))
       Term maleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty1);
-      // (assert (not (= females (as set.empty (Set (Tuple Person))))))
+      // (assert (not (= females (as set.empty (Relation Person)))))
       Term femaleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty2);
 
       // (assert (= (set.inter males females)
-      //            (as set.empty (Set (Tuple Person)))))
+      //            (as set.empty (Relation Person))))
       Term malesFemalesIntersection = solver.mkTerm(SET_INTER, males, females);
       Term malesAndFemalesAreDisjoint =
           solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
 
-      // (assert (not (= father (as set.empty (Set (Tuple Person Person))))))
-      // (assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
+      // (assert (not (= father (as set.empty (Relation Person Person)))))
+      // (assert (not (= mother (as set.empty (Relation Person Person)))))
       Term isEmpty3 = solver.mkTerm(EQUAL, father, emptyRelationTerm);
       Term isEmpty4 = solver.mkTerm(EQUAL, mother, emptyRelationTerm);
       Term fatherIsNotEmpty = solver.mkTerm(NOT, isEmpty3);

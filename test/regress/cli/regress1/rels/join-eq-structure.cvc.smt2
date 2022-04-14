@@ -2,13 +2,13 @@
 (set-option :incremental false)
 (set-logic ALL)
 
-(declare-fun x () (Set (Tuple Int Int)))
-(declare-fun y () (Set (Tuple Int Int)))
+(declare-fun x () (Relation Int Int))
+(declare-fun y () (Relation Int Int))
 (declare-datatypes ((unit 0)) (((u))))
 
 
-(declare-fun w () (Set (Tuple Int unit)))
-(declare-fun z () (Set (Tuple unit Int)))
+(declare-fun w () (Relation Int unit))
+(declare-fun z () (Relation unit Int))
 (assert (let ((_let_1 (rel.join w z))) (let ((_let_2 (rel.join x y))) (or (= _let_2 _let_1) (= _let_2 (rel.transpose _let_1))))))
 (assert (set.member (tuple 0 1) (rel.join x y)))
 (declare-fun t () Int)
