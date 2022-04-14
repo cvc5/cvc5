@@ -827,6 +827,8 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/oracle_checker.cpp
+  theory/quantifiers/oracle_checker.h
   theory/quantifiers/oracle_engine.cpp
   theory/quantifiers/oracle_engine.h
   theory/quantifiers/proof_checker.cpp
