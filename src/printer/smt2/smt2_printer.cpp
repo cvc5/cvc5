@@ -843,6 +843,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   break;
+  case kind::INSTANTIATED_SORT_TYPE: break;
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
