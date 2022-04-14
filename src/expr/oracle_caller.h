@@ -63,6 +63,8 @@ class OracleCaller
 
   /** is f an oracle function? */
   static bool isOracleFunction(Node f);
+  /** is n an oracle function application? */
+  static bool isOracleFunctionApp(Node n);
 
  private:
   /** name of binary */
