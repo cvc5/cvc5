@@ -119,13 +119,13 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
   // (3) We currently ignore oracle interface quantified formulas that are
   // not associated with oracle functions.
   //
-  // The current design choices above are due to the fact that are support is
+  // The current design choices above are due to the fact that our support is
   // limited to "definitional SMTO" (see Polgreen et al 2022). In particular,
   // we only support oracles that define I/O equalities for oracle functions
   // only. The net effect of this class hence is to check the consistency of
   // oracle functions, and allow "sat" or otherwise add a lemma with id
   // QUANTIFIERS_ORACLE_INTERFACE.
-  std::vector<Node> learned_lemmas;
+  std::vector<Node> learnedLemmas;
   bool allFappsConsistent = true;
   // iterate over oracle functions
   for (const Node& f : d_oracleFuns)
@@ -148,7 +148,7 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
         arguments.push_back(fm->getValue(arg));
       }
       // call oracle
-      Node fapp_with_values = nm->mkNode(APPLY_UF, arguments);
+      Node fappWithValues = nm->mkNode(APPLY_UF, arguments);
       Node predictedResponse = eq->getRepresentative(fapp);
       if (!d_ochecker->checkConsistent(
               fapp_with_values, predictedResponse, learned_lemmas))
