@@ -9,24 +9,24 @@
 
 (declare-sort Person 0)
 
-(declare-fun people () (Set (Tuple Person)))
-(declare-fun males () (Set (Tuple Person)))
-(declare-fun females () (Set (Tuple Person)))
-(declare-fun father () (Set (Tuple Person Person)))
-(declare-fun mother () (Set (Tuple Person Person)))
-(declare-fun parent () (Set (Tuple Person Person)))
-(declare-fun ancestor () (Set (Tuple Person Person)))
-(declare-fun descendant () (Set (Tuple Person Person)))
+(declare-fun people () (Relation Person))
+(declare-fun males () (Relation Person))
+(declare-fun females () (Relation Person))
+(declare-fun father () (Relation Person Person))
+(declare-fun mother () (Relation Person Person))
+(declare-fun parent () (Relation Person Person))
+(declare-fun ancestor () (Relation Person Person))
+(declare-fun descendant () (Relation Person Person))
 
-(assert (= people (as set.universe (Set (Tuple Person)))))
-(assert (not (= males (as set.empty (Set (Tuple Person))))))
-(assert (not (= females (as set.empty (Set (Tuple Person))))))
-(assert (= (set.inter males females) (as set.empty (Set (Tuple Person)))))
+(assert (= people (as set.universe (Relation Person))))
+(assert (not (= males (as set.empty (Relation Person)))))
+(assert (not (= females (as set.empty (Relation Person)))))
+(assert (= (set.inter males females) (as set.empty (Relation Person))))
 
 ; father relation is not empty
-(assert (not (= father (as set.empty (Set (Tuple Person Person))))))
+(assert (not (= father (as set.empty (Relation Person Person)))))
 ; mother relation is not empty
-(assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
+(assert (not (= mother (as set.empty (Relation Person Person)))))
 ; fathers are males
 (assert (set.subset (rel.join father people) males))
 ; mothers are females

@@ -337,12 +337,6 @@ TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {
     return realt;
-  } else if (isParametricDatatype()) {
-    std::vector<TypeNode> v;
-    for(size_t i = 1; i < getNumChildren(); ++i) {
-      v.push_back((*this)[i].getBaseType());
-    }
-    return (*this)[0].getDType().getTypeNode().instantiate(v);
   }
   return *this;
 }

@@ -3,8 +3,8 @@
 (set-option :incremental false)
 (set-logic ALL)
 
-(declare-fun x () (Set (Tuple (_ BitVec 1) (_ BitVec 1))))
-(declare-fun y () (Set (Tuple (_ BitVec 1) (_ BitVec 1))))
+(declare-fun x () (Relation (_ BitVec 1) (_ BitVec 1)))
+(declare-fun y () (Relation (_ BitVec 1) (_ BitVec 1)))
 (declare-fun a () (Tuple (_ BitVec 1) (_ BitVec 1)))
 (declare-fun b () (Tuple (_ BitVec 1) (_ BitVec 1)))
 (declare-fun c () (Tuple (_ BitVec 1) (_ BitVec 1)))
