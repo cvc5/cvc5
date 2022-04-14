@@ -102,7 +102,7 @@ Result SynthVerify::verify(Node query,
         Trace("sygus-engine") << std::endl;
       }
       // check whether the query is satisfied by the model
-      if (Configuration::isAssertionBuild())
+      if (options().quantifiers.oracles || Configuration::isAssertionBuild())
       {
         Assert(vars.size() == mvs.size());
         // the values for the query should be a complete model
@@ -111,12 +111,29 @@ Result SynthVerify::verify(Node query,
         Trace("cegqi-debug") << "...squery : " << squery << std::endl;
         squery = d_tds->rewriteNode(squery);
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-        // if the query simplifies to false, then something
-        // went wrong or the answer is unknown (for debugging).
-        if (squery.isConst() && !squery.getConst<bool>())
+        if (!squery.isConst() || !squery.getConst<bool>())
         {
-          Assert(r.getStatus() == Result::UNKNOWN)
-              << "Expected model from verification step to satisfy query";
+          if (squery.isConst())
+          {
+            // simplified to false, the result should have been unknown, or
+            // else this indicates a check-model failure.
+            Assert(r.getStatus() == Result::UNKNOWN)
+                << "Expected model from verification step to satisfy query";
+          }
+          // If the query did not simplify to true, then it may be that the
+          // value for an oracle function was not what we expected.
+          if (options().quantifiers.oracles)
+          {
+            // In this case, we reconstruct the query, which may include more
+            // information about oracles than we had previously. We rerun the
+            // satisfiability check above.
+            Node nextQueryp = preprocessQueryInternal(query);
+            if (nextQueryp != queryp)
+            {
+              queryp = nextQueryp;
+              finished = false;
+            }
+          }
         }
       }
     }
@@ -136,8 +153,9 @@ Node SynthVerify::preprocessQueryInternal(Node query)
   {
     // if non-constant, we may need to add recursive function definitions
     FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
+    OracleChecker* ochecker = d_tds->getOracleChecker();
     const std::vector<Node>& fdefs = feval->getDefinitions();
-    if (!fdefs.empty())
+    if (!fdefs.empty() || (ochecker != nullptr && ochecker->hasOracles()))
     {
       // Get the relevant definitions based on the symbols in the query.
       // Notice in some cases, this may have the effect of making the subcall
@@ -156,10 +174,24 @@ Node SynthVerify::preprocessQueryInternal(Node query)
         {
           qconj.push_back(q);
         }
+        // Get the relevant cached oracle calls.
+        // In contrast to the presentation in Polgreen et al VMCAI 2022,
+        // we do not use SMTO as a subsolver for SyMO here. Instead, we
+        // conjoin the set of I/O pairs known about each oracle function
+        // to the query.
+        if (ochecker != nullptr && ochecker->hasOracleCalls(f))
+        {
+          const std::map<Node, Node>& ocalls = ochecker->getOracleCalls(f);
+          for (const std::pair<const Node, Node>& oc : ocalls)
+          {
+            qconj.push_back(oc.first.eqNode(oc.second));
+          }
+        }
       }
       query = nm->mkAnd(qconj);
-      Trace("cegqi-debug") << "after function definitions, query is " << query
-                           << std::endl;
+      Trace("cegqi-debug")
+          << "after function definitions + oracle calls, query is " << query
+          << std::endl;
     }
   }
   return query;
