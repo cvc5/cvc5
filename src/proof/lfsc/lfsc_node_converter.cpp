@@ -574,7 +574,14 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       std::stringstream ss;
       options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
       tn.toStream(ss);
-      if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
+      if (tn.isUninterpretedSortConstructor())
+      {
+        std::stringstream sss;
+        sss << LfscNodeConverter::getNameForUserName(ss.str());
+        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
+        cur = nm->mkSortConstructor(sss.str(), tn.getUninterpretedSortConstructorArity());
+      }
+      else if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
       {
         std::stringstream sss;
         sss << LfscNodeConverter::getNameForUserName(ss.str());
