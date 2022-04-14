@@ -62,6 +62,11 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+
+  if (opts.quantifiers.oracles)
+  {
+    throw OptionException(std::string("Oracles not yet supported"));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
