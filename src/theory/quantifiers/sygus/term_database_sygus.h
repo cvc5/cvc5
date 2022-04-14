@@ -24,6 +24,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/fun_def_evaluator.h"
+#include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
@@ -56,7 +57,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 class TermDbSygus : protected EnvObj
 {
  public:
-  TermDbSygus(Env& env, QuantifiersState& qs);
+  TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc = nullptr);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
@@ -83,6 +84,8 @@ class TermDbSygus : protected EnvObj
   FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
+  /** get the oracle checker */
+  OracleChecker* getOracleChecker() { return d_ochecker; }
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -288,7 +291,7 @@ class TermDbSygus : protected EnvObj
   SygusTypeInfo& getTypeInfo(TypeNode tn);
   /**
    * Rewrite the given node using the utilities in this class. This may
-   * involve (recursive function) evaluation.
+   * involve (recursive function) evaluation, and oracle evaluation.
    */
   Node rewriteNode(Node n) const;
 
@@ -310,6 +313,8 @@ class TermDbSygus : protected EnvObj
   std::unique_ptr<FunDefEvaluator> d_funDefEval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
+  /** Pointer to the oracle checker */
+  OracleChecker* d_ochecker;
   //------------------------------end utilities
 
   //------------------------------enumerators
