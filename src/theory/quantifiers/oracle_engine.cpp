@@ -213,7 +213,8 @@ void OracleEngine::checkOwnership(Node q)
     getOracleInterface(q, inputs, outputs, assume, constraint, binName);
     Assert(constraint.isConst() && constraint.getConst<bool>())
         << "Unhandled oracle constraint " << q;
-    bool isOracleFun = false if (OracleCaller::isOracleFunctionApp(assume))
+    bool isOracleFun = false;
+    if (OracleCaller::isOracleFunctionApp(assume))
     {
       // predicate case
       isOracleFun = true;
