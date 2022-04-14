@@ -239,12 +239,14 @@ uint64_t DotPrinter::printInternal(
     }
 
     auto proofIt = pfLetClosed.find(currentHash);
-    // If this node has been already visited
+    // If this node has been already saved to the global cache of closed proof
+    // nodes
     if (proofIt != pfLetClosed.end())
     {
+      Assert(!expr::containsAssumption(pn, cfaMap));
       return proofIt->second;
     }
-    // If its closed proof
+    // If this proof node is closed, we add it to the global cache
     if (!expr::containsAssumption(pn, cfaMap))
     {
       pfLetClosed[currentHash] = currentRuleID;
@@ -270,7 +272,7 @@ uint64_t DotPrinter::printInternal(
 
   PfRule r = pn->getRule();
 
-  // Deal with new scopes or not
+  // Scopes trigger a traversal with a new local cache for proof nodes
   if (isSCOPE(r) && currentRuleID)
   {
     // create a new pfLet

@@ -90,10 +90,10 @@ class DotPrinter
    * the child as argument.
    * @param out the output stream
    * @param pn the proof node to print
-   * @param pfLetClosed the map of the hashs of proof nodes already printed to
-   * their ids in the whole proof
-   * @param pfLetOpen the map of the hashs of proof nodes already printed to
-   * their ids in the current scope
+   * @param pfLetClosed the map from proof node hashs, of closed proof nodes, to
+   * their printed ids
+   * @param pfLetOpen the map, local to the current scope, of proof node hashs
+   * to their printed ids
    * @param cfaMap the map from proof nodes to whether they contain assumptions
    * @param parentType the type of the parent node
    * @return the id of the proof node printed
