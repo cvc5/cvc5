@@ -115,6 +115,10 @@ class LfscNodeConverter : public NodeConverter
                                         size_t variant = 0);
   /** get name for the name of node v, where v should be a variable */
   std::string getNameForUserNameOf(Node v);
+  /** Get the declared symbols (variables) that we have converted */
+  const std::unordered_set<Node>& getDeclaredSymbols() const;
+  /** Get the declared types that we have converted */
+  const std::unordered_set<TypeNode>& getDeclaredTypes() const;
 
  private:
   /** Should we traverse n? */
@@ -180,6 +184,10 @@ class LfscNodeConverter : public NodeConverter
   std::map<TypeNode, Node> d_typeAsNode;
   /** Used for interpreted builtin parametric sorts */
   std::map<Kind, Node> d_typeKindToNodeCons;
+  /** The set of declared variables */
+  std::unordered_set<Node> d_declVars;
+  /** The set of declared types */
+  std::unordered_set<TypeNode> d_declTypes;
 };
 
 }  // namespace proof
