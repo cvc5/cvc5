@@ -1234,7 +1234,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             Node v = msum_term[it->first];
             if (!v.isNull())
             {
-              Assert(v.getType() == type);
+              Assert(v.getType().isComparableTo(type));
               c = nm->mkNode(MULT, c, v);
             }
             children.push_back( c );
