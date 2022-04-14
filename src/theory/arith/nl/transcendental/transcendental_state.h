@@ -173,7 +173,9 @@ class TranscendentalState : protected EnvObj
    * Can we do "simple" purification for n? If this is the case, then
    * f(x) is purified by f(k) where k is the purification variable for x.
    *
-   * This is false for sin(x) where x is not a constant in the bound [-pi, pi].
+   * This is true for sin(x) where x is guaranteed to be a constant in the
+   * bound [-pi, pi] (note that there may be some x in [-pi, pi] for which
+   * this function returns false, because the check is not precise).
    */
   static bool isSimplePurify(TNode n);
   /**
