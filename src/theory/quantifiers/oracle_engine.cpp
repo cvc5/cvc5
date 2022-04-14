@@ -301,7 +301,6 @@ bool OracleEngine::getOracleInterface(Node q,
   {
     // fill in data
     OracleInputVarAttribute oiva;
-    OracleOutputVarAttribute oova;
     for (const Node& v : q[0])
     {
       if (v.hasAttribute(oiva))
@@ -310,7 +309,7 @@ bool OracleEngine::getOracleInterface(Node q,
       }
       else
       {
-        Assert(v.hasAttribute(oova));
+        Assert(v.hasAttribute(OracleOutputVarAttribute()));
         outputs.push_back(v);
       }
     }
