@@ -130,6 +130,8 @@ enum class InferenceId
   ARITH_NL_T_SINE_BOUNDARY_REDUCE,
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
+  // purification of arguments to transcendental functions with phase shifting
+  ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
   ARITH_NL_T_INIT_REFINE,
   // pi bounds
