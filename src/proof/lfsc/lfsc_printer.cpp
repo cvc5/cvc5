@@ -100,7 +100,7 @@ void LfscPrinter::print(std::ostream& out,
     printProofInternal(&lpcp, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
   }
-  // Print the body of the outermost scope0
+  // Print the body of the outermost scope
   printProofInternal(&lpcp, pnBody, emptyLetBind, pletMap, passumeMap);
 
   // [4] print declared sorts and symbols
@@ -171,7 +171,7 @@ void LfscPrinter::print(std::ostream& out,
     // shared selectors are instance of parametric symbol "sel"
     preamble << "; END DATATYPE " << std::endl;
   }
-  // [4c] user declared sorts
+  // [4c] user declared function symbols
   preamble << preambleSymDecl.str();
 
   // [5] print warnings
