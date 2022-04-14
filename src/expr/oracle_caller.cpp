@@ -69,6 +69,16 @@ bool OracleCaller::isOracleFunction(Node f)
   return f.hasAttribute(theory::OracleInterfaceAttribute());
 }
 
+bool OracleCaller::isOracleFunctionApp(Node n)
+{
+  if (n.getKind()==kind::APPLY_UF)
+  {
+    return isOracleFunction(n.getOperator());
+  }
+  // possibly 0-ary
+  return isOracleFunction(n);
+}
+
 std::string OracleCaller::getBinaryName() const { return d_binaryName; }
 
 std::string OracleCaller::getBinaryNameFor(const Node& n)
