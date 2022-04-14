@@ -26,7 +26,6 @@
 #include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::rewriter;
 
 namespace cvc5::internal {
 namespace proof {
@@ -178,12 +177,7 @@ void LfscPrinter::print(std::ostream& out,
   }
 
   // [6] print the DSL rewrite rule declarations
-  const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
-  for (DslPfRule dslr : dslrs)
-  {
-    // also computes the format for the rule
-    printDslRule(out, dslr, d_dslFormat[dslr]);
-  }
+  // TODO cvc5-projects #285.
 
   // [7] print the check command and term lets
   out << preamble.str();
@@ -259,12 +253,12 @@ void LfscPrinter::printTypeDefinition(
   }
   else if (tn.isDatatype())
   {
-    const DType& dt = tn.getDType();
     if (tn.getKind() == PARAMETRIC_DATATYPE)
     {
       // skip the instance of a parametric datatype
       return;
     }
+    const DType& dt = tn.getDType();
     if (dt.isTuple())
     {
       const DTypeConstructor& cons = dt[0];
