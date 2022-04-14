@@ -119,6 +119,7 @@ class LfscNodeConverter : public NodeConverter
   const std::unordered_set<Node>& getDeclaredSymbols() const;
   /** Get the declared types that we have converted */
   const std::unordered_set<TypeNode>& getDeclaredTypes() const;
+
  private:
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;

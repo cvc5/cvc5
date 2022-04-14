@@ -50,4 +50,4 @@ Node RewriteDbNodeConverter::postConvert(Node n)
 }
 
 }  // namespace rewriter
-}  // namespace cvc5
+}  // namespace cvc5::internal

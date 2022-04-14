@@ -55,7 +55,7 @@ void LfscPrinter::print(std::ostream& out,
   d_trustWarned.clear();
   d_useWarned.clear();
   d_useLfscWarned.clear();
-  
+
   // [1] convert assertions to internal and set up assumption map
   Trace("lfsc-print-debug") << "; print declarations" << std::endl;
   std::vector<Node> iasserts;
@@ -76,7 +76,8 @@ void LfscPrinter::print(std::ostream& out,
   computeProofLetification(pnBody, pletList, pletMap);
 
   // [3] compute the global term letification and declared symbols and types
-  Trace("lfsc-print-debug") << "; compute global term letification and declared symbols" << std::endl;
+  Trace("lfsc-print-debug")
+      << "; compute global term letification and declared symbols" << std::endl;
   LetBinding lbind;
   for (const Node& ia : iasserts)
   {
@@ -101,7 +102,7 @@ void LfscPrinter::print(std::ostream& out,
   }
   // Print the body of the outermost scope0
   printProofInternal(&lpcp, pnBody, emptyLetBind, pletMap, passumeMap);
-  
+
   // [4] print declared sorts and symbols
   // [4a] user declare function symbols
   // Note that this is buffered into an output stream preambleSymDecl and then
@@ -121,7 +122,7 @@ void LfscPrinter::print(std::ostream& out,
     }
     Node si = d_tproc.convert(s);
     preambleSymDecl << "(define " << si << " (var "
-             << d_tproc.getOrAssignIndexForVar(s) << " ";
+                    << d_tproc.getOrAssignIndexForVar(s) << " ";
     printType(preambleSymDecl, st);
     preambleSymDecl << "))" << std::endl;
   }

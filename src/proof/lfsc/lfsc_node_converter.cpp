@@ -1227,9 +1227,15 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
   return id;
 }
 
-const std::unordered_set<Node>& LfscNodeConverter::getDeclaredSymbols() const { return d_declVars; }
+const std::unordered_set<Node>& LfscNodeConverter::getDeclaredSymbols() const
+{
+  return d_declVars;
+}
 
-const std::unordered_set<TypeNode>& LfscNodeConverter::getDeclaredTypes() const { return d_declTypes; }
+const std::unordered_set<TypeNode>& LfscNodeConverter::getDeclaredTypes() const
+{
+  return d_declTypes;
+}
 
 }  // namespace proof
 }  // namespace cvc5::internal
