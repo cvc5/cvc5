@@ -423,7 +423,7 @@ bool TypeNode::isInstantiatedDatatype() const {
 
 bool TypeNode::isInstantiatedUninterpretedSort() const
 {
-  return isUninterpretedSort() && getNumChildren() > 0;
+  return getKind() == kind::INSTANTIATED_SORT_TYPE;
 }
 
 bool TypeNode::isInstantiated() const

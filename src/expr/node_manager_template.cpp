@@ -917,9 +917,8 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   Assert(getAttribute(constructor.d_nv, expr::SortArityAttr())
          == children.size())
       << "arity mismatch in application of sort constructor";
-  NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = Node(constructor.d_nv->d_children[0]);
-  nb << sortTag;
+  NodeBuilder nb(this, kind::INSTANTIATED_SORT_TYPE);
+  nb << constructor;
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);

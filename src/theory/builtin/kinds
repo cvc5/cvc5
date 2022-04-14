@@ -256,11 +256,18 @@ sort BUILTIN_OPERATOR_TYPE \
     "the type for built-in operators"
 
 variable SORT_TAG "sort tag"
-parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpreted' sorts"
+parameterized SORT_TYPE SORT_TAG 0 "specifies types of user-declared 'uninterpreted' sorts"
 # This is really "unknown" cardinality, but maybe this will be good
 # enough (for now) ?
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
+    "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+
+operator INSTANTIATED_SORT_TYPE 1: "parametric datatype"
+cardinality INSTANTIATED_SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
+well-founded INSTANTIATED_SORT_TYPE \
     "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
     "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
