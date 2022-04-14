@@ -115,13 +115,6 @@ Result SynthVerify::verify(Node query,
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
         if (!squery.isConst() || !squery.getConst<bool>())
         {
-          if (squery.isConst())
-          {
-            // simplified to false, the result should have been unknown, or
-            // else this indicates a check-model failure.
-            Assert(r.getStatus() == Result::UNKNOWN)
-                << "Expected model from verification step to satisfy query";
-          }
           // If the query did not simplify to true, then it may be that the
           // value for an oracle function was not what we expected.
           if (options().quantifiers.oracles)
@@ -137,6 +130,14 @@ Result SynthVerify::verify(Node query,
               queryp = nextQueryp;
               finished = false;
             }
+          }
+          else if (squery.isConst())
+          {
+            // simplified to false, the result should have been unknown, or
+            // else this indicates a check-model failure. We check this only
+            // if oracles are disabled.
+            Assert(r.getStatus() == Result::UNKNOWN)
+                << "Expected model from verification step to satisfy query";
           }
         }
       }
