@@ -18,6 +18,7 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
@@ -63,7 +64,8 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
     for (unsigned j = 0; j < it->second.size(); j++)
     {
       Node tc = it->second[j];
-      if (tc != d_data->d_one)
+      Node one = mkOne(tc.getType());
+      if (tc != one)
       {
         Node tc_diff = d_data->d_mdb.getContainsDiffNl(tc, t);
         Assert(!tc_diff.isNull());

@@ -5,6 +5,6 @@
 (declare-fun y () Real)
 (declare-fun f (Real) Real)
 (assert (=> (> x y) (> (f x) (f y))))
-(assert (= x 3))
-(assert (= y 2))
+(assert (= x 3.0))
+(assert (= y 2.0))
 (check-sat-assuming ( (not (> (f x) (f y))) ))

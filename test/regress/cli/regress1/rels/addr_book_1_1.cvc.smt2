@@ -5,12 +5,12 @@
 
 
 
-(declare-fun Target () (Set (Tuple Atom)))
-(declare-fun Name () (Set (Tuple Atom)))
-(declare-fun Addr () (Set (Tuple Atom)))
-(declare-fun Book () (Set (Tuple Atom)))
-(declare-fun names () (Set (Tuple Atom Atom)))
-(declare-fun addr () (Set (Tuple Atom Atom Atom)))
+(declare-fun Target () (Relation Atom))
+(declare-fun Name () (Relation Atom))
+(declare-fun Addr () (Relation Atom))
+(declare-fun Book () (Relation Atom))
+(declare-fun names () (Relation Atom Atom))
+(declare-fun addr () (Relation Atom Atom Atom))
 (declare-fun b1 () Atom)
 (declare-fun b1_tup () (Tuple Atom))
 (assert (= b1_tup (tuple b1)))
@@ -31,7 +31,7 @@
 (declare-fun t_tup () (Tuple Atom))
 (assert (= t_tup (tuple t)))
 (assert (set.member t_tup Target))
-(assert (= (rel.join (set.singleton m_tup) (rel.join (set.singleton b1_tup) addr)) (as set.empty (Set (Tuple Atom)))))
+(assert (= (rel.join (set.singleton m_tup) (rel.join (set.singleton b1_tup) addr)) (as set.empty (Relation Atom))))
 (assert (= (rel.join (set.singleton b2_tup) addr) (set.union (rel.join (set.singleton b1_tup) addr) (set.singleton (tuple m t)))))
 (assert (= (rel.join (set.singleton b3_tup) addr) (set.minus (rel.join (set.singleton b2_tup) addr) (set.singleton (tuple m t)))))
 (assert (= (rel.join (set.singleton b1_tup) addr) (rel.join (set.singleton b3_tup) addr)))
