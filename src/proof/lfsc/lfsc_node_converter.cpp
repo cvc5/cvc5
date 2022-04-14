@@ -538,6 +538,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   }
   else if (tn.getNumChildren() == 0)
   {
+    // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
     // special case: tuples must be distinguished by their arity
     if (tn.isTuple())
@@ -599,7 +600,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     Node op;
     if (k == PARAMETRIC_DATATYPE)
     {
-      d_declTypes.insert(tn);
+      // note we don't add to declared types here, since the parametric
+      // datatype is traversed and will be declared as a type constructor
       // erase first child, which repeats the datatype
       targs.erase(targs.begin(), targs.begin() + 1);
       types.erase(types.begin(), types.begin() + 1);
@@ -612,7 +614,10 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     }
     else if (k == SORT_TYPE)
     {
-      d_declTypes.insert(tn);
+      // Add its uninterpreted sort constructor to the list of declared types.
+      // This is required since the (type) operator is not part of the AST of
+      // the TypeNode.
+      d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getAttribute(expr::VarNameAttr(), name);
