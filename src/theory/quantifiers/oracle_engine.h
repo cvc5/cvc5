@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 
+#include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
@@ -92,6 +93,13 @@ class OracleEngine : public QuantifiersModule
  private:
   /** The oracle functions (user-context dependent) */
   context::CDList<Node> d_oracleFuns;
+  /** Pointer to the oracle checker */
+  OracleChecker* d_ochecker;
+  /**
+   * In a given instantiation round, did consistency checks pass for all
+   * oracle interface quantified formulas?
+   */
+  bool d_consistencyCheckPassed;
 };
 
 }  // namespace quantifiers

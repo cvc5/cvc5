@@ -50,8 +50,12 @@ OracleEngine::OracleEngine(Env& env,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,
                            TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_oracleFuns(userContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_oracleFuns(userContext()),
+      d_ochecker(tr.getOracleChecker()),
+      d_consistencyCheckPassed(false)
 {
+  Assert(d_ochecker != nullptr);
 }
 
 void OracleEngine::presolve() {}
@@ -67,15 +71,121 @@ OracleEngine::QEffort OracleEngine::needsModel(Theory::Effort e)
   return QEFFORT_MODEL;
 }
 
-void OracleEngine::reset_round(Theory::Effort e) {}
+void OracleEngine::reset_round(Theory::Effort e)
+{
+  d_consistencyCheckPassed = false;
+}
 
 void OracleEngine::registerQuantifier(Node q) {}
 
-void OracleEngine::check(Theory::Effort e, QEffort quant_e) {}
+void OracleEngine::check(Theory::Effort e, QEffort quant_e)
+{
+  if (quant_e != QEFFORT_MODEL)
+  {
+    return;
+  }
 
-bool OracleEngine::checkCompleteFor(Node q) { return false; }
+  double clSet = 0;
+  if (TraceIsOn("oracle-engine"))
+  {
+    clSet = double(clock()) / double(CLOCKS_PER_SEC);
+    Trace("oracle-engine") << "---Oracle Engine Round, effort = " << e << "---"
+                           << std::endl;
+  }
+  FirstOrderModel* fm = d_treg.getModel();
+  TermDb* termDatabase = d_treg.getTermDatabase();
+  eq::EqualityEngine* eq = getEqualityEngine();
+  NodeManager* nm = NodeManager::currentNM();
+  unsigned nquant = fm->getNumAssertedQuantifiers();
+  std::vector<Node> currInterfaces;
+  for (unsigned i = 0; i < nquant; i++)
+  {
+    Node q = fm->getAssertedQuantifier(i);
+    if (d_qreg.getOwner(q) != this)
+    {
+      continue;
+    }
+    currInterfaces.push_back(q);
+  }
+  std::vector<Node> learned_lemmas;
+  bool allFappsConsistent = true;
+  // iterate over oracle functions
+  for (const Node& f : d_oracleFuns)
+  {
+    TNodeTrie* tat = termDatabase->getTermArgTrie(f);
+    if (!tat)
+    {
+      continue;
+    }
+    std::vector<Node> apps = tat->getLeaves(f.getType().getArgTypes().size());
+    Trace("oracle-calls") << "Oracle fun " << f << " with " << apps.size()
+                          << " applications." << std::endl;
+    for (const auto& fapp : apps)
+    {
+      std::vector<Node> arguments;
+      arguments.push_back(f);
+      // evaluate arguments
+      for (const auto& arg : fapp)
+      {
+        arguments.push_back(fm->getValue(arg));
+      }
+      // call oracle
+      Node fapp_with_values = nm->mkNode(APPLY_UF, arguments);
+      Node predictedResponse = eq->getRepresentative(fapp);
+      if (!d_ochecker->checkConsistent(
+              fapp_with_values, predictedResponse, learned_lemmas))
+      {
+        allFappsConsistent = false;
+      }
+    }
+  }
+  // if all were consistent, we can terminate
+  if (allFappsConsistent)
+  {
+    Trace("oracle-engine-state")
+        << "All responses consistent, no lemmas added" << std::endl;
+    d_consistencyCheckPassed = true;
+  }
+  else
+  {
+    for (const Node& l : learned_lemmas)
+    {
+      Trace("oracle-engine-state") << "adding lemma " << l << std::endl;
+      d_qim.lemma(l, InferenceId::QUANTIFIERS_ORACLE_INTERFACE);
+    }
+  }
+  // general SMTO: call constraint generators and assumption generators here
 
-void OracleEngine::checkOwnership(Node q) {}
+  if (TraceIsOn("oracle-engine"))
+  {
+    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
+    Trace("oracle-engine") << "Finished oracle engine, time = "
+                           << (clSet2 - clSet) << std::endl;
+  }
+}
+
+bool OracleEngine::checkCompleteFor(Node q)
+{
+  if (d_qreg.getOwner(q) != this)
+  {
+    return false;
+  }
+  // Only true if oracle consistency check was successful. Notice that
+  // we can say true for *all* oracle interface quantified formulas in the
+  // case that the consistency check passed. In particular, the invocation
+  // of oracle interfaces does not need to be complete.
+  return d_consistencyCheckPassed;
+}
+
+void OracleEngine::checkOwnership(Node q)
+{
+  // take ownership of quantified formulas that are oracle interfaces
+  QuantAttributes& qa = d_qreg.getQuantAttributes();
+  if (qa.isOracleInterface(q))
+  {
+    d_qreg.setOwner(q, this);
+  }
+}
 
 std::string OracleEngine::identify() const
 {
