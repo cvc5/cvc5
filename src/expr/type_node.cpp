@@ -454,8 +454,6 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
     Assert(isUninterpretedSortConstructor());
     ret = nm->mkSort(*this, params);
   }
-  Trace("ajr-temp") << "Instantiate " << *this << " returns " << ret
-                    << std::endl;
   return ret;
 }
 
