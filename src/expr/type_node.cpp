@@ -432,7 +432,20 @@ bool TypeNode::isInstantiated() const
 TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (getKind() == kind::PARAMETRIC_DATATYPE)
+  Kind k = getKind();
+  // apparently, can use the "base" datatype or an instantiated instance of
+  // a parametric datatype
+  if (k== kind::DATATYPE_TYPE)
+  {
+    std::vector<TypeNode> paramsNodes;
+    paramsNodes.push_back(*this);
+    for (const TypeNode& t : params)
+    {
+      paramsNodes.push_back(t);
+    }
+    return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+  }
+  else if (k == kind::PARAMETRIC_DATATYPE)
   {
     Assert(params.size() == getNumChildren() - 1);
     TypeNode cons =

@@ -266,7 +266,8 @@ well-founded SORT_TYPE \
     "theory/builtin/theory_builtin_type_rules.h"
 enumerator SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
-operator INSTANTIATED_SORT_TYPE 1: "parametric datatype"
+# an instantiated sort has the same properties as an ordinary uninterpreted sort
+operator INSTANTIATED_SORT_TYPE 1: "instantiated uninterpreted sort"
 cardinality INSTANTIATED_SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded INSTANTIATED_SORT_TYPE \
     "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
