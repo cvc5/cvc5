@@ -372,7 +372,8 @@ Node LfscNodeConverter::postConvert(Node n)
     {
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
-      // use the partial operator for variables beyond the first
+      // use the partial operator for variables except the last one.  This
+      // avoids type errors in internal representation of LFSC terms.
       Node vop = getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
       ret = nm->mkNode(APPLY_UF, vop, ret);
     }

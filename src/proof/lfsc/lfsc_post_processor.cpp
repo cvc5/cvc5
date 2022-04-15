@@ -174,6 +174,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           return false;
         }
         Node cop = d_tproc.getOperatorOfClosure(res[0]);
+        Node pcop = d_tproc.getOperatorOfClosure(res[0], false, true);
         Trace("lfsc-pp-qcong") << "Operator for closure " << cop << std::endl;
         // start with base case body = body'
         Node curL = children[1][0];
@@ -182,10 +183,13 @@ bool LfscProofPostprocessCallback::update(Node res,
         Trace("lfsc-pp-qcong") << "Base congruence " << currEq << std::endl;
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
+          size_t ii = (nvars - 1) - i;
           Trace("lfsc-pp-qcong") << "Process child " << i << std::endl;
           // CONG rules for each variable
-          Node v = res[0][0][nvars - 1 - i];
-          Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
+          Node v = res[0][0][ii];
+          // Use partial version for each argument except the last one. This
+          // avoids type errors in internal representation of LFSC terms.
+          Node vop = d_tproc.getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
           Node vopEq = vop.eqNode(vop);
           // cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
           addRefl(cdp, vop);
