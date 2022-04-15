@@ -913,16 +913,13 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   Assert(hasAttribute(constructor.d_nv, expr::SortArityAttr())
          && hasAttribute(constructor.d_nv, expr::VarNameAttr()))
       << "expected a sort constructor";
-  std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
   Assert(getAttribute(constructor.d_nv, expr::SortArityAttr())
          == children.size())
       << "arity mismatch in application of sort constructor";
   NodeBuilder nb(this, kind::INSTANTIATED_SORT_TYPE);
   nb << constructor;
   nb.append(children);
-  TypeNode type = nb.constructTypeNode();
-  setAttribute(type, expr::VarNameAttr(), name);
-  return type;
+  return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)

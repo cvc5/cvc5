@@ -434,8 +434,9 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
   NodeManager* nm = NodeManager::currentNM();
   Kind k = getKind();
   TypeNode ret;
-  // Note that parametric datatypes have an AST where they are applied to
-  // their default parameters. In constrast, sort constructors have no children.
+  // Note that parametric datatypes we instantiate have an AST where they are
+  // applied to their default parameters. In constrast, sort constructors have
+  // no children.
   if (k == kind::PARAMETRIC_DATATYPE)
   {
     Assert(params.size() == getNumChildren() - 1);

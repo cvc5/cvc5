@@ -647,7 +647,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   {
     // paramTypes contains a list of uninterpreted sort constructors.
     // paramReplacements contains a list of instantiated parametric datatypes.
-    // If we are (INSTANTIATED_SORT_TYPE c T1 ... Tn), and
+    // If range is (INSTANTIATED_SORT_TYPE c T1 ... Tn), and
     //    paramTypes[i] is c
     //    paramReplacements[i] is (PARAMETRIC_DATATYPE d S1 ... Sn)
     // then we return (PARAMETRIC_DATATYPE d T'1 ... T'n) where T'1 ...T'n
