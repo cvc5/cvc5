@@ -58,6 +58,7 @@
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
+#include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -929,6 +930,58 @@ void SolverEngine::declarePool(const Node& p,
   finishInit();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
   qe->declarePool(p, initValue);
+}
+
+void SolverEngine::declareOracleFun(Node var, const std::string& binName)
+{
+  finishInit();
+  d_state->doPendingPops();
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
+  qe->declareOracleFun(var, binName);
+  if (binName != "")
+  {
+    NodeManager* nm = d_env->getNodeManager();
+    std::vector<Node> inputs;
+    std::vector<Node> outputs;
+    TypeNode tn = var.getType();
+    Node app;
+    if (tn.isFunction())
+    {
+      const std::vector<TypeNode>& argTypes = tn.getArgTypes();
+      for (const TypeNode& t : argTypes)
+      {
+        inputs.push_back(nm->mkBoundVar(t));
+      }
+      outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+      std::vector<Node> appc;
+      appc.push_back(var);
+      appc.insert(appc.end(), inputs.begin(), inputs.end());
+      app = nm->mkNode(kind::APPLY_UF, appc);
+    }
+    else
+    {
+      outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+      app = var;
+    }
+    // makes equality assumption
+    Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
+    Node constraint = nm->mkConst(true);
+    defineOracleInterface(inputs, outputs, assume, constraint, binName);
+  }
+}
+
+void SolverEngine::defineOracleInterface(const std::vector<Node>& inputs,
+                                         const std::vector<Node>& outputs,
+                                         Node assume,
+                                         Node constraint,
+                                         const std::string& binName)
+{
+  finishInit();
+  d_state->doPendingPops();
+  // make the quantified formula corresponding to the oracle interface
+  Node q = quantifiers::OracleEngine::mkOracleInterface(
+      inputs, outputs, assume, constraint, binName);
+  assertFormula(q);
 }
 
 Node SolverEngine::simplify(const Node& ex)
