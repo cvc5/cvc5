@@ -560,6 +560,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     break;
     case kind::BITVECTOR_TYPE:
     case kind::FLOATINGPOINT_TYPE:
+    case kind::INSTANTIATED_SORT_TYPE:
     case kind::SORT_TYPE:
     case kind::CONSTRUCTOR_TYPE:
     case kind::SELECTOR_TYPE:
