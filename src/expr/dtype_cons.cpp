@@ -561,13 +561,14 @@ bool DTypeConstructor::resolve(
       }
       Trace("datatypes-init")
           << "  ...range after placeholder replacement " << range << std::endl;
-      for (size_t i=0; i<paramTypes.size(); i++)
+      for (size_t i = 0; i < paramTypes.size(); i++)
       {
         Trace("datatypes-init") << "paramTypes: " << paramTypes[i] << std::endl;
       }
-      for (size_t i=0; i<paramReplacements.size(); i++)
+      for (size_t i = 0; i < paramReplacements.size(); i++)
       {
-        Trace("datatypes-init") << "paramReplacements: " << paramReplacements[i] << std::endl;
+        Trace("datatypes-init")
+            << "paramReplacements: " << paramReplacements[i] << std::endl;
       }
       if (!paramTypes.empty())
       {
@@ -653,10 +654,11 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   }
   for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
   {
-    if (paramTypes[i].getUninterpretedSortConstructorArity()+1
+    if (paramTypes[i].getUninterpretedSortConstructorArity() + 1
         == origChildren.size())
     {
-      std::vector<TypeNode> oparams(origChildren.begin() + 1, origChildren.end());
+      std::vector<TypeNode> oparams(origChildren.begin() + 1,
+                                    origChildren.end());
       TypeNode tn = paramTypes[i].instantiate(oparams);
       if (range == tn)
       {

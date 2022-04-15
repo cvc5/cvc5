@@ -436,7 +436,7 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
   TypeNode ret;
   // apparently, can use the "base" datatype or an instantiated instance of
   // a parametric datatype
-  if (k== kind::DATATYPE_TYPE)
+  if (k == kind::DATATYPE_TYPE)
   {
     std::vector<TypeNode> paramsNodes;
     paramsNodes.push_back(*this);
@@ -464,7 +464,8 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
     Assert(isUninterpretedSortConstructor());
     ret = nm->mkSort(*this, params);
   }
-  Trace("ajr-temp") << "Instantiate " << *this << " returns " << ret << std::endl;
+  Trace("ajr-temp") << "Instantiate " << *this << " returns " << ret
+                    << std::endl;
   return ret;
 }
 
@@ -605,7 +606,7 @@ bool TypeNode::isUninterpretedSort() const
 {
   Kind k = getKind();
   return k == kind::INSTANTIATED_SORT_TYPE
-             || (k == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()));
+         || (k == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()));
 }
 
 /** Is this a sort constructor kind */
