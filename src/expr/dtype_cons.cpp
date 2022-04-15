@@ -561,15 +561,6 @@ bool DTypeConstructor::resolve(
       }
       Trace("datatypes-init")
           << "  ...range after placeholder replacement " << range << std::endl;
-      for (size_t i = 0; i < paramTypes.size(); i++)
-      {
-        Trace("datatypes-init") << "paramTypes: " << paramTypes[i] << std::endl;
-      }
-      for (size_t i = 0; i < paramReplacements.size(); i++)
-      {
-        Trace("datatypes-init")
-            << "paramReplacements: " << paramReplacements[i] << std::endl;
-      }
       if (!paramTypes.empty())
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
