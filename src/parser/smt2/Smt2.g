@@ -914,67 +914,6 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
 
-  | DECLARE_SORTS_TOK
-    {
-      PARSER_STATE->checkThatLogicIsSet();
-      PARSER_STATE->checkLogicAllowsFreeSorts();
-      seq.reset(new cvc5::CommandSequence());
-    }
-    LPAREN_TOK
-    ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-      { PARSER_STATE->checkUserSymbol(name);
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
-        seq->addCommand(new DeclareSortCommand(name, 0, type));
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
-
-  | DECLARE_FUNS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::CommandSequence()); }
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      nonemptySortList[sorts] RPAREN_TOK
-      { cvc5::Sort tt;
-        if(sorts.size() > 1) {
-          PARSER_STATE->checkLogicAllowsFunctions();
-          // must flatten
-          cvc5::Sort range = sorts.back();
-          sorts.pop_back();
-          tt = PARSER_STATE->mkFlatFunctionType(sorts, range);
-        } else {
-          tt = sorts[0];
-        }
-        // allow overloading
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, tt, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, tt));
-        sorts.clear();
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
-  | DECLARE_PREDS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::CommandSequence()); }
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      sortList[sorts] RPAREN_TOK
-      { t = SOLVER->getBooleanSort();
-        if(sorts.size() > 0) {
-          PARSER_STATE->checkLogicAllowsFunctions();
-          t = SOLVER->mkFunctionSort(sorts, t);
-        }
-        // allow overloading
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
-        sorts.clear();
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
   | // (define-const x U t)
     DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -2215,9 +2154,6 @@ GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
 ECHO_TOK : 'echo';
-DECLARE_SORTS_TOK : 'declare-sorts';
-DECLARE_FUNS_TOK : 'declare-funs';
-DECLARE_PREDS_TOK : 'declare-preds';
 DECLARE_CONST_TOK : 'declare-const';
 DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
