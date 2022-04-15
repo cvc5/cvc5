@@ -257,8 +257,7 @@ sort BUILTIN_OPERATOR_TYPE \
 
 variable SORT_TAG "sort tag"
 parameterized SORT_TYPE SORT_TAG 0 "specifies types of user-declared 'uninterpreted' sorts"
-# This is really "unknown" cardinality, but maybe this will be good
-# enough (for now) ?
+# The cardinality of uninterpreted sorts is assigned infinite, although they are given special treatment in TypeNode::getCardinalityClass
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
     "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
