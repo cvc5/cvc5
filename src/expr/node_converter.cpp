@@ -196,7 +196,11 @@ TypeNode NodeConverter::convertType(TypeNode tn)
         // reconstruct using a node builder, which seems to be required for
         // type nodes.
         NodeBuilder nb(ret.getKind());
-        Assert(ret.getMetaKind() != kind::metakind::PARAMETERIZED);
+        if (ret.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          // push the operator
+          nb << NodeManager::operatorFromType(ret);
+        }
         for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
              j != iend;
              ++j)
