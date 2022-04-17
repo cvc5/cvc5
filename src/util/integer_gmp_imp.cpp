@@ -17,7 +17,6 @@
 #include <limits>
 #include <sstream>
 #include <string>
-#include <iostream>
 
 #include "base/check.h"
 #include "base/cvc5config.h"
@@ -340,39 +339,7 @@ bool Integer::isNegativeOne() const
   return mpz_cmp_si(d_value.get_mpz_t(), -1) == 0;
 }
 
-Integer Integer::pow(unsigned long int exp) const
-{
-  // check if exp is within the uint32_t range
-  uint32_t low = static_cast<uint32_t>(exp);
-  uint32_t high = static_cast<uint32_t>(exp >> 32);
-  if (high == exp) {
-    // if it is, safely call the gmp pow function
-    return powHelper(exp);
-  } else {
-      // if exp is bigger than max uint32_t
-      // split it to two 32-bits integers: high and low.
-      // exp = [ ... high ... | ... low ... ]
-      // So: exp = low + 2^{32}*high
-      // Our goal is to never have an exponent greater/equal to 2^{32}.
-      // notice that:
-      // (*) 2^{32} = (2^{31})*2
-      // (**) a^{b+c} = a^b*a^c
-      // (***) a^{b*c} = (a^b)^c
-      // Therefore,
-      // this^{exp} = this^{low + 2^{32}*high} = (**)
-      // this^{low}*this^{2^{32}*high} = (***)
-      // this^{low}*(this^{2^{32}})^{high} = (*)
-      // this^{low}*(this^{2^{31}}*2)^{high}
-      Integer powLow = powHelper(low);
-      uint32_t twoToThe31 = 1 << 31;
-      Integer twoToThe32 = Integer(2) * Integer(twoToThe31);
-      Integer twoToThe32ToTheHigh = twoToThe32.powHelper(high);
-      Integer result = powLow * twoToThe32ToTheHigh;
-      return result;
-  }
-}
-
-Integer Integer::powHelper(uint32_t exp) const
+Integer Integer::pow(uint32_t exp) const
 {
   mpz_class result;
   mpz_pow_ui(result.get_mpz_t(), d_value.get_mpz_t(), exp);
