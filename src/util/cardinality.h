@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Representation for a Beth number, used only to construct
@@ -226,6 +226,6 @@ std::ostream& operator<<(std::ostream& out, CardinalityBeth b);
 /** Print a cardinality in a human-readable fashion. */
 std::ostream& operator<<(std::ostream& out, const Cardinality& c);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CARDINALITY_H */

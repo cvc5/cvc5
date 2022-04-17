@@ -21,6 +21,6 @@
 (declare-const result (Pair Real Bool))
 (assert (= l1 (Node l2 5.0 l2)))
 (assert (= result (SumeAndPositiveTree l1)))
-(assert (= (first result) 5))
+(assert (= (first result) 5.0))
 (assert (= (second result) true))
 (check-sat)

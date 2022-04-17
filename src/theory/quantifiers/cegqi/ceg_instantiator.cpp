@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Piotr Trojanek, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,9 +35,9 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -146,6 +146,7 @@ void TermProperties::composeProperty(TermProperties& p)
 // push the substitution pv_prop.getModifiedTerm(pv) -> n
 void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
 {
+  Assert(n.getType().isSubtypeOf(pv.getType()));
   d_vars.push_back(pv);
   d_subs.push_back(n);
   d_props.push_back(pv_prop);
@@ -642,25 +643,31 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator uses model values at this effort or
     //   if we are solving for a subfield of a datatype (is_sv), and
     // - the instantiator allows model values.
+    // Furthermore, we only permit the value if it is constant, since the model
+    // may contain internal-only expressions, e.g. RANs.
     if ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
       Node mv = getModelValue( pv );
-      TermProperties pv_prop_m;
-      Trace("cegqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
-      d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
-      CegInstEffort prev = d_effort;
-      if (d_effort < CEG_INST_EFFORT_STANDARD_MV)
+      if (mv.isConst())
       {
-        // update the effort level to indicate we have used a model value
-        d_effort = CEG_INST_EFFORT_STANDARD_MV;
+        TermProperties pv_prop_m;
+        Trace("cegqi-inst-debug")
+            << "[4] " << i << "...try model value " << mv << std::endl;
+        d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
+        CegInstEffort prev = d_effort;
+        if (d_effort < CEG_INST_EFFORT_STANDARD_MV)
+        {
+          // update the effort level to indicate we have used a model value
+          d_effort = CEG_INST_EFFORT_STANDARD_MV;
+        }
+        if (constructInstantiationInc(pv, mv, pv_prop_m, sf))
+        {
+          return true;
+        }
+        d_effort = prev;
       }
-      if (constructInstantiationInc(pv, mv, pv_prop_m, sf))
-      {
-        return true;
-      }
-      d_effort = prev;
     }
 
     Trace("cegqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
@@ -938,6 +945,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                                                 SolvedForm& sf,
                                                 bool revertOnSuccess)
 {
+  Assert(n.getType().isSubtypeOf(pv.getType()));
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -1138,6 +1146,7 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
+  NodeManager* nm = NodeManager::currentNM();
   n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
@@ -1208,31 +1217,31 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           pv_prop.d_coeff = rewrite(pv_prop.d_coeff);
           Trace("sygus-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
           std::vector< Node > children;
+          TypeNode type = n.getType();
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-            Node c_coeff;
-            if( !msum_coeff[it->first].isNull() ){
-              c_coeff = rewrite(NodeManager::currentNM()->mkConstReal(
-                  pv_prop.d_coeff.getConst<Rational>()
-                  / msum_coeff[it->first].getConst<Rational>()));
-            }else{
-              c_coeff = pv_prop.d_coeff;
+            Rational c_coeff = pv_prop.d_coeff.getConst<Rational>();
+            Node mc = msum_coeff[it->first];
+            if (!mc.isNull())
+            {
+              Assert(mc.isConst());
+              c_coeff = c_coeff / mc.getConst<Rational>();
             }
             if( !it->second.isNull() ){
-              c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
+              Assert(it->second.isConst());
+              c_coeff = c_coeff * it->second.getConst<Rational>();
             }
-            Assert(!c_coeff.isNull());
-            Node c;
-            if( msum_term[it->first].isNull() ){
-              c = c_coeff;
-            }else{
-              c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
+            Node c = nm->mkConstRealOrInt(type, c_coeff);
+            Node v = msum_term[it->first];
+            if (!v.isNull())
+            {
+              Assert(v.getType().isComparableTo(type));
+              c = nm->mkNode(MULT, c, v);
             }
             children.push_back( c );
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nretc = children.size() == 1
-                           ? children[0]
-                           : NodeManager::currentNM()->mkNode(ADD, children);
+          Node nretc =
+              children.size() == 1 ? children[0] : nm->mkNode(ADD, children);
           nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
@@ -1675,4 +1684,4 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

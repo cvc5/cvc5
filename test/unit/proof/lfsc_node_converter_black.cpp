@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,8 +18,8 @@
 #include "proof/lfsc/lfsc_node_converter.h"
 #include "test.h"
 
-namespace cvc5 {
-using namespace cvc5::proof;
+namespace cvc5::internal {
+using namespace cvc5::internal::proof;
 
 namespace test {
 
@@ -57,4 +57,4 @@ TEST_F(TestLfscNodeConverterBlack, ident_sanitize)
 
 }  // namespace test
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

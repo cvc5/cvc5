@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King
+ *   Tim King, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,24 +23,25 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithVariables::ArithVariables(context::Context* c, DeltaComputeCallback deltaComputingFunc)
- : d_vars(),
-   d_safeAssignment(),
-   d_numberOfVariables(0),
-   d_pool(),
-   d_released(),
-   d_nodeToArithVarMap(),
-   d_boundsQueue(),
-   d_enqueueingBoundCounts(true),
-   d_lbRevertHistory(c, true, LowerBoundCleanUp(this)),
-   d_ubRevertHistory(c, true, UpperBoundCleanUp(this)),
-   d_deltaIsSafe(false),
-   d_delta(-1,1),
-   d_deltaComputingFunc(deltaComputingFunc)
+ArithVariables::ArithVariables(context::Context* c,
+                               DeltaComputeCallback deltaComputingFunc)
+    : d_vars(),
+      d_safeAssignment(),
+      d_numberOfVariables(0),
+      d_pool(),
+      d_released(),
+      d_nodeToArithVarMap(),
+      d_boundsQueue(),
+      d_enqueueingBoundCounts(true),
+      d_lbRevertHistory(c, true, LowerBoundCleanUp(this)),
+      d_ubRevertHistory(c, true, UpperBoundCleanUp(this)),
+      d_deltaIsSafe(false),
+      d_delta(-1, 1),
+      d_deltaComputingFunc(deltaComputingFunc)
 { }
 
 ArithVar ArithVariables::getNumberOfVariables() const {
@@ -687,4 +688,4 @@ void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

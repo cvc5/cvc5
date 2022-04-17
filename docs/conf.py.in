@@ -102,8 +102,8 @@ autosectionlabel_prefix_document = True
 # -- core extension:: sphinx.ext.extlinks ------------------------------------
 
 extlinks = {
-        'cvc5src': ('https://github.com/cvc5/cvc5/blob/master/src/%s', '%s'),
-        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/master/%s', '%s'),
+        'cvc5src': ('https://github.com/cvc5/cvc5/blob/main/src/%s', '%s'),
+        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/main/%s', '%s'),
 }
 
 
@@ -133,7 +133,7 @@ mathjax3_config = {
 # -- extension:: breathe -----------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
-cpp_index_common_prefix = ["cvc5::api::"]
+cpp_index_common_prefix = ["cvc5::"]
 
 
 # -- extension:: sphinxcontrib.bibtex ----------------------------------------
@@ -150,20 +150,30 @@ examples_types = {
                 'lang': 'c++',
                 'group': 'c++'
         },
+        '\.h$': {
+                'title': 'C++ (header)',
+                'lang': 'c++',
+                'group': 'c++'
+        },
         '\.java$': {
                 'title': 'Java',
                 'lang': 'java',
                 'group': 'java'
+        },
+        '^<examples>.*pythonic.*\.py$': {
+                'title': 'Python (pythonic)',
+                'lang': 'python',
+                'group': 'py-pythonicapi'
         },
         '^<examples>.*\.py$': {
                 'title': 'Python (base)',
                 'lang': 'python',
                 'group': 'py-regular'
         },
-        '^<z3pycompat>.*\.py$': {
+        '^<pythonicapi>.*\.py$': {
                 'title': 'Python (pythonic)',
                 'lang': 'python',
-                'group': 'py-z3pycompat'
+                'group': 'py-pythonicapi'
         },
         '\.smt2$': {
                 'title': 'SMT-LIBv2',
@@ -180,13 +190,13 @@ examples_types = {
 examples_file_patterns = {
         '^<examples>(.*)': {
                 'local': '/../examples{}',
-                'url': 'https://github.com/cvc5/cvc5/tree/master/examples{}',
+                'url': 'https://github.com/cvc5/cvc5/tree/main/examples{}',
                 'urlname': 'examples{}',
         },
-        '<z3pycompat>(.*)': {
+        '<pythonicapi>(.*)': {
                 'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
-                'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
-                'urlname': 'cvc5_z3py_compat:{}',
+                'url': 'https://github.com/cvc5/cvc5_pythonic_api/tree/main{}',
+                'urlname': 'cvc5_pythonic_api:{}',
         }
 }
 

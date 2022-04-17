@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Tim King
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,18 +26,18 @@
 #include "expr/node.h"
 #include "context/cdo.h"
 
-namespace cvc5 {
+namespace cvc5::context {
+class Context;
+}
 
-namespace context {
-  class Context;
-  }  // namespace context
-
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
 // NodeType \in { Node, TNode }
 template <class NodeType, class NodeHash>
-class UnionFind : context::ContextNotifyObj {
+class UnionFind : context::ContextNotifyObj
+{
   /** Our underlying map type. */
   typedef std::unordered_map<NodeType, NodeType, NodeHash> MapType;
 
@@ -55,9 +55,9 @@ class UnionFind : context::ContextNotifyObj {
   context::CDO<size_t> d_offset;
 
  public:
-  UnionFind(context::Context* ctxt) :
-    context::ContextNotifyObj(ctxt),
-    d_offset(ctxt, 0) {
+  UnionFind(context::Context* ctxt)
+      : context::ContextNotifyObj(ctxt), d_offset(ctxt, 0)
+  {
   }
 
   /**
@@ -84,7 +84,7 @@ class UnionFind : context::ContextNotifyObj {
    */
   void notify();
 
-};/* class UnionFind<> */
+}; /* class UnionFind<> */
 
 template <class NodeType, class NodeHash>
 inline TNode UnionFind<NodeType, NodeHash>::debugFind(TNode n) const {
@@ -135,6 +135,6 @@ inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /*CVC5__THEORY__ARRAYS__UNION_FIND_H */

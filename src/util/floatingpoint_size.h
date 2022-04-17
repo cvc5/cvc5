@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 #ifndef CVC5__FLOATINGPOINT_SIZE_H
 #define CVC5__FLOATINGPOINT_SIZE_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Inline these!
 inline bool validExponentSize(uint32_t e) { return e >= 2; }
@@ -93,6 +93,6 @@ struct FloatingPointSizeHashFunction
                   | t.significandWidth());
   }
 }; /* struct FloatingPointSizeHashFunction */
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

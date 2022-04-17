@@ -36,9 +36,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/theory_proxy.h"
 
-using namespace cvc5::prop;
+using namespace cvc5::internal::prop;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace Minisat {
 
 namespace {
@@ -65,7 +65,7 @@ static inline void dtviewPropagationHeaderHelper(size_t level, bool incremental)
 // Writes to Trace macro for propagation tracing
 static inline void dtviewBoolPropagationHelper(size_t level,
                                                Lit& l,
-                                               cvc5::prop::TheoryProxy* proxy,
+                                               cvc5::internal::prop::TheoryProxy* proxy,
                                                bool incremental)
 {
   Trace("dtview::prop") << std::string(level + 1 - (incremental ? 1 : 0), ' ')
@@ -77,7 +77,7 @@ static inline void dtviewBoolPropagationHelper(size_t level,
 // Writes to Trace macro for conflict tracing
 static inline void dtviewPropConflictHelper(size_t level,
                                             Clause& confl,
-                                            cvc5::prop::TheoryProxy* proxy,
+                                            cvc5::internal::prop::TheoryProxy* proxy,
                                             bool incremental)
 {
   Trace("dtview::conflict")
@@ -132,9 +132,9 @@ class ScopedBool
 // Constructor/Destructor:
 
 Solver::Solver(Env& env,
-               cvc5::prop::TheoryProxy* proxy,
-               cvc5::context::Context* context,
-               cvc5::context::UserContext* userContext,
+               cvc5::internal::prop::TheoryProxy* proxy,
+               context::Context* context,
+               context::UserContext* userContext,
                ProofNodeManager* pnm,
                bool enableIncremental)
     : EnvObj(env),
@@ -933,7 +933,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           Trace("pf::sat") << "\n";
         }
 
-        Trace("pf::sat") << cvc5::push;
+        Trace("pf::sat") << cvc5::internal::push;
         for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size();
              j < size;
              j++)
@@ -969,7 +969,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             }
           }
         }
-        Trace("pf::sat") << cvc5::pop;
+        Trace("pf::sat") << cvc5::internal::pop;
 
         // Select next clause to look at:
         while (!seen[var(trail[index--])]);
@@ -1212,7 +1212,7 @@ CRef Solver::propagate(TheoryCheckType type)
     // theory propagation
     if (type == CHECK_FINAL) {
       // Do the theory check
-      theoryCheck(cvc5::theory::Theory::EFFORT_FULL);
+      theoryCheck(cvc5::internal::theory::Theory::EFFORT_FULL);
       // Pick up the theory propagated literals (there could be some,
       // if new lemmas are added)
       propagateTheory();
@@ -1236,9 +1236,9 @@ CRef Solver::propagate(TheoryCheckType type)
         if (confl == CRef_Undef && type != CHECK_WITHOUT_THEORY) {
             // Do the theory check
             if (type == CHECK_FINAL_FAKE) {
-              theoryCheck(cvc5::theory::Theory::EFFORT_FULL);
+              theoryCheck(cvc5::internal::theory::Theory::EFFORT_FULL);
             } else {
-              theoryCheck(cvc5::theory::Theory::EFFORT_STANDARD);
+              theoryCheck(cvc5::internal::theory::Theory::EFFORT_STANDARD);
             }
             // Pick up the theory propagated literals
             propagateTheory();
@@ -1322,7 +1322,7 @@ void Solver::propagateTheory() {
 |
 |    Note: the propagation queue might be NOT empty
 |________________________________________________________________________________________________@*/
-void Solver::theoryCheck(cvc5::theory::Theory::Effort effort)
+void Solver::theoryCheck(cvc5::internal::theory::Theory::Effort effort)
 {
   d_proxy->theoryCheck(effort);
 }
@@ -2002,7 +2002,7 @@ void Solver::pop()
   --assertionLevel;
   Trace("minisat") << "in user pop, decreasing assertion level to "
                    << assertionLevel << "\n"
-                   << cvc5::push;
+                   << cvc5::internal::push;
   while (true) {
     Trace("minisat") << "== unassigning " << trail.last() << std::endl;
     Var      x  = var(trail.last());
@@ -2024,7 +2024,7 @@ void Solver::pop()
   // Remove the clauses
   removeClausesAboveLevel(clauses_persistent, assertionLevel);
   removeClausesAboveLevel(clauses_removable, assertionLevel);
-  Trace("minisat") << cvc5::pop;
+  Trace("minisat") << cvc5::internal::pop;
   // Pop the SAT context to notify everyone
   d_context->pop();  // SAT context for cvc5
 
@@ -2245,4 +2245,4 @@ bool Solver::assertionLevelOnly() const
 }
 
 }  // namespace Minisat
-}  // namespace cvc5
+}  // namespace cvc5::internal

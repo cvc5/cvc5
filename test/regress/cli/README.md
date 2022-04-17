@@ -17,7 +17,7 @@ The time limits for each level are:
 ## Running Regression Tests
 
 For running regressions tests, see the
-[INSTALL](https://github.com/cvc5/cvc5/blob/master/INSTALL.rst#testing-cvc5)
+[INSTALL](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst#testing-cvc5)
 file.
 
 By default, each invocation of cvc5 is done with a 10 minute timeout. To use a

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -52,6 +52,18 @@ class SynthVerify : protected EnvObj
                 std::vector<Node>& mvs);
 
  private:
+  /**
+   * Preprocess query internal. This returns the rewritten form of query
+   * and includes all relevant function definitions, i.e. those that occur
+   * in query. These are added as top-level conjuncts to the returned formula.
+   *
+   * For each oracle function f in the query, we conjoin equalities f(c) = d
+   * where (c, d) is an I/O pair obtained for a call to a oracle. In contrast
+   * to the description in Polgreen et al VMCAI 2022, the verification subcall
+   * uses SMT, not SMTO. Instead f is treated as an ordinary function symbol,
+   * and its current I/O pairs are communicated explicitly via these conjuncts.
+   */
+  Node preprocessQueryInternal(Node query);
   /** Pointer to the term database sygus */
   TermDbSygus* d_tds;
   /** The options for subsolver calls */
@@ -62,6 +74,6 @@ class SynthVerify : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

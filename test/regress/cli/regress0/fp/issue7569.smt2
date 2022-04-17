@@ -2,6 +2,6 @@
 (declare-const X (_ FloatingPoint 8 24))
 (declare-const R Real)
 (assert (= X ((_ to_fp 8 24) RTZ (- R))))
-(assert (= X ((_ to_fp 8 24) RTZ 0)))
+(assert (= X ((_ to_fp 8 24) RTZ 0.0)))
 (set-info :status sat)
 (check-sat)

@@ -69,7 +69,7 @@ This command must be executed when the solver is in its Start mode (see page 52 
 
 The syntax for the operators of separation logic is summarized in the following
 table. For the C++ API examples in this table, we assume that we have created
-a :cpp:class:`cvc5::api::Solver` object.
+a :cpp:class:`cvc5::Solver` object.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                            |
@@ -80,13 +80,13 @@ a :cpp:class:`cvc5::api::Solver` object.
 |                      |                                              |                                                                    |
 |                      |                                              | where ``x`` and ``y`` are of sort ``<Sort_1>`` and ``<Sort_2>``    |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Points-To            | ``(pto x y)``                                | ``solver.mkTerm(Kind::SEP_PTO, x, y);``                            |
+| Points-To            | ``(pto x y)``                                | ``solver.mkTerm(Kind::SEP_PTO, {x, y});``                          |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 | Separation Star      | ``(sep c1 .. cn)``                           | ``solver.mkTerm(Kind::SEP_STAR, {c1, ..., cn});``                  |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Magic Wand           | ``(wand c1 c1)``                             | ``solver.mkTerm(Kind::SEP_WAND, c1, c2);``                         |
+| Magic Wand           | ``(wand c1 c1)``                             | ``solver.mkTerm(Kind::SEP_WAND, {c1, c2});``                       |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Nil Element          | ``(as sep.nil <Sort>)``                      | ``solver.mkSepNil(cvc5::api::Sort sort);``                         |
+| Nil Element          | ``(as sep.nil <Sort>)``                      | ``solver.mkSepNil(cvc5::Sort sort);``                              |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 #include "expr/type_node.h"
 #include "util/cardinality_class.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * The Node-level representation of a constructor for a datatype, which
@@ -57,7 +57,7 @@ class DTypeConstructor
    * to this constructor.  Selector names need not be unique;
    * they are for convenience and pretty-printing only.
    */
-  void addArg(std::string selectorName, TypeNode selectorType);
+  void addArg(std::string selectorName, TypeNode rangeType);
   /**
    * Add an argument, given a pointer to a selector object.
    */
@@ -365,6 +365,6 @@ struct DTypeConstructorHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,10 @@
 #include <iosfwd>
 #include <string>
 
+#include "api/cpp/cvc5_types.h"
 #include "options/language.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Result;
 
@@ -45,20 +46,6 @@ class Result
     SAT,
     // the status is "unknown"
     UNKNOWN
-  };
-
-  enum UnknownExplanation
-  {
-    REQUIRES_FULL_CHECK,
-    INCOMPLETE,
-    TIMEOUT,
-    RESOURCEOUT,
-    MEMOUT,
-    INTERRUPTED,
-    NO_STATUS,
-    UNSUPPORTED,
-    OTHER,
-    UNKNOWN_REASON
   };
 
  public:
@@ -123,8 +110,7 @@ class Result
 }; /* class Result */
 
 std::ostream& operator<<(std::ostream& out, enum Result::Status s);
-std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESULT_H */

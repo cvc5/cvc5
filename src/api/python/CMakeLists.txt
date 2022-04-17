@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Mathias Preiner, Yoni Zohar
+#   Makai Mann, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -140,7 +140,7 @@ add_custom_target(
   cvc5_python_api
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory
-    "${CVC5PythonicAPI_BASEDIR}/cvc5_z3py_compat"
+    "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
     "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
   DEPENDS cvc5_python_base CVC5PythonicAPI
 )

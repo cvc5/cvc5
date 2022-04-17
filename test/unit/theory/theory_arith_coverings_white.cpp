@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,13 +38,13 @@
 #include "theory/theory_engine.h"
 #include "util/poly_util.h"
 
-namespace cvc5::test {
+namespace cvc5::internal::test {
 
-using namespace cvc5;
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::theory::arith;
-using namespace cvc5::theory::arith::nl;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::arith;
+using namespace cvc5::internal::theory::arith::nl;
 
 NodeManager* nodeManager;
 class TestTheoryWhiteArithCoverings : public TestSmt
@@ -480,6 +480,6 @@ TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)
     EXPECT_TRUE(ran == back);
   }
 }
-}  // namespace cvc5::test
+}  // namespace cvc5::internal::test
 
 #endif

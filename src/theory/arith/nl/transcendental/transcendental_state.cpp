@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -102,9 +102,11 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
       else
       {
+        // for others, if all arguments are variables or constants, we don't
+        // have to purify
         for (const Node& ac : a)
         {
-          if (isTranscendentalKind(ac.getKind()))
+          if (!ac.isVar() && !ac.isConst())
           {
             consider = false;
             break;
@@ -220,8 +222,8 @@ void TranscendentalState::mkPi()
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
     // initialize bounds
-    d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
+    d_pi_bound[0] = nm->mkConstReal(getPiInitialLowerBound());
+    d_pi_bound[1] = nm->mkConstReal(getPiInitialUpperBound());
   }
 }
 
@@ -470,14 +472,38 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   }
   Kind k = n.getKind();
   Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-  Node y = sm->mkSkolemFunction(
-      SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  Node y;
+  if (isSimplePurify(n))
+  {
+    y = sm->mkPurifySkolem(n[0], "transk");
+  }
+  else
+  {
+    y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  }
   Node new_n = nm->mkNode(k, y);
   d_trPurify[n] = new_n;
   d_trPurify[new_n] = new_n;
   d_trPurifies[new_n] = n;
   d_trPurifyVars.insert(y);
   return new_n;
+}
+
+bool TranscendentalState::isSimplePurify(TNode n)
+{
+  if (n.getKind() != kind::SINE)
+  {
+    return true;
+  }
+  if (!n[0].isConst())
+  {
+    return false;
+  }
+  Rational r = n[0].getConst<Rational>();
+  // use a fixed value of pi
+  Rational piLower = getPiInitialLowerBound();
+  return -piLower <= r && r <= piLower;
 }
 
 bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
@@ -507,8 +533,18 @@ bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
   return true;
 }
 
+Rational TranscendentalState::getPiInitialLowerBound()
+{
+  return Rational(103993) / Rational(33102);
+}
+
+Rational TranscendentalState::getPiInitialUpperBound()
+{
+  return Rational(104348) / Rational(33215);
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

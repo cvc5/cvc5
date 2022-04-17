@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
@@ -112,7 +112,7 @@ void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
     std::stringstream serr;
     serr << "Illegal string character: \"" << ch
          << "\", must use escape sequence";
-    throw cvc5::Exception(serr.str());
+    throw cvc5::internal::Exception(serr.str());
   }
   else
   {
@@ -522,7 +522,7 @@ Rational String::toNumber() const
 
 namespace strings {
 
-size_t StringHashFunction::operator()(const ::cvc5::String& s) const
+size_t StringHashFunction::operator()(const cvc5::internal::String& s) const
 {
   uint64_t ret = fnv1a::offsetBasis;
   for (unsigned c : s.d_str)
@@ -538,4 +538,4 @@ std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString() << "\"";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

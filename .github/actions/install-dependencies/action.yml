@@ -38,7 +38,7 @@ runs:
         echo "SED=sed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(nproc)" >> $GITHUB_ENV
+        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
         echo "/usr/lib/ccache" >> $GITHUB_PATH
         echo "::endgroup::"
 
@@ -81,7 +81,7 @@ runs:
         echo "SED=gsed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
+        echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 

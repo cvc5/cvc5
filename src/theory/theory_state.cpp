@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
@@ -171,4 +171,4 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

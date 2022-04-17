@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parallel_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -40,9 +41,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SetDefaults::SetDefaults(Env& env, bool isInternalSubsolver)
@@ -62,6 +63,11 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+
+  if (opts.quantifiers.oracles)
+  {
+    throw OptionException(std::string("Oracles not yet supported"));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -695,12 +701,16 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       && opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
     // cannot use minisat variable elimination for logics where a theory solver
-    // introduces new literals into the search. This includes quantifiers
+    // introduces new literals into the search, or for parametric theories
+    // which may introduce Boolean term variables. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
     if (logic.isTheoryEnabled(THEORY_SETS) || logic.isTheoryEnabled(THEORY_BAGS)
-        || logic.isQuantified() || opts.smt.produceModels
-        || opts.smt.produceAssignments || opts.smt.checkModels
+        || logic.isTheoryEnabled(THEORY_ARRAYS)
+        || logic.isTheoryEnabled(THEORY_STRINGS)
+        || logic.isTheoryEnabled(THEORY_DATATYPES) || logic.isQuantified()
+        || opts.smt.produceModels || opts.smt.produceAssignments
+        || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
       opts.prop.minisatSimpMode = options::MinisatSimpMode::CLAUSE_ELIM;
@@ -811,7 +821,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
-           && logic.areRealsUsed() && !logic.areIntegersUsed())
+           && logic.areRealsUsed() && !logic.areIntegersUsed()
+           && !logic.areTranscendentalsUsed())
   {
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
@@ -1029,6 +1040,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   if (opts.smt.solveIntAsBV > 0)
   {
     reason << "solveIntAsBV";
+    return true;
+  }
+  if (opts.parallel.computePartitions > 1)
+  {
+    reason << "compute partitions";
     return true;
   }
 
@@ -1763,4 +1779,4 @@ void SetDefaults::notifyModifyOption(const std::string& x,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

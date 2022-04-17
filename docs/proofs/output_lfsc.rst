@@ -12,3 +12,7 @@ LFSC is a meta-framework, meaning that the proof rules used by cvc5 are defined 
 Note that several proof rules in the internal calculus are not yet supported in LFSC signatures, and are instead printed as `trust` steps in the LFSC proof. A trust step proves an arbitrary formula with no provided justification. The LFSC proof contains warnings for which proof rules from the internal calculus were recorded as trust steps in the LFSC proof.
 
 For more fine-grained proofs, the additional option :ref:`proof-granularity=theory-rewrite <lbl-option-proof-granularity>` should be passed to cvc5. This often will result in LFSC proofs with more detail, and whose trust steps correspond only to equalities corresponding to theory rewrites.
+
+A simple example of cvc5 producing a proof in LFSC proof format:
+
+.. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=lfsc --proof-granularity=theory-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2

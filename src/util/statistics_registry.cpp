@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Matthew Sotoudeh, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "options/base_options.h"
 #include "util/statistics_public.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
     : EnvObj(env)
@@ -153,4 +153,4 @@ std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

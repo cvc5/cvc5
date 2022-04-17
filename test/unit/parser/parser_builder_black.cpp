@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Tim King
+ *   Aina Niemetz, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 #include "smt/command.h"
 #include "test_api.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace parser;
 
@@ -42,7 +42,7 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkEmptyInput(Parser* parser)
   {
-    api::Term e = parser->nextExpression();
+    cvc5::Term e = parser->nextExpression();
     ASSERT_TRUE(e.isNull());
   }
 
@@ -143,4 +143,4 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

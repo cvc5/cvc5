@@ -6,4 +6,4 @@
 (declare-fun c () Int)
 (declare-fun d () Int)
 (declare-fun e () Int)
-(check-sat-assuming ( (not (let ((_let_1 (- (+ (- (+ a (/ (* 2 b) 3)) (* (/ c 4) 5)) (/ d 6)) e))) (= _let_1 _let_1))) ))
+(check-sat-assuming ( (not (let ((_let_1 (- (+ (- (+ (to_real a) (/ (* 2 b) 3)) (* (/ c 4) 5.0)) (/ d 6)) (to_real e)))) (= _let_1 _let_1))) ))

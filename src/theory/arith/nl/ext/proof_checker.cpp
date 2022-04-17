@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -37,11 +37,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
-  auto one = nm->mkConst<Rational>(CONST_RATIONAL, 1);
-  auto mone = nm->mkConst<Rational>(CONST_RATIONAL, -1);
-  auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-  auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-ext-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {
@@ -103,6 +98,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
         }
       }
     }
+    Node zero = nm->mkConstRealOrInt(mon.getType(), Rational(0));
     switch (sign)
     {
       case -1:
@@ -159,4 +155,4 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

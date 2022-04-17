@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mudathir Mohamed
+ *   Aina Niemetz, Mathias Preiner, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 {
@@ -46,8 +46,8 @@ int main()
   Sort u = slv.mkUninterpretedSort("u");
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
-  Sort uToInt = slv.mkFunctionSort(u, integer);
-  Sort intPred = slv.mkFunctionSort(integer, boolean);
+  Sort uToInt = slv.mkFunctionSort({u}, integer);
+  Sort intPred = slv.mkFunctionSort({integer}, boolean);
 
   // Variables
   Term x = slv.mkConst(u, "x");

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Andrew Reynolds
+ *   Mudathir Mohamed, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +13,7 @@
  * An example of using inductive datatypes in cvc5.
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.Iterator;
 
 public class Datatypes
@@ -35,21 +35,21 @@ public class Datatypes
     // "nil" is a constructor too, so it needs to be applied with
     // APPLY_CONSTRUCTOR, even though it has no arguments.
     Term t = slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
-        consList.getConstructorTerm("cons"),
+        consList.getConstructor("cons").getTerm(),
         slv.mkInteger(0),
-        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
+        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, consList.getConstructor("nil").getTerm()));
 
     System.out.println("t is " + t + "\n"
-        + "sort of cons is " + consList.getConstructorTerm("cons").getSort() + "\n"
-        + "sort of nil is " + consList.getConstructorTerm("nil").getSort());
+        + "sort of cons is " + consList.getConstructor("cons").getTerm().getSort() + "\n"
+        + "sort of nil is " + consList.getConstructor("nil").getTerm().getSort());
 
     // t2 = head(cons 0 nil), and of course this can be evaluated
     //
     // Here we first get the DatatypeConstructor for cons (with
     // consList["cons"]) in order to get the "head" selector symbol
     // to apply.
-    Term t2 =
-        slv.mkTerm(Kind.APPLY_SELECTOR, consList.getConstructor("cons").getSelectorTerm("head"), t);
+    Term t2 = slv.mkTerm(
+        Kind.APPLY_SELECTOR, consList.getConstructor("cons").getSelector("head").getTerm(), t);
 
     System.out.println("t2 is " + t2 + "\n"
         + "simplify(t2) is " + slv.simplify(t2) + "\n");
@@ -96,8 +96,8 @@ public class Datatypes
     // This example builds a simple parameterized list of sort T, with one
     // constructor "cons".
     Sort sort = slv.mkParamSort("T");
-    DatatypeDecl paramConsListSpec = slv.mkDatatypeDecl("paramlist",
-        sort); // give the datatype a name
+    DatatypeDecl paramConsListSpec = slv.mkDatatypeDecl(
+        "paramlist", new Sort[] {sort}); // give the datatype a name
     DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
     paramCons.addSelector("head", sort);
@@ -124,9 +124,9 @@ public class Datatypes
     System.out.println("term " + a + " is of sort " + a.getSort());
 
     Term head_a = slv.mkTerm(
-        Kind.APPLY_SELECTOR, paramConsList.getConstructor("cons").getSelectorTerm("head"), a);
+        Kind.APPLY_SELECTOR, paramConsList.getConstructor("cons").getSelector("head").getTerm(), a);
     System.out.println("head_a is " + head_a + " of sort " + head_a.getSort() + "\n"
-        + "sort of cons is " + paramConsList.getConstructorTerm("cons").getSort() + "\n");
+        + "sort of cons is " + paramConsList.getConstructor("cons").getTerm().getSort() + "\n");
     Term assertion = slv.mkTerm(Kind.GT, head_a, slv.mkInteger(50));
     System.out.println("Assert " + assertion);
     slv.assertFormula(assertion);

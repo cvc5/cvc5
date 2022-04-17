@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
@@ -109,16 +109,16 @@ bool NodeTemplate<ref_count>::isConst() const {
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::Node>::operator()(const cvc5::Node& node) const
+size_t hash<cvc5::internal::Node>::operator()(const cvc5::internal::Node& node) const
 {
   return node.getId();
 }
 
-size_t hash<cvc5::TNode>::operator()(const cvc5::TNode& node) const
+size_t hash<cvc5::internal::TNode>::operator()(const cvc5::internal::TNode& node) const
 {
   return node.getId();
 }

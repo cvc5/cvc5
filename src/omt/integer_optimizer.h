@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou
+ *   Yancheng Ou, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 
 #include "omt/omt_optimizer.h"
 
-namespace cvc5::omt {
+namespace cvc5::internal::omt {
 
 /**
  * Optimizer for Integer type
@@ -44,6 +44,6 @@ class OMTOptimizerInteger : public OMTOptimizer
                                    bool isMinimize);
 };
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt
 
 #endif /* CVC5__OMT__INTEGER_OPTIMIZER_H */

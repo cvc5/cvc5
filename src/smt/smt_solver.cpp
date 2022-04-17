@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
@@ -31,15 +32,13 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     SolverEngineState& state,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
-    : d_env(env),
-      d_state(state),
+    : EnvObj(env),
       d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
@@ -65,6 +64,9 @@ void SmtSolver::finishInit()
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm)
   {
+    // reset the rule checkers
+    pnm->getChecker()->reset();
+    // add rule checkers from the theory engine
     d_theoryEngine->initializeProofChecker(pnm->getChecker());
   }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -116,13 +118,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions)
 {
   Result result;
-
-  bool hasAssumptions = !assumptions.empty();
-
   try
   {
-    // update the state to indicate we are about to run a check-sat
-    d_state.notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
     as.initializeCheckSat(assumptions);
@@ -134,8 +131,9 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     ResourceManager* rm = d_env.getResourceManager();
     if (rm->out())
     {
-      Result::UnknownExplanation why =
-          rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
+      UnknownExplanation why = rm->outOfResources()
+                                   ? UnknownExplanation::RESOURCEOUT
+                                   : UnknownExplanation::TIMEOUT;
       result = Result(Result::UNKNOWN, why);
     }
     else
@@ -163,7 +161,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
            || d_env.getOptions().smt.solveIntAsBV > 0)
           && result.getStatus() == Result::UNSAT)
       {
-        result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
+        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
       }
       // flipped if we did a global negation
       if (as.isGlobalNegated())
@@ -188,7 +186,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
           }
           else
           {
-            result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
+            result =
+                Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
           }
         }
         Trace("smt") << "SmtSolver::global negate returned " << result
@@ -206,19 +205,13 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   // set the filename on the result
   const std::string& filename = d_env.getOptions().driver.filename;
-  result = Result(result, filename);
-
-  // notify our state of the check-sat result
-  d_state.notifyCheckSatResult(hasAssumptions, result);
-
-  return result;
+  return Result(result, filename);
 }
 
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
-  Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
@@ -265,4 +258,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

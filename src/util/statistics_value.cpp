@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 
 #include "util/ostream_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // standard helper, see https://en.cppreference.com/w/cpp/utility/variant/visit
 template <class... Ts>
@@ -110,4 +110,4 @@ uint64_t StatisticTimerValue::get() const
   return static_cast<int64_t>(data / std::chrono::milliseconds(1));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

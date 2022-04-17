@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Makai Mann, Mudathir Mohamed
+#   Yoni Zohar, Andrew Reynolds, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -34,7 +34,7 @@ def test_add_rule(solver):
     nts = solver.mkVar(boolean)
 
     # expecting no error
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
 
     g.addRule(start, solver.mkBoolean(False))
 
@@ -67,7 +67,7 @@ def test_add_rules(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g = solver.mkSygusGrammar([], [start])
+    g = solver.mkGrammar([], [start])
 
     g.addRules(start, {solver.mkBoolean(False)})
 
@@ -98,7 +98,7 @@ def test_add_any_constant(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g = solver.mkSygusGrammar({}, {start})
+    g = solver.mkGrammar({}, {start})
 
     g.addAnyConstant(start)
     g.addAnyConstant(start)
@@ -123,8 +123,8 @@ def test_add_any_variable(solver):
     start = solver.mkVar(boolean)
     nts = solver.mkVar(boolean)
 
-    g1 = solver.mkSygusGrammar({x}, {start})
-    g2 = solver.mkSygusGrammar({}, {start})
+    g1 = solver.mkGrammar({x}, {start})
+    g2 = solver.mkGrammar({}, {start})
 
     g1.addAnyVariable(start)
     g1.addAnyVariable(start)

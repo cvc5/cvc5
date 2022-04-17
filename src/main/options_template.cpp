@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,6 +45,8 @@ extern int optreset;
 #include <limits>
 
 namespace cvc5::main {
+
+using namespace cvc5::internal;
 
 // clang-format off
 static const std::string commonOptionsDescription =
@@ -117,7 +119,7 @@ std::string suggestCommandLineOptions(const std::string& optionName)
       optionName.substr(0, optionName.find('=')));
 }
 
-void parseInternal(api::Solver& solver,
+void parseInternal(cvc5::Solver& solver,
                    int argc,
                    char* argv[],
                    std::vector<std::string>& nonoptions)
@@ -234,13 +236,13 @@ void parseInternal(api::Solver& solver,
 }
 
 /**
- * Parse argc/argv and put the result into a cvc5::Options.
+ * Parse argc/argv and put the result into a cvc5::internal::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  *
  * Throws OptionException on failures.
  */
-std::vector<std::string> parse(api::Solver& solver,
+std::vector<std::string> parse(cvc5::Solver& solver,
                                int argc,
                                char* argv[],
                                std::string& binaryName)
@@ -277,4 +279,4 @@ std::vector<std::string> parse(api::Solver& solver,
   return nonoptions;
 }
 
-}  // namespace cvc5::options
+}  // namespace cvc5::main
