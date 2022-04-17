@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Haniel Barbosa, Andrew Reynolds
+ *   Mudathir Mohamed, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -401,7 +401,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
                 nm->getSkolemManager()->mkDummySkolem("slack", elementType);
             Trace("bags-model") << "newElement is " << newElement << std::endl;
             Rational difference = rCardRational - constructedRational;
-            Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
+            Node multiplicity = nm->mkConstInt(difference);
             Node slackBag = nm->mkBag(elementType, newElement, multiplicity);
             constructedBag =
                 nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);

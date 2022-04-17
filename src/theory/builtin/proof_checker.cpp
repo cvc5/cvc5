@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Hanna Lachnitt, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -226,9 +226,14 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
-    Assert(1 <= args.size() && args.size() <= 2);
+    Assert(1 <= args.size() && args.size() <= 3) << "Args: " << args;
     MethodId ids = MethodId::SB_DEFAULT;
-    if (args.size() == 2 && !getMethodId(args[1], ids))
+    if (args.size() >= 2 && !getMethodId(args[1], ids))
+    {
+      return Node::null();
+    }
+    MethodId ida = MethodId::SBA_SEQUENTIAL;
+    if (args.size() >= 3 && !getMethodId(args[2], ida))
     {
       return Node::null();
     }
@@ -237,7 +242,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       exp.push_back(children[i]);
     }
-    Node res = applySubstitution(args[0], exp, ids);
+    Node res = applySubstitution(args[0], exp, ids, ida);
     if (res.isNull())
     {
       return Node::null();

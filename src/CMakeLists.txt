@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -232,10 +232,8 @@ libcvc5_add_sources(
   prop/cryptominisat.h
   prop/kissat.cpp
   prop/kissat.h
-  prop/opt_clauses_manager.cpp
-  prop/opt_clauses_manager.h
-  prop/proof_cnf_stream.cpp
-  prop/proof_cnf_stream.h
+  prop/learned_db.cpp
+  prop/learned_db.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -254,6 +252,10 @@ libcvc5_add_sources(
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
+  prop/proof_cnf_stream.cpp
+  prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
   prop/proof_post_processor.h
   prop/prop_engine.cpp
@@ -825,6 +827,10 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/oracle_checker.cpp
+  theory/quantifiers/oracle_checker.h
+  theory/quantifiers/oracle_engine.cpp
+  theory/quantifiers/oracle_engine.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_bound_inference.cpp
@@ -1038,6 +1044,8 @@ libcvc5_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/partition_generator.cpp
+  theory/partition_generator.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
@@ -1203,6 +1211,7 @@ set(options_toml_files
   options/expr_options.toml
   options/fp_options.toml
   options/main_options.toml
+  options/parallel_options.toml
   options/parser_options.toml
   options/printer_options.toml
   options/proof_options.toml

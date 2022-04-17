@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Piotr Trojanek
+ *   Tim King, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -181,7 +181,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
   if(d_gcds.find(n) != d_gcds.end()){
     return d_gcds[n];
   }
-  if(n.getKind() == kind::CONST_RATIONAL){
+  if (n.isConst())
+  {
     const Rational& q = n.getConst<Rational>();
     if(q.isIntegral()){
       d_gcds[n] = q.getNumerator();

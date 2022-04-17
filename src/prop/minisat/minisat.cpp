@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Liana Hadarean, Morgan Deters
+ *   Gereon Kremer, Dejan Jovanovic, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -264,6 +264,18 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
+}
+
+std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
+{
+  std::vector<SatLiteral> decisions;
+  const Minisat::vec<Minisat::Lit>& miniDecisions =
+      d_minisat->getMiniSatDecisions();
+  for (size_t i = 0, ndec = miniDecisions.size(); i < ndec; ++i)
+  {
+    decisions.push_back(toSatLiteral(miniDecisions[i]));
+  }
+  return decisions;
 }
 
 int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const

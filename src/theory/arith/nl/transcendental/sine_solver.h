@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -113,6 +113,14 @@ class SineSolver : protected EnvObj
    * the model value of x is in the domain of d_mpointsSine.
    */
   bool hasExactModelValue(TNode n) const;
+
+  /**
+   * Make the lemma for the phase shift of arguments to SINE x and y, where
+   * s is the (integral) shift. The lemma conceptually says that y is
+   * in the bounds [-pi, pi] and y is offset from x by an integral factor of
+   * 2*pi.
+   */
+  static Node getPhaseShiftLemma(const Node& x, const Node& y, const Node& s);
 
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,

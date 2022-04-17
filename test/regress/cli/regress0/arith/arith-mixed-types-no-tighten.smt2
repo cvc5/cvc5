@@ -8,9 +8,9 @@
 ; Even though `n` is an integer, this would be UNSAT for real `n`, so the integrality can be ignored.
 (assert
     (and
-        (>= (+ x n) 1)
+        (>= (+ x (to_real n)) 1.0)
         (<= n 0)
-        (<= x 0)
+        (<= x 0.0)
     )
 )
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli
+#   Mudathir Mohamed, Aina Niemetz, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -43,12 +43,12 @@ if __name__ == "__main__":
 
     # (Tuple Person)
     tupleArity1 = solver.mkTupleSort(personSort)
-    # (Set (Tuple Person))
+    # (Relation Person)
     relationArity1 = solver.mkSetSort(tupleArity1)
 
     # (Tuple Person Person)
     tupleArity2 = solver.mkTupleSort(personSort, personSort)
-    # (Set (Tuple Person Person))
+    # (Relation Person Person)
     relationArity2 = solver.mkSetSort(tupleArity2)
 
     # empty set
@@ -73,21 +73,21 @@ if __name__ == "__main__":
     isEmpty1 = solver.mkTerm(Kind.EQUAL, males, emptySetTerm)
     isEmpty2 = solver.mkTerm(Kind.EQUAL, females, emptySetTerm)
 
-    # (assert (= people (as set.universe (Set (Tuple Person)))))
+    # (assert (= people (as set.universe (Relation Person))))
     peopleAreTheUniverse = solver.mkTerm(Kind.EQUAL, people, universeSet)
-    # (assert (not (= males (as set.empty (Set (Tuple Person))))))
+    # (assert (not (= males (as set.empty (Relation Person)))))
     maleSetIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty1)
-    # (assert (not (= females (as set.empty (Set (Tuple Person))))))
+    # (assert (not (= females (as set.empty (Relation Person)))))
     femaleSetIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty2)
 
     # (assert (= (set.inter males females)
-    #            (as set.empty (Set (Tuple Person)))))
+    #            (as set.empty (Relation Person))))
     malesFemalesIntersection = solver.mkTerm(Kind.SET_INTER, males, females)
     malesAndFemalesAreDisjoint = \
             solver.mkTerm(Kind.EQUAL, malesFemalesIntersection, emptySetTerm)
 
-    # (assert (not (= father (as set.empty (Set (Tuple Person Person))))))
-    # (assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
+    # (assert (not (= father (as set.empty (Relation Person Person)))))
+    # (assert (not (= mother (as set.empty (Relation Person Person)))))
     isEmpty3 = solver.mkTerm(Kind.EQUAL, father, emptyRelationTerm)
     isEmpty4 = solver.mkTerm(Kind.EQUAL, mother, emptyRelationTerm)
     fatherIsNotEmpty = solver.mkTerm(Kind.NOT, isEmpty3)

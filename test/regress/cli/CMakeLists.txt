@@ -889,6 +889,7 @@ set(regress_0_tests
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/real-numerals.smt2
+  regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -1060,6 +1061,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8159-3-qext-nterm.smt2
   regress0/quantifiers/issue8227-subs-shadow.smt2
   regress0/quantifiers/issue8466-syqi-bool.smt2
+  regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2235,6 +2237,7 @@ set(regress_1_tests
   regress1/quantifiers/issue8497-syqi-str-fmf.smt2
   regress1/quantifiers/issue8517-exp-exp.smt2
   regress1/quantifiers/issue8520-cegqi-nl-cov.smt2
+  regress1/quantifiers/issue8572-sygus-inst-ic-purify.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2

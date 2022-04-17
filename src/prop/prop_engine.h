@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -140,6 +140,14 @@ class PropEngine : protected EnvObj
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Get the current list of decisions made by the SAT solver at the moment in
+   * time that getPropDecisions() is called.
+   *
+   * @return List of decisions made by the SAT solver.
+   */
+  std::vector<Node> getPropDecisions() const;
 
   /**
    * Return SAT context level at which `lit` was decided on.

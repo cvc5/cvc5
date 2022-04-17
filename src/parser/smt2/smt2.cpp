@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -328,7 +328,7 @@ bool Smt2::logicIsSet() {
 
 bool Smt2::getTesterName(cvc5::Term cons, std::string& name)
 {
-  if ((v2_6() || sygus()) && strictModeEnabled())
+  if (strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
@@ -837,6 +837,17 @@ bool Smt2::isAbstractValue(const std::string& name)
 {
   return name.length() >= 2 && name[0] == '@' && name[1] != '0'
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+
+cvc5::Term Smt2::mkRealOrIntFromNumeral(const std::string& str)
+{
+  // if arithmetic is enabled, and integers are disabled
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
+      && !d_logic.areIntegersUsed())
+  {
+    return d_solver->mkReal(str);
+  }
+  return d_solver->mkInteger(str);
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)

@@ -8,5 +8,5 @@
 (declare-fun k () Real)
 (declare-fun k2 () Int)
 (assert (or (not (P (to_int k))) (not (P k2))))
-(assert (= k 0))
+(assert (= k 0.0))
 (check-sat)

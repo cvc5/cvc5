@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,6 +34,7 @@ namespace theory {
 namespace quantifiers {
 
 class FirstOrderModel;
+class OracleChecker;
 
 /**
  * Term Registry, which manages notifying modules within quantifiers about
@@ -84,6 +85,8 @@ class TermRegistry : protected EnvObj
   TermDb* getTermDatabase() const;
   /** get term database sygus */
   TermDbSygus* getTermDatabaseSygus() const;
+  /** get oracle checker */
+  OracleChecker* getOracleChecker() const;
   /** get entailment check utility */
   EntailmentCheck* getEntailmentCheck() const;
   /** get term enumeration utility */
@@ -110,6 +113,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
+  /** oracle checker */
+  std::unique_ptr<OracleChecker> d_ochecker;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

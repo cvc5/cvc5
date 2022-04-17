@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -315,6 +315,17 @@ void PropEngine::requirePhase(TNode n, bool phase) {
 bool PropEngine::isDecision(Node lit) const {
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
+std::vector<Node> PropEngine::getPropDecisions() const
+{
+  std::vector<Node> decisions; 
+  std::vector<SatLiteral> miniDecisions = d_satSolver->getDecisions();
+  for (SatLiteral d : miniDecisions)
+  {
+    decisions.push_back(d_cnfStream->getNode(d));
+  }
+  return decisions;
 }
 
 int32_t PropEngine::getDecisionLevel(Node lit) const
