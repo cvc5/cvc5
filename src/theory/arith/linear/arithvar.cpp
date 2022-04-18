@@ -16,13 +16,13 @@
  * \todo document this file
  */
 
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include <limits>
 #include <set>
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
 

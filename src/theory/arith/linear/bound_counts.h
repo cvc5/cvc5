@@ -20,12 +20,12 @@
 #pragma once
 
 #include "base/check.h"
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "util/dense_map.h"
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 class BoundCounts {
 private:

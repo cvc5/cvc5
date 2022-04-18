@@ -110,7 +110,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
         newn = rewrite(newn);
-        Assert(Polynomial::isMember(newn));
+        Assert(linear::Polynomial::isMember(newn));
       }else{
         newn = n;
       }

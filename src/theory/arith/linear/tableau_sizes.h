@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 
 namespace cvc5::internal {
 namespace theory {

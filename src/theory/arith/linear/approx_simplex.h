@@ -23,7 +23,7 @@
 #include <optional>
 #include <vector>
 
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/delta_rational.h"
 #include "util/dense_map.h"
 #include "util/rational.h"

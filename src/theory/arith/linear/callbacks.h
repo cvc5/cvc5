@@ -19,8 +19,8 @@
 #pragma once
 
 #include "expr/node.h"
-#include "theory/arith/arithvar.h"
-#include "theory/arith/bound_counts.h"
+#include "theory/arith/linear/arithvar.h"
+#include "theory/arith/linear/bound_counts.h"
 #include "theory/arith/linear/constraint_forward.h"
 #include "theory/inference_id.h"
 #include "util/rational.h"

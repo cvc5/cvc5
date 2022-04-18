@@ -24,8 +24,8 @@
 #include <vector>
 
 #include "options/arith_options.h"
-#include "theory/arith/arithvar.h"
-#include "theory/arith/bound_counts.h"
+#include "theory/arith/linear/arithvar.h"
+#include "theory/arith/linear/bound_counts.h"
 #include "theory/arith/linear/callbacks.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/partial_model.h"

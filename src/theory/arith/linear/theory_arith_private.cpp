@@ -49,7 +49,7 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/cut_log.h"

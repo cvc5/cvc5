@@ -59,7 +59,7 @@
 
 #include "options/arith_options.h"
 #include "smt/env_obj.h"
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/partial_model.h"
 #include "util/dense_map.h"
 #include "util/result.h"

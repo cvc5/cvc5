@@ -349,8 +349,6 @@ libcvc5_add_sources(
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  theory/arith/linear/approx_simplex.cpp
-  theory/arith/linear/approx_simplex.h
   theory/arith/arith_evaluator.cpp
   theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
@@ -369,15 +367,23 @@ libcvc5_add_sources(
   theory/arith/arith_static_learner.h
   theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
-  theory/arith/arithvar.cpp
-  theory/arith/arithvar.h
-  theory/arith/linear/attempt_solution_simplex.cpp
-  theory/arith/linear/attempt_solution_simplex.h
-  theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
   theory/arith/branch_and_bound.cpp
   theory/arith/branch_and_bound.h
+  theory/arith/delta_rational.cpp
+  theory/arith/delta_rational.h
+  theory/arith/equality_solver.cpp
+  theory/arith/equality_solver.h
+  theory/arith/inference_manager.cpp
+  theory/arith/inference_manager.h
+  theory/arith/linear/approx_simplex.cpp
+  theory/arith/linear/approx_simplex.h
+  theory/arith/linear/arithvar.cpp
+  theory/arith/linear/arithvar.h
+  theory/arith/linear/attempt_solution_simplex.cpp
+  theory/arith/linear/attempt_solution_simplex.h
+  theory/arith/linear/bound_counts.h
   theory/arith/linear/callbacks.cpp
   theory/arith/linear/callbacks.h
   theory/arith/linear/congruence_manager.cpp
@@ -387,26 +393,36 @@ libcvc5_add_sources(
   theory/arith/linear/constraint_forward.h
   theory/arith/linear/cut_log.cpp
   theory/arith/linear/cut_log.h
-  theory/arith/delta_rational.cpp
-  theory/arith/delta_rational.h
   theory/arith/linear/dio_solver.cpp
   theory/arith/linear/dio_solver.h
   theory/arith/linear/dual_simplex.cpp
   theory/arith/linear/dual_simplex.h
-  theory/arith/equality_solver.cpp
-  theory/arith/equality_solver.h
   theory/arith/linear/error_set.cpp
   theory/arith/linear/error_set.h
   theory/arith/linear/fc_simplex.cpp
   theory/arith/linear/fc_simplex.h
   theory/arith/linear/infer_bounds.cpp
   theory/arith/linear/infer_bounds.h
-  theory/arith/inference_manager.cpp
-  theory/arith/inference_manager.h
   theory/arith/linear/linear_equality.cpp
   theory/arith/linear/linear_equality.h
   theory/arith/linear/matrix.cpp
   theory/arith/linear/matrix.h
+  theory/arith/linear/normal_form.cpp
+  theory/arith/linear/normal_form.h
+  theory/arith/linear/partial_model.cpp
+  theory/arith/linear/partial_model.h
+  theory/arith/linear/simplex.cpp
+  theory/arith/linear/simplex.h
+  theory/arith/linear/simplex_update.cpp
+  theory/arith/linear/simplex_update.h
+  theory/arith/linear/soi_simplex.cpp
+  theory/arith/linear/soi_simplex.h
+  theory/arith/linear/tableau.cpp
+  theory/arith/linear/tableau.h
+  theory/arith/linear/tableau_sizes.cpp
+  theory/arith/linear/tableau_sizes.h
+  theory/arith/linear/theory_arith_private.cpp
+  theory/arith/linear/theory_arith_private.h
   theory/arith/nl/coverings_solver.cpp
   theory/arith/nl/coverings_solver.h
   theory/arith/nl/coverings/cdcac.cpp
@@ -487,12 +503,8 @@ libcvc5_add_sources(
   theory/arith/nl/transcendental/transcendental_solver.h
   theory/arith/nl/transcendental/transcendental_state.cpp
   theory/arith/nl/transcendental/transcendental_state.h
-  theory/arith/linear/normal_form.cpp
-  theory/arith/linear/normal_form.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
-  theory/arith/linear/partial_model.cpp
-  theory/arith/linear/partial_model.h
   theory/arith/pp_rewrite_eq.cpp
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
@@ -506,20 +518,8 @@ libcvc5_add_sources(
   theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
-  theory/arith/linear/simplex.cpp
-  theory/arith/linear/simplex.h
-  theory/arith/linear/simplex_update.cpp
-  theory/arith/linear/simplex_update.h
-  theory/arith/linear/soi_simplex.cpp
-  theory/arith/linear/soi_simplex.h
-  theory/arith/linear/tableau.cpp
-  theory/arith/linear/tableau.h
-  theory/arith/linear/tableau_sizes.cpp
-  theory/arith/linear/tableau_sizes.h
   theory/arith/theory_arith.cpp
   theory/arith/theory_arith.h
-  theory/arith/linear/theory_arith_private.cpp
-  theory/arith/linear/theory_arith_private.h
   theory/arith/theory_arith_type_rules.cpp
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h

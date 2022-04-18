@@ -31,7 +31,7 @@
 #include "proof/trust_node.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/attempt_solution_simplex.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/linear/congruence_manager.h"

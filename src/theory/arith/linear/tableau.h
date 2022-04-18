@@ -22,7 +22,7 @@
 
 #include <vector>
 
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/matrix.h"
 #include "util/dense_map.h"
 #include "util/rational.h"

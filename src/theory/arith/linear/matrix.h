@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "base/output.h"
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "util/dense_map.h"
 #include "util/index.h"
 

@@ -26,7 +26,7 @@
 #include <unordered_map>
 
 #include "expr/kind.h"
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/constraint_forward.h"
 #include "util/dense_map.h"
 

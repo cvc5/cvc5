@@ -21,7 +21,7 @@
 #ifndef CVC5__THEORY__ARITH__ARITHVAR_NODE_MAP_H
 #define CVC5__THEORY__ARITH__ARITHVAR_NODE_MAP_H
 
-#include "theory/arith/arithvar.h"
+#include "theory/arith/linear/arithvar.h"
 #include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdhashmap.h"
@@ -29,7 +29,11 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
+
+//Maps from Nodes -> ArithVars, and vice versa
+typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;
+typedef DenseMap<Node> ArithVarToNodeMap;
 
 class ArithVarNodeMap {
 private:
