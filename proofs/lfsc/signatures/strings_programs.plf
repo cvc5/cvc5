@@ -40,12 +40,6 @@
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
 (program sc_string_tail ((t term)) term (nary_tail f_str.++ t))
 
-; Get the head of t if it is a concatentation term, or return t itself otherwise.
-(program sc_string_head_or_self ((t term)) term
-  (match t
-    ((apply t1 t2) (getarg f_str.++ t1))
-    (default t)))
-
 ; Concatenation str.++ applications t1 and t2. Note this side condition requires
 ; taking the sort u of t1 for constructing the empty string.
 (program sc_string_concat ((t1 term) (t2 term) (u sort)) term (nary_concat f_str.++ t1 t2 (sc_mk_emptystr u)))
@@ -244,8 +238,12 @@
 ; If t is of the form emptystr, return emptystr.
 ; Otherwise, this side condition fails
 (program sc_string_first_char_or_empty ((t term) (u sort)) term
-  (match (sc_string_head_or_self t)
-    ((char n) t)
+  (match t
+    ((apply t1 t2)
+      (let t12 (getarg f_str.++ t1)
+      (match t12
+        ((char n) t12)
+        ((apply t121 t122) (ifequal t121 f_seq.unit t12 (fail term))))))
     (default (ifequal t (sc_mk_emptystr u) t (fail term)))))
 
 ; Flatten constants in str.++ application s. Notice that the rewritten form
