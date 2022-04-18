@@ -363,22 +363,20 @@ libcvc5_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_state.cpp
   theory/arith/arith_state.h
-  theory/arith/linear/arith_static_learner.cpp
-  theory/arith/linear/arith_static_learner.h
   theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
   theory/arith/branch_and_bound.cpp
   theory/arith/branch_and_bound.h
-  theory/arith/linear/delta_rational.cpp
-  theory/arith/linear/delta_rational.h
   theory/arith/equality_solver.cpp
   theory/arith/equality_solver.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear/approx_simplex.cpp
   theory/arith/linear/approx_simplex.h
+  theory/arith/linear/arith_static_learner.cpp
+  theory/arith/linear/arith_static_learner.h
   theory/arith/linear/arithvar.cpp
   theory/arith/linear/arithvar.h
   theory/arith/linear/attempt_solution_simplex.cpp
@@ -393,6 +391,8 @@ libcvc5_add_sources(
   theory/arith/linear/constraint_forward.h
   theory/arith/linear/cut_log.cpp
   theory/arith/linear/cut_log.h
+  theory/arith/linear/delta_rational.cpp
+  theory/arith/linear/delta_rational.h
   theory/arith/linear/dio_solver.cpp
   theory/arith/linear/dio_solver.h
   theory/arith/linear/dual_simplex.cpp
