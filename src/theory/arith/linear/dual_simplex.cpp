@@ -21,14 +21,14 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
-#include "theory/arith/linear_equality.h"
+#include "theory/arith/linear/linear_equality.h"
 
 
 using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(
     Env& env,

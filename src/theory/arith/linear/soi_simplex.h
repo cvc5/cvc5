@@ -55,7 +55,7 @@
 
 #pragma once
 
-#include "theory/arith/linear_equality.h"
+#include "theory/arith/linear/linear_equality.h"
 #include "theory/arith/linear/simplex.h"
 #include "theory/arith/linear/simplex_update.h"
 #include "util/dense_map.h"

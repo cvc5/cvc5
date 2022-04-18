@@ -12,7 +12,7 @@
  *
  * This implements the LinearEqualityModule.
  */
-#include "theory/arith/linear_equality.h"
+#include "theory/arith/linear/linear_equality.h"
 
 #include "base/output.h"
 #include "smt/smt_statistics_registry.h"
@@ -23,7 +23,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 /* Explicitly instatiate these functions. */
 

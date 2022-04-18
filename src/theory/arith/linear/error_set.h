@@ -35,7 +35,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 
 /**

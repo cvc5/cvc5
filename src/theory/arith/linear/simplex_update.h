@@ -37,7 +37,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 enum WitnessImprovement {
   ConflictFound = 0,

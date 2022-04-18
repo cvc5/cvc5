@@ -365,7 +365,7 @@ extern "C" {
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 Kind glpk_type_to_kind(int glpk_cut_type){
   switch(glpk_cut_type){
@@ -524,7 +524,7 @@ private:
 /* Begin GPLK/NOGLPK Glue code. */
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s){
 #ifdef CVC5_USE_GLPK
   return new ApproxGLPK(vars, l, s);
@@ -548,7 +548,7 @@ bool ApproximateSimplex::enabled() {
 #ifdef CVC5_USE_GLPK
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 #ifdef CVC5_ASSERTIONS
 static CutInfoKlass fromGlpkClass(int klass){

@@ -397,14 +397,14 @@ libcvc5_add_sources(
   theory/arith/equality_solver.h
   theory/arith/linear/error_set.cpp
   theory/arith/linear/error_set.h
-  theory/arith/fc_simplex.cpp
-  theory/arith/fc_simplex.h
+  theory/arith/linear/fc_simplex.cpp
+  theory/arith/linear/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
-  theory/arith/linear_equality.cpp
-  theory/arith/linear_equality.h
+  theory/arith/linear/linear_equality.cpp
+  theory/arith/linear/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
   theory/arith/nl/coverings_solver.cpp

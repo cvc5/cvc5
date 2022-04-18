@@ -21,7 +21,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 /*
  * Generates a string representation of std::optional and inserts it into a

@@ -13,7 +13,7 @@
  * This is an implementation of the Simplex Module for the Simplex for
  * DPLL(T)decision procedure.
  */
-#include "theory/arith/fc_simplex.h"
+#include "theory/arith/linear/fc_simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
@@ -26,7 +26,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
     Env& env,

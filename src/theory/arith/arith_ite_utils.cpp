@@ -102,7 +102,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   default:
   {
     TypeNode tn = n.getType();
-    if (tn.isRealOrInt() && Polynomial::isMember(n))
+    if (tn.isRealOrInt() && linear::Polynomial::isMember(n))
     {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
@@ -115,7 +115,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         newn = n;
       }
       NodeManager* nm = NodeManager::currentNM();
-      Polynomial p = Polynomial::parsePolynomial(newn);
+      linear::Polynomial p = Polynomial::parsePolynomial(newn);
       if(p.isConstant()){
         d_constants[n] = newn;
         d_varParts[n] = nm->mkConstRealOrInt(tn, Rational(0));

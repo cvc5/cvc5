@@ -25,7 +25,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 ErrorInformation::ErrorInformation()
     : d_variable(ARITHVAR_SENTINEL),
