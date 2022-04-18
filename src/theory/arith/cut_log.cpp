@@ -28,7 +28,7 @@
 #include "base/cvc5config.h"
 #include "base/output.h"
 #include "theory/arith/approx_simplex.h"
-#include "theory/arith/constraint.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/normal_form.h"
 #include "util/ostream_util.h"
 

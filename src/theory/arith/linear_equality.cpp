@@ -16,7 +16,7 @@
 
 #include "base/output.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arith/constraint.h"
+#include "theory/arith/linear/constraint.h"
 
 
 using namespace std;

@@ -15,7 +15,7 @@
 
 #include "theory/arith/simplex_update.h"
 
-#include "theory/arith/constraint.h"
+#include "theory/arith/linear/constraint.h"
 
 using namespace std;
 

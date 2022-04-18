@@ -27,7 +27,7 @@
 
 #include "expr/kind.h"
 #include "theory/arith/arithvar.h"
-#include "theory/arith/constraint_forward.h"
+#include "theory/arith/linear/constraint_forward.h"
 #include "util/dense_map.h"
 
 namespace cvc5::internal {

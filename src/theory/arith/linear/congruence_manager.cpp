@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "theory/arith/congruence_manager.h"
+#include "theory/arith/linear/congruence_manager.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
@@ -25,7 +25,7 @@
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/constraint.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/partial_model.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rewriter.h"
@@ -36,7 +36,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 ArithCongruenceManager::ArithCongruenceManager(
     Env& env,

@@ -380,11 +380,11 @@ libcvc5_add_sources(
   theory/arith/branch_and_bound.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
-  theory/arith/congruence_manager.cpp
-  theory/arith/congruence_manager.h
-  theory/arith/constraint.cpp
-  theory/arith/constraint.h
-  theory/arith/constraint_forward.h
+  theory/arith/linear/congruence_manager.cpp
+  theory/arith/linear/congruence_manager.h
+  theory/arith/linear/constraint.cpp
+  theory/arith/linear/constraint.h
+  theory/arith/linear/constraint_forward.h
   theory/arith/cut_log.cpp
   theory/arith/cut_log.h
   theory/arith/delta_rational.cpp

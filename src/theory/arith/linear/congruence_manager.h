@@ -29,7 +29,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
-#include "theory/arith/constraint_forward.h"
+#include "theory/arith/linear/constraint_forward.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
@@ -52,7 +52,7 @@ class ProofEqEngine;
 class EqualityEngine;
 }
 
-namespace arith {
+namespace arith::linear {
 
 class ArithVariables;
 

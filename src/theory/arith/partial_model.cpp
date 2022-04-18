@@ -17,7 +17,7 @@
  */
 
 #include "base/output.h"
-#include "theory/arith/constraint.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/partial_model.h"
 

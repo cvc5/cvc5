@@ -20,7 +20,7 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "theory/arith/constraint.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/error_set.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/tableau.h"
