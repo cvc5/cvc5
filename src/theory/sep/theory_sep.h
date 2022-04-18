@@ -80,15 +80,6 @@ class TheorySep : public Theory {
   TheorySep(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySep();
 
-  /**
-   * Declare heap. For smt2 inputs, this is called when the command
-   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
-   * location type and dataT is the data type for the heap. This command can be
-   * executed once only, and must be invoked before solving separation logic
-   * inputs.
-   */
-  void declareSepHeap(TypeNode locT, TypeNode dataT) override;
-
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
@@ -108,38 +99,26 @@ class TheorySep : public Theory {
 
   std::string identify() const override { return std::string("TheorySep"); }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // PREPROCESSING
-  /////////////////////////////////////////////////////////////////////////////
-
- public:
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
-  /////////////////////////////////////////////////////////////////////////////
-  // T-PROPAGATION / REGISTRATION
-  /////////////////////////////////////////////////////////////////////////////
+
+  TrustNode explain(TNode n) override;
+
+  void computeCareGraph() override;
+
+  void postProcessModel(TheoryModel* m) override;
 
  private:
+  /**
+   * Initialize heap. For smt2 inputs, this will initialize the heap types
+   * based on if a command (declare-heap (locT datat)) was used. This command
+   * can be executed once only, and must be invoked before solving separation
+   * logic inputs, which is controlled by the solver engine.
+   */
+  void initializeHeapTypes();
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
-
- public:
-  TrustNode explain(TNode n) override;
-
- public:
-  void computeCareGraph() override;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // MODEL GENERATION
-  /////////////////////////////////////////////////////////////////////////////
-
- public:
-  void postProcessModel(TheoryModel* m) override;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTIFICATIONS
-  /////////////////////////////////////////////////////////////////////////////
 
  public:
 
@@ -341,7 +320,6 @@ class TheorySep : public Theory {
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );
 
- private:
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
@@ -350,8 +328,6 @@ class TheorySep : public Theory {
 
   void sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer = false );
   void doPending();
-
- public:
 
   void initializeBounds();
 };/* class TheorySep */

@@ -1212,31 +1212,34 @@ Env& SolverEngine::getEnv() { return *d_env.get(); }
 
 void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
+  if (d_state->isFullyInited())
+  {
+    throw ModalException(
+        "Cannot set logic in SolverEngine after the engine has "
+        "finished initializing.");
+  }
   if (!getLogicInfo().isTheoryEnabled(THEORY_SEP))
   {
     const char* msg =
         "Cannot declare heap if not using the separation logic theory.";
     throw RecoverableModalException(msg);
   }
-  SolverEngineScope smts(this);
-  finishInit();
-  // check whether incremental is enabled, where separation logic is not
-  // supported.
-  if (d_env->getOptions().base.incrementalSolving)
+  TypeNode locT2, dataT2;
+  if (d_env->getSepHeapTypes(locT2, dataT2))
   {
-    throw RecoverableModalException(
-        "Separation logic not supported in incremental mode");
+    std::stringstream ss;
+    ss << "ERROR: cannot declare heap types for separation logic more than "
+          "once.  We are declaring heap of type ";
+    ss << locT << " -> " << dataT << ", but we already have ";
+    ss << locT2 << " -> " << dataT2;
+    throw LogicException(ss.str());
   }
-  TheoryEngine* te = getTheoryEngine();
-  te->declareSepHeap(locT, dataT);
+  d_env->declareSepHeap(locT, dataT);
 }
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
-  SolverEngineScope smts(this);
-  finishInit();
-  TheoryEngine* te = getTheoryEngine();
-  return te->getSepHeapTypes(locT, dataT);
+  return d_env->getSepHeapTypes(locT, dataT);
 }
 
 Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
