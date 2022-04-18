@@ -22,6 +22,7 @@
 #include "expr/attribute.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
+#include "options/parallel_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -34,6 +35,7 @@
 #include "smt/logic_exception.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/partition_generator.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
@@ -199,6 +201,12 @@ void TheoryEngine::finishInit()
     t->setDecisionManager(d_decManager.get());
     // finish initializing the theory
     t->finishInit();
+  }
+
+  if (options().parallel.computePartitions > 1)
+  {
+    d_partitionGen =
+        std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -394,6 +402,15 @@ void TheoryEngine::check(Theory::Effort effort) {
         d_relManager->beginRound();
       }
       d_tc->resetRound();
+    }
+
+    if (d_partitionGen != nullptr)
+    {
+      TrustNode tl = d_partitionGen->check(effort);
+      if (!tl.isNull())
+      {
+        lemma(tl, LemmaProperty::NONE, THEORY_LAST);
+      }
     }
 
     // Check until done

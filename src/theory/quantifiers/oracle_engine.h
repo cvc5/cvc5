@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 
+#include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
@@ -88,10 +89,28 @@ class OracleEngine : public QuantifiersModule
                                 Node assume,
                                 Node constraint,
                                 const std::string& binName);
+  /**
+   * Get oracle interface, returns true if q is an oracle interface quantifier
+   * (constructed by the above method). Obtains the arguments for which q is
+   * constructed.
+   */
+  bool getOracleInterface(Node q,
+                          std::vector<Node>& inputs,
+                          std::vector<Node>& outputs,
+                          Node& assume,
+                          Node& constraint,
+                          std::string& binName) const;
 
  private:
   /** The oracle functions (user-context dependent) */
   context::CDList<Node> d_oracleFuns;
+  /** Pointer to the oracle checker */
+  OracleChecker* d_ochecker;
+  /**
+   * In a given instantiation round, did consistency checks pass for all
+   * oracle interface quantified formulas?
+   */
+  bool d_consistencyCheckPassed;
 };
 
 }  // namespace quantifiers

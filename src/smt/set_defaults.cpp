@@ -28,6 +28,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parallel_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -1039,6 +1040,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   if (opts.smt.solveIntAsBV > 0)
   {
     reason << "solveIntAsBV";
+    return true;
+  }
+  if (opts.parallel.computePartitions > 1)
+  {
+    reason << "compute partitions";
     return true;
   }
 
