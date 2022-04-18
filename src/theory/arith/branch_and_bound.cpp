@@ -58,8 +58,8 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
-    Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
+    Node ub = nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1));
+    Node lb = nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1));
     Node right = nm->mkNode(OR, ub, lb);
     Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
     Node eq = rewrite(rawEq);

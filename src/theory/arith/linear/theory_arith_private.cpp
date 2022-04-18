@@ -3528,9 +3528,8 @@ bool TheoryArithPrivate::splitDisequalities(){
         TrustNode lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
 
-        Trace("arith::lemma") << "Now " << rewrite(lemma.getNode()) << endl;
+        Trace("arith::lemma") << "Now " << lemma.getNode() << endl;
         outputTrustedLemma(lemma, InferenceId::ARITH_SPLIT_DEQ);
-        // cout << "Now " << rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
         Trace("arith::eq") << "can drop as less than lb" << front << endl;

@@ -25,7 +25,6 @@
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
-#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
