@@ -378,8 +378,8 @@ libcvc5_add_sources(
   theory/arith/bound_inference.h
   theory/arith/branch_and_bound.cpp
   theory/arith/branch_and_bound.h
-  theory/arith/callbacks.cpp
-  theory/arith/callbacks.h
+  theory/arith/linear/callbacks.cpp
+  theory/arith/linear/callbacks.h
   theory/arith/linear/congruence_manager.cpp
   theory/arith/linear/congruence_manager.h
   theory/arith/linear/constraint.cpp

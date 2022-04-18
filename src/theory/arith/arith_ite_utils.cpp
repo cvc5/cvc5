@@ -444,12 +444,12 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       Node useForCmpL = selectForCmp(otherL);
       Node useForCmpR = selectForCmp(otherR);
 
-      Assert(Polynomial::isMember(sel));
-      Assert(Polynomial::isMember(useForCmpL));
-      Assert(Polynomial::isMember(useForCmpR));
-      Polynomial lside = Polynomial::parsePolynomial( useForCmpL );
-      Polynomial rside = Polynomial::parsePolynomial( useForCmpR );
-      Polynomial diff = lside-rside;
+      Assert(linear::Polynomial::isMember(sel));
+      Assert(linear::Polynomial::isMember(useForCmpL));
+      Assert(linear::Polynomial::isMember(useForCmpR));
+      linear::Polynomial lside = linear::Polynomial::parsePolynomial( useForCmpL );
+      linear::Polynomial rside = linear::Polynomial::parsePolynomial( useForCmpR );
+      linear::Polynomial diff = lside-rside;
 
       Trace("arith::ite") << "diff: " << diff.getNode() << endl;
       if(diff.isConstant()){

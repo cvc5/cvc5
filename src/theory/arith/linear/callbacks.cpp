@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "theory/arith/callbacks.h"
+#include "theory/arith/linear/callbacks.h"
 
 #include "expr/skolem_manager.h"
 #include "proof/proof_node.h"
@@ -24,7 +24,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 SetupLiteralCallBack::SetupLiteralCallBack(TheoryArithPrivate& ta)
   : d_arith(ta)

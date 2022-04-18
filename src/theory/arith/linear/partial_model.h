@@ -29,7 +29,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
-#include "theory/arith/callbacks.h"
+#include "theory/arith/linear/callbacks.h"
 #include "theory/arith/linear/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 

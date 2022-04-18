@@ -30,7 +30,7 @@ namespace cvc5::internal {
 class ProofNode;
 
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 class TheoryArithPrivate;
 
