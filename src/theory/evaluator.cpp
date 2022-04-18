@@ -520,6 +520,13 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(x.abs());
           break;
         }
+        case kind::CAST_TO_REAL:
+        {
+          // casting to real is a no-op
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x);
+          break;
+        }
         case kind::CONST_STRING:
           results[currNode] = EvalResult(currNodeVal.getConst<String>());
           break;
