@@ -91,7 +91,7 @@
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/callbacks.h"
 #include "theory/arith/linear/constraint_forward.h"
-#include "theory/arith/linear/delta_rational.h"
+#include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::context {

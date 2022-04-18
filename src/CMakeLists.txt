@@ -369,6 +369,8 @@ libcvc5_add_sources(
   theory/arith/bound_inference.h
   theory/arith/branch_and_bound.cpp
   theory/arith/branch_and_bound.h
+  theory/arith/delta_rational.cpp
+  theory/arith/delta_rational.h
   theory/arith/equality_solver.cpp
   theory/arith/equality_solver.h
   theory/arith/inference_manager.cpp
@@ -391,8 +393,6 @@ libcvc5_add_sources(
   theory/arith/linear/constraint_forward.h
   theory/arith/linear/cut_log.cpp
   theory/arith/linear/cut_log.h
-  theory/arith/linear/delta_rational.cpp
-  theory/arith/linear/delta_rational.h
   theory/arith/linear/dio_solver.cpp
   theory/arith/linear/dio_solver.h
   theory/arith/linear/dual_simplex.cpp

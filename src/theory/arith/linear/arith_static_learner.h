@@ -23,7 +23,7 @@
 
 #include "context/cdhashmap.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/linear/delta_rational.h"
+#include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::context {

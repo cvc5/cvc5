@@ -36,7 +36,7 @@
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/linear/delta_rational.h"
+#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear/dual_simplex.h"
 #include "theory/arith/linear/error_set.h"

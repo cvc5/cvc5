@@ -33,7 +33,7 @@
 #include "options/arith_options.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/constraint_forward.h"
-#include "theory/arith/linear/delta_rational.h"
+#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex_update.h"
 #include "theory/arith/linear/tableau.h"
