@@ -54,7 +54,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
-      if ((n.getKind() == kind::EQUAL && n[0].getType().isRealOrInt())
+      if ((n.getKind() == kind::EQUAL && n[0].getType().isReal())
           || n.getKind() == kind::GEQ || n.getKind() == kind::LT
           || n.getKind() == kind::GT || n.getKind() == kind::LEQ)
       {
@@ -185,7 +185,6 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
-          ret = nm->mkNode(kind::TO_REAL, ret);
           var_eq.push_back(n.eqNode(ret));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
