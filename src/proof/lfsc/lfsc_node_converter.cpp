@@ -869,7 +869,9 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
+         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
+         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -949,6 +951,32 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV:
+    {
+      const FloatingPointToSBV& fsbv = n.getConst<FloatingPointToSBV>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV:
+    {
+      const FloatingPointToUBV& fubv = n.getConst<FloatingPointToUBV>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV_TOTAL:
+    {
+      const FloatingPointToSBVTotal& fsbv =
+          n.getConst<FloatingPointToSBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV_TOTAL:
+    {
+      const FloatingPointToUBVTotal& fubv =
+          n.getConst<FloatingPointToUBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;
     case APPLY_TESTER:
