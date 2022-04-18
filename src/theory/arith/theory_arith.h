@@ -45,7 +45,7 @@ class TheoryArithPrivate;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class TheoryArithPrivate;
+  friend class linear::TheoryArithPrivate;
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();

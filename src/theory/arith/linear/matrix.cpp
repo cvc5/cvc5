@@ -13,12 +13,12 @@
  * Sparse matrix implementations for different types.
  */
 
-#include "theory/arith/matrix.h"
+#include "theory/arith/linear/matrix.h"
 
 using namespace std;
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 void NoEffectCCCB::update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) {}
 void NoEffectCCCB::multiplyRow(RowIndex ridx, int sgn){}

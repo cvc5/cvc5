@@ -405,8 +405,8 @@ libcvc5_add_sources(
   theory/arith/inference_manager.h
   theory/arith/linear/linear_equality.cpp
   theory/arith/linear/linear_equality.h
-  theory/arith/matrix.cpp
-  theory/arith/matrix.h
+  theory/arith/linear/matrix.cpp
+  theory/arith/linear/matrix.h
   theory/arith/nl/coverings_solver.cpp
   theory/arith/nl/coverings_solver.h
   theory/arith/nl/coverings/cdcac.cpp

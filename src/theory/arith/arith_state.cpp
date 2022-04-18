@@ -31,7 +31,7 @@ bool ArithState::isInConflict() const
   return d_parent->anyConflict() || d_conflict;
 }
 
-void ArithState::setParent(TheoryArithPrivate* p) { d_parent = p; }
+void ArithState::setParent(linear::TheoryArithPrivate* p) { d_parent = p; }
 
 }  // namespace arith
 }  // namespace theory

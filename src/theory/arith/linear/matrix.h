@@ -30,7 +30,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 typedef Index EntryID;
 const EntryID ENTRYID_SENTINEL = std::numeric_limits<EntryID>::max();
@@ -368,8 +368,8 @@ public:
   typedef MatrixEntry<T> Entry;
 
 protected:
- typedef cvc5::internal::theory::arith::RowVector<T> RowVectorT;
- typedef cvc5::internal::theory::arith::ColumnVector<T> ColumnVectorT;
+ typedef RowVector<T> RowVectorT;
+ typedef ColumnVector<T> ColumnVectorT;
 
 public:
   typedef typename RowVectorT::const_iterator RowIterator;

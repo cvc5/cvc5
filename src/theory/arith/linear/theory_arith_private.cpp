@@ -56,7 +56,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear/linear_equality.h"
-#include "theory/arith/matrix.h"
+#include "theory/arith/linear/matrix.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"

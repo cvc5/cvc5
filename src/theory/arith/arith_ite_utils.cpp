@@ -115,7 +115,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         newn = n;
       }
       NodeManager* nm = NodeManager::currentNM();
-      linear::Polynomial p = Polynomial::parsePolynomial(newn);
+      linear::Polynomial p = linear::Polynomial::parsePolynomial(newn);
       if(p.isConstant()){
         d_constants[n] = newn;
         d_varParts[n] = nm->mkConstRealOrInt(tn, Rational(0));
