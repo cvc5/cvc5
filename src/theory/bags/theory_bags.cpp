@@ -401,7 +401,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
                 nm->getSkolemManager()->mkDummySkolem("slack", elementType);
             Trace("bags-model") << "newElement is " << newElement << std::endl;
             Rational difference = rCardRational - constructedRational;
-            Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
+            Node multiplicity = nm->mkConstInt(difference);
             Node slackBag = nm->mkBag(elementType, newElement, multiplicity);
             constructedBag =
                 nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);

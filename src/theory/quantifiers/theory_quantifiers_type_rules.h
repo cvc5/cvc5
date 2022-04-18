@@ -82,6 +82,16 @@ struct QuantifierInstPatternListTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for oracle formula generators, which are used as the bodies
+ * of quantified formulas that specify oracle interfaces. The type rule
+ * ensures its two children are of type Boolean, and returns the Boolean type.
+ */
+struct QuantifierOracleFormulaGenTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

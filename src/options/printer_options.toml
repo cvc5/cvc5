@@ -25,6 +25,14 @@ name   = "Printing"
   help       = "print instantiations for formulas that do not have given identifiers"
 
 [[option]]
+  name       = "printDotClusters"
+  category   = "regular"
+  long       = "print-dot-clusters"
+  type       = "bool"
+  default    = "false"
+  help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
+
+[[option]]
   name       = "printUnsatCoresFull"
   category   = "regular"
   long       = "print-unsat-cores-full"

@@ -27,7 +27,7 @@
 (pop)
 
 (push)
-(assert (< x 0))
+(assert (< x 0.0))
 (assert (= (sqrt 1.0) (sqrt x)))
 (check-sat)
 (pop)

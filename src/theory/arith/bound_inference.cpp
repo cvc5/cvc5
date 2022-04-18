@@ -81,21 +81,20 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
     auto* nm = NodeManager::currentNM();
     switch (relation)
     {
-      case Kind::LEQ:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.floor());
-        break;
+      case Kind::LEQ: bound = nm->mkConstInt(br.floor()); break;
       case Kind::LT:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br - 1).ceiling());
+        bound = nm->mkConstInt((br - 1).ceiling());
         relation = Kind::LEQ;
         break;
       case Kind::GT:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br + 1).floor());
+        bound = nm->mkConstInt((br + 1).floor());
         relation = Kind::GEQ;
         break;
-      case Kind::GEQ:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.ceiling());
+      case Kind::GEQ: bound = nm->mkConstInt(br.ceiling()); break;
+      default:
+        // always ensure integer
+        bound = nm->mkConstInt(br);
         break;
-      default:;
     }
     Trace("bound-inf") << "Strengthened " << n << " to " << lhs << " "
                        << relation << " " << bound << std::endl;

@@ -30,6 +30,7 @@
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
+#include "theory/partition_generator.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
@@ -628,6 +629,12 @@ class TheoryEngine : protected EnvObj
    * check()
    */
   context::CDO<bool> d_factsAsserted;
+
+  /**
+   * The splitter produces partitions when the compute-partitions option is
+   * used.
+   */
+  std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
 
 }; /* class TheoryEngine */
 
