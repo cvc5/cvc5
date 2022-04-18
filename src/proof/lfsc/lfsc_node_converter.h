@@ -122,7 +122,8 @@ class LfscNodeConverter : public NodeConverter
 
  private:
   /** get name for a Node/TypeNode whose id is id and whose name is name */
-  std::string getNameForUserNameOfInternal(unsigned long id, const std::string& name);
+  std::string getNameForUserNameOfInternal(unsigned long id,
+                                           const std::string& name);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**

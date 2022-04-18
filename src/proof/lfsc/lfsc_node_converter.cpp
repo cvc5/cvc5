@@ -579,7 +579,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       {
         std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
         tnn = getSymbolInternal(k, d_sortType, s, false);
-        cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+        cur =
+            nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
       }
       else if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
       {
@@ -626,7 +627,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
-      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(), name);
+      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
+                                                        name);
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -707,11 +709,13 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   return getNameForUserNameOfInternal(v.getId(), name);
 }
 
-std::string LfscNodeConverter::getNameForUserNameOfInternal(unsigned long id, const std::string& name)
+std::string LfscNodeConverter::getNameForUserNameOfInternal(
+    unsigned long id, const std::string& name)
 {
   std::vector<unsigned long>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<unsigned long>::iterator itr = std::find(syms.begin(), syms.end(), id);
+  std::vector<unsigned long>::iterator itr =
+      std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
