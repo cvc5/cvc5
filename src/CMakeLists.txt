@@ -389,8 +389,8 @@ libcvc5_add_sources(
   theory/arith/cut_log.h
   theory/arith/delta_rational.cpp
   theory/arith/delta_rational.h
-  theory/arith/dio_solver.cpp
-  theory/arith/dio_solver.h
+  theory/arith/linear/dio_solver.cpp
+  theory/arith/linear/dio_solver.h
   theory/arith/dual_simplex.cpp
   theory/arith/dual_simplex.h
   theory/arith/equality_solver.cpp
@@ -487,8 +487,8 @@ libcvc5_add_sources(
   theory/arith/nl/transcendental/transcendental_solver.h
   theory/arith/nl/transcendental/transcendental_state.cpp
   theory/arith/nl/transcendental/transcendental_state.h
-  theory/arith/normal_form.cpp
-  theory/arith/normal_form.h
+  theory/arith/linear/normal_form.cpp
+  theory/arith/linear/normal_form.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
@@ -518,8 +518,8 @@ libcvc5_add_sources(
   theory/arith/tableau_sizes.h
   theory/arith/theory_arith.cpp
   theory/arith/theory_arith.h
-  theory/arith/theory_arith_private.cpp
-  theory/arith/theory_arith_private.h
+  theory/arith/linear/theory_arith_private.cpp
+  theory/arith/linear/theory_arith_private.h
   theory/arith/theory_arith_type_rules.cpp
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h

@@ -20,7 +20,7 @@
 
 #include "expr/skolem_manager.h"
 #include "proof/proof_node.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 
 namespace cvc5::internal {
 namespace theory {

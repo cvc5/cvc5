@@ -26,7 +26,7 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"

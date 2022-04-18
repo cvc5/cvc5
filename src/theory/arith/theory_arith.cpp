@@ -24,7 +24,7 @@
 #include "theory/arith/equality_solver.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/nl/nonlinear_extension.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -45,7 +45,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_ppre(d_env),
       d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(*this, env, d_bab)),
+      d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),

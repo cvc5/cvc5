@@ -27,7 +27,7 @@
 #include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "smt/env_obj.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "util/rational.h"
 #include "util/statistics_stats.h"
 
@@ -36,7 +36,7 @@ class Context;
 }
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 class DioSolver : protected EnvObj
 {

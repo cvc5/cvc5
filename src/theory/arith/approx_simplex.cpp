@@ -30,7 +30,7 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 
 #ifdef CVC5_USE_GLPK
 #include "theory/arith/partial_model.h"

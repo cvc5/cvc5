@@ -24,7 +24,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

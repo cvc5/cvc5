@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 
 #include <map>
 #include <optional>
@@ -54,11 +54,11 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/dio_solver.h"
+#include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/nl/nonlinear_extension.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
@@ -80,7 +80,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 static Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum);
 static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);

@@ -20,7 +20,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"

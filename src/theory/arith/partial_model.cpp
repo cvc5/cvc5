@@ -18,7 +18,7 @@
 
 #include "base/output.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/arith/partial_model.h"
 
 using namespace std;

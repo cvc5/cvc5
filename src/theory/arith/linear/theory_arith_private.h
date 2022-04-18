@@ -37,14 +37,14 @@
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/dio_solver.h"
+#include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
 #include "theory/arith/error_set.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
@@ -77,6 +77,8 @@ namespace inferbounds {
 }
 class InferBoundsResult;
 
+namespace linear {
+  
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -875,6 +877,7 @@ private:
   Statistics d_statistics;
 }; /* class TheoryArithPrivate */
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

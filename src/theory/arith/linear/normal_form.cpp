@@ -15,7 +15,7 @@
  * [[ Add lengthier description here ]]
  * \todo document this file
  */
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 
 #include <list>
 
@@ -27,7 +27,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 Constant Constant::mkConstant(const Rational& rat) {
   return Constant(mkRationalNode(rat));

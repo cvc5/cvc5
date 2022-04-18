@@ -15,7 +15,7 @@
 
 #include "theory/arith/arith_state.h"
 
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 
 namespace cvc5::internal {
 namespace theory {

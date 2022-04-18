@@ -14,7 +14,7 @@
  *
  * A Diophantine equation solver for the theory of arithmetic.
  */
-#include "theory/arith/dio_solver.h"
+#include "theory/arith/linear/dio_solver.h"
 
 #include <iostream>
 
@@ -29,7 +29,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 inline Node makeIntegerVariable(){
   NodeManager* nm = NodeManager::currentNM();
