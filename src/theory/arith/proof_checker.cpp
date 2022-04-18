@@ -22,7 +22,6 @@
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 
 using namespace cvc5::internal::kind;
