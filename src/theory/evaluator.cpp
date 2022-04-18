@@ -104,14 +104,16 @@ EvalResult::~EvalResult()
   }
 }
 
-Node EvalResult::toNode() const
+Node EvalResult::toNode(const TypeNode& tn) const
 {
   NodeManager* nm = NodeManager::currentNM();
   switch (d_tag)
   {
     case EvalResult::BOOL: return nm->mkConst(d_bool);
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
-    case EvalResult::RATIONAL: return nm->mkConst(CONST_RATIONAL, d_rat);
+    case EvalResult::RATIONAL:
+      return tn.isNull() ? nm->mkConstReal(d_rat)
+                         : nm->mkConstRealOrInt(tn, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
     case EvalResult::UVALUE: return nm->mkConst(d_av);
     default:
@@ -164,7 +166,8 @@ Node Evaluator::eval(TNode n,
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret =
+      evalInternal(n, args, vals, evalAsNode, results).toNode(n.getType());
   // if we failed to evaluate
   if (ret.isNull() && d_rr != nullptr)
   {
@@ -348,7 +351,7 @@ EvalResult Evaluator::evalInternal(
 
           for (const auto& lambdaVal : currNode)
           {
-            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
+            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode(lambdaVal.getType()));
           }
 
           // Lambdas are evaluated in a recursive fashion because each
@@ -404,6 +407,7 @@ EvalResult Evaluator::evalInternal(
         }
 
         case kind::CONST_RATIONAL:
+        case kind::CONST_INTEGER:
         {
           const Rational& r = currNodeVal.getConst<Rational>();
           results[currNode] = EvalResult(r);
@@ -513,13 +517,6 @@ EvalResult Evaluator::evalInternal(
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x.abs());
-          break;
-        }
-        case kind::CAST_TO_REAL:
-        {
-          // casting to real is a no-op
-          const Rational& x = results[currNode[0]].d_rat;
-          results[currNode] = EvalResult(x);
           break;
         }
         case kind::CONST_STRING:
@@ -943,7 +940,7 @@ Node Evaluator::reconstruct(TNode n,
       else
       {
         // otherwise, use the evaluation of the operator
-        echildren.push_back(itr->second.toNode());
+        echildren.push_back(itr->second.toNode(op.getType()));
       }
     }
   }
@@ -961,7 +958,7 @@ Node Evaluator::reconstruct(TNode n,
     else
     {
       // otherwise, use the evaluation
-      echildren.push_back(itr->second.toNode());
+      echildren.push_back(itr->second.toNode(currNodeChild.getType()));
     }
   }
   // The value is the result of our (partially) successful evaluation
