@@ -109,7 +109,7 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   TypeNode locType, dataType;
-  if (!d_preprocContext->getTheoryEngine()->getSepHeapTypes(locType, dataType))
+  if (!d_env.getSepHeapTypes(locType, dataType))
   {
     warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
                  "heap types during preprocessing"
