@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -368,6 +369,37 @@ bool LfscProofPostprocessCallback::update(Node res,
           addLfscRule(cdp, cur, newChildren, LfscRule::ARITH_SUM_UB, {});
         }
       }
+    }
+    break;
+    case PfRule::CONCAT_CONFLICT:
+    {
+      Assert (children.size()==1);
+      Assert (children[0].getKind()==EQUAL);
+      if (children[0][0].getType().isString())
+      {
+        // no need to change
+        return false;
+      }
+      bool isRev = args[0].getConst<bool>();
+      std::vector<Node> tvec;
+      std::vector<Node> svec;
+      theory::strings::utils::getConcat(children[0][0], tvec);
+      theory::strings::utils::getConcat(children[0][1], svec);
+      Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+      Node s0 = svec[isRev ? svec.size() - 1 : 0];
+      Assert (t0.isConst() && s0.isConst());
+      // We introduce an explicit disequality for the constants:
+      // ------------------- EVALUATE
+      // (= (= c1 c2) false)
+      // ------------------- FALSE_ELIM
+      // (not (= c1 c2))
+      Node falsen = nm->mkConst(false);
+      Node eq = t0.eqNode(s0);
+      Node eqEqFalse = eq.eqNode(falsen);
+      cdp->addStep(eqEqFalse, PfRule::EVALUATE, {}, {eq});
+      Node deq = eq.notNode();
+      cdp->addStep(deq, PfRule::FALSE_ELIM, {eqEqFalse}, {});
+      addLfscRule(cdp, falsen, {children[0], deq}, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
     case PfRule::SKOLEMIZE:
