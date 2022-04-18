@@ -14,23 +14,23 @@
  * DPLL(T) decision procedure.
  */
 
-#include "theory/arith/simplex.h"
+#include "theory/arith/linear/simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/error_set.h"
+#include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear_equality.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/linear/tableau.h"
 #include "util/statistics_value.h"
 
 using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 SimplexDecisionProcedure::SimplexDecisionProcedure(
     Env& env,

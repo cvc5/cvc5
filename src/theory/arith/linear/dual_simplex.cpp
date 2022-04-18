@@ -13,14 +13,14 @@
  * This is an implementation of the Simplex Module for the Simplex for
  * DPLL(T) decision procedure.
  */
-#include "theory/arith/dual_simplex.h"
+#include "theory/arith/linear/dual_simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/error_set.h"
+#include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear_equality.h"
 
 

@@ -371,8 +371,8 @@ libcvc5_add_sources(
   theory/arith/arith_utilities.h
   theory/arith/arithvar.cpp
   theory/arith/arithvar.h
-  theory/arith/attempt_solution_simplex.cpp
-  theory/arith/attempt_solution_simplex.h
+  theory/arith/linear/attempt_solution_simplex.cpp
+  theory/arith/linear/attempt_solution_simplex.h
   theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
@@ -385,18 +385,18 @@ libcvc5_add_sources(
   theory/arith/linear/constraint.cpp
   theory/arith/linear/constraint.h
   theory/arith/linear/constraint_forward.h
-  theory/arith/cut_log.cpp
-  theory/arith/cut_log.h
+  theory/arith/linear/cut_log.cpp
+  theory/arith/linear/cut_log.h
   theory/arith/delta_rational.cpp
   theory/arith/delta_rational.h
   theory/arith/linear/dio_solver.cpp
   theory/arith/linear/dio_solver.h
-  theory/arith/dual_simplex.cpp
-  theory/arith/dual_simplex.h
+  theory/arith/linear/dual_simplex.cpp
+  theory/arith/linear/dual_simplex.h
   theory/arith/equality_solver.cpp
   theory/arith/equality_solver.h
-  theory/arith/error_set.cpp
-  theory/arith/error_set.h
+  theory/arith/linear/error_set.cpp
+  theory/arith/linear/error_set.h
   theory/arith/fc_simplex.cpp
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
@@ -506,16 +506,16 @@ libcvc5_add_sources(
   theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
-  theory/arith/simplex.cpp
-  theory/arith/simplex.h
-  theory/arith/simplex_update.cpp
-  theory/arith/simplex_update.h
-  theory/arith/soi_simplex.cpp
-  theory/arith/soi_simplex.h
-  theory/arith/tableau.cpp
-  theory/arith/tableau.h
-  theory/arith/tableau_sizes.cpp
-  theory/arith/tableau_sizes.h
+  theory/arith/linear/simplex.cpp
+  theory/arith/linear/simplex.h
+  theory/arith/linear/simplex_update.cpp
+  theory/arith/linear/simplex_update.h
+  theory/arith/linear/soi_simplex.cpp
+  theory/arith/linear/soi_simplex.h
+  theory/arith/linear/tableau.cpp
+  theory/arith/linear/tableau.h
+  theory/arith/linear/tableau_sizes.cpp
+  theory/arith/linear/tableau_sizes.h
   theory/arith/theory_arith.cpp
   theory/arith/theory_arith.h
   theory/arith/linear/theory_arith_private.cpp

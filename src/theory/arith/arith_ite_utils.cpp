@@ -127,7 +127,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_reduceVar[n] = p.getNode();
         return p.getNode();
       }else{
-        Monomial mc = p.getHead();
+        linear::Monomial mc = p.getHead();
         d_constants[n] = mc.getConstant().getNode();
         d_varParts[n] = p.getTail().getNode();
         d_reduceVar[n] = newn;

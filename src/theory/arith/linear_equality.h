@@ -35,8 +35,8 @@
 #include "theory/arith/linear/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/partial_model.h"
-#include "theory/arith/simplex_update.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/linear/simplex_update.h"
+#include "theory/arith/linear/tableau.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {

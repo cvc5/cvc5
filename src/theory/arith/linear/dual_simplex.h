@@ -55,45 +55,65 @@
 
 #pragma once
 
-#include "theory/arith/linear/approx_simplex.h"
-#include "theory/arith/simplex.h"
+#include "theory/arith/linear/simplex.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-class AttemptSolutionSDP : public SimplexDecisionProcedure {
+class DualSimplexDecisionProcedure : public SimplexDecisionProcedure{
 public:
- AttemptSolutionSDP(Env& env,
-                    LinearEqualityModule& linEq,
-                    ErrorSet& errors,
-                    RaiseConflict conflictChannel,
-                    TempVarMalloc tvmalloc);
+ DualSimplexDecisionProcedure(Env& env,
+                              LinearEqualityModule& linEq,
+                              ErrorSet& errors,
+                              RaiseConflict conflictChannel,
+                              TempVarMalloc tvmalloc);
 
- Result::Status attempt(const ApproximateSimplex::Solution& sol);
-
- Result::Status findModel(bool exactResult) override { Unreachable(); }
+ Result::Status findModel(bool exactResult) override
+ {
+   return dualFindModel(exactResult);
+  }
 
 private:
- bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
 
- bool processSignals()
- {
-   TimerStat& timer = d_statistics.d_queueTime;
-   IntStat& conflictStat = d_statistics.d_conflicts;
-   return standardProcessSignals(timer, conflictStat);
+  /**
+   * Maps a variable to how many times they have been used as a pivot in the
+   * simplex search.
+   */
+  DenseMultiset d_pivotsInRound;
+
+  Result::Status dualFindModel(bool exactResult);
+
+  /**
+   * This is the main simplex for DPLL(T) loop.
+   * It runs for at most maxIterations.
+   *
+   * Returns true iff it has found a conflict.
+   * d_conflictVariable will be set and the conflict for this row is reported.
+   */
+  bool searchForFeasibleSolution(uint32_t maxIterations);
+  
+
+  bool processSignals(){
+    TimerStat &timer = d_statistics.d_processSignalsTime;
+    IntStat& conflictStat  = d_statistics.d_recentViolationCatches;
+    return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
+    IntStat d_statUpdateConflicts;
+    TimerStat d_processSignalsTime;
+    IntStat d_simplexConflicts;
+    IntStat d_recentViolationCatches;
     TimerStat d_searchTime;
-    TimerStat d_queueTime;
-    IntStat d_conflicts;
 
-    Statistics();
+    ReferenceStat<uint32_t> d_finalCheckPivotCounter;
+
+    Statistics(uint32_t& pivots);
   } d_statistics;
-};/* class AttemptSolutionSDP */
+};/* class DualSimplexDecisionProcedure */
 
 }  // namespace arith
 }  // namespace theory

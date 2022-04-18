@@ -28,7 +28,7 @@
 #include "proof/eager_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/cut_log.h"
+#include "theory/arith/linear/cut_log.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/linear/normal_form.h"
 

@@ -16,27 +16,21 @@
  * \todo document this file
  */
 
-#include "cvc5_private.h"
-
-#pragma once
-
-#include "theory/arith/arithvar.h"
+#include "base/output.h"
+#include "theory/arith/linear/tableau_sizes.h"
+#include "theory/arith/linear/tableau.h"
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
-class Tableau;
+uint32_t TableauSizes::getRowLength(ArithVar b) const {
+  return d_tab->basicRowLength(b);
+}
 
-class TableauSizes {
-private:
-  const Tableau* d_tab;
-public:
-  TableauSizes(const Tableau* tab): d_tab(tab){}
-
-  uint32_t getRowLength(ArithVar b) const;
-  uint32_t getColumnLength(ArithVar x) const;
-}; /* TableauSizes */
+uint32_t TableauSizes::getColumnLength(ArithVar x) const {
+  return d_tab->getColLength(x);
+}
 
 }  // namespace arith
 }  // namespace theory

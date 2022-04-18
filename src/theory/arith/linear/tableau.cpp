@@ -17,12 +17,12 @@
  */
 
 #include "base/output.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/linear/tableau.h"
 
 using namespace std;
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 
 void Tableau::pivot(ArithVar oldBasic, ArithVar newBasic, CoefficientChangeCallback& cb){

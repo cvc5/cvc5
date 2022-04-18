@@ -29,7 +29,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 /**
  * A Tableau is a Rational matrix that keeps its rows in solved form.

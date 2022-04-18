@@ -15,21 +15,21 @@
  * [[ Add lengthier description here ]]
  * \todo document this file
  */
-#include "theory/arith/attempt_solution_simplex.h"
+#include "theory/arith/linear/attempt_solution_simplex.h"
 
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/error_set.h"
+#include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear_equality.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/linear/tableau.h"
 
 using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
                                        LinearEqualityModule& linEq,

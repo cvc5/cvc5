@@ -56,14 +56,14 @@
 #pragma once
 
 #include "theory/arith/linear_equality.h"
-#include "theory/arith/simplex.h"
-#include "theory/arith/simplex_update.h"
+#include "theory/arith/linear/simplex.h"
+#include "theory/arith/linear/simplex_update.h"
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 class SumOfInfeasibilitiesSPD : public SimplexDecisionProcedure {
 public:

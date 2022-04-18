@@ -55,10 +55,10 @@
 
 #pragma once
 
-#include "theory/arith/error_set.h"
+#include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear_equality.h"
-#include "theory/arith/simplex.h"
-#include "theory/arith/simplex_update.h"
+#include "theory/arith/linear/simplex.h"
+#include "theory/arith/linear/simplex_update.h"
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 

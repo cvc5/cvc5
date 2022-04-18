@@ -13,7 +13,7 @@
  * This is an implementation of the Simplex Module for the Simplex for
  * DPLL(T) decision procedure.
  */
-#include "theory/arith/soi_simplex.h"
+#include "theory/arith/linear/soi_simplex.h"
 
 #include <algorithm>
 
@@ -21,15 +21,15 @@
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/error_set.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/linear/error_set.h"
+#include "theory/arith/linear/tableau.h"
 #include "util/statistics_stats.h"
 
 using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 SumOfInfeasibilitiesSPD::SumOfInfeasibilitiesSPD(Env& env,
                                                  LinearEqualityModule& linEq,

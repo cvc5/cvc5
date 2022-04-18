@@ -13,7 +13,7 @@
  * This implements the UpdateInfo.
  */
 
-#include "theory/arith/simplex_update.h"
+#include "theory/arith/linear/simplex_update.h"
 
 #include "theory/arith/linear/constraint.h"
 

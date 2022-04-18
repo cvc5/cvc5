@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "theory/arith/cut_log.h"
+#include "theory/arith/linear/cut_log.h"
 
 #include <limits.h>
 #include <math.h>
@@ -36,7 +36,7 @@ using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 NodeLog::const_iterator NodeLog::begin() const { return d_cuts.begin(); }
 NodeLog::const_iterator NodeLog::end() const { return d_cuts.end(); }
