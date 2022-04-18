@@ -1,3 +1,4 @@
+; DISABLE-TESTER: proof
 ; REQUIRES: poly
 ; COMMAND-LINE: --nl-ext-tplanes
 ; EXPECT: unsat
