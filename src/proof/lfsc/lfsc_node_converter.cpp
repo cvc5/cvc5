@@ -577,17 +577,15 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       tn.toStream(ss);
       if (tn.isUninterpretedSortConstructor())
       {
-        std::stringstream sss;
-        sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
-        cur = nm->mkSortConstructor(sss.str(), tn.getUninterpretedSortConstructorArity());
+        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+        tnn = getSymbolInternal(k, d_sortType, s, false);
+        cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
       }
       else if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
       {
-        std::stringstream sss;
-        sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
-        cur = nm->mkSort(sss.str());
+        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+        tnn = getSymbolInternal(k, d_sortType, s, false);
+        cur = nm->mkSort(s);
       }
       else
       {
@@ -706,9 +704,14 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
   std::string name;
   v.getAttribute(expr::VarNameAttr(), name);
-  std::vector<Node>& syms = d_userSymbolList[name];
+  return getNameForUserNameOfInternal(v.getId(), name);
+}
+
+std::string LfscNodeConverter::getNameForUserNameOfInternal(unsigned long id, const std::string& name)
+{
+  std::vector<unsigned long>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
+  std::vector<unsigned long>::iterator itr = std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -716,7 +719,7 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   else
   {
     variant = syms.size();
-    syms.push_back(v);
+    syms.push_back(id);
   }
   return getNameForUserName(name, variant);
 }
