@@ -41,7 +41,7 @@
 #include "theory/arith/linear/dual_simplex.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/fc_simplex.h"
-#include "theory/arith/infer_bounds.h"
+#include "theory/arith/linear/infer_bounds.h"
 #include "theory/arith/linear/linear_equality.h"
 #include "theory/arith/linear/matrix.h"
 #include "theory/arith/linear/normal_form.h"
@@ -64,7 +64,7 @@ namespace theory {
 
 class TheoryModel;
 
-namespace arith {
+namespace arith::linear {
 
 class BranchCutInfo;
 class TreeLog;
@@ -76,8 +76,6 @@ namespace inferbounds {
   class InferBoundAlgorithm;
 }
 class InferBoundsResult;
-
-namespace linear {
   
 /**
  * Implementation of QF_LRA.
@@ -485,7 +483,7 @@ private:
   Node getModelValue(TNode var);
 
 
-  std::pair<bool, Node> entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out);
+  std::pair<bool, Node> entailmentCheck(TNode lit);
 
   //--------------------------------- standard check
   /** Pre-check, called before the fact queue of the theory is processed. */
@@ -877,7 +875,7 @@ private:
   Statistics d_statistics;
 }; /* class TheoryArithPrivate */
 
-}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -399,8 +399,8 @@ libcvc5_add_sources(
   theory/arith/linear/error_set.h
   theory/arith/linear/fc_simplex.cpp
   theory/arith/linear/fc_simplex.h
-  theory/arith/infer_bounds.cpp
-  theory/arith/infer_bounds.h
+  theory/arith/linear/infer_bounds.cpp
+  theory/arith/linear/infer_bounds.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear/linear_equality.cpp

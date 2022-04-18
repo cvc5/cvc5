@@ -4568,7 +4568,12 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
+std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit)
+{
+  ArithEntailmentCheckParameters params;
+  params.addLookupRowSumAlgorithms();
+  ArithEntailmentCheckSideEffects out;
+  
   using namespace inferbounds;
 
   // l k r

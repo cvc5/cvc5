@@ -22,7 +22,6 @@
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
-#include "theory/arith/infer_bounds.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/linear/theory_arith_private.h"
 #include "theory/ext_theory.h"
@@ -363,12 +362,9 @@ Node TheoryArith::getModelValue(TNode var) {
 
 std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
-  ArithEntailmentCheckParameters def;
-  def.addLookupRowSumAlgorithms();
-  ArithEntailmentCheckSideEffects ase;
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
-  return res;
+  return d_internal->entailmentCheck(lit);
 }
+
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
   return d_im.getProofEqEngine();

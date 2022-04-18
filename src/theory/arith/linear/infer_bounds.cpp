@@ -16,14 +16,14 @@
  * \todo document this file
  */
 
-#include "theory/arith/infer_bounds.h"
+#include "theory/arith/linear/infer_bounds.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 using namespace inferbounds;
 

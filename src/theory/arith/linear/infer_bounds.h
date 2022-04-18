@@ -30,7 +30,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 namespace inferbounds {
   enum Algorithms {None = 0, Lookup, RowSum, Simplex};
