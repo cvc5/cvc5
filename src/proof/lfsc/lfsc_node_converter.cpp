@@ -710,11 +710,11 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 }
 
 std::string LfscNodeConverter::getNameForUserNameOfInternal(
-    unsigned long id, const std::string& name)
+    uint64_t id, const std::string& name)
 {
-  std::vector<unsigned long>& syms = d_userSymbolList[name];
+  std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<unsigned long>::iterator itr =
+  std::vector<uint64_t>::iterator itr =
       std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
