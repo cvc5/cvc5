@@ -120,6 +120,7 @@ void ArithStaticLearner::process(TNode n,
     break;
 
   case CONST_RATIONAL:
+  case CONST_INTEGER:
     // Mark constants as minmax
     d_minMap.insert(n, n.getConst<Rational>());
     d_maxMap.insert(n, n.getConst<Rational>());

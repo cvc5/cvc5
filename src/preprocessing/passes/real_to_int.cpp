@@ -106,8 +106,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               {
                 if (!cc.isNull())
                 {
-                  c = rewrite(
-                      NodeManager::currentNM()->mkNode(kind::MULT, c, cc));
+                  c = nm->mkConstInt(c.getConst<Rational>()
+                                     * cc.getConst<Rational>());
                 }
               }
               Assert(c.getType().isInteger());
