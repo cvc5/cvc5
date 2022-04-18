@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/delta_rational.h"
 
 #include <sstream>
 

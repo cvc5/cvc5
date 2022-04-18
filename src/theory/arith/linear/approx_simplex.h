@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "theory/arith/linear/arithvar.h"
-#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/delta_rational.h"
 #include "util/dense_map.h"
 #include "util/rational.h"
 #include "util/statistics_stats.h"

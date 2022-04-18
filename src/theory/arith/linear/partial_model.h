@@ -32,7 +32,7 @@
 #include "theory/arith/linear/bound_counts.h"
 #include "theory/arith/linear/callbacks.h"
 #include "theory/arith/linear/constraint_forward.h"
-#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/delta_rational.h"
 
 namespace cvc5::context {
 class Context;

@@ -22,7 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arith/arith_static_learner.h"
+#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 
 using namespace std;
@@ -30,7 +30,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 ArithStaticLearner::ArithStaticLearner(context::Context* userContext)
     : d_minMap(userContext), d_maxMap(userContext), d_statistics()

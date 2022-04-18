@@ -24,7 +24,7 @@
 #include <ostream>
 
 #include "expr/node.h"
-#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/delta_rational.h"
 #include "util/integer.h"
 #include "util/rational.h"
 

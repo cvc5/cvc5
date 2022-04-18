@@ -26,7 +26,7 @@
 #include "base/output.h"
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
-#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/delta_rational.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
