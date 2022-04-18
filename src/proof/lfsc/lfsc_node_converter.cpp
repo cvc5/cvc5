@@ -579,7 +579,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       {
         std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
         tnn = getSymbolInternal(k, d_sortType, s, false);
-        cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+        cur =
+            nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
       }
       else if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
       {
@@ -626,7 +627,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
-      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(), name);
+      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
+                                                        name);
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -707,11 +709,13 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   return getNameForUserNameOfInternal(v.getId(), name);
 }
 
-std::string LfscNodeConverter::getNameForUserNameOfInternal(unsigned long id, const std::string& name)
+std::string LfscNodeConverter::getNameForUserNameOfInternal(
+    uint64_t id, const std::string& name)
 {
-  std::vector<unsigned long>& syms = d_userSymbolList[name];
+  std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<unsigned long>::iterator itr = std::find(syms.begin(), syms.end(), id);
+  std::vector<uint64_t>::iterator itr =
+      std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -879,7 +883,9 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
+         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
+         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -975,13 +981,15 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
     break;
     case FLOATINGPOINT_TO_SBV_TOTAL:
     {
-      const FloatingPointToSBVTotal& fsbv = n.getConst<FloatingPointToSBVTotal>();
+      const FloatingPointToSBVTotal& fsbv =
+          n.getConst<FloatingPointToSBVTotal>();
       indices.push_back(nm->mkConstInt(Rational(fsbv)));
     }
     break;
     case FLOATINGPOINT_TO_UBV_TOTAL:
     {
-      const FloatingPointToUBVTotal& fubv = n.getConst<FloatingPointToUBVTotal>();
+      const FloatingPointToUBVTotal& fubv =
+          n.getConst<FloatingPointToUBVTotal>();
       indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;

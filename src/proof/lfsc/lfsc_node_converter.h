@@ -122,7 +122,8 @@ class LfscNodeConverter : public NodeConverter
 
  private:
   /** get name for a Node/TypeNode whose id is id and whose name is name */
-  std::string getNameForUserNameOfInternal(unsigned long id, const std::string& name);
+  std::string getNameForUserNameOfInternal(uint64_t id,
+                                           const std::string& name);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
@@ -174,7 +175,7 @@ class LfscNodeConverter : public NodeConverter
    * is used to resolve symbol overloading, which is forbidden in LFSC. We use
    * Node identifiers, since this map is used for both Node and TypeNode.
    */
-  std::map<std::string, std::vector<unsigned long> > d_userSymbolList;
+  std::map<std::string, std::vector<uint64_t> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */

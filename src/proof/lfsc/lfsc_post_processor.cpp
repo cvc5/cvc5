@@ -373,8 +373,8 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::CONCAT_CONFLICT:
     {
-      Assert (children.size()==1);
-      Assert (children[0].getKind()==EQUAL);
+      Assert(children.size() == 1);
+      Assert(children[0].getKind() == EQUAL);
       if (children[0][0].getType().isString())
       {
         // no need to change
@@ -387,7 +387,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       theory::strings::utils::getConcat(children[0][1], svec);
       Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
       Node s0 = svec[isRev ? svec.size() - 1 : 0];
-      Assert (t0.isConst() && s0.isConst());
+      Assert(t0.isConst() && s0.isConst());
       // We introduce an explicit disequality for the constants:
       // ------------------- EVALUATE
       // (= (= c1 c2) false)
@@ -399,7 +399,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       cdp->addStep(eqEqFalse, PfRule::EVALUATE, {}, {eq});
       Node deq = eq.notNode();
       cdp->addStep(deq, PfRule::FALSE_ELIM, {eqEqFalse}, {});
-      addLfscRule(cdp, falsen, {children[0], deq}, LfscRule::CONCAT_CONFLICT_DEQ, args);
+      addLfscRule(
+          cdp, falsen, {children[0], deq}, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
     case PfRule::SKOLEMIZE:

@@ -274,7 +274,7 @@ void LfscPrinter::printTypeDefinition(
     printType(os, tn);
     std::stringstream tcparen;
     uint64_t arity = tn.getUninterpretedSortConstructorArity();
-    for (uint64_t i=0; i<arity; i++)
+    for (uint64_t i = 0; i < arity; i++)
     {
       os << " (! s" << i << " sort";
       tcparen << ")";
@@ -747,7 +747,11 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
         case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
-        case LfscRule::CONCAT_CONFLICT_DEQ: pf << h << h << h << h << as[2].getConst<bool>() << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0] << cs[1]; break;
+        case LfscRule::CONCAT_CONFLICT_DEQ:
+          pf << h << h << h << h << as[2].getConst<bool>()
+             << d_tproc.convertType(children[0]->getResult()[0].getType())
+             << cs[0] << cs[1];
+          break;
         default: return false; break;
       }
     }
