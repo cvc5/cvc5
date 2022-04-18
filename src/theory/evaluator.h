@@ -75,7 +75,8 @@ struct EvalResult
 
   /**
    * Converts the result to a Node. If the result is not valid, this function
-   * returns the null node.
+   * returns the null node. This method takes a type to distinguish integer
+   * and real constants, which are both represented as RATIONAL results.
    */
   Node toNode(const TypeNode& tn) const;
 };
