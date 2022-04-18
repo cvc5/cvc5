@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A result for a synthesis query. This can be used for synthesis, abduction,
@@ -49,15 +49,15 @@ class SynthResult
   /** Default constructor */
   SynthResult();
   /** Constructor when the solution is not successful */
-  SynthResult(
-      Status s,
-      Result::UnknownExplanation unknownExplanation = Result::UNKNOWN_REASON);
+  SynthResult(Status s,
+              UnknownExplanation unknownExplanation =
+                  UnknownExplanation::UNKNOWN_REASON);
 
   /** Get the status */
   Status getStatus() const;
 
   /** Get the unknown explanation */
-  Result::UnknownExplanation getUnknownExplanation() const;
+  UnknownExplanation getUnknownExplanation() const;
 
   /** Get the string representation */
   std::string toString() const;
@@ -66,12 +66,12 @@ class SynthResult
   /** The status */
   Status d_status;
   /** The unknown explanation */
-  Result::UnknownExplanation d_unknownExplanation;
+  UnknownExplanation d_unknownExplanation;
 };
 
 std::ostream& operator<<(std::ostream& out, const SynthResult& r);
 std::ostream& operator<<(std::ostream& out, SynthResult::Status s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESULT_H */

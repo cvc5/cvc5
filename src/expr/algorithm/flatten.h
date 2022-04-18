@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5::expr::algorithm {
+namespace cvc5::internal::expr::algorithm {
 
 /**
  * Flatten a node into a vector of its (direct or indirect) children.
@@ -116,6 +116,6 @@ Node flatten(TNode t, Kinds... kinds)
   return NodeManager::currentNM()->mkNode(t.getKind(), children);
 }
 
-}  // namespace cvc5::expr
+}  // namespace cvc5::internal::expr
 
 #endif

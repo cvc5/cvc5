@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +32,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -329,14 +329,15 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
                                         && c->getValue().sgn() > 0);
       const int cSign = scaleCNegatively ? -1 : 1;
       TNode isZero = d_watchedEqualities[s];
+      TypeNode type = isZero[0].getType();
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
       const auto sumPf =
           d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                         {isZeroPf, pf},
                         // Trick for getting correct, opposing signs.
-                        {nm->mkConst(CONST_RATIONAL, Rational(-1 * cSign)),
-                         nm->mkConst(CONST_RATIONAL, Rational(cSign))});
+                        {nm->mkConstRealOrInt(type, Rational(-1 * cSign)),
+                         nm->mkConstRealOrInt(type, Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
@@ -711,4 +712,4 @@ std::vector<Node> andComponents(TNode an)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

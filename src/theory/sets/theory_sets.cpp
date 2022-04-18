@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -191,13 +191,6 @@ Theory::PPAssertStatus TheorySets::ppAssert(
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
   }
   return status;
 }
@@ -218,7 +211,7 @@ void TheorySets::processCarePairArgs(TNode a, TNode b)
   // equality or disequality between members affects the number of elements
   // in a set. Therefore we need to split on (= x y) for kind SET_MEMBER.
   // Example:
-  // Suppose (= (member x S) member(y S)) is true and there are
+  // Suppose (set.member x S) = (set.member y S) = true and there are
   // no other members in S. We would get S = {x} if (= x y) is true.
   // Otherwise we would get S = {x, y}.
   if (a.getKind() != SET_MEMBER && d_state.areEqual(a, b))
@@ -257,4 +250,4 @@ void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

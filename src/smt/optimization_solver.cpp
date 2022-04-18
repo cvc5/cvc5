@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang, Aina Niemetz
+ *   Yancheng Ou, Andrew Reynolds, Michael Chang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "smt/solver_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::omt;
-namespace cvc5 {
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::omt;
+namespace cvc5::internal {
 namespace smt {
 
 std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
@@ -378,4 +378,4 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

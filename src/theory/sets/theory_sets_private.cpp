@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -247,7 +247,14 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
+          if (TraceIsOn("sets-eqc"))
+          {
+            Trace("sets-eqc") << n;
+            if (n.isConst())
+            {
+              Trace("sets-eqc") << " (const) ";
+            }
+          }
         }
         TypeNode tnn = n.getType();
         if (isSet)
@@ -1136,7 +1143,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");
       }
-      cvc5::Rational r(INT_MAX);
+      cvc5::internal::Rational r(INT_MAX);
       if (node[1].getConst<Rational>() > r)
       {
         throw LogicException(
@@ -1211,7 +1218,13 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node, "setChoose");
+  // the skolem will occur in a term context, thus we give it Boolean
+  // term variable kind immediately.
+  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
+                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                         : SkolemManager::SKOLEM_DEFAULT;
+  Node x = sm->mkPurifySkolem(
+      node, "setChoose", "a variable used to eliminate set choose", flags);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);
@@ -1285,4 +1298,4 @@ void TheorySetsPrivate::presolve() { d_state.reset(); }
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

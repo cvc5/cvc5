@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
@@ -91,6 +91,12 @@ ProofChecker::ProofChecker(bool eagerCheck,
                            rewriter::RewriteDb* rdb)
     : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
 {
+}
+
+void ProofChecker::reset()
+{
+  d_checker.clear();
+  d_plevel.clear();
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)
@@ -355,4 +361,4 @@ bool ProofChecker::isPedanticFailure(PfRule id,
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

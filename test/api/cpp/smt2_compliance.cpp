@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Tim King
+ *   Aina Niemetz, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,14 +24,15 @@
 #include "smt/solver_engine.h"
 
 using namespace cvc5;
+using namespace cvc5::internal;
 using namespace cvc5::parser;
 using namespace std;
 
-void testGetInfo(api::Solver* solver, const char* s);
+void testGetInfo(cvc5::Solver* solver, const char* s);
 
 int main()
 {
-  std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
   solver->setOption("input-language", "smtlib2");
   solver->setOption("output-language", "smtlib2");
   testGetInfo(solver.get(), ":error-behavior");
@@ -49,7 +50,7 @@ int main()
   return 0;
 }
 
-void testGetInfo(api::Solver* solver, const char* s)
+void testGetInfo(cvc5::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 

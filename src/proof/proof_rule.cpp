@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 const char* toString(PfRule id)
 {
@@ -133,7 +133,6 @@ const char* toString(PfRule id)
     case PfRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
     case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
-    case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
@@ -222,4 +221,4 @@ size_t PfRuleHashFunction::operator()(PfRule id) const
   return static_cast<size_t>(id);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

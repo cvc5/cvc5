@@ -93,24 +93,6 @@ name   = "SMT Layer"
   help = "Only include a subset of variables whose values, in addition to the values of variables whose values are implied, are sufficient to show the input formula is satisfied by the given model."
 
 [[option]]
-  name       = "blockModelsMode"
-  category   = "expert"
-  long       = "block-models=MODE"
-  type       = "BlockModelsMode"
-  default    = "NONE"
-  help       = "mode for producing several models"
-  help_mode  = "Blocking models modes."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not block models."
-[[option.mode.LITERALS]]
-  name = "literals"
-  help = "Block models based on the SAT skeleton."
-[[option.mode.VALUES]]
-  name = "values"
-  help = "Block models based on the concrete model values for the free variables."
-
-[[option]]
   name       = "produceLearnedLiterals"
   category   = "regular"
   long       = "produce-learned-literals"

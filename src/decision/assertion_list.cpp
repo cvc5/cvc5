@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
 
 #include "decision/assertion_list.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 const char* toString(DecisionStatus s)
@@ -132,4 +132,4 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
 }
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal

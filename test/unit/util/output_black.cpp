@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Mathias Preiner
+ *   Aina Niemetz, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 #include "base/output.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackOutput : public TestInternal
@@ -143,4 +143,4 @@ TEST_F(TestUtilBlackOutput, simple_print)
 #endif /* CVC5_MUZZLE */
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

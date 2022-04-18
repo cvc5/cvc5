@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Mudathir Mohamed, Aina Niemetz
+#   Andres Noetzli, Makai Mann, Mudathir Mohamed
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -162,7 +162,8 @@ class EnumParser:
 
                 if ENUM_END in line:
                     self.in_enum = False
-                    break
+                    self.last_value = -1
+                    continue
                 elif self.in_enum:
                     if line == OCB:
                         continue
@@ -189,7 +190,7 @@ class EnumParser:
                     fmt_comment = self.format_comment(
                         self.latest_block_comment)
                     enum.enumerators_doc[name] = fmt_comment
-                elif ENUM_START in line:
+                elif line.startswith(ENUM_START):
                     self.in_enum = True
                     tokens = line.split()
                     name = tokens[1]

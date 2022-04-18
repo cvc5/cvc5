@@ -1,3 +1,20 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "theory/arith/nl/coverings/lazard_evaluation.h"
 
 #ifdef CVC5_POLY_IMP
@@ -15,7 +32,7 @@
 
 #include "theory/arith/nl/coverings/cocoa_converter.h"
 
-namespace cvc5::theory::arith::nl::coverings {
+namespace cvc5::internal::theory::arith::nl::coverings {
 
 struct LazardEvaluationStats
 {
@@ -819,11 +836,11 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
   return combined;
 }
 
-}  // namespace cvc5::theory::arith::nl::coverings
+}  // namespace cvc5::internal::theory::arith::nl::coverings
 
 #else
 
-namespace cvc5::theory::arith::nl::coverings {
+namespace cvc5::internal::theory::arith::nl::coverings {
 
 /**
  * Do a very simple wrapper around the regular poly::infeasible_regions.
@@ -873,7 +890,7 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
   return poly::infeasible_regions(q, d_state->d_assignment, sc);
 }
 
-}  // namespace cvc5::theory::arith::nl::coverings
+}  // namespace cvc5::internal::theory::arith::nl::coverings
 
 #endif
 #endif

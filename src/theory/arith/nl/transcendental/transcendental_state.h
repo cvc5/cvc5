@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 class CDProof;
 namespace theory {
 namespace arith {
@@ -170,9 +170,21 @@ class TranscendentalState : protected EnvObj
   /** get the purified form of node n */
   Node getPurifiedForm(TNode n);
   /**
+   * Can we do "simple" purification for n? If this is the case, then
+   * f(x) is purified by f(k) where k is the purification variable for x.
+   *
+   * This is true for sin(x) where x is guaranteed to be a constant in the
+   * bound [-pi, pi] (note that there may be some x in [-pi, pi] for which
+   * this function returns false, because the check is not precise).
+   */
+  static bool isSimplePurify(TNode n);
+  /**
    * Add bound for n, and for what (if anything) it purifies
    */
   bool addModelBoundForPurifyTerm(TNode n, TNode l, TNode u);
+  /** initial lower and upper bounds for PI */
+  static Rational getPiInitialLowerBound();
+  static Rational getPiInitialUpperBound();
 
   Node d_true;
   Node d_false;
@@ -281,6 +293,6 @@ class TranscendentalState : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,10 @@
 #include "theory/uf/function_const.h"
 
 #include "expr/array_store_all.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -383,6 +384,9 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       size_t ii = (numCond - 1) - i;
       Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
+      // normalize it using the array rewriter utility, which must be done at
+      // each iteration of this loop
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
@@ -400,15 +404,9 @@ Node FunctionConst::getArrayRepresentationForLambda(TNode n)
   // must carry the overall return type to deal with cases like (lambda ((x Int)
   // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
   // case above should be (arraystoreall (Array Int Real) 0.0)
-  Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());
-  if (anode.isNull())
-  {
-    return anode;
-  }
-  // must rewrite it to make canonical
-  return Rewriter::rewrite(anode);
+  return getArrayRepresentationForLambdaRec(n, n[1].getType());
 }
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *   Aina Niemetz, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
@@ -78,7 +78,7 @@ string Configuration::getVersionString() { return CVC5_FULL_VERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2021 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2022 by the authors and their institutional\n"
      << "affiliations listed at https://cvc5.github.io/people.html\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -154,7 +154,7 @@ std::string Configuration::copyright() {
       ss << "cvc5 is statically linked against these libraries. To recompile\n"
             "this version of cvc5 with different versions of these libraries\n"
             "follow the instructions on "
-            "https://github.com/cvc5/cvc5/blob/master/INSTALL.md\n\n";
+            "https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\n";
     }
   }
 
@@ -272,4 +272,4 @@ std::string Configuration::getCompiledDateTime() {
   return __DATE__ " " __TIME__;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

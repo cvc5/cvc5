@@ -13,8 +13,8 @@
 
 (declare-fun z () Real)
 
-(assert (= z (* 2 pi s)))
+(assert (= z (* 2.0 pi (to_real s))))
 
-(assert (> z 60))
+(assert (> z 60.0))
 
 (check-sat)

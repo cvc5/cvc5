@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Mathias Preiner, Yoni Zohar
+#   Andres Noetzli, Aina Niemetz, Yoni Zohar
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -134,10 +134,7 @@ class UnsatCoreTester(Tester):
     def applies(self, benchmark_info):
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
+            and "unsat" in benchmark_info.expected_output.split()
             and "--no-produce-unsat-cores" not in benchmark_info.command_line_args
             and "--no-check-unsat-cores" not in benchmark_info.command_line_args
             and "--check-unsat-cores" not in benchmark_info.command_line_args
@@ -162,13 +159,7 @@ class ProofTester(Tester):
         expected_output_lines = benchmark_info.expected_output.split()
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
-            and "--no-produce-proofs" not in benchmark_info.command_line_args
-            and "--no-check-proofs" not in benchmark_info.command_line_args
-            and "--check-proofs" not in benchmark_info.command_line_args
+            and "unsat" in benchmark_info.expected_output.split()
         )
 
     def run(self, benchmark_info):

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,15 +21,15 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
-                                   options::BlockModelsMode mode,
+                                   modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -38,7 +38,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  if (mode == options::BlockModelsMode::LITERALS)
+  if (mode == modes::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());
     // optimization: filter out top-level unit assertions, as they cannot
@@ -229,7 +229,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   }
   else
   {
-    Assert(mode == options::BlockModelsMode::VALUES);
+    Assert(mode == modes::BlockModelsMode::VALUES);
     std::vector<Node> blockers;
     // if specific terms were not specified, block all variables of
     // the model
@@ -302,4 +302,4 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   return blocker;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

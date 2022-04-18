@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackDatatype : public TestSmt
@@ -275,13 +275,8 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
    *     list = cons(car: tree, cdr: list) | nil
    *   END;
    */
-  std::set<TypeNode> unresolvedTypes;
-  TypeNode unresList =
-      d_nodeManager->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresList);
-  TypeNode unresTree =
-      d_nodeManager->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresTree);
+  TypeNode unresList = d_nodeManager->mkSort("list");
+  TypeNode unresTree = d_nodeManager->mkSort("tree");
 
   DType tree("tree");
   std::shared_ptr<DTypeConstructor> node =
@@ -316,8 +311,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   std::vector<DType> dts;
   dts.push_back(tree);
   dts.push_back(list);
-  std::vector<TypeNode> dtts =
-      d_nodeManager->mkMutualDatatypeTypes(dts, unresolvedTypes);
+  std::vector<TypeNode> dtts = d_nodeManager->mkMutualDatatypeTypes(dts);
 
   ASSERT_TRUE(dtts[0].getDType().isResolved());
   ASSERT_TRUE(dtts[1].getDType().isResolved());
@@ -345,13 +339,8 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
 
 TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
 {
-  std::set<TypeNode> unresolvedTypes;
-  TypeNode unresList =
-      d_nodeManager->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresList);
-  TypeNode unresTree =
-      d_nodeManager->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresTree);
+  TypeNode unresList = d_nodeManager->mkSort("list");
+  TypeNode unresTree = d_nodeManager->mkSort("tree");
 
   DType tree("tree");
   std::shared_ptr<DTypeConstructor> node =
@@ -386,8 +375,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
   dts.push_back(tree);
   dts.push_back(list);
   // remake the types
-  std::vector<TypeNode> dtts2 =
-      d_nodeManager->mkMutualDatatypeTypes(dts, unresolvedTypes);
+  std::vector<TypeNode> dtts2 = d_nodeManager->mkMutualDatatypeTypes(dts);
 
   ASSERT_FALSE(dtts2[0].getDType().isFinite());
   ASSERT_TRUE(
@@ -536,4 +524,4 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

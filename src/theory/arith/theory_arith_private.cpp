@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Alex Ozdemir, Andrew Reynolds
+ *   Tim King, Gereon Kremer, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,9 +76,9 @@
 #include "util/statistics_stats.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -1399,6 +1399,7 @@ TrustNode TheoryArithPrivate::dioCutting()
       NodeManager* nm = NodeManager::currentNM();
       Node gt = nm->mkNode(kind::GT, p.getNode(), c.getNode());
       Node lt = nm->mkNode(kind::LT, p.getNode(), c.getNode());
+      TypeNode type = gt[0].getType();
 
       Pf pfNotLeq = d_pnm->mkAssume(leq.getNode().negate());
       Pf pfGt =
@@ -1406,10 +1407,10 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
-      Pf pfSum = d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
-                               {pfGt, pfLt},
-                               {nm->mkConst<Rational>(CONST_RATIONAL, -1),
-                                nm->mkConst<Rational>(CONST_RATIONAL, 1)});
+      Pf pfSum = d_pnm->mkNode(
+          PfRule::MACRO_ARITH_SCALE_SUM_UB,
+          {pfGt, pfLt},
+          {nm->mkConstRealOrInt(type, -1), nm->mkConstRealOrInt(type, 1)});
       Pf pfBot = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
       std::vector<Node> assumptions = {leq.getNode().negate(),
@@ -3748,7 +3749,7 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
 
   switch (Kind kind = term.getKind()) {
     case kind::CONST_RATIONAL:
-      return term.getConst<Rational>();
+    case kind::CONST_INTEGER: return term.getConst<Rational>();
 
     case kind::ADD:
     {  // 2+ args
@@ -4440,12 +4441,14 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       {
         // We can prove this lemma from Farkas...
         std::vector<std::shared_ptr<ProofNode>> conflictPfs;
+        Node pfLit = implied->getNegation()->getProofLiteral();
+        TypeNode type = pfLit[0].getType();
         // Assume the negated getLiteral version of the implied constaint
         // then rewrite it into proof normal form.
         conflictPfs.push_back(
             d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
                           {d_pnm->mkAssume(implied->getLiteral().negate())},
-                          {implied->getNegation()->getProofLiteral()}));
+                          {pfLit}));
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
@@ -4459,8 +4462,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::transform(coeffs->begin(),
                        coeffs->end(),
                        std::back_inserter(farkasCoefficients),
-                       [nm](const Rational& r) {
-                         return nm->mkConst<Rational>(CONST_RATIONAL, r);
+                       [nm, type](const Rational& r) {
+                         return nm->mkConstRealOrInt(type, r);
                        });
 
         // Prove bottom.
@@ -4580,7 +4583,8 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
   bool successful = decomposeLiteral(lit, k, primDir, lm, lp, rm, rp, dm, dp, sep);
   if(!successful) { return make_pair(false, Node::null()); }
 
-  if(dp.getKind() == CONST_RATIONAL){
+  if (dp.isConst())
+  {
     Node eval = rewrite(lit);
     Assert(eval.getKind() == kind::CONST_BOOLEAN);
     // if true, true is an acceptable explaination
@@ -4922,11 +4926,14 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
   if(sgn == 0){ return; }
 
   Assert(Polynomial::isMember(tp));
-  if(tp.getKind() == CONST_RATIONAL){
+  if (tp.isConst())
+  {
     tmp.first = mkBoolNode(true);
     tmp.second = DeltaRational(tp.getConst<Rational>());
-  }else if(d_partialModel.hasArithVar(tp)){
-    Assert(tp.getKind() != CONST_RATIONAL);
+  }
+  else if (d_partialModel.hasArithVar(tp))
+  {
+    Assert(!tp.isConst());
     ArithVar v = d_partialModel.asArithVar(tp);
     Assert(v != ARITHVAR_SENTINEL);
     ConstraintP c = (sgn > 0)
@@ -4985,4 +4992,4 @@ ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,10 @@
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 Assertions::Assertions(Env& env, AbstractValues& absv)
@@ -77,7 +77,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions)
   /* Assume: BIGAND assumptions  */
   d_assumptions = assumptions;
 
-  Result r(Result::UNKNOWN, Result::UNKNOWN_REASON);
+  Result r(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
@@ -221,4 +221,4 @@ bool Assertions::isProofEnabled() const
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

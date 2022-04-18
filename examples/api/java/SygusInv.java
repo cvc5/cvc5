@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Mudathir Mohamed, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,32 +13,12 @@
  * A simple demonstration of the Sygus API.
  *
  * A simple demonstration of how to use the Sygus API to synthesize a simple
- * invariant. Here is the same problem written in Sygus V2 format:
- *
- * (set-logic LIA)
- *
- * (synth-inv inv-f ((x Int)))
- *
- * (define-fun pre-f ((x Int)) Bool
- *   (= x 0))
- * (define-fun trans-f ((x Int) (xp Int)) Bool
- *   (ite (< x 10) (= xp (+ x 1)) (= xp x)))
- * (define-fun post-f ((x Int)) Bool
- *   (<= x 10))
- *
- * (inv-constraint inv-f pre-f trans-f post-f)
- *
- * (check-synth)
- *
- * The printed output for this example should be equivalent to:
- * (
- *   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
- * )
+ * invariant. This is a direct translation of sygus-inv.cpp.
  */
 
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 
 public class SygusInv
 {

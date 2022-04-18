@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "proof/annotation_proof_generator.h"
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** A class that tracks formulas to inference id annotations */
@@ -59,6 +59,6 @@ class InferenceIdProofAnnotator : public Annotator
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__INFERENCE_ID_PROOF_ANNOTATOR_H */

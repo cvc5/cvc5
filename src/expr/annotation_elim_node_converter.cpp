@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,9 +15,9 @@
 
 #include "expr/annotation_elim_node_converter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 AnnotationElimNodeConverter::AnnotationElimNodeConverter() {}
 
@@ -30,4 +30,4 @@ Node AnnotationElimNodeConverter::postConvert(Node n)
   return n;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

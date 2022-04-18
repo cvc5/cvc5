@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner
+ *   Tim King, Abdalrhman Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include <string>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * SMT-LIB 2 quoting for symbols
@@ -32,6 +32,6 @@ std::string quoteSymbol(const std::string& s);
  */
 std::string quoteString(const std::string& s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTIL__SMT2_QUOTE_STRING_H */

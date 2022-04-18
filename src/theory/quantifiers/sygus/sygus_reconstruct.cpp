@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Abdalrhman Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -59,7 +59,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   Node k0 = ob0->getSkolem();
 
   if (options().quantifiers.cegqiSingleInvReconstruct
-      == cvc5::options::CegqiSingleInvRconsMode::TRY)
+      == cvc5::internal::options::CegqiSingleInvRconsMode::TRY)
   {
     fast(sol, stn, reconstructed);
   }
@@ -98,7 +98,7 @@ void SygusReconstruct::main(Node sol,
                             uint64_t enumLimit)
 {
   bool noLimit = options().quantifiers.cegqiSingleInvReconstruct
-                 == cvc5::options::CegqiSingleInvRconsMode::ALL;
+                 == cvc5::internal::options::CegqiSingleInvRconsMode::ALL;
 
   // Skolem of the main obligation
   Node k0 = d_obs[0]->getSkolem();
@@ -225,7 +225,7 @@ void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
   sti.initialize(d_tds, stn);
   std::vector<TypeNode> stns;
   sti.getSubfieldTypes(stns);
-  std::map<cvc5::TypeNode, int> varCount;
+  std::map<cvc5::internal::TypeNode, int> varCount;
 
   // add the constructors for each sygus datatype to the pool
   for (const TypeNode& cstn : stns)
@@ -259,7 +259,7 @@ void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
         args.push_back(cons->getConstructor());
         // populate each constructor argument with a free variable of the
         // corresponding type
-        for (const std::shared_ptr<cvc5::DTypeSelector>& arg : cons->getArgs())
+        for (const std::shared_ptr<cvc5::internal::DTypeSelector>& arg : cons->getArgs())
         {
           args.push_back(d_tds->getFreeVarInc(arg->getRangeType(), varCount));
         }
@@ -610,4 +610,4 @@ void SygusReconstruct::printPool() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

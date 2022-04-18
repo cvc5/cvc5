@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,11 +37,11 @@
 #include "theory/theory_state.h"
 #include "util/rational.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
-using namespace cvc5::theory;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::datatypes;
 
 SygusExtension::SygusExtension(Env& env,
                                TheoryState& s,

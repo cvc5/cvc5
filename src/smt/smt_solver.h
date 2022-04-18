@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,13 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/assertions.h"
+#include "smt/env_obj.h"
 #include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 class Env;
@@ -43,7 +45,6 @@ class QuantifiersEngine;
 
 namespace smt {
 
-class Assertions;
 class SolverEngineState;
 struct SolverEngineStatistics;
 
@@ -61,11 +62,10 @@ struct SolverEngineStatistics;
  * models) can be queries using other classes that examine the state of the
  * TheoryEngine directly, which can be accessed via getTheoryEngine.
  */
-class SmtSolver
+class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
-            SolverEngineState& state,
             AbstractValues& abs,
             SolverEngineStatistics& stats);
   ~SmtSolver();
@@ -114,10 +114,6 @@ class SmtSolver
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the environment */
-  Env& d_env;
-  /** Reference to the state of the SolverEngine */
-  SolverEngineState& d_state;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
@@ -129,6 +125,6 @@ class SmtSolver
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SMT_SOLVER_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 PropPfManager::PropPfManager(context::UserContext* userContext,
@@ -110,4 +110,4 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

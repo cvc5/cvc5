@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,10 +35,10 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
@@ -301,7 +301,7 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
   else
   {
     // otherwise, we return "unknown"
-    sr = SynthResult(SynthResult::UNKNOWN, Result::UNKNOWN_REASON);
+    sr = SynthResult(SynthResult::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   }
   return sr;
 }
@@ -512,4 +512,4 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

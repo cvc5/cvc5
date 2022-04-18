@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@ std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   {
     out << " :op " << p.d_op;
   }
-  if (p.d_kind != api::NULL_TERM)
+  if (p.d_kind != cvc5::NULL_TERM)
   {
     out << " :kind " << p.d_kind;
   }

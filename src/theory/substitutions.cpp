@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Clark Barrett, Morgan Deters
+ *   Dejan Jovanovic, Clark Barrett, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SubstitutionMap::SubstitutionMap(context::Context* context)
@@ -255,4 +255,4 @@ std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::itera
   return out << "[CDMap-iterator]";
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

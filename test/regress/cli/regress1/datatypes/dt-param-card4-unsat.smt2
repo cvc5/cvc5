@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs
+; DISABLE-TESTER: proof
 ; EXPECT: unsat
 (set-logic QF_ALL)
 (set-info :status unsat)

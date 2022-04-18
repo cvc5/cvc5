@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,9 +35,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/valuation.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -145,8 +145,12 @@ uint64_t Trigger::addInstantiations()
     {
       if (!ee->hasTerm(gt))
       {
+        SkolemManager::SkolemFlags flags =
+            gt.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                     : SkolemManager::SKOLEM_DEFAULT;
         SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        Node k = sm->mkPurifySkolem(gt, "gt");
+        Node k = sm->mkPurifySkolem(
+            gt, "gt", "introduced for ground subterms of triggers", flags);
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;
@@ -251,4 +255,4 @@ void Trigger::debugPrint(const char* c) const
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include "theory/incomplete_id.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Properties of lemmas */
@@ -66,7 +66,7 @@ class Theory;
 /**
  * Generic "theory output channel" interface.
  *
- * All methods can throw unrecoverable cvc5::Exception's unless otherwise
+ * All methods can throw unrecoverable cvc5::internal::Exception's unless otherwise
  * documented.
  */
 class OutputChannel {
@@ -189,6 +189,6 @@ class OutputChannel {
 }; /* class OutputChannel */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */

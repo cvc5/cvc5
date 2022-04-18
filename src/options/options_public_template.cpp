@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@ ${options_includes}$
 #include <iostream>
 #include <limits>
 
-namespace cvc5::options
+namespace cvc5::internal::options
 {
   // Contains the default option handlers (i.e. parsers)
   namespace handlers {
@@ -231,4 +231,4 @@ OptionInfo getInfo(const Options& opts, const std::string& name)
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options

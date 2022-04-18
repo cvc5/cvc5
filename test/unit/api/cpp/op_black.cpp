@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Makai Mann, Aina Niemetz
+ *   Andres Noetzli, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -170,4 +168,4 @@ TEST_F(TestApiBlackOp, opScopingToString)
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

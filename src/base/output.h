@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *   Morgan Deters, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <class T, class U>
 std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
@@ -279,28 +279,39 @@ extern TraceC TraceChannel CVC5_EXPORT;
 
 #ifdef CVC5_MUZZLE
 
-#define Warning \
-  ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
-#define WarningOnce \
-  ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
-#define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
-#define Trace(tag) ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel()
+#define Warning                                              \
+  cvc5::internal::__cvc5_true() ? cvc5::internal::nullStream \
+                                : cvc5::internal::WarningChannel
+#define WarningOnce                                          \
+  cvc5::internal::__cvc5_true() ? cvc5::internal::nullStream \
+                                : cvc5::internal::WarningChannel
+#define TraceIsOn \
+  cvc5::internal::__cvc5_true() ? false : cvc5::internal::TraceChannel.isOn
+#define Trace(tag)                                           \
+  cvc5::internal::__cvc5_true() ? cvc5::internal::nullStream \
+                                : cvc5::internal::TraceChannel()
 
 #else /* CVC5_MUZZLE */
 
-#define Warning \
-  (!::cvc5::WarningChannel.isOn()) ? ::cvc5::nullStream : ::cvc5::WarningChannel
-#define WarningOnce                                         \
-  (!::cvc5::WarningChannel.isOn()                           \
-   || !::cvc5::WarningChannel.warnOnce(__FILE__, __LINE__)) \
-      ? ::cvc5::nullStream                                  \
-      : ::cvc5::WarningChannel
+#define Warning                                                         \
+  (!cvc5::internal::WarningChannel.isOn()) ? cvc5::internal::nullStream \
+                                           : cvc5::internal::WarningChannel
+#define WarningOnce                                                 \
+  (!cvc5::internal::WarningChannel.isOn()                           \
+   || !cvc5::internal::WarningChannel.warnOnce(__FILE__, __LINE__)) \
+      ? cvc5::internal::nullStream                                  \
+      : cvc5::internal::WarningChannel
 #ifdef CVC5_TRACING
-#define TraceIsOn ::cvc5::TraceChannel.isOn
-#define Trace(tag) !::cvc5::TraceChannel.isOn(tag) ? ::cvc5::nullStream : ::cvc5::TraceChannel()
+#define TraceIsOn cvc5::internal::TraceChannel.isOn
+#define Trace(tag)                                                     \
+  !cvc5::internal::TraceChannel.isOn(tag) ? cvc5::internal::nullStream \
+                                          : cvc5::internal::TraceChannel()
 #else /* CVC5_TRACING */
-#define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
-#define Trace(tag) ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel()
+#define TraceIsOn \
+  cvc5::internal::__cvc5_true() ? false : cvc5::internal::TraceChannel.isOn
+#define Trace(tag)                                           \
+  cvc5::internal::__cvc5_true() ? cvc5::internal::nullStream \
+                                : cvc5::internal::TraceChannel()
 #endif /* CVC5_TRACING */
 
 #endif /* CVC5_MUZZLE */
@@ -334,6 +345,6 @@ class IndentedScope
   inline ~IndentedScope() { d_out << pop; }
 }; /* class IndentedScope */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__OUTPUT_H */
