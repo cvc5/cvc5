@@ -1156,6 +1156,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
   case kind::TABLE_PRODUCT: return "table.product";
+  case kind::TABLE_PROJECT: return "table.project";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

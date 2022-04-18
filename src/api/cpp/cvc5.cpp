@@ -326,6 +326,7 @@ const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
         KIND_ENUM(BAG_FILTER, cvc5::Kind::BAG_FILTER),
         KIND_ENUM(BAG_FOLD, cvc5::Kind::BAG_FOLD),
         KIND_ENUM(TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT),
+        KIND_ENUM(TABLE_PROJECT, cvc5::Kind::TABLE_PROJECT),
         /* Strings ---------------------------------------------------------- */
         KIND_ENUM(STRING_CONCAT, cvc5::Kind::STRING_CONCAT),
         KIND_ENUM(STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP),
@@ -638,6 +639,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_FILTER, BAG_FILTER},
         {cvc5::Kind::BAG_FOLD, BAG_FOLD},
         {cvc5::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
+        {cvc5::Kind::TABLE_PROJECT, TABLE_PROJECT},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},

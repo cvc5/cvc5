@@ -3004,7 +3004,20 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TABLE_PRODUCT,
-
+  /**
+   * Table cross product.
+   *
+   * - Arity: `2`
+   *   - `1..2:` Terms of table Sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  TABLE_PROJECT,
   /* Strings --------------------------------------------------------------- */
 
   /**

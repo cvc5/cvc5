@@ -114,9 +114,13 @@ construle BAG_UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
 construle BAG_MAKE               ::cvc5::theory::bags::BagMakeTypeRule
 
 
-# bag.product operator returns the cross product of two tables
+# table.product operator returns the cross product of two tables
 operator TABLE_PRODUCT             2 "table cross product"
 
+# table.project operator extends datatypes tuple_project operator to a bag of tuples
+parameterized TABLE_PROJECT TUPLE_PROJECT_OP 1 "table projection"
+
 typerule TABLE_PRODUCT              ::cvc5::theory::bags::TableProductTypeRule
+typerule TABLE_PROJECT              ::cvc5::theory::bags::TableProjectTypeRule
 
 endtheory

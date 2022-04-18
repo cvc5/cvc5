@@ -18,9 +18,12 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/datatypes/tuple_project_op.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
 
@@ -492,6 +495,67 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
   TypeNode retTupleType = nodeManager->mkTupleType(productTupleTypes);
   TypeNode retType = nodeManager->mkBagType(retTupleType);
   return retType;
+}
+
+TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+{
+  Assert(n.getKind() == kind::TABLE_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
+  TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  TypeNode bagType = n[2].getType(check);
+  if (check)
+  {
+    if (n.getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "operands in term " << n << " are " << n.getNumChildren()
+         << ", but TAPLE_PROJECT expects 1 operand.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    if (!bagType.isBag())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "bag.fold operator expects a bag in the third argument, "
+          "a non-bag is found");
+    }
+
+    TypeNode tupleType = n[0].getType(check);
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "TUPLE_PROJECT expects a tuple for " << n[0] << ". Found"
+         << tupleType;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    // make sure all indices are less than the length of the tuple type
+    DType dType = tupleType.getDType();
+    DTypeConstructor constructor = dType[0];
+    size_t numArgs = constructor.getNumArgs();
+    for (uint32_t index : indices)
+    {
+      std::stringstream ss;
+      if (index >= numArgs)
+      {
+        ss << "Project index " << index << " in term " << n
+           << " is >= " << numArgs << " which is the length of tuple " << n[0]
+           << std::endl;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  TypeNode tupleType = n[0].getType(check);
+  std::vector<TypeNode> types;
+  DType dType = tupleType.getDType();
+  DTypeConstructor constructor = dType[0];
+  for (uint32_t index : indices)
+  {
+    types.push_back(constructor.getArgType(index));
+  }
+  return nm->mkTupleType(types);
 }
 
 Cardinality BagsProperties::computeCardinality(TypeNode type)
