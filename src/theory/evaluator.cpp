@@ -112,7 +112,7 @@ Node EvalResult::toNode(const TypeNode& tn) const
     case EvalResult::BOOL: return nm->mkConst(d_bool);
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
     case EvalResult::RATIONAL:
-      Assert (!tn.isNull());
+      Assert(!tn.isNull());
       return nm->mkConstRealOrInt(tn, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
     case EvalResult::UVALUE: return nm->mkConst(d_av);
@@ -351,7 +351,8 @@ EvalResult Evaluator::evalInternal(
 
           for (const auto& lambdaVal : currNode)
           {
-            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode(lambdaVal.getType()));
+            lambdaVals.insert(lambdaVals.begin(),
+                              results[lambdaVal].toNode(lambdaVal.getType()));
           }
 
           // Lambdas are evaluated in a recursive fashion because each
