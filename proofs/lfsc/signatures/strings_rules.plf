@@ -120,8 +120,8 @@
            (sc_string_to_flat_form s rev u)
            (sc_string_to_flat_form t rev u) u)
     ((pair ss ts)
-      (ifequal (sc_string_head_or_self s) sc
-        (ifequal (sc_string_head_or_self t) tc
+      (ifequal (sc_string_first_char_or_empty s u) sc
+        (ifequal (sc_string_first_char_or_empty t u) tc
           ok
           (fail Ok))
         (fail Ok)))))
@@ -136,7 +136,7 @@
                              (! pc (holds (not (= sc tc)))
                              (! r (^ (sc_concat_conflict_deq s t sc tc rev u) ok)
                                 (holds false)))))))))))
-                            
+
 (program sc_string_length_pos ((t term) (u sort)) term
   (or (and (= (str.len t) (int 0)) (and (= t (sc_mk_emptystr u)) true)) (or (a.> (str.len t) (int 0)) false))
 )
