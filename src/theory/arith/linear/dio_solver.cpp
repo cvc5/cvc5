@@ -23,7 +23,7 @@
 #include "options/arith_options.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 
 using namespace std;
 

@@ -28,7 +28,7 @@
 #include "theory/arith/bound_counts.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/tableau_sizes.h"
 #include "util/bin_heap.h"
 #include "util/statistics_stats.h"

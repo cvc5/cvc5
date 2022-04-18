@@ -34,7 +34,7 @@
 #include "theory/arith/arithvar.h"
 #include "theory/arith/linear/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
 #include "util/statistics_stats.h"

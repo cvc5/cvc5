@@ -55,7 +55,7 @@
 
 #pragma once
 
-#include "theory/arith/approx_simplex.h"
+#include "theory/arith/linear/approx_simplex.h"
 #include "theory/arith/simplex.h"
 #include "util/statistics_stats.h"
 

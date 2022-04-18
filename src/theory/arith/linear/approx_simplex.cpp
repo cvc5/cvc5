@@ -15,7 +15,7 @@
  * [[ Add lengthier description here ]]
  * \todo document this file
  */
-#include "theory/arith/approx_simplex.h"
+#include "theory/arith/linear/approx_simplex.h"
 
 #include <math.h>
 
@@ -33,14 +33,14 @@
 #include "theory/arith/linear/normal_form.h"
 
 #ifdef CVC5_USE_GLPK
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #endif
 
 using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 struct AuxInfo {
   TreeLog* tl;

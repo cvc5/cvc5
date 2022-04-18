@@ -26,7 +26,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"

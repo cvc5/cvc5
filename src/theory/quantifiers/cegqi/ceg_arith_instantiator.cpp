@@ -18,7 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/linear/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"

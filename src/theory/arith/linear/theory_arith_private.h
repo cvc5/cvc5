@@ -45,7 +45,7 @@
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/linear/normal_form.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"

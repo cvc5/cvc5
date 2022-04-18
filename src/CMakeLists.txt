@@ -349,8 +349,8 @@ libcvc5_add_sources(
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  theory/arith/approx_simplex.cpp
-  theory/arith/approx_simplex.h
+  theory/arith/linear/approx_simplex.cpp
+  theory/arith/linear/approx_simplex.h
   theory/arith/arith_evaluator.cpp
   theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
@@ -491,8 +491,8 @@ libcvc5_add_sources(
   theory/arith/linear/normal_form.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
-  theory/arith/partial_model.cpp
-  theory/arith/partial_model.h
+  theory/arith/linear/partial_model.cpp
+  theory/arith/linear/partial_model.h
   theory/arith/pp_rewrite_eq.cpp
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp

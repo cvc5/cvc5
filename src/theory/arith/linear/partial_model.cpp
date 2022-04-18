@@ -19,13 +19,13 @@
 #include "base/output.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/normal_form.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 
 using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
 ArithVariables::ArithVariables(context::Context* c,
                                DeltaComputeCallback deltaComputingFunc)
