@@ -259,7 +259,7 @@ class Env
   /**
    * Declare heap. This is used for separation logics to set the location
    * and data types. It should be called only once, and before any separation
-   * logic constraints are asserted to this theory engine.
+   * logic constraints are asserted to the theory engine.
    */
   void declareSepHeap(TypeNode locT, TypeNode dataT);
 
