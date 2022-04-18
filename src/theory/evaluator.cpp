@@ -351,7 +351,8 @@ EvalResult Evaluator::evalInternal(
 
           for (const auto& lambdaVal : currNode)
           {
-            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode(lambdaVal.getType()));
+            lambdaVals.insert(lambdaVals.begin(),
+                              results[lambdaVal].toNode(lambdaVal.getType()));
           }
 
           // Lambdas are evaluated in a recursive fashion because each
