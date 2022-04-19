@@ -227,8 +227,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
   {
     Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
     coeffs = rewrite(coeffs);
-    result = pv_mult_coeffs =
-        normalizePvMult(pv, {pv, coeffs}, contains_pv);
+    result = pv_mult_coeffs = normalizePvMult(pv, {pv, coeffs}, contains_pv);
   }
 
   if (nb_l.getNumChildren() > 0)

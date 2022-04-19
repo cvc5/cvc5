@@ -74,7 +74,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, getPvCoeff)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter * rr = env->getRewriter();
+  Rewriter* rr = env->getRewriter();
 
   Node x = mkVar(32);
   Node a = mkVar(32);
@@ -110,7 +110,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter * rr = env->getRewriter();
+  Rewriter* rr = env->getRewriter();
 
   Node x = mkVar(32);
   Node neg_x = mkNeg(x);
@@ -179,14 +179,14 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   ASSERT_EQ(norm_abcxd[1], rr->rewrite(mkMult({a, b, c, d})));
 
   /* normalize a * b * c * -x * d -> x * -(a * b * c * d) */
-  Node norm_neg_abcxd = util.normalizePvMult(x, {a, b, c, neg_x, d}, contains_x);
+  Node norm_neg_abcxd =
+      util.normalizePvMult(x, {a, b, c, neg_x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_abcxd]);
   ASSERT_TRUE(norm_neg_abcxd.getAttribute(is_linear));
   ASSERT_EQ(norm_neg_abcxd.getKind(), kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_abcxd.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_abcxd[0], x);
-  ASSERT_TRUE(norm_neg_abcxd[1]
-              == mkNeg(rr->rewrite(mkMult({a, b, c, d}))));
+  ASSERT_TRUE(norm_neg_abcxd[1] == mkNeg(rr->rewrite(mkMult({a, b, c, d}))));
 
   /* normalize b * (x * a) -> x * (b * a) */
   Node norm_bxa = util.normalizePvMult(x, {b, norm_ax}, contains_x);
@@ -213,7 +213,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter * rr = env->getRewriter();
+  Rewriter* rr = env->getRewriter();
 
   Node one = mkOne(32);
   Node x = mkVar(32);
@@ -272,7 +272,9 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
 
   /* -x + -a * x -> x * (-1 - a) */
   Node norm_xax = util.normalizePvPlus(
-      x, {mkNeg(x), util.normalizePvMult(x, {mkNeg(a), x}, contains_x)}, contains_x);
+      x,
+      {mkNeg(x), util.normalizePvMult(x, {mkNeg(a), x}, contains_x)},
+      contains_x);
   ASSERT_TRUE(contains_x[norm_xax]);
   ASSERT_TRUE(norm_xax.getAttribute(is_linear));
   ASSERT_EQ(norm_xax.getKind(), kind::BITVECTOR_MULT);
@@ -290,7 +292,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   ASSERT_EQ(norm_abcxd[1], rr->rewrite(mkPlus({a, b, c, d})));
 
   /* a + b + c + -x + d -> (x * -1) + (a + b + c + d) */
-  Node norm_neg_abcxd = util.normalizePvPlus(x, {a, b, c, neg_x, d}, contains_x);
+  Node norm_neg_abcxd =
+      util.normalizePvPlus(x, {a, b, c, neg_x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_abcxd]);
   ASSERT_TRUE(norm_neg_abcxd.getAttribute(is_linear));
   ASSERT_EQ(norm_neg_abcxd.getKind(), kind::BITVECTOR_ADD);
@@ -338,7 +341,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter * rr = env->getRewriter();
+  Rewriter* rr = env->getRewriter();
 
   Node x = mkVar(32);
   Node neg_x = mkNeg(x);
@@ -406,10 +409,11 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_mult_axx[1], zero);
 
   /* a * x = x + b -> x * (a - 1) = b */
-  Node norm_axxb = normalizePvEqual(x,
-                                    {util.normalizePvMult(x, {a, x}, contains_x),
-                                     util.normalizePvPlus(x, {b, x}, contains_x)},
-                                    contains_x);
+  Node norm_axxb =
+      normalizePvEqual(x,
+                       {util.normalizePvMult(x, {a, x}, contains_x),
+                        util.normalizePvPlus(x, {b, x}, contains_x)},
+                       contains_x);
   ASSERT_EQ(norm_axxb.getKind(), kind::EQUAL);
   ASSERT_EQ(norm_axxb[0].getKind(), kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_axxb[0].getNumChildren(), 2);
