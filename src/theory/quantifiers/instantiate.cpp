@@ -183,6 +183,7 @@ bool Instantiate::addInstantiation(Node q,
     }
 #endif
   }
+  Trace("inst-add-debug") << "id is " << id << std::endl;
 
   EntailmentCheck* ec = d_treg.getEntailmentCheck();
   // Note we check for entailment before checking for term vector duplication.
