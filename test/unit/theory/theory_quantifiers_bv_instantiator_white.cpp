@@ -29,7 +29,6 @@ using namespace theory;
 using namespace theory::bv;
 using namespace theory::bv::utils;
 using namespace theory::quantifiers;
-using namespace theory::quantifiers::utils;
 
 namespace test {
 
@@ -359,15 +358,15 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   contains_x[neg_x] = true;
 
   /* x = a -> null (nothing to normalize) */
-  Node norm_xa = normalizePvEqual(x, {x, a}, contains_x);
+  Node norm_xa = util.normalizePvEqual(x, {x, a}, contains_x);
   ASSERT_TRUE(norm_xa.isNull());
 
   /* x = x -> true */
-  Node norm_xx = normalizePvEqual(x, {x, x}, contains_x);
+  Node norm_xx = util.normalizePvEqual(x, {x, x}, contains_x);
   ASSERT_EQ(norm_xx, ntrue);
 
   /* x = -x -> x * 2 = 0 */
-  Node norm_neg_xx = normalizePvEqual(x, {x, neg_x}, contains_x);
+  Node norm_neg_xx = util.normalizePvEqual(x, {x, neg_x}, contains_x);
   ASSERT_EQ(norm_neg_xx.getKind(), kind::EQUAL);
   ASSERT_EQ(norm_neg_xx[0].getKind(), kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_xx[0].getNumChildren(), 2);
@@ -378,14 +377,14 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_neg_xx[1], zero);
 
   /* a + x = x -> 0 = -a */
-  Node norm_axx = normalizePvEqual(
+  Node norm_axx = util.normalizePvEqual(
       x, {util.normalizePvPlus(x, {a, x}, contains_x), x}, contains_x);
   ASSERT_EQ(norm_axx.getKind(), kind::EQUAL);
   ASSERT_EQ(norm_axx[0], zero);
   ASSERT_EQ(norm_axx[1], mkNeg(a));
 
   /* a + -x = x -> x * -2 = a */
-  Node norm_neg_axx = normalizePvEqual(
+  Node norm_neg_axx = util.normalizePvEqual(
       x, {util.normalizePvPlus(x, {a, neg_x}, contains_x), x}, contains_x);
   ASSERT_EQ(norm_neg_axx.getKind(), kind::EQUAL);
   ASSERT_EQ(norm_neg_axx[0].getKind(), kind::BITVECTOR_MULT);
@@ -397,7 +396,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_neg_axx[1], mkNeg(a));
 
   /* a * x = x -> x * (a - 1) = 0 */
-  Node norm_mult_axx = normalizePvEqual(
+  Node norm_mult_axx = util.normalizePvEqual(
       x, {util.normalizePvMult(x, {a, x}, contains_x), x}, contains_x);
   ASSERT_EQ(norm_mult_axx.getKind(), kind::EQUAL);
   ASSERT_EQ(norm_mult_axx[0].getKind(), kind::BITVECTOR_MULT);
@@ -410,7 +409,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
 
   /* a * x = x + b -> x * (a - 1) = b */
   Node norm_axxb =
-      normalizePvEqual(x,
+      util.normalizePvEqual(x,
                        {util.normalizePvMult(x, {a, x}, contains_x),
                         util.normalizePvPlus(x, {b, x}, contains_x)},
                        contains_x);
@@ -424,7 +423,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_axxb[1], b);
 
   /* a * x + c = x -> x * (a - 1) = -c */
-  Node norm_axcx = normalizePvEqual(
+  Node norm_axcx = util.normalizePvEqual(
       x,
       {util.normalizePvPlus(
            x, {util.normalizePvMult(x, {a, x}, contains_x), c}, contains_x),
@@ -440,7 +439,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_axcx[1], mkNeg(c));
 
   /* a * x + c = x + b -> x * (a - 1) = b - c*/
-  Node norm_axcxb = normalizePvEqual(
+  Node norm_axcxb = util.normalizePvEqual(
       x,
       {util.normalizePvPlus(
            x, {util.normalizePvMult(x, {a, x}, contains_x), c}, contains_x),
@@ -457,7 +456,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
 
   /* -(a + -x) = a * x -> x * (1 - a) = a */
   Node norm_axax =
-      normalizePvEqual(x,
+      util.normalizePvEqual(x,
                        {mkNeg(util.normalizePvPlus(x, {a, neg_x}, contains_x)),
                         util.normalizePvMult(x, {a, x}, contains_x)},
                        contains_x);
