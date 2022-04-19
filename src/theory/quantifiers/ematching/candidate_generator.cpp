@@ -309,14 +309,12 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
 {
   Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
   Assert(mpat.getKind() == APPLY_SELECTOR);
-  // NOTE: could use qs.getValuation().getPreprocessedTerm(mpat); when
-  // expand definitions is eliminated, however, this also requires avoiding
-  // term formula removal.
+  // Get the expanded form of the selector, meaning that we will match on
+  // the shared selector if shared selectors are enabled.
   Node mpatExp = datatypes::DatatypesRewriter::expandApplySelector(mpat);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   Assert (mpatExp.getKind() == APPLY_SELECTOR);
   d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);
-  Assert(d_selOp != d_ufOp);
 }
 
 void CandidateGeneratorSelector::reset(Node eqc)
