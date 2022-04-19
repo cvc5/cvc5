@@ -73,7 +73,6 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, getPvCoeff)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter* rr = env.getRewriter();
 
   Node x = mkVar(32);
   Node a = mkVar(32);
