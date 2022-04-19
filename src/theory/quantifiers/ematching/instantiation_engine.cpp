@@ -83,7 +83,7 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   bool finished = false;
   //while unfinished, try effort level=0,1,2....
   while( !finished && e<=eLimit ){
-    Trace("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
+    Trace("inst-engine-debug") << "IE: Prepare instantiation (" << e << ")." << std::endl;
     finished = true;
     //instantiate each quantifier
     for( unsigned i=0; i<d_quants.size(); i++ ){
