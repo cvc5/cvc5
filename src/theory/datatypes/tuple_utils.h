@@ -38,7 +38,16 @@ class TupleUtils
    * @param tuple a node of tuple type
    * @return the projection of the tuple with the specified indices
    */
-  static Node getTupleProjection(std::vector<uint32_t> indices, Node tuple);
+  static Node getTupleProjection(const std::vector<uint32_t>& indices,
+                                 Node tuple);
+
+  /**
+   * @param indices  a list of indices for projected elements
+   * @param tupleType the type of the original tuple
+   * @return the type of the projected tuple
+   */
+  static TypeNode getTupleProjectionType(const std::vector<uint32_t>& indices,
+                                         TypeNode tupleType);
 
   /**
    * @param tuple a tuple node of the form (tuple a_1 ... a_n)

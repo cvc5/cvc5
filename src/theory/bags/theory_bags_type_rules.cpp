@@ -25,6 +25,7 @@
 #include "theory/bags/bag_make_op.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
 
@@ -517,18 +518,18 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "bag.fold operator expects a bag in the third argument, "
-          "a non-bag is found");
+      std::stringstream ss;
+      ss << "TABLE_PROJECT operator expects a table. Found '" << n[0]
+         << "' of type '" << bagType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
     TypeNode tupleType = bagType.getBagElementType();
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "TABLE_PROJECT expects tuple type for " << n[0]
-         << ". Found" << tupleType;
+      ss << "TABLE_PROJECT operator expects a table. Found '" << n[0]
+         << "' of type '" << bagType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
@@ -541,22 +542,15 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
       std::stringstream ss;
       if (index >= numArgs)
       {
-        ss << "Project index " << index << " in term " << n
-           << " is >= " << numArgs << " which is the length of tuple " << n[0]
-           << std::endl;
+        ss << "Index " << index << " in term " << n << " is >= " << numArgs
+           << " which is the number of columns in " << n[0] << ".";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
   }
   TypeNode tupleType = bagType.getBagElementType();
-  std::vector<TypeNode> types;
-  DType dType = tupleType.getDType();
-  DTypeConstructor constructor = dType[0];
-  for (uint32_t index : indices)
-  {
-    types.push_back(constructor.getArgType(index));
-  }
-  TypeNode retTupleType = nm->mkTupleType(types);
+  TypeNode retTupleType =
+      datatypes::TupleUtils::getTupleProjectionType(indices, tupleType);
   return nm->mkBagType(retTupleType);
 }
 
