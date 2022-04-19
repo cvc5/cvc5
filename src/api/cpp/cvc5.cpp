@@ -69,6 +69,7 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
@@ -328,6 +329,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BAG_FILTER, internal::Kind::BAG_FILTER),
         KIND_ENUM(BAG_FOLD, internal::Kind::BAG_FOLD),
         KIND_ENUM(TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
+        KIND_ENUM(TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
         /* Strings ---------------------------------------------------------- */
         KIND_ENUM(STRING_CONCAT, internal::Kind::STRING_CONCAT),
         KIND_ENUM(STRING_IN_REGEXP, internal::Kind::STRING_IN_REGEXP),
@@ -643,6 +645,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BAG_FILTER, BAG_FILTER},
         {internal::Kind::BAG_FOLD, BAG_FOLD},
         {internal::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
+        {internal::Kind::TABLE_PROJECT, TABLE_PROJECT},
+        {internal::Kind::TABLE_PROJECT_OP, TABLE_PROJECT},
         /* Strings --------------------------------------------------------- */
         {internal::Kind::STRING_CONCAT, STRING_CONCAT},
         {internal::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -6214,6 +6218,9 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case TUPLE_PROJECT:
       res = mkOpHelper(kind, internal::TupleProjectOp(args));
+      break;
+    case TABLE_PROJECT:
+      res = mkOpHelper(kind, internal::TableProjectOp(args));
       break;
     default:
       if (nargs == 0)
