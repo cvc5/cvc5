@@ -26,6 +26,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+struct BvLinearAttributeId
+{
+};
+using BvLinearAttribute = expr::Attribute<BvLinearAttributeId, bool>;
+
 class BvInstantiatorUtil : protected EnvObj
 {
  public:

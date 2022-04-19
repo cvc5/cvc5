@@ -74,7 +74,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, getPvCoeff)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter* rr = env->getRewriter();
+  Rewriter* rr = env.getRewriter();
 
   Node x = mkVar(32);
   Node a = mkVar(32);
@@ -110,7 +110,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter* rr = env->getRewriter();
+  Rewriter* rr = env.getRewriter();
 
   Node x = mkVar(32);
   Node neg_x = mkNeg(x);
@@ -213,7 +213,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter* rr = env->getRewriter();
+  Rewriter* rr = env.getRewriter();
 
   Node one = mkOne(32);
   Node x = mkVar(32);
@@ -341,7 +341,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
 {
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
-  Rewriter* rr = env->getRewriter();
+  Rewriter* rr = env.getRewriter();
 
   Node x = mkVar(32);
   Node neg_x = mkNeg(x);

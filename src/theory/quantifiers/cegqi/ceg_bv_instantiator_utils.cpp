@@ -24,11 +24,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-struct BvLinearAttributeId
-{
-};
-using BvLinearAttribute = expr::Attribute<BvLinearAttributeId, bool>;
-
 BvInstantiatorUtil::BvInstantiatorUtil(Env& env) : EnvObj(env) {}
 
 Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
