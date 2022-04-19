@@ -3696,13 +3696,15 @@ enum Kind : int32_t
    */
   TABLE_PRODUCT,
   /**
-   * Table cross product.
+   * Table projection operator extends tuple projection operator to tables.
    *
-   * - Arity: `2`
-   *   - `1..2:` Terms of table Sort
+   * - Arity: ``1``
+   *   - ``1:`` Term of tuple Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:`` The table indices to project
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:

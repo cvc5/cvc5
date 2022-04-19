@@ -836,8 +836,10 @@ Node BagsUtils::evaluateTableProject(TNode n)
   Assert(n.getKind() == TABLE_PROJECT);
   // Examples
   // --------
-  //
   // - ((_ table.project 1) (bag (tuple true "a") 4)) = (bag (tuple "a") 4)
+  // - (table.project (bag.union_disjoint
+  //                    (bag (tuple "a") 4)
+  //                    (bag (tuple "b") 3))) = (bag tuple 7)
 
   Node A = n[0];
 
@@ -850,7 +852,9 @@ Node BagsUtils::evaluateTableProject(TNode n)
   for (const auto& [a, countA] : elementsA)
   {
     Node element = TupleUtils::getTupleProjection(indices, a);
-    elements[element] = countA;
+    // multiple elements could be projected to the same tuple.
+    // Zero is the default value for Rational values.
+    elements[element] += countA;
   }
 
   Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
