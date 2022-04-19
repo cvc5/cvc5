@@ -143,7 +143,6 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_MAP: return evaluateBagMap(n);
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
-    case BAG_PARTITION: return evaluateBagPartition(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
@@ -788,7 +787,7 @@ Node BagsUtils::evaluateBagFold(TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateBagPartition(TNode n)
+Node BagsUtils::evaluateBagPartition(Rewriter * rewriter, TNode n)
 {
   Assert(n.getKind() == BAG_PARTITION);
   NodeManager* nm = NodeManager::currentNM();

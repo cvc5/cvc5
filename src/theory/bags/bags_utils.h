@@ -20,6 +20,8 @@
 #ifndef CVC5__THEORY__BAGS__UTILS_H
 #define CVC5__THEORY__BAGS__UTILS_H
 
+#include "theory/theory_rewriter.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace bags {
@@ -92,7 +94,7 @@ class BagsUtils
    * @param n has the form (bag.partition r A) where A is a constant bag
    * @return a partition of A based on the equivalence relation r
    */
-  static Node evaluateBagPartition(TNode n);
+  static Node evaluateBagPartition(Rewriter *rewriter, TNode n);
 
   /**
    * @param n has the form (bag.filter p A) where A is a constant bag

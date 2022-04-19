@@ -42,7 +42,7 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
@@ -263,6 +263,11 @@ class BagsRewriter : public TheoryRewriter
   NodeManager* d_nm;
   Node d_zero;
   Node d_one;
+  /**
+   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
+   * be removed.
+   */
+  Rewriter* d_rewriter;
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */
