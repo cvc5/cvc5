@@ -23,9 +23,10 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-namespace utils {
 
-Node getPvCoeff(TNode pv, TNode n)
+BvInstantiatorUtil::BvInstantiatorUtil(Env& env) : EnvObj(env){}
+
+Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n)
 {
   bool neg = false;
   Node coeff;
@@ -59,7 +60,7 @@ Node getPvCoeff(TNode pv, TNode n)
   return coeff;
 }
 
-Node normalizePvMult(TNode pv,
+Node BvInstantiatorUtil::normalizePvMult(TNode pv,
                      const std::vector<Node>& children,
                      std::unordered_map<Node, bool>& contains_pv)
 {
@@ -111,7 +112,7 @@ Node normalizePvMult(TNode pv,
   {
     coeff = nm->mkNode(BITVECTOR_NEG, coeff);
   }
-  coeff = Rewriter::rewrite(coeff);
+  coeff = rewrite(coeff);
   unsigned size_coeff = bv::utils::getSize(coeff);
   Node zero = bv::utils::mkZero(size_coeff);
   if (coeff == zero)
@@ -136,9 +137,7 @@ Node normalizePvMult(TNode pv,
   return result;
 }
 
-#ifdef CVC5_ASSERTIONS
-namespace {
-bool isLinearPlus(TNode n,
+bool BvInstantiatorUtil::isLinearPlus(TNode n,
                   TNode pv,
                   std::unordered_map<Node, bool>& contains_pv)
 {
@@ -153,15 +152,13 @@ bool isLinearPlus(TNode n,
     Assert(!contains_pv[n[0][1]]);
   }
   Assert(!contains_pv[n[1]]);
-  coeff = utils::getPvCoeff(pv, n[0]);
+  coeff = getPvCoeff(pv, n[0]);
   Assert(!coeff.isNull());
   Assert(!contains_pv[coeff]);
   return true;
 }
-}  // namespace
-#endif
 
-Node normalizePvPlus(Node pv,
+Node BvInstantiatorUtil::normalizePvPlus(Node pv,
                      const std::vector<Node>& children,
                      std::unordered_map<Node, bool>& contains_pv)
 {
@@ -190,7 +187,7 @@ Node normalizePvPlus(Node pv,
     if (nc == pv
         || (nc.getKind() == BITVECTOR_MULT && nc.getAttribute(is_linear)))
     {
-      Node coeff = utils::getPvCoeff(pv, nc);
+      Node coeff = getPvCoeff(pv, nc);
       Assert(!coeff.isNull());
       if (neg)
       {
@@ -202,7 +199,7 @@ Node normalizePvPlus(Node pv,
     else if (nc.getKind() == BITVECTOR_ADD && nc.getAttribute(is_linear))
     {
       Assert(isLinearPlus(nc, pv, contains_pv));
-      Node coeff = utils::getPvCoeff(pv, nc[0]);
+      Node coeff = getPvCoeff(pv, nc[0]);
       Assert(!coeff.isNull());
       Node leaf = nc[1];
       if (neg)
@@ -223,7 +220,7 @@ Node normalizePvPlus(Node pv,
   if (nb_c.getNumChildren() > 0)
   {
     Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
-    coeffs = Rewriter::rewrite(coeffs);
+    coeffs = rewrite(coeffs);
     result = pv_mult_coeffs =
         utils::normalizePvMult(pv, {pv, coeffs}, contains_pv);
   }
@@ -231,7 +228,7 @@ Node normalizePvPlus(Node pv,
   if (nb_l.getNumChildren() > 0)
   {
     Node leafs = (nb_l.getNumChildren() == 1) ? nb_l[0] : nb_l.constructNode();
-    leafs = Rewriter::rewrite(leafs);
+    leafs = rewrite(leafs);
     Node zero = bv::utils::mkZero(bv::utils::getSize(pv));
     /* pv * 0 + t --> t */
     if (pv_mult_coeffs.isNull() || pv_mult_coeffs == zero)
@@ -249,7 +246,7 @@ Node normalizePvPlus(Node pv,
   return result;
 }
 
-Node normalizePvEqual(Node pv,
+Node BvInstantiatorUtil::normalizePvEqual(Node pv,
                       const std::vector<Node>& children,
                       std::unordered_map<Node, bool>& contains_pv)
 {
@@ -275,13 +272,13 @@ Node normalizePvEqual(Node pv,
       if (child.getKind() == BITVECTOR_ADD)
       {
         Assert(isLinearPlus(child, pv, contains_pv));
-        coeffs[i] = utils::getPvCoeff(pv, child[0]);
+        coeffs[i] = getPvCoeff(pv, child[0]);
         leafs[i] = child[1];
       }
       else
       {
         Assert(child.getKind() == BITVECTOR_MULT || child == pv);
-        coeffs[i] = utils::getPvCoeff(pv, child);
+        coeffs[i] = getPvCoeff(pv, child);
       }
     }
     if (neg)
@@ -303,9 +300,9 @@ Node normalizePvEqual(Node pv,
   }
 
   Node coeff = nm->mkNode(BITVECTOR_SUB, coeffs[0], coeffs[1]);
-  coeff = Rewriter::rewrite(coeff);
+  coeff = rewrite(coeff);
   std::vector<Node> mult_children = {pv, coeff};
-  Node lhs = utils::normalizePvMult(pv, mult_children, contains_pv);
+  Node lhs = normalizePvMult(pv, mult_children, contains_pv);
 
   Node rhs;
   if (!leafs[0].isNull() && !leafs[1].isNull())
@@ -324,7 +321,7 @@ Node normalizePvEqual(Node pv,
   {
     rhs = bv::utils::mkZero(bv::utils::getSize(pv));
   }
-  rhs = Rewriter::rewrite(rhs);
+  rhs = rewrite(rhs);
 
   if (lhs == rhs)
   {
@@ -336,7 +333,6 @@ Node normalizePvEqual(Node pv,
   return result;
 }
 
-}  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
