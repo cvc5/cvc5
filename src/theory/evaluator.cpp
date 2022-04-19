@@ -158,10 +158,7 @@ Node Evaluator::eval(TNode n,
       std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(p.second);
       Assert(itn != evalAsNode.end());
       Node val = itn->second;
-      if (d_rr != nullptr)
-      {
-        val = d_rr->rewrite(val);
-      }
+      val = rewriteInternal(val);
       evalAsNode[p.first] = val;
     }
   }
@@ -174,13 +171,13 @@ Node Evaluator::eval(TNode n,
     // should be stored in the evaluation-as-node map
     std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
     Assert(itn != evalAsNode.end());
-    ret = d_rr->rewrite(itn->second);
+    ret = rewriteInternal(itn->second);
   }
   // should be the same as substitution + rewriting, or possibly null if
   // d_rr is nullptr
   Assert((ret.isNull() && d_rr == nullptr)
          || ret
-                == d_rr->rewrite(n.substitute(
+                == rewriteInternal(n.substitute(
                     args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
@@ -291,12 +288,9 @@ EvalResult Evaluator::evalInternal(
           // successfully evaluated, and the children that did not.
           Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
           currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
-          if (d_rr != nullptr)
-          {
-            // Rewrite the result now, if we use the rewriter. We will see below
-            // if we are able to turn it into a valid EvalResult.
-            currNodeVal = d_rr->rewrite(currNodeVal);
-          }
+          // Rewrite the result now, if we use the rewriter. We will see below
+          // if we are able to turn it into a valid EvalResult.
+          currNodeVal = rewriteInternal(currNodeVal);
         }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
@@ -986,6 +980,15 @@ void Evaluator::processUnhandled(TNode n,
 {
   results[n] = EvalResult();
   evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
+}
+
+Node Evaluator::rewriteInternal(TNode n) const
+{
+  if (d_rr != nullptr)
+  {
+    return d_rr->rewrite(n);
+  }
+  return n;
 }
 
 }  // namespace theory
