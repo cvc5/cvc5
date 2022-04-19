@@ -4,7 +4,7 @@
 (declare-fun A () (Table String Int String Bool))
 (declare-fun B () (Table Int Bool String String))
 (declare-fun C () (Table String String))
-(declare-fun D () (Bag Tuple))
+(declare-fun D () Table)
 
 (assert
  (= A
