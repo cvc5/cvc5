@@ -18,7 +18,7 @@
 namespace cvc5::internal {
 
 TableProjectOp::TableProjectOp(std::vector<uint32_t> indices)
-    : TupleProjectOp(std::move(indices))
+    : ProjectOp(std::move(indices))
 {
 }
 
