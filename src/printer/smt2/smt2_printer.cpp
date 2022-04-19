@@ -42,6 +42,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt_util/boolean_simplification.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
@@ -789,6 +790,21 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       // e.g. ((_ tuple.project 2 4 4) tuple)
       out << "(_ tuple.project" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
+  case kind::TABLE_PROJECT:
+  {
+    TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.project A)
+      out << "table.project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.project 2 4 4) A)
+      out << "(_ table.project" << op << ") " << n[0] << ")";
     }
     return;
   }
