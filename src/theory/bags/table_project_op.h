@@ -26,7 +26,7 @@ namespace cvc5::internal {
  * The class is an operator for kind project used to project elements in a
  * table. It stores the indices of projected elements
  */
-class TableProjectOp : public TupleProjectOp
+class TableProjectOp : public ProjectOp
 {
  public:
   explicit TableProjectOp(std::vector<uint32_t> indices);
@@ -36,7 +36,7 @@ class TableProjectOp : public TupleProjectOp
 /**
  * Hash function for the TupleProjectOpHashFunction objects.
  */
-struct TableProjectOpHashFunction : public TupleProjectOpHashFunction
+struct TableProjectOpHashFunction : public ProjectOpHashFunction
 {
 }; /* struct TupleProjectOpHashFunction */
 

@@ -36,7 +36,7 @@
 (program sc_skolem_first_ctn_post ((s term) (t term)) term 
   (sc_skolem_suffix_rem s (a.+ (str.len (sc_skolem_first_ctn_pre s t)) (a.+ (str.len t) (int 0)))))
 
-; Head and tail for string concatenation.
+; Head and tail for string concatenation. Fails if not a concatentation term.
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
 (program sc_string_tail ((t term)) term (nary_tail f_str.++ t))
 
@@ -242,7 +242,8 @@
     ((apply t1 t2)
       (let t12 (getarg f_str.++ t1)
       (match t12
-        ((char n) t12))))
+        ((char n) t12)
+        ((apply t121 t122) (ifequal t121 f_seq.unit t12 (fail term))))))
     (default (ifequal t (sc_mk_emptystr u) t (fail term)))))
 
 ; Flatten constants in str.++ application s. Notice that the rewritten form
