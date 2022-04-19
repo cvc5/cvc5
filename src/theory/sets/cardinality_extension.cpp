@@ -639,7 +639,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     }
     // now recurse on parents (to ensure their normal will be computed after
     // this eqc)
-    bool needExp = (eqc!=n);
+    bool needExp = (eqc != n);
     if (needExp)
     {
       exp.push_back(eqc.eqNode(n));
