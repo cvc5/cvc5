@@ -800,11 +800,13 @@ Node BagsUtils::evaluateBagPartition(Rewriter * rewriter, TNode n)
   //     (bag.union_disjoint
   //       (bag 1 20) (bag (- 1) 50)
   //       (bag 2 30) (bag (- 2) 60)
-  //       (bag 3 40) (bag (- 3) 70)))
+  //       (bag 3 40) (bag (- 3) 70)
+  //       (bag 4 100)))
   //   = (bag.union_disjoint
-  //       (bag.union_disjoint (bag 1 20) (bag (- 1) 50))
-  //       (bag.union_disjoint (bag 2 30) (bag (- 2) 60))
-  //       (bag.union_disjoint (bag 3 40) (bag (- 3) 70)))
+  //       (bag (bag 4 100) 1)
+  //       (bag (bag.union_disjoint (bag 1 20) (bag (- 1) 50)) 1)
+  //       (bag (bag.union_disjoint (bag 2 30) (bag (- 2) 60)) 1)
+  //       (bag (bag.union_disjoint (bag 3 40) (bag (- 3) 70)) 1)))
 
   Node r = n[0];  // equivalence relation
   Node A = n[1];  // bag
