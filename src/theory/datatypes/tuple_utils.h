@@ -42,7 +42,7 @@ class TupleUtils
                                  Node tuple);
 
   /**
-   * @param indices  a list of indices for projected elements
+   * @param indices a list of indices for projected elements
    * @param tupleType the type of the original tuple
    * @return the type of the projected tuple
    */
