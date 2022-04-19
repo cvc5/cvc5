@@ -860,8 +860,7 @@ class CVC5_EXPORT SolverEngine
   std::vector<Node> getExpandedAssertions();
 
   /**
-   * !!!!! temporary, until the environment is passsed to all classes that
-   * require it.
+   * Get the enviornment from this solver engine.
    */
   Env& getEnv();
   /* .......................................................................  */
