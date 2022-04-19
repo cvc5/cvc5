@@ -319,7 +319,7 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
 }
 
 bool TypeNode::isComparableTo(TypeNode t) const {
-  if(*this == t)
+  if (*this == t)
   {
     return true;
   }
@@ -491,7 +491,7 @@ bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
 }
 
 TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
-  if (t0==t1)
+  if (t0 == t1)
   {
     return t0;
   }
