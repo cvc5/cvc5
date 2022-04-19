@@ -26,6 +26,7 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
+#include "tuple_utils.h"
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
 
@@ -165,29 +166,11 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     // where each i_j is less than the length of t
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
+
     TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
     std::vector<uint32_t> indices = op.getIndices();
     Node tuple = in[0];
-    std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
-    std::vector<TypeNode> types;
-    std::vector<Node> elements;
-    for (uint32_t index : indices)
-    {
-      TypeNode type = tupleTypes[index];
-      types.push_back(type);
-    }
-    TypeNode projectType = nm->mkTupleType(types);
-    const DType& dt = projectType.getDType();
-    elements.push_back(dt[0].getConstructor());
-    const DType& tupleDType = tuple.getType().getDType();
-    const DTypeConstructor& constructor = tupleDType[0];
-    for (uint32_t index : indices)
-    {
-      Node selector = constructor[index].getSelector();
-      Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
-      elements.push_back(element);
-    }
-    Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+    Node ret = TupleUtils::getTupleProjection(indices, tuple);
 
     Trace("dt-rewrite-project")
         << "Rewrite project: " << in << " ... " << ret << std::endl;

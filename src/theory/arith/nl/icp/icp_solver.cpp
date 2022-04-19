@@ -23,7 +23,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/poly_conversion.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
@@ -89,7 +89,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
   {
     return {};
   }
-  auto comp = Comparison::parseNormalForm(tmp).decompose(false);
+  auto comp = linear::Comparison::parseNormalForm(tmp).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {
