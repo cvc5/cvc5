@@ -634,6 +634,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_MAP, "bag.map");
     addOperator(cvc5::BAG_FILTER, "bag.filter");
     addOperator(cvc5::BAG_FOLD, "bag.fold");
+    addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))

@@ -89,6 +89,12 @@ class BagsUtils
   static Node evaluateBagFold(TNode n);
 
   /**
+   * @param n has the form (bag.partition r A) where A is a constant bag
+   * @return a partition of A based on the equivalence relation r
+   */
+  static Node evaluateBagPartition(TNode n);
+
+  /**
    * @param n has the form (bag.filter p A) where A is a constant bag
    * @return A filtered with predicate p
    */

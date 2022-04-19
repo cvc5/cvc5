@@ -246,6 +246,7 @@ class BagsRewriter : public TheoryRewriter
    *  where f: T1 -> T2 -> T2
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
+  BagsRewriteResponse postRewritePartition(const TNode& n) const;
   /**
    *  rewrites for n include:
    *  - (bag.product A (as bag.empty T2)) = (as bag.empty T)

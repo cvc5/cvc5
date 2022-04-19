@@ -80,6 +80,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
+  d_equalityEngine->addFunctionKind(BAG_PARTITION);
   d_equalityEngine->addFunctionKind(TABLE_PRODUCT);
   d_equalityEngine->addFunctionKind(TABLE_PROJECT);
 }

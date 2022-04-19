@@ -1183,6 +1183,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_MAP: return "bag.map";
   case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
+  case kind::BAG_PARTITION: return "bag.partition";
   case kind::TABLE_PRODUCT: return "table.product";
   case kind::TABLE_PROJECT: return "table.project";
 

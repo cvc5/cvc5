@@ -92,6 +92,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_MAP: response = postRewriteMap(n); break;
       case BAG_FILTER: response = postRewriteFilter(n); break;
       case BAG_FOLD: response = postRewriteFold(n); break;
+      case BAG_PARTITION: response = postRewritePartition(n); break;
       case TABLE_PRODUCT: response = postRewriteProduct(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
@@ -645,6 +646,18 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
     }
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_PARTITION);
+  if (n[1].isConst())
+  {
+    Node ret = BagsUtils::evaluateBagPartition(n);
+    return BagsRewriteResponse(ret, Rewrite::MAP_CONST);
+  }
+
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

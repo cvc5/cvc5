@@ -17,11 +17,15 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
+#include "options/options.h"
+#include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "table_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/equality_engine.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -141,6 +145,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_MAP: return evaluateBagMap(n);
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
+    case BAG_PARTITION: return evaluateBagPartition(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
@@ -782,6 +787,96 @@ Node BagsUtils::evaluateBagFold(TNode n)
     }
     ++it;
   }
+  return ret;
+}
+
+Node BagsUtils::evaluateBagPartition(TNode n)
+{
+  Assert(n.getKind() == BAG_PARTITION);
+  Options options;
+  NodeManager* nm = NodeManager::currentNM();
+
+  // Examples
+  // --------
+  // minimum string
+  // - (bag.partition
+  //     ((lambda ((x Int) (y Int)) (= 0 (+ x y)))
+  //     (bag.union_disjoint
+  //       (bag 1 20) (bag (- 1) 50)
+  //       (bag 2 30) (bag (- 2) 60)
+  //       (bag 3 40) (bag (- 3) 70)))
+  //   = (bag.union_disjoint
+  //       (bag.union_disjoint (bag 1 20) (bag (- 1) 50))
+  //       (bag.union_disjoint (bag 2 30) (bag (- 2) 60))
+  //       (bag.union_disjoint (bag 3 40) (bag (- 3) 70)))
+
+  Node r = n[0];  // equivalence relation
+  Node A = n[1];  // bag
+  TypeNode bagType = A.getType();
+  TypeNode partitionType = n.getType();
+  std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
+  Trace("bags-partition") << "elements: " << elements << std::endl;
+  // inefficient disjoint sets algorithm
+  std::map<Node, std::set<Node>> sets;
+  std::map<Node, bool> visited;
+  for (const auto& pair : elements)
+  {
+    std::set<Node> s = {pair.first};
+    sets[pair.first] = s;
+    visited[pair.first] = false;
+  }
+  for (std::map<Node, Rational>::iterator i = elements.begin();
+       i != elements.end();
+       ++i)
+  {
+    std::map<Node, Rational>::iterator j = i;
+    ++j;
+    while (j != elements.end())
+    {
+      Node areEqual = nm->mkNode(APPLY_UF, r, i->first, j->first);
+      areEqual = Rewriter::rewrite(areEqual);
+      Assert(areEqual.isConst())
+          << "Node " << areEqual << " is not a constant" << std::endl;
+      if (areEqual.getConst<bool>())
+      {
+        std::set<Node> s = sets[i->first];
+        s.insert(j->first);
+        sets[i->first] = s;
+        sets[j->first] = s;
+        Trace("bags-partition") << i->first << ", " << j->first << std::endl;
+      }
+      ++j;
+    }
+  }
+  Trace("bags-partition") << "sets: " << sets << std::endl;
+  // build the partition
+  std::map<Node, Rational> parts;
+  for (const auto& pair : sets)
+  {
+    std::vector<Node> bags;
+    for (const Node& node : pair.second)
+    {
+      Trace("bags-partition") << "node: " << node << std::endl;
+      if (visited[node])
+      {
+        continue;
+      }
+      visited[node] = true;
+      Node bag = nm->mkBag(
+          bagType.getBagElementType(), node, nm->mkConstInt(elements[node]));
+      Trace("bags-partition") << "bag: " << bag << std::endl;
+      bags.push_back(bag);
+    }
+    if(bags.empty())
+    {
+      continue ;
+    }
+    Node part = computeDisjointUnion(bagType, bags);
+    Trace("bags-partition") << "part: " << part << std::endl;
+    parts[part] = Rational(1);
+  }
+  Node ret = constructConstantBagFromElements(partitionType, parts);
+  Trace("bags-partition") << "ret: " << ret << std::endl;
   return ret;
 }
 

@@ -3674,6 +3674,36 @@ enum Kind : int32_t
    */
   BAG_FOLD,
   /**
+   * Bag partition.
+   *
+   * \rst
+   * This operator combines elements of a bag into a single value.
+   * (bag.fold :math:`f \; t \; B`) folds the elements of bag :math:`B`
+   * starting with Term :math:`t` and using the combining function :math:`f`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow S_1 \; S_2 \; S_2)`
+   *   - ``2:`` Term of Sort :math:`S_2` (the initial value)
+   *   - ``3:`` Term of bag Sort (Bag :math:`S_1`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  BAG_PARTITION,
+  /**
    * Table cross product.
    *
    * - Arity: ``2``
