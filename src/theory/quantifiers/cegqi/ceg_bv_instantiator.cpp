@@ -19,7 +19,6 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
