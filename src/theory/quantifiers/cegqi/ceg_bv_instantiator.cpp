@@ -55,7 +55,7 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
 };
 
 BvInstantiator::BvInstantiator(Env& env, TypeNode tn, BvInverter* inv)
-    : Instantiator(env, tn), d_inverter(inv), d_inst_id_counter(0)
+    : Instantiator(env, tn), d_inverter(inv), d_util(env), d_inst_id_counter(0)
 {
   // The inverter utility d_inverter is global to all BvInstantiator classes.
   // This must be global since we need to:
@@ -563,7 +563,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     if (options().quantifiers.cegqiBvLinearize && contains_pv[lhs]
         && contains_pv[rhs])
     {
-      Node result = utils::normalizePvEqual(pv, children, contains_pv);
+      Node result = d_util.normalizePvEqual(pv, children, contains_pv);
       if (!result.isNull())
       {
         Trace("cegqi-bv-nl")
@@ -584,11 +584,11 @@ Node BvInstantiator::rewriteTermForSolvePv(
       Node result;
       if (n.getKind() == BITVECTOR_MULT)
       {
-        result = utils::normalizePvMult(pv, children, contains_pv);
+        result = d_util.normalizePvMult(pv, children, contains_pv);
       }
       else
       {
-        result = utils::normalizePvPlus(pv, children, contains_pv);
+        result = d_util.normalizePvPlus(pv, children, contains_pv);
       }
       if (!result.isNull())
       {

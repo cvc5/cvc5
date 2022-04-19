@@ -20,6 +20,7 @@
 
 #include <unordered_map>
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 namespace cvc5::internal {
@@ -104,6 +105,8 @@ class BvInstantiator : public Instantiator
  private:
   /** pointer to the bv inverter class */
   BvInverter* d_inverter;
+  /** Utility class */
+  BvInstantiatorUtil d_util;
   //--------------------------------solved forms
   /** identifier counter, used to allocate ids to each solve form */
   unsigned d_inst_id_counter;
