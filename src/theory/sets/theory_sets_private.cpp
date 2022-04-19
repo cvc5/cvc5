@@ -198,8 +198,6 @@ void TheorySetsPrivate::fullEffortReset()
   Assert(d_equalityEngine->consistent());
   d_fullCheckIncomplete = false;
   d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
-  d_most_common_type.clear();
-  d_most_common_type_term.clear();
   d_card_enabled = false;
   d_rels_enabled = false;
   // reset the state object
@@ -315,8 +313,6 @@ void TheorySetsPrivate::fullEffortCheck()
       if (isSet)
       {
         Assert(tnct.getType().getSetElementType() == tnc);
-        d_most_common_type[eqc] = tnc;
-        d_most_common_type_term[eqc] = tnct;
       }
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
