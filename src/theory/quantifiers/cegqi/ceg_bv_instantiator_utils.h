@@ -20,15 +20,11 @@
 
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-struct BvLinearAttributeId
-{
-};
-using BvLinearAttribute = expr::Attribute<BvLinearAttributeId, bool>;
 
 class BvInstantiatorUtil : protected EnvObj
 {
@@ -105,7 +101,7 @@ class BvInstantiatorUtil : protected EnvObj
   /** Checks whether n is a linear plus */
   bool isLinearPlus(TNode n,
                     TNode pv,
-                    std::unordered_map<Node, bool>& contains_pv)
+                    std::unordered_map<Node, bool>& contains_pv) const;
 };
 
 }  // namespace quantifiers

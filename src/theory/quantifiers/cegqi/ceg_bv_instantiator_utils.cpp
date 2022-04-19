@@ -24,9 +24,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+struct BvLinearAttributeId
+{
+};
+using BvLinearAttribute = expr::Attribute<BvLinearAttributeId, bool>;
+
 BvInstantiatorUtil::BvInstantiatorUtil(Env& env) : EnvObj(env) {}
 
-Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n)
+Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
 {
   bool neg = false;
   Node coeff;
@@ -63,7 +68,7 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n)
 Node BvInstantiatorUtil::normalizePvMult(
     TNode pv,
     const std::vector<Node>& children,
-    std::unordered_map<Node, bool>& contains_pv)
+    std::unordered_map<Node, bool>& contains_pv) const
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
@@ -139,7 +144,7 @@ Node BvInstantiatorUtil::normalizePvMult(
 }
 
 bool BvInstantiatorUtil::isLinearPlus(
-    TNode n, TNode pv, std::unordered_map<Node, bool>& contains_pv)
+    TNode n, TNode pv, std::unordered_map<Node, bool>& contains_pv) const
 {
   Node coeff;
   Assert(n.getAttribute(BvLinearAttribute()));
@@ -161,7 +166,7 @@ bool BvInstantiatorUtil::isLinearPlus(
 Node BvInstantiatorUtil::normalizePvPlus(
     Node pv,
     const std::vector<Node>& children,
-    std::unordered_map<Node, bool>& contains_pv)
+    std::unordered_map<Node, bool>& contains_pv) const
 {
   NodeManager* nm;
   NodeBuilder nb_c(BITVECTOR_ADD);
@@ -223,7 +228,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
     Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
     coeffs = rewrite(coeffs);
     result = pv_mult_coeffs =
-        utils::normalizePvMult(pv, {pv, coeffs}, contains_pv);
+        normalizePvMult(pv, {pv, coeffs}, contains_pv);
   }
 
   if (nb_l.getNumChildren() > 0)
@@ -250,7 +255,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
 Node BvInstantiatorUtil::normalizePvEqual(
     Node pv,
     const std::vector<Node>& children,
-    std::unordered_map<Node, bool>& contains_pv)
+    std::unordered_map<Node, bool>& contains_pv) const
 {
   Assert(children.size() == 2);
 
