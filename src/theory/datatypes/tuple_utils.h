@@ -34,6 +34,13 @@ class TupleUtils
   static Node nthElementOfTuple(Node tuple, int n_th);
 
   /**
+   * @param indices a list of indices for projected elements
+   * @param tuple a node of tuple type
+   * @return the projection of the tuple with the specified indices
+   */
+  static Node getTupleProjection(std::vector<uint32_t> indices, Node tuple);
+
+  /**
    * @param tuple a tuple node of the form (tuple a_1 ... a_n)
    * @return the vector [a_1, ... a_n]
    */

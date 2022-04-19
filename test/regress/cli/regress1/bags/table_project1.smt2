@@ -1,0 +1,8 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-fun A () (Table String Int String Bool))
+(declare-fun B () (Table Int Bool String String))
+(assert (= (bag.count (tuple "a" 0 "b" false) A) 5))
+(assert (= (bag.count (tuple "x" 1 "y" true) A) 10))
+(assert (= B ((_ table.project 1 3 0 2) A)))
+(check-sat)

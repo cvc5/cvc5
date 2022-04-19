@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
+#include "table_project_op.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
@@ -500,17 +501,17 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
 TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
   Assert(n.getKind() == kind::TABLE_PROJECT && n.hasOperator()
-         && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
-  TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+         && n.getOperator().getKind() == kind::TABLE_PROJECT_OP);
+  TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
-  TypeNode bagType = n[2].getType(check);
+  TypeNode bagType = n[0].getType(check);
   if (check)
   {
     if (n.getNumChildren() != 1)
     {
       std::stringstream ss;
       ss << "operands in term " << n << " are " << n.getNumChildren()
-         << ", but TAPLE_PROJECT expects 1 operand.";
+         << ", but TABLE_PROJECT expects 1 operand.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
@@ -522,12 +523,12 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
           "a non-bag is found");
     }
 
-    TypeNode tupleType = n[0].getType(check);
+    TypeNode tupleType = bagType.getBagElementType();
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "TUPLE_PROJECT expects a tuple for " << n[0] << ". Found"
-         << tupleType;
+      ss << "TABLE_PROJECT expects tuple type for " << n[0]
+         << ". Found" << tupleType;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
@@ -547,7 +548,7 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
       }
     }
   }
-  TypeNode tupleType = n[0].getType(check);
+  TypeNode tupleType = bagType.getBagElementType();
   std::vector<TypeNode> types;
   DType dType = tupleType.getDType();
   DTypeConstructor constructor = dType[0];
@@ -555,7 +556,8 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
   {
     types.push_back(constructor.getArgType(index));
   }
-  return nm->mkTupleType(types);
+  TypeNode retTupleType = nm->mkTupleType(types);
+  return nm->mkBagType(retTupleType);
 }
 
 Cardinality BagsProperties::computeCardinality(TypeNode type)

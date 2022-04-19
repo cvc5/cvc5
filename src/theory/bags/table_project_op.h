@@ -28,6 +28,9 @@ namespace cvc5::internal {
  */
 class TableProjectOp : public TupleProjectOp
 {
+ public:
+  explicit TableProjectOp(std::vector<uint32_t> indices);
+  TableProjectOp(const TableProjectOp& op) = default;
 }; /* class TableProjectOp */
 
 /**
