@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -10,28 +10,19 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Arithmetic theory state.
+ * Sparse matrix implementations for different types.
  */
 
-#include "theory/arith/arith_state.h"
+#include "theory/arith/linear/matrix.h"
 
-#include "theory/arith/linear/theory_arith_private.h"
-
+using namespace std;
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
-ArithState::ArithState(Env& env, Valuation val)
-    : TheoryState(env, val), d_parent(nullptr)
-{
-}
-
-bool ArithState::isInConflict() const
-{
-  return d_parent->anyConflict() || d_conflict;
-}
-
-void ArithState::setParent(linear::TheoryArithPrivate* p) { d_parent = p; }
+void NoEffectCCCB::update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) {}
+void NoEffectCCCB::multiplyRow(RowIndex ridx, int sgn){}
+bool NoEffectCCCB::canUseRow(RowIndex ridx) const { return false; }
 
 }  // namespace arith
 }  // namespace theory

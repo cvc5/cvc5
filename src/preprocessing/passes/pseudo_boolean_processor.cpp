@@ -22,7 +22,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
@@ -78,13 +78,13 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     return false;
   }
 
-  if (!Polynomial::isMember(l))
+  if (!linear::Polynomial::isMember(l))
   {
     Trace("pbs::rewrites") << "not polynomial" << assertion << std::endl;
     return false;
   }
 
-  Polynomial p = Polynomial::parsePolynomial(l);
+  linear::Polynomial p = linear::Polynomial::parsePolynomial(l);
   clear();
   if (negated)
   {
@@ -112,9 +112,9 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   Assert(d_off.value().isIntegral());
 
   int adj = negated ? -1 : 1;
-  for (Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
+  for (linear::Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
   {
-    Monomial m = *i;
+    linear::Monomial m = *i;
     const Rational& coeff = m.getConstant().getValue();
     if (!(coeff.isOne() || coeff.isNegativeOne()))
     {
@@ -122,7 +122,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     }
     Assert(coeff.sgn() != 0);
 
-    const VarList& vl = m.getVarList();
+    const linear::VarList& vl = m.getVarList();
     Node v = vl.getNode();
 
     if (!isPseudoBoolean(v))
