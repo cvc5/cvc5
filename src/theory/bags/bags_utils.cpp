@@ -17,8 +17,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
-#include "options/options.h"
-#include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "table_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -793,7 +791,6 @@ Node BagsUtils::evaluateBagFold(TNode n)
 Node BagsUtils::evaluateBagPartition(TNode n)
 {
   Assert(n.getKind() == BAG_PARTITION);
-  Options options;
   NodeManager* nm = NodeManager::currentNM();
 
   // Examples
