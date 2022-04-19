@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
+
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"

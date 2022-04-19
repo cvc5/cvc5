@@ -24,7 +24,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInstantiatorUtil::BvInstantiatorUtil(Env& env) : EnvObj(env){}
+BvInstantiatorUtil::BvInstantiatorUtil(Env& env) : EnvObj(env) {}
 
 Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n)
 {
@@ -60,9 +60,10 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n)
   return coeff;
 }
 
-Node BvInstantiatorUtil::normalizePvMult(TNode pv,
-                     const std::vector<Node>& children,
-                     std::unordered_map<Node, bool>& contains_pv)
+Node BvInstantiatorUtil::normalizePvMult(
+    TNode pv,
+    const std::vector<Node>& children,
+    std::unordered_map<Node, bool>& contains_pv)
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
@@ -137,9 +138,8 @@ Node BvInstantiatorUtil::normalizePvMult(TNode pv,
   return result;
 }
 
-bool BvInstantiatorUtil::isLinearPlus(TNode n,
-                  TNode pv,
-                  std::unordered_map<Node, bool>& contains_pv)
+bool BvInstantiatorUtil::isLinearPlus(
+    TNode n, TNode pv, std::unordered_map<Node, bool>& contains_pv)
 {
   Node coeff;
   Assert(n.getAttribute(BvLinearAttribute()));
@@ -158,9 +158,10 @@ bool BvInstantiatorUtil::isLinearPlus(TNode n,
   return true;
 }
 
-Node BvInstantiatorUtil::normalizePvPlus(Node pv,
-                     const std::vector<Node>& children,
-                     std::unordered_map<Node, bool>& contains_pv)
+Node BvInstantiatorUtil::normalizePvPlus(
+    Node pv,
+    const std::vector<Node>& children,
+    std::unordered_map<Node, bool>& contains_pv)
 {
   NodeManager* nm;
   NodeBuilder nb_c(BITVECTOR_ADD);
@@ -246,9 +247,10 @@ Node BvInstantiatorUtil::normalizePvPlus(Node pv,
   return result;
 }
 
-Node BvInstantiatorUtil::normalizePvEqual(Node pv,
-                      const std::vector<Node>& children,
-                      std::unordered_map<Node, bool>& contains_pv)
+Node BvInstantiatorUtil::normalizePvEqual(
+    Node pv,
+    const std::vector<Node>& children,
+    std::unordered_map<Node, bool>& contains_pv)
 {
   Assert(children.size() == 2);
 
