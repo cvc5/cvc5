@@ -1448,6 +1448,12 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK TABLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1589,6 +1595,13 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
+    | TABLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::TABLE_PROJECT;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_PROJECT, numerals);
+       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
@@ -2197,6 +2210,7 @@ FORALL_TOK        : 'forall';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
+TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

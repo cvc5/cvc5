@@ -1,6 +1,6 @@
 ; EXPECT: sat
 (set-logic ALL)
-(set-option :check-proofs true)
+(set-option :produce-proofs true)
 (declare-const x Bool)
 (declare-const y Bool)
 (declare-const z Bool)
