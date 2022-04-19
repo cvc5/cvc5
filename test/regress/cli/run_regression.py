@@ -134,10 +134,7 @@ class UnsatCoreTester(Tester):
     def applies(self, benchmark_info):
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
+            and "unsat" in benchmark_info.expected_output.split()
             and "--no-produce-unsat-cores" not in benchmark_info.command_line_args
             and "--no-check-unsat-cores" not in benchmark_info.command_line_args
             and "--check-unsat-cores" not in benchmark_info.command_line_args
@@ -162,13 +159,7 @@ class ProofTester(Tester):
         expected_output_lines = benchmark_info.expected_output.split()
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
-            and "--no-produce-proofs" not in benchmark_info.command_line_args
-            and "--no-check-proofs" not in benchmark_info.command_line_args
-            and "--check-proofs" not in benchmark_info.command_line_args
+            and "unsat" in benchmark_info.expected_output.split()
         )
 
     def run(self, benchmark_info):
