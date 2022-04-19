@@ -319,7 +319,8 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
 }
 
 bool TypeNode::isComparableTo(TypeNode t) const {
-  if(*this == t) {
+  if(*this == t)
+  {
     return true;
   }
   return isSubtypeOf(t) || t.isSubtypeOf(*this);

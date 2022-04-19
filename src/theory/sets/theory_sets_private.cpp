@@ -225,19 +225,9 @@ void TheorySetsPrivate::fullEffortCheck()
     while (!eqcs_i.isFinished())
     {
       Node eqc = (*eqcs_i);
-      bool isSet = false;
       TypeNode tn = eqc.getType();
       d_state.registerEqc(tn, eqc);
       eqcTypeCount[tn]++;
-      // common type node and term
-      TypeNode tnc;
-      Node tnct;
-      if (tn.isSet())
-      {
-        isSet = true;
-        tnc = tn.getSetElementType();
-        tnct = eqc;
-      }
       Trace("sets-eqc") << "[" << eqc << "] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
       while (!eqc_i.isFinished())
@@ -255,18 +245,6 @@ void TheorySetsPrivate::fullEffortCheck()
           }
         }
         TypeNode tnn = n.getType();
-        if (isSet)
-        {
-          Assert(tnn.isSet());
-          TypeNode tnnel = tnn.getSetElementType();
-          tnc = TypeNode::mostCommonTypeNode(tnc, tnnel);
-          Assert(!tnc.isNull());
-          // update the common type term
-          if (tnc == tnnel)
-          {
-            tnct = n;
-          }
-        }
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
         Kind nk = n.getKind();
@@ -309,10 +287,6 @@ void TheorySetsPrivate::fullEffortCheck()
           d_rels_enabled = true;
         }
         ++eqc_i;
-      }
-      if (isSet)
-      {
-        Assert(tnct.getType().getSetElementType() == tnc);
       }
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
