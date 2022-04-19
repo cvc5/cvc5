@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -10,28 +10,26 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Arithmetic theory state.
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
  */
 
-#include "theory/arith/arith_state.h"
-
-#include "theory/arith/linear/theory_arith_private.h"
+#include "theory/arith/linear/arithvar.h"
+#include <limits>
+#include <set>
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
-ArithState::ArithState(Env& env, Valuation val)
-    : TheoryState(env, val), d_parent(nullptr)
-{
+const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
+
+bool debugIsASet(const std::vector<ArithVar>& variables){
+  std::set<ArithVar> asSet(variables.begin(), variables.end());
+  return asSet.size() == variables.size();
 }
-
-bool ArithState::isInConflict() const
-{
-  return d_parent->anyConflict() || d_conflict;
-}
-
-void ArithState::setParent(linear::TheoryArithPrivate* p) { d_parent = p; }
 
 }  // namespace arith
 }  // namespace theory

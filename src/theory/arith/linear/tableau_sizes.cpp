@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -10,28 +10,27 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Arithmetic theory state.
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
  */
 
-#include "theory/arith/arith_state.h"
-
-#include "theory/arith/linear/theory_arith_private.h"
+#include "base/output.h"
+#include "theory/arith/linear/tableau_sizes.h"
+#include "theory/arith/linear/tableau.h"
 
 namespace cvc5::internal {
 namespace theory {
-namespace arith {
+namespace arith::linear {
 
-ArithState::ArithState(Env& env, Valuation val)
-    : TheoryState(env, val), d_parent(nullptr)
-{
+uint32_t TableauSizes::getRowLength(ArithVar b) const {
+  return d_tab->basicRowLength(b);
 }
 
-bool ArithState::isInConflict() const
-{
-  return d_parent->anyConflict() || d_conflict;
+uint32_t TableauSizes::getColumnLength(ArithVar x) const {
+  return d_tab->getColLength(x);
 }
-
-void ArithState::setParent(linear::TheoryArithPrivate* p) { d_parent = p; }
 
 }  // namespace arith
 }  // namespace theory
