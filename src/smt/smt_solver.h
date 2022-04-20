@@ -91,8 +91,6 @@ class SmtSolver : protected EnvObj
    * maintains a current set of (unprocessed) assertions which are pushed
    * into the internal members of this class (TheoryEngine and PropEngine)
    * during this call.
-   * @param assumptions The assumptions for this check-sat call, which are
-   * temporary assertions.
    */
   Result checkSatisfiability(Assertions& as,
                              const std::vector<Node>& assumptions);
@@ -118,6 +116,8 @@ class SmtSolver : protected EnvObj
   //------------------------------------------ end access methods
 
  private:
+  /** Whether we track information necessary for deep restarts */
+  bool canDeepRestart() const;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
@@ -126,8 +126,9 @@ class SmtSolver : protected EnvObj
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
   std::unique_ptr<prop::PropEngine> d_propEngine;
-  /** Reconstructed asserted */
+  /** The exact list of preprocessed assertions we sent to the PropEngine */
   std::vector<Node> d_ppAssertions;
+  /** The skolem map associated with d_ppAssertions */
   std::unordered_map<size_t, Node> d_ppSkolemMap;
   /** All learned literals TEMPORARY */
   std::unordered_set<Node> d_allLearnedLits;

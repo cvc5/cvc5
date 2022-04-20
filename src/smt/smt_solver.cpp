@@ -238,9 +238,9 @@ void SmtSolver::processAssertions(Assertions& as)
     // to the actual preprocessed learned literals, as the input may have
     // undergone further preprocessing.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    // if we deep restart, we always remember the preprocessed formulas, which
-    // are the basis for the next check-sat.
-    if (options().smt.deepRestartMode != options::DeepRestartMode::NONE)
+    // if we can deep restart, we always remember the preprocessed formulas,
+    // which are the basis for the next check-sat.
+    if (canDeepRestart())
     {
       // incompatible with global negation
       Assert(!as.isGlobalNegated());
@@ -276,7 +276,7 @@ void SmtSolver::processAssertions(Assertions& as)
 
 void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 {
-  Assert(options().smt.deepRestartMode != options::DeepRestartMode::NONE);
+  Assert(canDeepRestart());
   Assert(!zll.empty());
   Trace("deep-restart") << "Have " << zll.size()
                         << " zero level learned literals" << std::endl;
@@ -318,6 +318,11 @@ void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 
   // we now finish init to reconstruct prop engine and theory engine
   finishInit();
+}
+
+bool SmtSolver::canDeepRestart() const
+{
+  return options().smt.deepRestartMode != options::DeepRestartMode::NONE;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

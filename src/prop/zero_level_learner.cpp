@@ -187,12 +187,6 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
     d_nonZeroAssert = true;
     d_assertNoLearnCount++;
   }
-  else if (alevel != 0)
-  {
-    Trace("level-zero-dec") << "First non-zero: " << assertion << std::endl;
-    d_nonZeroAssert = true;
-    d_assertNoLearnCount++;
-  }
   else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
   {
     // remember we've processed this
