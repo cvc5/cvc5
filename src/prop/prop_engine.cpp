@@ -711,5 +711,10 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
   return d_theoryProxy->getLearnedZeroLevelLiterals(ltype);
 }
 
+std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
+{
+  return d_theoryProxy->getLearnedZeroLevelLiteralsForRestart();
+}
+
 }  // namespace prop
 }  // namespace cvc5::internal
