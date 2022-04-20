@@ -52,6 +52,7 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
       // do not letify id 0
       if (id > 0)
       {
+        Trace("alethe-printer") << "Node " << cur << " has id " << id << "\n";
         // if cur has already been declared, make the let variable
         if (d_declared.find(cur) != d_declared.end())
         {
@@ -62,13 +63,23 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         }
         // otherwise declare it and continue visiting
         d_declared.insert(cur);
-
-
       }
       if (cur.isClosure())
       {
-        // do not convert beneath quantifiers
-        visited[cur] = cur;
+        // we do not convert beneath quantifiers, so we need to finish the
+        // traversal here. However if id > 0, then we need to declare cur's
+        // variable.
+        if (id == 0)
+        {
+          visited[cur] = cur;
+          continue;
+        }
+        std::stringstream ss;
+        ss << "(! ";
+        options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+        cur.toStream(ss, -1, 0);
+        ss << " :named @p_" << id << ")";
+        visited[cur] = nm->mkRawSymbol(ss.str(), cur.getType());
         continue;
       }
       visited[cur] = Node::null();
@@ -125,7 +136,6 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
         ret.toStream(ss, -1, 0);
         ss << " :named @p_" << id << ")";
-        // TODO use nm->mkRawSymbol after merging main
         visited[cur] = nm->mkRawSymbol(ss.str(), ret.getType());
         continue;
       }
