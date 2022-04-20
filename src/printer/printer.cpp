@@ -214,6 +214,13 @@ void Printer::toStreamCmdDeclarePool(std::ostream& out,
   printUnknownCommand(out, "declare-pool");
 }
 
+void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
+                                          Node fun,
+                                          const std::string& binName) const
+{
+  printUnknownCommand(out, "declare-oracle-fun");
+}
+
 void Printer::toStreamCmdDeclareType(std::ostream& out,
                                      TypeNode type) const
 {
