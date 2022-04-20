@@ -22,6 +22,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/justification_strategy.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -163,6 +164,17 @@ TrustNode PropEngine::removeItes(TNode node,
                                  std::vector<theory::SkolemLemma>& newLemmas)
 {
   return d_theoryProxy->removeItes(node, newLemmas);
+}
+
+void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
+                                            const Node& rhs) const
+{
+  d_theoryProxy->notifyTopLevelSubstitution(lhs, rhs);
+  if (isOutputOn(OutputTag::SUBS))
+  {
+    Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
+    output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
+  }
 }
 
 void PropEngine::assertInputFormulas(
@@ -315,6 +327,17 @@ void PropEngine::requirePhase(TNode n, bool phase) {
 bool PropEngine::isDecision(Node lit) const {
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
+std::vector<Node> PropEngine::getPropDecisions() const
+{
+  std::vector<Node> decisions; 
+  std::vector<SatLiteral> miniDecisions = d_satSolver->getDecisions();
+  for (SatLiteral d : miniDecisions)
+  {
+    decisions.push_back(d_cnfStream->getNode(d));
+  }
+  return decisions;
 }
 
 int32_t PropEngine::getDecisionLevel(Node lit) const
@@ -682,9 +705,10 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   return cdp.getProofFor(fnode);
 }
 
-std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
+    modes::LearnedLitType ltype) const
 {
-  return d_theoryProxy->getLearnedZeroLevelLiterals();
+  return d_theoryProxy->getLearnedZeroLevelLiterals(ltype);
 }
 
 }  // namespace prop

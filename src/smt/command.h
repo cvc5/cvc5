@@ -464,6 +464,30 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
                     internal::Language::LANG_AUTO) const override;
 }; /* class DeclarePoolCommand */
 
+class CVC5_EXPORT DeclareOracleFunCommand : public Command
+{
+ public:
+  DeclareOracleFunCommand(Term func);
+  DeclareOracleFunCommand(Term func, const std::string& binName);
+  Term getFunction() const;
+  const std::string& getBinaryName() const;
+
+  void invoke(Solver* solver, SymbolManager* sm) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
+
+ protected:
+  /** The oracle function */
+  Term d_func;
+  /** The binary name, or "" if none is provided */
+  std::string d_binName;
+};
+
 class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:

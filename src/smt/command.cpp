@@ -1120,7 +1120,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class DeclareFunctionCommand                                               */
+/* class DeclarePoolCommand                                               */
 /* -------------------------------------------------------------------------- */
 
 DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
@@ -1171,6 +1171,55 @@ void DeclarePoolCommand::toStream(std::ostream& out,
       d_func.toString(),
       sortToTypeNode(d_sort),
       termVectorToNodes(d_initValue));
+}
+
+/* -------------------------------------------------------------------------- */
+/* class DeclareOracleFunCommand */
+/* -------------------------------------------------------------------------- */
+
+DeclareOracleFunCommand::DeclareOracleFunCommand(Term func)
+    : d_func(func), d_binName("")
+{
+}
+DeclareOracleFunCommand::DeclareOracleFunCommand(Term func,
+                                                 const std::string& binName)
+    : d_func(func), d_binName(binName)
+{
+}
+
+Term DeclareOracleFunCommand::getFunction() const { return d_func; }
+const std::string& DeclareOracleFunCommand::getBinaryName() const
+{
+  return d_binName;
+}
+
+void DeclareOracleFunCommand::invoke(Solver* solver, SymbolManager* sm)
+{
+  // Notice that the oracle function is already declared by the parser so that
+  // the symbol is bound eagerly.
+  // mark that it will be printed in the model
+  sm->addModelDeclarationTerm(d_func);
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Command* DeclareOracleFunCommand::clone() const
+{
+  DeclareOracleFunCommand* dfc = new DeclareOracleFunCommand(d_func, d_binName);
+  return dfc;
+}
+
+std::string DeclareOracleFunCommand::getCommandName() const
+{
+  return "declare-oracle-fun";
+}
+
+void DeclareOracleFunCommand::toStream(std::ostream& out,
+                                       int toDepth,
+                                       size_t dag,
+                                       Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclareOracleFun(
+      out, termToNode(d_func), d_binName);
 }
 
 /* -------------------------------------------------------------------------- */

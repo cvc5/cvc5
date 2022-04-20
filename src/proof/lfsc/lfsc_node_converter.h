@@ -115,8 +115,15 @@ class LfscNodeConverter : public NodeConverter
                                         size_t variant = 0);
   /** get name for the name of node v, where v should be a variable */
   std::string getNameForUserNameOf(Node v);
+  /** Get the declared symbols (variables) that we have converted */
+  const std::unordered_set<Node>& getDeclaredSymbols() const;
+  /** Get the declared types that we have converted */
+  const std::unordered_set<TypeNode>& getDeclaredTypes() const;
 
  private:
+  /** get name for a Node/TypeNode whose id is id and whose name is name */
+  std::string getNameForUserNameOfInternal(uint64_t id,
+                                           const std::string& name);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
@@ -165,9 +172,10 @@ class LfscNodeConverter : public NodeConverter
   std::unordered_set<Node> d_symbols;
   /**
    * Mapping from user symbols to the (list of) symbols with that name. This
-   * is used to resolve symbol overloading, which is forbidden in LFSC.
+   * is used to resolve symbol overloading, which is forbidden in LFSC. We use
+   * Node identifiers, since this map is used for both Node and TypeNode.
    */
-  std::map<std::string, std::vector<Node> > d_userSymbolList;
+  std::map<std::string, std::vector<uint64_t> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */
@@ -180,6 +188,10 @@ class LfscNodeConverter : public NodeConverter
   std::map<TypeNode, Node> d_typeAsNode;
   /** Used for interpreted builtin parametric sorts */
   std::map<Kind, Node> d_typeKindToNodeCons;
+  /** The set of declared variables */
+  std::unordered_set<Node> d_declVars;
+  /** The set of declared types */
+  std::unordered_set<TypeNode> d_declTypes;
 };
 
 }  // namespace proof

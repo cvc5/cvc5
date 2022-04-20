@@ -114,6 +114,14 @@ class SineSolver : protected EnvObj
    */
   bool hasExactModelValue(TNode n) const;
 
+  /**
+   * Make the lemma for the phase shift of arguments to SINE x and y, where
+   * s is the (integral) shift. The lemma conceptually says that y is
+   * in the bounds [-pi, pi] and y is offset from x by an integral factor of
+   * 2*pi.
+   */
+  static Node getPhaseShiftLemma(const Node& x, const Node& y, const Node& s);
+
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,
                                         TNode c,
