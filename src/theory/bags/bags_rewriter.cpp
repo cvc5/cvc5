@@ -42,8 +42,8 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(Rewriter * r, HistogramStat<Rewrite>* statistics)
-    : d_rewriter(r),d_statistics(statistics)
+BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
+    : d_rewriter(r), d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -656,7 +656,7 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
   if (n[1].isConst())
   {
     Node ret = BagsUtils::evaluateBagPartition(d_rewriter, n);
-    return BagsRewriteResponse(ret, Rewrite::MAP_CONST);
+    return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
   }
 
   return BagsRewriteResponse(n, Rewrite::NONE);
