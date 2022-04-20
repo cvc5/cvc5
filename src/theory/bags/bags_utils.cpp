@@ -853,8 +853,9 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
 
   // construct the partition parts
   std::map<Node, Rational> parts;
-  for (const auto& [_, eqc] : sets)
+  for (const std::pair<Node, std::set<Node>>& pair : sets)
   {
+    const std::set<Node>& eqc = pair.second;
     if (eqc.empty())
     {
       continue;
