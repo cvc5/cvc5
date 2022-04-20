@@ -145,7 +145,7 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
   Trace("level-zero") << d_ldb.toStringDebug();
 }
 
-void ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
+bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
 {
   // check if at level zero
   if (d_nonZeroAssert.get())
@@ -166,6 +166,7 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
     // process what we should do with the learned literal
     modes::LearnedLitType ltype = computeLearnedLiteralType(assertion);
     processLearnedLiteral(assertion, ltype);
+    return true;
   }
   return true;
 }

@@ -54,8 +54,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =
-      options().smt.deepRestartMode != options::DeepRestartMode::NONE
-      || isOutputOn(OutputTag::LEARNED_LITS)
+      isOutputOn(OutputTag::LEARNED_LITS)
       || options().smt.produceLearnedLiterals;
   if (trackZeroLevel)
   {
@@ -140,7 +139,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     d_queue.pop();
     if (d_zll != nullptr)
     {
-      // check if this corresponds to a zero-level asserted literal
       if (d_stopSearch.get())
       {
         break;
