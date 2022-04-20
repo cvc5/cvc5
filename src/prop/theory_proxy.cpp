@@ -85,15 +85,6 @@ void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
   }
 }
 
-void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
-                                             const Node& rhs) const
-{
-  if (d_zll != nullptr)
-  {
-    d_zll->notifyTopLevelSubstitution(lhs, rhs);
-  }
-}
-
 void TheoryProxy::notifyInputFormulas(
     const std::vector<Node>& assertions,
     std::unordered_map<size_t, Node>& skolemMap)
