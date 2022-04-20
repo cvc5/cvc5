@@ -1580,6 +1580,15 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
   out << ')' << std::endl;
 }
 
+void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
+                                              Node fun,
+                                              const std::string& binName) const
+{
+  out << "(declare-oracle-fun " << fun << " ";
+  toStreamDeclareType(out, fun.getType());
+  out << " " << binName << ")" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdDeclarePool(
     std::ostream& out,
     const std::string& id,
