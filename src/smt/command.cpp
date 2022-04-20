@@ -373,10 +373,6 @@ void PushCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    for (uint32_t i = 0; i < d_nscopes; i++)
-    {
-      sm->pushScope(true);
-    }
     solver->push(d_nscopes);
     d_commandStatus = CommandSuccess::instance();
   }
@@ -407,10 +403,6 @@ void PopCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    for (uint32_t i = 0; i < d_nscopes; i++)
-    {
-      sm->popScope();
-    }
     solver->pop(d_nscopes);
     d_commandStatus = CommandSuccess::instance();
   }

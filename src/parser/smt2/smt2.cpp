@@ -1277,6 +1277,11 @@ std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
     }
     nscopes = 1;
   }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    pushScope(true);
+  }
   return std::make_unique<PushCommand>(*nscopes);
 }
 
@@ -1293,6 +1298,11 @@ std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
           "(pop).  Maybe you want (pop 1)?");
     }
     nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    popScope();
   }
   return std::make_unique<PopCommand>(*nscopes);
 }
