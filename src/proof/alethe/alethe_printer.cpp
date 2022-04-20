@@ -16,31 +16,211 @@
 #include "proof/alethe/alethe_printer.h"
 
 #include <iostream>
+#include <sstream>
 #include <unordered_map>
 
+#include "options/expr_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5::internal {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter() {}
+AletheLetBinding::AletheLetBinding(uint32_t thresh) : LetBinding(thresh) {}
+
+Node AletheLetBinding::convert(Node n, const std::string& prefix)
+{
+  if (d_letMap.empty())
+  {
+    return n;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      uint32_t id = getId(cur);
+      // do not letify id 0
+      if (id > 0)
+      {
+        // if cur has already been declared, make the let variable
+        if (d_declared.find(cur) != d_declared.end())
+        {
+          std::stringstream ss;
+          ss << prefix << id;
+          visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+          continue;
+        }
+        // otherwise declare it and continue visiting
+        d_declared.insert(cur);
+
+
+      }
+      if (cur.isClosure())
+      {
+        // do not convert beneath quantifiers
+        visited[cur] = cur;
+        continue;
+      }
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      // we insert in reverse order to guarantee that first (left-to-right)
+      // occurrence, if more than one equal children of id > 0, is the one that
+      // is declared rather than replaced
+      visit.insert(visit.end(), cur.rbegin(), cur.rend());
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      uint32_t id;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        children.push_back(it->second);
+        // if cn changed and if it has id > 0 and is *not* a variable, then
+        // necessarily it is being declared, and from now on when it occurs it
+        // must be mapped to its variable
+        if (cn != it->second)
+        {
+          childChanged = true;
+          id = getId(cn);
+          if (id > 0)
+          {
+            std::stringstream ss;
+            ss << prefix << id;
+            visited[cn] = nm->mkBoundVar(ss.str(), cn.getType());
+          }
+        }
+
+      }
+      if (childChanged)
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      id = getId(cur);
+      // if cur has id bigger than 0, it should be letified. If we are here
+      // is because it's being declared and this is the first time it's
+      // re-visited. So we turn it into a declaration (! ret :named @p_{id})
+      if (id > 0)
+      {
+        std::stringstream ss;
+        ss << "(! ";
+        options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+        ret.toStream(ss, -1, 0);
+        ss << " :named @p_" << id << ")";
+        // TODO use nm->mkRawSymbol after merging main
+        visited[cur] = nm->mkRawSymbol(ss.str(), ret.getType());
+        continue;
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
+
+LetUpdaterPfCallback::LetUpdaterPfCallback(AletheLetBinding& lbind)
+    : d_lbind(lbind)
+{
+}
+
+LetUpdaterPfCallback::~LetUpdaterPfCallback() {}
+
+bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                        const std::vector<Node>& fa,
+                                        bool& continueUpdate)
+{
+  // We do this here so we do not go into update, as we are never updating the
+  // proof node, not even do we pass a node manager to the proof node updater.
+  const std::vector<Node>& args = pn->getArguments();
+  // Letification done on the converted terms and potentially on arguments
+  AlwaysAssert(args.size() > 2)
+      << "res: " << pn->getResult() << "\nid: " << getAletheRule(args[0]);
+  for (size_t i = 2, size = args.size(); i < size; ++i)
+  {
+    Trace("alethe-printer") << "Process " << args[i] << "\n";
+    d_lbind.process(args[i]);
+  }
+
+  return false;
+}
+
+bool LetUpdaterPfCallback::update(Node res,
+                                  PfRule id,
+                                  const std::vector<Node>& children,
+                                  const std::vector<Node>& args,
+                                  CDProof* cdp,
+                                  bool& continueUpdate)
+{
+  return false;
+}
+
+AletheProofPrinter::AletheProofPrinter()
+    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
+                                          : 0),
+      d_cb(new LetUpdaterPfCallback(d_lbind))
+{
+}
+
+void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
+{
+  out << d_lbind.convert(n, "@p_");
+}
 
 void AletheProofPrinter::print(std::ostream& out,
                                std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
+  std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
+  AlwaysAssert(innerPf);
+  // Traverse the proof node to letify the (converted) conclusions of proof
+  // steps. TODO This traversal will collect the skolems to de defined.
+  ProofNodeUpdater updater(nullptr, *(d_cb.get()), false, false);
+  Trace("alethe-printer") << "- letify.\n";
+  updater.process(innerPf);
+
+  if (options::defaultDagThresh())
+  {
+    std::vector<Node> letList;
+    d_lbind.letify(letList);
+    for (TNode n : letList)
+    {
+      Trace("alethe-printer")
+          << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+    }
+  }
+
+  Trace("alethe-printer") << "- Print assumptions.\n";
   std::unordered_map<Node, std::string> assumptions;
   const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
   for (size_t i = 3, size = args.size(); i < size; i++)
   {
-    Trace("alethe-printer") << "... print assumption " << args[i] << std::endl;
-    out << "(assume a" << i - 3 << " " << args[i] << ")\n";
+    // assumptions are always being declared
+    out << "(assume a" << i - 3 << " ";
+    printTerm(out, args[i]);
+    out << ")\n";
     assumptions[args[i]] = "a" + std::to_string(i - 3);
   }
-
   // Then, print the rest of the proof node
   uint32_t start_t = 1;
   std::unordered_map<std::shared_ptr<ProofNode>, std::string> steps = {};
@@ -125,6 +305,8 @@ std::string AletheProofPrinter::printInternal(
 
     // If the subproof is a bind the arguments need to be printed as
     // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
+    //
+    // Note that since these are variables there is no need to letify.
     if (arule == AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
@@ -149,7 +331,9 @@ std::string AletheProofPrinter::printInternal(
             current_prefix + "a" + std::to_string(i - 3);
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
-        out << "(assume " << assumption_name << " " << args[i] << ")\n";
+        out << "(assume " << assumption_name << " ";
+        printTerm(out, args[i]);
+        out << ")\n";
         assumptions[args[i]] = assumption_name;
         current_assumptions.push_back(assumption_name);
       }
@@ -173,7 +357,9 @@ std::string AletheProofPrinter::printInternal(
                             << " " << arule << " / " << args << std::endl;
 
     current_prefix.pop_back();
-    out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
+    out << "(step " << current_prefix << " ";
+    printTerm(out, args[2]);
+    out << " :rule " << arule;
 
     // Reset steps array to the steps before the subproof since steps inside the
     // subproof cannot be accessed anymore
@@ -195,8 +381,7 @@ std::string AletheProofPrinter::printInternal(
       out << " :discharge (";
       for (size_t j = 0, size = current_assumptions.size(); j < size; j++)
       {
-        out << current_assumptions[j]
-            << (j != current_assumptions.size() - 1 ? " " : "");
+        out << current_assumptions[j] << (j != current_assumptions.size() - 1 ? " " : "");
       }
       out << ")";
     }
@@ -218,7 +403,9 @@ std::string AletheProofPrinter::printInternal(
                           << " " << current_t << std::endl;
   current_step_id++;
 
-  out << "(step " << current_t << " " << args[2] << " :rule " << arule;
+  out << "(step " << current_t << " ";
+  printTerm(out, args[2]);
+  out << " :rule " << arule;
   if (args.size() > 3)
   {
     out << " :args (";
@@ -226,11 +413,13 @@ std::string AletheProofPrinter::printInternal(
     {
       if (arule == AletheRule::FORALL_INST)
       {
-        out << "(:= " << args[i][0] << " " << args[i][1] << ")";
+        out << "(:= " << args[i][0] << " ";
+        printTerm(out, args[i][1]);
+        out << ")";
       }
       else
       {
-        out << args[i];
+        printTerm(out, args[i]);
       }
       if (i != args.size() - 1)
       {

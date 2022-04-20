@@ -18,11 +18,59 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PRINTER_H
 #define CVC4__PROOF__ALETHE_PROOF_PRINTER_H
 
+#include "printer/let_binding.h"
 #include "proof/proof_node.h"
+#include "proof/proof_node_updater.h"
 
 namespace cvc5::internal {
 
 namespace proof {
+
+class AletheLetBinding : public LetBinding
+{
+ public:
+  AletheLetBinding(uint32_t thresh);
+
+  /**
+   * Convert n based on the state of the let binding. This replaces all
+   * letified subterms of n with a fresh variable whose name prefix is the
+   * given one.
+   *
+   * @param n The node to convert
+   * @param prefix The prefix of variables to convert
+   * @return the converted node.
+   */
+  Node convert(Node n, const std::string& prefix);
+
+ private:
+  std::unordered_set<Node> d_declared;
+};
+
+class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
+{
+ public:
+  LetUpdaterPfCallback(AletheLetBinding& lbind);
+  ~LetUpdaterPfCallback();
+  /**
+   * Initialize, called once for each new ProofNode to process. This
+   * initializes static information to be used by successive calls to update.
+   */
+  void initializeUpdate();
+  /** Update the proof node iff has the LEAN_RULE id. */
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
+                    bool& continueUpdate) override;
+  /** Update the proof rule application. */
+  bool update(Node res,
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp,
+              bool& continueUpdate) override;
+
+ protected:
+  AletheLetBinding& d_lbind;
+};
 
 /**
  * The Alethe printer, which prints proof nodes in a Alethe proof, according to
@@ -73,6 +121,14 @@ class AletheProofPrinter
       std::unordered_map<std::shared_ptr<ProofNode>, std::string>& steps,
       std::string current_prefix,
       uint32_t& current_step_id);
+
+  void printTerm(std::ostream& out, TNode n);
+
+
+  /** The let binder for printing with sharing. */
+  AletheLetBinding d_lbind;
+
+  std::unique_ptr<LetUpdaterPfCallback> d_cb;
 };
 
 }  // namespace proof
