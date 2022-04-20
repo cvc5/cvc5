@@ -787,7 +787,7 @@ Node BagsUtils::evaluateBagFold(TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateBagPartition(Rewriter * rewriter, TNode n)
+Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
 {
   Assert(n.getKind() == BAG_PARTITION);
   NodeManager* nm = NodeManager::currentNM();
@@ -815,6 +815,7 @@ Node BagsUtils::evaluateBagPartition(Rewriter * rewriter, TNode n)
   std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
   Trace("bags-partition") << "elements: " << elements << std::endl;
   // inefficient disjoint sets algorithm
+  // a map from elements to their equivalent class
   std::map<Node, std::set<Node>> sets;
   std::map<Node, bool> visited;
   for (const auto& pair : elements)
@@ -865,9 +866,9 @@ Node BagsUtils::evaluateBagPartition(Rewriter * rewriter, TNode n)
       Trace("bags-partition") << "bag: " << bag << std::endl;
       bags.push_back(bag);
     }
-    if(bags.empty())
+    if (bags.empty())
     {
-      continue ;
+      continue;
     }
     Node part = computeDisjointUnion(bagType, bags);
     Trace("bags-partition") << "part: " << part << std::endl;

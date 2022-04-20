@@ -3677,25 +3677,22 @@ enum Kind : int32_t
    * Bag partition.
    *
    * \rst
-   * This operator combines elements of a bag into a single value.
-   * (bag.fold :math:`f \; t \; B`) folds the elements of bag :math:`B`
-   * starting with Term :math:`t` and using the combining function :math:`f`.
+   * This operator partitions of a bag of elements into disjoint bags.
+   * (bag.partition :math:`r \; t \; B`) partitions the elements of bag :math:`B`
+   * of type :math:`(Bag \; E)` based on the equivalence relations :math:`r` of
+   * type :math:`(\rightarrow \; E \; E \; Bool)`.
+   * It returns a bag of bags of type :math:`(Bag \; (Bag \; E))`.
    *
    * - Arity: ``2``
    *
-   *   - ``1:`` Term of function Sort :math:`(\rightarrow S_1 \; S_2 \; S_2)`
-   *   - ``2:`` Term of Sort :math:`S_2` (the initial value)
-   *   - ``3:`` Term of bag Sort (Bag :math:`S_1`)
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow \; E \; E \; Bool)`
+   *   - ``2:`` Term of bag Sort (Bag :math:`E`)
    * \endrst
    *
    * - Create Term of this Kind with:
    *
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
