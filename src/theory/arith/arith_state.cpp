@@ -15,7 +15,7 @@
 
 #include "theory/arith/arith_state.h"
 
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -31,7 +31,7 @@ bool ArithState::isInConflict() const
   return d_parent->anyConflict() || d_conflict;
 }
 
-void ArithState::setParent(TheoryArithPrivate* p) { d_parent = p; }
+void ArithState::setParent(linear::TheoryArithPrivate* p) { d_parent = p; }
 
 }  // namespace arith
 }  // namespace theory

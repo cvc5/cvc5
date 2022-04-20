@@ -97,7 +97,6 @@ void ZeroLevelLearner::notifyTopLevelSubstitution(const Node& lhs,
 
 void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
 {
-  d_assertNoLearnCount = 0;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode> visitedWithinAtom;
   std::unordered_set<Node> inputSymbols;
@@ -179,6 +178,13 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   // check if at level zero
   if (d_nonZeroAssert.get())
   {
+    // already not at level zero, skip
+    d_assertNoLearnCount++;
+  }
+  else if (alevel != 0)
+  {
+    Trace("level-zero-dec") << "First non-zero: " << assertion << std::endl;
+    d_nonZeroAssert = true;
     d_assertNoLearnCount++;
   }
   else if (alevel != 0)
@@ -350,7 +356,8 @@ bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const
 
 bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
 {
-  theory::TrustSubstitutionMap subsOut(&d_dummyContext);
+  context::Context dummyContext;
+  theory::TrustSubstitutionMap subsOut(&dummyContext);
   TrustNode tlit = TrustNode::mkTrustLemma(lit);
   theory::Theory::PPAssertStatus status = d_theoryEngine->solve(tlit, subsOut);
   if (status == theory::Theory::PP_ASSERT_STATUS_SOLVED)

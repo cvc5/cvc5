@@ -109,6 +109,13 @@ class BagsUtils
    */
   static Node evaluateProduct(TNode n);
 
+  /**
+   * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a
+   * constant
+   * @return the evaluation of the projection
+   */
+  static Node evaluateTableProject(TNode n);
+
  private:
   /**
    * a high order helper function that return a constant bag that is the result

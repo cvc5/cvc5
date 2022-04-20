@@ -20,6 +20,7 @@
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
 
+#include "api/cpp/cvc5_types.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof.h"

@@ -57,6 +57,7 @@ class ZeroLevelLearner : protected EnvObj
   void notifyInputFormulas(const std::vector<Node>& assertions);
   /**
    * Notify the given literal was asserted at the given assertion level.
+   * Return false if a deep restart is requested.
    */
   bool notifyAsserted(TNode assertion, int32_t alevel);
 
@@ -98,22 +99,15 @@ class ZeroLevelLearner : protected EnvObj
    * preprocess.
    */
   NodeSet d_ppnAtoms;
-  /**
-   * Subterms of the above atoms.
-   */
+  /** Subterms of the above atoms. */
   NodeSet d_ppnTerms;
-  /**
-   * Symbols in the above atoms.
-   */
+  /** Symbols in the above atoms. */
   NodeSet d_ppnSyms;
-
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
   /** The threshold */
   size_t d_deepRestartThreshold;
-  /** Dummy context, used for getSolved */
-  context::Context d_dummyContext;
-  /** learned types, based on option */
+  /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
 }; /* class ZeroLevelLearner */
 
