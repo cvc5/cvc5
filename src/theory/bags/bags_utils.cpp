@@ -814,61 +814,60 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
   TypeNode partitionType = n.getType();
   std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
   Trace("bags-partition") << "elements: " << elements << std::endl;
-  // inefficient disjoint sets algorithm
-  // a map from elements to their equivalent class
+  // a simple map from elements to equivalent classes with this invariant:
+  // each key element must appear exactly once in one of the values.
   std::map<Node, std::set<Node>> sets;
-  std::set<Node> empty;
+  std::set<Node> emptyClass;
   for (const auto& pair : elements)
   {
-    std::set<Node> s = {pair.first};
-    sets[pair.first] = s;
+    // initially each singleton element is an equivalence class
+    sets[pair.first] = {pair.first};
   }
   for (std::map<Node, Rational>::iterator i = elements.begin();
        i != elements.end();
        ++i)
   {
-    Trace("bags-partition") << "i: " << i->first << std::endl;
     if (sets[i->first].empty())
     {
+      // skip this element since its equivalent class has already been processed
       continue;
     }
     std::map<Node, Rational>::iterator j = i;
     ++j;
     while (j != elements.end())
     {
-      Node areEqual = nm->mkNode(APPLY_UF, r, i->first, j->first);
-      areEqual = rewriter->rewrite(areEqual);
-      Assert(areEqual.isConst())
-          << "Node " << areEqual << " is not a constant" << std::endl;
-      if (areEqual.getConst<bool>())
+      Node sameClass = nm->mkNode(APPLY_UF, r, i->first, j->first);
+      sameClass = rewriter->rewrite(sameClass);
+      Assert(sameClass.isConst())
+          << "Node " << sameClass << " is not a constant" << std::endl;
+      if (sameClass.getConst<bool>())
       {
-        std::set<Node> s = sets[i->first];
-        s.insert(j->first);
-        sets[i->first] = s;
-        sets[j->first] = empty;
-        Trace("bags-partition")
-            << "Equivalent: " << i->first << ", " << j->first << std::endl;
+        // add element j to the equivalent class
+        sets[i->first].insert(j->first);
+        // mark the equivalent class of j as processed
+        sets[j->first] = emptyClass;
       }
       ++j;
     }
   }
-  Trace("bags-partition") << "sets: " << sets << std::endl;
-  // build the partition
+
+  // construct the partition parts
   std::map<Node, Rational> parts;
-  for (const auto& pair : sets)
+  for (const auto& [_, eqc] : sets)
   {
+    if (eqc.empty())
+    {
+      continue;
+    }
     std::vector<Node> bags;
-    for (const Node& node : pair.second)
+    for (const Node& node : eqc)
     {
       Node bag = nm->mkBag(
           bagType.getBagElementType(), node, nm->mkConstInt(elements[node]));
       bags.push_back(bag);
     }
-    if (bags.empty())
-    {
-      continue;
-    }
     Node part = computeDisjointUnion(bagType, bags);
+    // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
   }
   Node ret = constructConstantBagFromElements(partitionType, parts);
