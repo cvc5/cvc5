@@ -265,6 +265,30 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
   return ret;
 }
 
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
+    const
+{
+  std::vector<Node> ret;
+  for (modes::LearnedLitType ltype : d_learnedTypes)
+  {
+    std::vector<Node> rett = getLearnedZeroLevelLiterals(ltype);
+    ret.insert(ret.end(), rett.begin(), rett.end());
+  }
+  return ret;
+}
+
+bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
+{
+  for (modes::LearnedLitType ltype : d_learnedTypes)
+  {
+    if (d_ldb.getNumLearnedLiterals(ltype) > 0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const
 {
   return d_learnedTypes.find(ltype) != d_learnedTypes.end();

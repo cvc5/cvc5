@@ -187,13 +187,14 @@ void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "Assert(" << n << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdPush(std::ostream& out) const
+void AstPrinter::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "Push()" << std::endl;
+  out << "Push(" << nscopes << ")" << std::endl;
 }
 
-void AstPrinter::toStreamCmdPop(std::ostream& out) const {
-  out << "Pop()" << std::endl;
+void AstPrinter::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
+{
+  out << "Pop(" << nscopes << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const

@@ -367,11 +367,13 @@ void AssertCommand::toStream(std::ostream& out,
 /* class PushCommand                                                          */
 /* -------------------------------------------------------------------------- */
 
+PushCommand::PushCommand(uint32_t nscopes) : d_nscopes(nscopes) {}
+
 void PushCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->push();
+    solver->push(d_nscopes);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -380,7 +382,7 @@ void PushCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-Command* PushCommand::clone() const { return new PushCommand(); }
+Command* PushCommand::clone() const { return new PushCommand(d_nscopes); }
 std::string PushCommand::getCommandName() const { return "push"; }
 
 void PushCommand::toStream(std::ostream& out,
@@ -388,18 +390,20 @@ void PushCommand::toStream(std::ostream& out,
                            size_t dag,
                            Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdPush(out);
+  Printer::getPrinter(language)->toStreamCmdPush(out, d_nscopes);
 }
 
 /* -------------------------------------------------------------------------- */
 /* class PopCommand                                                           */
 /* -------------------------------------------------------------------------- */
 
+PopCommand::PopCommand(uint32_t nscopes) : d_nscopes(nscopes) {}
+
 void PopCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->pop();
+    solver->pop(d_nscopes);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -408,7 +412,7 @@ void PopCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-Command* PopCommand::clone() const { return new PopCommand(); }
+Command* PopCommand::clone() const { return new PopCommand(d_nscopes); }
 std::string PopCommand::getCommandName() const { return "pop"; }
 
 void PopCommand::toStream(std::ostream& out,
@@ -416,7 +420,7 @@ void PopCommand::toStream(std::ostream& out,
                           size_t dag,
                           Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdPop(out);
+  Printer::getPrinter(language)->toStreamCmdPop(out, d_nscopes);
 }
 
 /* -------------------------------------------------------------------------- */
