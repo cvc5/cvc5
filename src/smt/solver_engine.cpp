@@ -1254,7 +1254,7 @@ std::vector<Node> SolverEngine::getLearnedLiterals()
   // although other modes could use the preprocessor
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  return pe->getLearnedZeroLevelLiterals();
+  return pe->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT);
 }
 
 void SolverEngine::checkProof()
