@@ -62,10 +62,7 @@ class Tester:
             print()
             if error:
                 print("Error output")
-                print("=" * 80)
-                print_colored(Color.YELLOW, error)
-                print("=" * 80)
-                print()
+                print_segment(Color.YELLOW, error)
         elif benchmark_info.compare_outputs and error != benchmark_info.expected_error:
             exit_code = EXIT_FAILURE
             print(
@@ -89,17 +86,7 @@ class Tester:
                 )
             )
             print()
-            print("Output:")
-            print("=" * 80)
-            print_colored(Color.BLUE, output)
-            print("=" * 80)
-            print()
-            print()
-            print("Error output:")
-            print("=" * 80)
-            print_colored(Color.YELLOW, error)
-            print("=" * 80)
-            print()
+            print_outputs(output, error)
         else:
             print("ok - Flags: {}".format(benchmark_info.command_line_args))
         return exit_code
@@ -175,23 +162,7 @@ class LfscTester(Tester):
     def applies(self, benchmark_info):
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
-            and "-i" not in benchmark_info.command_line_args
-            and "--incremental" not in benchmark_info.command_line_args
-            and "--no-produce-proofs" not in benchmark_info.command_line_args
-            and "--no-check-proofs" not in benchmark_info.command_line_args
-            and "--check-proofs" not in benchmark_info.command_line_args
-            and "--produce-unsat-cores" not in benchmark_info.command_line_args
-            and "--dump-unsat-cores" not in benchmark_info.command_line_args
-            and ":incremental true" not in benchmark_info.benchmark_content
-            and ":produce-proofs false" not in benchmark_info.benchmark_content
-            and ":check-proofs" not in benchmark_info.benchmark_content
-            and ":produce-unsat-cores true" not in benchmark_info.benchmark_content
-            and ":dump-unsat-cores true" not in benchmark_info.benchmark_content
-            and "(reset)" not in benchmark_info.benchmark_content
+            and benchmark_info.expected_output.split() == ["unsat"]
         )
 
     def run(self, benchmark_info):
@@ -213,55 +184,53 @@ class LfscTester(Tester):
             )
             tmpf_name = tmpf.name
             tmpf.write(cvc5_output.strip("unsat\n".encode()))
+            cvc5_output, cvc5_error = cvc5_output.decode(), cvc5_error.decode()
         if not tmpf_name:
             exit_code = EXIT_FAILURE
             print("not ok (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
         elif exit_status == STATUS_TIMEOUT:
             exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
             print("Timeout (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
-        elif exit_status != 0:
+        elif exit_status != EXIT_OK:
             exit_code = EXIT_FAILURE
-            print(
-                'not ok (cvc5) - Expected exit status 0 but got "{}" - Flags: {}'.format(
-                    exit_status,
-                    benchmark_info.command_line_args,
-                )
-            )
+            print('not ok (cvc5) - Expected exit status "{}" but got "{}" - Flags: {}'.format(
+                EXIT_OK, exit_status, benchmark_info.command_line_args))
             print()
-            print("Output:")
-            print("=" * 80)
-            print_colored(Color.BLUE, cvc5_output.decode())
-            print("=" * 80)
+            print_outputs(cvc5_output, cvc5_error)
+        elif "check" not in cvc5_output:
+            exit_code = EXIT_FAILURE
+            print('not ok (cvc5) - Empty proof - Flags: {}'.format(exit_status,
+                  benchmark_info.command_line_args))
             print()
-            print()
-            print("Error output:")
-            print("=" * 80)
-            print_colored(Color.YELLOW, cvc5_error.decode())
-            print("=" * 80)
-            print()
+            print_outputs(cvc5_output, cvc5_error)
         else:
-            output, _, exit_status = run_process(
-                [benchmark_info.lfsc_script, tmpf.name],
+            lfsc_output, lfsc_error, exit_status = run_process(
+                [benchmark_info.lfsc_binary] +
+                benchmark_info.lfsc_sigs + [tmpf.name],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
             )
+            lfsc_output, lfsc_error = lfsc_output.decode(), lfsc_error.decode()
             if exit_status == STATUS_TIMEOUT:
                 exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
                 print(
                     "Timeout (lfsc) - Flags: {}".format(benchmark_info.command_line_args))
+            elif exit_status != EXIT_OK:
+                exit_code = EXIT_FAILURE
+                print('not ok (lfsc) - Expected exit status "{}" but got "{}" - Flags: {}'.format(
+                    EXIT_OK, exit_status, benchmark_info.command_line_args))
+                print()
+                print_outputs(lfsc_output, lfsc_error)
+            elif "success" not in lfsc_output:
+                exit_code = EXIT_FAILURE
+                print(
+                    "not ok (lfsc) - Unexpected output - Flags: {}".format(benchmark_info.command_line_args))
+                print()
+                print_outputs(lfsc_output, lfsc_error)
             else:
-                output = output.decode()
-                if "ERROR" in output or "WARNING: Empty proof!!!" in output or "Proof checked successfully!" not in output:
-                    exit_code = EXIT_FAILURE
-                    print("not ok (lfsc) - Output:")
-                    print("=" * 80)
-                    print_colored(Color.YELLOW, output)
-                    print("=" * 80)
-                    print()
-                else:
-                    exit_code = EXIT_OK
-                    print("ok - Flags: {}".format(benchmark_info.command_line_args))
-            os.remove(tmpf.name)
+                exit_code = EXIT_OK
+                print("ok - Flags: {}".format(benchmark_info.command_line_args))
+                os.remove(tmpf.name)
         return exit_code
 
 
@@ -409,7 +378,8 @@ BenchmarkInfo = collections.namedtuple(
         "error_scrubber",
         "timeout",
         "cvc5_binary",
-        "lfsc_script",
+        "lfsc_binary",
+        "lfsc_sigs",
         "benchmark_dir",
         "benchmark_basename",
         "benchmark_ext",
@@ -442,6 +412,24 @@ def print_colored(color, text):
 
     for line in text.splitlines():
         print(color + line + Color.ENDC)
+
+
+def print_segment(color, text):
+    """Prints colored `text` inside a border."""
+    print("=" * 80)
+    for line in text.splitlines():
+        print(color + line + Color.ENDC)
+    print("=" * 80)
+    print()
+
+
+def print_outputs(stdout, stderr):
+    """Prints standard output and error."""
+    print("Output:")
+    print_segment(Color.BLUE, stdout)
+    print()
+    print("Error output:")
+    print_segment(Color.YELLOW, stderr)
 
 
 def print_diff(actual, expected):
@@ -568,7 +556,8 @@ def run_regression(
     testers,
     wrapper,
     cvc5_binary,
-    lfsc_script,
+    lfsc_binary,
+    lfsc_sigs,
     benchmark_path,
     timeout,
 ):
@@ -709,7 +698,8 @@ def run_regression(
             error_scrubber=error_scrubber,
             timeout=timeout,
             cvc5_binary=cvc5_binary,
-            lfsc_script=lfsc_script,
+            lfsc_binary=lfsc_binary,
+            lfsc_sigs=lfsc_sigs,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
             benchmark_ext=benchmark_ext,
@@ -755,9 +745,10 @@ def main():
     parser.add_argument("--use-skip-return-code", action="store_true")
     parser.add_argument("--skip-timeout", action="store_true")
     parser.add_argument("--tester", choices=g_testers.keys(), action="append")
+    parser.add_argument("--lfsc-binary", default="")
+    parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
     parser.add_argument("cvc5_binary")
-    parser.add_argument("lfsc_script")
     parser.add_argument("benchmark")
 
     argv = sys.argv[1:]
@@ -768,7 +759,7 @@ def main():
     g_args = parser.parse_args(argv)
 
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
-    lfsc_script = os.path.abspath(g_args.lfsc_script)
+    lfsc_binary = os.path.abspath(g_args.lfsc_binary)
 
     wrapper = g_args.wrapper
     if os.environ.get("VALGRIND") == "1" and not wrapper:
@@ -780,11 +771,24 @@ def main():
     if not testers:
         testers = g_default_testers
 
+    lfsc_sigs = []
+    if not g_args.lfsc_sig_dir == "":
+        lfsc_sig_dir = os.path.abspath(g_args.lfsc_sig_dir)
+        # `os.listdir` would be more appropriate if lfsc did not force us to
+        # list the signatures in order.
+        lfsc_sigs = ["core_defs", "util_defs", "theory_def", "nary_programs",
+                     "boolean_programs", "boolean_rules", "cnf_rules",
+                     "equality_rules", "arith_programs", "arith_rules",
+                     "strings_programs", "strings_rules", "quantifiers_rules"]
+        lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
+                     for sig in lfsc_sigs]
+
     return run_regression(
         testers,
         wrapper,
         cvc5_binary,
-        lfsc_script,
+        lfsc_binary,
+        lfsc_sigs,
         g_args.benchmark,
         timeout,
     )

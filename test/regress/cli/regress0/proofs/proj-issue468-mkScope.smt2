@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
 ; EXPECT: (
 ; EXPECT: a0

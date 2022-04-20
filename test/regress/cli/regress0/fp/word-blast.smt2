@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --fp-lazy-wb
 ; EXPECT: unsat
 (set-logic QF_BVFP)
