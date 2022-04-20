@@ -3678,7 +3678,7 @@ enum Kind : int32_t
    *
    * \rst
    * This operator partitions of a bag of elements into disjoint bags.
-   * (bag.partition :math:`r \; t \; B`) partitions the elements of bag :math:`B`
+   * (bag.partition :math:`r \; B`) partitions the elements of bag :math:`B`
    * of type :math:`(Bag \; E)` based on the equivalence relations :math:`r` of
    * type :math:`(\rightarrow \; E \; E \; Bool)`.
    * It returns a bag of bags of type :math:`(Bag \; (Bag \; E))`.
