@@ -34,7 +34,10 @@ class NonlinearExtension;
 }
 
 class EqualitySolver;
+
+namespace linear {
 class TheoryArithPrivate;
+}
 
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
@@ -42,7 +45,7 @@ class TheoryArithPrivate;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class TheoryArithPrivate;
+  friend class linear::TheoryArithPrivate;
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
@@ -157,7 +160,7 @@ class TheoryArith : public Theory {
   /** The equality solver */
   std::unique_ptr<EqualitySolver> d_eqSolver;
   /** The (old) linear arithmetic solver */
-  TheoryArithPrivate* d_internal;
+  linear::TheoryArithPrivate* d_internal;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear

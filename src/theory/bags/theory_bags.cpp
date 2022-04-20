@@ -80,6 +80,8 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
+  d_equalityEngine->addFunctionKind(TABLE_PRODUCT);
+  d_equalityEngine->addFunctionKind(TABLE_PROJECT);
 }
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
@@ -453,6 +455,7 @@ void TheoryBags::preRegisterTerm(TNode n)
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
+    case TABLE_PROJECT:
     {
       std::stringstream ss;
       ss << "Term of kind " << n.getKind() << " is not supported yet";
