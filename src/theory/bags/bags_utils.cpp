@@ -817,23 +817,27 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
   // inefficient disjoint sets algorithm
   // a map from elements to their equivalent class
   std::map<Node, std::set<Node>> sets;
-  std::map<Node, bool> visited;
+  std::set<Node> empty;
   for (const auto& pair : elements)
   {
     std::set<Node> s = {pair.first};
     sets[pair.first] = s;
-    visited[pair.first] = false;
   }
   for (std::map<Node, Rational>::iterator i = elements.begin();
        i != elements.end();
        ++i)
   {
+    Trace("bags-partition") << "i: " << i->first << std::endl;
+    if (sets[i->first].empty())
+    {
+      continue;
+    }
     std::map<Node, Rational>::iterator j = i;
     ++j;
     while (j != elements.end())
     {
       Node areEqual = nm->mkNode(APPLY_UF, r, i->first, j->first);
-      areEqual = Rewriter::rewrite(areEqual);
+      areEqual = rewriter->rewrite(areEqual);
       Assert(areEqual.isConst())
           << "Node " << areEqual << " is not a constant" << std::endl;
       if (areEqual.getConst<bool>())
@@ -841,8 +845,9 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
         std::set<Node> s = sets[i->first];
         s.insert(j->first);
         sets[i->first] = s;
-        sets[j->first] = s;
-        Trace("bags-partition") << i->first << ", " << j->first << std::endl;
+        sets[j->first] = empty;
+        Trace("bags-partition")
+            << "Equivalent: " << i->first << ", " << j->first << std::endl;
       }
       ++j;
     }
@@ -855,15 +860,8 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     std::vector<Node> bags;
     for (const Node& node : pair.second)
     {
-      Trace("bags-partition") << "node: " << node << std::endl;
-      if (visited[node])
-      {
-        continue;
-      }
-      visited[node] = true;
       Node bag = nm->mkBag(
           bagType.getBagElementType(), node, nm->mkConstInt(elements[node]));
-      Trace("bags-partition") << "bag: " << bag << std::endl;
       bags.push_back(bag);
     }
     if (bags.empty())
@@ -871,7 +869,6 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
       continue;
     }
     Node part = computeDisjointUnion(bagType, bags);
-    Trace("bags-partition") << "part: " << part << std::endl;
     parts[part] = Rational(1);
   }
   Node ret = constructConstantBagFromElements(partitionType, parts);
