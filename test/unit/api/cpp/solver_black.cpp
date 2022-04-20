@@ -27,9 +27,8 @@ class TestApiBlackSolver : public TestApi
 {
 };
 
-TEST_F(TestApiBlackSolver, intBlasterOps)
+TEST_F(TestApiBlackSolver, proj_issue416)
 {
-  // Based on https://github.com/cvc5/cvc5-projects/issues/416
   Solver slv;
   slv.setOption("solve-bv-as-int", "sum");
   slv.setOption("strings-exp", "true");
