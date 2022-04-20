@@ -261,7 +261,6 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_REPEAT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
-  Assert(oldKind != kind::BITVECTOR_COMP);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
@@ -513,6 +512,17 @@ Node IntBlaster::translateWithChildren(
                        d_nm->mkNode(kind::LT,
                                     uts(translated_children[0], bvsize),
                                     uts(translated_children[1], bvsize)),
+                       d_one,
+                       d_zero);
+      break;
+    }
+    case kind::BITVECTOR_COMP:
+    {
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::EQUAL,
+                                    translated_children[0],
+                                    translated_children[1]),
                        d_one,
                        d_zero);
       break;
