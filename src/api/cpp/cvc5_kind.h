@@ -3695,7 +3695,22 @@ enum Kind : int32_t
    * \endrst
    */
   TABLE_PRODUCT,
-
+  /**
+   * Table projection operator extends tuple projection operator to tables.
+   *
+   * - Arity: ``1``
+   *   - ``1:`` Term of tuple Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:`` The table indices to project
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  TABLE_PROJECT,
   /* Strings --------------------------------------------------------------- */
 
   /**

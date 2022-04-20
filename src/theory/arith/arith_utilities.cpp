@@ -99,10 +99,20 @@ Kind transKinds(Kind k1, Kind k2)
   return UNDEFINED_KIND;
 }
 
+Node mkZero(const TypeNode& tn)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+}
+
 bool isZero(const Node& n)
 {
   Assert(n.getType().isRealOrInt());
   return n.isConst() && n.getConst<Rational>().sgn() == 0;
+}
+
+Node mkOne(const TypeNode& tn, bool isNeg)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, isNeg ? -1 : 1);
 }
 
 bool isTranscendentalKind(Kind k)

@@ -25,7 +25,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "expr/subs.h"
-#include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
 #include "util/rational.h"
@@ -38,10 +37,6 @@ namespace arith {
 typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
-
-//Maps from Nodes -> ArithVars, and vice versa
-typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;
-typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
@@ -222,12 +217,21 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+/** Make zero of the given type */
+Node mkZero(const TypeNode& tn);
+
+/** Is n (integer or real) zero? */
+bool isZero(const Node& n);
+
+/** Make one of the given type, maybe negated */
+Node mkOne(const TypeNode& tn, bool isNeg = false);
+
 // Returns an node that is the identity of a select few kinds.
 inline Node getIdentityType(const TypeNode& tn, Kind k)
 {
   switch (k)
   {
-    case kind::ADD: return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+    case kind::ADD: return mkZero(tn);
     case kind::MULT:
     case kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
@@ -277,14 +281,14 @@ inline Node mkInRange(Node term, Node start, Node end) {
 // when n is 0 or not. Useful for division by 0 logic.
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
-  Node zero = NodeManager::currentNM()->mkConstRealOrInt(n.getType(), 0);
+  Node zero = mkZero(n.getType());
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
 inline Node mkPi()
 {
-  return NodeManager::currentNM()->mkNullaryOperator(
-      NodeManager::currentNM()->realType(), kind::PI);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNullaryOperator(nm->realType(), kind::PI);
 }
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
  * arithmetic relation ret such that
@@ -297,9 +301,6 @@ Kind joinKinds(Kind k1, Kind k2);
  * if (a <k1> b) and (b <k2> c) then (a <ret> c).
  */
 Kind transKinds(Kind k1, Kind k2);
-
-/** Is n (integer or real) zero? */
-bool isZero(const Node& n);
 
 /** Is k a transcendental function kind? */
 bool isTranscendentalKind(Kind k);

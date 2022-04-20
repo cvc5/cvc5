@@ -459,13 +459,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        return PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
   }
   else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
            && in[0][0].getType().isBoolean())

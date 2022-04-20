@@ -30,6 +30,7 @@
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
+#include "theory/partition_generator.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
@@ -338,15 +339,6 @@ class TheoryEngine : protected EnvObj
   }
   /** get the logic info used by this theory engine */
   const LogicInfo& getLogicInfo() const;
-  /** get the separation logic heap types */
-  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
-
-  /**
-   * Declare heap. This is used for separation logics to set the location
-   * and data types. It should be called only once, and before any separation
-   * logic constraints are asserted to this theory engine.
-   */
-  void declareSepHeap(TypeNode locT, TypeNode dataT);
 
   /**
    * Returns the equality status of the two terms, from the theory
@@ -518,10 +510,6 @@ class TheoryEngine : protected EnvObj
    */
   const LogicInfo& d_logicInfo;
 
-  /** The separation logic location and data types */
-  TypeNode d_sepLocType;
-  TypeNode d_sepDataType;
-
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */
   ProofNodeManager* d_pnm;
@@ -641,6 +629,12 @@ class TheoryEngine : protected EnvObj
    * check()
    */
   context::CDO<bool> d_factsAsserted;
+
+  /**
+   * The splitter produces partitions when the compute-partitions option is
+   * used.
+   */
+  std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
 
 }; /* class TheoryEngine */
 

@@ -171,7 +171,11 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Relation Sort        | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::Sort tupleSort);``                               |
+| Relation Sort        | ``(Relation <Sort_1>, ..., <Sort_n>)``       | ``Sort s = solver.mkSetSort(cvc5::Sort tupleSort);``                               |
+|                      |                                              |                                                                                    |
+|                      | which is a syntax sugar for                  |                                                                                    |
+|                      |                                              |                                                                                    |
+|                      | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    |                                                                                    |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Constants            | ``(declare-const X (Set (Tuple Int Int)``    | ``Sort s = solver.mkSetSort(solver.mkTupleSort({s_int, s_int});``                  |
 |                      |                                              |                                                                                    |

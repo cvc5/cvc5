@@ -13,7 +13,7 @@
 
 (declare-fun z () Real)
 
-(assert (= z (+ y (* 2 pi s))))
+(assert (= z (+ y (* 2.0 pi (to_real s)))))
 
 (assert (and (< (- pi) z) (< z pi)))
 

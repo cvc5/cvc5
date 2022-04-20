@@ -18,9 +18,9 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
@@ -421,7 +421,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                 MULT,
                 nm->mkConstReal(Rational(1)
                                 / d_mbp_coeff[rr][j].getConst<Rational>()),
-                value[t]);
+                nm->mkNode(TO_REAL, value[t]));
             value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
@@ -430,15 +430,20 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
             {
-              Kind k = rr == 0 ? GEQ : LEQ;
-              Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
-              cmp_bound = rewrite(cmp_bound);
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
               // the new best bound. We might not be comparing constant
               // values (for instance if transcendental functions are
-              // involved), in which case we do update the best bound value.
-              if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
+              // involved), in which case we do not update the best bound value.
+              if (!value[t].isConst() || !best_bound_value[t].isConst())
+              {
+                new_best = false;
+                break;
+              }
+              Rational rt = value[t].getConst<Rational>();
+              Rational brt = best_bound_value[t].getConst<Rational>();
+              bool cmp = rr == 0 ? rt >= brt : rt <= brt;
+              if (!cmp)
               {
                 new_best = false;
                 break;

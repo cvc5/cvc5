@@ -591,7 +591,6 @@ set(regress_0_tests
   regress0/decision/uflia-xs-09-16-3-4-1-5.delta03.smtv1.smt2
   regress0/decision/wchains010ue.delta02.smtv1.smt2
   regress0/declare-fun-is-match.smt2
-  regress0/declare-funs.smt2
   regress0/define-fun-model.smt2
   regress0/difficulty-simple.smt2
   regress0/difficulty-model-ex.smt2
@@ -1061,6 +1060,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8159-3-qext-nterm.smt2
   regress0/quantifiers/issue8227-subs-shadow.smt2
   regress0/quantifiers/issue8466-syqi-bool.smt2
+  regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1798,6 +1798,7 @@ set(regress_1_tests
   regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
+  regress1/bags/table_project1.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2

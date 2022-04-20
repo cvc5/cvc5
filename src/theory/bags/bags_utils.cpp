@@ -18,6 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
+#include "table_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
@@ -141,6 +142,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
+    case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -823,6 +825,36 @@ Node BagsUtils::evaluateProduct(TNode n)
       Node element = constructProductTuple(n, a, b);
       elements[element] = countA * countB;
     }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
+Node BagsUtils::evaluateTableProject(TNode n)
+{
+  Assert(n.getKind() == TABLE_PROJECT);
+  // Examples
+  // --------
+  // - ((_ table.project 1) (bag (tuple true "a") 4)) = (bag (tuple "a") 4)
+  // - (table.project (bag.union_disjoint
+  //                    (bag (tuple "a") 4)
+  //                    (bag (tuple "b") 3))) = (bag tuple 7)
+
+  Node A = n[0];
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+
+  std::map<Node, Rational> elements;
+  std::vector<uint32_t> indices =
+      n.getOperator().getConst<TableProjectOp>().getIndices();
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    Node element = TupleUtils::getTupleProjection(indices, a);
+    // multiple elements could be projected to the same tuple.
+    // Zero is the default value for Rational values.
+    elements[element] += countA;
   }
 
   Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
