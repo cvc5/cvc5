@@ -914,67 +914,6 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
 
-  | DECLARE_SORTS_TOK
-    {
-      PARSER_STATE->checkThatLogicIsSet();
-      PARSER_STATE->checkLogicAllowsFreeSorts();
-      seq.reset(new cvc5::CommandSequence());
-    }
-    LPAREN_TOK
-    ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-      { PARSER_STATE->checkUserSymbol(name);
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
-        seq->addCommand(new DeclareSortCommand(name, 0, type));
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
-
-  | DECLARE_FUNS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::CommandSequence()); }
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      nonemptySortList[sorts] RPAREN_TOK
-      { cvc5::Sort tt;
-        if(sorts.size() > 1) {
-          PARSER_STATE->checkLogicAllowsFunctions();
-          // must flatten
-          cvc5::Sort range = sorts.back();
-          sorts.pop_back();
-          tt = PARSER_STATE->mkFlatFunctionType(sorts, range);
-        } else {
-          tt = sorts[0];
-        }
-        // allow overloading
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, tt, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, tt));
-        sorts.clear();
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
-  | DECLARE_PREDS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::CommandSequence()); }
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      sortList[sorts] RPAREN_TOK
-      { t = SOLVER->getBooleanSort();
-        if(sorts.size() > 0) {
-          PARSER_STATE->checkLogicAllowsFunctions();
-          t = SOLVER->mkFunctionSort(sorts, t);
-        }
-        // allow overloading
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
-        sorts.clear();
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
   | // (define-const x U t)
     DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1509,6 +1448,12 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK TABLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1650,6 +1595,13 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
+    | TABLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::TABLE_PROJECT;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_PROJECT, numerals);
+       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
@@ -2215,9 +2167,6 @@ GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
 ECHO_TOK : 'echo';
-DECLARE_SORTS_TOK : 'declare-sorts';
-DECLARE_FUNS_TOK : 'declare-funs';
-DECLARE_PREDS_TOK : 'declare-preds';
 DECLARE_CONST_TOK : 'declare-const';
 DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
@@ -2261,6 +2210,7 @@ FORALL_TOK        : 'forall';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
+TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

@@ -28,7 +28,6 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/rewriter/addition.h"
 #include "theory/arith/rewriter/node_utils.h"

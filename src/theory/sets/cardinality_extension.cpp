@@ -639,7 +639,11 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     }
     // now recurse on parents (to ensure their normal will be computed after
     // this eqc)
-    exp.push_back(eqc.eqNode(n));
+    bool needExp = (eqc != n);
+    if (needExp)
+    {
+      exp.push_back(eqc.eqNode(n));
+    }
     for (const std::pair<Node, Node>& cpnc : d_cardParent[n])
     {
       Trace("sets-cycle-debug") << "Traverse card parent " << eqc << " -> "
@@ -650,7 +654,10 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         return;
       }
     }
-    exp.pop_back();
+    if (needExp)
+    {
+      exp.pop_back();
+    }
   }
   curr.pop_back();
   // parents now processed, can add to ordered list
