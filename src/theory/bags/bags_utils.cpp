@@ -838,8 +838,11 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     {
       Node sameClass = nm->mkNode(APPLY_UF, r, i->first, j->first);
       sameClass = rewriter->rewrite(sameClass);
-      Assert(sameClass.isConst())
-          << "Node " << sameClass << " is not a constant" << std::endl;
+      if (!sameClass.isConst())
+      {
+        // we can not pursue further, so we return n itself
+        return n;
+      }
       if (sameClass.getConst<bool>())
       {
         // add element j to the equivalent class
@@ -853,7 +856,7 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
 
   // construct the partition parts
   std::map<Node, Rational> parts;
-  for (const std::pair<Node, std::set<Node>>& pair : sets)
+  for (std::pair<Node, std::set<Node>> pair : sets)
   {
     const std::set<Node>& eqc = pair.second;
     if (eqc.empty())
