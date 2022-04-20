@@ -656,7 +656,10 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
   if (n[1].isConst())
   {
     Node ret = BagsUtils::evaluateBagPartition(d_rewriter, n);
-    return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
+    }
   }
 
   return BagsRewriteResponse(n, Rewrite::NONE);
