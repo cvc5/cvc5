@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou
+ *   Yancheng Ou, Aina Niemetz, Michael Chang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include "test_smt.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace smt;
@@ -59,7 +59,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
             BitVector(32u, (uint32_t)0x3FFFFFA1));
@@ -80,7 +80,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   BitVector val = d_optslv->getValues()[0].getValue().getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
@@ -107,7 +107,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   BitVector val = d_optslv->getValues()[0].getValue().getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
@@ -132,7 +132,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // expect the maxmum x =
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
@@ -156,7 +156,7 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // expect the maximum x = 18
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
@@ -165,4 +165,4 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

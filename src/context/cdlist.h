@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Clark Barrett
+ *   Morgan Deters, Andres Noetzli, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,8 +30,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Generic context-dependent dynamic array.  Note that for efficiency,
@@ -110,7 +109,7 @@ private:
         d_cleanUp(l.d_cleanUp),
         d_allocator(l.d_allocator)
   {
-    Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+    Trace("cdlist") << "copy ctor: " << this << " from " << &l << " size "
                     << d_size << std::endl;
   }
   CDList& operator=(const CDList& l) = delete;
@@ -122,15 +121,11 @@ private:
    * allocated space.
    */
   void grow() {
-    Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
-                    << ": grow? " << d_size << " " << d_sizeAlloc << std::endl;
     if (d_size != d_sizeAlloc)
     {
       // If there is still unused allocated space
       return;
     }
-    Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
-                    << ": grow!" << std::endl;
 
     const size_t maxSize =
         std::allocator_traits<AllocatorT>::max_size(d_allocator);
@@ -138,9 +133,6 @@ private:
     {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = INITIAL_SIZE;
-      Debug("cdlist") << "initial grow of cdlist " << this
-                      << " level " << getContext()->getLevel()
-                      << " to " << d_sizeAlloc << std::endl;
       if (d_sizeAlloc > maxSize)
       {
         d_sizeAlloc = maxSize;
@@ -164,11 +156,6 @@ private:
       }
       T* newList =
           std::allocator_traits<AllocatorT>::allocate(d_allocator, newSize);
-      Debug("cdlist") << "2x grow of cdlist " << this
-                      << " level " << getContext()->getLevel()
-                      << " to " << newSize
-                      << " (from " << d_list
-                      << " to " << newList << ")" << std::endl;
       if (newList == nullptr)
       {
         throw std::bad_alloc();
@@ -191,12 +178,6 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDList<T, CleanUp, Allocator>(*this);
-    Debug("cdlist") << "save " << this
-                    << " at level " << this->getContext()->getLevel()
-                    << " size at " << this->d_size
-                    << " sizeAlloc at " << this->d_sizeAlloc
-                    << " d_list is " << this->d_list
-                    << " data:" << data << std::endl;
     return data;
   }
 
@@ -208,15 +189,7 @@ protected:
    */
  void restore(ContextObj* data) override
  {
-   Debug("cdlist") << "restore " << this << " level "
-                   << this->getContext()->getLevel() << " data == " << data
-                   << " call dtor == " << this->d_callDestructor
-                   << " d_list == " << this->d_list << std::endl;
    truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
-   Debug("cdlist") << "restore " << this << " level "
-                   << this->getContext()->getLevel() << " size back to "
-                   << this->d_size << " sizeAlloc at " << this->d_sizeAlloc
-                   << std::endl;
   }
 
   /**
@@ -297,7 +270,7 @@ protected:
    * to avoid this issue.
    */
   void push_back(const T& data) {
-    Debug("cdlist") << "push_back " << this
+    Trace("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": make-current, "
                     << "d_list == " << d_list << std::endl;
@@ -305,20 +278,9 @@ protected:
     grow();
     Assert(d_size < d_sizeAlloc);
 
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": construct! at " << d_list
-                    << "[" << d_size << "] == " << &d_list[d_size]
-                    << std::endl;
     std::allocator_traits<AllocatorT>::construct(
         d_allocator, &d_list[d_size], data);
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": done..." << std::endl;
     ++d_size;
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": size now " << d_size << std::endl;
   }
 
   /**
@@ -329,24 +291,16 @@ protected:
   template <typename... Args>
   void emplace_back(Args&&... args)
   {
-    Debug("cdlist") << "emplace_back " << this << " "
+    Trace("cdlist") << "emplace_back " << this << " "
                     << getContext()->getLevel() << ": make-current, "
                     << "d_list == " << d_list << std::endl;
     makeCurrent();
     grow();
     Assert(d_size < d_sizeAlloc);
 
-    Debug("cdlist") << "emplace_back " << this << " "
-                    << getContext()->getLevel() << ": construct! at " << d_list
-                    << "[" << d_size << "] == " << &d_list[d_size] << std::endl;
     std::allocator_traits<AllocatorT>::construct(
         d_allocator, &d_list[d_size], std::forward<Args>(args)...);
-    Debug("cdlist") << "emplace_back " << this << " "
-                    << getContext()->getLevel() << ": done..." << std::endl;
     ++d_size;
-    Debug("cdlist") << "emplace_back " << this << " "
-                    << getContext()->getLevel() << ": size now " << d_size
-                    << std::endl;
   }
 
   /**
@@ -482,7 +436,6 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
                 "Cannot create a CDList with a ContextMemoryAllocator.");
 };
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDLIST_H */

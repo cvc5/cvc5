@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,36 +27,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
-
-/**
- * Attribute used for constructing unique bound variables that are binders
- * for witness terms below. In other words, this attribute maps nodes to
- * the bound variable of a witness term for eliminating that node.
- *
- * Notice we use the same attribute for most bound variables below, since using
- * a node itself is a sufficient cache key for constructing a bound variable.
- * The exception is to_int / is_int, which share a skolem based on their
- * argument.
- */
-struct ArithWitnessVarAttributeId
-{
-};
-using ArithWitnessVarAttribute = expr::Attribute<ArithWitnessVarAttributeId, Node>;
-/**
- * Similar to above, shared for to_int and is_int. This is used for introducing
- * an integer bound variable used to construct the witness term for t in the
- * contexts (to_int t) and (is_int t).
- */
-struct ToIntWitnessVarAttributeId
-{
-};
-using ToIntWitnessVarAttribute
- = expr::Attribute<ToIntWitnessVarAttributeId, Node>;
 
 OperatorElim::OperatorElim(Env& env)
     : EnvObj(env), EagerProofGenerator(d_env.getProofNodeManager())
@@ -96,7 +71,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                       bool partialOnly)
 {
   NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
   {
@@ -120,24 +95,20 @@ Node OperatorElim::eliminateOperators(Node node,
       // node[0] - 1 < toIntSkolem <= node[0]
       // -1 < toIntSkolem - node[0] <= 0
       // 0 <= node[0] - toIntSkolem < 1
-      Node v =
-          bvm->mkBoundVar<ToIntWitnessVarAttribute>(node[0], nm->integerType());
+      Node pterm = nm->mkNode(TO_INTEGER, node[0]);
+      Node v = sm->mkPurifySkolem(
+          pterm, "toInt", "a conversion of a Real term to its Integer part");
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(SUB, node[0], v);
       Node lem = mkInRange(diff, zero, one);
-      Node toIntSkolem =
-          mkWitnessTerm(v,
-                        lem,
-                        "toInt",
-                        "a conversion of a Real term to its Integer part",
-                        lems);
+      lems.push_back(mkSkolemLemma(lem, v));
       if (k == IS_INTEGER)
       {
-        return nm->mkNode(EQUAL, node[0], toIntSkolem);
+        return nm->mkNode(EQUAL, node[0], v);
       }
       Assert(k == TO_INTEGER);
-      return toIntSkolem;
+      return v;
     }
 
     case INTS_DIVISION_TOTAL:
@@ -151,7 +122,11 @@ Node OperatorElim::eliminateOperators(Node node,
       Node den = rewrite(node[1]);
       Node num = rewrite(node[0]);
       Node rw = nm->mkNode(k, num, den);
-      Node v = bvm->mkBoundVar<ArithWitnessVarAttribute>(rw, nm->integerType());
+      // we use the purification skolem for div
+      Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
+      Node v = sm->mkPurifySkolem(
+          pterm, "intDiv", "the result of an intdiv-by-k term");
+      // make the corresponding lemma
       Node lem;
       Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
       if (den.isConst())
@@ -221,18 +196,14 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(
                                 ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
-      Node intVar = mkWitnessTerm(
-          v, lem, "linearIntDiv", "the result of an intdiv-by-k term", lems);
+      // add the skolem lemma to lems
+      lems.push_back(mkSkolemLemma(lem, v));
       if (k == INTS_MODULUS_TOTAL)
       {
-        Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, intVar));
+        Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, v));
         return nn;
       }
-      else
-      {
-        return intVar;
-      }
-      break;
+      return v;
     }
     case DIVISION_TOTAL:
     {
@@ -252,12 +223,13 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
-      Node v = bvm->mkBoundVar<ArithWitnessVarAttribute>(rw, nm->realType());
+      Node v = sm->mkPurifySkolem(
+          rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(nm->mkConstReal(Rational(0))).negate(),
                             nm->mkNode(MULT, den, v).eqNode(num));
-      return mkWitnessTerm(
-          v, lem, "nonlinearDiv", "the result of a non-linear div term", lems);
+      lems.push_back(mkSkolemLemma(lem, v));
+      return v;
       break;
     }
     case DIVISION:
@@ -337,8 +309,10 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       // eliminate inverse functions here
-      Node var =
-          bvm->mkBoundVar<ArithWitnessVarAttribute>(node, nm->realType());
+      Node var = sm->mkPurifySkolem(
+          node,
+          "tfk",
+          "Skolem to eliminate a non-standard transcendental function");
       Node lem;
       if (k == SQRT)
       {
@@ -382,6 +356,20 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(LEQ, nm->mkConstReal(Rational(0)), var),
                             nm->mkNode(LT, var, pi));
         }
+        Node cond;
+        if (k == ARCSINE || k == ARCCOSINE || k == ARCSECANT
+            || k == ARCCOSECANT)
+        {
+          // -1 <= x <= 1
+          cond = nm->mkNode(
+              AND,
+              nm->mkNode(GEQ, node[0], nm->mkConstReal(Rational(-1))),
+              nm->mkNode(LEQ, node[0], nm->mkConstReal(Rational(1))));
+          if (k == ARCSECANT || k == ARCCOSECANT)
+          {
+            cond = cond.notNode();
+          }
+        }
 
         Kind rk =
             k == ARCSINE
@@ -395,15 +383,14 @@ Node OperatorElim::eliminateOperators(Node node,
                                      : (k == ARCSECANT ? SECANT : COTANGENT))));
         Node invTerm = nm->mkNode(rk, var);
         lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
+        if (!cond.isNull())
+        {
+          lem = nm->mkNode(IMPLIES, cond, lem);
+        }
       }
       Assert(!lem.isNull());
-      return mkWitnessTerm(
-          var,
-          lem,
-          "tfk",
-          "Skolem to eliminate a non-standard transcendental function",
-          lems);
-      break;
+      lems.push_back(mkSkolemLemma(lem, var));
+      return var;
     }
 
     default: break;
@@ -464,31 +451,20 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
   return !options().arith.arithNoPartialFun || id == SkolemFunId::SQRT;
 }
 
-Node OperatorElim::mkWitnessTerm(Node v,
-                                 Node pred,
-                                 const std::string& prefix,
-                                 const std::string& comment,
-                                 std::vector<SkolemLemma>& lems)
+SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  // we mark that we should send a lemma
-  Node k = sm->mkSkolem(
-      v, pred, prefix, comment, SkolemManager::SKOLEM_DEFAULT, this);
+  TrustNode tlem;
   if (d_pnm != nullptr)
   {
-    Node lem = SkolemLemma::getSkolemLemmaFor(k);
-    TrustNode tlem =
-        mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
-    lems.push_back(SkolemLemma(tlem, k));
+    tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }
   else
   {
-    lems.push_back(SkolemLemma(k, nullptr));
+    tlem = TrustNode::mkTrustLemma(lem, nullptr);
   }
-  return k;
+  return SkolemLemma(tlem, k);
 }
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

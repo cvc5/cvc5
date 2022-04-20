@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /**
@@ -56,6 +56,12 @@ class SetDefaults : protected EnvObj
    * Determine whether we will be using SyGuS.
    */
   bool usesSygus(const Options& opts) const;
+  /**
+   * Does options enable an input conversion, e.g. solve-bv-as-int?
+   * If this method returns true, then reason is updated with the name of the
+   * option.
+   */
+  bool usesInputConversion(const Options& opts, std::ostream& reason) const;
   /**
    * Check if incompatible with incremental mode. Notice this method may modify
    * the options to ensure that we are compatible with incremental mode.
@@ -93,6 +99,12 @@ class SetDefaults : protected EnvObj
    * techniques that may interfere with producing correct unsat cores.
    */
   bool safeUnsatCores(const Options& opts) const;
+  /**
+   * Check if incompatible with sygus. Notice this method may
+   * modify the options to ensure that we are compatible with sygus.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithSygus(Options& opts, std::ostream& reason) const;
   /**
    * Check if incompatible with quantified formulas. Notice this method may
    * modify the options to ensure that we are compatible with quantified logics.
@@ -135,11 +147,15 @@ class SetDefaults : protected EnvObj
    * Set default decision mode
    */
   void setDefaultDecisionMode(const LogicInfo& logic, Options& opts) const;
+  /** Notify that we are modifying option x to val due to reason. */
+  void notifyModifyOption(const std::string& x,
+                          const std::string& val,
+                          const std::string& reason) const;
   /** Are we an internal subsolver? */
   bool d_isInternalSubsolver;
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SET_DEFAULTS_H */

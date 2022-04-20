@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
@@ -115,56 +115,71 @@ void AstPrinter::toStream(std::ostream& out,
 }/* AstPrinter::toStream(TNode) */
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c);
+static bool tryToStream(std::ostream& out, const cvc5::Command* c);
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s);
+static bool tryToStream(std::ostream& out, const cvc5::CommandStatus* s);
 
-void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
+void AstPrinter::toStream(std::ostream& out, const cvc5::CommandStatus* s) const
 {
-  if(tryToStream<CommandSuccess>(out, s) ||
-     tryToStream<CommandFailure>(out, s) ||
-     tryToStream<CommandUnsupported>(out, s) ||
-     tryToStream<CommandInterrupted>(out, s)) {
+  if (tryToStream<cvc5::CommandSuccess>(out, s)
+      || tryToStream<cvc5::CommandFailure>(out, s)
+      || tryToStream<cvc5::CommandUnsupported>(out, s)
+      || tryToStream<cvc5::CommandInterrupted>(out, s))
+  {
     return;
   }
 
-  out << "ERROR: don't know how to print a CommandStatus of class: "
+  out << "ERROR: don't know how to print a cvc5::CommandStatus of class: "
       << typeid(*s).name() << endl;
 
-}/* AstPrinter::toStream(CommandStatus*) */
+} /* AstPrinter::toStream(cvc5::CommandStatus*) */
 
 void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
-  out << "Model()";
+  out << "Model(" << std::endl;
+  this->Printer::toStream(out, m);
+  out << ")" << std::endl;
 }
 
 void AstPrinter::toStreamModelSort(std::ostream& out,
                                    TypeNode tn,
                                    const std::vector<Node>& elements) const
 {
-  // shouldn't be called; only the non-Command* version above should be
-  Unreachable();
+  out << "(" << tn << "(";
+  bool firstTime = true;
+  for (const Node& elem : elements)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << elem;
+  }
+  out << "))" << std::endl;
 }
 
 void AstPrinter::toStreamModelTerm(std::ostream& out,
                                    const Node& n,
                                    const Node& value) const
 {
-  // shouldn't be called; only the non-Command* version above should be
-  Unreachable();
+  out << "(" << n << " " << value << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdEmpty(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "EmptyCommand(" << name << ')' << std::endl;
+  out << "Emptycvc5::Command(" << name << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdEcho(std::ostream& out,
                                  const std::string& output) const
 {
-  out << "EchoCommand(" << output << ')' << std::endl;
+  out << "Echocvc5::Command(" << output << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
@@ -215,10 +230,10 @@ void AstPrinter::toStreamCmdQuit(std::ostream& out) const
 }
 
 void AstPrinter::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   out << "DeclarationSequence[" << endl;
-  for (CommandSequence::const_iterator i = sequence.cbegin();
+  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
        i != sequence.cend();
        ++i)
   {
@@ -228,10 +243,10 @@ void AstPrinter::toStreamCmdDeclarationSequence(
 }
 
 void AstPrinter::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
-  out << "CommandSequence[" << endl;
-  for (CommandSequence::const_iterator i = sequence.cbegin();
+  out << "cvc5::CommandSequence[" << endl;
+  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
        i != sequence.cend();
        ++i)
   {
@@ -357,7 +372,7 @@ void AstPrinter::toStreamCmdGetOption(std::ostream& out,
 void AstPrinter::toStreamCmdDatatypeDeclaration(
     std::ostream& out, const std::vector<TypeNode>& datatypes) const
 {
-  out << "DatatypeDeclarationCommand([";
+  out << "DatatypeDeclarationcvc5::Command([";
   for (const TypeNode& t : datatypes)
   {
     out << t << ";" << endl;
@@ -410,7 +425,7 @@ void AstPrinter::toStreamWithLetify(std::ostream& out,
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c)
+static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c));
@@ -419,30 +434,31 @@ static bool tryToStream(std::ostream& out, const Command* c)
   return false;
 }
 
-static void toStream(std::ostream& out, const CommandSuccess* s)
+static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-  if(Command::printsuccess::getPrintSuccess(out)) {
+  if (cvc5::Command::printsuccess::getPrintSuccess(out))
+  {
     out << "OK" << endl;
   }
 }
 
-static void toStream(std::ostream& out, const CommandInterrupted* s)
+static void toStream(std::ostream& out, const cvc5::CommandInterrupted* s)
 {
   out << "INTERRUPTED" << endl;
 }
 
-static void toStream(std::ostream& out, const CommandUnsupported* s)
+static void toStream(std::ostream& out, const cvc5::CommandUnsupported* s)
 {
   out << "UNSUPPORTED" << endl;
 }
 
-static void toStream(std::ostream& out, const CommandFailure* s)
+static void toStream(std::ostream& out, const cvc5::CommandFailure* s)
 {
   out << s->getMessage() << endl;
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s)
+static bool tryToStream(std::ostream& out, const cvc5::CommandStatus* s)
 {
   if(typeid(*s) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(s));
@@ -453,4 +469,4 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s)
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal

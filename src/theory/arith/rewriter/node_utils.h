@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -50,15 +50,6 @@ inline bool isAtom(TNode n)
     default: return false;
   }
 }
-
-/**
- * Check whether the given node can be rewritten to an integer node. This
- * differs from checking the node type in two major ways: we consider relational
- * operators integral if both children are integral in this sense; rational
- * constants are always integral, as they are rewritten to integers by simple
- * multiplication with their denominator.
- */
-bool isIntegral(TNode n);
 
 /** Check whether the node wraps a real algebraic number. */
 inline bool isRAN(TNode n)
@@ -164,6 +155,6 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

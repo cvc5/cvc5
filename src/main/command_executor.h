@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ class CommandExecutor
    * The solver object, which is allocated by this class and is used for
    * executing most commands (e.g. check-sat).
    */
-  std::unique_ptr<api::Solver>& d_solver;
+  std::unique_ptr<cvc5::Solver>& d_solver;
   /**
    * The symbol manager, which is allocated by this class. This manages
    * all things related to definitions of symbols and their impact on behaviors
@@ -48,10 +48,10 @@ class CommandExecutor
    */
   std::unique_ptr<SymbolManager> d_symman;
 
-  api::Result d_result;
+  cvc5::Result d_result;
 
  public:
-  CommandExecutor(std::unique_ptr<api::Solver>& solver);
+  CommandExecutor(std::unique_ptr<cvc5::Solver>& solver);
 
   virtual ~CommandExecutor();
 
@@ -68,12 +68,12 @@ class CommandExecutor
   }
 
   /** Get a pointer to the solver object owned by this CommandExecutor. */
-  api::Solver* getSolver() { return d_solver.get(); }
+  cvc5::Solver* getSolver() { return d_solver.get(); }
 
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
   SymbolManager* getSymbolManager() { return d_symman.get(); }
 
-  api::Result getResult() const { return d_result; }
+  cvc5::Result getResult() const { return d_result; }
   void reset();
 
   /** Store the current options as the original options */
@@ -105,7 +105,7 @@ private:
 
 }; /* class CommandExecutor */
 
-bool solverInvoke(api::Solver* solver,
+bool solverInvoke(cvc5::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
                   std::ostream& out);

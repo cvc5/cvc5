@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
@@ -212,22 +212,11 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
-    // note we will get more proof reuse if we do not special case AND here.
-    if (cs.getKind() == kind::AND)
-    {
-      for (const Node& csc : cs)
-      {
-        pfChildren.push_back(csc);
-        // connect substitution generator into apply generator
-        d_applyPg->addLazyStep(csc, d_subsPg.get());
-      }
-    }
-    else
-    {
-      pfChildren.push_back(cs);
-      // connect substitution generator into apply generator
-      d_applyPg->addLazyStep(cs, d_subsPg.get());
-    }
+    // note that cs may be an AND node, in which case it specifies multiple
+    // substitutions
+    pfChildren.push_back(cs);
+    // connect substitution generator into apply generator
+    d_applyPg->addLazyStep(cs, d_subsPg.get());
   }
   Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
   // We use fixpoint as the substitution-apply identifier. Notice that it
@@ -293,4 +282,4 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

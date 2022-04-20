@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Aina Niemetz
+ *   Dejan Jovanovic, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,12 +18,12 @@
 
 #include "theory/atom_requests.h"
 
-using namespace cvc5;
+using namespace cvc5::internal;
 
 AtomRequests::AtomRequests(context::Context* context)
-: d_allRequests(context)
-, d_requests(context)
-, d_triggerToRequestMap(context)
+    : d_allRequests(context),
+      d_requests(context),
+      d_triggerToRequestMap(context)
 {}
 
 AtomRequests::element_index AtomRequests::getList(TNode trigger) const {
@@ -45,16 +45,16 @@ AtomRequests::atom_iterator AtomRequests::getAtomIterator(TNode trigger) const {
 
 void AtomRequests::add(TNode triggerAtom, TNode atomToSend, theory::TheoryId toTheory) {
 
-  Debug("theory::atoms") << "AtomRequests::add(" << triggerAtom << ", " << atomToSend << ", " << toTheory << ")" << std::endl;
+  Trace("theory::atoms") << "AtomRequests::add(" << triggerAtom << ", " << atomToSend << ", " << toTheory << ")" << std::endl;
 
   Request request(atomToSend, toTheory);
 
   if (d_allRequests.find(request) != d_allRequests.end()) {
     // Have it already
-    Debug("theory::atoms") << "AtomRequests::add(" << triggerAtom << ", " << atomToSend << ", " << toTheory << "): already there" << std::endl;
+    Trace("theory::atoms") << "AtomRequests::add(" << triggerAtom << ", " << atomToSend << ", " << toTheory << "): already there" << std::endl;
     return;
   }
-  Debug("theory::atoms") << "AtomRequests::add(" << triggerAtom << ", " << atomToSend << ", " << toTheory << "): adding" << std::endl;
+  Trace("theory::atoms") << "AtomRequests::add(" << triggerAtom << ", " << atomToSend << ", " << toTheory << "): adding" << std::endl;
 
   /// Mark the new request
   d_allRequests.insert(request);

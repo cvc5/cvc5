@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5::internal::theory::arith::rewriter {
 
 /**
  * Implements an ordering on arithmetic leaf nodes. We expect that values have
@@ -82,8 +82,10 @@ struct TermComparator
   {
     if (a == b) return false;
 
-    bool aIsMult = a.getKind() == Kind::MULT || a.getKind() == Kind::NONLINEAR_MULT;
-    bool bIsMult = b.getKind() == Kind::MULT || b.getKind() == Kind::NONLINEAR_MULT;
+    bool aIsMult =
+        a.getKind() == Kind::MULT || a.getKind() == Kind::NONLINEAR_MULT;
+    bool bIsMult =
+        b.getKind() == Kind::MULT || b.getKind() == Kind::NONLINEAR_MULT;
     if (aIsMult != bIsMult) return !aIsMult;
 
     if (!aIsMult)
@@ -107,6 +109,6 @@ struct TermComparator
   }
 };
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace cvc5::internal::theory::arith::rewriter
 
 #endif

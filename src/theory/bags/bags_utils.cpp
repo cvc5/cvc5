@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +18,16 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
+#include "table_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -141,6 +142,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
+    case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -738,7 +740,7 @@ Node BagsUtils::evaluateBagFilter(TNode n)
 
   for (const auto& [e, count] : elements)
   {
-    Node multiplicity = nm->mkConst(CONST_RATIONAL, count);
+    Node multiplicity = nm->mkConstInt(count);
     Node bag = nm->mkBag(bagType.getBagElementType(), e, multiplicity);
     Node pOfe = nm->mkNode(APPLY_UF, P, e);
     Node ite = nm->mkNode(ITE, pOfe, bag, empty);
@@ -829,6 +831,36 @@ Node BagsUtils::evaluateProduct(TNode n)
   return ret;
 }
 
+Node BagsUtils::evaluateTableProject(TNode n)
+{
+  Assert(n.getKind() == TABLE_PROJECT);
+  // Examples
+  // --------
+  // - ((_ table.project 1) (bag (tuple true "a") 4)) = (bag (tuple "a") 4)
+  // - (table.project (bag.union_disjoint
+  //                    (bag (tuple "a") 4)
+  //                    (bag (tuple "b") 3))) = (bag tuple 7)
+
+  Node A = n[0];
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+
+  std::map<Node, Rational> elements;
+  std::vector<uint32_t> indices =
+      n.getOperator().getConst<TableProjectOp>().getIndices();
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    Node element = TupleUtils::getTupleProjection(indices, a);
+    // multiple elements could be projected to the same tuple.
+    // Zero is the default value for Rational values.
+    elements[element] += countA;
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

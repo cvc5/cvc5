@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Abdalrhman Mohamed, Andrew Reynolds
+ *   Ying Sheng, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -65,7 +65,8 @@ void SygusInterpol::createVariables(bool needsShared)
   for (const Node& s : d_syms)
   {
     TypeNode tn = s.getType();
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // datatype symbols should be considered interpreted symbols here, not
       // (higher-order) variables.
@@ -99,22 +100,22 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.produceInterpols != options::ProduceInterpols::NONE);
+  Assert(options().smt.interpolants);
   // ASSUMPTIONS
-  if (options().smt.produceInterpols == options::ProduceInterpols::ASSUMPTIONS)
+  if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (options().smt.produceInterpols
-           == options::ProduceInterpols::CONJECTURE)
+  else if (options().smt.interpolantsMode
+           == options::InterpolantsMode::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
   // SHARED
-  else if (options().smt.produceInterpols == options::ProduceInterpols::SHARED)
+  else if (options().smt.interpolantsMode == options::InterpolantsMode::SHARED)
   {
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node>> include_cons_axioms;
@@ -154,7 +155,7 @@ void SygusInterpol::getIncludeCons(
     }
   }
   // ALL
-  else if (options().smt.produceInterpols == options::ProduceInterpols::ALL)
+  else if (options().smt.interpolantsMode == options::InterpolantsMode::ALL)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
@@ -275,7 +276,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
     Trace("sygus-interpol")
         << "SolverEngine::getInterpol: could not find solution!" << std::endl;
     throw RecoverableModalException(
-        "Could not find solution for get-interpol.");
+        "Could not find solution for get-interpolant.");
     return false;
   }
   Trace("sygus-interpol") << "SolverEngine::getInterpol: solution is "
@@ -346,10 +347,10 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
 
   Trace("sygus-interpol")
       << "  SygusInterpol::solveInterpolation check synth..." << std::endl;
-  Result r = d_subSolver->checkSynth();
+  SynthResult r = d_subSolver->checkSynth();
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation result: " << r
                           << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }
@@ -361,10 +362,10 @@ bool SygusInterpol::solveInterpolationNext(Node& interpol)
   Trace("sygus-interpol")
       << "  SygusInterpol::solveInterpolationNext check synth..." << std::endl;
   // invoke the check-synth with isNext = true.
-  Result r = d_subSolver->checkSynth(true);
+  SynthResult r = d_subSolver->checkSynth(true);
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: "
                           << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }
@@ -373,4 +374,4 @@ bool SygusInterpol::solveInterpolationNext(Node& interpol)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

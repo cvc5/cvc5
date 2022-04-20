@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,10 +30,10 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -188,9 +188,8 @@ Node TermDb::getMatchOperator( Node n ) {
   //datatype operators may be parametric, always assume they are
   if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
       || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
-      || k == SET_SINGLETON || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR
-      || k == APPLY_TESTER || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH
-      || k == STRING_LENGTH)
+      || k == SET_SINGLETON || k == APPLY_SELECTOR || k == APPLY_TESTER
+      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
@@ -399,7 +398,7 @@ void TermDb::computeUfTerms( TNode f ) {
           }
         }
         Node lem = nm->mkOr(lits);
-        if (Trace.isOn("term-db-lemma"))
+        if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                  << n << "!!!!" << std::endl;
@@ -419,7 +418,7 @@ void TermDb::computeUfTerms( TNode f ) {
       nonCongruentCount++;
       d_op_nonred_count[f]++;
     }
-    if (Trace.isOn("tdb"))
+    if (TraceIsOn("tdb"))
     {
       Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount
                    << " / ";
@@ -509,11 +508,10 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
         return false;
       }
     }else{
-      if (options().quantifiers.instLevelInputOnly)
-      {
-        Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
-        return false;
-      }
+      Trace("inst-add-debug")
+          << "Term " << n << " does not have an instantiation level."
+          << std::endl;
+      return false;
     }
   }
   // it cannot have instantiation constants, which originate from
@@ -707,4 +705,4 @@ TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

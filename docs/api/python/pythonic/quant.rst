@@ -3,18 +3,18 @@ Quantifiers
 
 Builders
 ------------------
-.. autofunction:: cvc5_z3py_compat.ForAll
-.. autofunction:: cvc5_z3py_compat.Exists
-.. autofunction:: cvc5_z3py_compat.Lambda
+.. autofunction:: cvc5.pythonic.ForAll
+.. autofunction:: cvc5.pythonic.Exists
+.. autofunction:: cvc5.pythonic.Lambda
 
 Testers
 -------------------
-.. autofunction:: cvc5_z3py_compat.is_var
-.. autofunction:: cvc5_z3py_compat.is_quantifier
+.. autofunction:: cvc5.pythonic.is_var
+.. autofunction:: cvc5.pythonic.is_quantifier
 
 Classes
 -------
-.. autoclass:: cvc5_z3py_compat.QuantifierRef
+.. autoclass:: cvc5.pythonic.QuantifierRef
    :members:
    :special-members:
 

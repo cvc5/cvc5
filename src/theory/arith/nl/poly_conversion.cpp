@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Mathias Preiner
+ *   Gereon Kremer, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,14 +22,14 @@
 #include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-poly::Variable VariableMapper::operator()(const cvc5::Node& n)
+poly::Variable VariableMapper::operator()(const cvc5::internal::Node& n)
 {
   auto it = mVarCVCpoly.find(n);
   if (it == mVarCVCpoly.end())
@@ -55,7 +55,7 @@ poly::Variable VariableMapper::operator()(const cvc5::Node& n)
   return it->second;
 }
 
-cvc5::Node VariableMapper::operator()(const poly::Variable& n)
+cvc5::internal::Node VariableMapper::operator()(const poly::Variable& n)
 {
   auto it = mVarpolyCVC.find(n);
   Assert(it != mVarpolyCVC.end())
@@ -63,7 +63,7 @@ cvc5::Node VariableMapper::operator()(const poly::Variable& n)
   return it->second;
 }
 
-cvc5::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::Node& var)
+cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::internal::Node& var)
 {
   Trace("poly::conversion")
       << "Converting " << p << " over " << var << std::endl;
@@ -89,9 +89,9 @@ cvc5::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::Node& var)
   return res;
 }
 
-poly::UPolynomial as_poly_upolynomial_impl(const cvc5::Node& n,
+poly::UPolynomial as_poly_upolynomial_impl(const cvc5::internal::Node& n,
                                            poly::Integer& denominator,
-                                           const cvc5::Node& var)
+                                           const cvc5::internal::Node& var)
 {
   denominator = poly::Integer(1);
   if (n.isVar())
@@ -142,14 +142,14 @@ poly::UPolynomial as_poly_upolynomial_impl(const cvc5::Node& n,
   return poly::UPolynomial();
 }
 
-poly::UPolynomial as_poly_upolynomial(const cvc5::Node& n,
-                                      const cvc5::Node& var)
+poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
+                                      const cvc5::internal::Node& var)
 {
   poly::Integer denom;
   return as_poly_upolynomial_impl(n, denom, var);
 }
 
-poly::Polynomial as_poly_polynomial_impl(const cvc5::Node& n,
+poly::Polynomial as_poly_polynomial_impl(const cvc5::internal::Node& n,
                                          poly::Integer& denominator,
                                          VariableMapper& vm)
 {
@@ -197,12 +197,12 @@ poly::Polynomial as_poly_polynomial_impl(const cvc5::Node& n,
   }
   return poly::Polynomial();
 }
-poly::Polynomial as_poly_polynomial(const cvc5::Node& n, VariableMapper& vm)
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm)
 {
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);
 }
-poly::Polynomial as_poly_polynomial(const cvc5::Node& n,
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator)
 {
@@ -259,7 +259,7 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
 }
 }  // namespace
 
-cvc5::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
 {
   CollectMonomialData cmd(vm);
   // Do the actual conversion
@@ -276,7 +276,7 @@ cvc5::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
   return cmd.d_nm->mkNode(Kind::ADD, cmd.d_terms);
 }
 
-poly::SignCondition normalize_kind(cvc5::Kind kind,
+poly::SignCondition normalize_kind(cvc5::internal::Kind kind,
                                    bool negated,
                                    poly::Polynomial& lhs)
 {
@@ -567,7 +567,7 @@ Node excluding_interval_to_lemma(const Node& variable,
       const poly::AlgebraicNumber& alg = as_algebraic_number(lv);
       if (poly::is_rational(alg))
       {
-        Trace("nl-cad") << "Rational point interval: " << interval << std::endl;
+        Trace("nl-cov") << "Rational point interval: " << interval << std::endl;
         return nm->mkNode(
             Kind::DISTINCT,
             variable,
@@ -575,7 +575,7 @@ Node excluding_interval_to_lemma(const Node& variable,
                 CONST_RATIONAL,
                 poly_utils::toRational(poly::to_rational_approximation(alg))));
       }
-      Trace("nl-cad") << "Algebraic point interval: " << interval << std::endl;
+      Trace("nl-cov") << "Algebraic point interval: " << interval << std::endl;
       // p(x) != 0 or x <= lb or ub <= x
       if (allowNonlinearLemma)
       {
@@ -597,7 +597,7 @@ Node excluding_interval_to_lemma(const Node& variable,
     }
     else
     {
-      Trace("nl-cad") << "Rational point interval: " << interval << std::endl;
+      Trace("nl-cov") << "Rational point interval: " << interval << std::endl;
       return nm->mkNode(
           Kind::DISTINCT,
           variable,
@@ -606,17 +606,17 @@ Node excluding_interval_to_lemma(const Node& variable,
   }
   if (li)
   {
-    Trace("nl-cad") << "Only upper bound: " << interval << std::endl;
+    Trace("nl-cov") << "Only upper bound: " << interval << std::endl;
     return upper_bound_as_node(
         variable, uv, poly::get_upper_open(interval), allowNonlinearLemma);
   }
   if (ui)
   {
-    Trace("nl-cad") << "Only lower bound: " << interval << std::endl;
+    Trace("nl-cov") << "Only lower bound: " << interval << std::endl;
     return lower_bound_as_node(
         variable, lv, poly::get_lower_open(interval), allowNonlinearLemma);
   }
-  Trace("nl-cad") << "Proper interval: " << interval << std::endl;
+  Trace("nl-cov") << "Proper interval: " << interval << std::endl;
   Node lb = lower_bound_as_node(
       variable, lv, poly::get_lower_open(interval), allowNonlinearLemma);
   Node ub = upper_bound_as_node(
@@ -824,6 +824,6 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

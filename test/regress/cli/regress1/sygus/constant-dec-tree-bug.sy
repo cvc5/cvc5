@@ -1,0 +1,15 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-unif-pi=complete
+
+(set-logic LIA)
+(synth-fun u ((x Int)) Int)
+(synth-fun f () Bool)
+(synth-fun g () Bool)
+(synth-fun h () Bool)
+
+(constraint (= (u 3) (+ (u 2) 2)))
+(constraint f)
+(constraint (not g))
+(constraint h)
+
+(check-synth)

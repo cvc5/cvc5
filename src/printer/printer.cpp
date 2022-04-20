@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
+ *   Abdalrhman Mohamed, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 unique_ptr<Printer>
     Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
@@ -376,7 +376,8 @@ void Printer::toStreamCmdGetModel(std::ostream& out) const
   printUnknownCommand(out, "ge-model");
 }
 
-void Printer::toStreamCmdBlockModel(std::ostream& out) const
+void Printer::toStreamCmdBlockModel(std::ostream& out,
+                                    modes::BlockModelsMode mode) const
 {
   printUnknownCommand(out, "block-model");
 }
@@ -402,12 +403,12 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
                                      Node conj,
                                      TypeNode sygusType) const
 {
-  printUnknownCommand(out, "get-interpol");
+  printUnknownCommand(out, "get-interpolant");
 }
 
 void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
 {
-  printUnknownCommand(out, "get-interpol-next");
+  printUnknownCommand(out, "get-interpolant-next");
 }
 
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
@@ -443,6 +444,11 @@ void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   printUnknownCommand(out, "get-difficulty");
+}
+
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-learned-literals");
 }
 
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const
@@ -519,15 +525,15 @@ void Printer::toStreamCmdDeclareHeap(std::ostream& out,
 }
 
 void Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   printUnknownCommand(out, "sequence");
 }
 
 void Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   printUnknownCommand(out, "sequence");
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

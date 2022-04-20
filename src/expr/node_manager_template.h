@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,11 +34,11 @@
 
 namespace cvc5 {
 
-using Record = std::vector<std::pair<std::string, TypeNode>>;
-
-namespace api {
 class Solver;
-}
+
+namespace internal {
+
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 class ResourceManager;
 class SkolemManager;
@@ -58,7 +58,7 @@ namespace expr {
 
 class NodeManager
 {
-  friend class api::Solver;
+  friend class cvc5::Solver;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
   friend class SkolemManager;
@@ -180,7 +180,7 @@ class NodeManager
   /**
    * Get the (singleton) operator of an OPERATOR-kinded kind.  The
    * returned node n will have kind BUILTIN, and calling
-   * n.getConst<cvc5::Kind>() will yield k.
+   * n.getConst<cvc5::internal::Kind>() will yield k.
    */
   TNode operatorOf(Kind k);
 
@@ -503,40 +503,6 @@ class NodeManager
       const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
-   * Make a set of types representing the given datatypes, which may
-   * be mutually recursive.  unresolvedTypes is a set of SortTypes
-   * that were used as placeholders in the Datatypes for the Datatypes
-   * of the same name.  This is just a more complicated version of the
-   * above mkMutualDatatypeTypes() function, but is required to handle
-   * complex types.
-   *
-   * For example, unresolvedTypes might contain the single sort "list"
-   * (with that name reported from SortType::getName()).  The
-   * datatypes list might have the single datatype
-   *
-   *   DATATYPE
-   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
-   *   END;
-   *
-   * To represent the Type of the array, the user had to create a
-   * placeholder type (an uninterpreted sort) to stand for "list" in
-   * the type of "car".  It is this placeholder sort that should be
-   * passed in unresolvedTypes.  If the datatype was of the simpler
-   * form:
-   *
-   *   DATATYPE
-   *     list = cons(car:list, cdr:list) | nil;
-   *   END;
-   *
-   * then no complicated Type needs to be created, and the above,
-   * simpler form of mkMutualDatatypeTypes() is enough.
-   */
-  std::vector<TypeNode> mkMutualDatatypeTypes(
-      const std::vector<DType>& datatypes,
-      const std::set<TypeNode>& unresolvedTypes,
-      uint32_t flags = DATATYPE_FLAG_NONE);
-
-  /**
    * Make a type representing a constructor with the given argument (subfield)
    * types and return type range.
    */
@@ -686,11 +652,23 @@ class NodeManager
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
 
+  /** Create a raw symbol with the given type. */
+  Node mkRawSymbol(const std::string& name, const TypeNode& type);
+
   /** Make a new uninterpreted sort value with the given type. */
   Node mkUninterpretedSortValue(const TypeNode& type);
 
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
+
+  /**
+   * Create a sequence unit from the given element n.
+   * @param t the element type of the returned sequence.
+   *          Note that the type of n needs to be a subtype of t.
+   * @param n the single element in the sequence.
+   * @return a sequence unit constructed from the element n.
+   */
+  Node mkSeqUnit(const TypeNode& t, const TNode n);
 
   /**
    * Create a singleton set from the given element n.
@@ -778,22 +756,55 @@ class NodeManager
   TypeNode mkTypeNode(Kind kind, const std::vector<TypeNode>& children);
 
   /** Make a new (anonymous) sort of arity 0. */
-  TypeNode mkSort(uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSort();
 
   /** Make a new sort with the given name of arity 0. */
-  TypeNode mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSort(const std::string& name);
 
   /** Make a new sort by parameterizing the given sort constructor. */
-  TypeNode mkSort(TypeNode constructor,
-                  const std::vector<TypeNode>& children,
-                  uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSort(TypeNode constructor, const std::vector<TypeNode>& children);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name,
-                             size_t arity,
-                             uint32_t flags = SORT_FLAG_NONE);
+  TypeNode mkSortConstructor(const std::string& name, size_t arity);
+
+  /** Make an unresolved datatype sort */
+  TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
 
  private:
+  /**
+   * Make a set of types representing the given datatypes, which may
+   * be mutually recursive.  unresolvedTypes is a set of SortTypes
+   * that were used as placeholders in the Datatypes for the Datatypes
+   * of the same name.  This is just a more complicated version of the
+   * above mkMutualDatatypeTypes() function, but is required to handle
+   * complex types.
+   *
+   * For example, unresolvedTypes might contain the single sort "list"
+   * (with that name reported from SortType::getName()).  The
+   * datatypes list might have the single datatype
+   *
+   *   DATATYPE
+   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
+   *   END;
+   *
+   * To represent the Type of the array, the user had to create a
+   * placeholder type (an uninterpreted sort) to stand for "list" in
+   * the type of "car".  It is this placeholder sort that should be
+   * passed in unresolvedTypes.  If the datatype was of the simpler
+   * form:
+   *
+   *   DATATYPE
+   *     list = cons(car:list, cdr:list) | nil;
+   *   END;
+   *
+   * then no complicated Type needs to be created, and the above,
+   * simpler form of mkMutualDatatypeTypes() is enough.
+   */
+  std::vector<TypeNode> mkMutualDatatypeTypesInternal(
+      const std::vector<DType>& datatypes,
+      const std::set<TypeNode>& unresolvedTypes,
+      uint32_t flags = DATATYPE_FLAG_NONE);
+
   typedef std::unordered_set<expr::NodeValue*,
                              expr::NodeValuePoolHashFunction,
                              expr::NodeValuePoolEq>
@@ -927,12 +938,12 @@ class NodeManager
 
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
-    if (Debug.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
-      Debug("gc") << "zombifying node value " << nv << " [" << nv->d_id
+      Trace("gc") << "zombifying node value " << nv << " [" << nv->d_id
                   << "]: ";
-      nv->printAst(Debug("gc"));
-      Debug("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
+      nv->printAst(Trace("gc"));
+      Trace("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
                   << std::endl;
     }
 
@@ -960,9 +971,9 @@ class NodeManager
   inline void markRefCountMaxedOut(expr::NodeValue* nv)
   {
     Assert(nv->HasMaximizedReferenceCount());
-    if (Debug.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
-      Debug("gc") << "marking node value " << nv << " [" << nv->d_id
+      Trace("gc") << "marking node value " << nv << " [" << nv->d_id
                   << "]: as maxed out" << std::endl;
     }
     d_maxedOut.push_back(nv);
@@ -1040,7 +1051,7 @@ class NodeManager
    * ADD, are APPLYs of a ADD operator to arguments.  This array
    * holds the set of operators for these things.  A ADD operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<cvc5::Kind>(), you get kind::ADD back.
+   * plusOperator->getConst<cvc5::internal::Kind>(), you get kind::ADD back.
    */
   Node d_operators[kind::LAST_KIND];
 
@@ -1068,7 +1079,7 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  Debug("arrays") << "making array type " << indexType << " "
+  Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
@@ -1076,7 +1087,7 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  Debug("sets") << "making sets type " << elementType << std::endl;
+  Trace("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
@@ -1244,6 +1255,7 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 ${metakind_mkConstDelete}
 // clang-format off
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
+}
 
 #endif /* CVC5__NODE_MANAGER_H */

@@ -1,0 +1,17 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic SLIA)
+
+(define-fun cA ((x String) (y String)) String (str.++ (str.++ x "A") y))
+
+(synth-fun f ((name String)) String
+    ((Start String))
+    ((Start String (name "A" "B" ""
+                        (cA Start Start)))))
+
+
+(declare-var name String)
+
+(constraint (= (f "BB") "AAAAAAAAAAAA"))
+
+(check-synth)

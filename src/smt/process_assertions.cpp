@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,11 +37,11 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5::preprocessing;
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /** Useful for counting the number of recursive calls. */
@@ -98,12 +98,19 @@ bool ProcessAssertions::apply(Assertions& as)
   // Dump the assertions
   dumpAssertions("assertions::pre-everything", as);
   Trace("assertions::pre-everything") << std::endl;
+  if (isOutputOn(OutputTag::PRE_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::PRE_ASSERTS);
+    outPA << ";; pre-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; pre-asserts end" << std::endl;
+  }
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
 
-  Debug("smt") << "#Assertions : " << assertions.size() << endl;
-  Debug("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
+  Trace("smt") << "#Assertions : " << assertions.size() << endl;
+  Trace("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
 
   if (assertions.size() == 0)
   {
@@ -137,7 +144,7 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options().quantifiers.globalNegate)
   {
@@ -166,11 +173,11 @@ bool ProcessAssertions::apply(Assertions& as)
     applyPass("ackermann", as);
   }
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   bool noConflict = true;
 
-  if (options().smt.extRewPrep)
+  if (options().smt.extRewPrep != options::ExtRewPrepMode::OFF)
   {
     applyPass("ext-rew-pre", as);
   }
@@ -273,7 +280,7 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     applyPass("static-learning", as);
   }
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options().smt.learnedRewrite)
   {
@@ -316,11 +323,11 @@ bool ProcessAssertions::apply(Assertions& as)
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
-  Debug("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
+  Trace("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
                << endl;
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   // ensure rewritten
   applyPass("rewrite", as);
@@ -390,7 +397,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // ITE simplification
     if (options().smt.doITESimp
@@ -404,7 +411,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // Unconstrained simplification
     if (options().smt.unconstrainedSimp)
@@ -425,7 +432,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
     dumpAssertions("post-repeatsimp", as);
     Trace("smt") << "POST repeatSimp" << endl;
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
   }
   catch (TypeCheckingExceptionPrivate& tcep)
   {
@@ -443,7 +450,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
 void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 {
-  bool isTraceOn = Trace.isOn(key);
+  bool isTraceOn = TraceIsOn(key);
   if (!isTraceOn)
   {
     return;
@@ -457,16 +464,6 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
 {
-  // Cannot print unless produce assertions is enabled. Otherwise, the printing
-  // is misleading, since it does not capture what symbols were provided
-  // as definitions.
-  if (!options().smt.produceAssertions)
-  {
-    warning()
-        << "Assertions not available for dumping (use --produce-assertions)."
-        << std::endl;
-    return;
-  }
   PrintBenchmark pb(&d_env.getPrinter());
   std::vector<Node> assertions;
   // Notice that the following list covers define-fun and define-fun-rec
@@ -508,4 +505,4 @@ PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

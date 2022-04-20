@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file lfsc_post_processor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing proof nodes into Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing proof nodes into Lfsc proof nodes
+ */
 
 #include "cvc5_private.h"
 
@@ -24,7 +25,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node_updater.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 
@@ -98,6 +99,6 @@ class LfscProofPostprocess
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

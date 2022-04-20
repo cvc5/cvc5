@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Diego Della Rocca de Camargos
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
+#include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
@@ -33,14 +34,14 @@
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
-          options().proof.proofPedantic)),
+          static_cast<uint32_t>(options().proof.proofPedantic))),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(nullptr),
@@ -113,7 +114,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SolverEngine::setFinalProof(): get proof body...\n";
 
-  if (Trace.isOn("smt-proof-debug"))
+  if (TraceIsOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
         << "SolverEngine::setFinalProof(): Proof node for false:\n";
@@ -124,7 +125,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   std::vector<Node> assertions;
   getAssertions(as, assertions);
 
-  if (Trace.isOn("smt-proof"))
+  if (TraceIsOn("smt-proof"))
   {
     Trace("smt-proof")
         << "SolverEngine::setFinalProof(): get free assumptions..."
@@ -185,6 +186,8 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
+    proof::AletheProofPrinter vpp;
+    vpp.print(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
   {
@@ -304,9 +307,8 @@ std::shared_ptr<ProofNode> PfManager::getFinalProof(
 void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
+  // note that the assertion list is always available
   const context::CDList<Node>& al = as.getAssertionList();
-  Assert(options().smt.produceAssertions)
-      << "Expected produce assertions to be true when checking proof";
   for (const Node& a : al)
   {
     assertions.push_back(a);
@@ -314,4 +316,4 @@ void PfManager::getAssertions(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

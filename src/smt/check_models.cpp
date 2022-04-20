@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 #include "smt/check_models.h"
 
 #include "base/modal_exception.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/preprocessor.h"
@@ -25,9 +26,9 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
@@ -41,18 +42,17 @@ void CheckModels::checkModel(TheoryModel* m,
   // If this function is running, the user gave --check-model (or equivalent),
   // and if verbose(1) is on, the user gave --verbose (or equivalent).
 
-  // check-model is not guaranteed to succeed if approximate values were used.
-  // Thus, we intentionally abort here.
-  if (m->hasApproximations())
-  {
-    throw RecoverableModalException(
-        "Cannot run check-model on a model with approximate values.");
-  }
   Node sepHeap, sepNeq;
   if (m->getHeapModel(sepHeap, sepNeq))
   {
     throw RecoverableModalException(
         "Cannot run check-model on a model with a separation logic heap.");
+  }
+  if (options().quantifiers.fmfFunWellDefined)
+  {
+    warning() << "Running check-model is not guaranteed to pass when fmf-fun "
+                 "is enabled."
+              << std::endl;
   }
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
@@ -151,4 +151,4 @@ void CheckModels::checkModel(TheoryModel* m,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#   Aina Niemetz, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -73,11 +73,7 @@ macro(cvc5_add_unit_test is_white name output_dir)
     if("${output_dir}" STREQUAL "")
       set(test_name unit/${name})
     else()
-      if("${output_dir}" STREQUAL "api")
-        set(test_name unit/${output_dir}/cpp/${name})
-      else()
-        set(test_name unit/${output_dir}/${name})
-      endif()
+      set(test_name unit/${output_dir}/${name})
     endif()
     add_test(${test_name} ${test_bin_dir}/${name})
     set_tests_properties(${test_name} PROPERTIES LABELS "unit")
@@ -91,19 +87,16 @@ macro(cvc5_add_unit_test_white name output_dir)
   cvc5_add_unit_test(TRUE ${name} ${output_dir})
 endmacro()
 
-# API black box unit tests are always enabled
 add_subdirectory(api)
-
-if(ENABLE_UNIT_TESTING)
-  add_subdirectory(base)
-  add_subdirectory(context)
-  add_subdirectory(main)
-  add_subdirectory(node)
-  add_subdirectory(options)
-  add_subdirectory(parser)
-  add_subdirectory(printer)
-  add_subdirectory(prop)
-  add_subdirectory(theory)
-  add_subdirectory(preprocessing)
-  add_subdirectory(util)
-endif()
+add_subdirectory(base)
+add_subdirectory(context)
+add_subdirectory(main)
+add_subdirectory(node)
+add_subdirectory(options)
+add_subdirectory(parser)
+add_subdirectory(printer)
+add_subdirectory(proof)
+add_subdirectory(prop)
+add_subdirectory(theory)
+add_subdirectory(preprocessing)
+add_subdirectory(util)

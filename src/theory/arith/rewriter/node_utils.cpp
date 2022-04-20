@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,43 +18,10 @@
 #include "base/check.h"
 #include "theory/arith/rewriter/ordering.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
-
-bool isIntegral(TNode n)
-{
-  std::vector<TNode> queue = {n};
-  while (!queue.empty())
-  {
-    TNode cur = queue.back();
-    queue.pop_back();
-
-    if (cur.isConst()) continue;
-    switch (cur.getKind())
-    {
-      case Kind::LT:
-      case Kind::LEQ:
-      case Kind::EQUAL:
-      case Kind::DISTINCT:
-      case Kind::GEQ:
-      case Kind::GT:
-        queue.emplace_back(n[0]);
-        queue.emplace_back(n[1]);
-        break;
-      case Kind::ADD:
-      case Kind::NEG:
-      case Kind::SUB:
-      case Kind::MULT:
-        queue.insert(queue.end(), cur.begin(), cur.end());
-        break;
-      default:
-        if (!cur.getType().isInteger()) return false;
-    }
-  }
-  return true;
-}
 
 Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 {
@@ -72,17 +39,25 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
-  if (multiplicity.isRational())
+  Node mterm = mkConst(multiplicity);
+  if (mterm.isConst())
   {
-    return mkMultTerm(multiplicity.toRational(), monomial);
+    return mkMultTerm(mterm.getConst<Rational>(), monomial);
   }
   if (monomial.isConst())
   {
     return mkConst(multiplicity * monomial.getConst<Rational>());
   }
   std::vector<Node> prod;
-  prod.emplace_back(mkConst(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  prod.emplace_back(mterm);
+  if (monomial.getKind() == Kind::MULT || monomial.getKind() == Kind::NONLINEAR_MULT)
+  {
+    prod.insert(prod.end(), monomial.begin(), monomial.end());
+  }
+  else
+  {
+    prod.emplace_back(monomial);
+  }
   Assert(prod.size() >= 2);
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
 }
@@ -94,12 +69,13 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   {
     return mkConst(multiplicity);
   }
-  if (multiplicity.isRational())
+  Node mterm = mkConst(multiplicity);
+  if (mterm.isConst())
   {
     std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
-    return mkMultTerm(multiplicity.toRational(), mkNonlinearMult(monomial));
+    return mkMultTerm(mterm.getConst<Rational>(), mkNonlinearMult(monomial));
   }
-  monomial.emplace_back(mkConst(multiplicity));
+  monomial.emplace_back(mterm);
   std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
   Assert(monomial.size() >= 2);
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
@@ -108,4 +84,4 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

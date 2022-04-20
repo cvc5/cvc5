@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,9 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -33,7 +33,49 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
   TypeNode tn = tuple.getType();
   const DType& dt = tn.getDType();
   return NodeManager::currentNM()->mkNode(
-      APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
+      APPLY_SELECTOR, dt[0].getSelectorInternal(tn, n_th), tuple);
+}
+
+Node TupleUtils::getTupleProjection(const std::vector<uint32_t>& indices,
+                                    Node tuple)
+{
+  std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
+  std::vector<TypeNode> types;
+  std::vector<Node> elements;
+  for (uint32_t index : indices)
+  {
+    TypeNode type = tupleTypes[index];
+    types.push_back(type);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode projectType = nm->mkTupleType(types);
+  const DType& dt = projectType.getDType();
+  elements.push_back(dt[0].getConstructor());
+  const DType& tupleDType = tuple.getType().getDType();
+  const DTypeConstructor& constructor = tupleDType[0];
+  for (uint32_t index : indices)
+  {
+    Node selector = constructor[index].getSelector();
+    Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
+    elements.push_back(element);
+  }
+  Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+  return ret;
+}
+
+TypeNode TupleUtils::getTupleProjectionType(
+    const std::vector<uint32_t>& indices, TypeNode tupleType)
+{
+  std::vector<TypeNode> types;
+  DType dType = tupleType.getDType();
+  DTypeConstructor constructor = dType[0];
+  for (uint32_t index : indices)
+  {
+    types.push_back(constructor.getArgType(index));
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode retTupleType = nm->mkTupleType(types);
+  return retTupleType;
 }
 
 std::vector<Node> TupleUtils::getTupleElements(Node tuple)
@@ -120,4 +162,4 @@ Node TupleUtils::reverseTuple(Node tuple)
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

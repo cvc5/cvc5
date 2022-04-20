@@ -1,0 +1,25 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --fp-exp
+(set-logic ALL)
+(define-sort FP () (_ FloatingPoint 3 5))
+(define-fun IC ((t FP)) Bool (=> (fp.isInfinite t) (fp.isNegative t)))
+
+(synth-fun simpIC ((t FP)) Bool
+  ((Start Bool) (StartFP FP))
+  ((Start Bool (
+     (and Start Start)
+     (not Start)
+
+     (fp.isInfinite StartFP)
+     (fp.isNegative StartFP)
+
+     (ite Start Start Start)
+   ))
+   (StartFP FP (
+     t
+   ))
+))
+
+(declare-var x FP)
+(constraint (= (simpIC x) (IC x)))
+(check-synth)

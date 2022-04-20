@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *   Andrew Reynolds, Haniel Barbosa, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 TheoryProxy::TheoryProxy(Env& env,
@@ -52,10 +52,11 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr)
 {
-  bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS);
-  if (trackTopLevelLearned)
+  bool trackZeroLevel = isOutputOn(OutputTag::LEARNED_LITS)
+                        || options().smt.produceLearnedLiterals;
+  if (trackZeroLevel)
   {
-    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
+    d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
 }
 
@@ -71,10 +72,18 @@ void TheoryProxy::presolve()
   d_theoryEngine->presolve();
 }
 
+void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
+                                             const Node& rhs) const
+{
+  if (d_zll != nullptr)
+  {
+    d_zll->notifyTopLevelSubstitution(lhs, rhs);
+  }
+}
+
 void TheoryProxy::notifyInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
+    std::unordered_map<size_t, Node>& skolemMap)
 {
   // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
@@ -100,7 +109,7 @@ void TheoryProxy::notifyInputFormulas(
   // determine what is learnable
   if (d_zll != nullptr)
   {
-    d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
+    d_zll->notifyInputFormulas(assertions);
   }
 }
 
@@ -127,8 +136,8 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     d_queue.pop();
     if (d_zll != nullptr)
     {
-      // check if this corresponds to a zero-level asserted literal
-      d_zll->notifyAsserted(assertion);
+      int32_t alevel = d_propEngine->getDecisionLevel(assertion);
+      d_zll->notifyAsserted(assertion, alevel);
     }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
@@ -154,24 +163,24 @@ void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
   std::vector<TNode> outputNodes;
   d_theoryEngine->getPropagatedLiterals(outputNodes);
   for (unsigned i = 0, i_end = outputNodes.size(); i < i_end; ++ i) {
-    Debug("prop-explain") << "theoryPropagate() => " << outputNodes[i] << std::endl;
+    Trace("prop-explain") << "theoryPropagate() => " << outputNodes[i] << std::endl;
     output.push_back(d_cnfStream->getLiteral(outputNodes[i]));
   }
 }
 
 void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
-  Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
+  Trace("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
   if (d_env.isSatProofProducing())
   {
-    Assert(options().smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF
+    Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
+  Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);
   if (theoryExplanation.getKind() == kind::AND)
@@ -185,7 +194,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::stringstream ss;
     ss << "TheoryProxy::explainPropagation: clause for lit is ";
@@ -198,9 +207,22 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   }
 }
 
+void TheoryProxy::notifyCurrPropagationInsertedAtLevel(int explLevel)
+{
+  d_propEngine->getProofCnfStream()->notifyCurrPropagationInsertedAtLevel(
+      explLevel);
+}
+
+void TheoryProxy::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                              int clLevel)
+{
+  d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause,
+                                                                 clLevel);
+}
+
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
-  Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
+  Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
   d_queue.push(literalNode);
 }
@@ -289,11 +311,15 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-const std::unordered_set<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
+std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
+    modes::LearnedLitType ltype) const
 {
-  Assert(d_zll != nullptr);
-  return d_zll->getLearnedZeroLevelLiterals();
+  if (d_zll != nullptr)
+  {
+    return d_zll->getLearnedZeroLevelLiterals(ltype);
+  }
+  return {};
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

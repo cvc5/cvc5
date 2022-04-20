@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,11 +24,11 @@
 #include "theory/quantifiers/quantifiers_state.h"
 
 using namespace std;
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
-using namespace cvc5::theory;
-using namespace cvc5::theory::quantifiers;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(Env& env,
                              QuantifiersState& qs,
@@ -107,7 +107,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
 
 void QModelBuilder::debugModel( TheoryModel* m ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
-  if( Trace.isOn("quant-check-model") ){
+  if( TraceIsOn("quant-check-model") ){
     FirstOrderModel* fm = d_model;
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;

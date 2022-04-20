@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mudathir Mohamed
+ *   Mudathir Mohamed, Morgan Deters, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
  * The model is displayed using getValue().
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.Iterator;
 
 public class Combination
@@ -86,7 +86,7 @@ public class Combination
       System.out.println("Given the following assertions:\n" + assertions + "\n");
 
       System.out.println("Prove x /= y is entailed. \n"
-          + "cvc5: " + slv.checkEntailed(slv.mkTerm(Kind.DISTINCT, x, y)) + ".\n");
+          + "cvc5: " + slv.checkSatAssuming(slv.mkTerm(Kind.EQUAL, x, y)) + ".\n");
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
           + "cvc5: " + slv.checkSat() + ".\n");

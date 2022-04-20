@@ -177,3 +177,16 @@
 (program nary_reverse ((f term) (t term) (null term)) term
   (nary_reverse_rec f t null null)
 )
+
+; Returns tt if s is a prefix of t. May fail if s or t is not in n-ary form.
+(program nary_is_prefix ((f term) (s term) (t term) (null term)) flag
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f s1)
+      (match t
+        ((apply t1 t2)
+          (let t12 (getarg f t1)
+          (ifequal s12 t12 (nary_is_prefix f s2 t2 null) ff)))
+        (null ff))))
+    (default (ifequal s null tt ff)))
+)

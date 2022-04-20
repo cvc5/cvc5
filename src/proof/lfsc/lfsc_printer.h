@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 class LfscPrintChannel;
@@ -64,6 +64,35 @@ class LfscPrinter
   void printType(std::ostream& out, TypeNode n);
 
  private:
+  /**
+   * This ensures that the type definition of type tn has been
+   * printed, which ensures that all of its component types, and the
+   * user-defined subfields of datatype types among those are declared. This
+   * furthermore includes running to a fixed point in the case that tn contains
+   * subfield types that are themselves datatypes.
+   * Notice that type definitions do not include printing the symbols of the
+   * datatype.
+   *
+   * @param os The stream to print to
+   * @param tn The type to ensure the definition(s) are printed for
+   * @param processed The types whose definitions we have already printed
+   * @param tupleArityProcessed The arity of tuples that we have declared.
+   * Note this is only required until we have a more robust treatment of
+   * tuples in the LFSC signature
+   */
+  void ensureTypeDefinitionPrinted(
+      std::ostream& os,
+      TypeNode tn,
+      std::unordered_set<TypeNode>& processed,
+      std::unordered_set<size_t>& tupleArityProcessed);
+  /**
+   * print type definition, which is the same as above, but does not process
+   * component types.
+   */
+  void printTypeDefinition(std::ostream& os,
+                           TypeNode tn,
+                           std::unordered_set<TypeNode>& processed,
+                           std::unordered_set<size_t>& tupleArityProcessed);
   /**
    * Print node to stream in the expected format of LFSC.
    */
@@ -142,6 +171,6 @@ class LfscPrinter
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -169,7 +169,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node concAtom = concPol ? conc : conc[0];
         concEq = concAtom.eqNode(nm->mkConst(concPol));
       }
-      if (concEq[0].getKind() != APPLY_SELECTOR_TOTAL)
+      if (concEq[0].getKind() != APPLY_SELECTOR)
       {
         // can happen for Boolean term variables, which are not currently
         // supported.
@@ -179,14 +179,14 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       {
         Assert(exp[0].getType().isDatatype());
         Node sop = concEq[0].getOperator();
-        Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
-        Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
+        Node sl = nm->mkNode(APPLY_SELECTOR, sop, exp[0]);
+        Node sr = nm->mkNode(APPLY_SELECTOR, sop, exp[1]);
         // exp[0] = exp[1]
         // --------------------- CONG        ----------------- DT_COLLAPSE
         // s(exp[0]) = s(exp[1])             s(exp[1]) = r
         // --------------------------------------------------- TRANS
         // s(exp[0]) = r
-        Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
+        Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR);
         Node seq = sl.eqNode(sr);
         cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
@@ -295,4 +295,4 @@ std::string InferProofCons::identify() const
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

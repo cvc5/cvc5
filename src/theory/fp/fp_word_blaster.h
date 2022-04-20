@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *   Martin Brain, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -86,7 +86,7 @@ class traits
 typedef traits::bwt bwt;
 
 /**
- * Wrap the cvc5::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
  */
 class nodeWrapper : public Node
 {
@@ -327,6 +327,6 @@ class FpWordBlaster
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__FP__THEORY_FP_H */

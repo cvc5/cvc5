@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Gereon Kremer, Haniel Barbosa
+ *   Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -155,7 +155,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
 
 TrustNode BVSolverBitblastInternal::explain(TNode n)
 {
-  Debug("bv-bitblast-internal") << "explain called on " << n << std::endl;
+  Trace("bv-bitblast-internal") << "explain called on " << n << std::endl;
   return d_im.explainLit(n);
 }
 
@@ -206,4 +206,4 @@ BVProofRuleChecker* BVSolverBitblastInternal::getProofChecker()
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

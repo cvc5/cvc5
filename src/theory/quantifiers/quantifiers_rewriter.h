@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,11 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
+#include "options/quantifiers_options.h"
 #include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Options;
 
@@ -45,8 +46,6 @@ enum RewriteStep
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
   COMPUTE_AGGRESSIVE_MINISCOPING,
-  /** Apply the extended rewriter to quantified formula bodies */
-  COMPUTE_EXT_REWRITE,
   /**
    * Term processing (e.g. simplifying terms based on ITE lifting,
    * eliminating extended arithmetic symbols).
@@ -58,6 +57,12 @@ enum RewriteStep
   COMPUTE_VAR_ELIMINATION,
   /** Conditional splitting */
   COMPUTE_COND_SPLIT,
+  /**
+   * Apply the extended rewriter to quantified formula bodies. This step
+   * must come last, since it may invert other steps above, e.g. conditional
+   * splitting.
+   */
+  COMPUTE_EXT_REWRITE,
   /** Placeholder for end of steps */
   COMPUTE_LAST
 };
@@ -165,7 +170,10 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
-  Node computeMiniscoping(Node q, QAttributes& qa) const;
+  Node computeMiniscoping(Node q,
+                          QAttributes& qa,
+                          bool miniscopeConj,
+                          bool miniscopeFv) const;
   Node computeAggressiveMiniscoping(std::vector<Node>& args, Node body) const;
   /**
    * This function removes top-level quantifiers from subformulas of body
@@ -229,10 +237,26 @@ class QuantifiersRewriter : public TheoryRewriter
                              std::vector<Node>& activeArgs,
                              Node n,
                              Node ipl);
-  Node computeProcessTerms2(Node body,
+  /**
+   * It may introduce new conditions C into new_conds. It returns a node retBody
+   * such that q of the form
+   *   forall args. body
+   * is equivalent to:
+   *   forall args. ( C V retBody )
+   *
+   * @param q The original quantified formula we are processing
+   * @param args The bound variables of q
+   * @param body The subformula of the body of q we are processing
+   * @param cache Cache from terms to their processed form
+   * @param new_conds New conditions to add as disjunctions to the return
+   * @param iteLiftMode The mode for lifting ITEs from body.
+   */
+  Node computeProcessTerms2(const Node& q,
+                            const std::vector<Node>& args,
+                            Node body,
                             std::map<Node, Node>& cache,
-                            std::vector<Node>& new_vars,
-                            std::vector<Node>& new_conds) const;
+                            std::vector<Node>& new_conds,
+                            options::IteLiftQuantMode iteLiftMode) const;
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,
@@ -272,24 +296,17 @@ class QuantifiersRewriter : public TheoryRewriter
   /** compute process terms
    *
    * This takes as input a quantified formula q with attributes qa whose
-   * body is body.
+   * bound variables are args, and whose body is body.
    *
    * This rewrite eliminates problematic terms from the bodies of
    * quantified formulas, which includes performing:
    * - Certain cases of ITE lifting,
-   * - Elimination of extended arithmetic functions like to_int/is_int/div/mod,
-   * - Elimination of select over store.
-   *
-   * It may introduce new variables V into new_vars and new conditions C into
-   * new_conds. It returns a node retBody such that q of the form
-   *   forall X. body
-   * is equivalent to:
-   *   forall X, V. ( C => retBody )
+   * - Elimination of select over store,
+   * - Elimination of shadowed variables.
    */
-  Node computeProcessTerms(Node body,
-                           std::vector<Node>& new_vars,
-                           std::vector<Node>& new_conds,
-                           Node q,
+  Node computeProcessTerms(const Node& q,
+                           const std::vector<Node>& args,
+                           Node body,
                            QAttributes& qa) const;
   //------------------------------------- end process terms
   //------------------------------------- extended rewrite
@@ -305,6 +322,10 @@ class QuantifiersRewriter : public TheoryRewriter
    * q with attributes qa.
    */
   bool doOperation(Node q, RewriteStep computeOption, QAttributes& qa) const;
+  /** Whether we should miniscope based on conjunctions based on option */
+  static bool doMiniscopeConj(const Options& opts);
+  /** Whether we should miniscope based on free variables based on option */
+  static bool doMiniscopeFv(const Options& opts);
   /**
    * Return the rewritten form of q after applying operator computeOption to it.
    */
@@ -319,6 +340,6 @@ class QuantifiersRewriter : public TheoryRewriter
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -40,25 +40,25 @@ class SolverState : public TheoryState
   void registerBag(TNode n);
 
   /**
-   * @param n has the form (bag.count e A)
-   * @pre bag A is already registered using registerBag(A)
-   * @return a lemma (= skolem (bag.count eRep ARep)) where
-   * eRep, ARep are representatives of e, A respectively
+   * register the pair <element, skolem> with the given bag
+   * @param bag a representative of type (Bag E)
+   * @param element a representative of type E
+   * @param skolem an integer variable
+   * @pre (= (bag.count element bag) skolem)
    */
-  Node registerCountTerm(TNode n);
+  void registerCountTerm(Node bag, Node element, Node skolem);
 
   /**
-   * This function generates a skolem variable for the given card term and
-   * stores both of them in a cache.
-   * @param n has the form (bag.card A)
-   * @return a lemma that the card term equals the skolem variable
+   * store cardinality term and its skolem in a cahce
+   * @param n has the form (bag.card A) where A is a representative
+   * @param skolem for n
    */
-  Node registerCardinalityTerm(TNode n);
+  void registerCardinalityTerm(Node n, Node skolem);
 
   /**
    * @param n has the form (bag.card A)
    */
-  Node getCardinalitySkolem(TNode n);
+  Node getCardinalitySkolem(Node n);
 
   bool hasCardinalityTerms() const;
 
@@ -84,30 +84,24 @@ class SolverState : public TheoryState
    */
   std::set<Node> getElements(Node B);
   /**
-   * initialize bag and count terms
-   * @return a list of skolem lemmas to be asserted
-   * */
-  std::vector<Node> initialize();
-  /** return disequal bag terms */
-  const std::set<Node>& getDisequalBagTerms();
+   * return disequal bag terms where keys are equality nodes and values are
+   * skolems that witness the negation of these equalities
+   */
+  const std::map<Node, Node>& getDisequalBagTerms();
   /**
    * return a list of bag elements and their skolem counts
    */
   const std::vector<std::pair<Node, Node>>& getElementCountPairs(Node n);
 
- private:
   /** clear all bags data structures */
   void reset();
-  /**
-   * collect bags' representatives and all count terms.
-   * This function is called during postCheck
-   * @return a list of skolem lemmas to be asserted
-   */
-  std::vector<Node> collectBagsAndCountTerms();
+
   /**
    * collect disequal bag terms. This function is called during postCheck.
    */
   void collectDisequalBagTerms();
+
+ private:
   /** constants */
   Node d_true;
   Node d_false;
@@ -121,14 +115,18 @@ class SolverState : public TheoryState
    * This map is cleared and initialized at the start of each full effort check.
    */
   std::map<Node, std::vector<std::pair<Node, Node>>> d_bagElements;
-  /** Disequal bag terms */
-  std::set<Node> d_deq;
+  /**
+   * A map from equalities between bag terms to elements that witness their
+   * disequalities. This map is cleared and initialized at the start of each
+   * full effort check.
+   */
+  std::map<Node, Node> d_deq;
   /** a map from card terms to their skolem variables */
   std::map<Node, Node> d_cardTerms;
 }; /* class SolverState */
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H */

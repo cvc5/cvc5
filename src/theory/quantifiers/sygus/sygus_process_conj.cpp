@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -407,7 +407,7 @@ void SynthConjectureProcessFun::processTerms(
     {
       Node nn = it->first;
       arg_list.push_back(nn);
-      if (Trace.isOn("sygus-process-arg-deps"))
+      if (TraceIsOn("sygus-process-arg-deps"))
       {
         Trace("sygus-process-arg-deps") << "    argument " << nn;
         Trace("sygus-process-arg-deps") << " (" << it->second.size()
@@ -573,7 +573,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
 
 void SynthConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 {
-  if (Trace.isOn("sygus-process"))
+  if (TraceIsOn("sygus-process"))
   {
     Trace("sygus-process") << "Process conjecture : " << n
                            << " with candidates: " << std::endl;
@@ -794,4 +794,4 @@ void SynthConjectureProcess::getComponentVector(Kind k,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,10 +30,10 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
@@ -122,7 +122,7 @@ bool ProofPostprocessCallback::update(Node res,
       else
       {
         Assert(pfn->getResult() == f);
-        if (Trace.isOn("smt-proof-pp"))
+        if (TraceIsOn("smt-proof-pp"))
         {
           Trace("smt-proof-pp")
               << "=== Connect proof for preprocessing: " << f << std::endl;
@@ -261,7 +261,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
   // order eliminators
   std::sort(eliminators.begin(), eliminators.end());
-  if (Trace.isOn("smt-proof-pp-debug"))
+  if (TraceIsOn("smt-proof-pp-debug"))
   {
     Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
     for (const auto& pair : lastInclusion)
@@ -976,7 +976,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
-    TheoryId theoryId = Theory::theoryOf(args[0]);
+    TheoryId theoryId = d_env.theoryOf(args[0]);
     if (args.size() >= 2)
     {
       getMethodId(args[1], idr);
@@ -1067,14 +1067,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Debug("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (Debug.isOn("macro::arith"))
+    Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
+    if (TraceIsOn("macro::arith"))
     {
       for (const auto& child : children)
       {
-        Debug("macro::arith") << "  child: " << child << std::endl;
+        Trace("macro::arith") << "  child: " << child << std::endl;
       }
-      Debug("macro::arith") << "   args: " << args << std::endl;
+      Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
     NodeManager* nm = NodeManager::currentNM();
@@ -1115,7 +1115,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
     Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
     cdp->addSteps(steps);
-    Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
+    Trace("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
   }
@@ -1275,4 +1275,4 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

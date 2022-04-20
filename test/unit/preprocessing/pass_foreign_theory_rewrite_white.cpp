@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Yoni Zohar
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +19,10 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::preprocessing::passes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::preprocessing::passes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestPPWhiteForeignTheoryRewrite : public TestSmt
@@ -49,4 +49,4 @@ TEST_F(TestPPWhiteForeignTheoryRewrite, simplify)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

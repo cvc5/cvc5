@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds
+ *   Abdalrhman Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 #include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -176,6 +176,29 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
                            uint64_t enumLimit);
 
  private:
+  /**
+   * Implements the reconstruction procedure.
+   *
+   * @param sol the target term
+   * @param stn the sygus datatype type encoding the syntax restrictions
+   * @param reconstructed the flag to update, set to 1 if we successfully return
+   *                      a node, otherwise it is set to -1
+   * @param enumLimit a value to limit the effort spent by this class (roughly
+   *                  equal to the number of intermediate terms to try)
+   */
+  void main(Node sol, TypeNode stn, int8_t& reconstructed, uint64_t enumLimit);
+
+  /**
+   * Implements the match phase of the reconstruction procedure with the pool
+   * prepopulated with sygus datatype type constructors (grammar rules).
+   *
+   * @param sol the target term
+   * @param stn the sygus datatype type encoding the syntax restrictions
+   * @param reconstructed the flag to update, set to 1 if we successfully return
+   *                      a node, otherwise it is set to -1
+   */
+  void fast(Node sol, TypeNode stn, int8_t& reconstructed);
+
   /** Match builtin term `t` with pattern `sz`.
    *
    * This function matches the builtin term to reconstruct `t` with the builtin
@@ -293,11 +316,8 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
    * Print the pool of patterns/shape used in the matching phase.
    *
    * \note requires enabling "sygus-rcons" trace
-   *
-   * @param pool a pool of patterns/shapes to print
    */
-  void printPool(
-      const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
+  void printPool() const;
 
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
@@ -320,12 +340,15 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
   /** a cache of sygus variables treated as ground terms by matching */
   std::unordered_map<Node, Node> d_sygusVars;
 
+  /** a set of unique (up to rewriting) patterns/shapes in the grammar used by
+   * matching */
+  std::unordered_map<TypeNode, std::vector<Node>> d_pool;
   /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5__THEORY__QUANTIFIERS__SYGUS_RECONSTRUCT_H

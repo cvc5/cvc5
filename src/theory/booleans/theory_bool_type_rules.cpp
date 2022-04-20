@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Morgan Deters, Christopher L. Conway
+ *   Aina Niemetz, Dejan Jovanovic, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace boolean {
 
@@ -32,10 +32,10 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
     {
       if (!child.getType(check).isBoolean())
       {
-        Debug("pb") << "failed type checking: " << child << std::endl;
-        Debug("pb") << "  integer: " << child.getType(check).isInteger()
+        Trace("pb") << "failed type checking: " << child << std::endl;
+        Trace("pb") << "  integer: " << child.getType(check).isInteger()
                     << std::endl;
-        Debug("pb") << "  real: " << child.getType(check).isReal() << std::endl;
+        Trace("pb") << "  real: " << child.getType(check).isReal() << std::endl;
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting a Boolean subexpression");
       }
@@ -73,4 +73,4 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 }  // namespace boolean
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,0 +1,7 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-fun r4 () Real)
+(declare-fun ufrb5 (Real Real Real Real Real) Bool)
+(assert (ufrb5 0.0 0.0 0.0 0.0 0.0))
+(assert (ufrb5 (+ r4 r4) 0.0 1.0 0.0 0.0))
+(check-sat)

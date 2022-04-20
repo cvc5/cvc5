@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TConvProofGenerator;
 
@@ -105,14 +105,15 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
    */
   Node getArithSkolem(SkolemFunId asi);
   /**
-   * Make the witness term, which creates a witness term based on the skolem
-   * manager with this class as a proof generator.
+   * Get the skolem lemma for lem, based on whether we are proof producing.
+   * A skolem lemma is a wrapper around lem that also tracks its associated
+   * skolem k.
+   *
+   * @param lem The lemma that axiomatizes the behavior of k
+   * @param k The skolem
+   * @return the skolem lemma corresponding to lem, annotated with k.
    */
-  Node mkWitnessTerm(Node v,
-                     Node pred,
-                     const std::string& prefix,
-                     const std::string& comment,
-                     std::vector<SkolemLemma>& lems);
+  SkolemLemma mkSkolemLemma(Node lem, Node k);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
@@ -135,4 +136,4 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

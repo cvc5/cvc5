@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #ifndef CVC5__THEORY__BAGS__UTILS_H
 #define CVC5__THEORY__BAGS__UTILS_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -108,6 +108,13 @@ class BagsUtils
    * @return the evaluation of the cross product of A B
    */
   static Node evaluateProduct(TNode n);
+
+  /**
+   * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a
+   * constant
+   * @return the evaluation of the projection
+   */
+  static Node evaluateTableProject(TNode n);
 
  private:
   /**
@@ -233,6 +240,6 @@ class BagsUtils
 };
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__UTILS_H */

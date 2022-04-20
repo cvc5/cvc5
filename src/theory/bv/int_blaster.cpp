@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar
+ *   Yoni Zohar, Makai Mann, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,11 +33,11 @@
 #include "util/iand.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace {
 
@@ -255,12 +255,12 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_SREM);
   Assert(oldKind != kind::BITVECTOR_SMOD);
   Assert(oldKind != kind::BITVECTOR_XNOR);
+  Assert(oldKind != kind::BITVECTOR_NOR);
   Assert(oldKind != kind::BITVECTOR_NAND);
   Assert(oldKind != kind::BITVECTOR_SUB);
   Assert(oldKind != kind::BITVECTOR_REPEAT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
-  Assert(oldKind != kind::BITVECTOR_COMP);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
@@ -516,6 +516,17 @@ Node IntBlaster::translateWithChildren(
                        d_zero);
       break;
     }
+    case kind::BITVECTOR_COMP:
+    {
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::EQUAL,
+                                    translated_children[0],
+                                    translated_children[1]),
+                       d_one,
+                       d_zero);
+      break;
+    }
     case kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
@@ -665,7 +676,6 @@ Node IntBlaster::translateNoChildren(Node original,
 
   // The translation is done differently for variables (bound or free)  and
   // constants (values)
-  Assert(original.isVar() || original.isConst() || original.isNullaryOp());
   if (original.isVar())
   {
     if (original.getType().isBitVector())
@@ -718,7 +728,7 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value) or a nullary op (e.g., PI)
+    // original is a constant (value) or an operator with no arguments (e.g., PI)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -729,7 +739,7 @@ Node IntBlaster::translateNoChildren(Node original,
     }
     else
     {
-      // Other constants or nullary ops stay the same.
+      // Other constants or operators stay the same.
       translation = original;
     }
   }
@@ -1080,8 +1090,8 @@ Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
 {
   // Based on Hacker's Delight section 2-2 equation a:
   // -x = ~x+1
-  Node p2 = pow2(bvsize);
-  return d_nm->mkNode(kind::SUB, p2, n);
+  Node bvNotNode = createBVNotNode(n, bvsize);
+  return createBVAddNode(bvNotNode, d_one, bvsize);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
@@ -1089,4 +1099,4 @@ Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
   return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

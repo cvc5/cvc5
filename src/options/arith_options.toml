@@ -3,7 +3,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithUnateLemmaMode"
-  category   = "regular"
+  category   = "expert"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
   default    = "ALL"
@@ -20,10 +20,11 @@ name   = "Arithmetic Theory"
   help  = "Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d."
 [[option.mode.NO]]
   name = "none"
+  help  = "Do not add unate lemmas."
 
 [[option]]
   name       = "arithPropagationMode"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-prop=MODE"
   type       = "ArithPropagationMode"
   default    = "BOTH_PROP"
@@ -49,7 +50,7 @@ name   = "Arithmetic Theory"
 # defaults.
 [[option]]
   name       = "arithHeuristicPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "heuristic-pivots=N"
   type       = "int64_t"
   default    = "0"
@@ -70,7 +71,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithErrorSelectionRule"
-  category   = "regular"
+  category   = "expert"
   long       = "error-selection-rule=RULE"
   type       = "ErrorSelectionRule"
   default    = "MINIMUM_AMOUNT"
@@ -91,7 +92,7 @@ name   = "Arithmetic Theory"
 # The number of pivots before simplex rechecks every basic variable for a conflict
 [[option]]
   name       = "arithSimplexCheckPeriod"
-  category   = "regular"
+  category   = "expert"
   long       = "simplex-check-period=N"
   type       = "uint64_t"
   default    = "200"
@@ -103,7 +104,7 @@ name   = "Arithmetic Theory"
 # defaults.
 [[option]]
   name       = "arithPivotThreshold"
-  category   = "regular"
+  category   = "expert"
   long       = "pivot-threshold=N"
   type       = "uint64_t"
   default    = "2"
@@ -111,7 +112,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithPropagateMaxLength"
-  category   = "regular"
+  category   = "expert"
   long       = "prop-row-length=N"
   type       = "uint64_t"
   default    = "16"
@@ -119,7 +120,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithDioSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "dio-solver"
   type       = "bool"
   default    = "true"
@@ -137,7 +138,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithMLTrick"
-  category   = "regular"
+  category   = "expert"
   long       = "miplib-trick"
   type       = "bool"
   default    = "false"
@@ -145,7 +146,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithMLTrickSubstitutions"
-  category   = "regular"
+  category   = "expert"
   long       = "miplib-trick-subs=N"
   type       = "uint64_t"
   default    = "1"
@@ -153,7 +154,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "doCutAllBounded"
-  category   = "regular"
+  category   = "expert"
   long       = "cut-all-bounded"
   type       = "bool"
   default    = "false"
@@ -161,7 +162,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "maxCutsInContext"
-  category   = "regular"
+  category   = "expert"
   long       = "maxCutsInContext=N"
   type       = "uint64_t"
   default    = "65535"
@@ -169,7 +170,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "revertArithModels"
-  category   = "regular"
+  category   = "expert"
   long       = "revert-arith-models-on-unsat"
   type       = "bool"
   default    = "false"
@@ -177,7 +178,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "havePenalties"
-  category   = "regular"
+  category   = "expert"
   long       = "fc-penalties"
   type       = "bool"
   default    = "false"
@@ -185,7 +186,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "useFC"
-  category   = "regular"
+  category   = "expert"
   long       = "use-fcsimplex"
   type       = "bool"
   default    = "false"
@@ -193,7 +194,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "useSOI"
-  category   = "regular"
+  category   = "expert"
   long       = "use-soi"
   type       = "bool"
   default    = "false"
@@ -201,7 +202,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "restrictedPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "restrict-pivots"
   type       = "bool"
   default    = "true"
@@ -209,7 +210,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "collectPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "collect-pivot-stats"
   type       = "bool"
   default    = "false"
@@ -217,7 +218,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "useApprox"
-  category   = "regular"
+  category   = "expert"
   long       = "use-approx"
   type       = "bool"
   default    = "false"
@@ -225,7 +226,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "maxApproxDepth"
-  category   = "regular"
+  category   = "expert"
   long       = "approx-branch-depth=N"
   type       = "int64_t"
   default    = "200"
@@ -233,7 +234,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "exportDioDecompositions"
-  category   = "regular"
+  category   = "expert"
   long       = "dio-decomps"
   type       = "bool"
   default    = "false"
@@ -241,7 +242,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "newProp"
-  category   = "regular"
+  category   = "expert"
   long       = "new-prop"
   type       = "bool"
   default    = "true"
@@ -249,7 +250,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithPropAsLemmaLength"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-prop-clauses=N"
   type       = "uint64_t"
   default    = "8"
@@ -257,7 +258,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "soiQuickExplain"
-  category   = "regular"
+  category   = "expert"
   long       = "soi-qe"
   type       = "bool"
   default    = "false"
@@ -265,7 +266,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "trySolveIntStandardEffort"
-  category   = "regular"
+  category   = "expert"
   long       = "se-solve-int"
   type       = "bool"
   default    = "false"
@@ -273,7 +274,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "replayFailureLemma"
-  category   = "regular"
+  category   = "expert"
   long       = "lemmas-on-replay-failure"
   type       = "bool"
   default    = "false"
@@ -281,7 +282,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "dioSolverTurns"
-  category   = "regular"
+  category   = "expert"
   long       = "dio-turns=N"
   type       = "int64_t"
   default    = "10"
@@ -289,7 +290,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "rrTurns"
-  category   = "regular"
+  category   = "expert"
   long       = "rr-turns=N"
   type       = "int64_t"
   default    = "3"
@@ -297,7 +298,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "replayEarlyCloseDepths"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-early-close-depth=N"
   type       = "int64_t"
   default    = "1"
@@ -305,7 +306,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "replayNumericFailurePenalty"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-num-err-penalty=N"
   type       = "int64_t"
   default    = "4194304"
@@ -313,7 +314,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "replayRejectCutSize"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-reject-cut=N"
   type       = "uint64_t"
   default    = "25500"
@@ -321,7 +322,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "lemmaRejectCutSize"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-lemma-reject-cut=N"
   type       = "uint64_t"
   default    = "25500"
@@ -329,7 +330,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "ppAssertMaxSubSize"
-  category   = "regular"
+  category   = "expert"
   long       = "pp-assert-max-sub-size=N"
   type       = "uint64_t"
   default    = "2"
@@ -337,7 +338,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithNoPartialFun"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-no-partial-fun"
   type       = "bool"
   default    = "false"
@@ -345,7 +346,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "pbRewrites"
-  category   = "regular"
+  category   = "expert"
   long       = "pb-rewrites"
   type       = "bool"
   default    = "false"
@@ -371,7 +372,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlRlvAssertBounds"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-rlv-assert-bounds"
   type       = "bool"
   default    = "false"
@@ -379,7 +380,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExtResBound"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-rbound"
   type       = "bool"
   default    = "false"
@@ -398,7 +399,7 @@ name   = "Arithmetic Theory"
   category   = "regular"
   long       = "nl-ext-tplanes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
@@ -419,7 +420,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExtEntailConflicts"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-ent-conf"
   type       = "bool"
   default    = "false"
@@ -435,7 +436,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExtPurify"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-purify"
   type       = "bool"
   default    = "false"
@@ -443,7 +444,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExtSplitZero"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-split-zero"
   type       = "bool"
   default    = "false"
@@ -451,7 +452,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExtTfTaylorDegree"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-tf-taylor-deg=N"
   type       = "int64_t"
   default    = "4"
@@ -459,7 +460,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExtIncPrecision"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-inc-prec"
   type       = "bool"
   default    = "true"
@@ -467,7 +468,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlRlvMode"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-rlv=MODE"
   type       = "NlRlvMode"
   default    = "NONE"
@@ -492,34 +493,42 @@ name   = "Arithmetic Theory"
   help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
 
 [[option]]
-  name       = "nlCad"
+  name       = "nlCov"
   category   = "regular"
-  long       = "nl-cad"
+  long       = "nl-cov"
   type       = "bool"
   default    = "false"
   help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]
-  name       = "nlCadVarElim"
-  category   = "regular"
-  long       = "nl-cad-var-elim"
+  name       = "nlCovForce"
+  category   = "expert"
+  long       = "nl-cov-force"
   type       = "bool"
   default    = "false"
-  help       = "whether to eliminate variables using equalities before going into the cylindrical algebraic coverings solver"
+  help       = "forces using the cylindrical algebraic coverings solver, even in cases where it is possibly not safe to do so"
 
 [[option]]
-  name       = "nlCadPrune"
-  category   = "regular"
-  long       = "nl-cad-prune"
+  name       = "nlCovVarElim"
+  category   = "expert"
+  long       = "nl-cov-var-elim"
+  type       = "bool"
+  default    = "true"
+  help       = "whether to eliminate variables using equalities before going into the cylindrical algebraic coverings solver. It can not be used when producing proofs right now."
+
+[[option]]
+  name       = "nlCovPrune"
+  category   = "expert"
+  long       = "nl-cov-prune"
   type       = "bool"
   default    = "false"
   help       = "whether to prune intervals more agressively"
 
 [[option]]
-  name       = "nlCadLinearModel"
+  name       = "nlCovLinearModel"
   category   = "regular"
-  long       = "nl-cad-linear-model=MODE"
-  type       = "NlCadLinearModelMode"
+  long       = "nl-cov-linear-model=MODE"
+  type       = "nlCovLinearModelMode"
   default    = "NONE"
   help       = "whether to use the linear model as initial guess for the cylindrical algebraic coverings solver"
   help_mode  = "Modes for the usage of the linear model in non-linear arithmetic."
@@ -534,13 +543,13 @@ name   = "Arithmetic Theory"
   help       = "Use linear model to seed nonlinear model whenever possible"
 
 [[option]]
-  name       = "nlCadProjection"
+  name       = "nlCovProjection"
   category   = "expert"
-  long       = "nl-cad-proj=MODE"
-  type       = "NlCadProjectionMode"
+  long       = "nl-cov-proj=MODE"
+  type       = "nlCovProjectionMode"
   default    = "MCCALLUM"
-  help       = "choose the CAD projection operator"
-  help_mode  = "Modes for the CAD projection operator in non-linear arithmetic."
+  help       = "choose the Coverings projection operator"
+  help_mode  = "Modes for the Coverings projection operator in non-linear arithmetic."
 [[option.mode.MCCALLUM]]
   name = "mccallum"
   help = "McCallum's projection operator."
@@ -552,13 +561,13 @@ name   = "Arithmetic Theory"
   help = "A modification of Lazard's projection operator."
 
 [[option]]
-  name       = "nlCadLifting"
+  name       = "nlCovLifting"
   category   = "expert"
-  long       = "nl-cad-lift=MODE"
-  type       = "NlCadLiftingMode"
+  long       = "nl-cov-lift=MODE"
+  type       = "nlCovLiftingMode"
   default    = "REGULAR"
-  help       = "choose the CAD lifting mode"
-  help_mode  = "Modes for the CAD lifting in non-linear arithmetic."
+  help       = "choose the Coverings lifting mode"
+  help_mode  = "Modes for the Coverings lifting in non-linear arithmetic."
 [[option.mode.REGULAR]]
   name = "regular"
   help = "Regular lifting."
@@ -568,7 +577,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlICP"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-icp"
   type       = "bool"
   default    = "false"
@@ -576,7 +585,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithEqSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-eq-solver"
   type       = "bool"
   default    = "false"
@@ -584,7 +593,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithCongMan"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-cong-man"
   type       = "bool"
   default    = "true"

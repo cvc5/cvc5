@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -32,6 +32,22 @@ class TupleUtils
    * @return tuple element at index n_th
    */
   static Node nthElementOfTuple(Node tuple, int n_th);
+
+  /**
+   * @param indices a list of indices for projected elements
+   * @param tuple a node of tuple type
+   * @return the projection of the tuple with the specified indices
+   */
+  static Node getTupleProjection(const std::vector<uint32_t>& indices,
+                                 Node tuple);
+
+  /**
+   * @param indices a list of indices for projected elements
+   * @param tupleType the type of the original tuple
+   * @return the type of the projected tuple
+   */
+  static TypeNode getTupleProjectionType(const std::vector<uint32_t>& indices,
+                                         TypeNode tupleType);
 
   /**
    * @param tuple a tuple node of the form (tuple a_1 ... a_n)
@@ -78,6 +94,6 @@ class TupleUtils
 };
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__TUPLE__UTILS_H */

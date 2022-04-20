@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "util/bitvector.h"
 #include "util/iand.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -93,6 +93,10 @@ void IAndSolver::checkInitialRefine()
       }
       d_initRefine.insert(i);
       Node op = i.getOperator();
+      size_t bsize = op.getConst<IntAnd>().d_size;
+      Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+      Node arg0Mod = nm->mkNode(kind::INTS_MODULUS, i[0], twok);
+      Node arg1Mod = nm->mkNode(kind::INTS_MODULUS, i[1], twok);
       // initial refinement lemmas
       std::vector<Node> conj;
       // iand(x,y)=iand(y,x) is guaranteed by rewriting
@@ -101,12 +105,12 @@ void IAndSolver::checkInitialRefine()
       // 0 <= iand(x,y) < 2^k
       conj.push_back(nm->mkNode(LEQ, d_zero, i));
       conj.push_back(nm->mkNode(LT, i, rewrite(d_iandUtils.twoToK(k))));
-      // iand(x,y)<=x
-      conj.push_back(nm->mkNode(LEQ, i, i[0]));
-      // iand(x,y)<=y
-      conj.push_back(nm->mkNode(LEQ, i, i[1]));
-      // x=y => iand(x,y)=x
-      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(i[0])));
+      // iand(x,y)<=mod(x, 2^k)
+      conj.push_back(nm->mkNode(LEQ, i, arg0Mod));
+      // iand(x,y)<=mod(y, 2^k)
+      conj.push_back(nm->mkNode(LEQ, i, arg1Mod));
+      // x=y => iand(x,y)=mod(x, 2^k)
+      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(arg0Mod)));
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
@@ -127,7 +131,7 @@ void IAndSolver::checkFullRefine()
     {
       Node valAndXY = d_model.computeAbstractModelValue(i);
       Node valAndXYC = d_model.computeConcreteModelValue(i);
-      if (Trace.isOn("iand-check"))
+      if (TraceIsOn("iand-check"))
       {
         Node x = i[0];
         Node y = i[1];
@@ -307,4 +311,4 @@ Node IAndSolver::bitwiseLemma(Node i)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

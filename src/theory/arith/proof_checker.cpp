@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Gereon Kremer, Andres Noetzli
+ *   Alex Ozdemir, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,13 +21,12 @@
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -49,18 +48,18 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                                           const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (Debug.isOn("arith::pf::check"))
+  if (TraceIsOn("arith::pf::check"))
   {
-    Debug("arith::pf::check") << "Arith PfRule:" << id << std::endl;
-    Debug("arith::pf::check") << "  children: " << std::endl;
+    Trace("arith::pf::check") << "Arith PfRule:" << id << std::endl;
+    Trace("arith::pf::check") << "  children: " << std::endl;
     for (const auto& c : children)
     {
-      Debug("arith::pf::check") << "  * " << c << std::endl;
+      Trace("arith::pf::check") << "  * " << c << std::endl;
     }
-    Debug("arith::pf::check") << "  args:" << std::endl;
+    Trace("arith::pf::check") << "  args:" << std::endl;
     for (const auto& c : args)
     {
-      Debug("arith::pf::check") << "  * " << c << std::endl;
+      Trace("arith::pf::check") << "  * " << c << std::endl;
     }
   }
   switch (id)
@@ -130,7 +129,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           }
           default:
           {
-            Debug("arith::pf::check")
+            Trace("arith::pf::check")
                 << "Bad kind: " << children[i].getKind() << std::endl;
             return Node::null();
           }
@@ -182,7 +181,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
         Rational scalar = args[i].getConst<Rational>();
         if (scalar == 0)
         {
-          Debug("arith::pf::check") << "Error: zero scalar" << std::endl;
+          Trace("arith::pf::check") << "Error: zero scalar" << std::endl;
           return Node::null();
         }
 
@@ -203,7 +202,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           }
           default:
           {
-            Debug("arith::pf::check")
+            Trace("arith::pf::check")
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
@@ -215,7 +214,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           {
             if (scalar > 0)
             {
-              Debug("arith::pf::check")
+              Trace("arith::pf::check")
                   << "Positive scalar for lower bound: " << scalar << " for "
                   << children[i] << std::endl;
               return Node::null();
@@ -227,7 +226,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           {
             if (scalar < 0)
             {
-              Debug("arith::pf::check")
+              Trace("arith::pf::check")
                   << "Negative scalar for upper bound: " << scalar << " for "
                   << children[i] << std::endl;
               return Node::null();
@@ -240,7 +239,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           }
           default:
           {
-            Debug("arith::pf::check")
+            Trace("arith::pf::check")
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
@@ -264,7 +263,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
               && children[0].getKind() != Kind::GEQ)
           || !children[0][0].getType().isInteger() || !children[0][1].isConst())
       {
-        Debug("arith::pf::check") << "Illformed input: " << children;
+        Trace("arith::pf::check") << "Illformed input: " << children;
         return Node::null();
       }
       else
@@ -288,7 +287,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
               && children[0].getKind() != Kind::LEQ)
           || !children[0][0].getType().isInteger() || !children[0][1].isConst())
       {
-        Debug("arith::pf::check") << "Illformed input: " << children;
+        Trace("arith::pf::check") << "Illformed input: " << children;
         return Node::null();
       }
       else
@@ -312,28 +311,28 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
         cmps.insert(c.getKind());
         if (cmps.count(Kind::EQUAL) == 0)
         {
-          Debug("arith::pf::check") << "Error: No = " << std::endl;
+          Trace("arith::pf::check") << "Error: No = " << std::endl;
           return Node::null();
         }
         if (cmps.count(Kind::GT) == 0)
         {
-          Debug("arith::pf::check") << "Error: No > " << std::endl;
+          Trace("arith::pf::check") << "Error: No > " << std::endl;
           return Node::null();
         }
         if (cmps.count(Kind::LT) == 0)
         {
-          Debug("arith::pf::check") << "Error: No < " << std::endl;
+          Trace("arith::pf::check") << "Error: No < " << std::endl;
           return Node::null();
         }
         return args[0];
       }
       else
       {
-        Debug("arith::pf::check")
+        Trace("arith::pf::check")
             << "Error: Different polynomials / values" << std::endl;
-        Debug("arith::pf::check") << "  a: " << a << std::endl;
-        Debug("arith::pf::check") << "  b: " << b << std::endl;
-        Debug("arith::pf::check") << "  c: " << c << std::endl;
+        Trace("arith::pf::check") << "  a: " << a << std::endl;
+        Trace("arith::pf::check") << "  b: " << b << std::endl;
+        Trace("arith::pf::check") << "  c: " << c << std::endl;
         return Node::null();
       }
       // Check that all have the same constant:
@@ -363,4 +362,4 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

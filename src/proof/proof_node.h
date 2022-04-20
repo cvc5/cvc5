@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class ProofNode;
@@ -34,6 +34,7 @@ using Pf = std::shared_ptr<ProofNode>;
 struct ProofNodeHashFunction
 {
   inline size_t operator()(std::shared_ptr<ProofNode> pfn) const;
+  size_t operator()(const ProofNode* pfn) const;
 }; /* struct ProofNodeHashFunction */
 
 /** A node in a proof
@@ -142,6 +143,6 @@ inline size_t ProofNodeHashFunction::operator()(
  */
 std::ostream& operator<<(std::ostream& out, const ProofNode& pn);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_NODE_H */

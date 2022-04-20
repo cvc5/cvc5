@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -67,8 +67,8 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
   d_extt.addFunctionKind(kind::STRING_LEQ);
   d_extt.addFunctionKind(kind::STRING_TO_CODE);
-  d_extt.addFunctionKind(kind::STRING_TOLOWER);
-  d_extt.addFunctionKind(kind::STRING_TOUPPER);
+  d_extt.addFunctionKind(kind::STRING_TO_LOWER);
+  d_extt.addFunctionKind(kind::STRING_TO_UPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
   d_extt.addFunctionKind(kind::SEQ_NTH);
@@ -213,7 +213,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
            || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
            || k == SEQ_NTH || k == STRING_REPLACE_RE
            || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV)
+           || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV)
         << "Unknown reduction: " << k;
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
@@ -294,6 +294,11 @@ void ExtfSolver::checkExtfEval(int effort)
     // value, say in this example that (str.replace x "A" "B") != "B".
     std::vector<Node> exp;
     std::vector<Node> schildren;
+    // seq.unit is parameterized
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
+    {
+      schildren.push_back(n.getOperator());
+    }
     bool schanged = false;
     for (const Node& nc : n)
     {
@@ -469,7 +474,7 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         checkExtfInference(n, to_reduce, einfo, effort);
       }
-      if (Trace.isOn("strings-extf-list"))
+      if (TraceIsOn("strings-extf-list"))
       {
         Trace("strings-extf-list") << "  * " << to_reduce;
         if (!einfo.d_const.isNull())
@@ -790,4 +795,4 @@ std::string ExtfSolver::debugPrintModel()
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

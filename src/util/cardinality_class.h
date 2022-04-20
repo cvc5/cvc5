@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Cardinality classes. A type has exactly one cardinality class. The
@@ -93,6 +93,6 @@ CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2);
  */
 bool isCardinalityClassFinite(CardinalityClass c, bool fmfEnabled);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

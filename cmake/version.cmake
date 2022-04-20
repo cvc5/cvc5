@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner
+#   Gereon Kremer, Mathias Preiner, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -25,19 +25,11 @@ if(CMAKE_SCRIPT_MODE_FILE)
 else()
   # was run within the overall cmake project
   # add target to update versioninfo.cpp at build time
-  add_custom_command(
-    OUTPUT
-      ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
+  add_custom_target(gen-versioninfo
     COMMAND ${CMAKE_COMMAND}
       -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
       -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
       -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake
-    DEPENDS
-      ${PROJECT_SOURCE_DIR}/cmake/version-base.cmake
-      ${PROJECT_SOURCE_DIR}/cmake/version.cmake
-  )
-  add_custom_target(gen-versioninfo
-    DEPENDS ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
   )
 endif()
 

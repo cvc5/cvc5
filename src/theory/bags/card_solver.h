@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 
 #include "theory/bags/inference_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -61,28 +61,6 @@ class CardSolver : protected EnvObj
   std::set<Node> getChildren(Node bag);
 
  private:
-  /**
-   * Generate all cardinality terms needed in the cardinality graph.
-   * suppose (bag.card bag) is a term, and r is the representative of bag.
-   * Suppose A, B are bag terms and r in {A, B}.
-   * - If (bag.union_disjoint A B) is a term, add the following terms:
-   *   (bag.card A)
-   *   (bag.card B)
-   *   (bag.card (bag.union_disjoint A B))
-   * - If (bag.union_max A B) is a term, add the following terms:
-   *   (bag.card A)
-   *   (bag.card B)
-   *   (bag.card (bag.difference_subtract A B))
-   *   (bag.card (bag.inter_min A B))
-   *   (bag.card (bag.difference_subtract B A))
-   * - If (bag.difference_subtract A B) is a term, add the following terms:
-   *   (bag.card A)
-   *   (bag.card B)
-   *   (bag.card (bag.inter_min A B))
-   *   (bag.card (bag.difference_subtract A B))
-   */
-  void generateRelatedCardinalityTerms();
-
   /** apply inference rules for empty bags */
   void checkEmpty(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for bag make */
@@ -155,7 +133,6 @@ class CardSolver : protected EnvObj
    * This map needs to cleared before each full effort check.
    */
   std::map<Node, std::set<std::set<Node>>> d_cardGraph;
-
   /** Commonly used constants */
   Node d_true;
   Node d_false;
@@ -165,6 +142,6 @@ class CardSolver : protected EnvObj
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__CARD__SOLVER_H */

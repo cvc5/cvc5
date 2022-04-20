@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
 
 #include "api/cpp/cvc5.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -28,9 +28,9 @@ int main()
   Term const0 = slv.mkConst(sort_fp32, "_c0");
   Term const1 = slv.mkConst(sort_fp32, "_c2");
   Term const2 = slv.mkConst(sort_bool, "_c4");
-  Term ite = slv.mkTerm(ITE, const2, const1, const0);
-  Term rem = slv.mkTerm(FLOATINGPOINT_REM, ite, const1);
-  Term isnan = slv.mkTerm(FLOATINGPOINT_ISNAN, rem);
+  Term ite = slv.mkTerm(ITE, {const2, const1, const0});
+  Term rem = slv.mkTerm(FLOATINGPOINT_REM, {ite, const1});
+  Term isnan = slv.mkTerm(FLOATINGPOINT_IS_NAN, {rem});
   slv.checkSatAssuming(isnan);
   return 0;
 }

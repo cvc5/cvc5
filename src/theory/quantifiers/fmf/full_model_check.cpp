@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,10 +31,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -65,7 +65,8 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
         return true;
       }
     }
-    if( c[index].getType().isSort() ){
+    if (c[index].getType().isUninterpretedSort())
+    {
       //for star: check if all children are defined and have generalizations
       if (c[index] == st)
       {  /// option fmfFmcCoverSimplify
@@ -95,7 +96,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
 }
 
 int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index ) {
-  Debug("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
+  Trace("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
   if (index==(int)inst.size()) {
     return d_data;
   }else{
@@ -371,11 +372,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
        it != rs->d_type_reps.end();
        ++it)
   {
-    if( it->first.isSort() ){
+    if (it->first.isUninterpretedSort())
+    {
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
         Node r = m->getRepresentative(it->second[a]);
-        if( Trace.isOn("fmc-model-debug") ){
+        if( TraceIsOn("fmc-model-debug") ){
           std::vector< Node > eqc;
           d_qstate.getEquivalenceClass(r, eqc);
           Trace("fmc-model-debug") << "   " << (it->second[a]==r);
@@ -478,7 +480,6 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           Trace("fmc-warn") << "Warning : model for " << op
                             << " has non-constant argument in model " << ri
                             << " (from " << ci << ")" << std::endl;
-          Assert(false);
         }
         entry_children.push_back(ri);
       }
@@ -488,9 +489,10 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           << "Representative of " << v << " is " << nv << std::endl;
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
-        Assert(false);
       }
-      Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
+      Node en = hasNonStar ? n
+                           : NodeManager::currentNM()->mkNode(APPLY_UF,
+                                                              entry_children);
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
         Trace("fmc-model-debug") << "- add " << n << " -> " << nv << " (entry is " << en << ")" << std::endl;
         conds.push_back(n);
@@ -613,13 +615,16 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
   else
   {
     TypeNode tn = n.getType();
-    if( tn.isSort() && d_rep_ids.find(tn)!=d_rep_ids.end() ){
+    if (tn.isUninterpretedSort() && d_rep_ids.find(tn) != d_rep_ids.end())
+    {
       if (d_rep_ids[tn].find(n)!=d_rep_ids[tn].end()) {
         Trace(tr) << d_rep_ids[tn][n];
       }else{
         Trace(tr) << n;
       }
-    }else{
+    }
+    else
+    {
       Trace(tr) << n;
     }
   }
@@ -699,7 +704,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       else
       {
         // for debugging
-        if (Trace.isOn("fmc-test-inst"))
+        if (TraceIsOn("fmc-test-inst"))
         {
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
           if (ev == d_true)
@@ -769,7 +774,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   std::vector<Node>& mcond = d_quant_models[f].d_cond;
   if (!d_star_insts[f].empty())
   {
-    if (Trace.isOn("fmc-exh"))
+    if (TraceIsOn("fmc-exh"))
     {
       Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
       Trace("fmc-exh") << "Definition was : " << std::endl;
@@ -1059,7 +1064,8 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
     d.addEntry(fm, mkCond(cond), d_true);
   }else{
     TypeNode tn = eq[0].getType();
-    if( tn.isSort() ){
+    if (tn.isUninterpretedSort())
+    {
       int j = fm->getVariableId(f, eq[0]);
       int k = fm->getVariableId(f, eq[1]);
       const RepSet* rs = fm->getRepSet();
@@ -1076,7 +1082,9 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
         d.addEntry( fm, mkCond(cond), d_true);
       }
       d.addEntry( fm, mkCondDefault(fm, f), d_false);
-    }else{
+    }
+    else
+    {
       d.addEntry( fm, mkCondDefault(fm, f), Node::null());
     }
   }
@@ -1380,10 +1388,6 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
   return fm->getFunctionValue(op, argPrefix);
 }
 
-
-bool FullModelChecker::useSimpleModels() {
-  return options().quantifiers.fmfFmcSimple;
-}
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {
   if (d_quant_cond.find(q) != d_quant_cond.end())
@@ -1418,4 +1422,4 @@ bool FullModelChecker::isHandled(Node q) const
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

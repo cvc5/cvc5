@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,13 +27,14 @@
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
-using namespace cvc5::smt;
+using namespace cvc5::internal::smt;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Env::Env(NodeManager* nm, const Options* opts)
     : d_context(new context::Context()),
@@ -48,7 +49,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
       d_originalOptions(opts),
-      d_resourceManager()
+      d_resourceManager(),
+      d_uninterpretedSortOwner(theory::THEORY_UF)
 {
   if (opts != nullptr)
   {
@@ -93,19 +95,13 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 bool Env::isSatProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (!d_options.smt.unsatCores
-             || (d_options.smt.unsatCoresMode
-                     != options::UnsatCoresMode::ASSUMPTIONS
-                 && d_options.smt.unsatCoresMode
-                        != options::UnsatCoresMode::PP_ONLY));
+         && d_options.smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
 bool Env::isTheoryProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (!d_options.smt.unsatCores
-             || d_options.smt.unsatCoresMode
-                    == options::UnsatCoresMode::FULL_PROOF);
+         && d_options.smt.proofMode == options::ProofMode::FULL;
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
@@ -160,7 +156,7 @@ std::ostream& Env::output(OutputTag tag) const
   {
     return *d_options.base.out;
   }
-  return cvc5::null_os;
+  return cvc5::internal::null_os;
 }
 
 bool Env::isVerboseOn(int64_t level) const
@@ -174,7 +170,7 @@ std::ostream& Env::verbose(int64_t level) const
   {
     return *d_options.base.err;
   }
-  return cvc5::null_os;
+  return cvc5::internal::null_os;
 }
 
 std::ostream& Env::warning() const
@@ -239,4 +235,47 @@ bool Env::isFiniteType(TypeNode tn) const
                                   d_options.quantifiers.finiteModelFind);
 }
 
-}  // namespace cvc5
+void Env::setUninterpretedSortOwner(theory::TheoryId theory)
+{
+  d_uninterpretedSortOwner = theory;
+}
+
+theory::TheoryId Env::getUninterpretedSortOwner() const
+{
+  return d_uninterpretedSortOwner;
+}
+
+theory::TheoryId Env::theoryOf(TypeNode typeNode) const
+{
+  return theory::Theory::theoryOf(typeNode, d_uninterpretedSortOwner);
+}
+
+theory::TheoryId Env::theoryOf(TNode node) const
+{
+  return theory::Theory::theoryOf(
+      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
+}
+
+bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
+
+bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
+{
+  if (!hasSepHeap())
+  {
+    return false;
+  }
+  locType = d_sepLocType;
+  dataType = d_sepDataType;
+  return true;
+}
+
+void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  Assert(!locT.isNull());
+  Assert(!dataT.isNull());
+  // remember the types we have set
+  d_sepLocType = locT;
+  d_sepDataType = dataT;
+}
+
+}  // namespace cvc5::internal

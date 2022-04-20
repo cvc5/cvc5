@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Kshitij Bansal
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,10 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -87,14 +87,14 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.
     double clSet = 0;
-    if( Trace.isOn("model-engine") ){
+    if( TraceIsOn("model-engine") ){
       Trace("model-engine") << "---Model Engine Round---" << std::endl;
       clSet = double(clock())/double(CLOCKS_PER_SEC);
     }
     Trace("model-engine-debug") << "Check model..." << std::endl;
     d_incomplete_check = false;
     // print debug
-    if (Trace.isOn("fmf-model-complete"))
+    if (TraceIsOn("fmf-model-complete"))
     {
       Trace("fmf-model-complete") << std::endl;
       debugPrint("fmf-model-complete");
@@ -102,7 +102,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     // successfully built an acceptable model, now check it
     addedLemmas += checkModel();
 
-    if( Trace.isOn("model-engine") ){
+    if( TraceIsOn("model-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
     }
@@ -112,7 +112,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
           << "No lemmas added, incomplete = "
           << (d_incomplete_check || !d_incompleteQuants.empty()) << std::endl;
       // cvc5 will answer SAT or unknown
-      if( Trace.isOn("fmf-consistent") ){
+      if( TraceIsOn("fmf-consistent") ){
         Trace("fmf-consistent") << std::endl;
         debugPrint("fmf-consistent");
       }
@@ -135,11 +135,12 @@ bool ModelEngine::checkCompleteFor( Node q ) {
 }
 
 void ModelEngine::registerQuantifier( Node f ){
-  if( Trace.isOn("fmf-warn") ){
+  if( TraceIsOn("fmf-warn") ){
     bool canHandle = true;
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
-      if( !tn.isSort() ){
+      if (!tn.isUninterpretedSort())
+      {
         if (!d_env.isFiniteType(tn))
         {
           if( tn.isInteger() ){
@@ -168,8 +169,10 @@ int ModelEngine::checkModel(){
        it != fm->getRepSetPtr()->d_type_reps.end();
        ++it)
   {
-    if( it->first.isSort() ){
-      Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
+    if (it->first.isUninterpretedSort())
+    {
+      Trace("model-engine") << "Cardinality( " << it->first << " )"
+                            << " = " << it->second.size() << std::endl;
       Trace("model-engine-debug") << "        Reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
         Trace("model-engine-debug") << it->second[i] << "  ";
@@ -195,7 +198,7 @@ int ModelEngine::checkModel(){
   d_addedLemmas = 0;
   d_totalLemmas = 0;
   //for statistics
-  if( Trace.isOn("model-engine") ){
+  if( TraceIsOn("model-engine") ){
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       if (fm->isQuantifierActive(f) && shouldProcess(f))
@@ -281,7 +284,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     d_triedLemmas += d_builder->getNumTriedLemmas() - prev_tlem;
     d_addedLemmas += d_builder->getNumAddedLemmas() - prev_alem;
   }else{
-    if( Trace.isOn("fmf-exh-inst-debug") ){
+    if( TraceIsOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
         Trace("fmf-exh-inst-debug")
@@ -309,7 +312,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           {
             m.set(d_qstate, i, riter.getCurrentTerm(i));
           }
-          Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
+          Trace("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
           if (inst->addInstantiation(f,
@@ -324,7 +327,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
               break;
             }
           }else{
-            Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
+            Trace("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
           }
           riter.increment();
         }
@@ -342,7 +345,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
 }
 
 void ModelEngine::debugPrint( const char* c ){
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     Trace(c) << "Quantifiers: " << std::endl;
     FirstOrderModel* m = d_treg.getModel();
@@ -387,4 +390,4 @@ bool ModelEngine::shouldProcess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

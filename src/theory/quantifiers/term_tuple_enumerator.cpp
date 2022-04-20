@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   MikolasJanota, Andrew Reynolds
+ *   Mikolas Janota, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <typename T>
 static Cvc5ostream& operator<<(Cvc5ostream& out, const std::vector<T>& v)
@@ -269,7 +269,7 @@ bool TermTupleEnumeratorBase::hasNext()
 
 void TermTupleEnumeratorBase::failureReason(const std::vector<bool>& mask)
 {
-  if (Trace.isOn("inst-alg"))
+  if (TraceIsOn("inst-alg"))
   {
     traceMaskedVector("inst-alg", "failureReason", mask, d_termIndex);
   }
@@ -469,7 +469,7 @@ size_t TermTupleEnumeratorBasic::prepareTerms(size_t variableIx)
     for (size_t j = 0; j < ground_terms_count; j++)
     {
       Node gt = d_tdb->getTypeGroundTerm(type_node, j);
-      if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
+      if (!quantifiers::TermUtil::hasInstConstAttr(gt))
       {
         Node rep = d_qs.getRepresentative(gt);
         if (repsFound.find(rep) == repsFound.end())
@@ -557,4 +557,4 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

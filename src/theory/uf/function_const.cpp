@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,10 @@
 #include "theory/uf/function_const.h"
 
 #include "expr/array_store_all.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -189,7 +190,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       // thus requiring the rest of the disjunction to be further processed in
       // the then-branch as the current value.
       bool pol = curr[0].getKind() != kind::NOT;
-      bool inverted = (pol && ck == kind::AND) || (!pol && ck == kind::OR);
+      bool inverted = (pol == (ck == kind::AND));
       index_eq = pol ? curr[0] : curr[0][0];
       // processed : the value that is determined by the first child of curr
       // remainder : the remaining children of curr
@@ -236,7 +237,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
           << "  process base : " << curr << std::endl;
       // Simple Boolean return cases, in which
       //  (1) lambda x. (= x v) becomes lambda x. (ite (= x v) true false)
-      //  (2) lambda x. v becomes lambda x. (ite (= x v) true false)
+      //  (2) lambda x. x becomes lambda x. (ite (= x true) true false)
       // Note the negateg cases of the bodies above are also handled.
       bool pol = ck != kind::NOT;
       index_eq = pol ? curr : curr[0];
@@ -309,7 +310,12 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     {
       Trace("builtin-rewrite-debug2")
           << "  ...could not infer index value." << std::endl;
-      return Node::null();
+      // it could correspond to the default value that does not involve the
+      // current argument, hence we break and take curr as the default value
+      // below. For example, if we are processing lambda xy. (not y) for x,
+      // we have index_eq is (= y true), which does not match for x, hence
+      // (not y) is taken as the default value below.
+      break;
     }
 
     // [4] Recurse to ensure that "curr_val" has been normalized w.r.t. the
@@ -378,6 +384,9 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       size_t ii = (numCond - 1) - i;
       Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
+      // normalize it using the array rewriter utility, which must be done at
+      // each iteration of this loop
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
@@ -395,15 +404,9 @@ Node FunctionConst::getArrayRepresentationForLambda(TNode n)
   // must carry the overall return type to deal with cases like (lambda ((x Int)
   // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
   // case above should be (arraystoreall (Array Int Real) 0.0)
-  Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());
-  if (anode.isNull())
-  {
-    return anode;
-  }
-  // must rewrite it to make canonical
-  return Rewriter::rewrite(anode);
+  return getArrayRepresentationForLambdaRec(n, n[1].getType());
 }
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

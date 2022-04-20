@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ class Command;
 
 namespace parser {
 
-class InputStreamException : public Exception
+class InputStreamException : public internal::Exception
 {
  public:
   InputStreamException(const std::string& msg);
@@ -98,11 +98,9 @@ class CVC5_EXPORT Input
     *
     * @param lang the input language
     * @param filename the input filename
-    * @param useMmap true if the parser should use memory-mapped I/O (default: false)
     */
   static Input* newFileInput(const std::string& lang,
-                             const std::string& filename,
-                             bool useMmap = false);
+                             const std::string& filename);
 
   /** Create an input for the given stream.
    *
@@ -163,11 +161,11 @@ class CVC5_EXPORT Input
 
   /** Parse an expression from the input by invoking the
    * implementation-specific parsing method. Returns a null
-   * <code>api::Term</code> if there is no expression there to parse.
+   * <code>cvc5::Term</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual api::Term parseExpr() = 0;
+  virtual cvc5::Term parseExpr() = 0;
 
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser) = 0;

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Andrew V. Jones, Gereon Kremer
+#   Aina Niemetz, Mathias Preiner, Yoni Zohar
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -56,6 +56,8 @@ cvc5_add_api_test(proj-issue306)
 cvc5_add_api_test(proj-issue334)
 cvc5_add_api_test(proj-issue344)
 cvc5_add_api_test(proj-issue345)
+cvc5_add_api_test(proj-issue377)
 cvc5_add_api_test(proj-issue395)
 cvc5_add_api_test(proj-issue399)
 cvc5_add_api_test(proj-issue445)
+cvc5_add_api_test(proj-issue484)

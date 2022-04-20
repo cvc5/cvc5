@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,11 +15,13 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_state.h"
@@ -30,15 +32,13 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     SolverEngineState& state,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
-    : d_env(env),
-      d_state(state),
+    : EnvObj(env),
       d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
@@ -64,6 +64,9 @@ void SmtSolver::finishInit()
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm)
   {
+    // reset the rule checkers
+    pnm->getChecker()->reset();
+    // add rule checkers from the theory engine
     d_theoryEngine->initializeProofChecker(pnm->getChecker());
   }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -112,95 +115,103 @@ void SmtSolver::interrupt()
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
-                                      const std::vector<Node>& assumptions,
-                                      bool isEntailmentCheck)
+                                      const std::vector<Node>& assumptions)
 {
-  // update the state to indicate we are about to run a check-sat
-  bool hasAssumptions = !assumptions.empty();
-  d_state.notifyCheckSat(hasAssumptions);
-
-  // then, initialize the assertions
-  as.initializeCheckSat(assumptions, isEntailmentCheck);
-
-  // make the check, where notice smt engine should be fully inited by now
-
-  Trace("smt") << "SmtSolver::check()" << endl;
-
-  const std::string& filename = d_env.getOptions().driver.filename;
-  ResourceManager* rm = d_env.getResourceManager();
-  if (rm->out())
+  Result result;
+  try
   {
-    Result::UnknownExplanation why =
-        rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
-    return Result(Result::ENTAILMENT_UNKNOWN, why, filename);
-  }
-  rm->beginCall();
 
-  // Make sure the prop layer has all of the assertions
-  Trace("smt") << "SmtSolver::check(): processing assertions" << endl;
-  processAssertions(as);
-  Trace("smt") << "SmtSolver::check(): done processing assertions" << endl;
+    // then, initialize the assertions
+    as.initializeCheckSat(assumptions);
 
-  TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
+    // make the check, where notice smt engine should be fully inited by now
 
-  d_env.verbose(2) << "solving..." << std::endl;
-  Trace("smt") << "SmtSolver::check(): running check" << endl;
-  Result result = d_propEngine->checkSat();
-  Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
+    Trace("smt") << "SmtSolver::check()" << endl;
 
-  rm->endCall();
-  Trace("limit") << "SmtSolver::check(): cumulative millis "
-                 << rm->getTimeUsage() << ", resources "
-                 << rm->getResourceUsage() << endl;
-
-  if ((d_env.getOptions().smt.solveRealAsInt
-       || d_env.getOptions().smt.solveIntAsBV > 0)
-      && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
-  {
-    result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-  }
-  // flipped if we did a global negation
-  if (as.isGlobalNegated())
-  {
-    Trace("smt") << "SmtSolver::process global negate " << result << std::endl;
-    if (result.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    ResourceManager* rm = d_env.getResourceManager();
+    if (rm->out())
     {
-      result = Result(Result::SAT);
+      UnknownExplanation why = rm->outOfResources()
+                                   ? UnknownExplanation::RESOURCEOUT
+                                   : UnknownExplanation::TIMEOUT;
+      result = Result(Result::UNKNOWN, why);
     }
-    else if (result.asSatisfiabilityResult().isSat() == Result::SAT)
+    else
     {
-      // Only can answer unsat if the theory is satisfaction complete. This
-      // includes linear arithmetic and bitvectors, which are the primary
-      // targets for the global negate option. Other logics are possible here
-      // but not considered.
-      LogicInfo logic = d_env.getLogicInfo();
-      if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear()) ||
-          logic.isPure(theory::THEORY_BV))
+      rm->beginCall();
+
+      // Make sure the prop layer has all of the assertions
+      Trace("smt") << "SmtSolver::check(): processing assertions" << endl;
+      processAssertions(as);
+      Trace("smt") << "SmtSolver::check(): done processing assertions" << endl;
+
+      TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
+
+      d_env.verbose(2) << "solving..." << std::endl;
+      Trace("smt") << "SmtSolver::check(): running check" << endl;
+      result = d_propEngine->checkSat();
+      Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
+
+      rm->endCall();
+      Trace("limit") << "SmtSolver::check(): cumulative millis "
+                     << rm->getTimeUsage() << ", resources "
+                     << rm->getResourceUsage() << endl;
+
+      if ((d_env.getOptions().smt.solveRealAsInt
+           || d_env.getOptions().smt.solveIntAsBV > 0)
+          && result.getStatus() == Result::UNSAT)
       {
-        result = Result(Result::UNSAT);
+        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
       }
-      else
+      // flipped if we did a global negation
+      if (as.isGlobalNegated())
       {
-        result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+        Trace("smt") << "SmtSolver::process global negate " << result
+                     << std::endl;
+        if (result.getStatus() == Result::UNSAT)
+        {
+          result = Result(Result::SAT);
+        }
+        else if (result.getStatus() == Result::SAT)
+        {
+          // Only can answer unsat if the theory is satisfaction complete. This
+          // includes linear arithmetic and bitvectors, which are the primary
+          // targets for the global negate option. Other logics are possible
+          // here but not considered.
+          LogicInfo logic = d_env.getLogicInfo();
+          if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear())
+              || logic.isPure(theory::THEORY_BV))
+          {
+            result = Result(Result::UNSAT);
+          }
+          else
+          {
+            result =
+                Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
+          }
+        }
+        Trace("smt") << "SmtSolver::global negate returned " << result
+                     << std::endl;
       }
     }
-    Trace("smt") << "SmtSolver::global negate returned " << result << std::endl;
+  }
+  catch (const LogicException& e)
+  {
+    // The exception may have been throw during solving, backtrack to reset the
+    // decision level to the level expected after this method finishes
+    getPropEngine()->resetTrail();
+    throw;
   }
 
   // set the filename on the result
-  Result r = Result(result, filename);
-
-  // notify our state of the check-sat result
-  d_state.notifyCheckSatResult(hasAssumptions, r);
-
-  return r;
+  const std::string& filename = d_env.getOptions().driver.filename;
+  return Result(result, filename);
 }
 
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
-  Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
@@ -220,12 +231,14 @@ void SmtSolver::processAssertions(Assertions& as)
   {
     d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
-    const std::vector<Node>& ppl = d_pp.getLearnedLiterals();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter
-    // specially.
+    // specially. Note that we don't pass the preprocess learned literals
+    // d_pp.getLearnedLiterals() here, since they may not exactly correspond
+    // to the actual preprocessed learned literals, as the input may have
+    // undergone further preprocessing.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    d_propEngine->assertInputFormulas(assertions, ism, ppl);
+    d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions
@@ -245,4 +258,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@
 #include "util/random.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -242,7 +242,7 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
     //   this should remove instances of non-invertible operators, and
     //   "linearize" lit with respect to pv as much as possible
     Node rlit = rewriteAssertionForSolvePv(ci, pv, lit);
-    if (Trace.isOn("cegqi-bv"))
+    if (TraceIsOn("cegqi-bv"))
     {
       Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv
                         << " in " << lit << std::endl;
@@ -290,7 +290,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   }
   bool firstVar = sf.empty();
   // get inst id list
-  if (Trace.isOn("cegqi-bv"))
+  if (TraceIsOn("cegqi-bv"))
   {
     Trace("cegqi-bv") << "  " << iti->second.size()
                       << " candidate instantiations for " << pv << " : "
@@ -308,7 +308,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   // we may find an invertible literal that leads to a useful instantiation.
   std::shuffle(iti->second.begin(), iti->second.end(), Random::getRandom());
 
-  if (Trace.isOn("cegqi-bv"))
+  if (TraceIsOn("cegqi-bv"))
   {
     for (unsigned j = 0, size = iti->second.size(); j < size; j++)
     {
@@ -506,7 +506,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
   Node result = visited.top()[lit];
 
-  if (Trace.isOn("cegqi-bv-nl"))
+  if (TraceIsOn("cegqi-bv-nl"))
   {
     std::vector<TNode> trace_visit;
     std::unordered_set<TNode> trace_visited;
@@ -765,4 +765,4 @@ void BvInstantiatorPreprocess::collectExtracts(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,27 +18,31 @@
 #include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/theory.h"
 #include "util/rational.h"
 #include "util/string.h"
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
 TermRegistry::TermRegistry(Env& env,
+                           Theory& t,
                            SolverState& s,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : EnvObj(env),
+      d_theory(t),
       d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
@@ -54,10 +58,11 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          pnm ? new EagerProofGenerator(
-              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
-              : nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
@@ -154,11 +159,11 @@ void TermRegistry::preRegisterTerm(TNode n)
         || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
         || k == STRING_REPLACE_ALL || k == SEQ_NTH || k == STRING_REPLACE_RE
         || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
-        || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
+        || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV
         || k == STRING_UPDATE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(n)
          << " not supported in default mode, try --strings-exp";
       throw LogicException(ss.str());
     }
@@ -670,6 +675,13 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
+void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
+{
+  d_theory.collectAssertedTerms(termSet);
+  // also, get the additionally relevant terms
+  d_theory.computeRelevantTerms(termSet);
+}
+
 Node TermRegistry::mkNConcat(Node n1, Node n2) const
 {
   return rewrite(NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
@@ -687,4 +699,4 @@ Node TermRegistry::mkNConcat(const std::vector<Node>& c, TypeNode tn) const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

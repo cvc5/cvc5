@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/coverings_solver.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
@@ -42,7 +42,7 @@
 #include "theory/theory.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
   class EqualityEngine;
@@ -111,16 +111,6 @@ class NonlinearExtension : EnvObj
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
 
-  /**
-   * Retrieve the model value for the given variable. It may be either an
-   * arithmetic term or a witness.
-   */
-  Node getModelValue(TNode var) const;
-  /**
-   * Assert the model for the given variable to the theory model.
-   */
-  bool assertModel(TheoryModel* tm, TNode var) const;
-
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
 
@@ -138,11 +128,11 @@ class NonlinearExtension : EnvObj
    * the current candidate model.
    *
    * This function returns whether we found a satisfying assignment
-   * (Result::Sat::SAT), or not (Result::Sat::UNSAT). Note that UNSAT does not
+   * (Result::SAT), or not (Result::UNSAT). Note that UNSAT does not
    * necessarily means the whole query is UNSAT, but that the linear model was
    * refuted by a lemma.
    */
-  Result::Sat modelBasedRefinement(const std::set<Node>& termSet);
+  Result::Status modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *
@@ -252,8 +242,8 @@ class NonlinearExtension : EnvObj
   SplitZeroCheck d_splitZeroSlv;
   /** Solver for tangent plane lemmas. */
   TangentPlaneCheck d_tangentPlaneSlv;
-  /** The CAD-based solver */
-  CadSolver d_cadSlv;
+  /** The coverings-based solver */
+  CoveringsSolver d_covSlv;
   /** The ICP-based solver */
   icp::ICPSolver d_icpSlv;
   /** The integer and solver
@@ -272,22 +262,11 @@ class NonlinearExtension : EnvObj
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
-
-  /**
-   * The approximations computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, std::pair<Node, Node>> d_approximations;
-  /**
-   * The witnesses computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, Node> d_witnesses;
 }; /* class NonlinearExtension */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

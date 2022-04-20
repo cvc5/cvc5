@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Haniel Barbosa
+ *   Mathias Preiner, Andrew Reynolds, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -277,7 +277,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     return texp;
   }
 
-  Debug("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
+  Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
   if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
   {
@@ -301,7 +301,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     }
   }
 
-  Debug("theory-bv-pp-rewrite") << "to   " << res << "\n";
+  Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
   if (res != t)
   {
     return TrustNode::mkTrustRewrite(t, res, nullptr);
@@ -328,10 +328,10 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 
     if (value_a == value_b)
     {
-      Debug("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
+      Trace("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
       return EQUALITY_TRUE_IN_MODEL;
     }
-    Debug("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
+    Trace("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
     return EQUALITY_FALSE_IN_MODEL;
   }
   return status;
@@ -472,4 +472,4 @@ TheoryBV::Statistics::Statistics(StatisticsRegistry& reg,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

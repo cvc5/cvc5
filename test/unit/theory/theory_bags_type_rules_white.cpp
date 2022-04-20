@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed
+ *   Aina Niemetz, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 #include "theory/strings/type_enumerator.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace kind;
@@ -35,8 +35,7 @@ class TestTheoryWhiteBagsTypeRule : public TestSmt
   std::vector<Node> getNStrings(size_t n)
   {
     std::vector<Node> elements(n);
-    cvc5::theory::strings::StringEnumerator enumerator(
-        d_nodeManager->stringType());
+    theory::strings::StringEnumerator enumerator(d_nodeManager->stringType());
 
     for (size_t i = 0; i < n; i++)
     {
@@ -154,4 +153,4 @@ TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andres Noetzli, Liana Hadarean
+ *   Mathias Preiner, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,10 @@
 #include "prop/cadical.h"
 
 #include "base/check.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 using CadicalLit = int;
@@ -79,6 +80,27 @@ void CadicalSolver::init()
 }
 
 CadicalSolver::~CadicalSolver() {}
+
+/**
+ * Terminator class that notifies CaDiCaL to terminate when time limit is
+ * reached (used for time limits specified via --tlimit-per).
+ */
+class TimeLimitTerminator : public CaDiCaL::Terminator
+{
+ public:
+  TimeLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr){};
+
+  bool terminate() override { return d_resmgr.outOfTime(); }
+
+ private:
+  ResourceManager& d_resmgr;
+};
+
+void CadicalSolver::setTimeLimit(ResourceManager* resmgr)
+{
+  d_terminator.reset(new TimeLimitTerminator(*resmgr));
+  d_solver->connect_terminator(d_terminator.get());
+}
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {
@@ -180,12 +202,12 @@ bool CadicalSolver::ok() const { return d_inSatMode; }
 
 CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                       const std::string& prefix)
-    : d_numSatCalls(registry.registerInt(prefix + "cadical::calls_to_solve", 0)),
-      d_numVariables(registry.registerInt(prefix + "cadical::variables", 0)),
-      d_numClauses(registry.registerInt(prefix + "cadical::clauses", 0)),
+    : d_numSatCalls(registry.registerInt(prefix + "cadical::calls_to_solve")),
+      d_numVariables(registry.registerInt(prefix + "cadical::variables")),
+      d_numClauses(registry.registerInt(prefix + "cadical::clauses")),
       d_solveTime(registry.registerTimer(prefix + "cadical::solve_time"))
   {
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

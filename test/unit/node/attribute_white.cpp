@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters
+ *   Aina Niemetz, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace smt;
@@ -120,49 +120,49 @@ TEST_F(TestNodeWhiteAttribute, attributes)
   c.setAttribute(VarNameAttr(), "c");
 
   // test that all boolean flags are FALSE to start
-  Debug("boolattr") << "get flag 1 on a (should be F)\n";
+  Trace("boolattr") << "get flag 1 on a (should be F)\n";
   ASSERT_FALSE(a.getAttribute(TestFlag1()));
-  Debug("boolattr") << "get flag 1 on b (should be F)\n";
+  Trace("boolattr") << "get flag 1 on b (should be F)\n";
   ASSERT_FALSE(b.getAttribute(TestFlag1()));
-  Debug("boolattr") << "get flag 1 on c (should be F)\n";
+  Trace("boolattr") << "get flag 1 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag1()));
-  Debug("boolattr") << "get flag 1 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 1 on unnamed (should be F)\n";
   ASSERT_FALSE(unnamed.getAttribute(TestFlag1()));
 
-  Debug("boolattr") << "get flag 2 on a (should be F)\n";
+  Trace("boolattr") << "get flag 2 on a (should be F)\n";
   ASSERT_FALSE(a.getAttribute(TestFlag2()));
-  Debug("boolattr") << "get flag 2 on b (should be F)\n";
+  Trace("boolattr") << "get flag 2 on b (should be F)\n";
   ASSERT_FALSE(b.getAttribute(TestFlag2()));
-  Debug("boolattr") << "get flag 2 on c (should be F)\n";
+  Trace("boolattr") << "get flag 2 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag2()));
-  Debug("boolattr") << "get flag 2 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 2 on unnamed (should be F)\n";
   ASSERT_FALSE(unnamed.getAttribute(TestFlag2()));
 
-  Debug("boolattr") << "get flag 3 on a (should be F)\n";
+  Trace("boolattr") << "get flag 3 on a (should be F)\n";
   ASSERT_FALSE(a.getAttribute(TestFlag3()));
-  Debug("boolattr") << "get flag 3 on b (should be F)\n";
+  Trace("boolattr") << "get flag 3 on b (should be F)\n";
   ASSERT_FALSE(b.getAttribute(TestFlag3()));
-  Debug("boolattr") << "get flag 3 on c (should be F)\n";
+  Trace("boolattr") << "get flag 3 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag3()));
-  Debug("boolattr") << "get flag 3 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 3 on unnamed (should be F)\n";
   ASSERT_FALSE(unnamed.getAttribute(TestFlag3()));
 
-  Debug("boolattr") << "get flag 4 on a (should be F)\n";
+  Trace("boolattr") << "get flag 4 on a (should be F)\n";
   ASSERT_FALSE(a.getAttribute(TestFlag4()));
-  Debug("boolattr") << "get flag 4 on b (should be F)\n";
+  Trace("boolattr") << "get flag 4 on b (should be F)\n";
   ASSERT_FALSE(b.getAttribute(TestFlag4()));
-  Debug("boolattr") << "get flag 4 on c (should be F)\n";
+  Trace("boolattr") << "get flag 4 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag4()));
-  Debug("boolattr") << "get flag 4 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 4 on unnamed (should be F)\n";
   ASSERT_FALSE(unnamed.getAttribute(TestFlag4()));
 
-  Debug("boolattr") << "get flag 5 on a (should be F)\n";
+  Trace("boolattr") << "get flag 5 on a (should be F)\n";
   ASSERT_FALSE(a.getAttribute(TestFlag5()));
-  Debug("boolattr") << "get flag 5 on b (should be F)\n";
+  Trace("boolattr") << "get flag 5 on b (should be F)\n";
   ASSERT_FALSE(b.getAttribute(TestFlag5()));
-  Debug("boolattr") << "get flag 5 on c (should be F)\n";
+  Trace("boolattr") << "get flag 5 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag5()));
-  Debug("boolattr") << "get flag 5 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 5 on unnamed (should be F)\n";
   ASSERT_FALSE(unnamed.getAttribute(TestFlag5()));
 
   // test that they all HAVE the boolean attributes
@@ -193,115 +193,115 @@ TEST_F(TestNodeWhiteAttribute, attributes)
 
   // test two-arg version of hasAttribute()
   bool bb = false;
-  Debug("boolattr") << "get flag 1 on a (should be F)\n";
+  Trace("boolattr") << "get flag 1 on a (should be F)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag1(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 1 on b (should be F)\n";
+  Trace("boolattr") << "get flag 1 on b (should be F)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag1(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 1 on c (should be F)\n";
+  Trace("boolattr") << "get flag 1 on c (should be F)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag1(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 1 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 1 on unnamed (should be F)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag1(), bb));
   ASSERT_FALSE(bb);
 
-  Debug("boolattr") << "get flag 2 on a (should be F)\n";
+  Trace("boolattr") << "get flag 2 on a (should be F)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag2(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 2 on b (should be F)\n";
+  Trace("boolattr") << "get flag 2 on b (should be F)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag2(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 2 on c (should be F)\n";
+  Trace("boolattr") << "get flag 2 on c (should be F)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag2(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 2 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 2 on unnamed (should be F)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag2(), bb));
   ASSERT_FALSE(bb);
 
-  Debug("boolattr") << "get flag 3 on a (should be F)\n";
+  Trace("boolattr") << "get flag 3 on a (should be F)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag3(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 3 on b (should be F)\n";
+  Trace("boolattr") << "get flag 3 on b (should be F)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag3(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 3 on c (should be F)\n";
+  Trace("boolattr") << "get flag 3 on c (should be F)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag3(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 3 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 3 on unnamed (should be F)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag3(), bb));
   ASSERT_FALSE(bb);
 
-  Debug("boolattr") << "get flag 4 on a (should be F)\n";
+  Trace("boolattr") << "get flag 4 on a (should be F)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag4(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 4 on b (should be F)\n";
+  Trace("boolattr") << "get flag 4 on b (should be F)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag4(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 4 on c (should be F)\n";
+  Trace("boolattr") << "get flag 4 on c (should be F)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag4(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 4 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 4 on unnamed (should be F)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag4(), bb));
   ASSERT_FALSE(bb);
 
-  Debug("boolattr") << "get flag 5 on a (should be F)\n";
+  Trace("boolattr") << "get flag 5 on a (should be F)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag5(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 5 on b (should be F)\n";
+  Trace("boolattr") << "get flag 5 on b (should be F)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag5(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 5 on c (should be F)\n";
+  Trace("boolattr") << "get flag 5 on c (should be F)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag5(), bb));
   ASSERT_FALSE(bb);
-  Debug("boolattr") << "get flag 5 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 5 on unnamed (should be F)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag5(), bb));
   ASSERT_FALSE(bb);
 
   // setting boolean flags
-  Debug("boolattr") << "set flag 1 on a to T\n";
+  Trace("boolattr") << "set flag 1 on a to T\n";
   a.setAttribute(TestFlag1(), true);
-  Debug("boolattr") << "set flag 1 on b to F\n";
+  Trace("boolattr") << "set flag 1 on b to F\n";
   b.setAttribute(TestFlag1(), false);
-  Debug("boolattr") << "set flag 1 on c to F\n";
+  Trace("boolattr") << "set flag 1 on c to F\n";
   c.setAttribute(TestFlag1(), false);
-  Debug("boolattr") << "set flag 1 on unnamed to T\n";
+  Trace("boolattr") << "set flag 1 on unnamed to T\n";
   unnamed.setAttribute(TestFlag1(), true);
 
-  Debug("boolattr") << "set flag 2 on a to F\n";
+  Trace("boolattr") << "set flag 2 on a to F\n";
   a.setAttribute(TestFlag2(), false);
-  Debug("boolattr") << "set flag 2 on b to T\n";
+  Trace("boolattr") << "set flag 2 on b to T\n";
   b.setAttribute(TestFlag2(), true);
-  Debug("boolattr") << "set flag 2 on c to T\n";
+  Trace("boolattr") << "set flag 2 on c to T\n";
   c.setAttribute(TestFlag2(), true);
-  Debug("boolattr") << "set flag 2 on unnamed to F\n";
+  Trace("boolattr") << "set flag 2 on unnamed to F\n";
   unnamed.setAttribute(TestFlag2(), false);
 
-  Debug("boolattr") << "set flag 3 on a to T\n";
+  Trace("boolattr") << "set flag 3 on a to T\n";
   a.setAttribute(TestFlag3(), true);
-  Debug("boolattr") << "set flag 3 on b to T\n";
+  Trace("boolattr") << "set flag 3 on b to T\n";
   b.setAttribute(TestFlag3(), true);
-  Debug("boolattr") << "set flag 3 on c to T\n";
+  Trace("boolattr") << "set flag 3 on c to T\n";
   c.setAttribute(TestFlag3(), true);
-  Debug("boolattr") << "set flag 3 on unnamed to T\n";
+  Trace("boolattr") << "set flag 3 on unnamed to T\n";
   unnamed.setAttribute(TestFlag3(), true);
 
-  Debug("boolattr") << "set flag 4 on a to T\n";
+  Trace("boolattr") << "set flag 4 on a to T\n";
   a.setAttribute(TestFlag4(), true);
-  Debug("boolattr") << "set flag 4 on b to T\n";
+  Trace("boolattr") << "set flag 4 on b to T\n";
   b.setAttribute(TestFlag4(), true);
-  Debug("boolattr") << "set flag 4 on c to T\n";
+  Trace("boolattr") << "set flag 4 on c to T\n";
   c.setAttribute(TestFlag4(), true);
-  Debug("boolattr") << "set flag 4 on unnamed to T\n";
+  Trace("boolattr") << "set flag 4 on unnamed to T\n";
   unnamed.setAttribute(TestFlag4(), true);
 
-  Debug("boolattr") << "set flag 5 on a to T\n";
+  Trace("boolattr") << "set flag 5 on a to T\n";
   a.setAttribute(TestFlag5(), true);
-  Debug("boolattr") << "set flag 5 on b to T\n";
+  Trace("boolattr") << "set flag 5 on b to T\n";
   b.setAttribute(TestFlag5(), true);
-  Debug("boolattr") << "set flag 5 on c to F\n";
+  Trace("boolattr") << "set flag 5 on c to F\n";
   c.setAttribute(TestFlag5(), false);
-  Debug("boolattr") << "set flag 5 on unnamed to T\n";
+  Trace("boolattr") << "set flag 5 on unnamed to T\n";
   unnamed.setAttribute(TestFlag5(), true);
 
   ASSERT_EQ(a.getAttribute(VarNameAttr()), "a");
@@ -336,49 +336,49 @@ TEST_F(TestNodeWhiteAttribute, attributes)
   ASSERT_FALSE(c.hasAttribute(TestStringAttr2()));
   ASSERT_FALSE(unnamed.hasAttribute(TestStringAttr2()));
 
-  Debug("boolattr") << "get flag 1 on a (should be T)\n";
+  Trace("boolattr") << "get flag 1 on a (should be T)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag1()));
-  Debug("boolattr") << "get flag 1 on b (should be F)\n";
+  Trace("boolattr") << "get flag 1 on b (should be F)\n";
   ASSERT_FALSE(b.getAttribute(TestFlag1()));
-  Debug("boolattr") << "get flag 1 on c (should be F)\n";
+  Trace("boolattr") << "get flag 1 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag1()));
-  Debug("boolattr") << "get flag 1 on unnamed (should be T)\n";
+  Trace("boolattr") << "get flag 1 on unnamed (should be T)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag1()));
 
-  Debug("boolattr") << "get flag 2 on a (should be F)\n";
+  Trace("boolattr") << "get flag 2 on a (should be F)\n";
   ASSERT_FALSE(a.getAttribute(TestFlag2()));
-  Debug("boolattr") << "get flag 2 on b (should be T)\n";
+  Trace("boolattr") << "get flag 2 on b (should be T)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag2()));
-  Debug("boolattr") << "get flag 2 on c (should be T)\n";
+  Trace("boolattr") << "get flag 2 on c (should be T)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag2()));
-  Debug("boolattr") << "get flag 2 on unnamed (should be F)\n";
+  Trace("boolattr") << "get flag 2 on unnamed (should be F)\n";
   ASSERT_FALSE(unnamed.getAttribute(TestFlag2()));
 
-  Debug("boolattr") << "get flag 3 on a (should be T)\n";
+  Trace("boolattr") << "get flag 3 on a (should be T)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag3()));
-  Debug("boolattr") << "get flag 3 on b (should be T)\n";
+  Trace("boolattr") << "get flag 3 on b (should be T)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag3()));
-  Debug("boolattr") << "get flag 3 on c (should be T)\n";
+  Trace("boolattr") << "get flag 3 on c (should be T)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag3()));
-  Debug("boolattr") << "get flag 3 on unnamed (should be T)\n";
+  Trace("boolattr") << "get flag 3 on unnamed (should be T)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag3()));
 
-  Debug("boolattr") << "get flag 4 on a (should be T)\n";
+  Trace("boolattr") << "get flag 4 on a (should be T)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag4()));
-  Debug("boolattr") << "get flag 4 on b (should be T)\n";
+  Trace("boolattr") << "get flag 4 on b (should be T)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag4()));
-  Debug("boolattr") << "get flag 4 on c (should be T)\n";
+  Trace("boolattr") << "get flag 4 on c (should be T)\n";
   ASSERT_TRUE(c.getAttribute(TestFlag4()));
-  Debug("boolattr") << "get flag 4 on unnamed (should be T)\n";
+  Trace("boolattr") << "get flag 4 on unnamed (should be T)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag4()));
 
-  Debug("boolattr") << "get flag 5 on a (should be T)\n";
+  Trace("boolattr") << "get flag 5 on a (should be T)\n";
   ASSERT_TRUE(a.getAttribute(TestFlag5()));
-  Debug("boolattr") << "get flag 5 on b (should be T)\n";
+  Trace("boolattr") << "get flag 5 on b (should be T)\n";
   ASSERT_TRUE(b.getAttribute(TestFlag5()));
-  Debug("boolattr") << "get flag 5 on c (should be F)\n";
+  Trace("boolattr") << "get flag 5 on c (should be F)\n";
   ASSERT_FALSE(c.getAttribute(TestFlag5()));
-  Debug("boolattr") << "get flag 5 on unnamed (should be T)\n";
+  Trace("boolattr") << "get flag 5 on unnamed (should be T)\n";
   ASSERT_TRUE(unnamed.getAttribute(TestFlag5()));
 
   a.setAttribute(TestStringAttr1(), "foo");
@@ -444,4 +444,4 @@ TEST_F(TestNodeWhiteAttribute, attributes)
   ASSERT_FALSE(unnamed.hasAttribute(VarNameAttr()));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

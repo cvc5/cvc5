@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt
+ *   Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -368,6 +368,7 @@ enum class AletheRule : uint32_t
   COMP_SIMPLIFY,
   NARY_ELIM,
   QNT_SIMPLIFY,
+  ALL_SIMPLIFY,
   // ======== let
   // G,x1->F1,...,xn->Fn > j. (= G G')
   // ---------------------------------
@@ -427,6 +428,6 @@ AletheRule getAletheRule(Node n);
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */

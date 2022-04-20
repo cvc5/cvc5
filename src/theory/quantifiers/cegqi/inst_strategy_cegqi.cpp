@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -110,7 +110,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
-      Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
+      Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
@@ -200,12 +200,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       if (fm->isQuantifierActive(q))
       {
         d_active_quant[q] = true;
-        Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
+        Trace("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
         if (d_qstate.getValuation().hasSatValue(cel, value))
         {
-          Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
+          Trace("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
             if (d_qstate.getValuation().isDecision(cel))
             {
@@ -218,7 +218,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
             }
           }
         }else{
-          Debug("cegqi-debug") << "...CE Literal does not have value " << std::endl;
+          Trace("cegqi-debug") << "...CE Literal does not have value " << std::endl;
         }
       }
     }
@@ -260,7 +260,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   {
     Assert(!d_qstate.isInConflict());
     double clSet = 0;
-    if( Trace.isOn("cegqi-engine") ){
+    if( TraceIsOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
@@ -283,7 +283,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         break;
       }
     }
-    if( Trace.isOn("cegqi-engine") ){
+    if( TraceIsOn("cegqi-engine") ){
       if (d_qim.numPendingLemmas() > lastWaiting)
       {
         Trace("cegqi-engine")
@@ -298,8 +298,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
 
 bool InstStrategyCegqi::checkComplete(IncompleteId& incId)
 {
-  if ((!options().quantifiers.cegqiSat && d_cbqi_set_quant_inactive)
-      || d_incomplete_check)
+  if (d_incomplete_check)
   {
     incId = IncompleteId::QUANTIFIERS_CEGQI;
     return false;
@@ -556,4 +555,4 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

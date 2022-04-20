@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -41,7 +41,7 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
   Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
   Node rewritten = rewrite(leq.andNode(geq));
-  Debug("arith::preprocess")
+  Trace("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;
   // don't need to rewrite terms since rewritten is not a non-standard op
   if (d_env.isTheoryProofProducing())
@@ -58,4 +58,4 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

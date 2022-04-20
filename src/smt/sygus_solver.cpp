@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,10 +35,10 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
@@ -183,7 +183,7 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConjectureStale = true;
 }
 
-Result SygusSolver::checkSynth(Assertions& as, bool isNext)
+SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
 {
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
@@ -259,13 +259,13 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   {
     std::vector<Node> query;
     query.push_back(d_conj);
-    r = d_smtSolver.checkSatisfiability(as, query, false);
+    r = d_smtSolver.checkSatisfiability(as, query);
   }
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
   // successfully. Instead we call getSynthSolutions below. If this returns
-  // true, then we were successful. In this case, we set the result to "unsat",
-  // since the synthesis conjecture was negated when asserted to the subsolver.
+  // true, then we were successful. In this case, we set the synthesis result to
+  // "solution".
   //
   // This behavior is done for 2 reasons:
   // (1) if we do not negate the synthesis conjecture, the subsolver in some
@@ -286,11 +286,12 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   //
   // Thus, we use getSynthSolutions as means of knowing the conjecture was
   // solved.
+  SynthResult sr;
   std::map<Node, Node> sol_map;
   if (getSynthSolutions(sol_map))
   {
-    // if we have solutions, we return "unsat" by convention
-    r = Result(Result::UNSAT);
+    // if we have solutions, we return "solution"
+    sr = SynthResult(SynthResult::SOLUTION);
     // Check that synthesis solutions satisfy the conjecture
     if (options().smt.checkSynthSol)
     {
@@ -300,9 +301,9 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   else
   {
     // otherwise, we return "unknown"
-    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    sr = SynthResult(SynthResult::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   }
-  return r;
+  return sr;
 }
 
 bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
@@ -400,13 +401,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.asSatisfiabilityResult().isUnknown())
+    if (r.isUnknown())
     {
       InternalError() << "SygusSolver::checkSynthSolution(): could not check "
                          "solution, result "
                          "unknown.";
     }
-    else if (r.asSatisfiabilityResult().isSat())
+    else if (r.getStatus() == Result::SAT)
     {
       InternalError()
           << "SygusSolver::checkSynthSolution(): produced solution leads to "
@@ -511,4 +512,4 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

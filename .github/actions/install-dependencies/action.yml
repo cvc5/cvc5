@@ -5,14 +5,19 @@ inputs:
     default: false
   with-python-bindings:
     default: false
+  with-python-packaging:
+    default: false
+  windows-build:
+    default: false
+    type: boolean
 runs:
   using: composite
   steps:
     - name: Install Linux software
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         echo "::group::Install Linux software"
-        if [[ $RUNNER_OS != "Linux" ]]; then exit 0; fi
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -21,16 +26,11 @@ runs:
           libcln-dev \
           libedit-dev \
           libgmp-dev \
-          libgtest-dev \
           libtinfo-dev \
           flex \
           libfl-dev \
           flexc++
         python3 -m pip install pexpect setuptools toml
-        cd /usr/src/googletest
-        sudo cmake .
-        sudo cmake --build . --target install
-        cd -
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -38,16 +38,33 @@ runs:
         echo "SED=sed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(nproc)" >> $GITHUB_ENV
+        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
         echo "/usr/lib/ccache" >> $GITHUB_PATH
+        echo "::endgroup::"
+
+    - name: Install software for cross-compiling for Windows
+      # Boolean inputs are actually strings:
+      # https://github.com/actions/runner/issues/1483
+      if: inputs.windows-build == 'true'
+      shell: bash
+      run: |
+        echo "::group::Install software for cross-compiling for Windows"
+        sudo apt-get update
+        sudo apt-get install -y \
+          mingw-w64
+
+        # cvc5 requires the POSIX version of MinGW to implement the time limit
+        # using threads
+        sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install macOS software
+      if: runner.os == 'macOS'
       shell: bash
       run: |
         echo "::group::Install macOS software"
-        if [[ $RUNNER_OS != "macOS" ]]; then exit 0; fi
         brew update --quiet
         brew install \
           ccache \
@@ -64,26 +81,37 @@ runs:
         echo "SED=gsed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
+        echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 
     - name: Install software for Python bindings
+      if: inputs.with-python-bindings == 'true'
       shell: bash
       run: |
         echo "::group::Install software for Python bindings"
-        if [[ "${{ inputs.with-python-bindings }}" != "true" ]]; then exit 0; fi
+        python3 -m pip install -q --upgrade pip
         python3 -m pip install pytest scikit-build
         python3 -m pytest --version
         python3 -m pip install Cython==0.29.*
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
         echo "::endgroup::"
+
+    - name: Install software for Python packaging
+      if: inputs.with-python-packaging == 'true'
+      shell: bash
+      run: |
+        echo "::group::Install software for Python packaging"
+        python3 -m pip install -q --upgrade pip
+        python3 -m pip install twine
+        python3 -m pip install -U urllib3 requests
+        echo "::endgroup::"
     
     - name: Install software for documentation
+      if: inputs.with-documentation == 'true'
       shell: bash
       run: |
         echo "::group::Install software for documentation"
-        if [[ "${{ inputs.with-documentation }}" != "true" ]]; then exit 0; fi
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
         python3 -m pip install \
           sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \

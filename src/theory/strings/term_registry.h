@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,8 +31,11 @@
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
+
+class Theory;
+
 namespace strings {
 
 class InferenceManager;
@@ -54,6 +57,7 @@ class TermRegistry : protected EnvObj
 
  public:
   TermRegistry(Env& env,
+               Theory& t,
                SolverState& s,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
@@ -229,7 +233,12 @@ class TermRegistry : protected EnvObj
    */
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;
 
+  /** compute relevant terms of the theory of strings */
+  void getRelevantTermSet(std::set<Node>& termSet);
+
  private:
+  /** Reference to theory of strings, for computing relevant terms */
+  Theory& d_theory;
   /** Common constants */
   Node d_zero;
   Node d_one;
@@ -314,6 +323,6 @@ class TermRegistry : protected EnvObj
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__TERM_REGISTRY_H */
