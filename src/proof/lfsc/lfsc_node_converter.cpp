@@ -575,12 +575,18 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       std::stringstream ss;
       options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
       tn.toStream(ss);
-      if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
+      if (tn.isUninterpretedSortConstructor())
       {
-        std::stringstream sss;
-        sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
-        cur = nm->mkSort(sss.str());
+        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+        tnn = getSymbolInternal(k, d_sortType, s, false);
+        cur =
+            nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+      }
+      else if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
+      {
+        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+        tnn = getSymbolInternal(k, d_sortType, s, false);
+        cur = nm->mkSort(s);
       }
       else
       {
@@ -621,7 +627,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
-      tn.getAttribute(expr::VarNameAttr(), name);
+      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
+                                                        name);
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -699,9 +706,16 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
   std::string name;
   v.getAttribute(expr::VarNameAttr(), name);
-  std::vector<Node>& syms = d_userSymbolList[name];
+  return getNameForUserNameOfInternal(v.getId(), name);
+}
+
+std::string LfscNodeConverter::getNameForUserNameOfInternal(
+    uint64_t id, const std::string& name)
+{
+  std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
+  std::vector<uint64_t>::iterator itr =
+      std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -709,7 +723,7 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   else
   {
     variant = syms.size();
-    syms.push_back(v);
+    syms.push_back(id);
   }
   return getNameForUserName(name, variant);
 }
@@ -869,7 +883,9 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
+         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
+         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -949,6 +965,32 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV:
+    {
+      const FloatingPointToSBV& fsbv = n.getConst<FloatingPointToSBV>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV:
+    {
+      const FloatingPointToUBV& fubv = n.getConst<FloatingPointToUBV>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV_TOTAL:
+    {
+      const FloatingPointToSBVTotal& fsbv =
+          n.getConst<FloatingPointToSBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV_TOTAL:
+    {
+      const FloatingPointToUBVTotal& fubv =
+          n.getConst<FloatingPointToUBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;
     case APPLY_TESTER:

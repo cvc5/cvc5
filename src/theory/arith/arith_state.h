@@ -24,7 +24,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+namespace linear {
 class TheoryArithPrivate;
+}
 
 /**
  * The arithmetic state.
@@ -44,11 +46,11 @@ class ArithState : public TheoryState
   /** Are we currently in conflict? */
   bool isInConflict() const override;
   /** Set parent */
-  void setParent(TheoryArithPrivate* p);
+  void setParent(linear::TheoryArithPrivate* p);
 
  private:
   /** reference to parent */
-  TheoryArithPrivate* d_parent;
+  linear::TheoryArithPrivate* d_parent;
 };
 
 }  // namespace arith

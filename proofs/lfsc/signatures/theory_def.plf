@@ -424,6 +424,10 @@
 (define to_fp_ieee_bv (# x mpz (# y mpz (# z term (apply (f_to_fp_ieee_bv x y) z)))))
 (declare f_to_fp_bv (! i mpz (! j mpz term)))
 (define to_fp_bv (# x mpz (# y mpz (# z term (apply (f_to_fp_bv x y) z)))))
+(declare f_fp.to_ubv_total (! i mpz term))
+(define fp.to_ubv_total (# x mpz (# z term (# w term (# u term (apply (apply (apply (f_fp.to_ubv_total x) z) w) u))))))
+(declare f_fp.to_sbv_total (! i mpz term))
+(define fp.to_sbv_total (# x mpz (# z term (# w term (# u term (apply (apply (apply (f_fp.to_sbv_total x) z) w) u))))))
 ; rounding modes
 (declare roundNearestTiesToEven term)
 (declare roundNearestTiesToAway term)

@@ -261,7 +261,6 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_REPEAT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
-  Assert(oldKind != kind::BITVECTOR_COMP);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
@@ -517,6 +516,17 @@ Node IntBlaster::translateWithChildren(
                        d_zero);
       break;
     }
+    case kind::BITVECTOR_COMP:
+    {
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::EQUAL,
+                                    translated_children[0],
+                                    translated_children[1]),
+                       d_one,
+                       d_zero);
+      break;
+    }
     case kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
@@ -666,7 +676,6 @@ Node IntBlaster::translateNoChildren(Node original,
 
   // The translation is done differently for variables (bound or free)  and
   // constants (values)
-  Assert(original.isVar() || original.isConst() || original.isNullaryOp());
   if (original.isVar())
   {
     if (original.getType().isBitVector())
@@ -719,7 +728,7 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value) or a nullary op (e.g., PI)
+    // original is a constant (value) or an operator with no arguments (e.g., PI)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -730,7 +739,7 @@ Node IntBlaster::translateNoChildren(Node original,
     }
     else
     {
-      // Other constants or nullary ops stay the same.
+      // Other constants or operators stay the same.
       translation = original;
     }
   }
