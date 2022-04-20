@@ -91,6 +91,8 @@ class SmtSolver : protected EnvObj
    * maintains a current set of (unprocessed) assertions which are pushed
    * into the internal members of this class (TheoryEngine and PropEngine)
    * during this call.
+   * @param assumptions The assumptions for this check-sat call, which are
+   * temporary assertions.
    */
   Result checkSatisfiability(Assertions& as,
                              const std::vector<Node>& assumptions);
@@ -101,7 +103,16 @@ class SmtSolver : protected EnvObj
    */
   void processAssertions(Assertions& as);
   /**
-   * Compute deep restart assertions.
+   * Perform a deep restart.
+   * 
+   * This constructs a fresh copy of the theory engine and prop engine, and
+   * populates the given assertions for the next call to checkSatisfiability.
+   * In particular, we add the preprocessed assertions from the previous
+   * call to checkSatisfiability, as well as those in zll.
+   * 
+   * @param as The assertions to populate
+   * @param zll The zero-level literals we learned on the previous call to
+   * checkSatisfiability.
    */
   void deepRestart(Assertions& as, const std::vector<Node>& zll);
   //------------------------------------------ access methods
