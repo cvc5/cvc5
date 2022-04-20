@@ -764,7 +764,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // check the satisfiability with the solver object
   Assertions& as = *d_asserts.get();
   Result r = d_smtSolver->checkSatisfiability(as, assumptions);
-  
+
   // If the result is unknown, we may optionally do a "deep restart" where
   // the members of the SMT solver are reconstructed and given the
   // preprocessed input formulas (plus additional learned formulas). Notice
@@ -1826,7 +1826,7 @@ bool SolverEngine::deepRestart()
   }
   Trace("smt") << "SMT deepRestart()" << endl;
 
-  Assert (d_state->isFullyInited());
+  Assert(d_state->isFullyInited());
 
   // get the zero-level learned literals now, before resetting the context
   std::vector<Node> zll =
