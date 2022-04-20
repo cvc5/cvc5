@@ -167,6 +167,18 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   for (size_t i = 2, size = args.size(); i < size; ++i)
   {
     Trace("alethe-printer") << "Process " << args[i] << "\n";
+    // We do not go *below* cl, since the clause itself cannot be shared (goes
+    // against the Alethe specification)
+    // TODO strengthen this to guarantee this var is indeed the "cl" one
+    if (args[i].getKind() == kind::SEXPR
+        && args[i][0].getKind() == kind::BOUND_VARIABLE)
+    {
+      for (const auto& arg : args[i])
+      {
+        d_lbind.process(arg);
+      }
+      continue;
+    }
     d_lbind.process(args[i]);
   }
 
