@@ -183,12 +183,12 @@ void Printer::toStreamCmdAssert(std::ostream& out, Node n) const
   printUnknownCommand(out, "assert");
 }
 
-void Printer::toStreamCmdPush(std::ostream& out) const
+void Printer::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
   printUnknownCommand(out, "push");
 }
 
-void Printer::toStreamCmdPop(std::ostream& out) const
+void Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 {
   printUnknownCommand(out, "pop");
 }

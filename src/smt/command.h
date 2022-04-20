@@ -370,6 +370,8 @@ class CVC5_EXPORT AssertCommand : public Command
 class CVC5_EXPORT PushCommand : public Command
 {
  public:
+  PushCommand(uint32_t nscopes);
+
   void invoke(cvc5::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -378,11 +380,16 @@ class CVC5_EXPORT PushCommand : public Command
                 size_t dag = 1,
                 internal::Language language =
                     internal::Language::LANG_AUTO) const override;
+
+ private:
+  uint32_t d_nscopes;
 }; /* class PushCommand */
 
 class CVC5_EXPORT PopCommand : public Command
 {
  public:
+  PopCommand(uint32_t nscopes);
+
   void invoke(cvc5::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -391,6 +398,9 @@ class CVC5_EXPORT PopCommand : public Command
                 size_t dag = 1,
                 internal::Language language =
                     internal::Language::LANG_AUTO) const override;
+
+ private:
+  uint32_t d_nscopes;
 }; /* class PopCommand */
 
 class CVC5_EXPORT DeclarationDefinitionCommand : public Command

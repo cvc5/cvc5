@@ -81,10 +81,10 @@ class Printer
   virtual void toStreamCmdAssert(std::ostream& out, Node n) const;
 
   /** Print push command */
-  virtual void toStreamCmdPush(std::ostream& out) const;
+  virtual void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const;
 
   /** Print pop command */
-  virtual void toStreamCmdPop(std::ostream& out) const;
+  virtual void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const;
 
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
