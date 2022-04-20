@@ -1505,14 +1505,14 @@ void Smt2Printer::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "(assert " << n << ')' << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPush(std::ostream& out) const
+void Smt2Printer::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "(push 1)" << std::endl;
+  out << "(push " << nscopes << ")" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPop(std::ostream& out) const
+void Smt2Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 {
-  out << "(pop 1)" << std::endl;
+  out << "(pop " << nscopes << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
@@ -1577,6 +1577,15 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamDeclareType(out, type);
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
+                                              Node fun,
+                                              const std::string& binName) const
+{
+  out << "(declare-oracle-fun " << fun << " ";
+  toStreamDeclareType(out, fun.getType());
+  out << " " << binName << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclarePool(
