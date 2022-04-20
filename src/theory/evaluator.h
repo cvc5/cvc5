@@ -171,8 +171,6 @@ class Evaluator
                         std::unordered_map<TNode, Node>& evalAsNode,
                         std::unordered_map<TNode, EvalResult>& results,
                         bool needsReconstruct) const;
-  /** rewrite internal, based on whether we have a rewriter */
-  Node rewriteInternal(TNode n) const;
   /** The (optional) rewriter to be used */
   Rewriter* d_rr;
   /** The cardinality of the alphabet of strings */
