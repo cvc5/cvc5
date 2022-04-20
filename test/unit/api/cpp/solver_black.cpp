@@ -27,6 +27,21 @@ class TestApiBlackSolver : public TestApi
 {
 };
 
+TEST_F(TestApiBlackSolver, intBlasterOps)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/416
+  Solver slv;
+  slv.setOption("solve-bv-as-int", "sum");
+  slv.setOption("strings-exp", "true");
+  Sort s1 = slv.getStringSort();
+  Term t27 = slv.mkConst(s1, "_x50");
+  Term t333 = slv.mkRegexpAll();
+  Term t1243 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t27, t333, t27});
+  Term t1291 = slv.mkTerm(Kind::EQUAL, {t1243, t27});
+  slv.assertFormula(t1291);
+  slv.checkSat();
+}
+
 TEST_F(TestApiBlackSolver, pow2Large1)
 {
   // Based on https://github.com/cvc5/cvc5-projects/issues/371
