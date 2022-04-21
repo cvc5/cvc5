@@ -64,15 +64,21 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdAssert(std::ostream& out, Node n) const override;
 
   /** Print push command */
-  void toStreamCmdPush(std::ostream& out) const override;
+  void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print pop command */
-  void toStreamCmdPop(std::ostream& out) const override;
+  void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,
                                   const std::string& id,
                                   TypeNode type) const override;
+
+  /** Print declare-oracle-fun command */
+  void toStreamCmdDeclareOracleFun(std::ostream& out,
+                                   Node fun,
+                                   const std::string& binName) const override;
+
   /** Print declare-pool command */
   void toStreamCmdDeclarePool(std::ostream& out,
                                       const std::string& id,

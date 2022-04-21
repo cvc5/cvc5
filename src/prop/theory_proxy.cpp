@@ -140,7 +140,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     d_queue.pop();
     if (d_zll != nullptr)
     {
-      // check if this corresponds to a zero-level asserted literal
       if (d_stopSearch.get())
       {
         break;

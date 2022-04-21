@@ -152,9 +152,18 @@ struct BagFilterTypeRule
 
 /**
  * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
- * (-> T1 T2 T2), t of type T2, and B is a bag of type (Bag T1)
+ * (-> T1 T2 T2), t of type T2, and A is a bag of type (Bag T1)
  */
 struct BagFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (bag.partition r A) to make sure r is a binary operation of type
+ * (-> T1 T1 Bool), and A is a bag of type (Bag T1)
+ */
+struct BagPartitionTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagFoldTypeRule */

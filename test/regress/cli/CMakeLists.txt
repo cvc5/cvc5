@@ -1753,6 +1753,7 @@ set(regress_1_tests
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
   regress1/bags/bag_member.smt2
+  regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
@@ -3200,7 +3201,10 @@ macro(cvc5_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    ${path_to_cvc5}/cvc5 ${CMAKE_CURRENT_LIST_DIR}/${file})
+    --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
+    --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    ${path_to_cvc5}/cvc5
+    ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
 
   # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
