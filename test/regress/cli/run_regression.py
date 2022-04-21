@@ -44,15 +44,26 @@ class Tester:
     def applies(self, benchmark_info):
         return True
 
-    def run(self, benchmark_info):
-        exit_code = EXIT_OK
-        output, error, exit_status = run_benchmark(benchmark_info)
+    def check_exit_status(self, name, expected_exit_status, exit_status, output, error, flags):
         if exit_status == STATUS_TIMEOUT:
-            exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
-            print("Timeout - Flags: {}".format(benchmark_info.command_line_args))
-        elif benchmark_info.compare_outputs and output != benchmark_info.expected_output:
-            exit_code = EXIT_FAILURE
-            print("not ok - Flags: {}".format(benchmark_info.command_line_args))
+            print("Timeout ({}) - Flags: {}".format(name, flags))
+            return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+        elif exit_status != expected_exit_status:
+            print('not ok ({}) - Expected exit status "{}" but got "{}" - Flags: {}'.format(
+                name, expected_exit_status, exit_status, flags))
+            print()
+            print_outputs(output, error)
+            return EXIT_FAILURE
+        return None
+
+    def run(self, benchmark_info):
+        output, error, exit_status = run_benchmark(benchmark_info)
+        exit_code = self.check_exit_status(
+            "cvc5", benchmark_info.expected_exit_status, exit_status, output, error, benchmark_info.command_line_args)
+        if exit_code:
+            return exit_code
+        if benchmark_info.compare_outputs and output != benchmark_info.expected_output:
+            print("not ok (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
             print()
             print("Standard output difference")
             print("=" * 80)
@@ -63,10 +74,10 @@ class Tester:
             if error:
                 print("Error output")
                 print_segment(Color.YELLOW, error)
-        elif benchmark_info.compare_outputs and error != benchmark_info.expected_error:
-            exit_code = EXIT_FAILURE
+            return EXIT_FAILURE
+        if benchmark_info.compare_outputs and error != benchmark_info.expected_error:
             print(
-                "not ok - Differences between expected and actual output on stderr - Flags: {}".format(
+                "not ok (cvc5) - Differences between expected and actual output on stderr - Flags: {}".format(
                     benchmark_info.command_line_args
                 )
             )
@@ -76,20 +87,9 @@ class Tester:
             print_diff(error, benchmark_info.expected_error)
             print("=" * 80)
             print()
-        elif exit_status != benchmark_info.expected_exit_status:
-            exit_code = EXIT_FAILURE
-            print(
-                'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.format(
-                    benchmark_info.expected_exit_status,
-                    exit_status,
-                    benchmark_info.command_line_args,
-                )
-            )
-            print()
-            print_outputs(output, error)
-        else:
-            print("ok - Flags: {}".format(benchmark_info.command_line_args))
-        return exit_code
+            return EXIT_FAILURE
+        print("ok - Flags: {}".format(benchmark_info.command_line_args))
+        return EXIT_OK
 
 
 ################################################################################
@@ -162,19 +162,17 @@ class LfscTester(Tester):
     def applies(self, benchmark_info):
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and benchmark_info.expected_output.split() == ["unsat"]
+            and benchmark_info.expected_output.strip() == "unsat"
         )
 
     def run(self, benchmark_info):
-        exit_code = None
-        tmpf_name = None
-        with tempfile.NamedTemporaryFile(delete=False) as tmpf:
+        with tempfile.NamedTemporaryFile() as tmpf:
             proof_args = [
                 "--dump-proofs",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
             ]
-            cvc5_output, cvc5_error, exit_status = run_process(
+            output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + benchmark_info.command_line_args
                 + proof_args
@@ -182,56 +180,38 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf_name = tmpf.name
-            tmpf.write(cvc5_output.strip("unsat\n".encode()))
-            cvc5_output, cvc5_error = cvc5_output.decode(), cvc5_error.decode()
-        if not tmpf_name:
-            exit_code = EXIT_FAILURE
-            print("not ok (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
-        elif exit_status == STATUS_TIMEOUT:
-            exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
-            print("Timeout (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
-        elif exit_status != EXIT_OK:
-            exit_code = EXIT_FAILURE
-            print('not ok (cvc5) - Expected exit status "{}" but got "{}" - Flags: {}'.format(
-                EXIT_OK, exit_status, benchmark_info.command_line_args))
-            print()
-            print_outputs(cvc5_output, cvc5_error)
-        elif "check" not in cvc5_output:
-            exit_code = EXIT_FAILURE
-            print('not ok (cvc5) - Empty proof - Flags: {}'.format(exit_status,
-                  benchmark_info.command_line_args))
-            print()
-            print_outputs(cvc5_output, cvc5_error)
-        else:
-            lfsc_output, lfsc_error, exit_status = run_process(
+            tmpf.write(output.strip("unsat\n".encode()))
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(
+                "cvc5", EXIT_OK, exit_status, output, error, benchmark_info.command_line_args)
+            if exit_code:
+                return exit_code
+            if "check" not in output:
+                print('not ok (cvc5) - Empty proof - Flags: {}'.format(exit_status,
+                      benchmark_info.command_line_args))
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+            output, error, exit_status = run_process(
                 [benchmark_info.lfsc_binary] +
                 benchmark_info.lfsc_sigs + [tmpf.name],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
             )
-            lfsc_output, lfsc_error = lfsc_output.decode(), lfsc_error.decode()
-            if exit_status == STATUS_TIMEOUT:
-                exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
-                print(
-                    "Timeout (lfsc) - Flags: {}".format(benchmark_info.command_line_args))
-            elif exit_status != EXIT_OK:
-                exit_code = EXIT_FAILURE
-                print('not ok (lfsc) - Expected exit status "{}" but got "{}" - Flags: {}'.format(
-                    EXIT_OK, exit_status, benchmark_info.command_line_args))
-                print()
-                print_outputs(lfsc_output, lfsc_error)
-            elif "success" not in lfsc_output:
-                exit_code = EXIT_FAILURE
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(
+                "lfsc", EXIT_OK, exit_status, output, error, benchmark_info.command_line_args)
+            if exit_code:
+                return exit_code
+            if "success" not in output:
                 print(
                     "not ok (lfsc) - Unexpected output - Flags: {}".format(benchmark_info.command_line_args))
                 print()
-                print_outputs(lfsc_output, lfsc_error)
-            else:
-                exit_code = EXIT_OK
-                print("ok - Flags: {}".format(benchmark_info.command_line_args))
-                os.remove(tmpf.name)
-        return exit_code
+                print_outputs(output, error)
+                return EXIT_FAILURE
+        print("ok - Flags: {}".format(benchmark_info.command_line_args))
+        return EXIT_OK
 
 
 class ModelTester(Tester):
