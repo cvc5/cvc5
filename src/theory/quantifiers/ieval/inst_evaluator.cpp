@@ -31,7 +31,8 @@ InstEvaluator::InstEvaluator(Env& env,
       d_qs(qs),
       d_treg(tr),
       d_doCanonize(doCanonize),
-      d_state(env, &d_context, qs, tr.getTermDatabase())
+      d_state(env, &d_context, qs, tr.getTermDatabase()),
+      d_varMap(&d_context)
 {
 }
 
@@ -52,20 +53,28 @@ void InstEvaluator::push() { d_context.push(); }
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
   d_context.push();
+  d_varMap[v] = s;
   if (!d_state.assignVar(v, s, assignedQuants))
   {
     d_context.pop();
+    return false;
   }
+  return true;
 }
 
 void InstEvaluator::pop() { d_context.pop(); }
 
-std::vector<Node> InstEvaluator::getInstantiationFor(Node q)
+std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
 {
+  NodeNodeMap::const_iterator it;
   std::vector<Node> vars;
   for (const Node& v : q[0])
   {
-    vars.push_back(d_state.getValue(v));
+    it = d_varMap.find(v);
+    if (it!=d_varMap.end())
+    {
+      vars.push_back(it->second);
+    }
   }
   return vars;
 }

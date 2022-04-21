@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "context/context.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
@@ -41,6 +42,7 @@ namespace ieval {
  */
 class InstEvaluator : protected EnvObj
 {
+  using NodeNodeMap = context::CDHashMap<Node, Node>;
  public:
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
@@ -68,7 +70,7 @@ class InstEvaluator : protected EnvObj
   /**
    * Get instantiation for quantified formula q.
    */
-  std::vector<Node> getInstantiationFor(Node q);
+  std::vector<Node> getInstantiationFor(Node q) const;
 
  private:
   /** A context object */
@@ -81,6 +83,8 @@ class InstEvaluator : protected EnvObj
   bool d_doCanonize;
   /** The state object */
   State d_state;
+  /** Variable mapping */
+  NodeNodeMap d_varMap;
 };
 
 }  // namespace ieval
