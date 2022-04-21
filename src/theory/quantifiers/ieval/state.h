@@ -46,6 +46,7 @@ class State : protected EnvObj
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node>;
   using NodeBoolMap = context::CDHashMap<Node, bool>;
+  using NodePatTermInfoMap = context::CDHashMap<Node, std::unique_ptr<PatTermInfo>>;
 
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb);
@@ -141,13 +142,8 @@ class State : protected EnvObj
   /** common constants */
   Node d_true;
   Node d_false;
-  // --------------------------- temporary state
-  /** Ground equivalence classes. */
-  std::unordered_set<TNode> d_groundEqc;
-  /** Ground equivalence classes per type */
-  std::map<TypeNode, std::unordered_set<TNode>> d_typeGroundEqc;
-  /** Empty set */
-  std::unordered_set<TNode> d_emptyEqc;
+  /** The terms we have set up notifications for */
+  NodeSet d_registeredTerms;
   /** total number of alive quantified formulas */
   context::CDO<size_t> d_numActiveQuant;
 };

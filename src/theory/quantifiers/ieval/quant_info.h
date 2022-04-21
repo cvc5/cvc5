@@ -54,6 +54,10 @@ class QuantInfo
   const std::map<TNode, std::vector<Node>>& getConstraints() const;
   /** Get the constraint terms */
   const std::vector<TNode>& getConstraintTerms() const;
+  /** Get the number of unassigned variables */
+  size_t getNumUnassignedVars() const;
+  /** Decremental unassigned var */
+  void decrementUnassignedVar();
   //-------------------------- queries local to round
   /** Is alive? */
   bool isActive() const;

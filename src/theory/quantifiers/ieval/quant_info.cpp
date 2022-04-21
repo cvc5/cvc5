@@ -187,6 +187,16 @@ const std::vector<TNode>& QuantInfo::getConstraintTerms() const
   return d_reqTerms;
 }
 
+size_t QuantInfo::getNumUnassignedVars() const
+{
+  return d_unassignedVars.get();
+}
+
+void QuantInfo::decrementUnassignedVar()
+{
+  d_unassignedVars = d_unassignedVars-1;
+}
+
 bool QuantInfo::isActive() const { return d_isActive.get(); }
 
 void QuantInfo::setActive(bool val) { d_isActive = val; }

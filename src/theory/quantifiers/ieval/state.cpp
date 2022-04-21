@@ -31,7 +31,8 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb)
       d_ctx(c),
       d_qstate(qs),
       d_tdb(tdb),
-      d_numActiveQuant(d_ctx, 0)
+      d_registeredTerms(c),
+      d_numActiveQuant(c, 0)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -60,17 +61,88 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     finfo.d_quantList.push_back(q);
   }
   // initialize pattern terms
+  NodeSet::const_iterator itr;
+  std::vector<TNode> visit;
+  // we traverse its constraint terms to set up the parent notification lists
+  const std::vector<TNode>& cterms = it->second.getConstraintTerms();
+  for (TNode c : cterms)
+  {
+    // we will notify the quantified formula when the pattern becomes set
+    PatTermInfo& pi = getOrMkPatTermInfo(c);
+    // (2) when the constraint term is assigned, we notify q
+    pi.d_parentNotify.push_back(q);
+    // we visit the constraint term below
+    visit.push_back(c);
+  }
+
+  TNode cur;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    itr = d_registeredTerms.find(cur);
+    if (itr == d_registeredTerms.end())
+    {
+      if (!expr::hasBoundVar(cur) || !QuantInfo::isTraverseTerm(cur))
+      {
+        continue;
+      }
+      Kind k = cur.getKind();
+      if (k == BOUND_VARIABLE)
+      {
+        // should be one of the free variables of the quantified formula
+        Assert(std::find(vars.begin(), vars.end(), cur) != vars.end());
+        continue;
+      }
+      PatTermInfo& pi = getOrMkPatTermInfo(cur);
+      // also get the number of unique children
+      std::set<TNode> children;
+      children.insert(cur.begin(), cur.end());
+      pi.d_numChildren = children.size();
+      for (TNode cc : children)
+      {
+        PatTermInfo& pic = getOrMkPatTermInfo(cc);
+        // require notifications to parent
+        pic.d_parentNotify.push_back(cur);
+        visit.push_back(cc);
+      }
+    }
+  } while (!visit.empty());
 }
 
 bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
+  // notify that the variable is equal to the ground term
   Node r = d_qstate.getRepresentative(s);
   notifyPatternEqGround(v, r);
-
+  // might the inactive now
+  if (isFinished())
+  {
+    return false;
+  }
+  // decrement the unassigned variable counts for all quantified formulas
+  // containing this variable
   FreeVarInfo& finfo = getFreeVarInfo(v);
   for (const Node& q : finfo.d_quantList)
   {
     QuantInfo& qinfo = getQuantInfo(q);
+    if (!qinfo.isActive())
+    {
+      // marked inactive, skip
+      continue;
+    }
+    if (qinfo.getNumUnassignedVars()==1)
+    {
+      // now fully assigned
+      assignedQuants.push_back(q);
+      // set inactive
+      setQuantInactive(qinfo);
+    }
+    else
+    {
+      // decrement the variable
+      qinfo.decrementUnassignedVar();
+    }
   }
   return true;
 }
@@ -149,46 +221,29 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     p = it->second.d_pattern;
     g = it->second.d_eq;
     Assert(!g.isNull());
-    // notify the ordinary parents always, notify the congruence parents if none
-    size_t maxIter = 1;
-    if (isNone(g))
+    context::CDList<Node>& notifyList = it->second.d_parentNotify;
+    for (TNode pp : notifyList)
     {
-      maxIter = 2;
-    }
-    else if (it->second.d_isWatchedEval.get())
-    {
-      Trace("ieval-state-debug")
-          << "Notify assert " << p << " == " << g << std::endl;
-      // if it is a watched evaluate term, assert the equality here??
-      // assertEquality(p, g);
-    }
-    for (size_t i = 0; i < maxIter; i++)
-    {
-      context::CDList<Node>& notifyList =
-          i == 0 ? it->second.d_parentNotify : it->second.d_parentCongNotify;
-      for (TNode pp : notifyList)
+      if (pp.getKind() == FORALL)
       {
-        if (pp.getKind() == FORALL)
+        // quantified formulas are ordinary parents
+        Assert(i == 0);
+        // if we have a quantified formula as a parent, notify is a special
+        // method, which will test the constraints
+        notifyQuant(pp, p, g);
+        // could be finished now
+        if (isFinished())
         {
-          // quantified formulas are ordinary parents
-          Assert(i == 0);
-          // if we have a quantified formula as a parent, notify is a special
-          // method, which will test the constraints
-          notifyQuant(pp, p, g);
-          // could be finished now
-          if (isFinished())
-          {
-            break;
-          }
-          continue;
+          break;
         }
-        // otherwise, notify the parent pattern
-        it = d_pInfo.find(pp);
-        Assert(it != d_pInfo.end());
-        if (it->second.notifyChild(*this, p, g))
-        {
-          toNotify.push_back(it);
-        }
+        continue;
+      }
+      // otherwise, notify the parent pattern
+      it = d_pInfo.find(pp);
+      Assert(it != d_pInfo.end());
+      if (it->second.notifyChild(*this, p, g))
+      {
+        toNotify.push_back(it);
       }
     }
   }
@@ -328,7 +383,6 @@ TNode State::getValue(TNode p) const
 std::string State::toString() const
 {
   std::stringstream ss;
-  ss << "#groundEqc = " << d_groundEqc.size() << std::endl;
   ss << "#patterns = " << d_pInfo.size() << std::endl;
   ss << "#freeVars = " << d_fvInfo.size() << std::endl;
   ss << "#quants = " << d_numActiveQuant.get() << " / " << d_quantInfo.size()

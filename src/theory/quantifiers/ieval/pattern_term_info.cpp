@@ -32,7 +32,6 @@ PatTermInfo::PatTermInfo(context::Context* c)
       d_numUnassigned(c, 0),
       d_numChildren(0),
       d_parentNotify(c),
-      d_parentCongNotify(c),
       d_isWatchedEval(c, false)
 {
 }
@@ -42,12 +41,6 @@ void PatTermInfo::initialize(TNode pattern, TermDb* tdb)
   Assert(!pattern.isNull());
   d_pattern = pattern;
   d_matchOp = tdb->getMatchOperator(pattern);
-  if (d_matchOp.isNull())
-  {
-    std::set<TNode> children;
-    children.insert(pattern.begin(), pattern.end());
-    d_numChildren = children.size();
-  }
 }
 
 bool PatTermInfo::isActive() const { return d_eq.get().isNull(); }
@@ -61,7 +54,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val)
     // already set
     return false;
   }
-  if (d_isCongTerm)
+  if (!d_matchOp.isNull())
   {
     // for congruence terms
     // if the value of a child is unknown, we are now unknown

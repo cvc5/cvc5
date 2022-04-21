@@ -69,8 +69,6 @@ class PatTermInfo
   TNode d_pattern;
   /** The match operator */
   TNode d_matchOp;
-  /** is congruence term */
-  bool d_isCongTerm;
   //---------------------- during search
   /**
    * The ground term we are currently equal to, if any. This may also be
@@ -88,12 +86,6 @@ class PatTermInfo
    * (2) A quantified formula Q whose body has p as a disjunct.
    */
   NodeList d_parentNotify;
-  /**
-   * The list of pattern terms f( ... p ... ) where we are doing congruence
-   * over f. We notify these parents of our value only if become equal to none,
-   * since this indicates that the parent should be set to none.
-   */
-  NodeList d_parentCongNotify;
   /**
    * Are we watching whether to evaluate this term?
    */
