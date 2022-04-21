@@ -22,6 +22,8 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/quantifiers/ieval/state.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,10 +37,10 @@ class TermRegistry;
  * Incrementally maintains the state of the rewritten form of the quantified
  * formula.
  */
-class InstEvaluator
+class InstEvaluator : protected EnvObj
 {
  public:
-  InstEvaluator(TermRegistry& tr, bool doCanonize = true);
+  InstEvaluator(Env& env, QuantifiersState& qs, TermRegistry& tr, bool doCanonize = true);
   /**
    * Set that we are watching quantified formula q.
    */
@@ -54,6 +56,7 @@ class InstEvaluator
    * If this returns true, this adds quantified formulas that are fully
    * instantiated.
    */
+  void push();
   bool push(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /** pop the last (successful) push */
   void pop();
@@ -65,10 +68,14 @@ class InstEvaluator
  private:
   /** A context object */
   context::Context d_context;
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
   /** Reference to term registry */
   TermRegistry& d_treg;
   /** do canonize */
   bool d_doCanonize;
+  /** The state object */
+  State d_state;
 };
 
 }  // namespace quantifiers

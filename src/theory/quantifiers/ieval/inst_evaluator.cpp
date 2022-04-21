@@ -19,8 +19,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstEvaluator::InstEvaluator(TermRegistry& tr, bool doCanonize)
-    : d_context(), d_treg(tr), d_doCanonize(doCanonize)
+InstEvaluator::InstEvaluator(Env& env, QuantifiersState& qs, TermRegistry& tr, bool doCanonize)
+    : EnvObj(env), d_context(), d_qs(qs), d_treg(tr), d_doCanonize(doCanonize), d_state(&d_context,
 {
 }
 
@@ -33,16 +33,29 @@ void InstEvaluator::watch(Node q)
 void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
+  d_state.watch(q, body);
+}
+
+void InstEvaluator::push()
+{
+  d_context.push();
 }
 
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
   d_context.push();
+  if (!d_state.push(v, s, assignedQuants))
+  {
+    d_context.pop();
+  }
 }
 
 void InstEvaluator::pop() { d_context.pop(); }
 
-std::vector<Node> InstEvaluator::getInstantiationFor(Node q) {}
+std::vector<Node> InstEvaluator::getInstantiationFor(Node q) 
+{
+  return d_state.getInstantiationFor(q);
+}
 
 }  // namespace quantifiers
 }  // namespace theory
