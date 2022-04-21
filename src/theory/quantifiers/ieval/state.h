@@ -49,6 +49,14 @@ class State : protected EnvObj
 
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb);
+  
+  
+  /** Watch quantified formula with the given body */
+  void watch(Node q, Node body);
+  
+  /** Assign variable */
+  bool assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants);
+  
   //---------------quantifiers info
   QuantInfo& initializeQuantInfo(TNode q, expr::TermCanonize& tc);
   /** Get quantifiers info */

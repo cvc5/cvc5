@@ -41,6 +41,20 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb)
   d_false = nm->mkConst(false);
 }
 
+void State::watch(Node q, Node body)
+{
+  // FIXME
+}
+
+bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
+{
+  // ???
+  Node r = d_qstate.getRepresentative(s);
+  notifyPatternEqGround(v, r);
+  // FIXME
+  return true;
+}
+  
 bool State::isFinished() const { return d_numActiveQuant == 0; }
 
 QuantInfo& State::initializeQuantInfo(TNode q, expr::TermCanonize& tc)
@@ -88,7 +102,7 @@ PatTermInfo& State::getOrMkPatTermInfo(TNode p)
   {
     it = d_pInfo.emplace(p, d_ctx).first;
     // initialize the pattern
-    it->second.initialize(p, d_qstate.getEqualityEngine(), d_tdb);
+    it->second.initialize(p, d_tdb);
   }
   return it->second;
 }
@@ -138,8 +152,8 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     {
       Trace("ieval-state-debug")
           << "Notify assert " << p << " == " << g << std::endl;
-      // if it is a watched evaluate term, assert the equality here
-      assertEquality(p, g);
+      // if it is a watched evaluate term, assert the equality here??
+      //assertEquality(p, g);
     }
     for (size_t i = 0; i < maxIter; i++)
     {

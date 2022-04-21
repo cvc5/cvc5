@@ -96,7 +96,7 @@ void QuantInfo::initialize(TNode q,
     {
       processed.insert(cur);
       // process the match requirement for (disjunct) cur
-      computeMatchReq(cur, ee, visit);
+      computeMatchReq(cur, tdb, visit);
     }
   } while (!visit.empty());
 
@@ -169,6 +169,7 @@ std::string QuantInfo::toStringDebug() const
 }
 
 void QuantInfo::computeMatchReq(TNode cur,
+                                TermDb* tdb,
                                 std::vector<TNode>& visit)
 {
   Assert(cur.getType().isBoolean());

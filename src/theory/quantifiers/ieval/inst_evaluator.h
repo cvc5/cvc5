@@ -28,9 +28,10 @@
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-namespace ieval {
-
+  
 class TermRegistry;
+
+namespace ieval {
 
 /**
  * Inst evaluator
@@ -70,7 +71,7 @@ class InstEvaluator : protected EnvObj
   /** A context object */
   context::Context d_context;
   /** The quantifiers state object */
-  QuantifiersState& d_qstate;
+  QuantifiersState& d_qs;
   /** Reference to term registry */
   TermRegistry& d_treg;
   /** do canonize */
