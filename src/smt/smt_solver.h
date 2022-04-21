@@ -137,6 +137,7 @@ class SmtSolver : protected EnvObj
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
   std::unique_ptr<prop::PropEngine> d_propEngine;
+  //------------------------------------------ Bookkeeping for deep restarts
   /** The exact list of preprocessed assertions we sent to the PropEngine */
   std::vector<Node> d_ppAssertions;
   /** The skolem map associated with d_ppAssertions */
