@@ -15,25 +15,24 @@
 
 #include "theory/quantifiers/ieval/inst_evaluator.h"
 
-
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstEvaluator::InstEvaluator(TermRegistry& tr, bool doCanonize) : d_context(), d_treg(tr), d_doCanonize(doCanonize)
+InstEvaluator::InstEvaluator(TermRegistry& tr, bool doCanonize)
+    : d_context(), d_treg(tr), d_doCanonize(doCanonize)
 {
 }
 
 void InstEvaluator::watch(Node q)
 {
-  Assert (q.getKind()==kind::FORALL);
+  Assert(q.getKind() == kind::FORALL);
   watch(q, q[1]);
 }
 
 void InstEvaluator::watch(Node q, Node body)
 {
-  Assert (q.getKind()==kind::FORALL);
-  
+  Assert(q.getKind() == kind::FORALL);
 }
 
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
@@ -41,17 +40,10 @@ bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
   d_context.push();
 }
 
-void InstEvaluator::pop()
-{
-  d_context.pop();
-}
+void InstEvaluator::pop() { d_context.pop(); }
 
-std::vector<Node> InstEvaluator::getInstantiationFor(Node q)
-{
-  
-}
+std::vector<Node> InstEvaluator::getInstantiationFor(Node q) {}
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
-

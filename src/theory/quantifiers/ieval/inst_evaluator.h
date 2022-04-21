@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "expr/node.h"
 #include "context/context.h"
+#include "expr/node.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -37,9 +37,9 @@ class TermRegistry;
  */
 class InstEvaluator
 {
-public:
+ public:
   InstEvaluator(TermRegistry& tr, bool doCanonize = true);
-  /** 
+  /**
    * Set that we are watching quantified formula q.
    */
   void watch(Node q);
@@ -50,7 +50,7 @@ public:
    *
    * Return false if all quantified formulas watched by this class are
    * infeasible.
-   * 
+   *
    * If this returns true, this adds quantified formulas that are fully
    * instantiated.
    */
@@ -61,7 +61,8 @@ public:
    * Get instantiation for quantified formula q.
    */
   std::vector<Node> getInstantiationFor(Node q);
-private:
+
+ private:
   /** A context object */
   context::Context d_context;
   /** Reference to term registry */
