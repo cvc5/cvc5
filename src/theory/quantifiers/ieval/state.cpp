@@ -60,19 +60,17 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     finfo.d_quantList.push_back(q);
   }
   // initialize pattern terms
-  
 }
 
 bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
   Node r = d_qstate.getRepresentative(s);
   notifyPatternEqGround(v, r);
-  
+
   FreeVarInfo& finfo = getFreeVarInfo(v);
   for (const Node& q : finfo.d_quantList)
   {
     QuantInfo& qinfo = getQuantInfo(q);
-    
   }
   return true;
 }

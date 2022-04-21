@@ -104,8 +104,8 @@ class State : protected EnvObj
   std::string toStringDebugSearch() const;
 
  private:
-  /** Get representative */   // TODO: configurable equality engine here?
-  //Node getRepresentative(Node n);
+  /** Get representative */  // TODO: configurable equality engine here?
+  // Node getRepresentative(Node n);
   //---------------equality notifications
   /**
    * Called when we have determined that pattern p will not merge with any
