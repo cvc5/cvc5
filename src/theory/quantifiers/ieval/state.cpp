@@ -106,7 +106,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
           visit.push_back(cc);
         }
       }
-      if (nchild>0)
+      if (nchild > 0)
       {
         // set the number of watched children
         PatTermInfo& pi = getOrMkPatTermInfo(cur);

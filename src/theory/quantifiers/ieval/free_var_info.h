@@ -34,6 +34,7 @@ namespace ieval {
 class FreeVarInfo
 {
   using NodeList = context::CDList<Node>;
+
  public:
   FreeVarInfo(context::Context* c);
   /** List of quantifiers that contain this variable */

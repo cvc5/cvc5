@@ -143,7 +143,8 @@ class State : protected EnvObj
   Node d_false;
   /** The terms we have set up notifications for */
   NodeSet d_registeredTerms;
-  /** The terms we have set up notifications for that have no notifying children */
+  /** The terms we have set up notifications for that have no notifying children
+   */
   NodeSet d_registeredBaseTerms;
   /** total number of alive quantified formulas */
   context::CDO<size_t> d_numActiveQuant;
