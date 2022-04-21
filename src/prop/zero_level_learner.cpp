@@ -242,7 +242,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       // if we solved for any variable from input, we are SOLVABLE.
       for (const Node& v : ss.d_vars)
       {
-        if (d_ppnSyms.find(v) == d_ppnSyms.end())
+        if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
           ltype = modes::LearnedLitType::SOLVABLE;

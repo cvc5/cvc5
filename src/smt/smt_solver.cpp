@@ -245,6 +245,8 @@ void SmtSolver::processAssertions(Assertions& as)
       // incompatible with global negation
       Assert(!as.isGlobalNegated());
       theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
+      // note that if a skolem is eliminated in preprocessing, we remove it
+      // from the preprocessed skolem map
       std::vector<size_t> elimSkolems;
       for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
       {
