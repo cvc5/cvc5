@@ -306,7 +306,7 @@ void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
       output(OutputTag::DEEP_RESTART) << (firstTime ? "" : " ") << lit;
       firstTime = false;
     }
-    output(OutputTag::DEEP_RESTART) << ")" << std::endl;
+    output(OutputTag::DEEP_RESTART) << "))" << std::endl;
   }
   for (TNode lit : zll)
   {
