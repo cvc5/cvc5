@@ -44,8 +44,11 @@ class State : protected EnvObj
   using NodeBoolMap = context::CDHashMap<Node, bool>;
 
  public:
-  State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb,
-                TermEvaluatorCallback * tec);
+  State(Env& env,
+        context::Context* c,
+        QuantifiersState& qs,
+        TermDb* tdb,
+        TermEvaluatorCallback* tec);
 
   /** Watch quantified formula with the given body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
@@ -135,7 +138,7 @@ class State : protected EnvObj
   /** Term database */
   TermDb* d_tdb;
   /** The term evaluator callback we are using */
-  TermEvaluatorCallback * d_tec;
+  TermEvaluatorCallback* d_tec;
   /** Map quantified formulas to their info */
   std::map<Node, QuantInfo> d_quantInfo;
   /** Free variable info */

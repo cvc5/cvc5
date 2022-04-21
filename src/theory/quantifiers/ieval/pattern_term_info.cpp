@@ -45,7 +45,10 @@ void PatTermInfo::initialize(TNode pattern, TermDb* tdb)
 
 bool PatTermInfo::isActive() const { return d_eq.get().isNull(); }
 
-bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermEvaluatorCallback* tec)
+bool PatTermInfo::notifyChild(State& s,
+                              TNode child,
+                              TNode val,
+                              TermEvaluatorCallback* tec)
 {
   Assert(!val.isNull());
   Assert(s.isGroundEqc(val) || s.isNone(val));
@@ -82,7 +85,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermEvaluatorCal
   }
   // call the evaluator
   d_eq = tec->evaluate(s, d_pattern, childValues);
-  Assert (!d_eq.get().isNull());
+  Assert(!d_eq.get().isNull());
   return true;
 }
 

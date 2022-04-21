@@ -25,7 +25,7 @@ namespace ieval {
 InstEvaluator::InstEvaluator(Env& env,
                              QuantifiersState& qs,
                              TermRegistry& tr,
-                             TermEvaluatorCallback * tec,
+                             TermEvaluatorCallback* tec,
                              bool doCanonize)
     : EnvObj(env),
       d_context(),

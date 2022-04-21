@@ -50,7 +50,7 @@ class InstEvaluator : protected EnvObj
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermRegistry& tr,
-                TermEvaluatorCallback * tec,
+                TermEvaluatorCallback* tec,
                 bool doCanonize = true);
   /**
    * Set that we are watching quantified formula q.

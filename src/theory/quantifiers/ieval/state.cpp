@@ -26,8 +26,11 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb,
-                TermEvaluatorCallback * tec)
+State::State(Env& env,
+             context::Context* c,
+             QuantifiersState& qs,
+             TermDb* tdb,
+             TermEvaluatorCallback* tec)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
