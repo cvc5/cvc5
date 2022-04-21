@@ -54,6 +54,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     // already set
     return false;
   }
+  // ============================ handle short circuiting
   if (!d_matchOp.isNull())
   {
     // for congruence terms
@@ -63,7 +64,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
       d_eq = val;
       return true;
     }
-    // TODO: could propagate `some`? This would be in rare cases where
+    // We could propagate `some` here. This would be in rare cases where
     // a Boolean term was a child of a term. Even so, Boolean terms would
     // not work with evaluation due to use of Boolean term variables.
   }
@@ -149,6 +150,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
       }
     }
   }
+  // ============================ decrement number of unassigned children
   // if a Boolean connective, we can possibly evaluate
   Assert(d_numUnassigned.get() > 0);
   d_numUnassigned = d_numUnassigned.get() - 1;
@@ -159,6 +161,8 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     // not ready to evaluate
     return false;
   }
+  
+  // ============================ if fully evaluated, get values
   std::vector<TNode> childValues;
   for (TNode pc : d_pattern)
   {
@@ -166,13 +170,21 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     Assert(!pcv.isNull());
     childValues.push_back(pcv);
   }
+  
+  // set to unknown, handle cases
+  d_eq = s.getNone();
 
   if (!d_matchOp.isNull())
   {
+    // see if we are congruent to a term known by the term database
+    Node eval = tdb->getCongruentTerm(d_matchOp, childValues);
+    if (!eval.isNull())
+    {
+      d_eq = eval;
+    }
+    return true;
   }
 
-  // set to unknown, handle cases
-  d_eq = s.getNone();
   Kind k = d_pattern.getKind();
   NodeManager* nm = NodeManager::currentNM();
   Assert(k != NOT);

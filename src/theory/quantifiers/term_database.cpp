@@ -694,9 +694,8 @@ TNode TermDb::getCongruentTerm( Node f, Node n ) {
   if( itut!=d_func_map_trie.end() ){
     computeArgReps( n );
     return itut->second.existsTerm( d_arg_reps[n] );
-  }else{
-    return TNode::null();
   }
+  return TNode::null();
 }
 
 TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
