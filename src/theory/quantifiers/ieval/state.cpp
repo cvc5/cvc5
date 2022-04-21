@@ -32,6 +32,7 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb)
       d_qstate(qs),
       d_tdb(tdb),
       d_registeredTerms(c),
+      d_registeredBaseTerms(c),
       d_numActiveQuant(c, 0)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -83,33 +84,39 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     itr = d_registeredTerms.find(cur);
     if (itr == d_registeredTerms.end())
     {
-      Assert(expr::hasBoundVar(cur));
-      Assert(QuantInfo::isTraverseTerm(cur));
+      d_registeredTerms.insert(cur);
       if (cur.getKind() == BOUND_VARIABLE)
       {
         // should be one of the free variables of the quantified formula
         Assert(std::find(vars.begin(), vars.end(), cur) != vars.end());
         continue;
       }
-      // get the unique children
-      std::set<TNode> children;
-      children.insert(cur.begin(), cur.end());
       size_t nchild = 0;
-      for (TNode cc : children)
+      if (QuantInfo::isTraverseTerm(cur))
       {
-        if (!expr::hasBoundVar(cc) || !QuantInfo::isTraverseTerm(cc))
+        // get the unique children
+        std::set<TNode> children;
+        children.insert(cur.begin(), cur.end());
+        for (TNode cc : children)
         {
-          continue;
+          nchild++;
+          // require notifications to parent
+          PatTermInfo& pic = getOrMkPatTermInfo(cc);
+          pic.d_parentNotify.push_back(cur);
+          visit.push_back(cc);
         }
-        nchild++;
-        // require notifications to parent
-        PatTermInfo& pic = getOrMkPatTermInfo(cc);
-        pic.d_parentNotify.push_back(cur);
-        visit.push_back(cc);
       }
-      // set the number of watched children
-      PatTermInfo& pi = getOrMkPatTermInfo(cur);
-      pi.d_numChildren = nchild;
+      if (nchild>0)
+      {
+        // set the number of watched children
+        PatTermInfo& pi = getOrMkPatTermInfo(cur);
+        pi.d_numChildren = nchild;
+      }
+      else
+      {
+        // no notifying children, this term will be initialized immediately
+        d_registeredBaseTerms.insert(cur);
+      }
     }
   } while (!visit.empty());
 }

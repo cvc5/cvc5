@@ -64,8 +64,8 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
       d_eq = val;
       return true;
     }
-    // We could propagate `some` here. This would be in rare cases where
-    // a Boolean term was a child of a term. Even so, Boolean terms would
+    // We could propagate `some` here, but don't. This would be in rare cases
+    // where a Boolean term was a child of a term. Even so, Boolean terms would
     // not work with evaluation due to use of Boolean term variables.
   }
   else
@@ -149,9 +149,9 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
         return true;
       }
     }
+    // NOTE: could do other short circuiting like zero for mult?
   }
   // ============================ decrement number of unassigned children
-  // if a Boolean connective, we can possibly evaluate
   Assert(d_numUnassigned.get() > 0);
   d_numUnassigned = d_numUnassigned.get() - 1;
   Trace("ieval-state-debug")
