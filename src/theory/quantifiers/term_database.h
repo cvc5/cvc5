@@ -167,12 +167,12 @@ class TermDb : public QuantifiersUtil {
   */
   TNode getCongruentTerm(Node f, Node n);
   /** get congruent term
-  * If possible, returns a term t such that:
-  * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) where ti is in the
-  *     equivalence class of args[i] for i=1...k.
-  * If not possible, return the null node.
-  */
+   * If possible, returns a term t such that:
+   * (1) t is a term that is currently indexed by this database,
+   * (2) t is of the form f( t1, ..., tk ) where ti is in the
+   *     equivalence class of args[i] for i=1...k.
+   * If not possible, return the null node.
+   */
   TNode getCongruentTerm(Node f, std::vector<TNode>& args);
   /** in relevant domain
   * Returns true if there is at least one term t such that:

@@ -161,7 +161,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     // not ready to evaluate
     return false;
   }
-  
+
   // ============================ if fully evaluated, get values
   std::vector<TNode> childValues;
   for (TNode pc : d_pattern)
@@ -170,7 +170,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     Assert(!pcv.isNull());
     childValues.push_back(pcv);
   }
-  
+
   // set to unknown, handle cases
   d_eq = s.getNone();
 
