@@ -25,7 +25,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "expr/subs.h"
-#include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
 #include "util/rational.h"
@@ -38,10 +37,6 @@ namespace arith {
 typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
-
-//Maps from Nodes -> ArithVars, and vice versa
-typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;
-typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);

@@ -20,10 +20,12 @@
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
 
+#include "api/cpp/cvc5_types.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
 #include "theory/output_channel.h"
@@ -99,6 +101,13 @@ class PropEngine : protected EnvObj
    */
   TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
 
+  /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
    * These formulas are asserted permanently for the current context.
@@ -301,8 +310,12 @@ class PropEngine : protected EnvObj
   /** Return the prop engine proof for assumption-based unsat cores. */
   std::shared_ptr<ProofNode> getRefutation();
 
-  /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals() const;
+  /** Get the zero-level assertions of the given type */
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
+
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

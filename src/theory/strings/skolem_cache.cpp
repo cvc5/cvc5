@@ -154,22 +154,6 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
   return mkTypedSkolemCached(tn, a, Node::null(), id, c);
 }
 
-Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
-{
-  // Note this method is static and does not rely on any local caching.
-  // It is used by expand definitions and by (dynamic) reductions, thus
-  // it is centrally located here.
-  Assert(seqType.isSequence());
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  std::vector<TypeNode> argTypes;
-  argTypes.push_back(seqType);
-  argTypes.push_back(nm->integerType());
-  TypeNode elemType = seqType.getSequenceElementType();
-  TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-  return sm->mkSkolemFunction(SkolemFunId::SEQ_NTH_OOB, ufType);
-}
-
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
