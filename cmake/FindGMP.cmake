@@ -74,8 +74,6 @@ if(NOT GMP_FOUND_SYSTEM)
     CONFIGURE_COMMAND
       <SOURCE_DIR>/configure ${LINK_OPTS} --prefix=<INSTALL_DIR>
       --with-pic --enable-cxx --host=${TOOLCHAIN_PREFIX}
-      --enable-fat
-      gmp_cv_asm_x86_mulx=no
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
