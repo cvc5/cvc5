@@ -26,6 +26,7 @@
 #include "theory/quantifiers/ieval/free_var_info.h"
 #include "theory/quantifiers/ieval/pattern_term_info.h"
 #include "theory/quantifiers/ieval/quant_info.h"
+#include "theory/quantifiers/ieval/term_evaluator_callback.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -41,11 +42,10 @@ class State : protected EnvObj
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node>;
   using NodeBoolMap = context::CDHashMap<Node, bool>;
-  using NodePatTermInfoMap =
-      context::CDHashMap<Node, std::unique_ptr<PatTermInfo>>;
 
  public:
-  State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb);
+  State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb,
+                TermEvaluatorCallback * tec);
 
   /** Watch quantified formula with the given body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
@@ -134,6 +134,8 @@ class State : protected EnvObj
   QuantifiersState& d_qstate;
   /** Term database */
   TermDb* d_tdb;
+  /** The term evaluator callback we are using */
+  TermEvaluatorCallback * d_tec;
   /** Map quantified formulas to their info */
   std::map<Node, QuantInfo> d_quantInfo;
   /** Free variable info */

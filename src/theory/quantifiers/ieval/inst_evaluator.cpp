@@ -25,13 +25,14 @@ namespace ieval {
 InstEvaluator::InstEvaluator(Env& env,
                              QuantifiersState& qs,
                              TermRegistry& tr,
+                             TermEvaluatorCallback * tec,
                              bool doCanonize)
     : EnvObj(env),
       d_context(),
       d_qs(qs),
       d_treg(tr),
       d_doCanonize(doCanonize),
-      d_state(env, &d_context, qs, tr.getTermDatabase()),
+      d_state(env, &d_context, qs, tr.getTermDatabase(), tec),
       d_varMap(&d_context)
 {
 }

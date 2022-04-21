@@ -26,11 +26,13 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb)
+State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb,
+                TermEvaluatorCallback * tec)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
       d_tdb(tdb),
+      d_tec(tec),
       d_registeredTerms(c),
       d_registeredBaseTerms(c),
       d_initialized(c, false),
@@ -129,7 +131,8 @@ void State::initialize()
   d_initialized = true;
   for (const Node& b : d_registeredBaseTerms)
   {
-    PatTermInfo& pi = getPatTermInfo(cur);
+    PatTermInfo& pi = getPatTermInfo(b);
+    // TODO: evaluate
   }
 }
 
@@ -265,7 +268,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
       it = d_pInfo.find(pp);
       Assert(it != d_pInfo.end());
       // returns true if we have evaluated
-      if (it->second.notifyChild(*this, p, g, d_tdb))
+      if (it->second.notifyChild(*this, p, g, d_tec))
       {
         toNotify.push_back(it);
       }

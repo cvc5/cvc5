@@ -24,6 +24,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "theory/quantifiers/ieval/term_evaluator_callback.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -61,7 +62,7 @@ class PatTermInfo
    *
    * This call is not responsible for notifying parents.
    */
-  bool notifyChild(State& s, TNode child, TNode val, TermDb* tdb);
+  bool notifyChild(State& s, TNode child, TNode val, TermEvaluatorCallback* tec);
   /** This pattern term. */
   TNode d_pattern;
   /** The match operator */

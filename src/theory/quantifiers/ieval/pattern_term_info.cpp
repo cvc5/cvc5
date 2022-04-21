@@ -45,7 +45,7 @@ void PatTermInfo::initialize(TNode pattern, TermDb* tdb)
 
 bool PatTermInfo::isActive() const { return d_eq.get().isNull(); }
 
-bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
+bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermEvaluatorCallback* tec)
 {
   Assert(!val.isNull());
   Assert(s.isGroundEqc(val) || s.isNone(val));
@@ -55,102 +55,12 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     return false;
   }
   // ============================ handle short circuiting
-  if (!d_matchOp.isNull())
+  d_eq = tec->partialEvaluateChild(s, d_pattern, child, val);
+  if (!d_eq.get().isNull())
   {
-    // for congruence terms
-    // if the value of a child is unknown, we are now unknown
-    if (s.isNone(val))
-    {
-      d_eq = val;
-      return true;
-    }
-    // We could propagate `some` here, but don't. This would be in rare cases
-    // where a Boolean term was a child of a term. Even so, Boolean terms would
-    // not work with evaluation due to use of Boolean term variables.
+    return true;
   }
-  else
-  {
-    Trace("ieval-state-debug")
-        << "Notify interpreted fun: " << d_pattern << " child " << child
-        << " == " << val << std::endl;
-    // if a Boolean connective, handle short circuiting
-    Kind k = d_pattern.getKind();
-    // implies and xor are eliminated from quantifier bodies
-    Assert(k != IMPLIES && k != XOR);
-    if (k == AND || k == OR)
-    {
-      if (val.isConst() && val.getConst<bool>() == (k == OR))
-      {
-        // the value determines the value of this
-        d_eq = val;
-        Trace("ieval-state-debug") << "...short circuit " << val << std::endl;
-        return true;
-      }
-    }
-    else if (k == NOT)
-    {
-      if (val.isConst())
-      {
-        NodeManager* nm = NodeManager::currentNM();
-        d_eq = nm->mkConst(!val.getConst<bool>());
-      }
-      else
-      {
-        d_eq = val;
-      }
-      Trace("ieval-state-debug")
-          << "...eval negation " << d_eq.get() << std::endl;
-      return true;
-    }
-    else if (k == ITE)
-    {
-      // if the condition is being set, and the branch already has a value,
-      // then this has the value of the branch.
-      if (d_pattern[0] == child)
-      {
-        if (val.isConst())
-        {
-          bool pol = val.getConst<bool>();
-          Node vbranch = s.getValue(d_pattern[pol ? 1 : 2]);
-          if (!vbranch.isNull())
-          {
-            d_eq = vbranch;
-            Trace("ieval-state-debug")
-                << "...branched to " << vbranch << std::endl;
-            return true;
-          }
-        }
-      }
-      else
-      {
-        // if the branch is being set, the condition is determined, and it is
-        // the relevant branch, then this value is val.
-        Node vcond = s.getValue(d_pattern[0]);
-        if (!vcond.isNull() && vcond.isConst())
-        {
-          if (child == d_pattern[vcond.getConst<bool>() ? 1 : 2])
-          {
-            d_eq = val;
-            Trace("ieval-state-debug")
-                << "...relevant branch " << val << std::endl;
-            return true;
-          }
-        }
-      }
-    }
-    else
-    {
-      if (s.isNone(val))
-      {
-        // none on either side of equality, or for any child of any other
-        // operator is automatic none
-        d_eq = val;
-        Trace("ieval-state-debug") << "...none default" << std::endl;
-        return true;
-      }
-    }
-    // NOTE: could do other short circuiting like zero for mult?
-  }
+
   // ============================ decrement number of unassigned children
   Assert(d_numUnassigned.get() > 0);
   d_numUnassigned = d_numUnassigned.get() - 1;
@@ -170,177 +80,9 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     Assert(!pcv.isNull());
     childValues.push_back(pcv);
   }
-
-  // set to unknown, handle cases
-  d_eq = s.getNone();
-
-  if (!d_matchOp.isNull())
-  {
-    // see if we are congruent to a term known by the term database
-    Node eval = tdb->getCongruentTerm(d_matchOp, childValues);
-    if (!eval.isNull())
-    {
-      d_eq = eval;
-    }
-    return true;
-  }
-
-  Kind k = d_pattern.getKind();
-  NodeManager* nm = NodeManager::currentNM();
-  Assert(k != NOT);
-  if (k == AND || k == OR)
-  {
-    bool hasSome = false;
-    for (TNode cvalue : childValues)
-    {
-      if (s.isNone(cvalue))
-      {
-        // unknown, we are done
-        Trace("ieval-state-debug") << "...unknown child of AND/OR" << std::endl;
-        return true;
-      }
-      else if (s.isSome(cvalue))
-      {
-        hasSome = true;
-      }
-      else
-      {
-        Assert(cvalue.isConst());
-      }
-    }
-    // if any child is some, we are some as well
-    d_eq = hasSome ? s.getSome() : nm->mkConst(k == AND);
-    Trace("ieval-state-debug") << "...exhausted AND/OR" << std::endl;
-  }
-  else if (k == EQUAL)
-  {
-    // this handles any type EQUAL. If either side is none, we should have
-    // short circuited above.
-    // Otherwise, we handle cases below.
-    for (TNode cvalue : childValues)
-    {
-      Assert(!s.isNone(cvalue));
-      if (s.isSome(cvalue))
-      {
-        // (= some t) --> some, where we assume that t is not none.
-        d_eq = cvalue;
-        Trace("ieval-state-debug") << "...some equal via some" << std::endl;
-        return true;
-      }
-    }
-    // if both side evaluate, we evaluate to true if both sides are
-    // equal, false the values are disequal (which includes checking
-    // if cval1 and cval2 are distinct constants), and do not evaluate
-    // otherwise.
-    if (childValues[0] == childValues[1])
-    {
-      d_eq = nm->mkConst(true);
-      Trace("ieval-state-debug")
-          << "...equal via " << childValues[0] << std::endl;
-    }
-    else if (s.areDisequal(childValues[0], childValues[1]))
-    {
-      Trace("ieval-state-debug") << "...disequal " << childValues[0]
-                                 << " != " << childValues[1] << std::endl;
-      d_eq = nm->mkConst(false);
-    }
-    else
-    {
-      Trace("ieval-state-debug") << "...unknown equal" << std::endl;
-      // otherwise we don't evaluate. This is different from marking
-      // it as "none", since we want to propagate equalities between
-      // known terms. Notice that Booleans require being assigned to
-      // constants, so this only applies to non-Boolean equalities.
-      Assert(!val.getType().isBoolean());
-      d_eq = s.getSome();
-      return true;
-    }
-  }
-  else if (k == ITE)
-  {
-    TNode cval1 = childValues[0];
-    Assert(!cval1.isNull());
-    Assert(cval1.isConst() || s.isNone(cval1) || s.isSome(cval1));
-    if (cval1.isConst())
-    {
-      // if condition evaluates, get value of branch
-      d_eq = childValues[cval1.getConst<bool>() ? 1 : 2];
-      Trace("ieval-state-debug")
-          << "...take branch " << d_eq.get() << std::endl;
-    }
-    else
-    {
-      // otherwise, we only are known if the branches are equal
-      TNode cval2 = childValues[1];
-      TNode cval3 = childValues[2];
-      Assert(!cval2.isNull());
-      Assert(!cval3.isNull());
-      // this handles any type ITE
-      if (cval2 == cval3)
-      {
-        // if the conditions are equal, take their value except that
-        // (ite none some some) ---> none.
-        if (!s.isNone(cval1) || !s.isSome(cval2))
-        {
-          // (ite none t t) ---> t
-          // (ite some t t) ---> t
-          // (ite some some some) ---> some
-          d_eq = cval2;
-          Trace("ieval-state-debug")
-              << "...equal branches " << cval2 << std::endl;
-        }
-      }
-      else if (!s.isNone(cval1) && !s.isNone(cval2) && !s.isNone(cval3))
-      {
-        if (s.isSome(cval2) || s.isSome(cval3))
-        {
-          // (ite some t some) ---> some
-          // (ite some some t) ---> some
-          d_eq = s.getSome();
-          Trace("ieval-state-debug") << "...branch with some" << std::endl;
-        }
-        else
-        {
-          // (ite some t1 t2) ---> some
-          d_eq = s.getSome();
-          Trace("ieval-state-debug")
-              << "...different known branches" << std::endl;
-        }
-      }
-    }
-  }
-  else
-  {
-    for (TNode cvalue : childValues)
-    {
-      Assert(!cvalue.isNull());
-      if (s.isSome(cvalue))
-      {
-        Trace("ieval-state-debug")
-            << "...some child of evaluated term" << std::endl;
-        return true;
-      }
-    }
-    // see if we can rewrite?
-    if (d_pattern.getMetaKind() == kind::metakind::PARAMETERIZED)
-    {
-      childValues.insert(childValues.begin(), d_pattern.getOperator());
-    }
-    Node npattern = nm->mkNode(d_pattern.getKind(), childValues);
-    Node npr = s.doRewrite(npattern);
-    npr = s.getGroundRepresentative(npr);
-    if (!npr.isNull())
-    {
-      d_eq = npr;
-      Trace("ieval-state-debug") << "...evaluate + find " << npr << std::endl;
-    }
-    else
-    {
-      Trace("ieval-state-debug")
-          << "...failed to evaluate + find " << npattern << std::endl;
-    }
-  }
-  // TODO: entailment check?
+  // call the evaluator
+  d_eq = tec->evaluate(s, d_pattern, childValues);
+  Assert (!d_eq.get().isNull());
   return true;
 }
 
