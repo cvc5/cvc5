@@ -49,10 +49,10 @@ class State : protected EnvObj
 
   /** Watch quantified formula with the given body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
-  
+
   /** initialize */
   void initialize();
-  
+
   /** has initialized */
   bool hasInitialized() const;
 
@@ -152,7 +152,7 @@ class State : protected EnvObj
   /** The terms we have set up notifications for that have no notifying children
    */
   NodeSet d_registeredBaseTerms;
-  /** 
+  /**
    * Has the state been initialized?
    */
   context::CDO<bool> d_initialized;

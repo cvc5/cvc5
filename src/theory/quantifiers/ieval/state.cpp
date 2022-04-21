@@ -115,7 +115,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       }
       else
       {
-        Assert (d_pInfo.find(cur)!=d_pInfo.end());
+        Assert(d_pInfo.find(cur) != d_pInfo.end());
         // no notifying children, this term will be initialized immediately
         d_registeredBaseTerms.insert(cur);
       }
@@ -125,7 +125,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
 
 void State::initialize()
 {
-  Assert (!d_initialized.get());
+  Assert(!d_initialized.get());
   d_initialized = true;
   for (const Node& b : d_registeredBaseTerms)
   {
@@ -133,10 +133,7 @@ void State::initialize()
   }
 }
 
-bool State::hasInitialized() const
-{
-  return d_initialized.get();
-}
+bool State::hasInitialized() const { return d_initialized.get(); }
 
 bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {

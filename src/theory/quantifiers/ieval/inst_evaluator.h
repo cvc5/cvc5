@@ -23,9 +23,9 @@
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/term_canonize.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
-#include "expr/term_canonize.h"
 
 namespace cvc5::internal {
 namespace theory {
