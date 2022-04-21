@@ -592,6 +592,10 @@ set(regress_0_tests
   regress0/decision/uflia-xs-09-16-3-4-1-5.delta03.smtv1.smt2
   regress0/decision/wchains010ue.delta02.smtv1.smt2
   regress0/declare-fun-is-match.smt2
+  regress0/deep-restart/dd.266.smt2
+  regress0/deep-restart/dd.fuzz21.smtv1.smt2
+  regress0/deep-restart/dd.issue4735.smt2
+  regress0/deep-restart/dd.wrong-sat-020322.smt2
   regress0/define-fun-model.smt2
   regress0/difficulty-simple.smt2
   regress0/difficulty-model-ex.smt2
