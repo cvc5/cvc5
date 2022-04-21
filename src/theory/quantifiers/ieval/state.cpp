@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * State for congruence closure with free variables
+ * State for instantiation evaluator
  */
 
 #include "theory/quantifiers/ieval/state.h"

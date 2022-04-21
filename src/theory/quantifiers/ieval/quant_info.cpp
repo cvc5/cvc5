@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Info per quantified formula in CCFV.
+ * Info per quantified formula in instantiation evaluator.
  */
 
 #include "theory/quantifiers/ieval/quant_info.h"

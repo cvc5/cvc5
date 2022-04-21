@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Info per quantified formula in CCFV.
+ * Info per quantified formula in instantiation evaluator.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__CCFV__QUANT_INFO_H
-#define CVC5__THEORY__QUANTIFIERS__CCFV__QUANT_INFO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__IEVAL__QUANT_INFO_H
+#define CVC5__THEORY__QUANTIFIERS__IEVAL__QUANT_INFO_H
 
 #include <map>
 
@@ -34,8 +34,8 @@ namespace ieval {
 
 /**
  * Stores all static information for a quantified formula. Also maintains
- * context-dependent state information for the quantified formula in CCFV
- * search.
+ * context-dependent state information for the quantified formula when using
+ * the instantiation evaluator.
  */
 class QuantInfo
 {

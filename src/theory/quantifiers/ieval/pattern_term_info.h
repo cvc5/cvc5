@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Info per pattern term in CCFV.
+ * Info per pattern term in instantiation evaluator.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__CCFV__PATTERN_TERM_INFO_H
-#define CVC5__THEORY__QUANTIFIERS__CCFV__PATTERN_TERM_INFO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__IEVAL__PATTERN_TERM_INFO_H
+#define CVC5__THEORY__QUANTIFIERS__IEVAL__PATTERN_TERM_INFO_H
 
 #include <map>
 
@@ -27,9 +27,6 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace eq {
-class EqualityEngine;
-}
 namespace quantifiers {
 
 class TermDb;

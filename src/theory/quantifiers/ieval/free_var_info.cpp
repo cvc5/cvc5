@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Info per free variable in CCFV.
+ * Info per free variable in instantiation evaluator.
  */
 
 #include "theory/quantifiers/ieval/free_var_info.h"

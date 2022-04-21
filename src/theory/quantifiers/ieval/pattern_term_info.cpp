@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Info per pattern term in CCFV.
+ * Info per pattern term in the instantiation evaluator.
  */
 
 #include "theory/quantifiers/ieval/pattern_term_info.h"

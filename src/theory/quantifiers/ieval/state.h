@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * State for congruence closure with free variables
+ * State for instantiation evaluator
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__CCFV__STATE_H
-#define CVC5__THEORY__QUANTIFIERS__CCFV__STATE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__IEVAL__STATE_H
+#define CVC5__THEORY__QUANTIFIERS__IEVAL__STATE_H
 
 #include <memory>
 
@@ -28,11 +28,6 @@
 #include "theory/quantifiers/ieval/quant_info.h"
 
 namespace cvc5::internal {
-
-namespace expr {
-class TermCanonize;
-}
-
 namespace theory {
 namespace quantifiers {
 
