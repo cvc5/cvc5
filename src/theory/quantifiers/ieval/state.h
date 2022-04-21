@@ -49,14 +49,13 @@ class State : protected EnvObj
 
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb);
-  
-  
+
   /** Watch quantified formula with the given body */
   void watch(Node q, Node body);
-  
+
   /** Assign variable */
   bool assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants);
-  
+
   //---------------quantifiers info
   QuantInfo& initializeQuantInfo(TNode q, expr::TermCanonize& tc);
   /** Get quantifiers info */
@@ -123,7 +122,7 @@ class State : protected EnvObj
   /** Notify quantified formula */
   void notifyQuant(TNode q, TNode p, TNode val);
   /** The context, managed by the parent inst evaluator */
-  context::Context * d_ctx;
+  context::Context* d_ctx;
   /** Quantifiers state */
   QuantifiersState& d_qstate;
   /** Term database */
@@ -155,6 +154,6 @@ class State : protected EnvObj
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

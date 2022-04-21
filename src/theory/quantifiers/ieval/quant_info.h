@@ -52,9 +52,7 @@ class QuantInfo
   /**
    * Initialize, called once.
    */
-  void initialize(TNode q,
-                  TermDb* tdb,
-                  expr::TermCanonize& tc);
+  void initialize(TNode q, TermDb* tdb, expr::TermCanonize& tc);
   //-------------------------- static information
   /** Get free variables */
   const std::vector<TNode>& getFreeVariables() const;
@@ -107,9 +105,7 @@ class QuantInfo
    * Process matching requirement for subterm cur which is a disjunct in the
    * quantified formula of this class.
    */
-  void computeMatchReq(TNode cur,
-                       TermDb* tdb,
-                       std::vector<TNode>& visit);
+  void computeMatchReq(TNode cur, TermDb* tdb, std::vector<TNode>& visit);
   /** Add match term that must be (dis)equal from eqc */
   void addMatchTermReq(TNode t, Node eqc, bool isEq);
   /** Process match requirement terms */
@@ -211,9 +207,9 @@ class QuantInfo
   context::CDO<bool> d_maybeConflict;
 };
 
-}  // namespace ccfv
+}  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

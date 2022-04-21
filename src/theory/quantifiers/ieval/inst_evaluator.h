@@ -22,13 +22,13 @@
 
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/quantifiers/ieval/state.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/ieval/state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-  
+
 class TermRegistry;
 
 namespace ieval {
@@ -42,7 +42,10 @@ namespace ieval {
 class InstEvaluator : protected EnvObj
 {
  public:
-  InstEvaluator(Env& env, QuantifiersState& qs, TermRegistry& tr, bool doCanonize = true);
+  InstEvaluator(Env& env,
+                QuantifiersState& qs,
+                TermRegistry& tr,
+                bool doCanonize = true);
   /**
    * Set that we are watching quantified formula q.
    */
@@ -80,7 +83,7 @@ class InstEvaluator : protected EnvObj
   State d_state;
 };
 
-}
+}  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

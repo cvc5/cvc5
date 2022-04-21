@@ -37,12 +37,13 @@ class FreeVarInfo
 {
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node>;
+
  public:
   FreeVarInfo(context::Context* c);
   /**
    * Final term list, all pattern terms that are fully assigned when we have an
    * assignment for this variable, based on the global variable ordering.
-   * 
+   *
    * TODO: necessary?
    */
   NodeSet d_finalTerms;
@@ -53,6 +54,6 @@ class FreeVarInfo
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

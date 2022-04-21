@@ -27,8 +27,7 @@ FreeVarInfo::FreeVarInfo(context::Context* c)
 {
 }
 
-
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

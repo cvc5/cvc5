@@ -341,4 +341,4 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val)
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

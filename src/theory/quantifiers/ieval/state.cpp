@@ -54,7 +54,7 @@ bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
   // FIXME
   return true;
 }
-  
+
 bool State::isFinished() const { return d_numActiveQuant == 0; }
 
 QuantInfo& State::initializeQuantInfo(TNode q, expr::TermCanonize& tc)
@@ -153,7 +153,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
       Trace("ieval-state-debug")
           << "Notify assert " << p << " == " << g << std::endl;
       // if it is a watched evaluate term, assert the equality here??
-      //assertEquality(p, g);
+      // assertEquality(p, g);
     }
     for (size_t i = 0; i < maxIter; i++)
     {
@@ -197,7 +197,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     return;
   }
   Trace("ieval-state-debug") << "Notify quant constraint " << q.getId() << " "
-                            << p << " == " << val << std::endl;
+                             << p << " == " << val << std::endl;
   Assert(d_numActiveQuant.get() > 0);
   // check whether we should set inactive
   bool setInactive = false;
@@ -350,12 +350,11 @@ std::string State::toStringDebugSearch() const
     }
   }
   ss << " ]";
-  Assert(nqc == d_numActiveQuant.get())
-      << "Active quant mismatch " << ss.str();
+  Assert(nqc == d_numActiveQuant.get()) << "Active quant mismatch " << ss.str();
   return ss.str();
 }
 
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -32,9 +32,7 @@ QuantInfo::QuantInfo(context::Context* c)
 {
 }
 
-void QuantInfo::initialize(TNode q,
-                           TermDb* tdb,
-                           expr::TermCanonize& tc)
+void QuantInfo::initialize(TNode q, TermDb* tdb, expr::TermCanonize& tc)
 {
   Assert(q.getKind() == FORALL);
   d_quant = q;
@@ -530,7 +528,7 @@ void QuantInfo::resetRound(TermDb* tdb)
     if (!m.isNull())
     {
       Trace("ieval-matching") << "Matcher (" << d_quant.getId() << ", " << v
-                             << ") = " << m << std::endl;
+                              << ") = " << m << std::endl;
       // use the matcher for this variable
       d_matchers[v] = m;
       Assert(expr::hasSubterm(m, v));
@@ -542,7 +540,7 @@ void QuantInfo::resetRound(TermDb* tdb)
     {
       // Warn that no matchers exist?
       Trace("ieval-warn") << "Warning: no matcher exists for variable " << v
-                         << " in " << d_quant << std::endl;
+                          << " in " << d_quant << std::endl;
     }
   }
 }
@@ -721,4 +719,4 @@ bool QuantInfo::isDeqConstraint(TNode p, TNode c, TNode& val)
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

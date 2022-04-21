@@ -22,8 +22,16 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-InstEvaluator::InstEvaluator(Env& env, QuantifiersState& qs, TermRegistry& tr, bool doCanonize)
-    : EnvObj(env), d_context(), d_qs(qs), d_treg(tr), d_doCanonize(doCanonize), d_state(env, &d_context, qs, tr.getTermDatabase())
+InstEvaluator::InstEvaluator(Env& env,
+                             QuantifiersState& qs,
+                             TermRegistry& tr,
+                             bool doCanonize)
+    : EnvObj(env),
+      d_context(),
+      d_qs(qs),
+      d_treg(tr),
+      d_doCanonize(doCanonize),
+      d_state(env, &d_context, qs, tr.getTermDatabase())
 {
 }
 
@@ -39,10 +47,7 @@ void InstEvaluator::watch(Node q, Node body)
   d_state.watch(q, body);
 }
 
-void InstEvaluator::push()
-{
-  d_context.push();
-}
+void InstEvaluator::push() { d_context.push(); }
 
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
@@ -55,7 +60,7 @@ bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
 
 void InstEvaluator::pop() { d_context.pop(); }
 
-std::vector<Node> InstEvaluator::getInstantiationFor(Node q) 
+std::vector<Node> InstEvaluator::getInstantiationFor(Node q)
 {
   std::vector<Node> vars;
   for (const Node& v : q[0])
@@ -65,7 +70,7 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q)
   return vars;
 }
 
-}
+}  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
