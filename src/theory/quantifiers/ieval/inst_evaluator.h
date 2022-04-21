@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__INST_EVALUATOR_H
-#define CVC5__THEORY__QUANTIFIERS__INST_EVALUATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__IEVAL__INST_EVALUATOR_H
+#define CVC5__THEORY__QUANTIFIERS__IEVAL__INST_EVALUATOR_H
 
 #include <vector>
 
@@ -62,16 +62,16 @@ public:
    */
   std::vector<Node> getInstantiationFor(Node q);
 private:
+  /** A context object */
+  context::Context d_context;
   /** Reference to term registry */
   TermRegistry& d_treg;
   /** do canonize */
   bool d_doCanonize;
-  /** A context object */
-  context::Context d_context;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__QUANTIFIERS__INST_EVALUATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__IEVAL__INST_EVALUATOR_H */
