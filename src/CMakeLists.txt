@@ -811,8 +811,12 @@ libcvc5_add_sources(
   theory/quantifiers/fun_def_evaluator.h
   theory/quantifiers/ho_term_database.cpp
   theory/quantifiers/ho_term_database.h
+  theory/quantifiers/ieval/free_var_info.cpp
+  theory/quantifiers/ieval/free_var_info.h
   theory/quantifiers/ieval/inst_evaluator.cpp
   theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/pattern_term_info.cpp
+  theory/quantifiers/ieval/pattern_term_info.h
   theory/quantifiers/ieval/quant_info.cpp
   theory/quantifiers/ieval/quant_info.h
   theory/quantifiers/ieval/state.cpp

@@ -64,7 +64,7 @@ class PatTermInfo
    *
    * This call is not responsible for notifying parents.
    */
-  bool notifyChild(State& s, TNode child, TNode val);
+  bool notifyChild(State& s, TNode child, TNode val, TermDb* tdb);
   /** This pattern term. */
   TNode d_pattern;
   /** The match operator */

@@ -83,29 +83,33 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     itr = d_registeredTerms.find(cur);
     if (itr == d_registeredTerms.end())
     {
-      if (!expr::hasBoundVar(cur) || !QuantInfo::isTraverseTerm(cur))
-      {
-        continue;
-      }
-      Kind k = cur.getKind();
-      if (k == BOUND_VARIABLE)
+      Assert (expr::hasBoundVar(cur));
+      Assert (QuantInfo::isTraverseTerm(cur));
+      if (cur.getKind() == BOUND_VARIABLE)
       {
         // should be one of the free variables of the quantified formula
         Assert(std::find(vars.begin(), vars.end(), cur) != vars.end());
         continue;
       }
-      PatTermInfo& pi = getOrMkPatTermInfo(cur);
-      // also get the number of unique children
+      // get the unique children
       std::set<TNode> children;
       children.insert(cur.begin(), cur.end());
-      pi.d_numChildren = children.size();
+      size_t nchild = 0;
       for (TNode cc : children)
       {
-        PatTermInfo& pic = getOrMkPatTermInfo(cc);
+        if (!expr::hasBoundVar(cc) || !QuantInfo::isTraverseTerm(cc))
+        {
+          continue;
+        }
+        nchild++;
         // require notifications to parent
+        PatTermInfo& pic = getOrMkPatTermInfo(cc);
         pic.d_parentNotify.push_back(cur);
         visit.push_back(cc);
       }
+      // set the number of watched children
+      PatTermInfo& pi = getOrMkPatTermInfo(cur);
+      pi.d_numChildren = nchild;
     }
   } while (!visit.empty());
 }
@@ -226,8 +230,6 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     {
       if (pp.getKind() == FORALL)
       {
-        // quantified formulas are ordinary parents
-        Assert(i == 0);
         // if we have a quantified formula as a parent, notify is a special
         // method, which will test the constraints
         notifyQuant(pp, p, g);
@@ -241,7 +243,8 @@ void State::notifyPatternEqGround(TNode p, TNode g)
       // otherwise, notify the parent pattern
       it = d_pInfo.find(pp);
       Assert(it != d_pInfo.end());
-      if (it->second.notifyChild(*this, p, g))
+      // returns true if we have evaluated
+      if (it->second.notifyChild(*this, p, g, d_tdb))
       {
         toNotify.push_back(it);
       }
@@ -353,6 +356,12 @@ bool State::isNone(TNode n) const { return n == d_none; }
 Node State::getSome() const { return d_some; }
 
 bool State::isSome(TNode n) const { return n == d_some; }
+
+bool State::isGroundEqc(TNode r) const
+{
+  // FIXME?
+  return false;
+}
 
 bool State::areDisequal(TNode a, TNode b) const
 {

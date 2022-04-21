@@ -23,7 +23,7 @@ namespace quantifiers {
 namespace ieval {
 
 FreeVarInfo::FreeVarInfo(context::Context* c)
-    : d_finalTerms(c), d_quantList(c), d_quantIndex(c, 0)
+    : d_quantList(c)
 {
 }
 

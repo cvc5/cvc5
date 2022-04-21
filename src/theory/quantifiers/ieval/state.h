@@ -84,12 +84,12 @@ class State : protected EnvObj
   Node getSome() const;
   /** Is some */
   bool isSome(TNode n) const;
-  /** Get ground equivalence classes */
-  const std::unordered_set<TNode>& getGroundEqcFor(TypeNode tn) const;
   /** Is ground eqc? */
   bool isGroundEqc(TNode r) const;
   /** Get the ground representative */
   TNode getGroundRepresentative(TNode n) const;
+  /** Get representative */  // TODO: configurable equality engine here?
+  // Node getRepresentative(Node n);
   /** Are disequal? */
   bool areDisequal(TNode a, TNode b) const;
   /** Invoke the rewriter for term n */
@@ -105,8 +105,6 @@ class State : protected EnvObj
   std::string toStringDebugSearch() const;
 
  private:
-  /** Get representative */  // TODO: configurable equality engine here?
-  // Node getRepresentative(Node n);
   //---------------equality notifications
   /**
    * Called when we have determined that pattern p will not merge with any
@@ -116,12 +114,17 @@ class State : protected EnvObj
   /**
    * Called when it is determined what pattern p is equal to.
    *
-   * If g is not sunk, then g is the (ground) equivalence class that pattern p
-   * is equal to. If g is the none, then we have determined that p will *never*
+   * If g is not none, then g is the (ground) equivalence class that pattern p
+   * is equal to. If g is none, then we have determined that p will *never*
    * merge into a ground equivalence class in this context.
    */
   void notifyPatternEqGround(TNode p, TNode g);
-  /** Notify quantified formula */
+  /**
+   * Notify quantified formula.
+   *
+   * Called when a constraint term p of quantified formula q has been assigned
+   * the value val.
+   */
   void notifyQuant(TNode q, TNode p, TNode val);
   /** The context, managed by the parent inst evaluator */
   context::Context* d_ctx;
