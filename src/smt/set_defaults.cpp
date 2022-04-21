@@ -960,11 +960,8 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
-    // TODO: will be exception here
-    verbose(1) << "SolverEngine: turning off deep restarts to support "
-                  "proofs"
-               << std::endl;
-    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+    reason << "deep restarts";
+    return true;
   }
   return false;
 }
@@ -1059,11 +1056,8 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
-    // TODO: will be exception here
-    verbose(1) << "SolverEngine: turning off deep restarts to support "
-                  "incremental solving"
-               << std::endl;
-    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+    reason << "deep restarts";
+    return true;
   }
   if (opts.parallel.computePartitions > 1)
   {
@@ -1220,11 +1214,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
   }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
-    // TODO: will be exception here
-    verbose(1) << "SolverEngine: turning off deep restarts to support "
-                  "unsat cores"
-               << std::endl;
-    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+    reason << "deep restarts";
+    return true;
   }
   return false;
 }
@@ -1247,11 +1238,8 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
-    // TODO: will be exception here
-    verbose(1) << "SolverEngine: turning off deep restarts to support "
-                  "sygus"
-               << std::endl;
-    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+    reason << "deep restarts";
+    return true;
   }
   return false;
 }
