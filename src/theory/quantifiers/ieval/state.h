@@ -46,7 +46,8 @@ class State : protected EnvObj
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node>;
   using NodeBoolMap = context::CDHashMap<Node, bool>;
-  using NodePatTermInfoMap = context::CDHashMap<Node, std::unique_ptr<PatTermInfo>>;
+  using NodePatTermInfoMap =
+      context::CDHashMap<Node, std::unique_ptr<PatTermInfo>>;
 
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb);

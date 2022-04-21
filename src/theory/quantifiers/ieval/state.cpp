@@ -83,8 +83,8 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     itr = d_registeredTerms.find(cur);
     if (itr == d_registeredTerms.end())
     {
-      Assert (expr::hasBoundVar(cur));
-      Assert (QuantInfo::isTraverseTerm(cur));
+      Assert(expr::hasBoundVar(cur));
+      Assert(QuantInfo::isTraverseTerm(cur));
       if (cur.getKind() == BOUND_VARIABLE)
       {
         // should be one of the free variables of the quantified formula
@@ -135,7 +135,7 @@ bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
       // marked inactive, skip
       continue;
     }
-    if (qinfo.getNumUnassignedVars()==1)
+    if (qinfo.getNumUnassignedVars() == 1)
     {
       // now fully assigned
       assignedQuants.push_back(q);

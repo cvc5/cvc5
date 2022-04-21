@@ -194,7 +194,7 @@ size_t QuantInfo::getNumUnassignedVars() const
 
 void QuantInfo::decrementUnassignedVar()
 {
-  d_unassignedVars = d_unassignedVars-1;
+  d_unassignedVars = d_unassignedVars - 1;
 }
 
 bool QuantInfo::isActive() const { return d_isActive.get(); }

@@ -163,15 +163,14 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
   for (TNode pc : d_pattern)
   {
     TNode pcv = s.getValue(pc);
-    Assert (!pcv.isNull());
+    Assert(!pcv.isNull());
     childValues.push_back(pcv);
   }
 
   if (!d_matchOp.isNull())
   {
-    
   }
-  
+
   // set to unknown, handle cases
   d_eq = s.getNone();
   Kind k = d_pattern.getKind();
@@ -185,8 +184,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
       if (s.isNone(cvalue))
       {
         // unknown, we are done
-        Trace("ieval-state-debug")
-            << "...unknown child of AND/OR" << std::endl;
+        Trace("ieval-state-debug") << "...unknown child of AND/OR" << std::endl;
         return true;
       }
       else if (s.isSome(cvalue))
@@ -225,12 +223,13 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     if (childValues[0] == childValues[1])
     {
       d_eq = nm->mkConst(true);
-      Trace("ieval-state-debug") << "...equal via " << childValues[0] << std::endl;
+      Trace("ieval-state-debug")
+          << "...equal via " << childValues[0] << std::endl;
     }
     else if (s.areDisequal(childValues[0], childValues[1]))
     {
-      Trace("ieval-state-debug")
-          << "...disequal " << childValues[0] << " != " << childValues[1] << std::endl;
+      Trace("ieval-state-debug") << "...disequal " << childValues[0]
+                                 << " != " << childValues[1] << std::endl;
       d_eq = nm->mkConst(false);
     }
     else
@@ -321,8 +320,7 @@ bool PatTermInfo::notifyChild(State& s, TNode child, TNode val, TermDb* tdb)
     if (!npr.isNull())
     {
       d_eq = npr;
-      Trace("ieval-state-debug")
-          << "...evaluate + find " << npr << std::endl;
+      Trace("ieval-state-debug") << "...evaluate + find " << npr << std::endl;
     }
     else
     {

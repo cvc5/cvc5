@@ -22,10 +22,7 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-FreeVarInfo::FreeVarInfo(context::Context* c)
-    : d_quantList(c)
-{
-}
+FreeVarInfo::FreeVarInfo(context::Context* c) : d_quantList(c) {}
 
 }  // namespace ieval
 }  // namespace quantifiers
