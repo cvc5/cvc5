@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
+#include "expr/term_canonize.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -86,6 +87,8 @@ class InstEvaluator : protected EnvObj
   State d_state;
   /** Variable mapping */
   NodeNodeMap d_varMap;
+  /** Term canonizer */
+  expr::TermCanonize d_tcanon;
 };
 
 }  // namespace ieval

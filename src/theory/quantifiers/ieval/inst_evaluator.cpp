@@ -48,7 +48,23 @@ void InstEvaluator::watch(Node q, Node body)
   // should not start watching a quantified formula when we already have an
   // assignment
   Assert(d_varMap.empty());
-  std::vector<Node> vars(q[0].begin(), q[0].end());
+  std::vector<Node> vars;
+  if (d_doCanonize)
+  {
+    std::map<TNode, Node> visited;
+    body = d_tcanon.getCanonicalTerm(body, visited);
+    std::map<TNode, Node>::iterator it;
+    for (const Node& v : q[0])
+    {
+      it = visited.find(v);
+      vars.push_back(it->second);
+      d_varMap[v] = it->second;
+    }
+  }
+  else
+  {
+    vars.insert(vars.end(), q[0].begin(), q[0].end());
+  }
   d_state.watch(q, vars, body);
 }
 
@@ -57,8 +73,13 @@ void InstEvaluator::push() { d_context.push(); }
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
   d_context.push();
+  TNode canonVar = v;
+  if (d_doCanonize)
+  {
+    canonVar = d_varMap[v];
+  }
   d_varMap[v] = s;
-  if (!d_state.assignVar(v, s, assignedQuants))
+  if (!d_state.assignVar(canonVar, s, assignedQuants))
   {
     d_context.pop();
     return false;
