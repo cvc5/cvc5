@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "context/context.h"
 #include "context/cdhashmap.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
@@ -43,6 +43,7 @@ namespace ieval {
 class InstEvaluator : protected EnvObj
 {
   using NodeNodeMap = context::CDHashMap<Node, Node>;
+
  public:
   InstEvaluator(Env& env,
                 QuantifiersState& qs,

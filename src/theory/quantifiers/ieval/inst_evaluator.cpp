@@ -71,7 +71,7 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
   for (const Node& v : q[0])
   {
     it = d_varMap.find(v);
-    if (it!=d_varMap.end())
+    if (it != d_varMap.end())
     {
       vars.push_back(it->second);
     }
