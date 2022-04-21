@@ -130,28 +130,30 @@ class TermDb : public QuantifiersUtil {
   /** Get the currently added ground terms for the given operator */
   DbList* getOrMkDbListForOp(TNode op);
   /** get match operator for term n
-   *
-   * If n has a kind that we index, this function will
-   * typically return n.getOperator().
-   *
-   * However, for parametric operators f, the match operator is an arbitrary
-   * chosen f-application.  For example, consider array select:
-   * A : (Array Int Int)
-   * B : (Array Bool Int)
-   * We require that terms like (select A 1) and (select B 2) are indexed in
-   * separate
-   * data structures despite the fact that
-   *    (select A 1).getOperator()==(select B 2).getOperator().
-   * Hence, for the above terms, we may return:
-   * getMatchOperator( (select A 1) ) = (select A 1), and
-   * getMatchOperator( (select B 2) ) = (select B 2).
-   * The match operator is the first instance of an application of the
-   * parametric operator of its type.
-   *
-   * If n has a kind that we do not index (like ADD),
-   * then this function returns Node::null().
-   */
-  Node getMatchOperator(Node n);
+  *
+  * If n has a kind that we index, this function will
+  * typically return n.getOperator().
+  *
+  * However, for parametric operators f, the match operator is an arbitrary
+  * chosen f-application.  For example, consider array select:
+  * A : (Array Int Int)
+  * B : (Array Bool Int)
+  * We require that terms like (select A 1) and (select B 2) are indexed in
+  * separate
+  * data structures despite the fact that
+  *    (select A 1).getOperator()==(select B 2).getOperator().
+  * Hence, for the above terms, we may return:
+  * getMatchOperator( (select A 1) ) = (select A 1), and
+  * getMatchOperator( (select B 2) ) = (select B 2).
+  * The match operator is the first instance of an application of the parametric
+  * operator of its type.
+  *
+  * If n has a kind that we do not index (like PLUS),
+  * then this function returns Node::null().
+  */
+  Node getMatchOperator(TNode n);
+  /** Is matchable? true if the above method is non-null */
+  bool isMatchable(TNode n);
   /** get term arg index for all f-applications in the current context */
   TNodeTrie* getTermArgTrie(Node f);
   /** get the term arg trie for f-applications in the equivalence class of eqc.

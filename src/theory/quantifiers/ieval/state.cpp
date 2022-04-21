@@ -51,7 +51,7 @@ QuantInfo& State::initializeQuantInfo(TNode q, expr::TermCanonize& tc)
     d_quantInfo.emplace(q, d_ctx);
     it = d_quantInfo.find(q);
     // initialize
-    it->second.initialize(q, d_tdb, d_qstate.getEqualityEngine(), tc);
+    it->second.initialize(q, d_tdb, tc);
   }
   return it->second;
 }
@@ -308,7 +308,6 @@ std::string State::toString() const
 {
   std::stringstream ss;
   ss << "#groundEqc = " << d_groundEqc.size() << std::endl;
-  ss << "#matchEqc = " << d_meqcInfo.size() << std::endl;
   ss << "#patterns = " << d_pInfo.size() << std::endl;
   ss << "#freeVars = " << d_fvInfo.size() << std::endl;
   ss << "#quants = " << d_numActiveQuant.get() << " / " << d_quantInfo.size()
@@ -337,7 +336,7 @@ std::string State::toStringDebugSearch() const
     }
   }
   ss << " ]";
-  AlwaysAssert(nqc == d_numActiveQuant.get())
+  Assert(nqc == d_numActiveQuant.get())
       << "Active quant mismatch " << ss.str();
   return ss.str();
 }

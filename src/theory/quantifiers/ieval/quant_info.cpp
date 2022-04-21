@@ -13,7 +13,7 @@
  * Info per quantified formula in CCFV.
  */
 
-#include "theory/quantifiers/ccfv/quant_info.h"
+#include "theory/quantifiers/ieval/quant_info.h"
 
 #include "expr/node_algorithm.h"
 #include "expr/term_canonize.h"
@@ -25,7 +25,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-namespace ccfv {
+namespace ieval {
 
 QuantInfo::QuantInfo(context::Context* c)
     : d_isActive(c, true), d_maybeConflict(c, true)
@@ -34,22 +34,21 @@ QuantInfo::QuantInfo(context::Context* c)
 
 void QuantInfo::initialize(TNode q,
                            TermDb* tdb,
-                           eq::EqualityEngine* ee,
                            expr::TermCanonize& tc)
 {
   Assert(q.getKind() == FORALL);
   d_quant = q;
 
-  Trace("ccfv-quant-debug")
+  Trace("ieval-quant-debug")
       << "Register quant " << d_quant.getId() << " : " << d_quant << std::endl;
 
   // canonize the body of the quantified formula
-  Trace("ccfv-quant-debug") << "Get canonized body..." << std::endl;
+  Trace("ieval-quant-debug") << "Get canonized body..." << std::endl;
   std::map<TNode, Node> visited;
   d_canonBody = tc.getCanonicalTerm(q[1], visited);
 
   // compute the variable correspondence
-  Trace("ccfv-quant-debug")
+  Trace("ieval-quant-debug")
       << "Compute variable correspondence..." << std::endl;
   std::map<TNode, Node>::iterator it;
   std::vector<std::pair<size_t, TNode>> varList;
@@ -74,7 +73,7 @@ void QuantInfo::initialize(TNode q,
   // Sort variables by their index in the term canonizer. This is to ensure
   // a variable ordering in the driver where shared variables are assigned
   // first.
-  Trace("ccfv-quant-debug") << "Compute variable order..." << std::endl;
+  Trace("ieval-quant-debug") << "Compute variable order..." << std::endl;
   std::sort(varList.begin(), varList.end());
   for (std::pair<size_t, TNode>& vl : varList)
   {
@@ -82,7 +81,7 @@ void QuantInfo::initialize(TNode q,
   }
 
   // compute matching requirements
-  Trace("ccfv-quant-debug") << "Compute constraints..." << std::endl;
+  Trace("ieval-quant-debug") << "Compute constraints..." << std::endl;
   std::unordered_set<TNode> processed;
   std::unordered_set<TNode>::iterator itp;
   std::vector<TNode> visit;
@@ -102,11 +101,11 @@ void QuantInfo::initialize(TNode q,
   } while (!visit.empty());
 
   // now we go back and process terms in the match requirements
-  Trace("ccfv-quant-debug") << "Process terms..." << std::endl;
-  processMatchReqTerms(tdb, ee);
+  Trace("ieval-quant-debug") << "Process terms..." << std::endl;
+  processMatchReqTerms(tdb);
 
   // debug print
-  Trace("ccfv-quant") << toStringDebug();
+  Trace("ieval-quant") << toStringDebug();
 }
 
 std::string QuantInfo::toStringDebug() const
@@ -170,7 +169,6 @@ std::string QuantInfo::toStringDebug() const
 }
 
 void QuantInfo::computeMatchReq(TNode cur,
-                                eq::EqualityEngine* ee,
                                 std::vector<TNode>& visit)
 {
   Assert(cur.getType().isBoolean());
@@ -215,7 +213,7 @@ void QuantInfo::computeMatchReq(TNode cur,
       }
     }
   }
-  if (k == EQUAL || ee->isFunctionKind(k) || expr::isBooleanConnective(cur))
+  if (k == EQUAL || tdb->isMatchable(cur) || expr::isBooleanConnective(cur))
   {
     // Equality between patterns, matchable predicate, or Boolean connective.
     // Note that equalities and Boolean connectives are simply marked as
@@ -252,7 +250,7 @@ void QuantInfo::addMatchTermReq(TNode t, Node eqc, bool isEq)
   }
 }
 
-void QuantInfo::processMatchReqTerms(TermDb* tdb, eq::EqualityEngine* ee)
+void QuantInfo::processMatchReqTerms(TermDb* tdb)
 {
   // Now, traverse each of the terms in match requirements. This sets up:
   // (1) d_congTerms, the set of terms we are doing congruence over
@@ -277,7 +275,7 @@ void QuantInfo::processMatchReqTerms(TermDb* tdb, eq::EqualityEngine* ee)
     d_reqTerms.push_back(r.first);
     visit.push_back(std::pair<TNode, bool>(r.first, false));
   }
-  Trace("ccfv-quant-debug") << "Traverse terms..." << std::endl;
+  Trace("ieval-quant-debug") << "Traverse terms..." << std::endl;
   // track parents list
   std::map<TNode, std::vector<TNode>> parentList;
   std::unordered_set<TNode> topLevelMatchers;
@@ -305,7 +303,7 @@ void QuantInfo::processMatchReqTerms(TermDb* tdb, eq::EqualityEngine* ee)
       Kind k = cur.first.getKind();
       bool inCongTerm = cur.second;
       // if we are a variable, or do congruence over this kind
-      if (k == BOUND_VARIABLE || ee->isFunctionKind(k))
+      if (k == BOUND_VARIABLE || tdb->isMatchable(cur.first))
       {
         if (!inCongTerm)
         {
@@ -367,7 +365,7 @@ void QuantInfo::processMatchReqTerms(TermDb* tdb, eq::EqualityEngine* ee)
       }
     }
   }
-  Trace("ccfv-quant-debug") << "Compute candidate matchers..." << std::endl;
+  Trace("ieval-quant-debug") << "Compute candidate matchers..." << std::endl;
   std::unordered_set<std::pair<TNode, bool>, NodeBoolPairHashFunction>::iterator
       itc;
   std::unordered_set<TNode>::iterator itm;
@@ -530,7 +528,7 @@ void QuantInfo::resetRound(TermDb* tdb)
     }
     if (!m.isNull())
     {
-      Trace("ccfv-matching") << "Matcher (" << d_quant.getId() << ", " << v
+      Trace("ieval-matching") << "Matcher (" << d_quant.getId() << ", " << v
                              << ") = " << m << std::endl;
       // use the matcher for this variable
       d_matchers[v] = m;
@@ -542,7 +540,7 @@ void QuantInfo::resetRound(TermDb* tdb)
     else
     {
       // Warn that no matchers exist?
-      Trace("ccfv-warn") << "Warning: no matcher exists for variable " << v
+      Trace("ieval-warn") << "Warning: no matcher exists for variable " << v
                          << " in " << d_quant << std::endl;
     }
   }
@@ -719,7 +717,7 @@ bool QuantInfo::isDeqConstraint(TNode p, TNode c, TNode& val)
   return false;
 }
 
-}  // namespace ccfv
+}  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5

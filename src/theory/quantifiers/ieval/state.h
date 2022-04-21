@@ -23,9 +23,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
-#include "theory/quantifiers/ieval/eqc_info.h"
 #include "theory/quantifiers/ieval/free_var_info.h"
-#include "theory/quantifiers/ieval/match_eqc_info.h"
 #include "theory/quantifiers/ieval/pattern_term_info.h"
 #include "theory/quantifiers/ieval/quant_info.h"
 

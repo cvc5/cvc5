@@ -18,6 +18,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+namespace ieval {
 
 InstEvaluator::InstEvaluator(Env& env, QuantifiersState& qs, TermRegistry& tr, bool doCanonize)
     : EnvObj(env), d_context(), d_qs(qs), d_treg(tr), d_doCanonize(doCanonize), d_state(&d_context,
@@ -57,6 +58,7 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q)
   return d_state.getInstantiationFor(q);
 }
 
+}
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

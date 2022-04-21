@@ -813,6 +813,10 @@ libcvc5_add_sources(
   theory/quantifiers/ho_term_database.h
   theory/quantifiers/ieval/inst_evaluator.cpp
   theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/quant_info.cpp
+  theory/quantifiers/ieval/quant_info.h
+  theory/quantifiers/ieval/state.cpp
+  theory/quantifiers/ieval/state.h
   theory/quantifiers/index_trie.cpp
   theory/quantifiers/index_trie.h
   theory/quantifiers/inst_match.cpp

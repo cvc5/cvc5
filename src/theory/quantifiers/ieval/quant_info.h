@@ -35,7 +35,7 @@ namespace quantifiers {
 
 class TermDb;
 
-namespace ccfv {
+namespace ieval {
 
 /**
  * Stores all static information for a quantified formula. Also maintains
@@ -54,7 +54,6 @@ class QuantInfo
    */
   void initialize(TNode q,
                   TermDb* tdb,
-                  eq::EqualityEngine* ee,
                   expr::TermCanonize& tc);
   //-------------------------- static information
   /** Get free variables */
@@ -109,12 +108,12 @@ class QuantInfo
    * quantified formula of this class.
    */
   void computeMatchReq(TNode cur,
-                       eq::EqualityEngine* ee,
+                       TermDb* tdb,
                        std::vector<TNode>& visit);
   /** Add match term that must be (dis)equal from eqc */
   void addMatchTermReq(TNode t, Node eqc, bool isEq);
   /** Process match requirement terms */
-  void processMatchReqTerms(TermDb* tdb, eq::EqualityEngine* ee);
+  void processMatchReqTerms(TermDb* tdb);
   /** Register candidate matcher */
   void registerCandidateMatcher(TermDb* tdb, TNode m);
   /** Set matchers */

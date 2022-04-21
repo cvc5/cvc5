@@ -28,6 +28,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+namespace ieval {
 
 class TermRegistry;
 
@@ -78,6 +79,7 @@ class InstEvaluator : protected EnvObj
   State d_state;
 };
 
+}
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
