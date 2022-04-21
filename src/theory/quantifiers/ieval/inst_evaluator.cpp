@@ -45,7 +45,10 @@ void InstEvaluator::watch(Node q)
 void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
-  d_state.watch(q, body);
+  // should not start watching a quantified formula when we already have an assignment
+  Assert (d_varMap.empty());
+  std::vector<Node> vars(q[0].begin(), q[0].end());
+  d_state.watch(q, vars, body);
 }
 
 void InstEvaluator::push() { d_context.push(); }

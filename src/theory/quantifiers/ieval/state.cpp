@@ -41,34 +41,43 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb)
   d_false = nm->mkConst(false);
 }
 
-void State::watch(Node q, Node body)
+void State::watch(Node q, const std::vector<Node>& vars, Node body)
 {
-  // FIXME
+  std::map<Node, QuantInfo>::iterator it = d_quantInfo.find(q);
+  if (it != d_quantInfo.end())
+  {
+    // already initialized
+    return;
+  }
+  d_quantInfo.emplace(q, d_ctx);
+  it = d_quantInfo.find(q);
+  // initialize the quantifier info, which stores basic constraint information
+  it->second.initialize(q, body, d_tdb);
+  // add to free variable lists
+  for (const Node& v : vars)
+  {
+    FreeVarInfo& finfo = getOrMkFreeVarInfo(v);
+    finfo.d_quantList.push_back(q);
+  }
+  // initialize pattern terms
+  
 }
 
 bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
-  // ???
   Node r = d_qstate.getRepresentative(s);
   notifyPatternEqGround(v, r);
-  // FIXME
+  
+  FreeVarInfo& finfo = getFreeVarInfo(v);
+  for (const Node& q : finfo.d_quantList)
+  {
+    QuantInfo& qinfo = getQuantInfo(q);
+    
+  }
   return true;
 }
 
 bool State::isFinished() const { return d_numActiveQuant == 0; }
-
-QuantInfo& State::initializeQuantInfo(TNode q, expr::TermCanonize& tc)
-{
-  std::map<Node, QuantInfo>::iterator it = d_quantInfo.find(q);
-  if (it == d_quantInfo.end())
-  {
-    d_quantInfo.emplace(q, d_ctx);
-    it = d_quantInfo.find(q);
-    // initialize
-    it->second.initialize(q, d_tdb, tc);
-  }
-  return it->second;
-}
 
 QuantInfo& State::getQuantInfo(TNode q)
 {

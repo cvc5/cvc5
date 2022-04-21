@@ -51,13 +51,12 @@ class State : protected EnvObj
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb);
 
   /** Watch quantified formula with the given body */
-  void watch(Node q, Node body);
+  void watch(Node q, const std::vector<Node>& vars, Node body);
 
   /** Assign variable */
   bool assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants);
 
   //---------------quantifiers info
-  QuantInfo& initializeQuantInfo(TNode q, expr::TermCanonize& tc);
   /** Get quantifiers info */
   QuantInfo& getQuantInfo(TNode q);
   //---------------free variable info
@@ -68,20 +67,6 @@ class State : protected EnvObj
   /** Get pattern term info */
   PatTermInfo& getOrMkPatTermInfo(TNode p);
   PatTermInfo& getPatTermInfo(TNode p);
-  //---------------equality notifications
-  /**
-   * Called when we have determined that pattern p will not merge with any
-   * ground equivalence class.
-   */
-  void notifyPatternNone(TNode p);
-  /**
-   * Called when it is determined what pattern p is equal to.
-   *
-   * If g is not sunk, then g is the (ground) equivalence class that pattern p
-   * is equal to. If g is the none, then we have determined that p will *never*
-   * merge into a ground equivalence class in this context.
-   */
-  void notifyPatternEqGround(TNode p, TNode g);
   //---------------queries
   /** Is finished */
   bool isFinished() const;
@@ -119,6 +104,22 @@ class State : protected EnvObj
   std::string toStringDebugSearch() const;
 
  private:
+  /** Get representative */   // TODO: configurable equality engine here?
+  //Node getRepresentative(Node n);
+  //---------------equality notifications
+  /**
+   * Called when we have determined that pattern p will not merge with any
+   * ground equivalence class.
+   */
+  void notifyPatternNone(TNode p);
+  /**
+   * Called when it is determined what pattern p is equal to.
+   *
+   * If g is not sunk, then g is the (ground) equivalence class that pattern p
+   * is equal to. If g is the none, then we have determined that p will *never*
+   * merge into a ground equivalence class in this context.
+   */
+  void notifyPatternEqGround(TNode p, TNode g);
   /** Notify quantified formula */
   void notifyQuant(TNode q, TNode p, TNode val);
   /** The context, managed by the parent inst evaluator */

@@ -40,13 +40,6 @@ class FreeVarInfo
 
  public:
   FreeVarInfo(context::Context* c);
-  /**
-   * Final term list, all pattern terms that are fully assigned when we have an
-   * assignment for this variable, based on the global variable ordering.
-   *
-   * TODO: necessary?
-   */
-  NodeSet d_finalTerms;
   /** List of quantifiers that contain this variable */
   NodeList d_quantList;
 };
