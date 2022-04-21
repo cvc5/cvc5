@@ -33,6 +33,7 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb* tdb)
       d_tdb(tdb),
       d_registeredTerms(c),
       d_registeredBaseTerms(c),
+      d_initialized(c, false),
       d_numActiveQuant(c, 0)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -109,16 +110,32 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       if (nchild > 0)
       {
         // set the number of watched children
-        PatTermInfo& pi = getOrMkPatTermInfo(cur);
+        PatTermInfo& pi = getPatTermInfo(cur);
         pi.d_numChildren = nchild;
       }
       else
       {
+        Assert (d_pInfo.find(cur)!=d_pInfo.end());
         // no notifying children, this term will be initialized immediately
         d_registeredBaseTerms.insert(cur);
       }
     }
   } while (!visit.empty());
+}
+
+void State::initialize()
+{
+  Assert (!d_initialized.get());
+  d_initialized = true;
+  for (const Node& b : d_registeredBaseTerms)
+  {
+    PatTermInfo& pi = getPatTermInfo(cur);
+  }
+}
+
+bool State::hasInitialized() const
+{
+  return d_initialized.get();
 }
 
 bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)

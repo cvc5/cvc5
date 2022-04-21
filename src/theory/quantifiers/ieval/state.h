@@ -49,6 +49,12 @@ class State : protected EnvObj
 
   /** Watch quantified formula with the given body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
+  
+  /** initialize */
+  void initialize();
+  
+  /** has initialized */
+  bool hasInitialized() const;
 
   /** Assign variable */
   bool assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants);
@@ -146,6 +152,10 @@ class State : protected EnvObj
   /** The terms we have set up notifications for that have no notifying children
    */
   NodeSet d_registeredBaseTerms;
+  /** 
+   * Has the state been initialized?
+   */
+  context::CDO<bool> d_initialized;
   /** total number of alive quantified formulas */
   context::CDO<size_t> d_numActiveQuant;
 };
