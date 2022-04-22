@@ -214,7 +214,6 @@ Node BagReduction::reduceAggregateOperator(Node node,
   Assert(node.getKind() == TABLE_AGGREGATE);
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  SkolemManager* sm = nm->getSkolemManager();
   Node function = node[0];
   TypeNode elementType = function.getType().getArgTypes()[0];
   Node initialValue = node[1];
@@ -223,29 +222,22 @@ Node BagReduction::reduceAggregateOperator(Node node,
       node.getOperator().getConst<TableAggregateOp>().getIndices();
   TupleProjectOp op(indices);
   Node t1 = bvm->mkBoundVar<FirstIndexVarAttribute>(node, "t1", elementType);
-  Node t2 = bvm->mkBoundVar<FirstIndexVarAttribute>(node, "t2", elementType);
+  Node t2 = bvm->mkBoundVar<SecondIndexVarAttribute>(node, "t2", elementType);
   Node list = nm->mkNode(BOUND_VAR_LIST, t1, t2);
-  Node body;
-  if (indices.empty())
+  Node body = nm->mkConst(true);
+  for (uint32_t i : indices)
   {
-    body = nm->mkConst(true);
+    Node select1 = datatypes::TupleUtils::nthElementOfTuple(t1, i);
+    Node select2 = datatypes::TupleUtils::nthElementOfTuple(t2, i);
+    Node equal = select1.eqNode(select2);
+    body = body.andNode(equal);
   }
-  else
-  {
-    std::vector<Node> equalities;
-    for (uint32_t i : indices)
-    {
-      Node select1 = datatypes::TupleUtils::nthElementOfTuple(t1, i);
-      Node select2 = datatypes::TupleUtils::nthElementOfTuple(t2, i);
-      equalities.push_back(select1.eqNode(select2));
-    }
-    body = nm->mkNode(AND, equalities);
-  }
+
   Node lambda = nm->mkNode(LAMBDA, list, body);
   Node partition = nm->mkNode(BAG_PARTITION, lambda, A);
 
   Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
-      node, "bag", nm->mkBagType(elementType));
+      partition, "bag", nm->mkBagType(elementType));
   Node foldList = nm->mkNode(BOUND_VAR_LIST, bag);
   Node foldBody = nm->mkNode(BAG_FOLD, function, initialValue, bag);
 
