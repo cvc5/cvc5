@@ -167,12 +167,16 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
         Node t = tt.first;
         // using representatives, just check if equal
         Assert(t.getType().isComparableTo(d_match_pattern_arg_types[argIndex]));
+        bool wasSet = !m.get(v).isNull();
         if (!m.set(v, t))
         {
           continue;
         }
         addInstantiations(m, addedLemmas, argIndex + 1, &(tt.second));
-        m.reset(v);
+        if (!wasSet)
+        {
+          m.reset(v);
+        }
         if (d_qstate.isInConflict())
         {
           break;

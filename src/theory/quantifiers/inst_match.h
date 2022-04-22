@@ -63,11 +63,17 @@ class InstMatch {
   Node get(size_t i) const;
   /** set the i^th term in the instantiation to n
    *
-   * This method returns true if the i^th field was previously uninitialized,
-   * or is equivalent to n modulo the equalities given by q.
+   * If the d_vals[i] is not null, then this return true iff it is equal to
+   * n based on the quantifiers state.
+   *
+   * If the d_vals[i] is null, then this sets d_vals[i] to n, and pushes a
+   * context scope in the inst evaluator (if used).
    */
   bool set(size_t i, TNode n);
-  /** Resets index i */
+  /** 
+   * Resets index i, which sets d_vals[i] to null, and pops a context scope in
+   * the inst evaluator (if used).
+   */
   void reset(size_t i);
   /** Get the values */
   std::vector<Node>& get();
