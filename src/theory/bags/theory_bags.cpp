@@ -105,6 +105,14 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
                          << andNode << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
+    case kind::TABLE_AGGREGATE:
+    {
+      std::vector<Node> asserts;
+      Node ret = d_bagReduction.reduceAggregateOperator(atom, asserts);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
+
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
     default: return TrustNode::null();
   }
 }

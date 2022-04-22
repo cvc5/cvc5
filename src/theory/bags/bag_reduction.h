@@ -97,6 +97,8 @@ class BagReduction : EnvObj
    */
   Node reduceCardOperator(Node node, std::vector<Node>& asserts);
 
+  Node reduceAggregateOperator(Node node, std::vector<Node>& asserts);
+
  private:
 };
 

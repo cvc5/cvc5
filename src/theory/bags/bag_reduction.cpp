@@ -18,6 +18,8 @@
 #include "expr/bound_var_manager.h"
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "table_project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "util/rational.h"
 
@@ -204,6 +206,52 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   asserts.push_back(unionDisjoint_n_equal);
   asserts.push_back(nonNegative);
   return cardinality_n;
+}
+
+Node BagReduction::reduceAggregateOperator(Node node,
+                                           std::vector<Node>& asserts)
+{
+  Assert(node.getKind() == TABLE_AGGREGATE);
+  NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node function = node[0];
+  TypeNode elementType = function.getType().getArgTypes()[0];
+  Node initialValue = node[1];
+  Node A = node[2];
+  const std::vector<uint32_t>& indices =
+      node.getOperator().getConst<TableAggregateOp>().getIndices();
+  TupleProjectOp op(indices);
+  Node t1 = bvm->mkBoundVar<FirstIndexVarAttribute>(node, "t1", elementType);
+  Node t2 = bvm->mkBoundVar<FirstIndexVarAttribute>(node, "t2", elementType);
+  Node list = nm->mkNode(BOUND_VAR_LIST, t1, t2);
+  Node body;
+  if (indices.empty())
+  {
+    body = nm->mkConst(true);
+  }
+  else
+  {
+    std::vector<Node> equalities;
+    for (uint32_t i : indices)
+    {
+      Node select1 = datatypes::TupleUtils::nthElementOfTuple(t1, i);
+      Node select2 = datatypes::TupleUtils::nthElementOfTuple(t2, i);
+      equalities.push_back(select1.eqNode(select2));
+    }
+    body = nm->mkNode(AND, equalities);
+  }
+  Node lambda = nm->mkNode(LAMBDA, list, body);
+  Node partition = nm->mkNode(BAG_PARTITION, lambda, A);
+
+  Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
+      node, "bag", nm->mkBagType(elementType));
+  Node foldList = nm->mkNode(BOUND_VAR_LIST, bag);
+  Node foldBody = nm->mkNode(BAG_FOLD, function, initialValue, bag);
+
+  Node fold = nm->mkNode(LAMBDA, foldList, foldBody);
+  Node map = nm->mkNode(BAG_MAP, fold, partition);
+  return map;
 }
 
 }  // namespace bags
