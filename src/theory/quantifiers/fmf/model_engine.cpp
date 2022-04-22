@@ -307,10 +307,11 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
             && (addedLemmas == 0 || !options().quantifiers.fmfOneInstPerRound))
         {
           //instantiation was not shown to be true, construct the match
-          InstMatch m( f );
+          // FIXME: improve
+          InstMatch m(d_env, d_qstate, d_treg, f);
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
           {
-            m.set(d_qstate, i, riter.getCurrentTerm(i));
+            m.set(i, riter.getCurrentTerm(i));
           }
           Trace("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;

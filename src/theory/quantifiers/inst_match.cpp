@@ -21,7 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstMatch::InstMatch(TNode q) : d_quant(q)
+InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q, ieval::TermEvaluatorMode tev) : d_qs(qs), d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
@@ -103,19 +103,13 @@ Node InstMatch::get(size_t i) const
   return d_vals[i];
 }
 
-void InstMatch::setValue(size_t i, TNode n)
-{
-  Assert(i < d_vals.size());
-  d_vals[i] = n;
-}
-
-bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
+bool InstMatch::set(size_t i, TNode n)
 {
   Assert(i < d_vals.size());
   if (!d_vals[i].isNull())
   {
     // if they are equal, we do nothing
-    return qs.areEqual(d_vals[i], n);
+    return d_qs.areEqual(d_vals[i], n);
   }
   // TODO: check if we have already learned this failure?
   // TODO: if applicable, check if the instantiation evaluator is ok

@@ -100,7 +100,7 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     d_counter++;
     Trace("relational-match-gen")
         << "...try set " << s << " for " << checkPol << std::endl;
-    if (m.set(d_qstate, d_vindex, s))
+    if (m.set(d_vindex, s))
     {
       Trace("relational-match-gen") << "...success" << std::endl;
       int ret = continueNextMatch(

@@ -309,7 +309,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
       Trace("matching-debug2")
           << "Setting " << ct << " to " << t[i] << "..." << std::endl;
       bool addToPrev = m.get(ct).isNull();
-      if (!m.set(d_qstate, ct, t[i]))
+      if (!m.set(ct, t[i]))
       {
         // match is in conflict
         Trace("matching-fail")
@@ -341,7 +341,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
   if (d_match_pattern.getKind() == INST_CONSTANT)
   {
     bool addToPrev = m.get(d_children_types[0]).isNull();
-    if (!m.set(d_qstate, d_children_types[0], t))
+    if (!m.set(d_children_types[0], t))
     {
       success = false;
     }
@@ -400,7 +400,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     if (!t_match.isNull())
     {
       bool addToPrev = m.get(v).isNull();
-      if (!m.set(d_qstate, v, t_match))
+      if (!m.set(v, t_match))
       {
         success = false;
       }
@@ -450,7 +450,7 @@ int InstMatchGenerator::continueNextMatch(Node q,
   }
   if (d_active_add)
   {
-    return sendInstantiation(m, id) ? 1 : -1;
+    return sendInstantiation(m.get(), id) ? 1 : -1;
   }
   return 1;
 }
@@ -549,15 +549,15 @@ int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
   return success;
 }
 
-uint64_t InstMatchGenerator::addInstantiations(Node f)
+uint64_t InstMatchGenerator::addInstantiations(Node q)
 {
   //try to add instantiation for each match produced
   uint64_t addedLemmas = 0;
-  InstMatch m( f );
-  while (getNextMatch(f, m) > 0)
+  InstMatch m(d_env, d_qstate, d_treg, q);
+  while (getNextMatch(q, m) > 0)
   {
     if( !d_active_add ){
-      if (sendInstantiation(m, InferenceId::UNKNOWN))
+      if (sendInstantiation(m.get(), InferenceId::UNKNOWN))
       {
         addedLemmas++;
         if (d_qstate.isInConflict())

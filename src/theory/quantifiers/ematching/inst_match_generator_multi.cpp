@@ -161,7 +161,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
   {
     Trace("multi-trigger-cache") << "Calculate matches " << i << std::endl;
     std::vector<InstMatch> newMatches;
-    InstMatch m(q);
+    InstMatch m(d_env, d_qstate, d_treg, q);
     while (d_children[i]->getNextMatch(q, m) > 0)
     {
       Trace("multi-trigger-cache2")
@@ -213,7 +213,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
-    if (sendInstantiation(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
+    if (sendInstantiation(m.get(), InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
     {
       addedLemmas++;
       Trace("multi-trigger-cache-debug")
@@ -233,7 +233,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
       for (std::pair<const Node, InstMatchTrie>& d : tr->d_data)
       {
         // try to set
-        if (!m.set(qs, curr_index, d.first))
+        if (!m.set(curr_index, d.first))
         {
           continue;
         }

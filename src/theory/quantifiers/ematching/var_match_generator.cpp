@@ -59,7 +59,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
     d_eq_class = Node::null();
     // if( s.getType().isSubtypeOf( d_var_type ) ){
     d_rm_prev = m.get(index).isNull();
-    if (!m.set(d_qstate, index, s))
+    if (!m.set(index, s))
     {
       return -1;
     }

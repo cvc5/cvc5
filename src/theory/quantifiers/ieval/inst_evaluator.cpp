@@ -103,6 +103,12 @@ bool InstEvaluator::pushInternal(TNode v,
 
 void InstEvaluator::pop() { d_context.pop(); }
 
+void InstEvaluator::clear()
+{
+  // pop to level zero
+  d_context.popto(0);
+}
+
 std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
 {
   NodeNodeMap::const_iterator it;

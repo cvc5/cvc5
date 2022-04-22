@@ -39,6 +39,19 @@ class TermEvaluator;
 // TODO:
 // base terms
 
+/** The evaluator to use */
+enum class TermEvaluatorMode : uint32_t
+{
+  // do not use an evaluator
+  NONE,
+  // conflict evaluator
+  CONFLICT,
+  // propagating evaluator
+  PROP,
+  // model evaluator
+  MODEL,
+};
+
 /**
  * Inst evaluator
  *
@@ -76,6 +89,8 @@ class InstEvaluator : protected EnvObj
   bool push(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /** pop the last (successful) push */
   void pop();
+  /** full reset */
+  void clear();
   /**
    * Get instantiation for quantified formula q.
    */

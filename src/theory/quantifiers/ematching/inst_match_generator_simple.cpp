@@ -98,7 +98,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
         {
           if (t.first != r)
           {
-            InstMatch m(q);
+            InstMatch m(d_env, d_qstate, d_treg, q);
             addInstantiations(m, addedLemmas, 0, &(t.second));
             if (d_qstate.isInConflict())
             {
@@ -115,7 +115,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
       << d_eqc << std::endl;
   if (tat && !d_qstate.isInConflict())
   {
-    InstMatch m(q);
+    InstMatch m(d_env, d_qstate, d_treg, q);
     addInstantiations(m, addedLemmas, 0, tat);
   }
   return addedLemmas;
@@ -134,6 +134,8 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getData();
     Trace("simple-trigger") << "Actual term is " << t << std::endl;
     // convert to actual used terms
+    std::vector<Node> terms;
+    terms.resize(d_quant[0].getNumChildren());
     for (const auto& v : d_var_num)
     {
       if (v.second >= 0)
@@ -141,15 +143,15 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
         Assert(v.first < t.getNumChildren());
         Trace("simple-trigger")
             << "...set " << v.second << " " << t[v.first] << std::endl;
-        m.setValue(v.second, t[v.first]);
+        terms[v.second] = t[v.first];
       }
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (sendInstantiation(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
+    if (sendInstantiation(terms, InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
     {
       addedLemmas++;
-      Trace("simple-trigger") << "-> Produced instantiation " << m << std::endl;
+      Trace("simple-trigger") << "-> Produced instantiation " << terms << std::endl;
     }
     return;
   }
@@ -161,18 +163,17 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
       for (std::pair<const TNode, TNodeTrie>& tt : tat->d_data)
       {
         Node t = tt.first;
-        Node prev = m.get(v);
         // using representatives, just check if equal
         Assert(t.getType().isComparableTo(d_match_pattern_arg_types[argIndex]));
-        if (prev.isNull() || prev == t)
+        if (!m.set(v, t))
         {
-          m.setValue(v, t);
-          addInstantiations(m, addedLemmas, argIndex + 1, &(tt.second));
-          m.setValue(v, prev);
-          if (d_qstate.isInConflict())
-          {
-            break;
-          }
+          continue;
+        }
+        addInstantiations(m, addedLemmas, argIndex + 1, &(tt.second));
+        m.reset(v);
+        if (d_qstate.isInConflict())
+        {
+          break;
         }
       }
       return;
