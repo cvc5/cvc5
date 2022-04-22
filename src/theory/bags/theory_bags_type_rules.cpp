@@ -603,25 +603,21 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
                                              TNode n,
                                              bool check)
 {
-  Assert(n.getKind() == kind::TABLE_PROJECT && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_PROJECT_OP);
-  TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+  Assert(n.getKind() == kind::TABLE_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == kind::TABLE_AGGREGATE_OP);
+  TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
-  TypeNode bagType = n[0].getType(check);
+
+  TypeNode functionType = n[0].getType(check);
+  TypeNode initialValueType = n[1].getType(check);
+  TypeNode bagType = n[2].getType(check);
+
   if (check)
   {
-    if (n.getNumChildren() != 1)
-    {
-      std::stringstream ss;
-      ss << "operands in term " << n << " are " << n.getNumChildren()
-         << ", but TABLE_PROJECT expects 1 operand.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
     if (!bagType.isBag())
     {
       std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[0]
+      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
          << "' of type '" << bagType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -630,7 +626,7 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[0]
+      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
          << "' of type '" << bagType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -645,15 +641,41 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
       if (index >= numArgs)
       {
         ss << "Index " << index << " in term " << n << " is >= " << numArgs
-           << " which is the number of columns in " << n[0] << ".";
+           << " which is the number of columns in " << n[2] << ".";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
+
+    TypeNode elementType = bagType.getBagElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    TypeNode rangeType = functionType.getRangeType();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == rangeType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (rangeType != initialValueType)
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects an initial value of type "
+         << rangeType << ". Found a term of type '" << initialValueType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
   }
-  TypeNode tupleType = bagType.getBagElementType();
-  TypeNode retTupleType =
-      datatypes::TupleUtils::getTupleProjectionType(indices, tupleType);
-  return nm->mkBagType(retTupleType);
+  return nm->mkBagType(functionType.getRangeType());
 }
 
 Cardinality BagsProperties::computeCardinality(TypeNode type)
