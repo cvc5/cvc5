@@ -48,12 +48,13 @@ class DType;
 class Rational;
 
 namespace expr {
-  namespace attr {
-    class AttributeUniqueId;
-    class AttributeManager;
-    }  // namespace attr
 
-  class TypeChecker;
+namespace attr {
+class AttributeUniqueId;
+class AttributeManager;
+}  // namespace attr
+
+class TypeChecker;
 }  // namespace expr
 
 /**
