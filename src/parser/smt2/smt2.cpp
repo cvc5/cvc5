@@ -258,6 +258,7 @@ void Smt2::addSepOperators() {
 void Smt2::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
+  defineType("Table", d_solver->mkBagSort(d_solver->mkTupleSort({})), true);
   defineVar("true", d_solver->mkTrue(), true);
   defineVar("false", d_solver->mkFalse(), true);
   addOperator(cvc5::AND, "and");
@@ -633,6 +634,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_MAP, "bag.map");
     addOperator(cvc5::BAG_FILTER, "bag.filter");
     addOperator(cvc5::BAG_FOLD, "bag.fold");
+    addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
@@ -1123,7 +1125,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT)
+  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT)
   {
     cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
@@ -1261,6 +1263,50 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   cvc5::Term ret = d_solver->mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
+}
+
+std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(push).  Maybe you want (push 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    pushScope(true);
+  }
+  return std::make_unique<PushCommand>(*nscopes);
+}
+
+std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(pop).  Maybe you want (pop 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    popScope();
+  }
+  return std::make_unique<PopCommand>(*nscopes);
 }
 
 void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)

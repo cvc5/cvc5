@@ -17,6 +17,7 @@
 #include "expr/array_store_all.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 
@@ -86,9 +87,12 @@ Node ArrayEnumerator::operator*()
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));
+    // Normalize the constant. We must do this every iteration of this loop,
+    // since this utility requires all children of n to be constant, which
+    // implies the first argument to STORE on the next iteration must be
+    // normalized.
+    n = TheoryArraysRewriter::normalizeConstant(n);
   }
-  Trace("array-type-enum") << "operator * prerewrite: " << n << std::endl;
-  n = Rewriter::rewrite(n);
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;
 }

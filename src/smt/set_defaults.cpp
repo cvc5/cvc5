@@ -186,6 +186,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // used by the user to rephrase the input.
     opts.quantifiers.sygusInference = false;
     opts.quantifiers.sygusRewSynthInput = false;
+    // deep restart does not work with internal subsolvers?
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 }
 
@@ -956,6 +958,11 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
         << std::endl;
     opts.arith.nlCovVarElim = false;
   }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
+    return true;
+  }
   return false;
 }
 
@@ -995,6 +1002,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                                               std::ostream& reason,
                                               std::ostream& suggest) const
 {
+  if (d_env.hasSepHeap())
+  {
+    reason << "separation logic";
+    return true;
+  }
   if (opts.smt.ackermann)
   {
     reason << "ackermann";
@@ -1042,6 +1054,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
+    return true;
+  }
   if (opts.parallel.computePartitions > 1)
   {
     reason << "compute partitions";
@@ -1057,7 +1074,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   notifyModifyOption("cegqiNestedQE", "false", "incremental solving");
   opts.quantifiers.cegqiNestedQE = false;
   opts.arith.arithMLTrick = false;
-
   return false;
 }
 
@@ -1073,6 +1089,13 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     notifyModifyOption("simplificationMode", "none", "unsat cores");
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
+    if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+    {
+      verbose(1) << "SolverEngine: turning off deep restart to support unsat "
+                    "cores"
+                 << std::endl;
+      opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+    }
   }
 
   if (opts.smt.learnedRewrite)
@@ -1189,6 +1212,11 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     notifyModifyOption("unconstrainedSimp", "false", "unsat cores");
     opts.smt.unconstrainedSimp = false;
   }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
+    return true;
+  }
   return false;
 }
 
@@ -1206,6 +1234,11 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   // input
   if (usesInputConversion(opts, reason))
   {
+    return true;
+  }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
     return true;
   }
   return false;
@@ -1560,6 +1593,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (!logic.isTheoryEnabled(THEORY_DATATYPES))
   {
     opts.quantifiers.quantDynamicSplit = options::QuantDSplitMode::NONE;
+  }
+  if (opts.quantifiers.globalNegate)
+  {
+    notifyModifyOption("deep-restart", "false", "global-negate");
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 }
 

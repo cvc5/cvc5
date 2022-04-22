@@ -25,7 +25,6 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/kind.h"
 #include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"

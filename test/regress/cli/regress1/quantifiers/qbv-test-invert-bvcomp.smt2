@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=keep --no-cegqi-full
 ; EXPECT: unsat
 (set-logic BV)

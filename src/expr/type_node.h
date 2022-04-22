@@ -697,10 +697,8 @@ private:
    * a TypeNode such that isNull() is true is returned.
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
-  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
 private:
-  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Indents the given stream a given amount of spaces.
