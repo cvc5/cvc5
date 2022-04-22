@@ -541,13 +541,13 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   {
     // special case: tuples must be distinguished by their arity
     const DType& dt = tn.getDType();
-    unsigned int nargs = dt[0].getNumArgs();
+    size_t nargs = tn.getNumChildren();
     if (nargs > 0)
     {
       std::vector<TypeNode> types;
       std::vector<TypeNode> convTypes;
       std::vector<Node> targs;
-      for (unsigned int i = 0; i < nargs; i++)
+      for (size_t i = 0; i < nargs; i++)
       {
         TypeNode tnc = tn[i];
         types.push_back(d_sortType);
