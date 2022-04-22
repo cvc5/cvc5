@@ -540,7 +540,6 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   else if (k == TUPLE_TYPE)
   {
     // special case: tuples must be distinguished by their arity
-    const DType& dt = tn.getDType();
     size_t nargs = tn.getNumChildren();
     if (nargs > 0)
     {
