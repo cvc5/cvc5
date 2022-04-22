@@ -22,4 +22,9 @@ TableProjectOp::TableProjectOp(std::vector<uint32_t> indices)
 {
 }
 
+TableAggregateOp::TableAggregateOp(std::vector<uint32_t> indices)
+    : ProjectOp(std::move(indices))
+{
+}
+
 }  // namespace cvc5::internal

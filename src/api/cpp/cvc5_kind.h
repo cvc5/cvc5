@@ -3711,6 +3711,7 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TABLE_PROJECT,
+  TABLE_AGGREGATE,
   /* Strings --------------------------------------------------------------- */
 
   /**

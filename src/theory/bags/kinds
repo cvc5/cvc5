@@ -127,8 +127,20 @@ constant TABLE_PROJECT_OP \
 
 parameterized TABLE_PROJECT TABLE_PROJECT_OP 1 "table projection"
 
+# table.aggregate operator
+constant TABLE_AGGREGATE_OP \
+  class \
+  TableAggregateOp \
+  ::cvc5::internal::TableAggregateOpHashFunction \
+  "theory/bags/table_project_op.h" \
+  "operator for TABLE_Aggregate; payload is an instance of the cvc5::internal::TableAggregateOp class"
+
+parameterized TABLE_AGGREGATE TABLE_AGGREGATE_OP 3 "table aggregate"
+
 typerule TABLE_PRODUCT              ::cvc5::internal::theory::bags::TableProductTypeRule
 typerule TABLE_PROJECT_OP           "SimpleTypeRule<RBuiltinOperator>"
 typerule TABLE_PROJECT              ::cvc5::internal::theory::bags::TableProjectTypeRule
+typerule TABLE_AGGREGATE_OP         "SimpleTypeRule<RBuiltinOperator>"
+typerule TABLE_AGGREGATE            ::cvc5::internal::theory::bags::TableAggregateTypeRule
 
 endtheory

@@ -179,6 +179,19 @@ struct TableProjectTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagFoldTypeRule */
 
+/**
+ * Table aggregate operator is indexed by a list of indices (n_1, ..., n_i).
+ * It ensures that it has 3 arguments:
+ * - A combining function of type (-> (Tuple T_1 ... T_j) T T)
+ * - Initial value of type T
+ * - A table of type (Table T_1 ... T_j)
+ * the returned type is (Bag T).
+ */
+struct TableAggregateTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type);
