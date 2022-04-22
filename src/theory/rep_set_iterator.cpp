@@ -190,9 +190,6 @@ int RepSetIterator::resetIndex(unsigned i, bool initial)
 int RepSetIterator::incrementAtIndex(int i)
 {
   Assert(!isFinished());
-#ifdef DISABLE_EVAL_SKIP_MULTIPLE
-  i = (int)d_index.size() - 1;
-#endif
   Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
   // increment d_index
   if (i >= 0)
