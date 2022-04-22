@@ -1165,14 +1165,14 @@ TNode NodeManager::operatorOf(Kind k)
 }
 /**
  * This template gives a mechanism to stack-allocate a NodeValue
- * with enough space for N children (where N is a compile-time
+ * with enough space for 1 child (where N is a compile-time
  * constant).  You use it like this:
  *
- *   NVStorage<4> nvStorage;
+ *   NVStorage nvStorage;
  *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
  *
  * ...and then you can use nvStack as a NodeValue that you know has
- * room for 4 children.
+ * room for 1 child.
  */
 struct NVStorage
 {
