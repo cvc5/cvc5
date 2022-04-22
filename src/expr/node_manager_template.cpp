@@ -761,9 +761,8 @@ TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);
 }
 
-TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
-                                                   const std::vector<TypeNode>& types,
-                                                   unsigned index)
+TypeNode NodeManager::TupleTypeCache::getTupleType(
+    NodeManager* nm, const std::vector<TypeNode>& types, unsigned index)
 {
   if (index == types.size())
   {
