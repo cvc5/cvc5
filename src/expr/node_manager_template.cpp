@@ -303,6 +303,24 @@ NodeManager::~NodeManager()
   d_attrManager = NULL;
 }
 
+const DType& NodeManager::getDTypeFor(TypeNode tn) const
+{
+  Kind k = tn.getKind();
+  if (k == kind::DATATYPE_TYPE)
+  {
+    DatatypeIndexConstant dic = tn.getConst<DatatypeIndexConstant>();
+    return getDTypeForIndex(dic.getIndex());
+  }
+  else if (k == kind::TUPLE_TYPE)
+  {
+    TypeNode dtt = getAttribute(tn, expr::TupleDatatypeAttr());
+    Assert (!dtt.isNull());
+    return getDTypeFor(dtt);
+  }
+  Assert(k == kind::PARAMETRIC_DATATYPE);
+  return getDTypeFor(tn[0]);
+}
+
 const DType& NodeManager::getDTypeForIndex(size_t index) const
 {
   // if this assertion fails, it is likely due to not managing datatypes

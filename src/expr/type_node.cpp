@@ -380,6 +380,7 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 
 bool TypeNode::isTuple() const
 {
+  // FIXME
   return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
 }
 
@@ -408,7 +409,7 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
 
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
-  if(getKind() == kind::DATATYPE_TYPE) {
+  if(getKind() == kind::DATATYPE_TYPE || getKind() == kind::TUPLE_TYPE) {
     return true;
   }
   if(getKind() != kind::PARAMETRIC_DATATYPE) {
@@ -527,8 +528,10 @@ bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
 
 bool TypeNode::isDatatype() const
 {
-  return getKind() == kind::DATATYPE_TYPE
-         || getKind() == kind::PARAMETRIC_DATATYPE;
+  Kind k = getKind();
+  return k== kind::DATATYPE_TYPE
+         || k == kind::PARAMETRIC_DATATYPE ||
+         k == kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isParametricDatatype() const
@@ -582,13 +585,7 @@ std::string TypeNode::toString() const {
 
 const DType& TypeNode::getDType() const
 {
-  if (getKind() == kind::DATATYPE_TYPE)
-  {
-    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDTypeForIndex(dic.getIndex());
-  }
-  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-  return (*this)[0].getDType();
+  return NodeManager::currentNM()->getDTypeForType(*this);
 }
 
 bool TypeNode::isBag() const

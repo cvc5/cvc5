@@ -1140,6 +1140,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // datatypes theory
   case kind::APPLY_TESTER: return "is";
   case kind::APPLY_UPDATER: return "update";
+  case kind::TUPLE_TYPE: return "Tuple";
 
   // set theory
   case kind::SET_UNION: return "set.union";
