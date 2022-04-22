@@ -35,9 +35,9 @@ struct IndexTrieNode
   IndexTrieNode* d_blank = nullptr;
 };
 
-/** Trie of  sequences indices, used to check for subsequence membership.
+/** Trie of Nodes, used to check for subsequence membership.
  *
- * The  data structure stores tuples of indices where some elements may be
+ * The data structure stores tuples of indices where some elements may be
  * left blank. The objective is to enable checking whether a given, completely
  * filled in, tuple has a  sub-tuple  present in the data structure.  This is
  * used in the term tuple enumeration (term_tuple_enumerator.cpp) to store
@@ -49,12 +49,19 @@ struct IndexTrieNode
  * tuple that contains 1 and 3 on second and forth position, respectively, would
  * match.
  *
- *  The data structure behaves essentially as a traditional trie. Each tuple
+ * The data structure behaves essentially as a traditional trie. Each tuple
  * is treated as a sequence of integers with a special symbol for blank, which
  * is in fact stored  in a special  child (member d_blank).  As a small
  * optimization, a suffix containing only blanks is represented by  the empty
  * subtree, i.e., a null pointer.
  *
+ * Additionally, this class accepts membership queries involving null nodes,
+ * which are interpreted as requiring that all possible values of the node at
+ * that position are contained. For example, writing `_` for null:
+ * (_, 1, 2, 3) is contained in (_, 1, _, 3)
+ * (1, 1, _, 3) is contained in (_, 1, _, 3)
+ * (_, 2, _, _) is not contained in (_, 1, _, 3)
+ * (_, 1, 2, 3) is not contained in (0, 1, _, 3)
  */
 class IndexTrie
 {

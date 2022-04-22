@@ -61,7 +61,7 @@ bool IndexTrie::findRec(const IndexTrieNode* n,
   }
   if (members[index].isNull())
   {
-    // null is interpreted as "any", must find in the blank branch
+    // null is interpreted as "any", must have found in the blank branch
     return false;
   }
   nonBlankLength = index + 1;
