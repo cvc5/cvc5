@@ -21,7 +21,7 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/rep_set.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/theory_model.h"
 
 namespace cvc5::internal {

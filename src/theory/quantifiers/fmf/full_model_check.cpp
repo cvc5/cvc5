@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;

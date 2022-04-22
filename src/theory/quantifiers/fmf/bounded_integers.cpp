@@ -28,6 +28,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
