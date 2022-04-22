@@ -277,7 +277,6 @@ void TermTupleEnumeratorBase::failureReason(const std::vector<bool>& mask)
   }
   std::vector<Node> tti;
   next(tti);
-  Trace("ajr-temp") << "Bad inst: " << tti << std::endl;
   d_disabledCombinations.add(mask, tti);  // record failure
   // update change prefix accordingly
   for (d_changePrefix = mask.size();
