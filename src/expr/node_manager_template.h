@@ -54,7 +54,7 @@ namespace expr {
     }  // namespace attr
 
   class TypeChecker;
-  }  // namespace expr
+}  // namespace expr
 
 /**
  * The node manager.
