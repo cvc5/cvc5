@@ -13,9 +13,10 @@
  * Implementation of representative set.
  */
 
+#include "theory/rep_set_iterator.h"
+
 #include <unordered_set>
 
-#include "theory/rep_set_iterator.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;
@@ -41,7 +42,7 @@ bool RepSetIterator::setQuantifier(Node q)
 {
   Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
   Assert(d_types.empty());
-  //store indicies
+  // store indicies
   for (size_t i = 0; i < q[0].getNumChildren(); i++)
   {
     d_types.push_back(q[0][i].getType());
@@ -55,8 +56,9 @@ bool RepSetIterator::setFunctionDomain(Node op)
   Trace("rsi") << "Make rsi for function " << op << std::endl;
   Assert(d_types.empty());
   TypeNode tn = op.getType();
-  for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
-    d_types.push_back( tn[i] );
+  for (size_t i = 0; i < tn.getNumChildren() - 1; i++)
+  {
+    d_types.push_back(tn[i]);
   }
   d_owner = op;
   return initialize();
@@ -65,19 +67,20 @@ bool RepSetIterator::setFunctionDomain(Node op)
 bool RepSetIterator::initialize()
 {
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
-  for( unsigned v=0; v<d_types.size(); v++ ){
-    d_index.push_back( 0 );
-    //store default index order
-    d_index_order.push_back( v );
+  for (unsigned v = 0; v < d_types.size(); v++)
+  {
+    d_index.push_back(0);
+    // store default index order
+    d_index_order.push_back(v);
     d_var_order[v] = v;
-    //store default domain
-    //d_domain.push_back( RepDomain() );
-    d_domain_elements.push_back( std::vector< Node >() );
+    // store default domain
+    // d_domain.push_back( RepDomain() );
+    d_domain_elements.push_back(std::vector<Node>());
     TypeNode tn = d_types[v];
     Trace("rsi") << "Var #" << v << " is type " << tn << "..." << std::endl;
     bool inc = true;
     bool setEnum = false;
-    //check if it is externally bound
+    // check if it is externally bound
     if (d_rext)
     {
       inc = !d_rext->initializeRepresentativesForType(tn);
@@ -91,24 +94,26 @@ bool RepSetIterator::initialize()
     }
     if (inc)
     {
-      Trace("fmf-incomplete") << "Incomplete because of quantification of type "
-                              << tn << std::endl;
+      Trace("fmf-incomplete")
+          << "Incomplete because of quantification of type " << tn << std::endl;
       d_incomplete = true;
     }
 
-    //if we have yet to determine the type of enumeration
+    // if we have yet to determine the type of enumeration
     if (!setEnum)
     {
       if (d_rs->hasType(tn))
       {
-        d_enum_type.push_back( ENUM_DEFAULT );
+        d_enum_type.push_back(ENUM_DEFAULT);
         if (const auto* type_reps = d_rs->getTypeRepsOrNull(tn))
         {
           std::vector<Node>& v_domain_elements = d_domain_elements[v];
-          v_domain_elements.insert(v_domain_elements.end(),
-                                   type_reps->begin(), type_reps->end());
+          v_domain_elements.insert(
+              v_domain_elements.end(), type_reps->begin(), type_reps->end());
         }
-      }else{
+      }
+      else
+      {
         Assert(d_incomplete);
         return false;
       }
@@ -148,17 +153,19 @@ bool RepSetIterator::initialize()
       setIndexOrder(indexOrder);
     }
   }
-  //now reset the indices
-  do_reset_increment( -1, true );
+  // now reset the indices
+  do_reset_increment(-1, true);
   return true;
 }
 
 void RepSetIterator::setIndexOrder(std::vector<unsigned>& indexOrder)
 {
   d_index_order.clear();
-  d_index_order.insert( d_index_order.begin(), indexOrder.begin(), indexOrder.end() );
-  //make the d_var_order mapping
-  for( unsigned i=0; i<d_index_order.size(); i++ ){
+  d_index_order.insert(
+      d_index_order.begin(), indexOrder.begin(), indexOrder.end());
+  // make the d_var_order mapping
+  for (unsigned i = 0; i < d_index_order.size(); i++)
+  {
     d_var_order[d_index_order[i]] = i;
   }
 }
@@ -167,7 +174,8 @@ int RepSetIterator::resetIndex(unsigned i, bool initial)
 {
   d_index[i] = 0;
   unsigned v = d_var_order[i];
-  Trace("bound-int-rsi") << "Reset " << i << ", var order = " << v << ", initial = " << initial << std::endl;
+  Trace("bound-int-rsi") << "Reset " << i << ", var order = " << v
+                         << ", initial = " << initial << std::endl;
   if (d_rext)
   {
     if (!d_rext->resetIndex(this, d_owner, v, initial, d_domain_elements[v]))
@@ -182,45 +190,58 @@ int RepSetIterator::incrementAtIndex(int i)
 {
   Assert(!isFinished());
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
-  i = (int)d_index.size()-1;
+  i = (int)d_index.size() - 1;
 #endif
   Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
-  //increment d_index
-  if( i>=0){
-    Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i) << std::endl;
+  // increment d_index
+  if (i >= 0)
+  {
+    Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i)
+                       << std::endl;
   }
-  while( i>=0 && d_index[i]>=(int)(domainSize(i)-1) ){
+  while (i >= 0 && d_index[i] >= (int)(domainSize(i) - 1))
+  {
     i--;
-    if( i>=0){
-      Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i) << std::endl;
+    if (i >= 0)
+    {
+      Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i)
+                         << std::endl;
     }
   }
-  if( i==-1 ){
+  if (i == -1)
+  {
     Trace("rsi-debug") << "increment failed" << std::endl;
     d_index.clear();
     return -1;
-  }else{
+  }
+  else
+  {
     Trace("rsi-debug") << "increment " << i << std::endl;
     d_index[i]++;
-    return do_reset_increment( i );
+    return do_reset_increment(i);
   }
 }
 
-int RepSetIterator::do_reset_increment( int i, bool initial ) {
+int RepSetIterator::do_reset_increment(int i, bool initial)
+{
   Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i
                      << ", initial=" << initial << std::endl;
-  for( unsigned ii=(i+1); ii<d_index.size(); ii++ ){
+  for (unsigned ii = (i + 1); ii < d_index.size(); ii++)
+  {
     bool emptyDomain = false;
-    int ri_res = resetIndex( ii, initial );
-    if( ri_res==-1 ){
-      //failed
+    int ri_res = resetIndex(ii, initial);
+    if (ri_res == -1)
+    {
+      // failed
       d_index.clear();
       d_incomplete = true;
       break;
-    }else if( ri_res==0 ){
+    }
+    else if (ri_res == 0)
+    {
       emptyDomain = true;
     }
-    //force next iteration if currently an empty domain
+    // force next iteration if currently an empty domain
     if (emptyDomain)
     {
       Trace("rsi-debug") << "This is an empty domain (index " << ii << ")."
@@ -242,10 +263,14 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
   return i;
 }
 
-int RepSetIterator::increment(){
-  if( !isFinished() ){
+int RepSetIterator::increment()
+{
+  if (!isFinished())
+  {
     return incrementAtIndex(d_index.size() - 1);
-  }else{
+  }
+  else
+  {
     return -1;
   }
 }
@@ -268,7 +293,7 @@ Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
     Node tt = d_rs->getTermForRepresentative(t);
     if (!tt.isNull())
     {
-  Trace("rsi-debug") << "rsi : return rep term = " << tt << std::endl;
+      Trace("rsi-debug") << "rsi : return rep term = " << tt << std::endl;
       return tt;
     }
   }
@@ -284,18 +309,22 @@ void RepSetIterator::getCurrentTerms(std::vector<Node>& terms) const
   }
 }
 
-void RepSetIterator::debugPrint( const char* c ){
-  for( unsigned v=0; v<d_index.size(); v++ ){
-    Trace( c ) << v << " : " << getCurrentTerm( v ) << std::endl;
+void RepSetIterator::debugPrint(const char* c)
+{
+  for (unsigned v = 0; v < d_index.size(); v++)
+  {
+    Trace(c) << v << " : " << getCurrentTerm(v) << std::endl;
   }
 }
 
-void RepSetIterator::debugPrintSmall( const char* c ){
-  Trace( c ) << "RI: ";
-  for( unsigned v=0; v<d_index.size(); v++ ){
-    Trace( c ) << v << ": " << getCurrentTerm( v ) << " ";
+void RepSetIterator::debugPrintSmall(const char* c)
+{
+  Trace(c) << "RI: ";
+  for (unsigned v = 0; v < d_index.size(); v++)
+  {
+    Trace(c) << v << ": " << getCurrentTerm(v) << " ";
   }
-  Trace( c ) << std::endl;
+  Trace(c) << std::endl;
 }
 
 }  // namespace theory

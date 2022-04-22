@@ -28,8 +28,8 @@
 namespace cvc5::internal {
 namespace theory {
 
-//representative domain
-typedef std::vector< int > RepDomain;
+// representative domain
+typedef std::vector<int> RepDomain;
 
 class RepBoundExt;
 
@@ -66,106 +66,107 @@ enum RsiEnumType
  *
  * TODO (#1199): this class needs further documentation.
  */
-class RepSetIterator {
+class RepSetIterator
+{
  public:
- RepSetIterator(const RepSet* rs, RepBoundExt* rext = nullptr);
- ~RepSetIterator() {}
- /** set that this iterator will be iterating over instantiations for a
-  * quantifier */
- bool setQuantifier(Node q);
- /** set that this iterator will be iterating over the domain of a function */
- bool setFunctionDomain(Node op);
- /** increment the iterator */
- int increment();
- /** increment the iterator at index
-  * This increments the i^th field of the
-  * iterator, for examples, see operator next_i
-  * in Figure 2 of Reynolds et al. CADE 2013.
-  */
- int incrementAtIndex(int i);
- /** is the iterator finished? */
- bool isFinished() const;
- /** get domain size of the i^th field of this iterator */
- unsigned domainSize(unsigned i);
- /** Get the type of terms in the i^th field of this iterator */
- TypeNode getTypeOf(unsigned i) const;
- /**
-  * Get the value for the i^th field in the tuple we are currently considering.
-  * If valTerm is true, we return a term instead of a value by calling
-  * RepSet::getTermForRepresentative on the value.
-  */
- Node getCurrentTerm(unsigned i, bool valTerm = false) const;
- /** get the number of terms in the tuple we are considering */
- unsigned getNumTerms() const { return d_index_order.size(); }
- /** get current terms */
- void getCurrentTerms(std::vector<Node>& terms) const;
- /** get index order, returns var # */
- unsigned getIndexOrder(unsigned v) { return d_index_order[v]; }
- /** get variable order, returns index # */
- unsigned getVariableOrder(unsigned i) { return d_var_order[i]; }
- /** is incomplete
-  * Returns true if we are iterating over a strict subset of
-  * the domain of the quantified formula or function.
-  */
- bool isIncomplete() { return d_incomplete; }
- /** debug print methods */
- void debugPrint(const char* c);
- void debugPrintSmall(const char* c);
- // TODO (#1199): these should be private
- /** enumeration type for each field */
- std::vector<RsiEnumType> d_enum_type;
- /** the current tuple we are considering */
- std::vector<int> d_index;
+  RepSetIterator(const RepSet* rs, RepBoundExt* rext = nullptr);
+  ~RepSetIterator() {}
+  /** set that this iterator will be iterating over instantiations for a
+   * quantifier */
+  bool setQuantifier(Node q);
+  /** set that this iterator will be iterating over the domain of a function */
+  bool setFunctionDomain(Node op);
+  /** increment the iterator */
+  int increment();
+  /** increment the iterator at index
+   * This increments the i^th field of the
+   * iterator, for examples, see operator next_i
+   * in Figure 2 of Reynolds et al. CADE 2013.
+   */
+  int incrementAtIndex(int i);
+  /** is the iterator finished? */
+  bool isFinished() const;
+  /** get domain size of the i^th field of this iterator */
+  unsigned domainSize(unsigned i);
+  /** Get the type of terms in the i^th field of this iterator */
+  TypeNode getTypeOf(unsigned i) const;
+  /**
+   * Get the value for the i^th field in the tuple we are currently considering.
+   * If valTerm is true, we return a term instead of a value by calling
+   * RepSet::getTermForRepresentative on the value.
+   */
+  Node getCurrentTerm(unsigned i, bool valTerm = false) const;
+  /** get the number of terms in the tuple we are considering */
+  unsigned getNumTerms() const { return d_index_order.size(); }
+  /** get current terms */
+  void getCurrentTerms(std::vector<Node>& terms) const;
+  /** get index order, returns var # */
+  unsigned getIndexOrder(unsigned v) { return d_index_order[v]; }
+  /** get variable order, returns index # */
+  unsigned getVariableOrder(unsigned i) { return d_var_order[i]; }
+  /** is incomplete
+   * Returns true if we are iterating over a strict subset of
+   * the domain of the quantified formula or function.
+   */
+  bool isIncomplete() { return d_incomplete; }
+  /** debug print methods */
+  void debugPrint(const char* c);
+  void debugPrintSmall(const char* c);
+  // TODO (#1199): these should be private
+  /** enumeration type for each field */
+  std::vector<RsiEnumType> d_enum_type;
+  /** the current tuple we are considering */
+  std::vector<int> d_index;
 
-private:
- /** rep set associated with this iterator */
- const RepSet* d_rs;
- /** rep set external bound information for this iterator */
- RepBoundExt* d_rext;
- /** types we are considering */
- std::vector<TypeNode> d_types;
- /** for each argument, the domain we are iterating over */
- std::vector<std::vector<Node> > d_domain_elements;
- /** initialize
-  * This is called when the owner of this iterator is set.
-  * It initializes the typing information for the types
-  * that are involved in this iterator, initializes the
-  * domain elements we are iterating over, and variable
-  * and index orderings we are considering.
-  */
- bool initialize();
- /** owner
-  * This is the term that we are iterating for, which may either be:
-  * (1) a quantified formula, or
-  * (2) a function.
-  */
- Node d_owner;
- /** reset index, 1:success, 0:empty, -1:fail */
- int resetIndex(unsigned i, bool initial = false);
- /** set index order (see below) */
- void setIndexOrder(std::vector<unsigned>& indexOrder);
- /** do reset increment the iterator at index=counter */
- int do_reset_increment(int counter, bool initial = false);
- /** ordering for variables we are iterating over
- *  For example, given reps = { a, b } and quantifier
- *    forall( x, y, z ) P( x, y, z )
- *  with d_index_order = { 2, 0, 1 },
- *    then we consider instantiations in this order:
- *      a/x a/y a/z
- *      a/x b/y a/z
- *      b/x a/y a/z
- *      b/x b/y a/z
- *      ...
- */
- std::vector<unsigned> d_index_order;
- /** Map from variables to the index they are considered at
- * For example, if d_index_order = { 2, 0, 1 }
- *    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
- */
- std::map<unsigned, unsigned> d_var_order;
- /** incomplete flag */
- bool d_incomplete;
-};/* class RepSetIterator */
+ private:
+  /** rep set associated with this iterator */
+  const RepSet* d_rs;
+  /** rep set external bound information for this iterator */
+  RepBoundExt* d_rext;
+  /** types we are considering */
+  std::vector<TypeNode> d_types;
+  /** for each argument, the domain we are iterating over */
+  std::vector<std::vector<Node> > d_domain_elements;
+  /** initialize
+   * This is called when the owner of this iterator is set.
+   * It initializes the typing information for the types
+   * that are involved in this iterator, initializes the
+   * domain elements we are iterating over, and variable
+   * and index orderings we are considering.
+   */
+  bool initialize();
+  /** owner
+   * This is the term that we are iterating for, which may either be:
+   * (1) a quantified formula, or
+   * (2) a function.
+   */
+  Node d_owner;
+  /** reset index, 1:success, 0:empty, -1:fail */
+  int resetIndex(unsigned i, bool initial = false);
+  /** set index order (see below) */
+  void setIndexOrder(std::vector<unsigned>& indexOrder);
+  /** do reset increment the iterator at index=counter */
+  int do_reset_increment(int counter, bool initial = false);
+  /** ordering for variables we are iterating over
+   *  For example, given reps = { a, b } and quantifier
+   *    forall( x, y, z ) P( x, y, z )
+   *  with d_index_order = { 2, 0, 1 },
+   *    then we consider instantiations in this order:
+   *      a/x a/y a/z
+   *      a/x b/y a/z
+   *      b/x a/y a/z
+   *      b/x b/y a/z
+   *      ...
+   */
+  std::vector<unsigned> d_index_order;
+  /** Map from variables to the index they are considered at
+   * For example, if d_index_order = { 2, 0, 1 }
+   *    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
+   */
+  std::map<unsigned, unsigned> d_var_order;
+  /** incomplete flag */
+  bool d_incomplete;
+}; /* class RepSetIterator */
 
 /** Representative bound external
  *
