@@ -33,8 +33,10 @@ namespace attr {
   struct UnresolvedDatatypeTag
   {
   };
-  struct TupleDatatypeTag {};
-}  // namespace attr
+  struct TupleDatatypeTag
+  {
+  };
+  }  // namespace attr
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
@@ -46,7 +48,8 @@ using UnresolvedDatatypeAttr =
     expr::Attribute<expr::attr::UnresolvedDatatypeTag, bool>;
 
 /** Mapping tuples to their datatype type encoding */
-using TupleDatatypeAttr = expr::Attribute<expr::attr::TupleDatatypeTag, TypeNode>;
+using TupleDatatypeAttr =
+    expr::Attribute<expr::attr::TupleDatatypeTag, TypeNode>;
 
 }  // namespace expr
 }  // namespace cvc5::internal

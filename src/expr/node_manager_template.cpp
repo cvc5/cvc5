@@ -314,7 +314,7 @@ const DType& NodeManager::getDTypeFor(TypeNode tn) const
   else if (k == kind::TUPLE_TYPE)
   {
     TypeNode dtt = getAttribute(tn, expr::TupleDatatypeAttr());
-    Assert (!dtt.isNull());
+    Assert(!dtt.isNull());
     return getDTypeFor(dtt);
   }
   Assert(k == kind::PARAMETRIC_DATATYPE);

@@ -409,7 +409,8 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
 
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
-  if(getKind() == kind::DATATYPE_TYPE || getKind() == kind::TUPLE_TYPE) {
+  if (getKind() == kind::DATATYPE_TYPE || getKind() == kind::TUPLE_TYPE)
+  {
     return true;
   }
   if(getKind() != kind::PARAMETRIC_DATATYPE) {
@@ -529,9 +530,8 @@ bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
 bool TypeNode::isDatatype() const
 {
   Kind k = getKind();
-  return k== kind::DATATYPE_TYPE
-         || k == kind::PARAMETRIC_DATATYPE ||
-         k == kind::TUPLE_TYPE;
+  return k == kind::DATATYPE_TYPE || k == kind::PARAMETRIC_DATATYPE
+         || k == kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isParametricDatatype() const
