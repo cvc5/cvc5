@@ -43,9 +43,9 @@ bool RepSetIterator::setQuantifier(Node q)
   Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
   Assert(d_types.empty());
   // store indicies
-  for (size_t i = 0; i < q[0].getNumChildren(); i++)
+  for (const Node& v : q[0])
   {
-    d_types.push_back(q[0][i].getType());
+    d_types.push_back(v.getType());
   }
   d_owner = q;
   return initialize();
@@ -67,7 +67,7 @@ bool RepSetIterator::setFunctionDomain(Node op)
 bool RepSetIterator::initialize()
 {
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
-  for (unsigned v = 0; v < d_types.size(); v++)
+  for (size_t v = 0, ntypes = d_types.size(); v < ntypes; v++)
   {
     d_index.push_back(0);
     // store default index order
@@ -128,15 +128,16 @@ bool RepSetIterator::initialize()
       if (TraceIsOn("bound-int-rsi"))
       {
         Trace("bound-int-rsi") << "Variable order : ";
-        for (unsigned i = 0; i < varOrder.size(); i++)
+        for (unsigned v : varOrder)
         {
-          Trace("bound-int-rsi") << varOrder[i] << " ";
+          Trace("bound-int-rsi") << v << " ";
         }
         Trace("bound-int-rsi") << std::endl;
       }
+      size_t nvars = varOrder.size();
       std::vector<unsigned> indexOrder;
-      indexOrder.resize(varOrder.size());
-      for (unsigned i = 0; i < varOrder.size(); i++)
+      indexOrder.resize(nvars);
+      for (size_t i = 0; i < nvars; i++)
       {
         Assert(varOrder[i] < indexOrder.size());
         indexOrder[varOrder[i]] = i;
@@ -144,7 +145,7 @@ bool RepSetIterator::initialize()
       if (TraceIsOn("bound-int-rsi"))
       {
         Trace("bound-int-rsi") << "Will use index order : ";
-        for (unsigned i = 0; i < indexOrder.size(); i++)
+        for (size_t i = 0, isize = indexOrder.size(); i < isize; i++)
         {
           Trace("bound-int-rsi") << indexOrder[i] << " ";
         }
@@ -154,7 +155,7 @@ bool RepSetIterator::initialize()
     }
   }
   // now reset the indices
-  do_reset_increment(-1, true);
+  doResetIncrement(-1, true);
   return true;
 }
 
@@ -164,7 +165,7 @@ void RepSetIterator::setIndexOrder(std::vector<unsigned>& indexOrder)
   d_index_order.insert(
       d_index_order.begin(), indexOrder.begin(), indexOrder.end());
   // make the d_var_order mapping
-  for (unsigned i = 0; i < d_index_order.size(); i++)
+  for (size_t i = 0, isize = d_index_order.size(); i < isize; i++)
   {
     d_var_order[d_index_order[i]] = i;
   }
@@ -218,13 +219,13 @@ int RepSetIterator::incrementAtIndex(int i)
   {
     Trace("rsi-debug") << "increment " << i << std::endl;
     d_index[i]++;
-    return do_reset_increment(i);
+    return doResetIncrement(i);
   }
 }
 
-int RepSetIterator::do_reset_increment(int i, bool initial)
+int RepSetIterator::doResetIncrement(int i, bool initial)
 {
-  Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i
+  Trace("rsi-debug") << "RepSetIterator::doResetIncrement: " << i
                      << ", initial=" << initial << std::endl;
   for (unsigned ii = (i + 1); ii < d_index.size(); ii++)
   {
@@ -303,7 +304,7 @@ Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
 
 void RepSetIterator::getCurrentTerms(std::vector<Node>& terms) const
 {
-  for (unsigned i = 0, size = d_index_order.size(); i < size; i++)
+  for (size_t i = 0, size = d_index_order.size(); i < size; i++)
   {
     terms.push_back(getCurrentTerm(i));
   }
@@ -311,7 +312,7 @@ void RepSetIterator::getCurrentTerms(std::vector<Node>& terms) const
 
 void RepSetIterator::debugPrint(const char* c)
 {
-  for (unsigned v = 0; v < d_index.size(); v++)
+  for (size_t v = 0, isize = d_index.size(); v < isize; v++)
   {
     Trace(c) << v << " : " << getCurrentTerm(v) << std::endl;
   }
@@ -320,7 +321,7 @@ void RepSetIterator::debugPrint(const char* c)
 void RepSetIterator::debugPrintSmall(const char* c)
 {
   Trace(c) << "RI: ";
-  for (unsigned v = 0; v < d_index.size(); v++)
+  for (size_t v = 0, isize = d_index.size(); v < isize; v++)
   {
     Trace(c) << v << ": " << getCurrentTerm(v) << " ";
   }

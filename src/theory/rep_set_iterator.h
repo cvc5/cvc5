@@ -146,7 +146,7 @@ class RepSetIterator
   /** set index order (see below) */
   void setIndexOrder(std::vector<unsigned>& indexOrder);
   /** do reset increment the iterator at index=counter */
-  int do_reset_increment(int counter, bool initial = false);
+  int doResetIncrement(int counter, bool initial = false);
   /** ordering for variables we are iterating over
    *  For example, given reps = { a, b } and quantifier
    *    forall( x, y, z ) P( x, y, z )
