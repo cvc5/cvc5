@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --strings-exp -q
 ; EXPECT: sat
-; EXPECT: (((seq.nth y 7) 404))
+; EXPECT: (((seq.nth y 7) (seq.nth (as seq.empty (Seq Int)) 7)))
 ; EXPECT: (((str.from_code x) "?"))
 (set-logic ALL)
 (set-option :produce-models true)
