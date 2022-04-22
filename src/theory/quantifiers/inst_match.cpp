@@ -117,10 +117,6 @@ bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
     // if they are equal, we do nothing
     return qs.areEqual(d_vals[i], n);
   }
-  // TODO: check if we have already learned this failure?
-  // TODO: if applicable, check if the instantiation evaluator is ok
-  // TODO: if not, learn the failure?
-
   // otherwise, we update the value
   d_vals[i] = n;
   return true;
