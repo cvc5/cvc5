@@ -82,6 +82,7 @@ public:
   void reset(size_t i);
   /** Get the values */
   std::vector<Node>& get();
+
  private:
   /* map from variable to ground terms */
   std::vector<Node> d_vals;

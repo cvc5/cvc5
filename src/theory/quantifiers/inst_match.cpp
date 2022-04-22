@@ -106,21 +106,15 @@ bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
   // TODO: check if we have already learned this failure?
   // TODO: if applicable, check if the instantiation evaluator is ok
   // TODO: if not, learn the failure?
-  
+
   // otherwise, we update the value
   d_vals[i] = n;
   return true;
 }
 
-void InstMatch::reset(size_t i)
-{
-  d_vals[i] = Node::null();
-}
+void InstMatch::reset(size_t i) { d_vals[i] = Node::null(); }
 
-std::vector<Node>& InstMatch::get()
-{
-  return d_vals;
-}
+std::vector<Node>& InstMatch::get() { return d_vals; }
 
 }  // namespace quantifiers
 }  // namespace theory

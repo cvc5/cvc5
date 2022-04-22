@@ -142,7 +142,10 @@ void State::initialize()
 
 bool State::hasInitialized() const { return d_initialized.get(); }
 
-bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants, bool trackAssignedQuant)
+bool State::assignVar(TNode v,
+                      TNode s,
+                      std::vector<Node>& assignedQuants,
+                      bool trackAssignedQuant)
 {
   // notify that the variable is equal to the ground term
   Node r = getValue(s);

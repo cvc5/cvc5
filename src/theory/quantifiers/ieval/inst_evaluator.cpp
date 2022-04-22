@@ -78,11 +78,13 @@ bool InstEvaluator::push(TNode v, TNode s)
 
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
-  Assert (d_trackAssignedQuant);
+  Assert(d_trackAssignedQuant);
   return pushInternal(v, s, assignedQuants);
 }
 
-bool InstEvaluator::pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants)
+bool InstEvaluator::pushInternal(TNode v,
+                                 TNode s,
+                                 std::vector<Node>& assignedQuants)
 {
   d_context.push();
   TNode canonVar = v;
