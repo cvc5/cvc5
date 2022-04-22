@@ -849,18 +849,18 @@ TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
 {
-  std::vector<TypeNode> ts;
   Trace("tuprec-debug") << "Make tuple type : ";
   for (unsigned i = 0; i < types.size(); ++i)
   {
     CheckArgument(!types[i].isFunctionLike(),
                   types,
                   "cannot put function-like types in tuples");
-    ts.push_back(types[i]);
     Trace("tuprec-debug") << types[i] << " ";
   }
   Trace("tuprec-debug") << std::endl;
-  return d_tt_cache.getTupleType(this, ts);
+  Node dtt = d_tt_cache.getTupleType(this, types);
+  Node tt = mkTypeNode(kind::TUPLE_TYPE, types);
+  return dtt;
 }
 
 TypeNode NodeManager::mkRecordType(const Record& rec)
