@@ -47,7 +47,7 @@ bool PatTermInfo::notifyChild(State& s,
                               TermEvaluatorCallback* tec)
 {
   Assert(!val.isNull());
-  Assert(s.isGroundEqc(val) || s.isNone(val));
+  Assert(!expr::hasBoundVar(val));
   if (!d_eq.get().isNull())
   {
     // already set
