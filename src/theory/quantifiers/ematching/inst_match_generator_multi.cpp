@@ -226,20 +226,25 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
   {
     size_t curr_index = iio->d_order[trieIndex];
     Node n = m.get(curr_index);
+    QuantifiersState& qs = d_qstate;
     if (n.isNull())
     {
       // add to InstMatch
       for (std::pair<const Node, InstMatchTrie>& d : tr->d_data)
       {
-        InstMatch mn(&m);
-        mn.setValue(curr_index, d.first);
-        processNewInstantiations(mn,
+        // try to set
+        if (!m.set(qs, curr_index, d.first))
+        {
+          continue;
+        }
+        processNewInstantiations(m,
                                  addedLemmas,
                                  &(d.second),
                                  trieIndex + 1,
                                  childIndex,
                                  endChildIndex,
                                  modEq);
+        m.reset(curr_index);
         if (d_qstate.isInConflict())
         {
           break;
@@ -262,35 +267,27 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
     {
       return;
     }
-    QuantifiersState& qs = d_qstate;
     // check modulo equality for other possible instantiations
     if (!qs.hasTerm(n))
     {
       return;
     }
-    eq::EqClassIterator eqc(qs.getRepresentative(n), qs.getEqualityEngine());
-    while (!eqc.isFinished())
+    for (std::pair<const Node, InstMatchTrie>& d : tr->d_data)
     {
-      Node en = (*eqc);
-      if (en != n)
+      if (d.first!=n && qs.areEqual(d.first, n))
       {
-        std::map<Node, InstMatchTrie>::iterator itc = tr->d_data.find(en);
-        if (itc != tr->d_data.end())
+        processNewInstantiations(m,
+                                  addedLemmas,
+                                  &(d.second),
+                                  trieIndex + 1,
+                                  childIndex,
+                                  endChildIndex,
+                                  modEq);
+        if (d_qstate.isInConflict())
         {
-          processNewInstantiations(m,
-                                   addedLemmas,
-                                   &(itc->second),
-                                   trieIndex + 1,
-                                   childIndex,
-                                   endChildIndex,
-                                   modEq);
-          if (d_qstate.isInConflict())
-          {
-            break;
-          }
+          break;
         }
       }
-      ++eqc;
     }
   }
   else
