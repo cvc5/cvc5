@@ -164,22 +164,14 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
     InstMatch m(q);
     while (d_children[i]->getNextMatch(q, m) > 0)
     {
-      // m.makeRepresentative( qe );
-      newMatches.push_back(InstMatch(&m));
-      m.clear();
-    }
-    Trace("multi-trigger-cache") << "Made " << newMatches.size()
-                                 << " new matches for index " << i << std::endl;
-    for (size_t j = 0, nmatches = newMatches.size(); j < nmatches; j++)
-    {
       Trace("multi-trigger-cache2")
-          << "...processing " << j << " / " << newMatches.size()
-          << ", #lemmas = " << addedLemmas << std::endl;
-      processNewMatch(newMatches[j], i, addedLemmas);
+          << "...processing new match, #lemmas = " << addedLemmas << std::endl;
+      processNewMatch(m, i, addedLemmas);
       if (d_qstate.isInConflict())
       {
         return addedLemmas;
       }
+      m.clear();
     }
   }
   return addedLemmas;
