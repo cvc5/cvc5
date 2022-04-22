@@ -1164,22 +1164,22 @@ TNode NodeManager::operatorOf(Kind k)
   return d_operators[k];
 }
 /**
-  * This template gives a mechanism to stack-allocate a NodeValue
-  * with enough space for N children (where N is a compile-time
-  * constant).  You use it like this:
-  *
-  *   NVStorage<4> nvStorage;
-  *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
-  *
-  * ...and then you can use nvStack as a NodeValue that you know has
-  * room for 4 children.
-  */
+ * This template gives a mechanism to stack-allocate a NodeValue
+ * with enough space for N children (where N is a compile-time
+ * constant).  You use it like this:
+ *
+ *   NVStorage<4> nvStorage;
+ *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
+ *
+ * ...and then you can use nvStack as a NodeValue that you know has
+ * room for 4 children.
+ */
 struct NVStorage
 {
   expr::NodeValue nv;
   expr::NodeValue* child[1];
 };
-  
+
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 {
