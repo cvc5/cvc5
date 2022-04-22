@@ -38,7 +38,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(),
-      d_rewriter(&d_statistics.d_rewrites),
+      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
       d_cardSolver(env, d_state, d_im),
@@ -80,6 +80,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
+  d_equalityEngine->addFunctionKind(BAG_PARTITION);
   d_equalityEngine->addFunctionKind(TABLE_PRODUCT);
   d_equalityEngine->addFunctionKind(TABLE_PROJECT);
   d_equalityEngine->addFunctionKind(TABLE_AGGREGATE);
@@ -456,6 +457,7 @@ void TheoryBags::preRegisterTerm(TNode n)
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
+    case BAG_PARTITION:
     case TABLE_PROJECT:
     {
       std::stringstream ss;

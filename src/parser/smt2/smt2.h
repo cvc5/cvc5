@@ -18,6 +18,7 @@
 #ifndef CVC5__PARSER__SMT2_H
 #define CVC5__PARSER__SMT2_H
 
+#include <optional>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -382,6 +383,20 @@ class Smt2 : public Parser
    */
   cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
   //------------------------- end processing parse operators
+
+  /**
+   * Handles a push command.
+   *
+   * @return An instance of `PushCommand`
+   */
+  std::unique_ptr<Command> handlePush(std::optional<uint32_t> nscopes);
+  /**
+   * Handles a pop command.
+   *
+   * @return An instance of `PopCommand`
+   */
+  std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
+
  private:
 
   void addArithmeticOperators();

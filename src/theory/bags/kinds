@@ -89,6 +89,10 @@ operator BAG_FILTER        2  "bag filter operator"
 #  B: a bag of type (Bag T1)
 operator BAG_FOLD          3  "bag fold operator"
 
+# bag.partition operator partitions a bag into a bag of bags based on an equivalence relation such that
+# each element occurs exactly in one these bags.
+operator BAG_PARTITION     2 "bag partition operator"
+
 typerule BAG_UNION_MAX           ::cvc5::internal::theory::bags::BinaryOperatorTypeRule
 typerule BAG_UNION_DISJOINT      ::cvc5::internal::theory::bags::BinaryOperatorTypeRule
 typerule BAG_INTER_MIN           ::cvc5::internal::theory::bags::BinaryOperatorTypeRule
@@ -109,6 +113,7 @@ typerule BAG_TO_SET              ::cvc5::internal::theory::bags::ToSetTypeRule
 typerule BAG_MAP                 ::cvc5::internal::theory::bags::BagMapTypeRule
 typerule BAG_FILTER              ::cvc5::internal::theory::bags::BagFilterTypeRule
 typerule BAG_FOLD                ::cvc5::internal::theory::bags::BagFoldTypeRule
+typerule BAG_PARTITION           ::cvc5::internal::theory::bags::BagPartitionTypeRule
 
 construle BAG_UNION_DISJOINT     ::cvc5::internal::theory::bags::BinaryOperatorTypeRule
 construle BAG_MAKE               ::cvc5::internal::theory::bags::BagMakeTypeRule

@@ -17,6 +17,7 @@
 
 #include "expr/emptybag.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
@@ -41,8 +42,8 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
-    : d_statistics(statistics)
+BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
+    : d_rewriter(r), d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -92,6 +93,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_MAP: response = postRewriteMap(n); break;
       case BAG_FILTER: response = postRewriteFilter(n); break;
       case BAG_FOLD: response = postRewriteFold(n); break;
+      case BAG_PARTITION: response = postRewritePartition(n); break;
       case TABLE_PRODUCT: response = postRewriteProduct(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
@@ -645,6 +647,21 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
     }
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_PARTITION);
+  if (n[1].isConst())
+  {
+    Node ret = BagsUtils::evaluateBagPartition(d_rewriter, n);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
+    }
+  }
+
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --sets-ext --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL)
