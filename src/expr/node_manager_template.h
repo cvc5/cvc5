@@ -624,9 +624,6 @@ class NodeManager
   /** Create a raw symbol with the given type. */
   Node mkRawSymbol(const std::string& name, const TypeNode& type);
 
-  /** Make a new uninterpreted sort value with the given type. */
-  Node mkUninterpretedSortValue(const TypeNode& type);
-
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
@@ -1014,14 +1011,6 @@ class NodeManager
 
   TupleTypeCache d_tt_cache;
   RecTypeCache d_rt_cache;
-
-  /**
-   * Keep a count of all abstract values produced by this NodeManager.
-   * Abstract values have a type attribute, so if multiple SolverEngines
-   * are attached to this NodeManager, we don't want their abstract
-   * values to overlap.
-   */
-  uint32_t d_abstractValueCount;
 }; /* class NodeManager */
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,

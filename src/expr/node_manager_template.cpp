@@ -113,8 +113,7 @@ NodeManager::NodeManager()
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
-      d_inReclaimZombies(false),
-      d_abstractValueCount(0)
+      d_inReclaimZombies(false)
 {
 }
 
@@ -1139,12 +1138,6 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
   return bag;
 }
 
-Node NodeManager::mkUninterpretedSortValue(const TypeNode& type)
-{
-  Node n = mkConst(UninterpretedSortValue(type, ++d_abstractValueCount));
-  return n;
-}
-
 bool NodeManager::hasOperator(Kind k)
 {
   switch (kind::MetaKind mk = kind::metaKindOf(k))
@@ -1170,29 +1163,27 @@ TNode NodeManager::operatorOf(Kind k)
                  "in NodeManager::operatorOf()");
   return d_operators[k];
 }
-
 /**
- * This template gives a mechanism to stack-allocate a NodeValue
- * with enough space for N children (where N is a compile-time
- * constant).  You use it like this:
- *
- *   NVStorage<4> nvStorage;
- *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
- *
- * ...and then you can use nvStack as a NodeValue that you know has
- * room for 4 children.
- */
-template <size_t N>
+  * This template gives a mechanism to stack-allocate a NodeValue
+  * with enough space for N children (where N is a compile-time
+  * constant).  You use it like this:
+  *
+  *   NVStorage<4> nvStorage;
+  *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
+  *
+  * ...and then you can use nvStack as a NodeValue that you know has
+  * room for 4 children.
+  */
 struct NVStorage
 {
   expr::NodeValue nv;
-  expr::NodeValue* child[N];
+  expr::NodeValue* child[1];
 };
-
+  
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 {
-  NVStorage<1> nvStorage;
+  NVStorage nvStorage;
   expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
 
   nvStack.d_id = 0;
