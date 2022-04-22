@@ -116,7 +116,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       {
         // set the number of watched children
         PatTermInfo& pi = getPatTermInfo(cur);
-        pi.d_numChildren = nchild;
+        pi.d_numUnassigned = nchild;
       }
       else
       {
@@ -134,8 +134,9 @@ void State::initialize()
   d_initialized = true;
   for (const Node& b : d_registeredBaseTerms)
   {
-    PatTermInfo& pi = getPatTermInfo(b);
-    // TODO: evaluate
+    Node bev = d_tec->evaluateBase(*this, b);
+    Assert (!bev.isNull());
+    notifyPatternEqGround(b, bev);
   }
 }
 
@@ -144,7 +145,7 @@ bool State::hasInitialized() const { return d_initialized.get(); }
 bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
   // notify that the variable is equal to the ground term
-  Node r = d_qstate.getRepresentative(s);
+  Node r = getValue(s);
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -224,12 +225,10 @@ PatTermInfo& State::getPatTermInfo(TNode p)
   return it->second;
 }
 
-void State::notifyPatternNone(TNode p) { notifyPatternEqGround(p, d_none); }
-
 void State::notifyPatternEqGround(TNode p, TNode g)
 {
   Assert(!g.isNull());
-  Assert(isGroundEqc(g) || isNone(g));
+  Assert(!expr::hasBoundVar(g));
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   if (!it->second.isActive())
@@ -295,6 +294,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   bool setInactive = false;
   if (isNone(val))
   {
+    // TODO: this could be configurable
     setInactive = true;
     Trace("ieval-state-debug") << "...inactive due to none" << std::endl;
   }
@@ -333,7 +333,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
           c = dval;
         }
         // otherwise check the constraint
-        TNode r = d_qstate.getRepresentative(c);
+        TNode r = getValue(c);
         if (isEq != (val == r))
         {
           Trace("ieval-state-debug")
@@ -372,6 +372,7 @@ void State::setQuantInactive(QuantInfo& qi)
   if (qi.isActive())
   {
     qi.setActive(false);
+    Assert (d_numActiveQuant.get()>0);
     d_numActiveQuant = d_numActiveQuant - 1;
   }
 }
@@ -383,17 +384,6 @@ bool State::isNone(TNode n) const { return n == d_none; }
 Node State::getSome() const { return d_some; }
 
 bool State::isSome(TNode n) const { return n == d_some; }
-
-bool State::isGroundEqc(TNode r) const
-{
-  // FIXME?
-  return false;
-}
-
-bool State::areDisequal(TNode a, TNode b) const
-{
-  return d_qstate.areDisequal(a, b);
-}
 
 Node State::doRewrite(Node n) { return rewrite(n); }
 

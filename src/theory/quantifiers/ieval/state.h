@@ -89,14 +89,6 @@ class State : protected EnvObj
   Node getSome() const;
   /** Is some */
   bool isSome(TNode n) const;
-  /** Is ground eqc? */
-  bool isGroundEqc(TNode r) const;
-  /** Get the ground representative */
-  TNode getGroundRepresentative(TNode n) const;
-  /** Get representative */  // TODO: configurable equality engine here?
-  // Node getRepresentative(Node n);
-  /** Are disequal? */
-  bool areDisequal(TNode a, TNode b) const;
   /** Invoke the rewriter for term n */
   Node doRewrite(Node n);
   /** Is quantifier active? */
@@ -111,11 +103,6 @@ class State : protected EnvObj
 
  private:
   //---------------equality notifications
-  /**
-   * Called when we have determined that pattern p will not merge with any
-   * ground equivalence class.
-   */
-  void notifyPatternNone(TNode p);
   /**
    * Called when it is determined what pattern p is equal to.
    *

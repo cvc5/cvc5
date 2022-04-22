@@ -30,9 +30,7 @@ namespace ieval {
 PatTermInfo::PatTermInfo(context::Context* c)
     : d_eq(c),
       d_numUnassigned(c, 0),
-      d_numChildren(0),
-      d_parentNotify(c),
-      d_isWatchedEval(c, false)
+      d_parentNotify(c)
 {
 }
 

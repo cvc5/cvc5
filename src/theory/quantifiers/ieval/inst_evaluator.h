@@ -36,6 +36,9 @@ class TermRegistry;
 
 namespace ieval {
 
+// TODO:
+// base terms
+  
 /**
  * Inst evaluator
  *
@@ -75,7 +78,10 @@ class InstEvaluator : protected EnvObj
    * Get instantiation for quantified formula q.
    */
   std::vector<Node> getInstantiationFor(Node q) const;
-
+  /**
+   * Is feasible, return true if any quantified formulas are feasible.
+   */
+  bool isFeasible() const;
  private:
   /** A context object */
   context::Context d_context;
