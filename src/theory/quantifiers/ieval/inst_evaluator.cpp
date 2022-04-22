@@ -49,7 +49,7 @@ void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
   // must provide all quantified formulas before initializing the state
-  Assert (!d_state.hasInitialized());
+  Assert(!d_state.hasInitialized());
   std::vector<Node> vars;
   if (d_doCanonize)
   {
@@ -102,7 +102,7 @@ bool InstEvaluator::pushInternal(TNode v,
     d_context.pop();
     return false;
   }
-  Assert (d_state.hasInitialized());
+  Assert(d_state.hasInitialized());
   return true;
 }
 

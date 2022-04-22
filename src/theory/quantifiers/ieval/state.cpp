@@ -17,8 +17,8 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/ieval/term_evaluator.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace cvc5::internal::kind;
 
