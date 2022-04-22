@@ -112,9 +112,9 @@ bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
   return true;
 }
 
-void InstMatch::reset(size_t i) 
-{ 
-  Assert (!d_vals[i].isNull());
+void InstMatch::reset(size_t i)
+{
+  Assert(!d_vals[i].isNull());
   d_vals[i] = Node::null();
 }
 
