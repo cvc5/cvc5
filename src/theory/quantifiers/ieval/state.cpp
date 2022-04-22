@@ -135,7 +135,7 @@ void State::initialize()
   for (const Node& b : d_registeredBaseTerms)
   {
     Node bev = d_tec->evaluateBase(*this, b);
-    Assert (!bev.isNull());
+    Assert(!bev.isNull());
     notifyPatternEqGround(b, bev);
   }
 }
@@ -372,7 +372,7 @@ void State::setQuantInactive(QuantInfo& qi)
   if (qi.isActive())
   {
     qi.setActive(false);
-    Assert (d_numActiveQuant.get()>0);
+    Assert(d_numActiveQuant.get() > 0);
     d_numActiveQuant = d_numActiveQuant - 1;
   }
 }

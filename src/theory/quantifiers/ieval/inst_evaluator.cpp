@@ -102,10 +102,7 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
   return vars;
 }
 
-bool InstEvaluator::isFeasible() const
-{
-  return !d_state.isFinished();
-}
+bool InstEvaluator::isFeasible() const { return !d_state.isFinished(); }
 
 }  // namespace ieval
 }  // namespace quantifiers
