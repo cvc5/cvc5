@@ -1164,9 +1164,8 @@ TNode NodeManager::operatorOf(Kind k)
   return d_operators[k];
 }
 /**
- * This template gives a mechanism to stack-allocate a NodeValue
- * with enough space for 1 child (where N is a compile-time
- * constant).  You use it like this:
+ * This class gives a mechanism to stack-allocate a NodeValue
+ * with enough space for 1 child.  You use it like this:
  *
  *   NVStorage nvStorage;
  *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
