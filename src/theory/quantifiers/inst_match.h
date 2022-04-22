@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/ieval/inst_evaluator.h"
+#include "theory/quantifiers/ieval/term_evaluator.h"
 
 namespace cvc5::internal {
 

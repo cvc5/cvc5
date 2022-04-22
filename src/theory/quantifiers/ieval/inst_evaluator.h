@@ -36,8 +36,6 @@ class TermRegistry;
 namespace ieval {
 
 class TermEvaluator;
-// TODO:
-// base terms
 
 /** The evaluator to use */
 enum class TermEvaluatorMode : uint32_t

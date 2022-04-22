@@ -48,6 +48,8 @@ void InstEvaluator::watch(Node q)
 void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
+  // must provide all quantified formulas before initializing the state
+  Assert (!d_state.hasInitialized());
   std::vector<Node> vars;
   if (d_doCanonize)
   {
@@ -93,11 +95,14 @@ bool InstEvaluator::pushInternal(TNode v,
     canonVar = d_varMap[v];
   }
   d_varMap[v] = s;
+  // note that the first assigned variable will force an initialization of the
+  // state
   if (!d_state.assignVar(canonVar, s, assignedQuants, d_trackAssignedQuant))
   {
     d_context.pop();
     return false;
   }
+  Assert (d_state.hasInitialized());
   return true;
 }
 

@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/ieval/term_evaluator.h"
 
 using namespace cvc5::internal::kind;
 
@@ -128,7 +129,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
   } while (!visit.empty());
 }
 
-void State::initialize()
+bool State::initialize()
 {
   Assert(!d_initialized.get());
   d_initialized = true;
@@ -137,7 +138,12 @@ void State::initialize()
     Node bev = d_tec->evaluateBase(*this, b);
     Assert(!bev.isNull());
     notifyPatternEqGround(b, bev);
+    if (isFinished())
+    {
+      return false;
+    }
   }
+  return true;
 }
 
 bool State::hasInitialized() const { return d_initialized.get(); }
@@ -147,6 +153,15 @@ bool State::assignVar(TNode v,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
+  if (!d_initialized.get())
+  {
+    // initialize if not done so already, which does the initial evaluations
+    // of (ground) subterms in quantified formulas.
+    if (!initialize())
+    {
+      return false;
+    }
+  }
   // notify that the variable is equal to the ground term
   Node r = getValue(s);
   notifyPatternEqGround(v, r);

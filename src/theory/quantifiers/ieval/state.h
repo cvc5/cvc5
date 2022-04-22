@@ -26,7 +26,6 @@
 #include "theory/quantifiers/ieval/free_var_info.h"
 #include "theory/quantifiers/ieval/pattern_term_info.h"
 #include "theory/quantifiers/ieval/quant_info.h"
-#include "theory/quantifiers/ieval/term_evaluator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -36,6 +35,8 @@ class QuantifiersState;
 class TermDb;
 
 namespace ieval {
+
+class TermEvaluator;
 
 class State : protected EnvObj
 {
@@ -53,13 +54,10 @@ class State : protected EnvObj
   /** Watch quantified formula with the given body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
-  /** initialize */
-  void initialize();
-
   /** has initialized */
   bool hasInitialized() const;
 
-  /** Assign variable */
+  /** Assign variable, return false if we are finished */
   bool assignVar(TNode v,
                  TNode s,
                  std::vector<Node>& assignedQuants,
@@ -105,7 +103,8 @@ class State : protected EnvObj
   std::string toStringDebugSearch() const;
 
  private:
-  //---------------equality notifications
+  /** initialize, return false if we are finished */
+  bool initialize();
   /**
    * Called when it is determined what pattern p is equal to.
    *
