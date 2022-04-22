@@ -414,14 +414,14 @@ bool TypeNode::isInstantiatedDatatype() const {
   {
     return true;
   }
-  if(k != kind::PARAMETRIC_DATATYPE) 
+  if (k != kind::PARAMETRIC_DATATYPE)
   {
     return false;
   }
   const DType& dt = (*this)[0].getDType();
   size_t n = dt.getNumParameters();
   Assert(n < getNumChildren());
-  for(size_t i = 0; i < n; ++i)
+  for (size_t i = 0; i < n; ++i)
   {
     if (dt.getParameter(i) == (*this)[i + 1])
     {
