@@ -142,7 +142,7 @@ void State::initialize()
 
 bool State::hasInitialized() const { return d_initialized.get(); }
 
-bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
+bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants, bool trackAssignedQuant)
 {
   // notify that the variable is equal to the ground term
   Node r = getValue(s);
@@ -152,28 +152,31 @@ bool State::assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants)
   {
     return false;
   }
-  // decrement the unassigned variable counts for all quantified formulas
-  // containing this variable
-  FreeVarInfo& finfo = getFreeVarInfo(v);
-  for (const Node& q : finfo.d_quantList)
+  if (trackAssignedQuant)
   {
-    QuantInfo& qinfo = getQuantInfo(q);
-    if (!qinfo.isActive())
+    // decrement the unassigned variable counts for all quantified formulas
+    // containing this variable
+    FreeVarInfo& finfo = getFreeVarInfo(v);
+    for (const Node& q : finfo.d_quantList)
     {
-      // marked inactive, skip
-      continue;
-    }
-    if (qinfo.getNumUnassignedVars() == 1)
-    {
-      // now fully assigned
-      assignedQuants.push_back(q);
-      // set inactive
-      setQuantInactive(qinfo);
-    }
-    else
-    {
-      // decrement the variable
-      qinfo.decrementUnassignedVar();
+      QuantInfo& qinfo = getQuantInfo(q);
+      if (!qinfo.isActive())
+      {
+        // marked inactive, skip
+        continue;
+      }
+      if (qinfo.getNumUnassignedVars() == 1)
+      {
+        // now fully assigned
+        assignedQuants.push_back(q);
+        // set inactive
+        setQuantInactive(qinfo);
+      }
+      else
+      {
+        // decrement the variable
+        qinfo.decrementUnassignedVar();
+      }
     }
   }
   return true;

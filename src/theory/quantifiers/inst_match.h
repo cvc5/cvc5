@@ -41,8 +41,6 @@ class InstMatch {
 public:
   explicit InstMatch(TNode q);
   InstMatch( InstMatch* m );
-  /* map from variable to ground terms */
-  std::vector<Node> d_vals;
   /** add match m
    *
    * This adds the initialized fields of m to this match for each field that is
@@ -80,8 +78,13 @@ public:
    * or is equivalent to n modulo the equalities given by q.
    */
   bool set(QuantifiersState& qs, size_t i, TNode n);
-
+  /** Resets index i */
+  void reset(size_t i);
+  /** Get the values */
+  std::vector<Node>& get();
  private:
+  /* map from variable to ground terms */
+  std::vector<Node> d_vals;
   /** The quantified formula */
   Node d_quant;
 };

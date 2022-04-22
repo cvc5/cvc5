@@ -26,12 +26,14 @@ InstEvaluator::InstEvaluator(Env& env,
                              QuantifiersState& qs,
                              TermRegistry& tr,
                              TermEvaluator* tec,
-                             bool doCanonize)
+                             bool doCanonize,
+                             bool trackAssignedQuant)
     : EnvObj(env),
       d_context(),
       d_qs(qs),
       d_treg(tr),
       d_doCanonize(doCanonize),
+      d_trackAssignedQuant(trackAssignedQuant),
       d_state(env, &d_context, qs, tr.getTermDatabase(), tec),
       d_varMap(&d_context)
 {
@@ -68,7 +70,19 @@ void InstEvaluator::watch(Node q, Node body)
 
 void InstEvaluator::push() { d_context.push(); }
 
+bool InstEvaluator::push(TNode v, TNode s)
+{
+  std::vector<Node> assignedQuants;
+  return pushInternal(v, s, assignedQuants);
+}
+
 bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
+{
+  Assert (d_trackAssignedQuant);
+  return pushInternal(v, s, assignedQuants);
+}
+
+bool InstEvaluator::pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants)
 {
   d_context.push();
   TNode canonVar = v;
@@ -77,7 +91,7 @@ bool InstEvaluator::push(TNode v, TNode s, std::vector<Node>& assignedQuants)
     canonVar = d_varMap[v];
   }
   d_varMap[v] = s;
-  if (!d_state.assignVar(canonVar, s, assignedQuants))
+  if (!d_state.assignVar(canonVar, s, assignedQuants, d_trackAssignedQuant))
   {
     d_context.pop();
     return false;

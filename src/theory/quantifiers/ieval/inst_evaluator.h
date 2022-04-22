@@ -54,7 +54,8 @@ class InstEvaluator : protected EnvObj
                 QuantifiersState& qs,
                 TermRegistry& tr,
                 TermEvaluator* tec,
-                bool doCanonize = true);
+                bool doCanonize = true,
+                bool trackAssignedQuant = false);
   /**
    * Set that we are watching quantified formula q.
    */
@@ -71,6 +72,7 @@ class InstEvaluator : protected EnvObj
    * instantiated.
    */
   void push();
+  bool push(TNode v, TNode s);
   bool push(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /** pop the last (successful) push */
   void pop();
@@ -84,6 +86,8 @@ class InstEvaluator : protected EnvObj
   bool isFeasible() const;
 
  private:
+  /** push internal */
+  bool pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /** A context object */
   context::Context d_context;
   /** The quantifiers state object */
@@ -92,6 +96,8 @@ class InstEvaluator : protected EnvObj
   TermRegistry& d_treg;
   /** do canonize */
   bool d_doCanonize;
+  /** Are we tracking unassigned quantifiers? */
+  bool d_trackAssignedQuant;
   /** The state object */
   State d_state;
   /** Variable mapping */

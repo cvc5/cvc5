@@ -60,7 +60,7 @@ class State : protected EnvObj
   bool hasInitialized() const;
 
   /** Assign variable */
-  bool assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants);
+  bool assignVar(TNode v, TNode s, std::vector<Node>& assignedQuants, bool trackAssignedQuant);
 
   //---------------quantifiers info
   /** Get quantifiers info */
