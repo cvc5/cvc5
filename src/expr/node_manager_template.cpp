@@ -868,23 +868,6 @@ TypeNode NodeManager::mkRecordType(const Record& rec)
   return d_rt_cache.getRecordType(this, rec);
 }
 
-void NodeManager::reclaimAllZombies() { reclaimZombiesUntil(0u); }
-
-/** Reclaim zombies while there are more than k nodes in the pool (if
- * possible).*/
-void NodeManager::reclaimZombiesUntil(uint32_t k)
-{
-  if (safeToReclaimZombies())
-  {
-    while (poolSize() >= k && !d_zombies.empty())
-    {
-      reclaimZombies();
-    }
-  }
-}
-
-size_t NodeManager::poolSize() const { return d_nodeValuePool.size(); }
-
 TypeNode NodeManager::mkSort()
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
@@ -1265,11 +1248,6 @@ void NodeManager::deleteAttributes(
     const std::vector<const expr::attr::AttributeUniqueId*>& ids)
 {
   d_attrManager->deleteAttributes(ids);
-}
-
-void NodeManager::debugHook(int debugFlag)
-{
-  // For debugging purposes only, DO NOT CHECK IN ANY CODE!
 }
 
 Kind NodeManager::getKindForFunction(TNode fun)
