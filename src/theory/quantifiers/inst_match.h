@@ -70,7 +70,7 @@ class InstMatch {
    * context scope in the inst evaluator (if used).
    */
   bool set(size_t i, TNode n);
-  /** 
+  /**
    * Resets index i, which sets d_vals[i] to null, and pops a context scope in
    * the inst evaluator (if used).
    */
