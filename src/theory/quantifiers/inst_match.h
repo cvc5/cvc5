@@ -80,7 +80,8 @@ public:
    * or is equivalent to n modulo the equalities given by q.
    */
   bool set(QuantifiersState& qs, size_t i, TNode n);
-private:
+
+ private:
   /** The quantified formula */
   Node d_quant;
 };

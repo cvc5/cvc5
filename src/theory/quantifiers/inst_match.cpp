@@ -29,7 +29,7 @@ InstMatch::InstMatch(TNode q) : d_quant(q)
   Assert(d_vals[0].isNull());
 }
 
-InstMatch::InstMatch( InstMatch* m ) : d_quant(m->d_quant) 
+InstMatch::InstMatch(InstMatch* m) : d_quant(m->d_quant)
 {
   d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
 }
@@ -53,7 +53,8 @@ void InstMatch::debugPrint( const char* c ){
   }
 }
 
-bool InstMatch::isComplete() const {
+bool InstMatch::isComplete() const
+{
   for (const Node& v : d_vals)
   {
     if (v.isNull())
@@ -64,7 +65,8 @@ bool InstMatch::isComplete() const {
   return true;
 }
 
-bool InstMatch::empty() const {
+bool InstMatch::empty() const
+{
   for (const Node& v : d_vals)
   {
     if (!v.isNull())
