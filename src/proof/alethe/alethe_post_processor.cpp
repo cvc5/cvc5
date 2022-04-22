@@ -439,10 +439,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::RESOLUTION:
     case PfRule::CHAIN_RESOLUTION:
     {
-      if (!expr::isSingletonClause(res, children, args))
+      std::vector<Node> newArgs = options::proofAletheResPivots()? args : std::vector<Node>();
+      if (!expr::isSingletonClause(res, children, newArgs))
       {
         return addAletheStepFromOr(
-            AletheRule::RESOLUTION_OR, res, children, args, *cdp);
+            AletheRule::RESOLUTION_OR, res, children, newArgs, *cdp);
       }
       return addAletheStep(AletheRule::RESOLUTION_OR,
                            res,
@@ -450,7 +451,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                ? nm->mkNode(kind::SEXPR, d_cl)
                                : nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           newArgs,
                            *cdp);
     }
     // ======== Factoring
