@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Representative set class and utilities.
+ * Representative set utilities.
  */
 
 #include "cvc5_private.h"

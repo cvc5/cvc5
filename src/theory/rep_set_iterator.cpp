@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of representative set.
+ * Implementation of representative set utilities.
  */
 
 #include "theory/rep_set_iterator.h"
