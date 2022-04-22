@@ -51,7 +51,8 @@ State::State(Env& env,
   d_false = nm->mkConst(false);
 
   // initialize the term evaluator
-  if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP || tev==TermEvaluatorMode::NO_ENTAIL)
+  if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP
+      || tev == TermEvaluatorMode::NO_ENTAIL)
   {
     d_tec.reset(new TermEvaluatorEntailed(env, qs, d_tdb));
   }
