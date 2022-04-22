@@ -327,9 +327,18 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   bool setInactive = false;
   if (isNone(val))
   {
-    // TODO: this could be configurable
-    setInactive = true;
-    Trace("ieval-state-debug") << "...inactive due to none" << std::endl;
+    // a top-level constraint is "none", i.e. this instantiation will generate
+    // a predicate over new terms.
+    if (d_tevMode==TermEvaluatorMode::CONFLICT || d_tevMode==TermEvaluatorMode::PROP)
+    {
+      // if we are looking for conflicts and propagations only, we are now inactive
+      setInactive = true;
+      Trace("ieval-state-debug") << "...inactive due to none" << std::endl;
+    }
+    else
+    {
+      qi.setNoConflict();
+    }
   }
   else
   {
@@ -352,7 +361,15 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
         {
           // it has the "some" value, and we have any constraint, we remain
           // active but are not strictly a conflict
-          qi.setNoConflict();
+          if (d_tevMode==TermEvaluatorMode::CONFLICT)
+          {
+            // if we require conflicts, we are inactive now
+            setInactive = true;
+          }
+          else
+          {
+            qi.setNoConflict();
+          }
           Trace("ieval-state-debug") << "...no conflict" << std::endl;
           break;
         }
