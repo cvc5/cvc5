@@ -37,9 +37,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
+QuantInfo::QuantInfo(Env& env, QuantifiersState& qs,
+            TermRegistry& tr, QuantConflictFind* p, Node q)
     : EnvObj(env),
+      d_qs(qs),
       d_parent(p),
+      d_instMatch(env, qs, tr, q),
       d_mg(nullptr),
       d_q(q),
       d_unassigned_nvar(0),
@@ -369,7 +372,7 @@ bool QuantInfo::getCurrentCanBeEqual(size_t v, TNode n, bool chDiseq)
     else if (chDiseq && !isVar(n) && !isVar(cv))
     {
       // they must actually be disequal if we are looking for conflicts
-      if (!d_parent->areDisequal(n, cv))
+      if (!d_qs.areDisequal(n, cv))
       {
         // TODO : check for entailed disequal
         return false;
@@ -2148,7 +2151,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   Trace("qcf-qregister")
       << "- Get relevant equality/disequality pairs, calculate flattening..."
       << std::endl;
-  d_qinfo[q].reset(new QuantInfo(d_env, this, q));
+  d_qinfo[q].reset(new QuantInfo(d_env, d_qstate, d_treg, this, q));
 
   // debug print
   if (TraceIsOn("qcf-qregister"))

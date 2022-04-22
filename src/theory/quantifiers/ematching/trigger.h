@@ -161,8 +161,6 @@ class Trigger : protected EnvObj
    * Instantiate::addInstantiation(...).
    */
   virtual bool sendInstantiation(std::vector<Node>& m, InferenceId id);
-  /** inst match version, calls the above method */
-  bool sendInstantiation(InstMatch& m, InferenceId id);
   /**
    * Ensure that all ground subterms of n have been preprocessed. This makes
    * calls to the provided valuation to obtain the preprocessed form of these

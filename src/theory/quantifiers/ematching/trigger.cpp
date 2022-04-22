@@ -176,11 +176,6 @@ bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
   return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
 }
 
-bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
-{
-  return sendInstantiation(m.get(), id);
-}
-
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
 
 Node Trigger::ensureGroundTermPreprocessed(Valuation& val,

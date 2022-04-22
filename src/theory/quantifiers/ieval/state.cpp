@@ -163,7 +163,7 @@ bool State::assignVar(TNode v,
     }
   }
   // notify that the variable is equal to the ground term
-  Node r = getValue(s);
+  Node r = d_qstate.getRepresentative(s);
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
