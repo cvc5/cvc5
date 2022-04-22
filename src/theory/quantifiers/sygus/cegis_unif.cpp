@@ -488,7 +488,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());
       std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
-          datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+          datatypes);
       d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);

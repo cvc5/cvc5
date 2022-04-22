@@ -66,24 +66,6 @@ class NodeManager
   friend class NodeBuilder;
 
  public:
-  /**
-   * Bits for use in mkDatatypeType() flags.
-   *
-   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
-   * out as a definition, for example, in models or during dumping.
-   */
-  enum
-  {
-    DATATYPE_FLAG_NONE = 0,
-    DATATYPE_FLAG_PLACEHOLDER = 1
-  }; /* enum */
-
-  /** Bits for use in mkSort() flags. */
-  enum
-  {
-    SORT_FLAG_NONE = 0,
-    SORT_FLAG_PLACEHOLDER = 1
-  }; /* enum */
 
   /**
    * Return true if given kind is n-ary. The test is based on n-ary kinds
@@ -474,14 +456,14 @@ class NodeManager
   TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing the given datatype. */
-  TypeNode mkDatatypeType(DType& datatype, uint32_t flags = DATATYPE_FLAG_NONE);
+  TypeNode mkDatatypeType(DType& datatype);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::vector<DType>& datatypes);
 
   /**
    * Make a type representing a constructor with the given argument (subfield)
@@ -783,8 +765,7 @@ class NodeManager
    */
   std::vector<TypeNode> mkMutualDatatypeTypesInternal(
       const std::vector<DType>& datatypes,
-      const std::set<TypeNode>& unresolvedTypes,
-      uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::set<TypeNode>& unresolvedTypes);
 
   typedef std::unordered_set<expr::NodeValue*,
                              expr::NodeValuePoolHashFunction,

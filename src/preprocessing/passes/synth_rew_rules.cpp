@@ -396,7 +396,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     datatypes.push_back(sdts[i].getDatatype());
   }
   std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(
-      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      datatypes);
   Trace("srs-input") << "...finished." << std::endl;
   Assert(types.size() == datatypes.size());
   std::map<Node, TypeNode> subtermTypes;
@@ -441,7 +441,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     sdttl.initializeDatatype(t, sygusVarList, false, false);
     DType dttl = sdttl.getDatatype();
     TypeNode tlt =
-        nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+        nm->mkDatatypeType(dttl);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
     Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt)

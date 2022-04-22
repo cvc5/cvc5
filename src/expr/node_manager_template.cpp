@@ -556,19 +556,19 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
-TypeNode NodeManager::mkDatatypeType(DType& datatype, uint32_t flags)
+TypeNode NodeManager::mkDatatypeType(DType& datatype)
 {
   // Not worth a special implementation; this doesn't need to be fast
   // code anyway.
   std::vector<DType> datatypes;
   datatypes.push_back(datatype);
-  std::vector<TypeNode> result = mkMutualDatatypeTypes(datatypes, flags);
+  std::vector<TypeNode> result = mkMutualDatatypeTypes(datatypes);
   Assert(result.size() == 1);
   return result.front();
 }
 
 std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
-    const std::vector<DType>& datatypes, uint32_t flags)
+    const std::vector<DType>& datatypes)
 {
   std::set<TypeNode> unresolvedTypes;
   // scan the list of datatypes to find unresolved datatypes
@@ -576,13 +576,12 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   {
     dt.collectUnresolvedDatatypeTypes(unresolvedTypes);
   }
-  return mkMutualDatatypeTypesInternal(datatypes, unresolvedTypes, flags);
+  return mkMutualDatatypeTypesInternal(datatypes, unresolvedTypes);
 }
 
 std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     const std::vector<DType>& datatypes,
-    const std::set<TypeNode>& unresolvedTypes,
-    uint32_t flags)
+    const std::set<TypeNode>& unresolvedTypes)
 {
   std::map<std::string, TypeNode> nameResolutions;
   std::vector<TypeNode> dtts;
