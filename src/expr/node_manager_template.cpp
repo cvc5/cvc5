@@ -805,6 +805,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
+      Assert (d_data.isTuple());
       Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
@@ -841,6 +842,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
+      Assert (d_data.isRecord());
       Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;

@@ -840,9 +840,8 @@ class NodeManager
   }; /* struct NodeManager::NVStorage<N> */
 
   /**
-   * A map of tuple types to their corresponding datatype.
-   * Note that the (raw) datatype types are stored in this trie, not the
-   * tuple type itself.
+   * A map of tuple types to their corresponding datatype type, which are
+   * TypeNode of kind TUPLE_TYPE.
    */
   class TupleTypeCache
   {
