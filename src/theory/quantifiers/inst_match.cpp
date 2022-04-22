@@ -32,15 +32,11 @@ InstMatch::InstMatch(Env& env,
   Assert(!d_vals.empty());
   // resize must initialize with null nodes
   Assert(d_vals[0].isNull());
-}
-
-void InstMatch::add(InstMatch& m)
-{
-  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  // initialize the evaluator?
+  if (tev!=ieval::TermEvaluatorMode::NONE)
   {
-    if( d_vals[i].isNull() ){
-      d_vals[i] = m.d_vals[i];
-    }
+    // set that we are watching quantified formula q
+    d_ieval->watch(q);
   }
 }
 
@@ -97,8 +93,13 @@ bool InstMatch::empty() const
 }
 
 void InstMatch::clear() {
-  for( unsigned i=0; i<d_vals.size(); i++ ){
+  for( size_t i=0, nvals = d_vals.size(); i<nvals; i++ ){
     d_vals[i] = Node::null();
+  }
+  // clear information from the evaluator
+  if (d_ieval!=nullptr)
+  {
+    d_ieval->clear();
   }
 }
 
@@ -117,8 +118,16 @@ bool InstMatch::set(size_t i, TNode n)
     return d_qs.areEqual(d_vals[i], n);
   }
   // TODO: check if we have already learned this failure?
-  // TODO: if applicable, check if the instantiation evaluator is ok
-  // TODO: if not, learn the failure?
+  
+  if (d_ieval!=nullptr)
+  {
+    // if applicable, check if the instantiation evaluator is ok
+    if (!d_ieval->push(d_quant[0][i], n))
+    {
+      // TODO: if not, learn the failure?
+      return false;
+    }
+  }
 
   // otherwise, we update the value
   d_vals[i] = n;
@@ -128,6 +137,10 @@ bool InstMatch::set(size_t i, TNode n)
 void InstMatch::reset(size_t i)
 {
   Assert(!d_vals[i].isNull());
+  if (d_ieval!=nullptr)
+  {
+    d_ieval->pop();
+  }
   d_vals[i] = Node::null();
 }
 

@@ -67,7 +67,7 @@ class InstEvaluator : protected EnvObj
                 QuantifiersState& qs,
                 TermRegistry& tr,
                 TermEvaluator* tec,
-                bool doCanonize = true,
+                bool doCanonize = false,
                 bool trackAssignedQuant = false);
   /**
    * Set that we are watching quantified formula q.
