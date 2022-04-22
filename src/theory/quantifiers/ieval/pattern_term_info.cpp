@@ -17,9 +17,9 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/ieval/state.h"
+#include "theory/quantifiers/ieval/term_evaluator.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/quantifiers/ieval/term_evaluator.h"
 
 namespace cvc5::internal {
 namespace theory {

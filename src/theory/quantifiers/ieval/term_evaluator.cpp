@@ -28,7 +28,12 @@ namespace ieval {
 
 TermEvaluator::TermEvaluator(Env& env) : EnvObj(env) {}
 
-TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env, QuantifiersState& qs, TermDb* tdb) : TermEvaluator(env), d_qs(qs), d_tdb(tdb){}
+TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
+                                             QuantifiersState& qs,
+                                             TermDb* tdb)
+    : TermEvaluator(env), d_qs(qs), d_tdb(tdb)
+{
+}
 
 Node TermEvaluatorEntailed::evaluateBase(State& s, Node n)
 {
@@ -40,7 +45,10 @@ Node TermEvaluatorEntailed::evaluateBase(State& s, Node n)
   return s.getNone();
 }
 
-Node TermEvaluatorEntailed::partialEvaluateChild(State& s, Node n, TNode child, TNode val)
+Node TermEvaluatorEntailed::partialEvaluateChild(State& s,
+                                                 Node n,
+                                                 TNode child,
+                                                 TNode val)
 {
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();
@@ -62,8 +70,7 @@ Node TermEvaluatorEntailed::partialEvaluateChild(State& s, Node n, TNode child, 
       NodeManager* nm = NodeManager::currentNM();
       val = nm->mkConst(!val.getConst<bool>());
     }
-    Trace("ieval-state-debug")
-        << "...eval negation " << val << std::endl;
+    Trace("ieval-state-debug") << "...eval negation " << val << std::endl;
     return val;
   }
   else if (k == ITE)
@@ -111,7 +118,9 @@ Node TermEvaluatorEntailed::partialEvaluateChild(State& s, Node n, TNode child, 
   return Node::null();
 }
 
-Node TermEvaluatorEntailed::evaluate(State& s, Node n, const std::vector<TNode>& childValues)
+Node TermEvaluatorEntailed::evaluate(State& s,
+                                     Node n,
+                                     const std::vector<TNode>& childValues)
 {
   // set to unknown, handle cases
   Node ret = s.getNone();
@@ -206,8 +215,7 @@ Node TermEvaluatorEntailed::evaluate(State& s, Node n, const std::vector<TNode>&
     {
       // if condition evaluates, get value of branch
       ret = childValues[cval1.getConst<bool>() ? 1 : 2];
-      Trace("ieval-state-debug")
-          << "...take branch " << ret << std::endl;
+      Trace("ieval-state-debug") << "...take branch " << ret << std::endl;
     }
     else
     {
@@ -287,4 +295,3 @@ Node TermEvaluatorEntailed::evaluate(State& s, Node n, const std::vector<TNode>&
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
-

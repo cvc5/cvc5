@@ -36,7 +36,7 @@ class State;
 
 class TermEvaluator : protected EnvObj
 {
-public:
+ public:
   TermEvaluator(Env& env);
   /**
    * Evaluate base child
@@ -44,29 +44,37 @@ public:
    * black boxes, e.g. closures.
    */
   virtual Node evaluateBase(State& s, Node n) = 0;
-  /** 
+  /**
    * Partial evaluate child.
    * Called when a given child of n has been assigned val.
    */
-  virtual Node partialEvaluateChild(State& s, Node n, TNode child, TNode val) = 0;
+  virtual Node partialEvaluateChild(State& s,
+                                    Node n,
+                                    TNode child,
+                                    TNode val) = 0;
   /**
    * Evaluate term
    * Called when all children of n have been assigned values childValues.
    */
-  virtual Node evaluate(State& s, Node n, const std::vector<TNode>& childValues) = 0;
+  virtual Node evaluate(State& s,
+                        Node n,
+                        const std::vector<TNode>& childValues) = 0;
 };
 
 class TermEvaluatorEntailed : public TermEvaluator
 {
-public:
+ public:
   TermEvaluatorEntailed(Env& env, QuantifiersState& qs, TermDb* tdb);
   /** Evaluate base */
   Node evaluateBase(State& s, Node n) override;
   /** Partial evaluate child */
   Node partialEvaluateChild(State& s, Node n, TNode child, TNode val) override;
   /** Evaluate term */
-  Node evaluate(State& s, Node n, const std::vector<TNode>& childValues) override;
-private:
+  Node evaluate(State& s,
+                Node n,
+                const std::vector<TNode>& childValues) override;
+
+ private:
   /** Quantifiers state */
   QuantifiersState& d_qs;
   /** Pointer to the term database */

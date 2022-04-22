@@ -698,7 +698,8 @@ TNode TermDb::getCongruentTerm( Node f, Node n ) {
   return TNode::null();
 }
 
-TNode TermDb::getCongruentTerm( Node f, const std::vector< TNode >& args ) {
+TNode TermDb::getCongruentTerm(Node f, const std::vector<TNode>& args)
+{
   f = getOperatorRepresentative(f);
   computeUfTerms( f );
   return d_func_map_trie[f].existsTerm( args );
