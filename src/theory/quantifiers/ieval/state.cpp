@@ -49,15 +49,15 @@ State::State(Env& env,
   d_some = sm->mkDummySkolem("some", nm->booleanType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  
+
   // initialize the term evaluator
-  if (tev==TermEvaluatorMode::CONFLICT || tev==TermEvaluatorMode::PROP)
+  if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP)
   {
     d_tec.reset(new TermEvaluatorEntailed(env, qs, d_tdb));
   }
-  else if (tev==TermEvaluatorMode::MODEL)
+  else if (tev == TermEvaluatorMode::MODEL)
   {
-    //d_tec.reset(new TermEvaluatorModel(
+    // d_tec.reset(new TermEvaluatorModel(
   }
 }
 
@@ -261,7 +261,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
 {
   Assert(!g.isNull());
   Assert(!expr::hasBoundVar(g));
-  Assert(d_qstate.getRepresentative(g)==g);
+  Assert(d_qstate.getRepresentative(g) == g);
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   if (!it->second.isActive())
