@@ -954,7 +954,8 @@ class NodeManager
 
   bool d_initialized;
 
-  size_t next_id;
+  /** The next node identifier */
+  size_t d_nextId;
 
   expr::attr::AttributeManager* d_attrManager;
 

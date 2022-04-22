@@ -110,7 +110,7 @@ NodeManager::NodeManager()
     : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       d_initialized(false),
-      next_id(0),
+      d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
@@ -1228,7 +1228,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 
   nv->d_nchildren = 0;
   nv->d_kind = k;
-  nv->d_id = next_id++;  // FIXME multithreading
+  nv->d_id = d_nextId++;  // FIXME multithreading
   nv->d_rc = 0;
 
   new (&nv->d_children) T(val);
