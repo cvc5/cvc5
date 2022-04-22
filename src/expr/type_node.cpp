@@ -380,8 +380,7 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 
 bool TypeNode::isTuple() const
 {
-  // FIXME
-  return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
+  return getKind() == kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isRecord() const

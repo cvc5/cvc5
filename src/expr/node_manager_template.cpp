@@ -620,6 +620,22 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     if (dtp->getNumParameters() == 0)
     {
       typeNode = mkTypeConst(DatatypeIndexConstant(index));
+      // if the datatype is a tuple, the type will be (TUPLE_TYPE ...)
+      if (dt.isTuple())
+      {
+        TypeNode dtt = typeNode;
+        const DTypeConstructor& dc = dt[0];
+        std::vector<TypeNode> tupleTypes;
+        for (size_t i=0, nargs = dc.getNumArgs(); i<nargs; i++)
+        {
+          // selector should be initialized to the range type, it is not null
+          // or unresolved since tuples are not recursive
+          tupleTypes.push_back(dc[i].getType());
+        }
+        // Set its datatype representation
+        typeNode = mkTypeNode(kind::TUPLE_TYPE, tupleTypes);
+        typeNode.setAttribute(expr::TupleDatatypeAttr(), dtt);
+      }
     }
     else
     {
@@ -868,20 +884,7 @@ TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
 {
-  Trace("tuprec-debug") << "Make tuple type : ";
-  for (unsigned i = 0; i < types.size(); ++i)
-  {
-    CheckArgument(!types[i].isFunctionLike(),
-                  types,
-                  "cannot put function-like types in tuples");
-    Trace("tuprec-debug") << types[i] << " ";
-  }
-  Trace("tuprec-debug") << std::endl;
-  TypeNode dtt = d_tt_cache.getTupleType(this, types);
-  TypeNode tt = mkTypeNode(kind::TUPLE_TYPE, types);
-  tt.setAttribute(expr::TupleDatatypeAttr(), dtt);
-  // FIXME
-  return dtt;
+  return d_tt_cache.getTupleType(this, types);
 }
 
 TypeNode NodeManager::mkRecordType(const Record& rec)
