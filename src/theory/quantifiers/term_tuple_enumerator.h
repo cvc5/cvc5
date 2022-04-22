@@ -66,8 +66,6 @@ struct TermTupleEnumeratorEnv
   bool d_fullEffort;
   /** Whether we increase tuples based on sum instead of max (see below) */
   bool d_increaseSum;
-  /** Instantiate utility */
-  Instantiate* d_inst;
   /** Term registry */
   TermRegistry* d_tr;
 };

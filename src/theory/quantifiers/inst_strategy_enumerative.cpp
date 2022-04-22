@@ -187,7 +187,6 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
   ttec.d_fullEffort = fullEffort;
   ttec.d_increaseSum = options().quantifiers.enumInstSum;
   ttec.d_tr = &d_treg;
-  ttec.d_inst = ie;
   // make the enumerator, which is either relevant domain or term database
   // based on the flag isRd.
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(

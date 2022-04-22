@@ -364,8 +364,7 @@ bool TermTupleEnumeratorBase::nextCombination()
     }
     std::vector<Node> tti;
     next(tti);
-    if (d_env->d_inst->isFeasibleInstantiation(
-            d_quantifier, tti, d_changePrefix))
+    if (!d_disabledCombinations.find(tti, d_changePrefix))
     {
       return true;  // current combination vetted by disabled combinations
     }
