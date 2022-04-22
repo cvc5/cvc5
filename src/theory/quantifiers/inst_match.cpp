@@ -21,7 +21,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q, ieval::TermEvaluatorMode tev) : d_qs(qs), d_quant(q)
+InstMatch::InstMatch(Env& env,
+                     QuantifiersState& qs,
+                     TermRegistry& tr,
+                     TNode q,
+                     ieval::TermEvaluatorMode tev)
+    : d_qs(qs), d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());

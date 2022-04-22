@@ -306,7 +306,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
             !riter.isFinished()
             && (addedLemmas == 0 || !options().quantifiers.fmfOneInstPerRound))
         {
-          //instantiation was not shown to be true, construct the match
+          // instantiation was not shown to be true, construct the match
           // FIXME: improve
           InstMatch m(d_env, d_qstate, d_treg, f);
           for (unsigned i = 0; i < riter.getNumTerms(); i++)

@@ -44,7 +44,11 @@ class TermRegistry;
  */
 class InstMatch {
  public:
-  InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q, ieval::TermEvaluatorMode tev = ieval::TermEvaluatorMode::NONE);
+  InstMatch(Env& env,
+            QuantifiersState& qs,
+            TermRegistry& tr,
+            TNode q,
+            ieval::TermEvaluatorMode tev = ieval::TermEvaluatorMode::NONE);
   /** add match m
    *
    * This adds the initialized fields of m to this match for each field that is
