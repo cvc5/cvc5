@@ -840,7 +840,9 @@ class NodeManager
   }; /* struct NodeManager::NVStorage<N> */
 
   /**
-   * A map of tuple and record types to their corresponding datatype.
+   * A map of tuple types to their corresponding datatype.
+   * Note that the (raw) datatype types are stored in this trie, not the
+   * tuple type itself.
    */
   class TupleTypeCache
   {
@@ -848,9 +850,10 @@ class NodeManager
     std::map<TypeNode, TupleTypeCache> d_children;
     TypeNode d_data;
     TypeNode getTupleType(NodeManager* nm,
-                          std::vector<TypeNode>& types,
+                          const std::vector<TypeNode>& types,
                           unsigned index = 0);
   };
+  /** Same as above, for records */
   class RecTypeCache
   {
    public:

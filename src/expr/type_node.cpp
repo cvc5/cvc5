@@ -588,7 +588,7 @@ std::string TypeNode::toString() const {
 
 const DType& TypeNode::getDType() const
 {
-  return NodeManager::currentNM()->getDTypeForType(*this);
+  return NodeManager::currentNM()->getDTypeFor(*this);
 }
 
 bool TypeNode::isBag() const

@@ -762,7 +762,7 @@ TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 }
 
 TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
-                                                   std::vector<TypeNode>& types,
+                                                   const std::vector<TypeNode>& types,
                                                    unsigned index)
 {
   if (index == types.size())
@@ -771,7 +771,8 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
     {
       std::stringstream sst;
       sst << "__cvc5_tuple";
-      for (unsigned i = 0; i < types.size(); ++i)
+      size_t ntypes = types.size();
+      for (size_t i = 0; i < ntypes; ++i)
       {
         sst << "_" << types[i];
       }
@@ -781,7 +782,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
       ssc << sst.str() << "_ctor";
       std::shared_ptr<DTypeConstructor> c =
           std::make_shared<DTypeConstructor>(ssc.str());
-      for (unsigned i = 0; i < types.size(); ++i)
+      for (size_t i = 0; i < ntypes; ++i)
       {
         std::stringstream ss;
         ss << sst.str() << "_stor_" << i;
@@ -877,8 +878,8 @@ TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
     Trace("tuprec-debug") << types[i] << " ";
   }
   Trace("tuprec-debug") << std::endl;
-  Node dtt = d_tt_cache.getTupleType(this, types);
-  Node tt = mkTypeNode(kind::TUPLE_TYPE, types);
+  TypeNode dtt = d_tt_cache.getTupleType(this, types);
+  TypeNode tt = mkTypeNode(kind::TUPLE_TYPE, types);
   tt.setAttribute(expr::TupleDatatypeAttr(), dtt);
   // FIXME
   return dtt;
