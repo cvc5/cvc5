@@ -21,7 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstMatch::InstMatch(TNode q)
+InstMatch::InstMatch(TNode q) : d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
@@ -29,7 +29,8 @@ InstMatch::InstMatch(TNode q)
   Assert(d_vals[0].isNull());
 }
 
-InstMatch::InstMatch( InstMatch* m ) {
+InstMatch::InstMatch( InstMatch* m ) : d_quant(m->d_quant) 
+{
   d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
 }
 
@@ -52,8 +53,8 @@ void InstMatch::debugPrint( const char* c ){
   }
 }
 
-bool InstMatch::isComplete() {
-  for (Node& v : d_vals)
+bool InstMatch::isComplete() const {
+  for (const Node& v : d_vals)
   {
     if (v.isNull())
     {
@@ -63,8 +64,8 @@ bool InstMatch::isComplete() {
   return true;
 }
 
-bool InstMatch::empty() {
-  for (Node& v : d_vals)
+bool InstMatch::empty() const {
+  for (const Node& v : d_vals)
   {
     if (!v.isNull())
     {
@@ -91,12 +92,17 @@ void InstMatch::setValue(size_t i, TNode n)
   Assert(i < d_vals.size());
   d_vals[i] = n;
 }
+
 bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
 {
   Assert(i < d_vals.size());
-  if( !d_vals[i].isNull() ){
+  if (!d_vals[i].isNull())
+  {
+    // if they are equal, we do nothing
     return qs.areEqual(d_vals[i], n);
   }
+  // TODO: if applicable, check if the instantiation evaluator is ok
+  // otherwise, we update the value
   d_vals[i] = n;
   return true;
 }

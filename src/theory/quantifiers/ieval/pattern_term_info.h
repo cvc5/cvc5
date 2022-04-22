@@ -73,7 +73,7 @@ class PatTermInfo
    * the none node.
    */
   context::CDO<TNode> d_eq;
-  /** The number of unassigned children (for Boolean connectives). */
+  /** The number of unassigned children. */
   context::CDO<size_t> d_numUnassigned;
   /**
    * The list of pattern terms that are the parent of this. For pattern p,

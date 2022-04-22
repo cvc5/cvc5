@@ -39,7 +39,6 @@ class QuantifiersState;
  */
 class InstMatch {
 public:
-  InstMatch(){}
   explicit InstMatch(TNode q);
   InstMatch( InstMatch* m );
   /* map from variable to ground terms */
@@ -51,9 +50,9 @@ public:
    */
   void add(InstMatch& m);
   /** is this complete, i.e. are all fields non-null? */
-  bool isComplete();
+  bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */
-  bool empty();
+  bool empty() const;
   /** clear the instantiation, i.e. set all fields to the null node */
   void clear();
   /** debug print method */
@@ -81,6 +80,9 @@ public:
    * or is equivalent to n modulo the equalities given by q.
    */
   bool set(QuantifiersState& qs, size_t i, TNode n);
+private:
+  /** The quantified formula */
+  Node d_quant;
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
