@@ -626,7 +626,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
         TypeNode dtt = typeNode;
         const DTypeConstructor& dc = dt[0];
         std::vector<TypeNode> tupleTypes;
-        for (size_t i=0, nargs = dc.getNumArgs(); i<nargs; i++)
+        for (size_t i = 0, nargs = dc.getNumArgs(); i < nargs; i++)
         {
           // selector should be initialized to the range type, it is not null
           // or unresolved since tuples are not recursive

@@ -567,7 +567,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   }
   else if (tn.getNumChildren() == 0)
   {
-    Assert (!tn.isTuple());
+    Assert(!tn.isTuple());
     // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
     if (tnn.isNull())
