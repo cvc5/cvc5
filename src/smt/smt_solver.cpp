@@ -312,9 +312,12 @@ void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
   {
     Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
-    Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
-        << "Relearned: " << lit << std::endl;
-    d_allLearnedLits.insert(lit);
+    if (Configuration::isAssertionBuild())
+    {
+      Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
+          << "Relearned: " << lit << std::endl;
+      d_allLearnedLits.insert(lit);
+    }
   }
   Trace("deep-restart") << "Finished compute deep restart" << std::endl;
 

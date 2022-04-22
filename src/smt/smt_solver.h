@@ -142,7 +142,7 @@ class SmtSolver : protected EnvObj
   std::vector<Node> d_ppAssertions;
   /** The skolem map associated with d_ppAssertions */
   std::unordered_map<size_t, Node> d_ppSkolemMap;
-  /** All learned literals TEMPORARY */
+  /** All learned literals, used for debugging */
   std::unordered_set<Node> d_allLearnedLits;
 };
 
