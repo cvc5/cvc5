@@ -378,7 +378,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkTupleSort(new Sort[] {d_solver.getIntegerSort()}));
     Sort funSort =
         d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"), d_solver.getIntegerSort());
-    assertThrows(CVC5ApiException.class,
+    assertDoesNotThrow(
         () -> d_solver.mkTupleSort(new Sort[] {d_solver.getIntegerSort(), funSort}));
 
     Solver slv = new Solver();
