@@ -159,6 +159,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
   }
 }
 
+
 TrustNode PartitionGenerator::makeFullTrailPartitions()
 {
   std::vector<TNode> literals = collectDecisionLiterals();

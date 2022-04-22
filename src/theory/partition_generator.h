@@ -72,6 +72,7 @@ class PartitionGenerator : protected EnvObj
    */
   TrustNode makeFullTrailPartitions();
 
+
   /**
    * Generate a lemma that is the negation of toBlock which ultimately blocks
    * that path in the search.
