@@ -26,7 +26,6 @@
 #include "expr/term_canonize.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
-#include "theory/quantifiers/ieval/term_evaluator_callback.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -36,6 +35,7 @@ class TermRegistry;
 
 namespace ieval {
 
+class TermEvaluator;
 // TODO:
 // base terms
 
@@ -53,7 +53,7 @@ class InstEvaluator : protected EnvObj
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermRegistry& tr,
-                TermEvaluatorCallback* tec,
+                TermEvaluator* tec,
                 bool doCanonize = true);
   /**
    * Set that we are watching quantified formula q.

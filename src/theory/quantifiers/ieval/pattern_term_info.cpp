@@ -19,8 +19,7 @@
 #include "theory/quantifiers/ieval/state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/uf/equality_engine.h"
-
-using namespace cvc5::internal::kind;
+#include "theory/quantifiers/ieval/term_evaluator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -44,7 +43,7 @@ bool PatTermInfo::isActive() const { return d_eq.get().isNull(); }
 bool PatTermInfo::notifyChild(State& s,
                               TNode child,
                               TNode val,
-                              TermEvaluatorCallback* tec)
+                              TermEvaluator* tec)
 {
   Assert(!val.isNull());
   Assert(!expr::hasBoundVar(val));

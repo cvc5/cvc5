@@ -30,7 +30,7 @@ State::State(Env& env,
              context::Context* c,
              QuantifiersState& qs,
              TermDb* tdb,
-             TermEvaluatorCallback* tec)
+             TermEvaluator* tec)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),

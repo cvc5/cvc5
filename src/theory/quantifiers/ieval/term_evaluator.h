@@ -34,10 +34,10 @@ namespace ieval {
 
 class State;
 
-class TermEvaluatorCallback : protected EnvObj
+class TermEvaluator : protected EnvObj
 {
 public:
-  TermEvaluatorCallback(Env& env);
+  TermEvaluator(Env& env);
   /**
    * Evaluate base child
    * Called on nodes n with no children, or for terms that we treat as
@@ -56,10 +56,10 @@ public:
   virtual Node evaluate(State& s, Node n, const std::vector<TNode>& childValues) = 0;
 };
 
-class TermEvaluatorCallbackEntailed : public TermEvaluatorCallback
+class TermEvaluatorEntailed : public TermEvaluator
 {
 public:
-  TermEvaluatorCallbackEntailed(Env& env, QuantifiersState& qs, TermDb* tdb);
+  TermEvaluatorEntailed(Env& env, QuantifiersState& qs, TermDb* tdb);
   /** Evaluate base */
   Node evaluateBase(State& s, Node n) override;
   /** Partial evaluate child */
@@ -68,16 +68,16 @@ public:
   Node evaluate(State& s, Node n, const std::vector<TNode>& childValues) override;
 private:
   /** Quantifiers state */
-  QuantifiersState& d_qstate;
+  QuantifiersState& d_qs;
   /** Pointer to the term database */
   TermDb* d_tdb;
 };
 
 #if 0
-class TermEvaluatorCallbackModel : public TermEvaluatorCallback
+class TermEvaluatorModel : public TermEvaluator
 {
 public:
-  TermEvaluatorCallbackModel(Env& env, TermDb* tdb);
+  TermEvaluatorModel(Env& env, TermDb* tdb);
   /** Evaluate base */
   Node evaluateBase(State& s, Node n) override;
   /** Partial evaluate child */

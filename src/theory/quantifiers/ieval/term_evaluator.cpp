@@ -13,16 +13,24 @@
  * Inst evaluator class.
  */
 
+#include "theory/quantifiers/ieval/term_evaluator.h"
+
+#include "theory/quantifiers/ieval/state.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_database.h"
+
+using namespace cvc5::internal::kind;
+
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-TermEvaluatorCallback::TermEvaluatorCallback(Env& env) : EnvObj(env) {}
+TermEvaluator::TermEvaluator(Env& env) : EnvObj(env) {}
 
-TermEvaluatorCallbackEntailed::TermEvaluatorCallbackEntailed(Env& env, QuantifiersState& qs, TermDb* tdb) : TermEvaluatorCallback(env), d_qs(qs), d_tdb(tdb){}
+TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env, QuantifiersState& qs, TermDb* tdb) : TermEvaluator(env), d_qs(qs), d_tdb(tdb){}
 
-Node TermEvaluatorCallbackEntailed::evaluateBase(State& s, Node n)
+Node TermEvaluatorEntailed::evaluateBase(State& s, Node n)
 {
   if (d_qs.hasTerm(n))
   {
@@ -32,7 +40,7 @@ Node TermEvaluatorCallbackEntailed::evaluateBase(State& s, Node n)
   return s.getNone();
 }
 
-Node TermEvaluatorCallbackEntailed::partialEvaluateChild(State& s, Node n, TNode child, TNode val)
+Node TermEvaluatorEntailed::partialEvaluateChild(State& s, Node n, TNode child, TNode val)
 {
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();
@@ -103,9 +111,8 @@ Node TermEvaluatorCallbackEntailed::partialEvaluateChild(State& s, Node n, TNode
   return Node::null();
 }
 
-Node TermEvaluatorCallbackEntailed::evaluate(State& s, Node n, const std::vector<TNode>& childValues)
+Node TermEvaluatorEntailed::evaluate(State& s, Node n, const std::vector<TNode>& childValues)
 {
-
   // set to unknown, handle cases
   Node ret = s.getNone();
 
@@ -173,7 +180,7 @@ Node TermEvaluatorCallbackEntailed::evaluate(State& s, Node n, const std::vector
       Trace("ieval-state-debug")
           << "...equal via " << childValues[0] << std::endl;
     }
-    else if (s.areDisequal(childValues[0], childValues[1]))
+    else if (d_qs.areDisequal(childValues[0], childValues[1]))
     {
       Trace("ieval-state-debug") << "...disequal " << childValues[0]
                                  << " != " << childValues[1] << std::endl;
@@ -186,7 +193,7 @@ Node TermEvaluatorCallbackEntailed::evaluate(State& s, Node n, const std::vector
       // it as "none", since we want to propagate equalities between
       // known terms. Notice that Booleans require being assigned to
       // constants, so this only applies to non-Boolean equalities.
-      Assert(!val.getType().isBoolean());
+      Assert(!n[0].getType().isBoolean());
       return s.getSome();
     }
   }
@@ -200,7 +207,7 @@ Node TermEvaluatorCallbackEntailed::evaluate(State& s, Node n, const std::vector
       // if condition evaluates, get value of branch
       ret = childValues[cval1.getConst<bool>() ? 1 : 2];
       Trace("ieval-state-debug")
-          << "...take branch " << ret.get() << std::endl;
+          << "...take branch " << ret << std::endl;
     }
     else
     {
@@ -255,24 +262,22 @@ Node TermEvaluatorCallbackEntailed::evaluate(State& s, Node n, const std::vector
         return ret;
       }
     }
+    Node preTerm;
     // see if we can rewrite?
     if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      childValues.insert(childValues.begin(), n.getOperator());
-    }
-    Node npattern = nm->mkNode(n.getKind(), childValues);
-    Node npr = s.doRewrite(npattern);
-    npr = s.getGroundRepresentative(npr);
-    if (!npr.isNull())
-    {
-      ret = npr;
-      Trace("ieval-state-debug") << "...evaluate + find " << npr << std::endl;
+      std::vector<TNode> pcv;
+      pcv.push_back(n.getOperator());
+      pcv.insert(pcv.end(), childValues.begin(), childValues.end());
+      preTerm = nm->mkNode(n.getKind(), pcv);
     }
     else
     {
-      Trace("ieval-state-debug")
-          << "...failed to evaluate + find " << npattern << std::endl;
+      preTerm = nm->mkNode(n.getKind(), childValues);
     }
+    Node npr = s.doRewrite(preTerm);
+    ret = evaluateBase(s, npr);
+    Trace("ieval-state-debug") << "...evaluate + find " << ret << std::endl;
   }
   // TODO: entailment check?
   return ret;

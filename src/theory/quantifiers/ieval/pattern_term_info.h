@@ -24,7 +24,6 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "theory/quantifiers/ieval/term_evaluator_callback.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,6 +34,7 @@ class TermDb;
 namespace ieval {
 
 class State;
+class TermEvaluator;
 
 /**
  * A quantified formula is a pattern term whose parent is
@@ -65,7 +65,7 @@ class PatTermInfo
   bool notifyChild(State& s,
                    TNode child,
                    TNode val,
-                   TermEvaluatorCallback* tec);
+                   TermEvaluator* tec);
   /** This pattern term. */
   TNode d_pattern;
   /** The match operator */
