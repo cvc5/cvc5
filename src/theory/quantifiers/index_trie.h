@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "base/check.h"
+#include "expr/node.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -30,7 +31,7 @@ namespace quantifiers {
 /** A single node of the IndexTrie. */
 struct IndexTrieNode
 {
-  std::vector<std::pair<size_t, IndexTrieNode*>> d_children;
+  std::vector<std::pair<Node, IndexTrieNode*>> d_children;
   IndexTrieNode* d_blank = nullptr;
 };
 
@@ -61,7 +62,7 @@ class IndexTrie
   /*  Construct the trie,  if the argument ignoreFullySpecified is true,
    *  the data structure will  store only data structure containing at least
    *  one blank. */
-  IndexTrie(bool ignoreFullySpecified)
+  IndexTrie(bool ignoreFullySpecified = true)
       : d_ignoreFullySpecified(ignoreFullySpecified),
         d_root(new IndexTrieNode())
   {
@@ -71,11 +72,11 @@ class IndexTrie
 
   /**  Add a tuple of values into the trie  masked by a bitmask, i.e.\ position
    * i is considered blank iff mask[i] is false. */
-  void add(const std::vector<bool>& mask, const std::vector<size_t>& values);
+  void add(const std::vector<bool>& mask, const std::vector<Node>& values);
 
   /** Check if the given set of indices is subsumed by something present in the
    * trie. If it is subsumed, give the maximum non-blank index. */
-  bool find(const std::vector<size_t>& members,
+  bool find(const std::vector<Node>& members,
             /*out*/ size_t& nonBlankLength) const
   {
     nonBlankLength = 0;
@@ -94,7 +95,7 @@ class IndexTrie
   /** Auxiliary recursive function for finding  subsuming tuple. */
   bool findRec(const IndexTrieNode* n,
                size_t index,
-               const std::vector<size_t>& members,
+               const std::vector<Node>& members,
                size_t& nonBlankLength) const;
 
   /** Add master values  starting from index  to a given subtree. The
@@ -103,7 +104,7 @@ class IndexTrie
                         size_t index,
                         size_t cardinality,
                         const std::vector<bool>& mask,
-                        const std::vector<size_t>& values);
+                        const std::vector<Node>& values);
 };
 
 }  // namespace quantifiers
