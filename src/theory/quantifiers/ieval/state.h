@@ -91,7 +91,7 @@ class State : protected EnvObj
   /** Is some */
   bool isSome(TNode n) const;
   /** Invoke the rewriter for term n */
-  Node doRewrite(Node n);
+  Node doRewrite(Node n) const;
   /** Is quantifier active? */
   bool isQuantActive(TNode q) const;
   /** Set quantified formula active / inactive */

@@ -51,7 +51,7 @@ State::State(Env& env,
   d_false = nm->mkConst(false);
 
   // initialize the term evaluator
-  if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP)
+  if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP || tev==TermEvaluatorMode::NO_ENTAIL)
   {
     d_tec.reset(new TermEvaluatorEntailed(env, qs, d_tdb));
   }
@@ -174,7 +174,7 @@ bool State::assignVar(TNode v,
     }
   }
   // notify that the variable is equal to the ground term
-  Node r = d_qstate.getRepresentative(s);
+  Node r = d_tec->evaluateBase(*this, s);
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -261,7 +261,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
 {
   Assert(!g.isNull());
   Assert(!expr::hasBoundVar(g));
-  Assert(d_qstate.getRepresentative(g) == g);
+  Assert(d_tec->evaluateBase(*this, g) == g);
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   if (!it->second.isActive())
@@ -437,7 +437,7 @@ Node State::getSome() const { return d_some; }
 
 bool State::isSome(TNode n) const { return n == d_some; }
 
-Node State::doRewrite(Node n) { return rewrite(n); }
+Node State::doRewrite(Node n) const { return rewrite(n); }
 
 bool State::isQuantActive(TNode q) const
 {
@@ -455,7 +455,7 @@ TNode State::getValue(TNode p) const
   }
   // all pattern terms should have been assigned pattern term info
   Assert(!expr::hasBoundVar(p));
-  return d_qstate.getRepresentative(p);
+  return d_tec->evaluateBase(*this, p);
 }
 
 std::string State::toString() const

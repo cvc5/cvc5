@@ -35,7 +35,7 @@ TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
 {
 }
 
-Node TermEvaluatorEntailed::evaluateBase(State& s, Node n)
+Node TermEvaluatorEntailed::evaluateBase(const State& s, Node n)
 {
   if (d_qs.hasTerm(n))
   {
@@ -45,7 +45,7 @@ Node TermEvaluatorEntailed::evaluateBase(State& s, Node n)
   return s.getNone();
 }
 
-Node TermEvaluatorEntailed::partialEvaluateChild(State& s,
+Node TermEvaluatorEntailed::partialEvaluateChild(const State& s,
                                                  Node n,
                                                  TNode child,
                                                  TNode val)
@@ -118,7 +118,7 @@ Node TermEvaluatorEntailed::partialEvaluateChild(State& s,
   return Node::null();
 }
 
-Node TermEvaluatorEntailed::evaluate(State& s,
+Node TermEvaluatorEntailed::evaluate(const State& s,
                                      Node n,
                                      const std::vector<TNode>& childValues)
 {

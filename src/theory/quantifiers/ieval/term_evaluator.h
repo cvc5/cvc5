@@ -37,10 +37,12 @@ enum class TermEvaluatorMode : uint32_t
 {
   // do not use an evaluator
   NONE,
-  // conflict evaluator
+  // we are looking for conflicts
   CONFLICT,
-  // propagating evaluator
+  // we are looking for propagating instances
   PROP,
+  // we are looking for instances that are not entailed
+  NO_ENTAIL,
   // model evaluator
   MODEL,
 };
@@ -56,12 +58,12 @@ class TermEvaluator : protected EnvObj
    * Called on nodes n with no children, or for terms that we treat as
    * black boxes, e.g. closures.
    */
-  virtual Node evaluateBase(State& s, Node n) = 0;
+  virtual Node evaluateBase(const State& s, Node n) = 0;
   /**
    * Partial evaluate child.
    * Called when a given child of n has been assigned val.
    */
-  virtual Node partialEvaluateChild(State& s,
+  virtual Node partialEvaluateChild(const State& s,
                                     Node n,
                                     TNode child,
                                     TNode val) = 0;
@@ -69,7 +71,7 @@ class TermEvaluator : protected EnvObj
    * Evaluate term
    * Called when all children of n have been assigned values childValues.
    */
-  virtual Node evaluate(State& s,
+  virtual Node evaluate(const State& s,
                         Node n,
                         const std::vector<TNode>& childValues) = 0;
 };
@@ -79,11 +81,11 @@ class TermEvaluatorEntailed : public TermEvaluator
  public:
   TermEvaluatorEntailed(Env& env, QuantifiersState& qs, TermDb* tdb);
   /** Evaluate base */
-  Node evaluateBase(State& s, Node n) override;
+  Node evaluateBase(const State& s, Node n) override;
   /** Partial evaluate child */
-  Node partialEvaluateChild(State& s, Node n, TNode child, TNode val) override;
+  Node partialEvaluateChild(const State& s, Node n, TNode child, TNode val) override;
   /** Evaluate term */
-  Node evaluate(State& s,
+  Node evaluate(const State& s,
                 Node n,
                 const std::vector<TNode>& childValues) override;
 
@@ -100,11 +102,11 @@ class TermEvaluatorModel : public TermEvaluator
 public:
   TermEvaluatorModel(Env& env, TermDb* tdb);
   /** Evaluate base */
-  Node evaluateBase(State& s, Node n) override;
+  Node evaluateBase(const State& s, Node n) override;
   /** Partial evaluate child */
-  Node partialEvaluateChild(State& s, Node n, TNode child, TNode val) override;
+  Node partialEvaluateChild(const State& s, Node n, TNode child, TNode val) override;
   /** Evaluate term */
-  Node evaluate(State& s, Node n, const std::vector<TNode>& childValues) override;
+  Node evaluate(const State& s, Node n, const std::vector<TNode>& childValues) override;
 private:
   TermDb* d_tdb;
 };
