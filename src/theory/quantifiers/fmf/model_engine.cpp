@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rep_set_iterator.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::context;

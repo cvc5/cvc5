@@ -30,6 +30,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
+#include "theory/rep_set_iterator.h"
 
 using namespace cvc5::internal::kind;
 
