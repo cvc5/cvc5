@@ -1218,7 +1218,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 
   nv->d_nchildren = 0;
   nv->d_kind = k;
-  nv->d_id = d_nextId++;  // FIXME multithreading
+  nv->d_id = d_nextId++;
   nv->d_rc = 0;
 
   new (&nv->d_children) T(val);
