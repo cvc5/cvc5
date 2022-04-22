@@ -274,15 +274,15 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
     }
     for (std::pair<const Node, InstMatchTrie>& d : tr->d_data)
     {
-      if (d.first!=n && qs.areEqual(d.first, n))
+      if (d.first != n && qs.areEqual(d.first, n))
       {
         processNewInstantiations(m,
-                                  addedLemmas,
-                                  &(d.second),
-                                  trieIndex + 1,
-                                  childIndex,
-                                  endChildIndex,
-                                  modEq);
+                                 addedLemmas,
+                                 &(d.second),
+                                 trieIndex + 1,
+                                 childIndex,
+                                 endChildIndex,
+                                 modEq);
         if (d_qstate.isInConflict())
         {
           break;
