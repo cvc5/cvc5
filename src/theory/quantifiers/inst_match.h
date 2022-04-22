@@ -39,40 +39,23 @@ class QuantifiersState;
  */
 class InstMatch {
  public:
- InstMatch(TNode q);
- /** add match m
-  *
-  * This adds the initialized fields of m to this match for each field that is
-  * not already initialized in this match.
-  */
- void add(InstMatch& m);
- /** is this complete, i.e. are all fields non-null? */
- bool isComplete() const;
- /** is this empty, i.e. are all fields the null node? */
- bool empty() const;
- /** clear the instantiation, i.e. set all fields to the null node */
- void clear();
- /** debug print method */
- void debugPrint(const char* c);
- /** to stream */
- inline void toStream(std::ostream& out) const
- {
-   out << "INST_MATCH( ";
-   bool printed = false;
-   for (unsigned i = 0; i < d_vals.size(); i++)
-   {
-     if (!d_vals[i].isNull())
-     {
-       if (printed)
-       {
-         out << ", ";
-       }
-       out << i << " -> " << d_vals[i];
-       printed = true;
-     }
-   }
-   out << " )";
-  }
+  InstMatch(TNode q);
+  /** add match m
+   *
+   * This adds the initialized fields of m to this match for each field that is
+   * not already initialized in this match.
+   */
+  void add(InstMatch& m);
+  /** is this complete, i.e. are all fields non-null? */
+  bool isComplete() const;
+  /** is this empty, i.e. are all fields the null node? */
+  bool empty() const;
+  /** clear the instantiation, i.e. set all fields to the null node */
+  void clear();
+  /** debug print method */
+  void debugPrint(const char* c);
+  /** to stream */
+  void toStream(std::ostream& out) const;
   /** get the i^th term in the instantiation */
   Node get(size_t i) const;
   /** set/overwrites the i^th field in the instantiation with n */

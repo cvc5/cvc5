@@ -48,6 +48,25 @@ void InstMatch::debugPrint( const char* c ){
   }
 }
 
+void InstMatch::toStream(std::ostream& out) const
+{
+  out << "INST_MATCH( ";
+  bool printed = false;
+  for (unsigned i = 0; i < d_vals.size(); i++)
+  {
+    if (!d_vals[i].isNull())
+    {
+      if (printed)
+      {
+        out << ", ";
+      }
+      out << i << " -> " << d_vals[i];
+      printed = true;
+    }
+  }
+  out << " )";
+}
+
 bool InstMatch::isComplete() const
 {
   for (const Node& v : d_vals)
