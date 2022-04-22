@@ -409,17 +409,20 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
 
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
-  if (getKind() == kind::DATATYPE_TYPE || getKind() == kind::TUPLE_TYPE)
+  Kind k = getKind();
+  if (k == kind::DATATYPE_TYPE || k == kind::TUPLE_TYPE)
   {
     return true;
   }
-  if(getKind() != kind::PARAMETRIC_DATATYPE) {
+  if(k != kind::PARAMETRIC_DATATYPE) 
+  {
     return false;
   }
   const DType& dt = (*this)[0].getDType();
-  unsigned n = dt.getNumParameters();
+  size_t n = dt.getNumParameters();
   Assert(n < getNumChildren());
-  for(unsigned i = 0; i < n; ++i) {
+  for(size_t i = 0; i < n; ++i)
+  {
     if (dt.getParameter(i) == (*this)[i + 1])
     {
       return false;

@@ -313,6 +313,7 @@ const DType& NodeManager::getDTypeFor(TypeNode tn) const
   }
   else if (k == kind::TUPLE_TYPE)
   {
+    // lookup its datatype encoding
     TypeNode dtt = getAttribute(tn, expr::TupleDatatypeAttr());
     Assert(!dtt.isNull());
     return getDTypeFor(dtt);
@@ -878,6 +879,8 @@ TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
   Trace("tuprec-debug") << std::endl;
   Node dtt = d_tt_cache.getTupleType(this, types);
   Node tt = mkTypeNode(kind::TUPLE_TYPE, types);
+  tt.setAttribute(expr::TupleDatatypeAttr(), dtt);
+  // FIXME
   return dtt;
 }
 
