@@ -122,9 +122,27 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
     }
 
     literals.resize(d_conflictSize);
-    // Make first cube and emit it.
+    // Make cube from literals
     Node conj = NodeManager::currentNM()->mkAnd(literals);
-    emitCube(conj);
+
+    // For the strict-cube strategy, cubes look like the following:
+    // C1 =             l1_{1} & .... & l1_{d_conflictSize}
+    // C2 = !C1 &       l2_{1} & .... & l2_{d_conflictSize}
+    // C3 = !C1 & !C2 & l3_{1} & .... & l3_{d_conflictSize}
+    // C4 = !C1 & !C2 & !C3
+    if (options().parallel.partitionStrategy
+        == options::PartitionMode::STRICT_CUBE)
+    {
+      vector<Node> to_emit;
+      for (auto c : d_cubes) to_emit.push_back(c.notNode());
+      to_emit.push_back(conj);
+      Node cube = NodeManager::currentNM()->mkAnd(to_emit);
+
+      emitCube(cube);
+    }
+    else {
+      emitCube(conj);
+    }
     // Add to the list of cubes.
     d_cubes.push_back(conj);
     return blockPath(conj);
@@ -139,6 +157,56 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
     emitCube(lemma);
     return stopPartitioning();
   }
+}
+
+TrustNode PartitionGenerator::makeFullTrailPartitions()
+{
+  std::vector<TNode> literals = collectDecisionLiterals();
+  uint64_t num_var = static_cast<uint64_t>(log2(d_numPartitions));
+  if (literals.size() >= num_var)
+  {
+    literals.resize(num_var);
+    std::vector<TNode> part_nodes;
+
+    // This complicated thing is basically making a truth table
+    // of with 2^num_var variable so that these can be put together emitted as a partition
+    // later. Each entry in result_node_lists is a row corresponding to a cube:
+    // result_node_lists = {
+    //   { l1,  l2}
+    //   { l1, !l2}
+    //   {!l1,  l2}
+    //   {!l1, !l2} }
+    // result_node_lists is built column by column. 
+    std::vector<std::vector<TNode> > result_node_lists(pow(2, num_var));
+    bool t = false;
+    size_t q = num_var;
+    for (TNode n : literals)
+    {
+      TNode not_n = n.notNode();
+      // total number of cubes/rows
+      size_t total = pow(2, num_var);
+      // q tracks how many times the node should be negated in a row 
+      q = q - 1;
+      // loc tracks which row/cube we're on 
+      size_t loc = 0;
+      for (size_t z = 0; z < total / pow(2, q); ++z)
+      {
+        t = !t;
+        for (size_t j = 0; j < pow(2, q); ++j)
+        {
+          result_node_lists[loc].push_back((t ? n : not_n));
+          ++loc;
+        }
+      }
+    }
+    for (std::vector<TNode> row : result_node_lists)
+    {
+      Node conj = NodeManager::currentNM()->mkAnd(row);
+      emitCube(conj);
+    }
+    return stopPartitioning();
+  }
+  return TrustNode::null();
 }
 
 TrustNode PartitionGenerator::check(Theory::Effort e)
@@ -161,6 +229,8 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
 
   switch (options().parallel.partitionStrategy)
   {
+    case options::PartitionMode::DECISION_TRAIL: return makeFullTrailPartitions(); 
+    case options::PartitionMode::STRICT_CUBE: 
     case options::PartitionMode::REVISED: return makeRevisedPartitions();
     default: return TrustNode::null();
   }

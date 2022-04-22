@@ -37,6 +37,12 @@ name   = "Parallel"
 [[option.mode.REVISED]]
   name = "revised"
   help = "For 4 partitions, creates cubes C1, C2, C3, !C1 & !C2 & !C3"
+[[option.mode.STRICT_CUBE]]
+  name = "strict-cube"
+  help = "For 4 partitions, creates cubes C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3"
+[[option.mode.DECISION_TRAIL]]
+  name = "decision-trail"
+  help = "Creates mutually exclusive cubes from the decisions in minisat."
 
 [[option]]
   name       = "partitionCheck"
