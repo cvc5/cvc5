@@ -24,8 +24,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -126,8 +126,11 @@ class QuantInfo : protected EnvObj
 {
  public:
   using VarMgMap = std::map<size_t, std::unique_ptr<MatchGen>>;
-  QuantInfo(Env& env, QuantifiersState& qs,
-            TermRegistry& tr, QuantConflictFind* p, Node q);
+  QuantInfo(Env& env,
+            QuantifiersState& qs,
+            TermRegistry& tr,
+            QuantConflictFind* p,
+            Node q);
   ~QuantInfo();
   /** get quantified formula */
   Node getQuantifiedFormula() const;

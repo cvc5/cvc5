@@ -37,8 +37,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo(Env& env, QuantifiersState& qs,
-            TermRegistry& tr, QuantConflictFind* p, Node q)
+QuantInfo::QuantInfo(Env& env,
+                     QuantifiersState& qs,
+                     TermRegistry& tr,
+                     QuantConflictFind* p,
+                     Node q)
     : EnvObj(env),
       d_qs(qs),
       d_parent(p),
