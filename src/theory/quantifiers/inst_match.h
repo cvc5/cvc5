@@ -39,8 +39,7 @@ class QuantifiersState;
  */
 class InstMatch {
 public:
-  explicit InstMatch(TNode q);
-  InstMatch( InstMatch* m );
+  InstMatch(TNode q);
   /** add match m
    *
    * This adds the initialized fields of m to this match for each field that is
@@ -84,7 +83,10 @@ public:
   std::vector<Node>& get();
 
  private:
-  /* map from variable to ground terms */
+  /**
+   * Ground terms for each variable of the quantified formula, in order.
+   * Null nodes indicate the variable has not been set.
+   */
   std::vector<Node> d_vals;
   /** The quantified formula */
   Node d_quant;

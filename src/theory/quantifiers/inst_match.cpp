@@ -29,11 +29,6 @@ InstMatch::InstMatch(TNode q) : d_quant(q)
   Assert(d_vals[0].isNull());
 }
 
-InstMatch::InstMatch(InstMatch* m) : d_quant(m->d_quant)
-{
-  d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
-}
-
 void InstMatch::add(InstMatch& m)
 {
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
