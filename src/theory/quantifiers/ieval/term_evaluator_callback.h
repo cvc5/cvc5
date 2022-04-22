@@ -26,7 +26,8 @@
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-  
+
+class QuantifiersState;
 class TermDb;
 
 namespace ieval {
