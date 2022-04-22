@@ -140,6 +140,7 @@ void QuantInfo::computeMatchReq(TNode cur,
       }
     }
   }
+  // TODO: use of "matchable" seems specific here, always take this branch?
   if (k == EQUAL || tdb->isMatchable(cur) || expr::isBooleanConnective(cur))
   {
     // Equality between patterns, matchable predicate, or Boolean connective.

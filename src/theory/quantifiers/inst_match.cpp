@@ -35,9 +35,8 @@ InstMatch::InstMatch(Env& env,
   // initialize the evaluator?
   if (tev != ieval::TermEvaluatorMode::NONE)
   {
-    // make the term evaluator
     // make the instantiation evaluator
-    d_ieval.reset(new ieval::InstEvaluator(env, qs, tr, d_teval.get()));
+    d_ieval.reset(new ieval::InstEvaluator(env, qs, tr, tev));
     // set that we are watching quantified formula q
     d_ieval->watch(q);
   }

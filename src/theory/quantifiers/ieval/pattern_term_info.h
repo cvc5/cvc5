@@ -28,9 +28,6 @@
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-class TermDb;
-
 namespace ieval {
 
 class State;
@@ -48,7 +45,7 @@ class PatTermInfo
  public:
   PatTermInfo(context::Context* c);
   /** initialize */
-  void initialize(TNode pattern, TermDb* tdb);
+  void initialize(TNode pattern);
   /** Reset round */
   void resetRound();
   /**
@@ -65,8 +62,6 @@ class PatTermInfo
   bool notifyChild(State& s, TNode child, TNode val, TermEvaluator* tec);
   /** This pattern term. */
   TNode d_pattern;
-  /** The match operator */
-  TNode d_matchOp;
   //---------------------- during search
   /**
    * The ground term we are currently equal to, if any. This may also be

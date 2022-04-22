@@ -19,6 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/ieval/term_evaluator.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
 
 using namespace cvc5::internal::kind;
 
@@ -30,13 +31,13 @@ namespace ieval {
 State::State(Env& env,
              context::Context* c,
              QuantifiersState& qs,
-             TermDb* tdb,
-             TermEvaluator* tec)
+             TermRegistry& tr,
+             TermEvaluatorMode tev)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
-      d_tdb(tdb),
-      d_tec(tec),
+      d_tdb(tr.getTermDatabase()),
+      d_tevMode(tev),
       d_registeredTerms(c),
       d_registeredBaseTerms(c),
       d_initialized(c, false),
@@ -48,6 +49,16 @@ State::State(Env& env,
   d_some = sm->mkDummySkolem("some", nm->booleanType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  
+  // initialize the term evaluator
+  if (tev==TermEvaluatorMode::CONFLICT || tev==TermEvaluatorMode::PROP)
+  {
+    d_tec.reset(new TermEvaluatorEntailed(env, qs, d_tdb));
+  }
+  else if (tev==TermEvaluatorMode::MODEL)
+  {
+    //d_tec.reset(new TermEvaluatorModel(
+  }
 }
 
 void State::watch(Node q, const std::vector<Node>& vars, Node body)
@@ -106,12 +117,12 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
-          nchild++;
           // require notifications to parent
           PatTermInfo& pic = getOrMkPatTermInfo(cc);
           pic.d_parentNotify.push_back(cur);
           visit.push_back(cc);
         }
+        nchild = children.size();
       }
       if (nchild > 0)
       {
@@ -234,7 +245,7 @@ PatTermInfo& State::getOrMkPatTermInfo(TNode p)
   {
     it = d_pInfo.emplace(p, d_ctx).first;
     // initialize the pattern
-    it->second.initialize(p, d_tdb);
+    it->second.initialize(p);
   }
   return it->second;
 }
@@ -250,6 +261,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
 {
   Assert(!g.isNull());
   Assert(!expr::hasBoundVar(g));
+  Assert(d_qstate.getRepresentative(g)==g);
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   if (!it->second.isActive())
@@ -291,7 +303,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
       it = d_pInfo.find(pp);
       Assert(it != d_pInfo.end());
       // returns true if we have evaluated
-      if (it->second.notifyChild(*this, p, g, d_tec))
+      if (it->second.notifyChild(*this, p, g, d_tec.get()))
       {
         toNotify.push_back(it);
       }

@@ -26,6 +26,7 @@
 #include "expr/term_canonize.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
+#include "theory/quantifiers/ieval/term_evaluator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -34,21 +35,6 @@ namespace quantifiers {
 class TermRegistry;
 
 namespace ieval {
-
-class TermEvaluator;
-
-/** The evaluator to use */
-enum class TermEvaluatorMode : uint32_t
-{
-  // do not use an evaluator
-  NONE,
-  // conflict evaluator
-  CONFLICT,
-  // propagating evaluator
-  PROP,
-  // model evaluator
-  MODEL,
-};
 
 /**
  * Inst evaluator
@@ -64,7 +50,7 @@ class InstEvaluator : protected EnvObj
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermRegistry& tr,
-                TermEvaluator* tec,
+                TermEvaluatorMode tev,
                 bool doCanonize = false,
                 bool trackAssignedQuant = false);
   /**

@@ -22,7 +22,6 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/ieval/inst_evaluator.h"
-#include "theory/quantifiers/ieval/term_evaluator.h"
 
 namespace cvc5::internal {
 
@@ -89,8 +88,6 @@ class InstMatch {
   std::vector<Node> d_vals;
   /** The quantified formula */
   Node d_quant;
-  /** The term evaluator */
-  std::unique_ptr<ieval::TermEvaluator> d_teval;
   /** The instantiation evaluator */
   std::unique_ptr<ieval::InstEvaluator> d_ieval;
 };

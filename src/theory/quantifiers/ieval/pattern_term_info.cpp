@@ -31,11 +31,10 @@ PatTermInfo::PatTermInfo(context::Context* c)
 {
 }
 
-void PatTermInfo::initialize(TNode pattern, TermDb* tdb)
+void PatTermInfo::initialize(TNode pattern)
 {
   Assert(!pattern.isNull());
   d_pattern = pattern;
-  d_matchOp = tdb->getMatchOperator(pattern);
 }
 
 bool PatTermInfo::isActive() const { return d_eq.get().isNull(); }

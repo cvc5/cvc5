@@ -32,6 +32,19 @@ class TermDb;
 
 namespace ieval {
 
+/** The evaluator to use */
+enum class TermEvaluatorMode : uint32_t
+{
+  // do not use an evaluator
+  NONE,
+  // conflict evaluator
+  CONFLICT,
+  // propagating evaluator
+  PROP,
+  // model evaluator
+  MODEL,
+};
+
 class State;
 
 class TermEvaluator : protected EnvObj
