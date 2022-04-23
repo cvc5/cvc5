@@ -311,10 +311,7 @@ void ModelEngine::exhaustiveInstantiate(Node q, int effort)
         {
           // instantiation was not shown to be true, construct the term vector
           std::vector<Node> terms;
-          for (size_t i = 0, nterms = riter.getNumTerms(); i < nterms; i++)
-          {
-            terms.push_back(riter.getCurrentTerm(i));
-          }
+          riter.getCurrentTerms(terms);
           Trace("fmf-model-eval")
               << "* Add instantiation " << terms << std::endl;
           triedLemmas++;
