@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/free_var_info.h"
@@ -40,9 +39,7 @@ namespace ieval {
 
 class State : protected EnvObj
 {
-  using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node>;
-  using NodeBoolMap = context::CDHashMap<Node, bool>;
 
  public:
   State(Env& env,
@@ -51,7 +48,7 @@ class State : protected EnvObj
         TermRegistry& tr,
         TermEvaluatorMode tev);
 
-  /** Watch quantified formula with the given body */
+  /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
   /** has initialized */
@@ -145,12 +142,12 @@ class State : protected EnvObj
   Node d_false;
   /** The terms we have set up notifications for */
   NodeSet d_registeredTerms;
-  /** The terms we have set up notifications for that have no notifying children
+  /** 
+   * The terms we have set up notifications for that have no notifying children.
+   * These terms must be evaluated at the very beginning.
    */
   NodeSet d_registeredBaseTerms;
-  /**
-   * Has the state been initialized?
-   */
+  /** Has the state been initialized? */
   context::CDO<bool> d_initialized;
   /** total number of alive quantified formulas */
   context::CDO<size_t> d_numActiveQuant;

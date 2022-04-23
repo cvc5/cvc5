@@ -620,11 +620,13 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   if (isGround && d_vars[v].getKind() == BOUND_VARIABLE)
   {
     // Set the inst match object
+    /*
     Assert(v < d_q[0].getNumChildren());
     if (!d_instMatch.set(v, n))
     {
       return false;
     }
+    */
     d_vars_set.insert(v);
     Trace("qcf-match-debug")
         << "---- now bound " << d_vars_set.size() << " / "
@@ -642,7 +644,7 @@ void QuantInfo::unsetMatch(size_t v)
   {
     d_vars_set.erase( v );
     // Reset the inst match object
-    d_instMatch.reset(v);
+    //d_instMatch.reset(v);
   }
   d_match[v] = TNode::null();
 }
