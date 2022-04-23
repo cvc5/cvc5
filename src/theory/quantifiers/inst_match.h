@@ -48,7 +48,7 @@ class InstMatch {
             QuantifiersState& qs,
             TermRegistry& tr,
             TNode q,
-            ieval::TermEvaluatorMode tev = ieval::TermEvaluatorMode::NONE);
+            ieval::TermEvaluatorMode tev);
   /** is this complete, i.e. are all fields non-null? */
   bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */

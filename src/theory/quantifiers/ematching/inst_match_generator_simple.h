@@ -83,6 +83,11 @@ class InstMatchGeneratorSimple : public IMGenerator
    * child is not a variable.
    */
   std::map<size_t, int> d_var_num;
+  /** 
+   * Add instantiations
+   */
+  void addInstantiations(uint64_t& addedLemmas,
+                         TNodeTrie* tat);
   /** add instantiations, helper function.
    *
    * @param m the current match we are building,

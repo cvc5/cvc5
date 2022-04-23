@@ -161,7 +161,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
   {
     Trace("multi-trigger-cache") << "Calculate matches " << i << std::endl;
     std::vector<InstMatch> newMatches;
-    InstMatch m(d_env, d_qstate, d_treg, q);
+    InstMatch m(d_env, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
     while (d_children[i]->getNextMatch(q, m) > 0)
     {
       Trace("multi-trigger-cache2")
