@@ -21,10 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstMatch::InstMatch(Env& env,
-                     QuantifiersState& qs,
-                     TermRegistry& tr,
-                     TNode q)
+InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
     : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
@@ -41,7 +38,7 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
   if (tev != ieval::TermEvaluatorMode::NONE)
   {
     // make the instantiation evaluator
-    if (d_ieval==nullptr)
+    if (d_ieval == nullptr)
     {
       d_ieval.reset(new ieval::InstEvaluator(d_env, d_qs, d_tr));
     }

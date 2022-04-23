@@ -94,8 +94,7 @@ std::string QuantInfo::toStringDebug() const
   return ss.str();
 }
 
-void QuantInfo::computeMatchReq(TNode cur,
-                                std::vector<TNode>& visit)
+void QuantInfo::computeMatchReq(TNode cur, std::vector<TNode>& visit)
 {
   Assert(cur.getType().isBoolean());
   bool pol = true;

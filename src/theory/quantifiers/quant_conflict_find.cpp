@@ -290,7 +290,9 @@ bool QuantInfo::reset_round()
     d_match_term[i] = TNode::null();
   }
   d_instMatch.clear();
-  ieval::TermEvaluatorMode tev = d_parent->atConflictEffort() ? ieval::TermEvaluatorMode::CONFLICT : ieval::TermEvaluatorMode::PROP;
+  ieval::TermEvaluatorMode tev = d_parent->atConflictEffort()
+                                     ? ieval::TermEvaluatorMode::CONFLICT
+                                     : ieval::TermEvaluatorMode::PROP;
   d_instMatch.setEvaluatorMode(tev);
   d_vars_set.clear();
   d_curr_var_deq.clear();
@@ -653,7 +655,7 @@ void QuantInfo::unsetMatch(size_t v)
   {
     d_vars_set.erase( v );
     // Reset the inst match object if this corresponds to an original variable
-    if (v<d_q[0].getNumChildren())
+    if (v < d_q[0].getNumChildren())
     {
       d_instMatch.reset(v);
     }

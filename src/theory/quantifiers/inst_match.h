@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/quantifiers/ieval/inst_evaluator.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/ieval/inst_evaluator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,13 +40,11 @@ class TermRegistry;
  * The values of d_vals may be null, which indicate that the field has
  * yet to be initialized.
  */
-class InstMatch : protected EnvObj {
+class InstMatch : protected EnvObj
+{
  public:
-  InstMatch(Env& env,
-            QuantifiersState& qs,
-            TermRegistry& tr,
-            TNode q);
-  /** 
+  InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q);
+  /**
    * Set evaluator mode. This can be modified if there are no variable
    * assignments.
    */
@@ -79,6 +77,7 @@ class InstMatch : protected EnvObj {
   void reset(size_t i);
   /** Get the values */
   std::vector<Node>& get();
+
  private:
   /** Reference to the state */
   QuantifiersState& d_qs;

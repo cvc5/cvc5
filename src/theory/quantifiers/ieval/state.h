@@ -41,10 +41,7 @@ class State : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  State(Env& env,
-        context::Context* c,
-        QuantifiersState& qs,
-        TermRegistry& tr);
+  State(Env& env, context::Context* c, QuantifiersState& qs, TermRegistry& tr);
 
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);

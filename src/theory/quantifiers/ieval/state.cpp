@@ -148,7 +148,7 @@ bool State::initialize()
 {
   Assert(!d_initialized.get());
   // should have set a valid evaluator mode
-  Assert (d_tec!=nullptr);
+  Assert(d_tec != nullptr);
   d_initialized = true;
   for (const Node& b : d_registeredBaseTerms)
   {

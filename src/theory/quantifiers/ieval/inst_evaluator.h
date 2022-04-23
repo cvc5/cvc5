@@ -41,7 +41,7 @@ namespace ieval {
  *
  * Incrementally maintains the state of the rewritten form of the quantified
  * formula.
- * 
+ *
  * To use, you must:
  * - Construct
  * - Set a evaluator mode
@@ -89,7 +89,7 @@ class InstEvaluator : protected EnvObj
    * Is feasible, return true if any quantified formulas are feasible.
    */
   bool isFeasible() const;
-  /** 
+  /**
    * Set evaluator mode. This can be modified if there are no variable
    * assignments.
    */

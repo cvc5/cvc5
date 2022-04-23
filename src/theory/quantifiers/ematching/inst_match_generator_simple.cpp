@@ -124,7 +124,7 @@ void InstMatchGeneratorSimple::addInstantiations(uint64_t& addedLemmas,
                                                  TNodeTrie* tat)
 {
   InstMatch m(d_env, d_qstate, d_treg, d_quant);
-    m.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
+  m.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
   addInstantiations(m, addedLemmas, 0, tat);
 }
 
