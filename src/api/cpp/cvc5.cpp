@@ -4458,9 +4458,7 @@ Sort Grammar::resolve()
   }
 
   std::vector<internal::TypeNode> datatypeTypes =
-      d_solver->getNodeManager()->mkMutualDatatypeTypes(
-          datatypes,
-          internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      d_solver->getNodeManager()->mkMutualDatatypeTypes(datatypes);
 
   // return is the first datatype
   return Sort(d_solver, datatypeTypes[0]);
