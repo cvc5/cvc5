@@ -1163,26 +1163,11 @@ TNode NodeManager::operatorOf(Kind k)
                  "in NodeManager::operatorOf()");
   return d_operators[k];
 }
-/**
- * This class gives a mechanism to stack-allocate a NodeValue
- * with enough space for 1 child.  You use it like this:
- *
- *   NVStorage nvStorage;
- *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
- *
- * ...and then you can use nvStack as a NodeValue that you know has
- * room for 1 child.
- */
-struct NVStorage
-{
-  expr::NodeValue nv;
-  expr::NodeValue* child[1];
-};
 
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 {
-  NVStorage nvStorage;
+  NVStorage<1> nvStorage;
   expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
 
   nvStack.d_id = 0;

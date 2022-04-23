@@ -787,6 +787,24 @@ class NodeManager
   };
 
   /**
+   * This template gives a mechanism to stack-allocate a NodeValue
+   * with enough space for N children (where N is a compile-time
+   * constant).  You use it like this:
+   *
+   *   NVStorage<4> nvStorage;
+   *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
+   *
+   * ...and then you can use nvStack as a NodeValue that you know has
+   * room for 4 children.
+   */
+  template <size_t N>
+  struct NVStorage
+  {
+    expr::NodeValue nv;
+    expr::NodeValue* child[N];
+  };
+
+  /**
    * A map of tuple and record types to their corresponding datatype.
    */
   class TupleTypeCache
