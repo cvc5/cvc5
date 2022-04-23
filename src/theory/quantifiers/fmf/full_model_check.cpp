@@ -835,7 +835,7 @@ class RepBoundFmcEntry : public QRepBoundExt
                    TNode q,
                    Node e,
                    FirstOrderModelFmc* fmc)
-      : QRepBoundExt(env, qbi, qs, tr, q, ieval::TermEvaluatorMode::NONE),
+      : QRepBoundExt(env, qbi, qs, tr, q),
         d_entry(e),
         d_fm(fmc)
   {

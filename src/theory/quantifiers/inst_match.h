@@ -22,11 +22,9 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/ieval/inst_evaluator.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
-
-class Env;
-
 namespace theory {
 namespace quantifiers {
 
@@ -42,13 +40,17 @@ class TermRegistry;
  * The values of d_vals may be null, which indicate that the field has
  * yet to be initialized.
  */
-class InstMatch {
+class InstMatch : protected EnvObj {
  public:
   InstMatch(Env& env,
             QuantifiersState& qs,
             TermRegistry& tr,
-            TNode q,
-            ieval::TermEvaluatorMode tev);
+            TNode q);
+  /** 
+   * Set evaluator mode. This can be modified if there are no variable
+   * assignments.
+   */
+  void setEvaluatorMode(ieval::TermEvaluatorMode tev);
   /** is this complete, i.e. are all fields non-null? */
   bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */
@@ -77,10 +79,11 @@ class InstMatch {
   void reset(size_t i);
   /** Get the values */
   std::vector<Node>& get();
-
  private:
   /** Reference to the state */
   QuantifiersState& d_qs;
+  /** Reference to the term registry */
+  TermRegistry& d_tr;
   /**
    * Ground terms for each variable of the quantified formula, in order.
    * Null nodes indicate the variable has not been set.

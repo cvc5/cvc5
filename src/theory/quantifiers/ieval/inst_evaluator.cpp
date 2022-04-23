@@ -25,7 +25,6 @@ namespace ieval {
 InstEvaluator::InstEvaluator(Env& env,
                              QuantifiersState& qs,
                              TermRegistry& tr,
-                             TermEvaluatorMode tev,
                              bool doCanonize,
                              bool trackAssignedQuant)
     : EnvObj(env),
@@ -34,7 +33,7 @@ InstEvaluator::InstEvaluator(Env& env,
       d_treg(tr),
       d_doCanonize(doCanonize),
       d_trackAssignedQuant(trackAssignedQuant),
-      d_state(env, &d_context, qs, tr, tev),
+      d_state(env, &d_context, qs, tr),
       d_varMap(&d_context)
 {
 }
@@ -130,6 +129,12 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
 }
 
 bool InstEvaluator::isFeasible() const { return !d_state.isFinished(); }
+
+void InstEvaluator::setEvaluatorMode(TermEvaluatorMode tev)
+{
+  Assert(!d_state.hasInitialized());
+  d_state.setEvaluatorMode(tev);
+}
 
 }  // namespace ieval
 }  // namespace quantifiers

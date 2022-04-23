@@ -32,7 +32,7 @@ QuantInfo::QuantInfo(context::Context* c)
 {
 }
 
-void QuantInfo::initialize(TNode q, Node body, TermDb* tdb)
+void QuantInfo::initialize(TNode q, Node body)
 {
   Assert(q.getKind() == FORALL);
   d_quant = q;
@@ -60,7 +60,7 @@ void QuantInfo::initialize(TNode q, Node body, TermDb* tdb)
     {
       processed.insert(cur);
       // process the match requirement for (disjunct) cur
-      computeMatchReq(cur, tdb, visit);
+      computeMatchReq(cur, visit);
     }
   } while (!visit.empty());
 
@@ -95,7 +95,6 @@ std::string QuantInfo::toStringDebug() const
 }
 
 void QuantInfo::computeMatchReq(TNode cur,
-                                TermDb* tdb,
                                 std::vector<TNode>& visit)
 {
   Assert(cur.getType().isBoolean());
@@ -115,7 +114,12 @@ void QuantInfo::computeMatchReq(TNode cur,
     k = cur.getKind();
     // double negations should already be eliminated
     Assert(k != NOT);
+    // should be NNF
+    Assert(k != AND);
   }
+  Node eqc = NodeManager::currentNM()->mkConst(!pol);
+  addMatchTermReq(cur, eqc, true);
+#if 0
   // NOTE: could sanitize the term, remove any nested quantifiers here?
   // This is probably not necessary, the equality engine will treat the term
   // as a leaf.
@@ -157,6 +161,7 @@ void QuantInfo::computeMatchReq(TNode cur,
     // to be propagating, it must be equal to something
     addMatchTermReq(lc, Node::null(), true);
   }
+#endif
 }
 
 void QuantInfo::addMatchTermReq(TNode t, Node eqc, bool isEq)

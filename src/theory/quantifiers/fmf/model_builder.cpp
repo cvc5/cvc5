@@ -120,7 +120,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       Node q = fm->getAssertedQuantifier(i);
       std::vector<Node> vars(q[0].begin(), q[0].end());
       QRepBoundExt qrbe(
-          d_env, qbi, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
+          d_env, qbi, d_qstate, d_treg, q);
       RepSetIterator riter(m->getRepSet(), &qrbe);
       if (riter.setQuantifier(q))
       {

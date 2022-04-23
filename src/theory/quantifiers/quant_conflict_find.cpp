@@ -45,7 +45,7 @@ QuantInfo::QuantInfo(Env& env,
     : EnvObj(env),
       d_qs(qs),
       d_parent(p),
-      d_instMatch(env, qs, tr, q, ieval::TermEvaluatorMode::NONE),
+      d_instMatch(env, qs, tr, q),
       d_mg(nullptr),
       d_q(q),
       d_unassigned_nvar(0),
@@ -290,6 +290,8 @@ bool QuantInfo::reset_round()
     d_match_term[i] = TNode::null();
   }
   d_instMatch.clear();
+  ieval::TermEvaluatorMode tev = d_parent->atConflictEffort() ? ieval::TermEvaluatorMode::CONFLICT : ieval::TermEvaluatorMode::PROP;
+  d_instMatch.setEvaluatorMode(tev);
   d_vars_set.clear();
   d_curr_var_deq.clear();
   d_tconstraints.clear();
@@ -2300,7 +2302,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   bool isConflict = false;
   FirstOrderModel* fm = d_treg.getModel();
-  unsigned nquant = fm->getNumAssertedQuantifiers();
+  size_t nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
   for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e)
   {
@@ -2309,7 +2311,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     Trace("qcf-check") << "Checking quantified formulas at effort " << e
                        << "..." << std::endl;
     // for each quantified formula
-    for (unsigned i = 0; i < nquant; i++)
+    for (size_t i = 0; i < nquant; i++)
     {
       Node q = fm->getAssertedQuantifier(i, true);
       if (d_qreg.hasOwnership(q, this)

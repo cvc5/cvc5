@@ -553,7 +553,8 @@ uint64_t InstMatchGenerator::addInstantiations(Node q)
 {
   //try to add instantiation for each match produced
   uint64_t addedLemmas = 0;
-  InstMatch m(d_env, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
+  InstMatch m(d_env, d_qstate, d_treg, q);
+  m.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
   while (getNextMatch(q, m) > 0)
   {
     if( !d_active_add ){

@@ -27,9 +27,6 @@
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-class TermDb;
-
 namespace ieval {
 
 /**
@@ -44,7 +41,7 @@ class QuantInfo
   /**
    * Initialize, called once.
    */
-  void initialize(TNode q, Node body, TermDb* tdb);
+  void initialize(TNode q, Node body);
   //-------------------------- static information
   /**
    * Get the constraints, which maps pattern terms to node corresponding to
@@ -82,7 +79,7 @@ class QuantInfo
    * Process matching requirement for subterm cur which is a disjunct in the
    * quantified formula of this class.
    */
-  void computeMatchReq(TNode cur, TermDb* tdb, std::vector<TNode>& visit);
+  void computeMatchReq(TNode cur, std::vector<TNode>& visit);
   /** Add match term that must be (dis)equal from eqc */
   void addMatchTermReq(TNode t, Node eqc, bool isEq);
   //------------------- static

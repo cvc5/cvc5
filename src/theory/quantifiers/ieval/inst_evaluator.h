@@ -41,6 +41,12 @@ namespace ieval {
  *
  * Incrementally maintains the state of the rewritten form of the quantified
  * formula.
+ * 
+ * To use, you must:
+ * - Construct
+ * - Set a evaluator mode
+ * - Watch quantified formulas
+ * - push/pop variable assignments
  */
 class InstEvaluator : protected EnvObj
 {
@@ -50,11 +56,11 @@ class InstEvaluator : protected EnvObj
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermRegistry& tr,
-                TermEvaluatorMode tev,
                 bool doCanonize = false,
                 bool trackAssignedQuant = false);
   /**
-   * Set that we are watching quantified formula q.
+   * Set that we are watching quantified formula q. This can only be done if
+   * there are no variable assignments yet.
    */
   void watch(Node q);
   /** Same as above, with possibly preprocessed body. */
@@ -83,6 +89,11 @@ class InstEvaluator : protected EnvObj
    * Is feasible, return true if any quantified formulas are feasible.
    */
   bool isFeasible() const;
+  /** 
+   * Set evaluator mode. This can be modified if there are no variable
+   * assignments.
+   */
+  void setEvaluatorMode(TermEvaluatorMode tev);
 
  private:
   /** push internal */

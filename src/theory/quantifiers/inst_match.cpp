@@ -24,21 +24,35 @@ namespace quantifiers {
 InstMatch::InstMatch(Env& env,
                      QuantifiersState& qs,
                      TermRegistry& tr,
-                     TNode q,
-                     ieval::TermEvaluatorMode tev)
-    : d_qs(qs), d_quant(q)
+                     TNode q)
+    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
   // resize must initialize with null nodes
   Assert(d_vals[0].isNull());
+}
+
+void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
+{
+  // FIXME
+  return;
   // initialize the evaluator?
   if (tev != ieval::TermEvaluatorMode::NONE)
   {
     // make the instantiation evaluator
-    d_ieval.reset(new ieval::InstEvaluator(env, qs, tr, tev));
+    if (d_ieval==nullptr)
+    {
+      d_ieval.reset(new ieval::InstEvaluator(d_env, d_qs, d_tr));
+    }
+    // set the evaluator mode
+    d_ieval.setEvaluatorMode(tev);
     // set that we are watching quantified formula q
-    d_ieval->watch(q);
+    d_ieval->watch(d_quant);
+  }
+  else
+  {
+    d_ieval.reset(nullptr);
   }
 }
 

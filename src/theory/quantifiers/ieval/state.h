@@ -33,7 +33,6 @@ namespace quantifiers {
 
 class QuantifiersState;
 class TermRegistry;
-class TermDb;
 
 namespace ieval {
 
@@ -45,8 +44,7 @@ class State : protected EnvObj
   State(Env& env,
         context::Context* c,
         QuantifiersState& qs,
-        TermRegistry& tr,
-        TermEvaluatorMode tev);
+        TermRegistry& tr);
 
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
@@ -121,8 +119,6 @@ class State : protected EnvObj
   context::Context* d_ctx;
   /** Quantifiers state */
   QuantifiersState& d_qstate;
-  /** Term database */
-  TermDb* d_tdb;
   /** The term evaluator mode */
   TermEvaluatorMode d_tevMode;
   /** The term evaluator callback we are using */

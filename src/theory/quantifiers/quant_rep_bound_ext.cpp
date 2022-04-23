@@ -29,9 +29,8 @@ QRepBoundExt::QRepBoundExt(Env& env,
                            QuantifiersBoundInference& qbi,
                            QuantifiersState& qs,
                            TermRegistry& tr,
-                           TNode q,
-                           ieval::TermEvaluatorMode tev)
-    : d_qbi(qbi), d_model(tr.getModel()), d_instMatch(env, qs, tr, q, tev)
+                           TNode q)
+    : d_qbi(qbi), d_model(tr.getModel()), d_instMatch(env, qs, tr, q)
 {
 }
 

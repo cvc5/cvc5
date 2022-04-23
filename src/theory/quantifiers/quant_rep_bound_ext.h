@@ -45,8 +45,7 @@ class QRepBoundExt : public RepBoundExt
                QuantifiersBoundInference& qbi,
                QuantifiersState& qs,
                TermRegistry& tr,
-               TNode q,
-               ieval::TermEvaluatorMode tev);
+               TNode q);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,

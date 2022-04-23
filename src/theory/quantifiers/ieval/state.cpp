@@ -31,13 +31,11 @@ namespace ieval {
 State::State(Env& env,
              context::Context* c,
              QuantifiersState& qs,
-             TermRegistry& tr,
-             TermEvaluatorMode tev)
+             TermRegistry& tr)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
-      d_tdb(tr.getTermDatabase()),
-      d_tevMode(tev),
+      d_tevMode(ieval::TermEvaluatorMode::NONE),
       d_registeredTerms(c),
       d_registeredBaseTerms(c),
       d_initialized(c, false),
@@ -49,12 +47,17 @@ State::State(Env& env,
   d_some = sm->mkDummySkolem("some", nm->booleanType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+}
 
+void State::setEvaluatorMode(TermEvaluatorMode tev)
+{
+  d_tevMode = tev;
+  // TODO: could preserve the term evaluator?
   // initialize the term evaluator
   if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP
       || tev == TermEvaluatorMode::NO_ENTAIL)
   {
-    d_tec.reset(new TermEvaluatorEntailed(env, qs, d_tdb));
+    d_tec.reset(new TermEvaluatorEntailed(env, qs, tr.getTermDatabase()));
   }
   else if (tev == TermEvaluatorMode::MODEL)
   {
@@ -73,7 +76,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
   d_quantInfo.emplace(q, d_ctx);
   it = d_quantInfo.find(q);
   // initialize the quantifier info, which stores basic constraint information
-  it->second.initialize(q, body, d_tdb);
+  it->second.initialize(q, body);
   // add to free variable lists
   for (const Node& v : vars)
   {
@@ -144,6 +147,8 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
 bool State::initialize()
 {
   Assert(!d_initialized.get());
+  // should have set a valid evaluator mode
+  Assert (d_tec!=nullptr);
   d_initialized = true;
   for (const Node& b : d_registeredBaseTerms)
   {
