@@ -644,7 +644,7 @@ void QuantInfo::unsetMatch(size_t v)
   {
     d_vars_set.erase( v );
     // Reset the inst match object
-    //d_instMatch.reset(v);
+    // d_instMatch.reset(v);
   }
   d_match[v] = TNode::null();
 }

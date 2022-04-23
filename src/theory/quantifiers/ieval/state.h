@@ -142,7 +142,7 @@ class State : protected EnvObj
   Node d_false;
   /** The terms we have set up notifications for */
   NodeSet d_registeredTerms;
-  /** 
+  /**
    * The terms we have set up notifications for that have no notifying children.
    * These terms must be evaluated at the very beginning.
    */
