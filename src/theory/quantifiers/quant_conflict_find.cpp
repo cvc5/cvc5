@@ -619,12 +619,14 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
                            << std::endl;
   if (isGround && d_vars[v].getKind() == BOUND_VARIABLE)
   {
-    // Set the inst match object
+    // Set the inst match object if this corresponds to an original variable
     /*
-    Assert(v < d_q[0].getNumChildren());
-    if (!d_instMatch.set(v, n))
+    if (v < d_q[0].getNumChildren())
     {
-      return false;
+      if (!d_instMatch.set(v, n))
+      {
+        return false;
+      }
     }
     */
     d_vars_set.insert(v);
@@ -632,6 +634,8 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
         << "---- now bound " << d_vars_set.size() << " / "
         << d_q[0].getNumChildren() << " base variables." << std::endl;
   }
+  // TODO: assigning to a variable that an original variable is equal to
+  // should trigger the match object
   d_match[v] = n;
   return true;
 }
@@ -643,8 +647,13 @@ void QuantInfo::unsetMatch(size_t v)
       && d_vars_set.find(v) != d_vars_set.end())
   {
     d_vars_set.erase( v );
-    // Reset the inst match object
-    // d_instMatch.reset(v);
+    // Reset the inst match object if this corresponds to an original variable
+    /*
+    if (v<d_q[0].getNumChildren())
+    {
+      d_instMatch.reset(v);
+    }
+    */
   }
   d_match[v] = TNode::null();
 }

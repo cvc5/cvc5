@@ -30,13 +30,13 @@ RepSetIterator::RepSetIterator(const RepSet* rs, RepBoundExt* rext)
 {
 }
 
-unsigned RepSetIterator::domainSize(unsigned i)
+size_t RepSetIterator::domainSize(size_t i) const
 {
-  unsigned v = d_var_order[i];
+  size_t v = d_var_order[i];
   return d_domain_elements[v].size();
 }
 
-TypeNode RepSetIterator::getTypeOf(unsigned i) const { return d_types[i]; }
+TypeNode RepSetIterator::getTypeOf(size_t i) const { return d_types[i]; }
 
 bool RepSetIterator::setQuantifier(Node q)
 {
@@ -67,7 +67,9 @@ bool RepSetIterator::setFunctionDomain(Node op)
 bool RepSetIterator::initialize()
 {
   Trace("rsi") << "Initialize rep set iterator..." << std::endl;
-  for (size_t v = 0, ntypes = d_types.size(); v < ntypes; v++)
+  size_t ntypes = d_types.size();
+  d_var_order.resize(ntypes);
+  for (size_t v = 0; v < ntypes; v++)
   {
     d_index.push_back(0);
     // store default index order
@@ -122,20 +124,20 @@ bool RepSetIterator::initialize()
 
   if (d_rext)
   {
-    std::vector<unsigned> varOrder;
+    std::vector<size_t> varOrder;
     if (d_rext->getVariableOrder(d_owner, varOrder))
     {
       if (TraceIsOn("bound-int-rsi"))
       {
         Trace("bound-int-rsi") << "Variable order : ";
-        for (unsigned v : varOrder)
+        for (size_t v : varOrder)
         {
           Trace("bound-int-rsi") << v << " ";
         }
         Trace("bound-int-rsi") << std::endl;
       }
       size_t nvars = varOrder.size();
-      std::vector<unsigned> indexOrder;
+      std::vector<size_t> indexOrder;
       indexOrder.resize(nvars);
       for (size_t i = 0; i < nvars; i++)
       {
@@ -159,7 +161,7 @@ bool RepSetIterator::initialize()
   return true;
 }
 
-void RepSetIterator::setIndexOrder(std::vector<unsigned>& indexOrder)
+void RepSetIterator::setIndexOrder(std::vector<size_t>& indexOrder)
 {
   d_index_order.clear();
   d_index_order.insert(
@@ -171,10 +173,10 @@ void RepSetIterator::setIndexOrder(std::vector<unsigned>& indexOrder)
   }
 }
 
-int RepSetIterator::resetIndex(unsigned i, bool initial)
+int RepSetIterator::resetIndex(size_t i, bool initial)
 {
   d_index[i] = 0;
-  unsigned v = d_var_order[i];
+  size_t v = d_var_order[i];
   Trace("bound-int-rsi") << "Reset " << i << ", var order = " << v
                          << ", initial = " << initial << std::endl;
   if (d_rext)
@@ -224,7 +226,7 @@ int RepSetIterator::doResetIncrement(int i, bool initial)
 {
   Trace("rsi-debug") << "RepSetIterator::doResetIncrement: " << i
                      << ", initial=" << initial << std::endl;
-  for (unsigned ii = (i + 1); ii < d_index.size(); ii++)
+  for (size_t ii = (i + 1); ii < d_index.size(); ii++)
   {
     bool emptyDomain = false;
     int ri_res = resetIndex(ii, initial);
@@ -275,10 +277,10 @@ int RepSetIterator::increment()
 
 bool RepSetIterator::isFinished() const { return d_index.empty(); }
 
-Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
+Node RepSetIterator::getCurrentTerm(size_t i, bool valTerm) const
 {
-  unsigned ii = d_index_order[i];
-  unsigned curr = d_index[ii];
+  size_t ii = d_index_order[i];
+  size_t curr = d_index[ii];
   Trace("rsi-debug") << "rsi : get term " << i
                      << ", index order = " << d_index_order[i] << std::endl;
   Trace("rsi-debug") << "rsi : curr = " << curr << " / "

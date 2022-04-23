@@ -843,7 +843,7 @@ class RepBoundFmcEntry : public QRepBoundExt
   ~RepBoundFmcEntry() {}
   /** set bound */
   virtual RsiEnumType setBound(Node owner,
-                               unsigned i,
+                               size_t i,
                                std::vector<Node>& elements) override
   {
     if (!d_fm->isStar(d_entry[i]))
