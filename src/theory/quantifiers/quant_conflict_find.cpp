@@ -617,15 +617,18 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   Trace("qcf-match-debug") << "-- bind : " << v << " -> " << n << ", checked "
                            << d_curr_var_deq[v].size() << " disequalities"
                            << std::endl;
-  if (isGround)
+  if (isGround && d_vars[v].getKind() == BOUND_VARIABLE)
   {
-    if (d_vars[v].getKind() == BOUND_VARIABLE)
+    // Set the inst match object
+    Assert (v<d_q[0].getNumChildren());
+    if (!d_instMatch.set(v, n))
     {
-      d_vars_set.insert(v);
-      Trace("qcf-match-debug")
-          << "---- now bound " << d_vars_set.size() << " / "
-          << d_q[0].getNumChildren() << " base variables." << std::endl;
+      return false;
     }
+    d_vars_set.insert(v);
+    Trace("qcf-match-debug")
+        << "---- now bound " << d_vars_set.size() << " / "
+        << d_q[0].getNumChildren() << " base variables." << std::endl;
   }
   d_match[v] = n;
   return true;
@@ -634,10 +637,13 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
 void QuantInfo::unsetMatch(size_t v)
 {
   Trace("qcf-match-debug") << "-- unbind : " << v << std::endl;
-  if( d_vars[v].getKind()==BOUND_VARIABLE && d_vars_set.find( v )!=d_vars_set.end() ){
+  if( d_vars[v].getKind()==BOUND_VARIABLE && d_vars_set.find( v )!=d_vars_set.end() )
+  {
     d_vars_set.erase( v );
+    // Reset the inst match object
+    d_instMatch.reset(v);
   }
-  d_match[ v ] = TNode::null();
+  d_match[v] = TNode::null();
 }
 
 bool QuantInfo::isMatchSpurious()

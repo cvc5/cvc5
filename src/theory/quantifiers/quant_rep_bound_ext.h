@@ -23,6 +23,7 @@
 #include "expr/node.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/theory_model.h"
+#include "theory/quantifiers/inst_match.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,7 +41,12 @@ class FirstOrderModel;
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m);
+  QRepBoundExt(Env& env,
+            QuantifiersBoundInference& qbi,
+            QuantifiersState& qs,
+            TermRegistry& tr,
+            TNode q,
+            ieval::TermEvaluatorMode tev);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
@@ -64,6 +70,8 @@ class QRepBoundExt : public RepBoundExt
   FirstOrderModel* d_model;
   /** indices that are bound integer enumeration */
   std::map<unsigned, bool> d_bound_int;
+  /** An instantiation match */
+  InstMatch d_instMatch;
 };
 
 }  // namespace quantifiers
