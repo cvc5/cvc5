@@ -147,11 +147,9 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           Trace("quant-check-model") << ", " << bad << " failed" << std::endl;
         }
         Trace("quant-check-model") << "." << std::endl;
-      }else{
-        if( riter.isIncomplete() ){
-          Trace("quant-check-model")
-              << "Warning: Could not test quantifier " << q << std::endl;
-        }
+      }else if( riter.isIncomplete() ){
+        Trace("quant-check-model")
+            << "Warning: Could not test quantifier " << q << std::endl;
       }
     }
   }
