@@ -620,7 +620,7 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   if (isGround && d_vars[v].getKind() == BOUND_VARIABLE)
   {
     // Set the inst match object
-    Assert (v<d_q[0].getNumChildren());
+    Assert(v < d_q[0].getNumChildren());
     if (!d_instMatch.set(v, n))
     {
       return false;
@@ -637,7 +637,8 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
 void QuantInfo::unsetMatch(size_t v)
 {
   Trace("qcf-match-debug") << "-- unbind : " << v << std::endl;
-  if( d_vars[v].getKind()==BOUND_VARIABLE && d_vars_set.find( v )!=d_vars_set.end() )
+  if (d_vars[v].getKind() == BOUND_VARIABLE
+      && d_vars_set.find(v) != d_vars_set.end())
   {
     d_vars_set.erase( v );
     // Reset the inst match object

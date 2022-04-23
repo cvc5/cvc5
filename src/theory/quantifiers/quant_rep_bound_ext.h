@@ -21,9 +21,9 @@
 #include <map>
 
 #include "expr/node.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/theory_model.h"
-#include "theory/quantifiers/inst_match.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -42,11 +42,11 @@ class QRepBoundExt : public RepBoundExt
 {
  public:
   QRepBoundExt(Env& env,
-            QuantifiersBoundInference& qbi,
-            QuantifiersState& qs,
-            TermRegistry& tr,
-            TNode q,
-            ieval::TermEvaluatorMode tev);
+               QuantifiersBoundInference& qbi,
+               QuantifiersState& qs,
+               TermRegistry& tr,
+               TNode q,
+               ieval::TermEvaluatorMode tev);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,

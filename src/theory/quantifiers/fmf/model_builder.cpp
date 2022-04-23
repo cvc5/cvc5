@@ -114,12 +114,16 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     int bad = 0;
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
     Instantiate* inst = d_qim.getInstantiate();
-    for( size_t i=0, nquant = fm->getNumAssertedQuantifiers(); i<nquant; i++ ){
-      Node q = fm->getAssertedQuantifier( i );
-      std::vector< Node > vars(q[0].begin(), q[0].end());
-      QRepBoundExt qrbe(d_env, qbi, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
+    for (size_t i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant;
+         i++)
+    {
+      Node q = fm->getAssertedQuantifier(i);
+      std::vector<Node> vars(q[0].begin(), q[0].end());
+      QRepBoundExt qrbe(
+          d_env, qbi, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
       RepSetIterator riter(m->getRepSet(), &qrbe);
-      if( riter.setQuantifier( q ) ){
+      if (riter.setQuantifier(q))
+      {
         while( !riter.isFinished() ){
           tests++;
           std::vector< Node > terms;
@@ -145,7 +149,8 @@ void QModelBuilder::debugModel( TheoryModel* m ){
         Trace("quant-check-model") << "." << std::endl;
       }else{
         if( riter.isIncomplete() ){
-          Trace("quant-check-model") << "Warning: Could not test quantifier " << q << std::endl;
+          Trace("quant-check-model")
+              << "Warning: Could not test quantifier " << q << std::endl;
         }
       }
     }
