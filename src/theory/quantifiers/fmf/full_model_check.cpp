@@ -829,14 +829,15 @@ class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
   RepBoundFmcEntry(Env& env,
-               QuantifiersBoundInference& qbi,
-               QuantifiersState& qs,
-               TermRegistry& tr,
-               TNode q,
+                   QuantifiersBoundInference& qbi,
+                   QuantifiersState& qs,
+                   TermRegistry& tr,
+                   TNode q,
                    Node e,
-                   FirstOrderModelFmc * fmc
-                  )
-      : QRepBoundExt(env, qbi, qs, tr, q, ieval::TermEvaluatorMode::NONE), d_entry(e), d_fm(fmc)
+                   FirstOrderModelFmc* fmc)
+      : QRepBoundExt(env, qbi, qs, tr, q, ieval::TermEvaluatorMode::NONE),
+        d_entry(e),
+        d_fm(fmc)
   {
   }
   ~RepBoundFmcEntry() {}
