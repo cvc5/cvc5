@@ -53,8 +53,10 @@ TheoryProxy::TheoryProxy(Env& env,
       d_zll(nullptr),
       d_stopSearch(false, userContext())
 {
-  bool trackZeroLevel = isOutputOn(OutputTag::LEARNED_LITS)
-                        || options().smt.produceLearnedLiterals;
+  bool trackZeroLevel =
+      options().smt.deepRestartMode != options::DeepRestartMode::NONE
+      || isOutputOn(OutputTag::LEARNED_LITS)
+      || options().smt.produceLearnedLiterals;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -143,7 +145,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
       int32_t alevel = d_propEngine->getDecisionLevel(assertion);
-      d_zll->notifyAsserted(assertion, alevel);
+      if (!d_zll->notifyAsserted(assertion, alevel))
+      {
+        d_stopSearch = true;
+        break;
+      }
     }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
