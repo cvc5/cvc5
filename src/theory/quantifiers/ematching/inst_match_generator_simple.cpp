@@ -120,7 +120,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
 }
 
 void InstMatchGeneratorSimple::addInstantiations(uint64_t& addedLemmas,
-                        TNodeTrie* tat)
+                                                 TNodeTrie* tat)
 {
   InstMatch m(d_env, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
   addInstantiations(m, addedLemmas, 0, tat);
