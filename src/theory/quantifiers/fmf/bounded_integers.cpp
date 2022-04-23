@@ -561,7 +561,7 @@ BoundVarType BoundedIntegers::getBoundVarType(Node q, Node v) const
 }
 
 void BoundedIntegers::getBoundVarIndices(Node q,
-                                         std::vector<unsigned>& indices) const
+                                         std::vector<size_t>& indices) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_set.find(q);
   if (it != d_set.end())

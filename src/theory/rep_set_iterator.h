@@ -87,23 +87,23 @@ class RepSetIterator
   /** is the iterator finished? */
   bool isFinished() const;
   /** get domain size of the i^th field of this iterator */
-  unsigned domainSize(unsigned i);
+  size_t domainSize(size_t i) const;
   /** Get the type of terms in the i^th field of this iterator */
-  TypeNode getTypeOf(unsigned i) const;
+  TypeNode getTypeOf(size_t i) const;
   /**
    * Get the value for the i^th field in the tuple we are currently considering.
    * If valTerm is true, we return a term instead of a value by calling
    * RepSet::getTermForRepresentative on the value.
    */
-  Node getCurrentTerm(unsigned i, bool valTerm = false) const;
+  Node getCurrentTerm(size_t i, bool valTerm = false) const;
   /** get the number of terms in the tuple we are considering */
-  unsigned getNumTerms() const { return d_index_order.size(); }
+  size_t getNumTerms() const { return d_index_order.size(); }
   /** get current terms */
   void getCurrentTerms(std::vector<Node>& terms) const;
   /** get index order, returns var # */
-  unsigned getIndexOrder(unsigned v) { return d_index_order[v]; }
+  size_t getIndexOrder(size_t v) const { return d_index_order[v]; }
   /** get variable order, returns index # */
-  unsigned getVariableOrder(unsigned i) { return d_var_order[i]; }
+  size_t getVariableOrder(size_t i) const { return d_var_order[i]; }
   /** is incomplete
    * Returns true if we are iterating over a strict subset of
    * the domain of the quantified formula or function.
@@ -142,9 +142,9 @@ class RepSetIterator
    */
   Node d_owner;
   /** reset index, 1:success, 0:empty, -1:fail */
-  int resetIndex(unsigned i, bool initial = false);
+  int resetIndex(size_t i, bool initial = false);
   /** set index order (see below) */
-  void setIndexOrder(std::vector<unsigned>& indexOrder);
+  void setIndexOrder(std::vector<size_t>& indexOrder);
   /** do reset increment the iterator at index=counter */
   int doResetIncrement(int counter, bool initial = false);
   /** ordering for variables we are iterating over
@@ -158,12 +158,12 @@ class RepSetIterator
    *      b/x b/y a/z
    *      ...
    */
-  std::vector<unsigned> d_index_order;
+  std::vector<size_t> d_index_order;
   /** Map from variables to the index they are considered at
    * For example, if d_index_order = { 2, 0, 1 }
    *    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
    */
-  std::map<unsigned, unsigned> d_var_order;
+  std::vector<size_t> d_var_order;
   /** incomplete flag */
   bool d_incomplete;
 }; /* class RepSetIterator */
@@ -192,7 +192,7 @@ class RepBoundExt
    *     of its i^th bound variable.
    */
   virtual RsiEnumType setBound(Node owner,
-                               unsigned i,
+                               size_t i,
                                std::vector<Node>& elements) = 0;
   /** reset index
    *
@@ -211,7 +211,7 @@ class RepBoundExt
    */
   virtual bool resetIndex(RepSetIterator* rsi,
                           Node owner,
-                          unsigned i,
+                          size_t i,
                           bool initial,
                           std::vector<Node>& elements)
   {
@@ -231,7 +231,7 @@ class RepBoundExt
    * and the RepSetIterator is free to choose a default
    * variable order.
    */
-  virtual bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
+  virtual bool getVariableOrder(Node owner, std::vector<size_t>& varOrder)
   {
     return false;
   }
