@@ -106,13 +106,23 @@ bool Instantiate::addInstantiation(Node q,
   // For resource-limiting (also does a time check).
   d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
+  Assert (q.getKind()==FORALL);
   Assert(terms.size() == q[0].getNumChildren());
-  Trace("inst-add-debug") << "For quantified formula " << q
-                          << ", add instantiation: " << std::endl;
-  for (unsigned i = 0, size = terms.size(); i < size; i++)
+  if (TraceIsOn("inst-add-debug"))
   {
-    Trace("inst-add-debug") << "  " << q[0][i];
-    Trace("inst-add-debug2") << " -> " << terms[i];
+    Trace("inst-add-debug") << "For quantified formula " << q
+                            << ", add instantiation: " << std::endl;
+    for (size_t i = 0, size = terms.size(); i < size; i++)
+    {
+      Trace("inst-add-debug") << "  " << q[0][i];
+      Trace("inst-add-debug") << " -> " << terms[i];
+      Trace("inst-add-debug") << std::endl;
+    }
+    Trace("inst-add-debug") << "id is " << id << std::endl;
+  }
+  // ensure the terms are non-null and well-typed
+  for (size_t i = 0, size = terms.size(); i < size; i++)
+  {
     TypeNode tn = q[0][i].getType();
     if (terms[i].isNull())
     {
@@ -122,7 +132,6 @@ bool Instantiate::addInstantiation(Node q,
     // are cast to integers for { x -> t } where x has type Int and t has
     // type Real.
     terms[i] = ensureType(terms[i], tn);
-    Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
     {
       Trace("inst-add-debug")
@@ -130,7 +139,12 @@ bool Instantiate::addInstantiation(Node q,
           << std::endl;
       return false;
     }
+  }
 #ifdef CVC5_ASSERTIONS
+  for (size_t i = 0, size = terms.size(); i < size; i++)
+  {
+    TypeNode tn = q[0][i].getType();
+    Assert (!terms[i].isNull());
     bool bad_inst = false;
     if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
@@ -174,9 +188,8 @@ bool Instantiate::addInstantiation(Node q,
       }
       Assert(false);
     }
-#endif
   }
-  Trace("inst-add-debug") << "id is " << id << std::endl;
+#endif
 
   EntailmentCheck* ec = d_treg.getEntailmentCheck();
   // Note we check for entailment before checking for term vector duplication.
@@ -342,7 +355,7 @@ bool Instantiate::addInstantiation(Node q,
   if (TraceIsOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
-    for (unsigned i = 0, size = terms.size(); i < size; i++)
+    for (size_t i = 0, size = terms.size(); i < size; i++)
     {
       if (TraceIsOn("inst"))
       {
@@ -388,21 +401,6 @@ bool Instantiate::addInstantiation(Node q,
   return true;
 }
 
-void Instantiate::processInstantiationNonNull(Node q, std::vector<Node>& terms)
-{
-  Assert(q.getKind() == FORALL);
-  Assert(terms.size() == q[0].getNumChildren());
-  for (size_t i = 0, size = terms.size(); i < size; i++)
-  {
-    if (terms[i].isNull())
-    {
-      terms[i] = d_treg.getTermForType(q[0][i].getType());
-    }
-    // pick the best possible representative for instantiation, based on past
-    // use and simplicity of term
-    terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
-  }
-}
 
 void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
 {
@@ -414,17 +412,8 @@ void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
     // pick the best possible representative for instantiation, based on past
     // use and simplicity of term
     terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
-  }
-}
-
-void Instantiate::processInstantiationTyped(Node q, std::vector<Node>& terms)
-{
-  Assert(q.getKind() == FORALL);
-  Assert(terms.size() == q[0].getNumChildren());
-  for (size_t i = 0, size = terms.size(); i < size; i++)
-  {
-    Assert(!terms[i].isNull());
-    terms[i] = ensureType(terms[i], q[0][i].getType());
+    // Note it may be a null representative here, it is then replaced
+    // by an arbitrary term if necessary during addInstantiation.
   }
 }
 
