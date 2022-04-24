@@ -410,7 +410,7 @@ void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
   Assert(terms.size() == q[0].getNumChildren());
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
-    Assert (!terms[i].isNull());
+    Assert(!terms[i].isNull());
     // pick the best possible representative for instantiation, based on past
     // use and simplicity of term
     terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
@@ -423,7 +423,7 @@ void Instantiate::processInstantiationTyped(Node q, std::vector<Node>& terms)
   Assert(terms.size() == q[0].getNumChildren());
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
-    Assert (!terms[i].isNull());
+    Assert(!terms[i].isNull());
     terms[i] = ensureType(terms[i], q[0][i].getType());
   }
 }
