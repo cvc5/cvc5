@@ -28,8 +28,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-VtsTermCache::VtsTermCache(Env& env, QuantifiersInferenceManager& qim)
-    : EnvObj(env), d_qim(qim)
+VtsTermCache::VtsTermCache(Env& env)
+    : EnvObj(env)
 {
 }
 
@@ -70,9 +70,6 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
           sm->mkDummySkolem("delta_free",
                             nm->realType(),
                             "free delta for virtual term substitution");
-      Node zero = nm->mkConstReal(Rational(0));
-      Node delta_lem = nm->mkNode(GT, d_vts_delta_free, zero);
-      d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
     }
     if (d_vts_delta.isNull())
     {

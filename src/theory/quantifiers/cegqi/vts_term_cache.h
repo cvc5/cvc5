@@ -73,7 +73,7 @@ class QuantifiersInferenceManager;
 class VtsTermCache : protected EnvObj
 {
  public:
-  VtsTermCache(Env& env, QuantifiersInferenceManager& qim);
+  VtsTermCache(Env& env);
   ~VtsTermCache() {}
   /**
    * Get vts delta. The argument isFree indicates if we are getting the
@@ -125,8 +125,6 @@ class VtsTermCache : protected EnvObj
   bool containsVtsInfinity(Node n, bool isFree = false);
 
  private:
-  /** Reference to the quantifiers inference manager */
-  QuantifiersInferenceManager& d_qim;
   /** The virtual term substitution delta */
   Node d_vts_delta;
   /** The virtual term substitution "free delta" */

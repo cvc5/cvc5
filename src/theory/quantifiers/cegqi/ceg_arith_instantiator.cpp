@@ -1010,7 +1010,7 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
   {
     // create delta here if necessary
     vval = nm->mkNode(
-        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
+        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
   }
   vval = rewrite(vval);
   return vval;

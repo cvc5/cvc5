@@ -28,6 +28,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_pools.h"
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -93,6 +94,8 @@ class TermRegistry : protected EnvObj
   TermEnumeration* getTermEnumeration() const;
   /** get the term pools utility */
   TermPools* getTermPools() const;
+  /** get the virtual term substitution term cache utility */
+  VtsTermCache* getVtsTermCache() const;
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -115,6 +118,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** oracle checker */
   std::unique_ptr<OracleChecker> d_ochecker;
+  /** virtual term substitution term cache for arithmetic instantiation */
+  std::unique_ptr<VtsTermCache> d_vtsCache;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

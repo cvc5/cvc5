@@ -194,6 +194,11 @@ class Instantiate : public QuantifiersUtil
                                bool doVts = false,
                                bool expFull = true);
   /**
+   * Ensure each term in terms is non-null, replace by an arbitrary term
+   * otherwise.
+   */
+  void processInstantiationNonNull(Node q, std::vector<Node>& terms);
+  /**
    * Ensure each term in terms is the chosen representative for its
    * corresponding variable in q.
    */
