@@ -316,11 +316,11 @@ void ModelEngine::exhaustiveInstantiate(Node q, int effort)
               << "* Add instantiation " << terms << std::endl;
           triedLemmas++;
           //add as instantiation
+          inst->processInstantiationRep(q, terms);
           if (inst->addInstantiation(q,
                                      terms,
                                      InferenceId::QUANTIFIERS_INST_FMF_EXH,
-                                     Node::null(),
-                                     true))
+                                     Node::null()))
           {
             addedLemmas++;
             if (d_qstate.isInConflict())

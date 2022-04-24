@@ -101,7 +101,6 @@ bool Instantiate::addInstantiation(Node q,
                                    std::vector<Node>& terms,
                                    InferenceId id,
                                    Node pfArg,
-                                   bool mkRep,
                                    bool doVts)
 {
   // For resource-limiting (also does a time check).
@@ -123,12 +122,6 @@ bool Instantiate::addInstantiation(Node q,
     // are cast to integers for { x -> t } where x has type Int and t has
     // type Real.
     terms[i] = ensureType(terms[i], tn);
-    if (mkRep)
-    {
-      // pick the best possible representative for instantiation, based on past
-      // use and simplicity of term
-      terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
-    }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
     {
@@ -220,7 +213,7 @@ bool Instantiate::addInstantiation(Node q,
   if (options().quantifiers.instMaxLevel != -1)
   {
     TermDb* tdb = d_treg.getTermDatabase();
-    for (Node& t : terms)
+    for (const Node& t : terms)
     {
       if (!tdb->isTermEligibleForInstantiation(t, q))
       {
@@ -395,16 +388,43 @@ bool Instantiate::addInstantiation(Node q,
   return true;
 }
 
+void Instantiate::processInstantiationRep(Node q,
+                      std::vector<Node>& terms)
+{
+  Assert (q.getKind()==FORALL);
+  Assert (terms.size()==q[0].getNumChildren());
+  for (size_t i = 0, size = terms.size(); i < size; i++)
+  {
+    if (terms[i].isNull())
+    {
+      terms[i] = d_treg.getTermForType(q[0][i].getType());
+    }
+    // pick the best possible representative for instantiation, based on past
+    // use and simplicity of term
+    terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
+  }
+}
+
+void Instantiate::processInstantiationTyped(Node q,
+                      std::vector<Node>& terms)
+{
+  Assert (q.getKind()==FORALL);
+  Assert (terms.size()==q[0].getNumChildren());
+  for (size_t i = 0, size = terms.size(); i < size; i++)
+  {
+    terms[i] = ensureType(terms[i], q[0][i].getType());
+  }
+}
+
 bool Instantiate::addInstantiationExpFail(Node q,
                                           std::vector<Node>& terms,
                                           std::vector<bool>& failMask,
                                           InferenceId id,
                                           Node pfArg,
-                                          bool mkRep,
                                           bool doVts,
                                           bool expFull)
 {
-  if (addInstantiation(q, terms, id, pfArg, mkRep, doVts))
+  if (addInstantiation(q, terms, id, pfArg, doVts))
   {
     return true;
   }
