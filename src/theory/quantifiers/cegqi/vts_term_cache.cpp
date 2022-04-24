@@ -28,7 +28,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-VtsTermCache::VtsTermCache(Env& env) : EnvObj(env) {}
+VtsTermCache::VtsTermCache(Env& env) : EnvObj(env), d_hasAllocated(false) {}
+
+bool VtsTermCache::hasAllocated() const
+{
+  return d_hasAllocated;
+}
 
 void VtsTermCache::getVtsTerms(std::vector<Node>& t,
                                bool isFree,
@@ -63,6 +68,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
     SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
+      d_hasAllocated = true;
       d_vts_delta_free =
           sm->mkDummySkolem("delta_free",
                             nm->realType(),
@@ -70,6 +76,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
     }
     if (d_vts_delta.isNull())
     {
+      d_hasAllocated = true;
       d_vts_delta = sm->mkDummySkolem(
           "delta", nm->realType(), "delta for virtual term substitution");
       // mark as a virtual term
@@ -88,11 +95,13 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
     SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_inf_free[tn].isNull())
     {
+      d_hasAllocated = true;
       d_vts_inf_free[tn] = sm->mkDummySkolem(
           "inf_free", tn, "free infinity for virtual term substitution");
     }
     if (d_vts_inf[tn].isNull())
     {
+      d_hasAllocated = true;
       d_vts_inf[tn] = sm->mkDummySkolem(
           "inf", tn, "infinity for virtual term substitution");
       // mark as a virtual term

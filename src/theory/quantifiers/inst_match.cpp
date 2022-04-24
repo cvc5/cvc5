@@ -162,7 +162,7 @@ void InstMatch::reset(size_t i)
   d_vals[i] = Node::null();
 }
 
-std::vector<Node>& InstMatch::get() { return d_vals; }
+const std::vector<Node>& InstMatch::get() const { return d_vals; }
 
 }  // namespace quantifiers
 }  // namespace theory

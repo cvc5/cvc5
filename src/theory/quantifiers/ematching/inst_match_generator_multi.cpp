@@ -214,7 +214,8 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
-    if (sendInstantiation(m.get(), InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
+    std::vector<Node> mc = m.get();
+    if (sendInstantiation(mc, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
     {
       addedLemmas++;
       Trace("multi-trigger-cache-debug")

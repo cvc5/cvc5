@@ -75,6 +75,12 @@ class VtsTermCache : protected EnvObj
  public:
   VtsTermCache(Env& env);
   ~VtsTermCache() {}
+  /** 
+   * Have we allocated any VTS symbol? This impacts quantifier instantiation,
+   * in particular we use virtual term substitution for all instantiations
+   * when this is true.
+   */
+  bool hasAllocated() const;
   /**
    * Get vts delta. The argument isFree indicates if we are getting the
    * free variant of delta. If create is false, this method returns Node::null
@@ -125,6 +131,8 @@ class VtsTermCache : protected EnvObj
   bool containsVtsInfinity(Node n, bool isFree = false);
 
  private:
+   /** Have we allocated any vts symbol? */
+   bool d_hasAllocated;
   /** The virtual term substitution delta */
   Node d_vts_delta;
   /** The virtual term substitution "free delta" */

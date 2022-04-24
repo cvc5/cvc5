@@ -76,7 +76,7 @@ class InstMatch : protected EnvObj
    */
   void reset(size_t i);
   /** Get the values */
-  std::vector<Node>& get();
+  const std::vector<Node>& get() const;
 
  private:
   /** Reference to the state */
