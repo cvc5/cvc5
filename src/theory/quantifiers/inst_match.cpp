@@ -15,8 +15,8 @@
 
 #include "theory/quantifiers/inst_match.h"
 
-#include "theory/quantifiers/quantifiers_state.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -33,7 +33,7 @@ InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
 
 void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
 {
-  if (options().quantifiers.ievalMode==options::IevalMode::OFF)
+  if (options().quantifiers.ievalMode == options::IevalMode::OFF)
   {
     // not using instantiation evaluation, don't initialize
     return;

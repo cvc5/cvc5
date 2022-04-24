@@ -45,7 +45,7 @@ class State : protected EnvObj
 
   /** Set evaluator mode */
   void setEvaluatorMode(TermEvaluatorMode tev);
-  
+
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 

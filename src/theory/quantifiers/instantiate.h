@@ -197,15 +197,13 @@ class Instantiate : public QuantifiersUtil
    * Ensure each term in terms is the chosen representative for its
    * corresponding variable in q.
    */
-  void processInstantiationRep(Node q,
-                        std::vector<Node>& terms);
+  void processInstantiationRep(Node q, std::vector<Node>& terms);
   /**
    * Ensure each term in terms meets the type requirements for its corresponding
    * variable in q, e.g. t in terms is replaced by (to_int t) if its
    * corresponding variable is of type Int.
    */
-  void processInstantiationTyped(Node q,
-                        std::vector<Node>& terms);
+  void processInstantiationTyped(Node q, std::vector<Node>& terms);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms, with virtual

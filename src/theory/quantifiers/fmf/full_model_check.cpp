@@ -747,10 +747,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       // just add the instance
       d_triedLemmas++;
       instq->processInstantiationRep(f, inst);
-      if (instq->addInstantiation(f,
-                                  inst,
-                                  InferenceId::QUANTIFIERS_INST_FMF_FMC,
-                                  Node::null()))
+      if (instq->addInstantiation(
+              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, Node::null()))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;

@@ -388,11 +388,10 @@ bool Instantiate::addInstantiation(Node q,
   return true;
 }
 
-void Instantiate::processInstantiationRep(Node q,
-                      std::vector<Node>& terms)
+void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
 {
-  Assert (q.getKind()==FORALL);
-  Assert (terms.size()==q[0].getNumChildren());
+  Assert(q.getKind() == FORALL);
+  Assert(terms.size() == q[0].getNumChildren());
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
     if (terms[i].isNull())
@@ -405,11 +404,10 @@ void Instantiate::processInstantiationRep(Node q,
   }
 }
 
-void Instantiate::processInstantiationTyped(Node q,
-                      std::vector<Node>& terms)
+void Instantiate::processInstantiationTyped(Node q, std::vector<Node>& terms)
 {
-  Assert (q.getKind()==FORALL);
-  Assert (terms.size()==q[0].getNumChildren());
+  Assert(q.getKind() == FORALL);
+  Assert(terms.size() == q[0].getNumChildren());
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
     terms[i] = ensureType(terms[i], q[0][i].getType());
