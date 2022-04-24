@@ -100,10 +100,6 @@ class InstEvaluator : protected EnvObj
   bool pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /** A context object */
   context::Context d_context;
-  /** The quantifiers state object */
-  QuantifiersState& d_qs;
-  /** Reference to term registry */
-  TermRegistry& d_treg;
   /** do canonize */
   bool d_doCanonize;
   /** Are we tracking unassigned quantifiers? */

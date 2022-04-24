@@ -16,6 +16,7 @@
 #include "theory/quantifiers/inst_match.h"
 
 #include "theory/quantifiers/quantifiers_state.h"
+#include "options/quantifiers_options.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -32,8 +33,11 @@ InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
 
 void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
 {
-  // FIXME
-  return;
+  if (options().quantifiers.ievalMode==options::IevalMode::OFF)
+  {
+    // not using instantiation evaluation, don't initialize
+    return;
+  }
   // initialize the evaluator?
   if (tev != ieval::TermEvaluatorMode::NONE)
   {
@@ -43,7 +47,7 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
       d_ieval.reset(new ieval::InstEvaluator(d_env, d_qs, d_tr));
     }
     // set the evaluator mode
-    d_ieval.setEvaluatorMode(tev);
+    d_ieval->setEvaluatorMode(tev);
     // set that we are watching quantified formula q
     d_ieval->watch(d_quant);
   }

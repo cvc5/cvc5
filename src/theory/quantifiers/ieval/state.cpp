@@ -35,6 +35,7 @@ State::State(Env& env,
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
+      d_treg(tr),
       d_tevMode(ieval::TermEvaluatorMode::NONE),
       d_registeredTerms(c),
       d_registeredBaseTerms(c),
@@ -57,7 +58,7 @@ void State::setEvaluatorMode(TermEvaluatorMode tev)
   if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP
       || tev == TermEvaluatorMode::NO_ENTAIL)
   {
-    d_tec.reset(new TermEvaluatorEntailed(env, qs, tr.getTermDatabase()));
+    d_tec.reset(new TermEvaluatorEntailed(d_env, d_qstate, d_treg.getTermDatabase()));
   }
   else if (tev == TermEvaluatorMode::MODEL)
   {

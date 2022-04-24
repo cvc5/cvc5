@@ -296,7 +296,7 @@ void ModelEngine::exhaustiveInstantiate(Node q, int effort)
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     QRepBoundExt qrbe(
-        d_env, qbi, d_qstate, d_treg, q, ieval::TermEvaluatorMode::NONE);
+        d_env, qbi, d_qstate, d_treg, q);
     RepSetIterator riter(fm->getRepSet(), &qrbe);
     if (riter.setQuantifier(q))
     {

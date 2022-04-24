@@ -43,6 +43,9 @@ class State : protected EnvObj
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermRegistry& tr);
 
+  /** Set evaluator mode */
+  void setEvaluatorMode(TermEvaluatorMode tev);
+  
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
@@ -55,18 +58,6 @@ class State : protected EnvObj
                  std::vector<Node>& assignedQuants,
                  bool trackAssignedQuant);
 
-  //---------------quantifiers info
-  /** Get quantifiers info */
-  QuantInfo& getQuantInfo(TNode q);
-  //---------------free variable info
-  /** Get free variable info */
-  FreeVarInfo& getOrMkFreeVarInfo(TNode v);
-  FreeVarInfo& getFreeVarInfo(TNode v);
-  //---------------pattern term info
-  /** Get pattern term info */
-  PatTermInfo& getOrMkPatTermInfo(TNode p);
-  PatTermInfo& getPatTermInfo(TNode p);
-  //---------------queries
   /** Is finished */
   bool isFinished() const;
   /**
@@ -95,6 +86,18 @@ class State : protected EnvObj
   std::string toStringDebugSearch() const;
 
  private:
+  //---------------quantifiers info
+  /** Get quantifiers info */
+  QuantInfo& getQuantInfo(TNode q);
+  //---------------free variable info
+  /** Get free variable info */
+  FreeVarInfo& getOrMkFreeVarInfo(TNode v);
+  FreeVarInfo& getFreeVarInfo(TNode v);
+  //---------------pattern term info
+  /** Get pattern term info */
+  PatTermInfo& getOrMkPatTermInfo(TNode p);
+  PatTermInfo& getPatTermInfo(TNode p);
+  //---------------queries
   /** initialize, return false if we are finished */
   bool initialize();
   /**
@@ -116,6 +119,8 @@ class State : protected EnvObj
   context::Context* d_ctx;
   /** Quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to term registry */
+  TermRegistry& d_treg;
   /** The term evaluator mode */
   TermEvaluatorMode d_tevMode;
   /** The term evaluator callback we are using */

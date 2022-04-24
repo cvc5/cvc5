@@ -29,8 +29,6 @@ InstEvaluator::InstEvaluator(Env& env,
                              bool trackAssignedQuant)
     : EnvObj(env),
       d_context(),
-      d_qs(qs),
-      d_treg(tr),
       d_doCanonize(doCanonize),
       d_trackAssignedQuant(trackAssignedQuant),
       d_state(env, &d_context, qs, tr),
