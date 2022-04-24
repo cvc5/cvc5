@@ -106,7 +106,7 @@ bool Instantiate::addInstantiation(Node q,
   // For resource-limiting (also does a time check).
   d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
-  Assert (q.getKind()==FORALL);
+  Assert(q.getKind() == FORALL);
   Assert(terms.size() == q[0].getNumChildren());
   if (TraceIsOn("inst-add-debug"))
   {
@@ -144,7 +144,7 @@ bool Instantiate::addInstantiation(Node q,
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
     TypeNode tn = q[0][i].getType();
-    Assert (!terms[i].isNull());
+    Assert(!terms[i].isNull());
     bool bad_inst = false;
     if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
@@ -400,7 +400,6 @@ bool Instantiate::addInstantiation(Node q,
   ++(d_statistics.d_instantiations);
   return true;
 }
-
 
 void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
 {

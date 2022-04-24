@@ -30,10 +30,7 @@ namespace quantifiers {
 
 VtsTermCache::VtsTermCache(Env& env) : EnvObj(env), d_hasAllocated(false) {}
 
-bool VtsTermCache::hasAllocated() const
-{
-  return d_hasAllocated;
-}
+bool VtsTermCache::hasAllocated() const { return d_hasAllocated; }
 
 void VtsTermCache::getVtsTerms(std::vector<Node>& t,
                                bool isFree,
