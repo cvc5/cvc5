@@ -71,15 +71,16 @@ void InstEvaluator::watch(Node q, Node body)
       }
       else
       {
-        Assert (false);
+        Assert(false);
       }
     }
   }
   else
   {
-    // if we aren't canonizing, we should never add more than one quantified formula
-    Assert (d_quantList.empty());
-    Assert (d_varList.empty());
+    // if we aren't canonizing, we should never add more than one quantified
+    // formula
+    Assert(d_quantList.empty());
+    Assert(d_varList.empty());
     for (const Node& v : q[0])
     {
       d_varList.push_back(v);
@@ -185,7 +186,7 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
     if (d_canonize)
     {
       it = d_varToCanonMap.find(v);
-      Assert (it !=d_varToCanonMap.end());
+      Assert(it != d_varToCanonMap.end());
       vc = it->second;
     }
     it = d_varMap.find(v);
@@ -224,9 +225,9 @@ void InstEvaluator::learnFailure()
   std::vector<Node> cterms = getCurrentTerms();
   for (const Node& v : d_varList)
   {
-    mask.push_back(processed.find(v)!=processed.end());
+    mask.push_back(processed.find(v) != processed.end());
   }
-  Assert (d_itrie!=nullptr);
+  Assert(d_itrie != nullptr);
   d_itrie->add(mask, cterms);
 }
 

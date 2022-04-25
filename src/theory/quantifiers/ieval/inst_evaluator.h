@@ -110,7 +110,7 @@ class InstEvaluator : protected EnvObj
    * Learn failure, called immediately after the state is finished.
    */
   void learnFailure();
-  /** 
+  /**
    * Get the current list of assigned terms, based on the ordering in
    * d_varList.
    */
