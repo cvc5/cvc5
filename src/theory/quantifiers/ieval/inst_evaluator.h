@@ -22,11 +22,13 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/ieval/state.h"
 #include "theory/quantifiers/ieval/term_evaluator.h"
+#include "theory/quantifiers/index_trie.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -50,13 +52,15 @@ namespace ieval {
  */
 class InstEvaluator : protected EnvObj
 {
+  using NodeList = context::CDList<Node>;
   using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermRegistry& tr,
-                bool doCanonize = false,
+                bool genLearning = false,
+                bool canonize = false,
                 bool trackAssignedQuant = false);
   /**
    * Set that we are watching quantified formula q. This can only be done if
@@ -86,12 +90,6 @@ class InstEvaluator : protected EnvObj
    */
   std::vector<Node> getInstantiationFor(Node q) const;
   /**
-   * Get failure explanation for q, return a vector of terms whose size
-   * is equal to the number of variables of q. Null nodes in this vector
-   * indicate that we did not depend on the value of that variable.
-   */
-  std::vector<Node> getFailureExp(Node q) const;
-  /**
    * Is feasible, return true if any quantified formulas are feasible.
    */
   bool isFeasible() const;
@@ -104,10 +102,16 @@ class InstEvaluator : protected EnvObj
  private:
   /** push internal */
   bool pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants);
+  /** 
+   * Learn failure, called immediately after the state is finished.
+   */
+  void learnFailure();
   /** A context object */
   context::Context d_context;
+  /** do generalized learning */
+  bool d_genLearning;
   /** do canonize */
-  bool d_doCanonize;
+  bool d_canonize;
   /** Are we tracking unassigned quantifiers? */
   bool d_trackAssignedQuant;
   /** The state object */
@@ -116,6 +120,12 @@ class InstEvaluator : protected EnvObj
   NodeNodeMap d_varMap;
   /** Term canonizer */
   expr::TermCanonize d_tcanon;
+  /** The list of quantified formulas we are tracking */
+  NodeList d_quantList;
+  /** The variables of the quantified formulas we are tracking */
+  NodeList d_varList;
+  /** An index trie, if we are using generalized learning */
+  
 };
 
 }  // namespace ieval

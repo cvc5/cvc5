@@ -25,14 +25,18 @@ namespace ieval {
 InstEvaluator::InstEvaluator(Env& env,
                              QuantifiersState& qs,
                              TermRegistry& tr,
-                             bool doCanonize,
+                             bool genLearning,
+                             bool canonize,
                              bool trackAssignedQuant)
     : EnvObj(env),
       d_context(),
-      d_doCanonize(doCanonize),
+      d_genLearning(genLearning),
+      d_canonize(canonize),
       d_trackAssignedQuant(trackAssignedQuant),
       d_state(env, &d_context, qs, tr),
-      d_varMap(&d_context)
+      d_varMap(&d_context),
+      d_quantList(&d_context),
+      d_varList(&d_context)
 {
 }
 
@@ -45,10 +49,11 @@ void InstEvaluator::watch(Node q)
 void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
+  d_quantList.push_back(q);
   // must provide all quantified formulas before initializing the state
   Assert(d_context.getLevel() == 0);
   std::vector<Node> vars;
-  if (d_doCanonize)
+  if (d_canonize)
   {
     std::map<TNode, Node> visited;
     body = d_tcanon.getCanonicalTerm(body, visited);
@@ -58,7 +63,12 @@ void InstEvaluator::watch(Node q, Node body)
       it = visited.find(v);
       vars.push_back(it->second);
       // initially map the variable to its canonical form
-      d_varMap[v] = it->second;
+      if (d_varMap.find(v)==d_varMap.end())
+      {
+        d_varMap[v] = it->second;
+        // remember the varisable
+        d_varList.push_back(v);
+      }
     }
   }
   else
@@ -100,6 +110,7 @@ bool InstEvaluator::pushInternal(TNode v,
     d_context.push();
     if (!d_state.initialize())
     {
+      learnFailure();
       return false;
     }
     Assert(d_state.hasInitialized());
@@ -107,7 +118,7 @@ bool InstEvaluator::pushInternal(TNode v,
   // push the context
   d_context.push();
   TNode canonVar = v;
-  if (d_doCanonize)
+  if (d_canonize)
   {
     Assert(d_varMap.find(v) != d_varMap.end());
     // use the canonical variable for the state, which should be stored in the
@@ -118,6 +129,7 @@ bool InstEvaluator::pushInternal(TNode v,
   // state
   if (!d_state.assignVar(canonVar, s, assignedQuants, d_trackAssignedQuant))
   {
+    learnFailure();
     d_context.pop();
     return false;
   }
@@ -150,19 +162,31 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
   return vars;
 }
 
-std::vector<Node> InstEvaluator::getFailureExp(Node q) const
-{
-  std::vector<Node> vars = d_state.getFailureExp(q);
-  // TODO: convert back
-  return vars;
-}
-
 bool InstEvaluator::isFeasible() const { return !d_state.isFinished(); }
 
 void InstEvaluator::setEvaluatorMode(TermEvaluatorMode tev)
 {
   Assert(d_context.getLevel() == 0);
   d_state.setEvaluatorMode(tev);
+}
+
+void InstEvaluator::learnFailure()
+{
+  if (!d_genLearning)
+  {
+    return;
+  }
+  std::unordered_set<Node> processed;
+  for (const Node& q : d_quantList)
+  {
+    d_state.getFailureExp(q, processed);
+  }
+  /*
+  for (const Node& v : d_varList)
+  {
+    
+  }
+  */
 }
 
 }  // namespace ieval

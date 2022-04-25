@@ -221,12 +221,40 @@ bool State::assignVar(TNode v,
   return true;
 }
 
-std::vector<Node> State::getFailureExp(Node q) const
+void State::getFailureExp(Node q, std::unordered_set<Node>& processed) const
 {
   const QuantInfo& qi = getQuantInfo(q);
-
-  std::vector<Node> vars;
-  return vars;
+  TNode failConstraint = qi.getFailureConstraint();
+  Assert (!failConstraint.isNull());
+  std::vector<TNode> visit;
+  visit.push_back(failConstraint);
+  do
+  {
+    TNode cur = visit.back();
+    visit.pop_back();
+    if (processed.find(cur)==processed.end())
+    {
+      processed.insert(cur);
+      // as an optimization, only visit children of terms that have bound variables
+      if (!expr::hasBoundVar(cur))
+      {
+        continue;
+      }
+      const PatTermInfo& pi = getPatTermInfo(cur);
+      TNode pcexp = pi.d_evalExpChild.get();
+      if (!pcexp.isNull())
+      {
+        // partial evaluation was forced by single child
+        visit.push_back(pcexp);
+      }
+      else
+      {
+        // used all children to evaluate, add all to visit list
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  }
+  while (!visit.empty());
 }
 
 bool State::isFinished() const { return d_numActiveQuant == 0; }
@@ -278,6 +306,13 @@ PatTermInfo& State::getOrMkPatTermInfo(TNode p)
 PatTermInfo& State::getPatTermInfo(TNode p)
 {
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
+  Assert(it != d_pInfo.end());
+  return it->second;
+}
+
+const PatTermInfo& State::getPatTermInfo(TNode p) const
+{
+  std::map<Node, PatTermInfo>::const_iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   return it->second;
 }

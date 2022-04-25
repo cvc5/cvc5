@@ -136,14 +136,11 @@ bool InstMatch::set(size_t i, TNode n)
     // if they are equal, we do nothing
     return d_qs.areEqual(d_vals[i], n);
   }
-  // TODO: check if we have already learned this failure?
-
   if (d_ieval != nullptr)
   {
     // if applicable, check if the instantiation evaluator is ok
     if (!d_ieval->push(d_quant[0][i], n))
     {
-      // TODO: if not, learn the failure?
       return false;
     }
   }

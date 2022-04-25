@@ -62,9 +62,10 @@ class State : protected EnvObj
                  bool trackAssignedQuant);
 
   /**
-   * Get failure explanation for q.
+   * Get failure explanation for q, add all terms that were the reason for
+   * q failing to processed.
    */
-  std::vector<Node> getFailureExp(Node q) const;
+  void getFailureExp(Node q, std::unordered_set<Node>& processed) const;
 
   /** Is finished */
   bool isFinished() const;
@@ -106,6 +107,7 @@ class State : protected EnvObj
   /** Get pattern term info */
   PatTermInfo& getOrMkPatTermInfo(TNode p);
   PatTermInfo& getPatTermInfo(TNode p);
+  const PatTermInfo& getPatTermInfo(TNode p) const;
   //---------------queries
   /**
    * Called when it is determined what pattern p is equal to.
