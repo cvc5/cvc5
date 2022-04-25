@@ -198,43 +198,44 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         Trace("seq-array-debug") << "...unit case" << std::endl;
         // do we know whether n = 0 ?
         // x = (seq.unit m) => (seq.update x n z) = ite(n=0, z, (seq.unit m))
-        // x = (seq.unit m) => (seq.nth x n) = ite(n=0, m, Uf(x, n))
-        Node thenBranch;
-        Node elseBranch;
+        // x = (seq.unit m) ^ n=0 => (seq.nth x n) = m
         InferenceId iid;
+        Node eq;
+        std::vector<Node> exp;
+        std::vector<Node> nexp;
+        d_im.addToExplanation(t[0], nf.d_nf[0], exp);
+        d_im.addToExplanation(r, t[0], exp);
         if (k == STRING_UPDATE)
         {
-          thenBranch = t[2];
-          elseBranch = nf.d_nf[0];
           iid = InferenceId::STRINGS_ARRAY_UPDATE_UNIT;
+          eq = nm->mkNode(
+              ITE, t[1].eqNode(d_zero), t.eqNode(t[2]), t.eqNode(nf.d_nf[0]));
         }
         else
         {
           Assert(k == SEQ_NTH);
+          Node val;
           if (ck == CONST_SEQUENCE)
           {
             const Sequence& seq = nf.d_nf[0].getConst<Sequence>();
-            thenBranch = seq.getVec()[0];
+            val = seq.getVec()[0];
           }
           else
           {
-            thenBranch = nf.d_nf[0][0];
+            val = nf.d_nf[0][0];
           }
-          Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
-          elseBranch = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
           iid = InferenceId::STRINGS_ARRAY_NTH_UNIT;
+          eq = t.eqNode(val);
+          if (t[1] != d_zero)
+          {
+            exp.push_back(t[1].eqNode(d_zero));
+            nexp.push_back(t[1].eqNode(d_zero));
+          }
         }
-        std::vector<Node> exp;
-        d_im.addToExplanation(t[0], nf.d_nf[0], exp);
-        d_im.addToExplanation(r, t[0], exp);
-        Node eq = nm->mkNode(ITE,
-                             t[1].eqNode(d_zero),
-                             t.eqNode(thenBranch),
-                             t.eqNode(elseBranch));
         if (d_eqProc.find(eq) == d_eqProc.end())
         {
           d_eqProc.insert(eq);
-          d_im.sendInference(exp, eq, iid);
+          d_im.sendInference(exp, nexp, eq, iid);
         }
         return;
       }
@@ -353,12 +354,13 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   // z = (seq.++ x y) =>
   // (seq.update z n l) =
   //   (seq.++ (seq.update x n 1) (seq.update y (- n len(x)) 1))
-  // z = (seq.++ x y) =>
+  // z = (seq.++ x y) ^ (>= n 0) ^ (< n (+ (str.len x) (str.len y)))) =>
   // (seq.nth z n) =
-  //    (ite (or (< n 0) (>= n (+ (str.len x) (str.len y)))) (Uf z n)
   //    (ite (< n (str.len x)) (seq.nth x n)
-  //      (seq.nth y (- n (str.len x)))))
+  //      (seq.nth y (- n (str.len x))))
   InferenceId iid;
+  std::vector<Node> exp;
+  std::vector<Node> nexp;
   Node eq;
   if (k == STRING_UPDATE)
   {
@@ -380,19 +382,16 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   {
     std::reverse(cchildren.begin(), cchildren.end());
     std::reverse(cond.begin(), cond.end());
-    Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
     eq = t.eqNode(cchildren[0]);
     for (size_t i = 1, ncond = cond.size(); i < ncond; i++)
     {
       eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
     }
-    Node ufa = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
-    Node oobCond =
-        nm->mkNode(OR, nm->mkNode(LT, t[1], d_zero), cond[0].notNode());
-    eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
+    Node inBoundsCond = nm->mkNode(AND, nm->mkNode(GEQ, t[1], d_zero), cond[0]);
+    exp.push_back(inBoundsCond);
+    nexp.push_back(inBoundsCond);
     iid = InferenceId::STRINGS_ARRAY_NTH_CONCAT;
   }
-  std::vector<Node> exp;
   if (checkInv)
   {
     NormalForm& nfSelf = d_csolver.getNormalForm(rself);
@@ -408,7 +407,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   {
     d_eqProc.insert(eq);
     Trace("seq-array") << "- send lemma - " << eq << std::endl;
-    d_im.sendInference(exp, eq, iid);
+    d_im.sendInference(exp, nexp, eq, iid);
   }
 }
 

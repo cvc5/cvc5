@@ -50,13 +50,16 @@ TheoryProxy::TheoryProxy(Env& env,
       d_queue(context()),
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
-      d_zll(nullptr)
+      d_zll(nullptr),
+      d_stopSearch(false, userContext())
 {
-  bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS)
-                              || options().smt.produceLearnedLiterals;
-  if (trackTopLevelLearned)
+  bool trackZeroLevel =
+      options().smt.deepRestartMode != options::DeepRestartMode::NONE
+      || isOutputOn(OutputTag::LEARNED_LITS)
+      || options().smt.produceLearnedLiterals;
+  if (trackZeroLevel)
   {
-    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
+    d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
 }
 
@@ -70,6 +73,16 @@ void TheoryProxy::presolve()
 {
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
+  d_stopSearch = false;
+}
+
+void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
+                                             const Node& rhs) const
+{
+  if (d_zll != nullptr)
+  {
+    d_zll->notifyTopLevelSubstitution(lhs, rhs);
+  }
 }
 
 void TheoryProxy::notifyInputFormulas(
@@ -100,7 +113,7 @@ void TheoryProxy::notifyInputFormulas(
   // determine what is learnable
   if (d_zll != nullptr)
   {
-    d_zll->notifyInputFormulas(assertions, skolemMap);
+    d_zll->notifyInputFormulas(assertions);
   }
 }
 
@@ -127,8 +140,16 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     d_queue.pop();
     if (d_zll != nullptr)
     {
-      // check if this corresponds to a zero-level asserted literal
-      d_zll->notifyAsserted(assertion);
+      if (d_stopSearch.get())
+      {
+        break;
+      }
+      int32_t alevel = d_propEngine->getDecisionLevel(assertion);
+      if (!d_zll->notifyAsserted(assertion, alevel))
+      {
+        d_stopSearch = true;
+        break;
+      }
     }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
@@ -146,7 +167,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
-  d_theoryEngine->check(effort);
+  if (!d_stopSearch.get())
+  {
+    d_theoryEngine->check(effort);
+  }
 }
 
 void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
@@ -226,6 +250,11 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
+  if (d_stopSearch.get())
+  {
+    stopSearch = true;
+    return undefSatLiteral;
+  }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
     Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
@@ -234,12 +263,16 @@ SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
 }
 
 bool TheoryProxy::theoryNeedCheck() const {
+  if (d_stopSearch.get())
+  {
+    return false;
+  }
   return d_theoryEngine->needCheck();
 }
 
 bool TheoryProxy::isIncomplete() const
 {
-  return d_theoryEngine->isIncomplete();
+  return d_stopSearch.get() || d_theoryEngine->isIncomplete();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {
@@ -259,7 +292,7 @@ void TheoryProxy::spendResource(Resource r)
 bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
-  return d_decisionEngine->isDone();
+  return d_decisionEngine->isDone() || d_stopSearch.get();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
@@ -302,11 +335,21 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals() const
+std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
+    modes::LearnedLitType ltype) const
 {
   if (d_zll != nullptr)
   {
-    return d_zll->getLearnedZeroLevelLiterals();
+    return d_zll->getLearnedZeroLevelLiterals(ltype);
+  }
+  return {};
+}
+
+std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
+{
+  if (d_zll != nullptr)
+  {
+    return d_zll->getLearnedZeroLevelLiteralsForRestart();
   }
   return {};
 }

@@ -161,7 +161,7 @@ class MatchBindCaseTypeRule
 
 /**
  * Tuple project is indexed by a list of indices (n_1, ..., n_m). It ensures
- * that the argument is a tuple whose arity k is greater that each n_i for
+ * that the argument is a tuple whose arity k is greater than each n_i for
  * i = 1, ..., m. If the argument is of type (Tuple T_1 ... T_k), then the
  * returned type is (Tuple T_{n_1} ... T_{n_m}).
  */

@@ -283,6 +283,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_issue_8413_1.smt2
   regress0/bv/bv_to_int_issue_8413_2.smt2
   regress0/bv/bv_to_int_int1.smt2
+  regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -591,6 +592,10 @@ set(regress_0_tests
   regress0/decision/uflia-xs-09-16-3-4-1-5.delta03.smtv1.smt2
   regress0/decision/wchains010ue.delta02.smtv1.smt2
   regress0/declare-fun-is-match.smt2
+  regress0/deep-restart/dd.266.smt2
+  regress0/deep-restart/dd.fuzz21.smtv1.smt2
+  regress0/deep-restart/dd.issue4735.smt2
+  regress0/deep-restart/dd.wrong-sat-020322.smt2
   regress0/define-fun-model.smt2
   regress0/difficulty-simple.smt2
   regress0/difficulty-model-ex.smt2
@@ -944,6 +949,7 @@ set(regress_0_tests
   regress0/print_model.cvc.smt2
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/deep-restart-output.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/learned-lit-output.smt2
@@ -1752,6 +1758,7 @@ set(regress_1_tests
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
   regress1/bags/bag_member.smt2
+  regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
@@ -1798,6 +1805,7 @@ set(regress_1_tests
   regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
+  regress1/bags/table_project1.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
@@ -3194,11 +3202,32 @@ add_custom_target(regress
     ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
+set(testers
+  base
+  unsat-core
+  proof
+  lfsc
+  model
+  synth
+  abduct
+  dump
+)
+
+foreach(tester ${testers})
+  add_custom_target(regress-${tester}
+    COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester ${tester}'
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    DEPENDS build-regress)
+endforeach()
+
 macro(cvc5_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    ${path_to_cvc5}/cvc5 ${CMAKE_CURRENT_LIST_DIR}/${file})
+    --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
+    --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    ${path_to_cvc5}/cvc5
+    ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
 
   # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:

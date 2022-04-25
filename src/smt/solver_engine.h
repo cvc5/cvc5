@@ -951,6 +951,14 @@ class CVC5_EXPORT SolverEngine
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
+  /**
+   * Deep restart, assumes that we just ran a satisfiability check.
+   * Returns true if we wish to reconstruct the SMT solver and try again. If
+   * so, the SMT solver is deep restarted, and we are prepared to make another
+   * satisfiability check.
+   */
+  bool deepRestart();
+
   // --------------------------------------- callbacks from the state
   /**
    * Notify push pre, which is called just before the user context of the state

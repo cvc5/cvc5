@@ -119,8 +119,6 @@ class TheorySetsPrivate : protected EnvObj
   bool d_fullCheckIncomplete;
   /** The reason we set the above flag to true */
   IncompleteId d_fullCheckIncompleteId;
-  std::map< Node, TypeNode > d_most_common_type;
-  std::map< Node, Node > d_most_common_type_term;
 
  public:
 

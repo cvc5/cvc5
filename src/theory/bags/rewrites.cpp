@@ -56,6 +56,7 @@ const char* toString(Rewrite r)
     case Rewrite::MAP_BAG_MAKE: return "MAP_BAG_MAKE";
     case Rewrite::MAP_UNION_DISJOINT: return "MAP_UNION_DISJOINT";
     case Rewrite::MEMBER: return "MEMBER";
+    case Rewrite::PARTITION_CONST: return "PARTITION_CONST";
     case Rewrite::PRODUCT_EMPTY: return "PRODUCT_EMPTY";
     case Rewrite::REMOVE_FROM_UNION: return "REMOVE_FROM_UNION";
     case Rewrite::REMOVE_MIN: return "REMOVE_MIN";

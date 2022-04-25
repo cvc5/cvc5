@@ -406,66 +406,25 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetLearnedLiteralsCommand); }
   | /* push */
-    PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    PUSH_TOK
     ( k=INTEGER_LITERAL
-      { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num == 0) {
-          cmd->reset(new EmptyCommand());
-        } else if(num == 1) {
-          PARSER_STATE->pushScope(true);
-          cmd->reset(new PushCommand());
-        } else {
-          std::unique_ptr<CommandSequence> seq(new CommandSequence());
-          do {
-            PARSER_STATE->pushScope(true);
-            Command* push_cmd = new PushCommand();
-            push_cmd->setMuted(num > 1);
-            seq->addCommand(push_cmd);
-            --num;
-            } while(num > 0);
-          cmd->reset(seq.release());
-        }
+      {
+        uint32_t num = AntlrInput::tokenToUnsigned(k);
+        *cmd = PARSER_STATE->handlePush(num);
       }
-    | { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Strict compliance mode demands an integer to be provided to "
-              "PUSH.  Maybe you want (push 1)?");
-        } else {
-          PARSER_STATE->pushScope(true);
-          cmd->reset(new PushCommand());
-        }
-      } )
-  | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    | {
+        *cmd = PARSER_STATE->handlePush(std::nullopt);
+      }
+    )
+  | /* pop */
+    POP_TOK
     ( k=INTEGER_LITERAL
-      { unsigned num = AntlrInput::tokenToUnsigned(k);
-        // we don't compare num to PARSER_STATE->scopeLevel() here, since
-        // when global declarations is true, the scope level of the parser
-        // is not indicative of the context level.
-        if(num == 0) {
-          cmd->reset(new EmptyCommand());
-        } else if(num == 1) {
-          PARSER_STATE->popScope();
-          cmd->reset(new PopCommand());
-        } else {
-          std::unique_ptr<CommandSequence> seq(new CommandSequence());
-          do {
-            PARSER_STATE->popScope();
-            Command* pop_command = new PopCommand();
-            pop_command->setMuted(num > 1);
-            seq->addCommand(pop_command);
-            --num;
-          } while(num > 0);
-          cmd->reset(seq.release());
-        }
+      {
+        uint32_t num = AntlrInput::tokenToUnsigned(k);
+        *cmd = PARSER_STATE->handlePop(num);
       }
-    | { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Strict compliance mode demands an integer to be provided to POP."
-              "Maybe you want (pop 1)?");
-        } else {
-          PARSER_STATE->popScope();
-          cmd->reset(new PopCommand());
-        }
+    | {
+        *cmd = PARSER_STATE->handlePop(std::nullopt);
       }
     )
     /* exit */
@@ -1448,6 +1407,12 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK TABLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1589,6 +1554,13 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
+    | TABLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::TABLE_PROJECT;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_PROJECT, numerals);
+       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
@@ -2197,6 +2169,7 @@ FORALL_TOK        : 'forall';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
+TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
