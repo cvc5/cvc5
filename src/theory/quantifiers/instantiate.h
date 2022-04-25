@@ -141,8 +141,6 @@ class Instantiate : public QuantifiersUtil
    * manager
    * @param pfArg an additional node to add to the arguments of the INSTANTIATE
    * step
-   * @param mkRep whether to take the representatives of the terms in the
-   * range of the substitution m,
    * @param doVts whether we must apply virtual term substitution to the
    * instantiation lemma.
    *
