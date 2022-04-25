@@ -38,6 +38,7 @@ PartitionGenerator::PartitionGenerator(Env& env,
     : EnvObj(env),
       d_numPartitions(options().parallel.computePartitions),
       d_numChecks(0),
+      d_betweenChecks(0),
       d_numPartitionsSoFar(0)
 {
   d_valuation = std::make_unique<Valuation>(theoryEngine);
@@ -159,7 +160,6 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
   }
 }
 
-
 TrustNode PartitionGenerator::makeFullTrailPartitions()
 {
   std::vector<TNode> literals = collectDecisionLiterals();
@@ -222,11 +222,16 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
   }
 
   d_numChecks = d_numChecks + 1;
+  d_betweenChecks = d_betweenChecks + 1;
 
-  if (d_numChecks < options().parallel.checksBeforePartitioning)
+  if (d_numChecks < options().parallel.checksBeforePartitioning || 
+      d_betweenChecks < options().parallel.checksBetweenPartitions)
   {
     return TrustNode::null();
   }
+
+  // Reset betweenChecks
+  d_betweenChecks = 0;
 
   switch (options().parallel.partitionStrategy)
   {

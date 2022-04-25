@@ -72,7 +72,6 @@ class PartitionGenerator : protected EnvObj
    */
   TrustNode makeFullTrailPartitions();
 
-
   /**
    * Generate a lemma that is the negation of toBlock which ultimately blocks
    * that path in the search.
@@ -115,6 +114,11 @@ const uint64_t d_numPartitions;
  * have occured.
  */
 uint64_t d_numChecks;
+
+/**
+ * Number of standard checks that have occured since the last partition that was emitted. 
+ */
+uint64_t d_betweenChecks;
 
 /**
  * The number of partitions that have been created.

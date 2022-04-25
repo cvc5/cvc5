@@ -18,6 +18,14 @@ name   = "Parallel"
   help       = "number of standard or full effort checks until partitioning"
 
 [[option]]
+  name       = "checksBetweenPartitions"
+  category   = "expert"
+  long       = "checks-between-partitions=N"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "number of standard or full effort checks until partitioning"
+
+[[option]]
   name       = "partitionConflictSize"
   category   = "expert"
   long       = "partition-conflict-size=N"
