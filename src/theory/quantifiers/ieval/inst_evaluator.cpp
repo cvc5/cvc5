@@ -141,6 +141,13 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
   return vars;
 }
 
+std::vector<Node> InstEvaluator::getFailureExp(Node q) const
+{
+  std::vector<Node> vars = d_state.getFailureExp(q);
+  // TODO: convert back
+  return vars;
+}
+
 bool InstEvaluator::isFeasible() const { return !d_state.isFinished(); }
 
 void InstEvaluator::setEvaluatorMode(TermEvaluatorMode tev)

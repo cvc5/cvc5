@@ -118,49 +118,6 @@ void QuantInfo::computeMatchReq(TNode cur, std::vector<TNode>& visit)
   }
   Node eqc = NodeManager::currentNM()->mkConst(!pol);
   addMatchTermReq(cur, eqc, true);
-#if 0
-  // NOTE: could sanitize the term, remove any nested quantifiers here?
-  // This is probably not necessary, the equality engine will treat the term
-  // as a leaf.
-
-  // P(x) V (Q(x) ^ R(x)) V f(x) = a V R(f(x)) V f(x) != g(x)
-  // P(x) -> false
-  // (Q(x) ^ R(x)) -> false
-  // f(x) -> (not (= f(x) a))
-  // R(f(x)) -> false
-  // f(x)=g(x) -> true
-  if (k == EQUAL)
-  {
-    // maybe pattern equals ground?
-    for (size_t i = 0; i < 2; i++)
-    {
-      if (!expr::hasBoundVar(cur[i]))
-      {
-        // Equality involving a ground term.
-        // Flip polarity since we want to falsify.
-        addMatchTermReq(cur[1 - i], cur[i], !pol);
-        return;
-      }
-    }
-  }
-  // TODO: use of "matchable" seems specific here, always take this branch?
-  if (k == EQUAL || tdb->isMatchable(cur) || expr::isBooleanConnective(cur))
-  {
-    // Equality between patterns, matchable predicate, or Boolean connective.
-    // Note that equalities and Boolean connectives are simply marked as
-    // constraints here, the main algorithm will determine how to process them.
-    // Flip polarity since we want to falsify.
-    Node eqc = NodeManager::currentNM()->mkConst(!pol);
-    addMatchTermReq(cur, eqc, true);
-    return;
-  }
-  // Unmatchable predicate, add all of its children without polarity.
-  for (TNode lc : cur)
-  {
-    // to be propagating, it must be equal to something
-    addMatchTermReq(lc, Node::null(), true);
-  }
-#endif
 }
 
 void QuantInfo::addMatchTermReq(TNode t, Node eqc, bool isEq)
@@ -211,21 +168,6 @@ void QuantInfo::setNoConflict() { d_maybeConflict = false; }
 bool QuantInfo::isMaybeConflict() const { return d_maybeConflict.get(); }
 
 bool QuantInfo::isTraverseTerm(TNode n) { return !n.isClosure(); }
-
-bool QuantInfo::isDeqConstraint(TNode c, TNode p)
-{
-  return c.getKind() == NOT && c[0].getKind() == EQUAL && c[0][0] == p;
-}
-
-bool QuantInfo::isDeqConstraint(TNode p, TNode c, TNode& val)
-{
-  if (isDeqConstraint(c, p))
-  {
-    val = c[0][1];
-    return true;
-  }
-  return false;
-}
 
 }  // namespace ieval
 }  // namespace quantifiers

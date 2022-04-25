@@ -27,7 +27,7 @@ namespace quantifiers {
 namespace ieval {
 
 PatTermInfo::PatTermInfo(context::Context* c)
-    : d_eq(c), d_numUnassigned(c, 0), d_parentNotify(c)
+    : d_eq(c), d_numUnassigned(c, 0), d_parentNotify(c), d_evalExpChild(c)
 {
 }
 
@@ -57,6 +57,8 @@ bool PatTermInfo::notifyChild(State& s,
   {
     Trace("ieval") << "  " << d_pattern << " := " << d_eq.get()
                    << " (partial evaluate)" << std::endl;
+    // remember the child for explanations
+    d_evalExpChild = child;
     return true;
   }
 

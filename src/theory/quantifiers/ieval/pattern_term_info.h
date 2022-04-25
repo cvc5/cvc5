@@ -77,6 +77,12 @@ class PatTermInfo
    * (2) A quantified formula Q whose body has p as a disjunct.
    */
   NodeList d_parentNotify;
+  /**
+   * The child that caused us to evaluate, which is used for tracking
+   * explanations. If this is null and d_eq is non-null, then we assume that
+   * all children were required for evaluation.
+   */
+  context::CDO<TNode> d_evalExpChild;
 };
 
 }  // namespace ieval

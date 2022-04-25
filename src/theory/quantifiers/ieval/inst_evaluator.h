@@ -86,6 +86,12 @@ class InstEvaluator : protected EnvObj
    */
   std::vector<Node> getInstantiationFor(Node q) const;
   /**
+   * Get failure explanation for q, return a vector of terms whose size
+   * is equal to the number of variables of q. Null nodes in this vector
+   * indicate that we did not depend on the value of that variable.
+   */
+  std::vector<Node> getFailureExp(Node q) const;
+  /**
    * Is feasible, return true if any quantified formulas are feasible.
    */
   bool isFeasible() const;

@@ -67,10 +67,6 @@ class QuantInfo
   //-------------------------- utilities
   /** Do we traverse this node? */
   static bool isTraverseTerm(TNode n);
-  /** is c a disequality constraint for p? */
-  static bool isDeqConstraint(TNode c, TNode p, TNode& val);
-  /** is c a disequality constraint for p? */
-  static bool isDeqConstraint(TNode c, TNode p);
   /** Debug print */
   std::string toStringDebug() const;
 

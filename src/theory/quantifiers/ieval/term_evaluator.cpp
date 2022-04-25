@@ -133,6 +133,8 @@ Node TermEvaluatorEntailed::evaluate(const State& s,
     if (!eval.isNull())
     {
       ret = d_qs.getRepresentative(eval);
+      // Note that ret may be an (unassigned, non-constant) Boolean. We do
+      // not turn this into "none" here yet.
     }
     return ret;
   }

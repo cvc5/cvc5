@@ -224,6 +224,12 @@ bool State::assignVar(TNode v,
   return true;
 }
 
+std::vector<Node> State::getFailureExp(Node q) const
+{
+  std::vector<Node> vars;
+  return vars;
+}
+
 bool State::isFinished() const { return d_numActiveQuant == 0; }
 
 QuantInfo& State::getQuantInfo(TNode q)
@@ -333,6 +339,14 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     // quantified formula is already inactive
     return;
   }
+  Assert (!val.isNull());
+  Assert (val.getType().isBoolean());
+  if (!val.isConst())
+  {
+    // in the rare case that we are congruent to an (unassigned) Boolean
+    // term, we treat this as "some" here instead
+    val = d_some;
+  }
   Trace("ieval-state-debug") << "Notify quant constraint " << q.getId() << " "
                              << p << " == " << val << std::endl;
   Assert(d_numActiveQuant.get() > 0);
@@ -357,11 +371,24 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
       qi.setNoConflict();
     }
   }
+  else if (isSome(val))
+  {
+    // it has the "some" value, and we have any constraint, we remain
+    // active but are not strictly a conflict
+    if (d_tevMode == TermEvaluatorMode::CONFLICT)
+    {
+      // if we require conflicts, we are inactive now
+      inactiveReason << "some, req conflict";
+      setInactive = true;
+    }
+    else
+    {
+      qi.setNoConflict();
+    }
+  }
   else
   {
-    // Are we the "some" val? This is true for predicates whose value is
-    // a predicate e.g. equality applied to existing terms.
-    bool valSome = isSome(val);
+    Assert (val.isConst());
     const std::map<TNode, std::vector<Node>>& cs = qi.getConstraints();
     std::map<TNode, std::vector<Node>>::const_iterator itm = cs.find(p);
     if (itm != cs.end())
@@ -374,32 +401,9 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
           // equal to something. we are ok
           continue;
         }
-        else if (valSome)
-        {
-          // it has the "some" value, and we have any constraint, we remain
-          // active but are not strictly a conflict
-          if (d_tevMode == TermEvaluatorMode::CONFLICT)
-          {
-            // if we require conflicts, we are inactive now
-            inactiveReason << "some, req conflict";
-            setInactive = true;
-            break;
-          }
-          qi.setNoConflict();
-          continue;
-        }
-        // if a disequality constraint
-        bool isEq = true;
-        TNode dval;
-        if (QuantInfo::isDeqConstraint(c, p, dval))
-        {
-          Assert(c[0].getKind() == EQUAL);
-          isEq = false;
-          c = dval;
-        }
         // otherwise check the constraint
         TNode r = getValue(c);
-        if (isEq != (val == r))
+        if (val != r)
         {
           Trace("ieval-state-debug")
               << "...inactive due to constraint " << c << std::endl;

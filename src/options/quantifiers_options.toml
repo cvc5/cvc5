@@ -743,7 +743,7 @@ name   = "Quantifiers"
 [[option]]
   name       = "ievalMode"
   category   = "regular"
-  long       = "ieval-mode=MODE"
+  long       = "ieval=MODE"
   type       = "IevalMode"
   default    = "OFF"
   help       = "mode for using instantiation evaluation"
