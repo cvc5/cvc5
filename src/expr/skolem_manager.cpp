@@ -93,6 +93,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
     case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
+    case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     default: return "?";
   }
 }

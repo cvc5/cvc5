@@ -48,9 +48,7 @@ class QuantInfo
    * their constraints for making the quantified formula have a propagating
    * instance. For details on the range of constraints, see d_req.
    */
-  const std::map<TNode, std::vector<Node>>& getConstraints() const;
-  /** Get the constraint terms */
-  const std::vector<TNode>& getConstraintTerms() const;
+  const std::map<TNode, bool>& getConstraints() const;
   /** Get the number of unassigned variables */
   size_t getNumUnassignedVars() const;
   /** Decremental unassigned var */
@@ -89,7 +87,7 @@ class QuantInfo
    * (2) (not (= p g)), saying that pattern must be disequal from g
    * (3) g, saying that the pattern must be equal to g
    */
-  std::map<TNode, std::vector<Node>> d_req;
+  std::map<TNode, bool> d_req;
   /** The domain of d_req */
   std::vector<TNode> d_reqTerms;
   //------------------- within search

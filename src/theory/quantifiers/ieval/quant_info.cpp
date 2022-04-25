@@ -64,11 +64,6 @@ void QuantInfo::initialize(TNode q, Node body)
     }
   } while (!visit.empty());
 
-  for (const std::pair<const TNode, std::vector<Node>>& r : d_req)
-  {
-    d_reqTerms.push_back(r.first);
-  }
-
   d_unassignedVars = q[0].getNumChildren();
   // debug print
   Trace("ieval-quant") << toStringDebug();
@@ -86,7 +81,7 @@ std::string QuantInfo::toStringDebug() const
   }
   else
   {
-    for (const std::pair<const TNode, std::vector<Node>>& r : d_req)
+    for (const std::pair<const TNode, bool>& r : d_req)
     {
       ss << "  " << r.first << " -> " << r.second << std::endl;
     }
@@ -116,37 +111,13 @@ void QuantInfo::computeMatchReq(TNode cur, std::vector<TNode>& visit)
     // should be NNF
     Assert(k != AND);
   }
-  Node eqc = NodeManager::currentNM()->mkConst(!pol);
-  addMatchTermReq(cur, eqc, true);
+  // required to falsify
+  d_req[cur] = !pol;
 }
 
-void QuantInfo::addMatchTermReq(TNode t, Node eqc, bool isEq)
-{
-  // notice that in rare cases, t may have no free variables, e.g.
-  // if miniscoping is disabled, or there is a ground subterm in a non-entailed
-  // position.
-
-  // if not equal, make into disequality constraint (not (= t eqc))
-  if (!isEq)
-  {
-    Assert(!eqc.isNull());
-    eqc = t.eqNode(eqc).notNode();
-  }
-  std::vector<Node>& reqs = d_req[t];
-  if (std::find(reqs.begin(), reqs.end(), eqc) == reqs.end())
-  {
-    reqs.push_back(eqc);
-  }
-}
-
-const std::map<TNode, std::vector<Node>>& QuantInfo::getConstraints() const
+const std::map<TNode, bool>& QuantInfo::getConstraints() const
 {
   return d_req;
-}
-
-const std::vector<TNode>& QuantInfo::getConstraintTerms() const
-{
-  return d_reqTerms;
 }
 
 size_t QuantInfo::getNumUnassignedVars() const

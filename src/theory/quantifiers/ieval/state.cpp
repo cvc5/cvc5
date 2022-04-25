@@ -44,10 +44,9 @@ State::State(Env& env,
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  d_none = sm->mkDummySkolem("none", nm->booleanType());
-  d_some = sm->mkDummySkolem("some", nm->booleanType());
-  d_true = nm->mkConst(true);
-  d_false = nm->mkConst(false);
+  TypeNode btype = nm->booleanType();
+  d_none = sm->mkSkolemFunction(SkolemFunId::IEVAL_NONE, btype);
+  d_some = sm->mkSkolemFunction(SkolemFunId::IEVAL_SOME, btype);
 }
 
 void State::setEvaluatorMode(TermEvaluatorMode tev)
@@ -89,15 +88,15 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
   NodeSet::const_iterator itr;
   std::vector<TNode> visit;
   // we traverse its constraint terms to set up the parent notification lists
-  const std::vector<TNode>& cterms = it->second.getConstraintTerms();
-  for (TNode c : cterms)
+  const std::map<TNode, bool>& cterms = it->second.getConstraints();
+  for (const std::pair<const TNode, bool>& c : cterms)
   {
     // we will notify the quantified formula when the pattern becomes set
-    PatTermInfo& pi = getOrMkPatTermInfo(c);
+    PatTermInfo& pi = getOrMkPatTermInfo(c.first);
     // (2) when the constraint term is assigned, we notify q
     pi.d_parentNotify.push_back(q);
     // we visit the constraint term below
-    visit.push_back(c);
+    visit.push_back(c.first);
   }
 
   TNode cur;
@@ -226,6 +225,8 @@ bool State::assignVar(TNode v,
 
 std::vector<Node> State::getFailureExp(Node q) const
 {
+  const QuantInfo& qi = getQuantInfo(q);
+  
   std::vector<Node> vars;
   return vars;
 }
@@ -235,6 +236,13 @@ bool State::isFinished() const { return d_numActiveQuant == 0; }
 QuantInfo& State::getQuantInfo(TNode q)
 {
   std::map<Node, QuantInfo>::iterator it = d_quantInfo.find(q);
+  Assert(it != d_quantInfo.end());
+  return it->second;
+}
+
+const QuantInfo& State::getQuantInfo(TNode q) const
+{
+  std::map<Node, QuantInfo>::const_iterator it = d_quantInfo.find(q);
   Assert(it != d_quantInfo.end());
   return it->second;
 }
@@ -389,38 +397,20 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   else
   {
     Assert(val.isConst());
-    const std::map<TNode, std::vector<Node>>& cs = qi.getConstraints();
-    std::map<TNode, std::vector<Node>>::const_iterator itm = cs.find(p);
-    if (itm != cs.end())
+    const std::map<TNode, bool>& cs = qi.getConstraints();
+    std::map<TNode, bool>::const_iterator itm = cs.find(p);
+    Assert (itm != cs.end());
+    if (val.getConst<bool>()!=itm->second)
     {
-      for (TNode c : itm->second)
-      {
-        if (c.isNull())
-        {
-          // the constraint said you must be disequal to none, i.e. we must be
-          // equal to something. we are ok
-          continue;
-        }
-        // otherwise check the constraint
-        TNode r = getValue(c);
-        if (val != r)
-        {
-          Trace("ieval-state-debug")
-              << "...inactive due to constraint " << c << std::endl;
-          setInactive = true;
-          inactiveReason << "constraint-true";
-          break;
-        }
-        else
-        {
-          Trace("ieval-state-debug")
-              << "...satisfied constraint " << c << std::endl;
-        }
-      }
+      Trace("ieval-state-debug")
+          << "...inactive due to constraint " << p << std::endl;
+      setInactive = true;
+      inactiveReason << "constraint-true";
     }
     else
     {
-      Trace("ieval-state-debug") << "...no constraints" << std::endl;
+      Trace("ieval-state-debug")
+          << "...satisfied constraint " << p << std::endl;
     }
   }
   // if we should set inactive, update qi and decrement d_numActiveQuant

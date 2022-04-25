@@ -183,7 +183,11 @@ enum class SkolemFunId
   /** set diff to witness (not (= A B)) */
   SETS_DEQ_DIFF,
   /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED
+  HO_TYPE_MATCH_PRED,
+  /** the "none" term, for instantiation evaluation */
+  IEVAL_NONE,
+  /** the "some" term, for instantiation evaluation */
+  IEVAL_SOME
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);

@@ -94,6 +94,7 @@ class State : protected EnvObj
   //---------------quantifiers info
   /** Get quantifiers info */
   QuantInfo& getQuantInfo(TNode q);
+  const QuantInfo& getQuantInfo(TNode q) const;
   //---------------free variable info
   /** Get free variable info */
   FreeVarInfo& getOrMkFreeVarInfo(TNode v);
@@ -138,9 +139,6 @@ class State : protected EnvObj
   Node d_none;
   /** The some node */
   Node d_some;
-  /** common constants */
-  Node d_true;
-  Node d_false;
   /** The terms we have set up notifications for */
   NodeSet d_registeredTerms;
   /**
