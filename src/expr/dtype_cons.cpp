@@ -643,7 +643,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     children.push_back(
         doParametricSubstitution((*i), paramTypes, paramReplacements));
   }
-  if (range.getKind()==INSTANTIATED_SORT_TYPE)
+  if (range.getKind() == INSTANTIATED_SORT_TYPE)
   {
     // paramTypes contains a list of uninterpreted sort constructors.
     // paramReplacements contains a list of instantiated parametric datatypes.
