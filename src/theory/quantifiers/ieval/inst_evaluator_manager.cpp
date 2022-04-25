@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 
+#include "options/quantifiers_options.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
@@ -34,8 +36,29 @@ std::string InstEvaluatorManager::identify() const
 
 InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
 {
+  options::IevalMode mode = options().quantifiers.ievalMode;
+  if (options().quantifiers.ievalMode == options::IevalMode::OFF)
+  {
+    // not using instantiation evaluation, don't construct
+    return nullptr;
+  }
   std::pair<Node, TermEvaluatorMode> key(q, tev);
-  return nullptr;
+  std::map<std::pair<Node, TermEvaluatorMode>, std::unique_ptr<InstEvaluator> >::iterator it =
+      d_evals.find(key);
+  if (it!=d_evals.end())
+  {
+    return it->second.get();
+  }
+  // don't use canonization or trackAssignments
+  bool genLearning = mode == options::IevalMode::USE_LEARN;
+  d_evals[key].reset(new InstEvaluator(d_env, d_qstate, d_tdb, genLearning));
+  InstEvaluator* ret = d_evals[key].get();
+  // set that we are watching quantified formula q
+  ret->watch(q);
+  // set the evaluation mode
+  ret->setEvaluatorMode(tev);
+  // return
+  return ret;
 }
 
 }  // namespace ieval

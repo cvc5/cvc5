@@ -234,10 +234,11 @@ void State::getFailureExp(Node q, std::unordered_set<Node>& processed) const
       processed.insert(cur);
       // as an optimization, only visit children of terms that have bound
       // variables
-      if (!expr::hasBoundVar(cur))
+      if (!expr::hasBoundVar(cur) || !QuantInfo::isTraverseTerm(cur))
       {
         continue;
       }
+      Assert (d_pInfo.find(cur)!=d_pInfo.end()) << "Missing pattern info for " << cur;
       const PatTermInfo& pi = getPatTermInfo(cur);
       TNode pcexp = pi.d_evalExpChild.get();
       if (!pcexp.isNull())
