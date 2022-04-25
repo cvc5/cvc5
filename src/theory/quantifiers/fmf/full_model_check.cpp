@@ -826,6 +826,7 @@ class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
   RepBoundFmcEntry(QuantifiersBoundInference& qbi,
+                   Node e,
                    FirstOrderModelFmc* f)
       : QRepBoundExt(qbi, f), d_entry(e), d_fm(f)
   {
@@ -833,7 +834,7 @@ class RepBoundFmcEntry : public QRepBoundExt
   ~RepBoundFmcEntry() {}
   /** set bound */
   virtual RsiEnumType setBound(Node owner,
-                               size_t i,
+                               unsigned i,
                                std::vector<Node>& elements) override
   {
     if (!d_fm->isStar(d_entry[i]))
@@ -860,7 +861,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
-  RepBoundFmcEntry rbfe(qbi, c, fm));
+  RepBoundFmcEntry rbfe(qbi, c, fm);
   RepSetIterator riter(fm->getRepSet(), &rbfe);
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
