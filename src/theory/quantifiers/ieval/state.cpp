@@ -225,17 +225,18 @@ void State::getFailureExp(Node q, std::unordered_set<Node>& processed) const
 {
   const QuantInfo& qi = getQuantInfo(q);
   TNode failConstraint = qi.getFailureConstraint();
-  Assert (!failConstraint.isNull());
+  Assert(!failConstraint.isNull());
   std::vector<TNode> visit;
   visit.push_back(failConstraint);
   do
   {
     TNode cur = visit.back();
     visit.pop_back();
-    if (processed.find(cur)==processed.end())
+    if (processed.find(cur) == processed.end())
     {
       processed.insert(cur);
-      // as an optimization, only visit children of terms that have bound variables
+      // as an optimization, only visit children of terms that have bound
+      // variables
       if (!expr::hasBoundVar(cur))
       {
         continue;
@@ -253,8 +254,7 @@ void State::getFailureExp(Node q, std::unordered_set<Node>& processed) const
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
-  }
-  while (!visit.empty());
+  } while (!visit.empty());
 }
 
 bool State::isFinished() const { return d_numActiveQuant == 0; }

@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
-#include "context/context.h"
 #include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
 #include "smt/env_obj.h"
@@ -102,7 +102,7 @@ class InstEvaluator : protected EnvObj
  private:
   /** push internal */
   bool pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants);
-  /** 
+  /**
    * Learn failure, called immediately after the state is finished.
    */
   void learnFailure();
@@ -125,7 +125,6 @@ class InstEvaluator : protected EnvObj
   /** The variables of the quantified formulas we are tracking */
   NodeList d_varList;
   /** An index trie, if we are using generalized learning */
-  
 };
 
 }  // namespace ieval

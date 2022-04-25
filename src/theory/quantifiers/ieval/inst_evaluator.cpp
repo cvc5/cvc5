@@ -63,7 +63,7 @@ void InstEvaluator::watch(Node q, Node body)
       it = visited.find(v);
       vars.push_back(it->second);
       // initially map the variable to its canonical form
-      if (d_varMap.find(v)==d_varMap.end())
+      if (d_varMap.find(v) == d_varMap.end())
       {
         d_varMap[v] = it->second;
         // remember the varisable
@@ -184,7 +184,7 @@ void InstEvaluator::learnFailure()
   /*
   for (const Node& v : d_varList)
   {
-    
+
   }
   */
 }
