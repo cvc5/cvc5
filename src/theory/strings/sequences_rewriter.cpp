@@ -1717,7 +1717,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteSeqUnit(node);
   }
-  else if (nk == SEQ_NTH || nk == SEQ_NTH_TOTAL)
+  else if (nk == SEQ_NTH)
   {
     retNode = rewriteSeqNth(node);
   }
@@ -1743,33 +1743,9 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-TrustNode SequencesRewriter::expandDefinition(Node node)
-{
-  Trace("strings-exp-def") << "SequencesRewriter::expandDefinition : " << node
-                           << std::endl;
-
-  if (node.getKind() == kind::SEQ_NTH)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node s = node[0];
-    Node n = node[1];
-    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
-    Node cond = nm->mkNode(AND,
-                           nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), n),
-                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
-    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
-    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
-    Node u = nm->mkNode(APPLY_UF, uf, s, n);
-    Node ret = nm->mkNode(ITE, cond, ss, u);
-    Trace("strings-exp-def") << "...return " << ret << std::endl;
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 Node SequencesRewriter::rewriteSeqNth(Node node)
 {
-  Assert(node.getKind() == SEQ_NTH || node.getKind() == SEQ_NTH_TOTAL);
+  Assert(node.getKind() == SEQ_NTH);
   Node s = node[0];
   Node i = node[1];
   if (s.isConst() && i.isConst())
@@ -1785,13 +1761,6 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
         const Node& ret = elements[pos];
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
       }
-    }
-    if (node.getKind() == SEQ_NTH_TOTAL)
-    {
-      // return arbitrary term
-      NodeManager* nm = NodeManager::currentNM();
-      Node ret = nm->mkGroundValue(s.getType().getSequenceElementType());
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
   }
 

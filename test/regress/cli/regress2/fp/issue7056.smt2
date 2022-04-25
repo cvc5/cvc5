@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --no-produce-proofs
-; DISABLE-TESTER: proof
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
+; DISABLE-TESTER: lfsc
 ; timeout with unsat cores
 (set-logic ALL)
 (set-info :smt-lib-version 2.6)

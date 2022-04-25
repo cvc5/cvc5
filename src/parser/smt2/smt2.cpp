@@ -634,6 +634,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_MAP, "bag.map");
     addOperator(cvc5::BAG_FILTER, "bag.filter");
     addOperator(cvc5::BAG_FOLD, "bag.fold");
+    addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
@@ -1262,6 +1263,50 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   cvc5::Term ret = d_solver->mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
+}
+
+std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(push).  Maybe you want (push 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    pushScope(true);
+  }
+  return std::make_unique<PushCommand>(*nscopes);
+}
+
+std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(pop).  Maybe you want (pop 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    popScope();
+  }
+  return std::make_unique<PopCommand>(*nscopes);
 }
 
 void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
