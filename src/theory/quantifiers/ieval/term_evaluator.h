@@ -64,16 +64,16 @@ class TermEvaluator : protected EnvObj
    * Called when a given child of n has been assigned val.
    */
   virtual TNode partialEvaluateChild(const State& s,
-                                    TNode n,
-                                    TNode child,
-                                    TNode val) = 0;
+                                     TNode n,
+                                     TNode child,
+                                     TNode val) = 0;
   /**
    * Evaluate term
    * Called when all children of n have been assigned values childValues.
    */
   virtual TNode evaluate(const State& s,
-                        TNode n,
-                        const std::vector<TNode>& childValues) = 0;
+                         TNode n,
+                         const std::vector<TNode>& childValues) = 0;
 };
 
 class TermEvaluatorEntailed : public TermEvaluator
@@ -84,13 +84,13 @@ class TermEvaluatorEntailed : public TermEvaluator
   TNode evaluateBase(const State& s, TNode n) override;
   /** Partial evaluate child */
   TNode partialEvaluateChild(const State& s,
-                            TNode n,
-                            TNode child,
-                            TNode val) override;
+                             TNode n,
+                             TNode child,
+                             TNode val) override;
   /** Evaluate term */
   TNode evaluate(const State& s,
-                TNode n,
-                const std::vector<TNode>& childValues) override;
+                 TNode n,
+                 const std::vector<TNode>& childValues) override;
 
  private:
   /** Quantifiers state */

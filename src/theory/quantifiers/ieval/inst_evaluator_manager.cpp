@@ -21,7 +21,8 @@ namespace quantifiers {
 namespace ieval {
 
 InstEvaluatorManager::InstEvaluatorManager(Env& env,
-                                           QuantifiersState& qs, TermDb& tdb)
+                                           QuantifiersState& qs,
+                                           TermDb& tdb)
     : QuantifiersUtil(env), d_qstate(qs), d_tdb(tdb)
 {
 }

@@ -46,9 +46,9 @@ TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 }
 
 TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
-                                                 TNode n,
-                                                 TNode child,
-                                                 TNode val)
+                                                  TNode n,
+                                                  TNode child,
+                                                  TNode val)
 {
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();
@@ -119,8 +119,8 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
 }
 
 TNode TermEvaluatorEntailed::evaluate(const State& s,
-                                     TNode n,
-                                     const std::vector<TNode>& childValues)
+                                      TNode n,
+                                      const std::vector<TNode>& childValues)
 {
   // set to unknown, handle cases
   TNode ret = s.getNone();

@@ -35,7 +35,7 @@ InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
 void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
 {
   // should only do this if we are empty
-  Assert (empty());
+  Assert(empty());
   options::IevalMode mode = options().quantifiers.ievalMode;
   if (options().quantifiers.ievalMode == options::IevalMode::OFF)
   {
@@ -50,7 +50,8 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
     {
       // TODO: get the standard evaluator from the term registry
       bool genLearning = mode == options::IevalMode::USE_LEARN;
-      d_ieval.reset(new ieval::InstEvaluator(d_env, d_qs, *d_tr.getTermDatabase(), genLearning));
+      d_ieval.reset(new ieval::InstEvaluator(
+          d_env, d_qs, *d_tr.getTermDatabase(), genLearning));
       // set that we are watching quantified formula q
       d_ieval->watch(d_quant);
     }

@@ -23,7 +23,8 @@ namespace quantifiers {
 namespace ieval {
 
 InstEvaluator::InstEvaluator(Env& env,
-                             QuantifiersState& qs, TermDb& tdb,
+                             QuantifiersState& qs,
+                             TermDb& tdb,
                              bool genLearning,
                              bool canonize,
                              bool trackAssignedQuant)
@@ -251,7 +252,7 @@ Node InstEvaluator::lookupCanonicalTerm(TNode n) const
   if (d_canonize)
   {
     std::map<TNode, Node>::const_iterator itc = d_canonVisited.find(n);
-    Assert (itc != d_canonVisited.end());
+    Assert(itc != d_canonVisited.end());
     return itc->second;
   }
   return n;

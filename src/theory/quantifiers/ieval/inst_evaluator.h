@@ -57,7 +57,8 @@ class InstEvaluator : protected EnvObj
 
  public:
   InstEvaluator(Env& env,
-                QuantifiersState& qs, TermDb& tdb,
+                QuantifiersState& qs,
+                TermDb& tdb,
                 bool genLearning = false,
                 bool canonize = false,
                 bool trackAssignedQuant = false);
@@ -109,7 +110,7 @@ class InstEvaluator : protected EnvObj
    * Learn failure, called immediately after the state is finished.
    */
   void learnFailure();
-  /** 
+  /**
    * Check if there is currently a learned failure
    */
   bool checkLearnedFailure() const;

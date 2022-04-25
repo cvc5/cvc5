@@ -28,10 +28,7 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-State::State(Env& env,
-             context::Context* c,
-             QuantifiersState& qs,
-             TermDb& tdb)
+State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
@@ -57,8 +54,7 @@ void State::setEvaluatorMode(TermEvaluatorMode tev)
   if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP
       || tev == TermEvaluatorMode::NO_ENTAIL)
   {
-    d_tec.reset(
-        new TermEvaluatorEntailed(d_env, d_qstate, d_tdb));
+    d_tec.reset(new TermEvaluatorEntailed(d_env, d_qstate, d_tdb));
   }
   else if (tev == TermEvaluatorMode::MODEL)
   {
@@ -183,7 +179,7 @@ bool State::assignVar(TNode v,
                       bool trackAssignedQuant)
 {
   Assert(d_initialized.get());
-  Assert (getValue(r)==r);
+  Assert(getValue(r) == r);
   // notify that the variable is equal to the ground term
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
   notifyPatternEqGround(v, r);

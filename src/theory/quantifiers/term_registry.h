@@ -25,11 +25,11 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_pools.h"
-#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
