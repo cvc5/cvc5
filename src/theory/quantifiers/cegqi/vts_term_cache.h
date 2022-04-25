@@ -76,8 +76,8 @@ class VtsTermCache : protected EnvObj
   VtsTermCache(Env& env);
   ~VtsTermCache() {}
   /**
-   * Have we allocated any VTS symbol? This impacts quantifier instantiation,
-   * in particular we use virtual term substitution for all instantiations
+   * Have we allocated any VTS symbol? This impacts quantifier instantiation.
+   * In particular we use virtual term substitution for all instantiations
    * when this is true.
    */
   bool hasAllocated() const;
