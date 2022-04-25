@@ -458,6 +458,7 @@ set(regress_0_tests
   regress0/bv/issue5396.smt2
   regress0/bv/issue8159-1-rewrite-bvneg.smt2
   regress0/bv/issue8240-rewrite-bvnot.smt2
+  regress0/bv/issue8654-bitblast-quant-exc.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -592,6 +593,10 @@ set(regress_0_tests
   regress0/decision/uflia-xs-09-16-3-4-1-5.delta03.smtv1.smt2
   regress0/decision/wchains010ue.delta02.smtv1.smt2
   regress0/declare-fun-is-match.smt2
+  regress0/deep-restart/dd.266.smt2
+  regress0/deep-restart/dd.fuzz21.smtv1.smt2
+  regress0/deep-restart/dd.issue4735.smt2
+  regress0/deep-restart/dd.wrong-sat-020322.smt2
   regress0/define-fun-model.smt2
   regress0/difficulty-simple.smt2
   regress0/difficulty-model-ex.smt2
@@ -945,6 +950,7 @@ set(regress_0_tests
   regress0/print_model.cvc.smt2
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/deep-restart-output.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/learned-lit-output.smt2
@@ -3196,6 +3202,24 @@ add_custom_target(regress
   COMMAND
     ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
+
+set(testers
+  base
+  unsat-core
+  proof
+  lfsc
+  model
+  synth
+  abduct
+  dump
+)
+
+foreach(tester ${testers})
+  add_custom_target(regress-${tester}
+    COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester ${tester}'
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    DEPENDS build-regress)
+endforeach()
 
 macro(cvc5_add_regression_test level file)
   add_test(${file}
