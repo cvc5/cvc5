@@ -29,6 +29,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_pools.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -120,6 +121,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<OracleChecker> d_ochecker;
   /** virtual term substitution term cache for arithmetic instantiation */
   std::unique_ptr<VtsTermCache> d_vtsCache;
+  /** the instantiation evaluator manager */
+  std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

@@ -30,12 +30,12 @@ TermEvaluator::TermEvaluator(Env& env) : EnvObj(env) {}
 
 TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
                                              QuantifiersState& qs,
-                                             TermDb* tdb)
+                                             TermDb& tdb)
     : TermEvaluator(env), d_qs(qs), d_tdb(tdb)
 {
 }
 
-Node TermEvaluatorEntailed::evaluateBase(const State& s, Node n)
+TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 {
   if (d_qs.hasTerm(n))
   {
@@ -45,8 +45,8 @@ Node TermEvaluatorEntailed::evaluateBase(const State& s, Node n)
   return s.getNone();
 }
 
-Node TermEvaluatorEntailed::partialEvaluateChild(const State& s,
-                                                 Node n,
+TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
+                                                 TNode n,
                                                  TNode child,
                                                  TNode val)
 {
@@ -118,18 +118,18 @@ Node TermEvaluatorEntailed::partialEvaluateChild(const State& s,
   return Node::null();
 }
 
-Node TermEvaluatorEntailed::evaluate(const State& s,
-                                     Node n,
+TNode TermEvaluatorEntailed::evaluate(const State& s,
+                                     TNode n,
                                      const std::vector<TNode>& childValues)
 {
   // set to unknown, handle cases
-  Node ret = s.getNone();
+  TNode ret = s.getNone();
 
-  Node mop = d_tdb->getMatchOperator(n);
+  TNode mop = d_tdb.getMatchOperator(n);
   if (!mop.isNull())
   {
     // see if we are congruent to a term known by the term database
-    Node eval = d_tdb->getCongruentTerm(mop, childValues);
+    Node eval = d_tdb.getCongruentTerm(mop, childValues);
     if (!eval.isNull())
     {
       ret = d_qs.getRepresentative(eval);

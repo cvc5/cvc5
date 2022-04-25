@@ -19,7 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/ieval/term_evaluator.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace cvc5::internal::kind;
 
@@ -31,11 +31,11 @@ namespace ieval {
 State::State(Env& env,
              context::Context* c,
              QuantifiersState& qs,
-             TermRegistry& tr)
+             TermDb& tdb)
     : EnvObj(env),
       d_ctx(c),
       d_qstate(qs),
-      d_treg(tr),
+      d_tdb(tdb),
       d_tevMode(ieval::TermEvaluatorMode::NONE),
       d_registeredTerms(c),
       d_registeredBaseTerms(c),
@@ -58,7 +58,7 @@ void State::setEvaluatorMode(TermEvaluatorMode tev)
       || tev == TermEvaluatorMode::NO_ENTAIL)
   {
     d_tec.reset(
-        new TermEvaluatorEntailed(d_env, d_qstate, d_treg.getTermDatabase()));
+        new TermEvaluatorEntailed(d_env, d_qstate, d_tdb));
   }
   else if (tev == TermEvaluatorMode::MODEL)
   {
@@ -178,13 +178,13 @@ bool State::initialize()
 }
 
 bool State::assignVar(TNode v,
-                      TNode s,
+                      TNode r,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
   Assert(d_initialized.get());
+  Assert (getValue(r)==r);
   // notify that the variable is equal to the ground term
-  Node r = d_tec->evaluateBase(*this, s);
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
   notifyPatternEqGround(v, r);
   // might the inactive now
@@ -486,6 +486,17 @@ bool State::isQuantActive(TNode q) const
   std::map<Node, QuantInfo>::const_iterator it = d_quantInfo.find(q);
   Assert(it != d_quantInfo.end());
   return it->second.isActive();
+}
+
+TNode State::evaluate(TNode n) const
+{
+  if (n.isConst())
+  {
+    return n;
+  }
+  // all pattern terms should have been assigned pattern term info
+  Assert(!expr::hasBoundVar(n));
+  return d_tec->evaluateBase(*this, n);
 }
 
 TNode State::getValue(TNode p) const

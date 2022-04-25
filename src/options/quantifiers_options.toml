@@ -754,6 +754,9 @@ name   = "Quantifiers"
 [[option.mode.USE]]
   name = "use"
   help = "Use instantiation evaluation."
+[[option.mode.USE_LEARN]]
+  name = "use-learn"
+  help = "Use instantiation evaluation, and generalize learning."
 
 ### Induction options
 

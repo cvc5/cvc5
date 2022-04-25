@@ -41,7 +41,7 @@ class State : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  State(Env& env, context::Context* c, QuantifiersState& qs, TermRegistry& tr);
+  State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb);
 
   /** has initialize */
   bool hasInitialized() const;
@@ -51,13 +51,13 @@ class State : protected EnvObj
 
   /** Set evaluator mode */
   void setEvaluatorMode(TermEvaluatorMode tev);
-
+  
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
   /** Assign variable, return false if we are finished */
   bool assignVar(TNode v,
-                 TNode s,
+                 TNode r,
                  std::vector<Node>& assignedQuants,
                  bool trackAssignedQuant);
 
@@ -69,10 +69,9 @@ class State : protected EnvObj
 
   /** Is finished */
   bool isFinished() const;
-  /**
-   * Get value for pattern or ordinary term p. This is either a ground
-   * represenative, or the none, or the null node if p is active.
-   */
+  /** Evaluate ground term n */
+  TNode evaluate(TNode n) const;
+  /** Get value for pattern or ground term p. */
   TNode getValue(TNode p) const;
   /** Get none node */
   Node getNone() const;
@@ -126,10 +125,10 @@ class State : protected EnvObj
   void notifyQuant(TNode q, TNode p, TNode val);
   /** The context, managed by the parent inst evaluator */
   context::Context* d_ctx;
-  /** Quantifiers state */
+  /** Reference to quantifiers state */
   QuantifiersState& d_qstate;
-  /** Reference to term registry */
-  TermRegistry& d_treg;
+  /** Reference to term database */
+  TermDb& d_tdb;
   /** The term evaluator mode */
   TermEvaluatorMode d_tevMode;
   /** The term evaluator callback we are using */

@@ -23,8 +23,7 @@ namespace quantifiers {
 namespace ieval {
 
 InstEvaluator::InstEvaluator(Env& env,
-                             QuantifiersState& qs,
-                             TermRegistry& tr,
+                             QuantifiersState& qs, TermDb& tdb,
                              bool genLearning,
                              bool canonize,
                              bool trackAssignedQuant)
@@ -33,9 +32,8 @@ InstEvaluator::InstEvaluator(Env& env,
       d_genLearning(genLearning),
       d_canonize(canonize),
       d_trackAssignedQuant(trackAssignedQuant),
-      d_state(env, &d_context, qs, tr),
+      d_state(env, &d_context, qs, tdb),
       d_varMap(&d_context),
-      d_varToCanonMap(&d_context),
       d_quantList(&d_context),
       d_varList(&d_context)
 {
@@ -55,24 +53,10 @@ void InstEvaluator::watch(Node q, Node body)
   std::vector<Node> vars;
   if (d_canonize)
   {
-    std::map<TNode, Node> visited;
-    body = d_tcanon.getCanonicalTerm(body, visited);
-    std::map<TNode, Node>::iterator it;
+    body = d_tcanon.getCanonicalTerm(body, d_canonVisited);
     for (const Node& v : q[0])
     {
-      it = visited.find(v);
-      vars.push_back(it->second);
-      // initially map the variable to its canonical form
-      if (d_varToCanonMap.find(v) == d_varToCanonMap.end())
-      {
-        d_varToCanonMap[v] = it->second;
-        // remember the varisable
-        d_varList.push_back(v);
-      }
-      else
-      {
-        Assert(false);
-      }
+      vars.push_back(lookupCanonicalTerm(v));
     }
   }
   else
@@ -81,14 +65,14 @@ void InstEvaluator::watch(Node q, Node body)
     // formula
     Assert(d_quantList.empty());
     Assert(d_varList.empty());
-    for (const Node& v : q[0])
-    {
-      d_varList.push_back(v);
-    }
     vars.insert(vars.end(), q[0].begin(), q[0].end());
   }
-  d_state.watch(q, vars, body);
   d_quantList.push_back(q);
+  for (const Node& v : vars)
+  {
+    d_varList.push_back(v);
+  }
+  d_state.watch(q, vars, body);
 }
 
 bool InstEvaluator::initialize()
@@ -146,23 +130,26 @@ bool InstEvaluator::pushInternal(TNode v,
   }
   // push the context
   d_context.push();
-  TNode canonVar = v;
-  if (d_canonize)
+  // use the canonical variable for the state
+  TNode vc = lookupCanonicalTerm(v);
+  // evaluate the term
+  Node r = d_state.evaluate(s);
+  // store the variable mapping
+  d_varMap[vc] = r;
+  // if we are generalizing failures, check if there is a learned failure
+  if (checkLearnedFailure())
   {
-    Assert(d_varToCanonMap.find(v) != d_varToCanonMap.end());
-    // use the canonical variable for the state, which should be stored in the
-    // variable map
-    canonVar = d_varToCanonMap[v];
+    d_context.pop();
+    return false;
   }
   // note that the first assigned variable will force an initialization of the
   // state
-  if (!d_state.assignVar(canonVar, s, assignedQuants, d_trackAssignedQuant))
+  if (!d_state.assignVar(vc, r, assignedQuants, d_trackAssignedQuant))
   {
     learnFailure();
     d_context.pop();
     return false;
   }
-  d_varMap[v] = s;
   return true;
 }
 
@@ -182,13 +169,8 @@ std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
   std::vector<Node> inst;
   for (const Node& v : q[0])
   {
-    Node vc = v;
-    if (d_canonize)
-    {
-      it = d_varToCanonMap.find(v);
-      Assert(it != d_varToCanonMap.end());
-      vc = it->second;
-    }
+    // must get the canonized variable
+    Node vc = lookupCanonicalTerm(v);
     it = d_varMap.find(v);
     if (it != d_varMap.end())
     {
@@ -231,22 +213,48 @@ void InstEvaluator::learnFailure()
   d_itrie->add(mask, cterms);
 }
 
+bool InstEvaluator::checkLearnedFailure() const
+{
+  if (!d_genLearning)
+  {
+    return false;
+  }
+  // see if the current terms exist
+  std::vector<Node> cterms = getCurrentTerms();
+  Assert(d_itrie != nullptr);
+  size_t nonBlankLength;
+  return d_itrie->find(cterms, nonBlankLength);
+}
+
 std::vector<Node> InstEvaluator::getCurrentTerms() const
 {
   std::vector<Node> terms;
   NodeNodeMap::const_iterator it;
   for (const Node& v : d_varList)
   {
+    it = d_varMap.find(v);
     if (it != d_varMap.end())
     {
       terms.push_back(it->second);
     }
     else
     {
-      terms.push_back(v);
+      // unassigned
+      terms.push_back(Node::null());
     }
   }
   return terms;
+}
+
+Node InstEvaluator::lookupCanonicalTerm(TNode n) const
+{
+  if (d_canonize)
+  {
+    std::map<TNode, Node>::const_iterator itc = d_canonVisited.find(n);
+    Assert (itc != d_canonVisited.end());
+    return itc->second;
+  }
+  return n;
 }
 
 }  // namespace ieval

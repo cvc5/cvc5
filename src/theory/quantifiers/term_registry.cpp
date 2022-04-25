@@ -45,6 +45,7 @@ TermRegistry::TermRegistry(Env& env,
       d_sygusTdb(nullptr),
       d_ochecker(nullptr),
       d_vtsCache(new VtsTermCache(env)),
+      d_ievalMan(new ieval::InstEvaluatorManager(env, qs, *d_termDb.get())),
       d_qmodel(nullptr)
 {
   if (options().quantifiers.oracles)

@@ -21,9 +21,8 @@ namespace quantifiers {
 namespace ieval {
 
 InstEvaluatorManager::InstEvaluatorManager(Env& env,
-                                           QuantifiersState& qs,
-                                           TermRegistry& tr)
-    : QuantifiersUtil(env), d_qstate(qs), d_treg(tr)
+                                           QuantifiersState& qs, TermDb& tdb)
+    : QuantifiersUtil(env), d_qstate(qs), d_tdb(tdb)
 {
 }
 bool InstEvaluatorManager::reset(Theory::Effort effort) { return true; }

@@ -34,7 +34,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-class TermRegistry;
+class TermDb;
 
 namespace ieval {
 
@@ -57,8 +57,7 @@ class InstEvaluator : protected EnvObj
 
  public:
   InstEvaluator(Env& env,
-                QuantifiersState& qs,
-                TermRegistry& tr,
+                QuantifiersState& qs, TermDb& tdb,
                 bool genLearning = false,
                 bool canonize = false,
                 bool trackAssignedQuant = false);
@@ -110,11 +109,17 @@ class InstEvaluator : protected EnvObj
    * Learn failure, called immediately after the state is finished.
    */
   void learnFailure();
+  /** 
+   * Check if there is currently a learned failure
+   */
+  bool checkLearnedFailure() const;
   /**
    * Get the current list of assigned terms, based on the ordering in
    * d_varList.
    */
   std::vector<Node> getCurrentTerms() const;
+  /** Lookup canonical term */
+  Node lookupCanonicalTerm(TNode n) const;
   /** A context object */
   context::Context d_context;
   /** do generalized learning */
@@ -129,8 +134,8 @@ class InstEvaluator : protected EnvObj
   NodeNodeMap d_varMap;
   /** Term canonizer */
   expr::TermCanonize d_tcanon;
-  /** Mapping variables to canonical variables */
-  NodeNodeMap d_varToCanonMap;
+  /** Visited map for the term canonizer */
+  std::map<TNode, Node> d_canonVisited;
   /** The list of quantified formulas we are tracking */
   NodeList d_quantList;
   /** The (canonical) variables of the quantified formulas we are tracking */

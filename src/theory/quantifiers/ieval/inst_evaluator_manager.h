@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-class TermRegistry;
+class TermDb;
 
 namespace ieval {
 
@@ -39,7 +39,7 @@ namespace ieval {
 class InstEvaluatorManager : public QuantifiersUtil
 {
  public:
-  InstEvaluatorManager(Env& env, QuantifiersState& qs, TermRegistry& tr);
+  InstEvaluatorManager(Env& env, QuantifiersState& qs, TermDb& tdb);
   /** reset (calculate which terms are active) */
   bool reset(Theory::Effort effort) override;
   /** identify */
@@ -48,10 +48,10 @@ class InstEvaluatorManager : public QuantifiersUtil
   InstEvaluator* getEvaluator(Node q, TermEvaluatorMode tev);
 
  private:
-  /** Quantifiers state */
+  /** Reference to quantifiers state */
   QuantifiersState& d_qstate;
-  /** Reference to term registry */
-  TermRegistry& d_treg;
+  /** Reference to term database */
+  TermDb& d_tdb;
   /** Maps to the evaluators */
   std::map<std::pair<Node, TermEvaluatorMode>, std::unique_ptr<InstEvaluator> >
       d_evals;
