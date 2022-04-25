@@ -427,8 +427,7 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
     if (success)
     {
       Trace("matching-debug2") << "Continue next " << d_next << std::endl;
-      ret_val =
-          continueNextMatch(m, InferenceId::QUANTIFIERS_INST_E_MATCHING);
+      ret_val = continueNextMatch(m, InferenceId::QUANTIFIERS_INST_E_MATCHING);
     }
   }
   if (ret_val < 0)
@@ -441,8 +440,7 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
   return ret_val;
 }
 
-int InstMatchGenerator::continueNextMatch(InstMatch& m,
-                                          InferenceId id)
+int InstMatchGenerator::continueNextMatch(InstMatch& m, InferenceId id)
 {
   if( d_next!=NULL ){
     return d_next->getNextMatch(m);

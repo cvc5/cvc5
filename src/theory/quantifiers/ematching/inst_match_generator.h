@@ -313,8 +313,7 @@ class InstMatchGenerator : public IMGenerator {
   * value >0 if active add is false).  Its return value has the same semantics
   * as getNextMatch.
   */
-  int continueNextMatch(InstMatch& m,
-                        InferenceId id);
+  int continueNextMatch(InstMatch& m, InferenceId id);
   /** Get inst match generator
    *
    * Gets the InstMatchGenerator that implements the
