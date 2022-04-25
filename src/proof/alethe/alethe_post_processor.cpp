@@ -440,7 +440,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs = options::proofAletheResPivots()? args : std::vector<Node>();
-      if (!expr::isSingletonClause(res, children, newArgs))
+      if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION_OR, res, children, newArgs, *cdp);
