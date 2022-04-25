@@ -63,8 +63,6 @@ enum RsiEnumType
  * Then, we increment over the tuples of terms in the
  * domains of the owner of this iterator using:
  * - increment and incrementAtIndex
- *
- * TODO (#1199): this class needs further documentation.
  */
 class RepSetIterator
 {
@@ -112,7 +110,6 @@ class RepSetIterator
   /** debug print methods */
   void debugPrint(const char* c);
   void debugPrintSmall(const char* c);
-  // TODO (#1199): these should be private
   /** enumeration type for each field */
   std::vector<RsiEnumType> d_enum_type;
   /** the current tuple we are considering */
