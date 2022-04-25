@@ -3203,6 +3203,24 @@ add_custom_target(regress
     ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
+set(testers
+  base
+  unsat-core
+  proof
+  lfsc
+  model
+  synth
+  abduct
+  dump
+)
+
+foreach(tester ${testers})
+  add_custom_target(regress-${tester}
+    COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester ${tester}'
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    DEPENDS build-regress)
+endforeach()
+
 macro(cvc5_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
