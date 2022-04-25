@@ -62,11 +62,6 @@ class QuantInfo
   void setNoConflict();
   /** Is maybe conflict */
   bool isMaybeConflict() const;
-  //-------------------------- utilities
-  /** Do we traverse this node? */
-  static bool isTraverseTerm(TNode n);
-  /** Debug print */
-  std::string toStringDebug() const;
   /**
    * Set the failure constraint. This is a term in the domain of d_req
    * that was the reason why this quantified formula is inactive.
@@ -74,6 +69,11 @@ class QuantInfo
   void setFailureConstraint(TNode c);
   /** Get the failure constraint set by the above method */
   TNode getFailureConstraint() const;
+  //-------------------------- utilities
+  /** Do we traverse this node? */
+  static bool isTraverseTerm(TNode n);
+  /** Debug print */
+  std::string toStringDebug() const;
  private:
   /**
    * Process matching requirement for subterm cur which is a disjunct in the
@@ -108,6 +108,8 @@ class QuantInfo
   context::CDO<bool> d_maybeConflict;
   /** Number of unassigned variables */
   context::CDO<size_t> d_unassignedVars;
+  /** The failure constraint */
+  context::CDO<Node> d_failReq;
 };
 
 }  // namespace ieval

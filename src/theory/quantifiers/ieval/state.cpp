@@ -373,7 +373,6 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
       // inactive
       inactiveReason << "none, req conflict/prop";
       setInactive = true;
-      Trace("ieval-state-debug") << "...inactive due to none" << std::endl;
     }
     else
     {
@@ -403,8 +402,6 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     Assert(itm != cs.end());
     if (val.getConst<bool>() != itm->second)
     {
-      Trace("ieval-state-debug")
-          << "...inactive due to constraint " << p << std::endl;
       setInactive = true;
       inactiveReason << "constraint-true";
     }
@@ -417,9 +414,10 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   // if we should set inactive, update qi and decrement d_numActiveQuant
   if (setInactive)
   {
+    qi.setFailureConstraint(p);
     setQuantInactive(qi);
     Trace("ieval") << "  -> " << q << " inactive due to "
-                   << inactiveReason.str() << std::endl;
+                   << inactiveReason.str() << ", from " << p << std::endl;
   }
   else
   {

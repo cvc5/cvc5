@@ -28,7 +28,7 @@ namespace quantifiers {
 namespace ieval {
 
 QuantInfo::QuantInfo(context::Context* c)
-    : d_isActive(c, true), d_maybeConflict(c, true), d_unassignedVars(c, 0)
+    : d_isActive(c, true), d_maybeConflict(c, true), d_unassignedVars(c, 0), d_failReq(c)
 {
 }
 
@@ -135,6 +135,16 @@ void QuantInfo::setNoConflict() { d_maybeConflict = false; }
 
 bool QuantInfo::isMaybeConflict() const { return d_maybeConflict.get(); }
 
+void QuantInfo::setFailureConstraint(TNode c)
+{
+  d_failReq = c;
+}
+
+TNode QuantInfo::getFailureConstraint() const
+{
+  return d_failReq.get();
+}
+  
 bool QuantInfo::isTraverseTerm(TNode n) { return !n.isClosure(); }
 
 }  // namespace ieval
