@@ -67,7 +67,13 @@ class QuantInfo
   static bool isTraverseTerm(TNode n);
   /** Debug print */
   std::string toStringDebug() const;
-
+  /**
+   * Set the failure constraint. This is a term in the domain of d_req
+   * that was the reason why this quantified formula is inactive.
+   */
+  void setFailureConstraint(TNode c);
+  /** Get the failure constraint set by the above method */
+  TNode getFailureConstraint() const;
  private:
   /**
    * Process matching requirement for subterm cur which is a disjunct in the

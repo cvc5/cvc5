@@ -93,9 +93,16 @@ bool InstEvaluator::pushInternal(TNode v,
   // We ensure initialized before we push, since it is context independent.
   // This does the initial evaluations of (ground) subterms in quantified
   // formulas.
-  if (!d_state.initialize())
+  if (!d_state.hasInitialized())
   {
-    return false;
+    // Always push an outermost context here. This is because the initialization
+    // of ground terms depends on the (SAT) context.
+    d_context.push();
+    if (!d_state.initialize())
+    {
+      return false;
+    }
+    Assert (d_state.hasInitialized());
   }
   // push the context
   d_context.push();
@@ -122,7 +129,9 @@ void InstEvaluator::pop() { d_context.pop(); }
 
 void InstEvaluator::resetAll()
 {
-  // pop to level zero
+  // pop to level zero.
+  // TODO: we undo the state's initialization here. We could save this
+  // by popping to level 1?
   d_context.popto(0);
 }
 

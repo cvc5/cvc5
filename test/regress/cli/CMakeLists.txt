@@ -1038,6 +1038,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd.ricart-ieval.smt2
+  regress0/quantifiers/dd.javafe-ieval.smt2
   regress0/quantifiers/delta-simp.smt2
   regress0/quantifiers/double-pattern.smt2
   regress0/quantifiers/ex3.smt2
