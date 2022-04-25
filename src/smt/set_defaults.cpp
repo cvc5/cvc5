@@ -236,8 +236,9 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
     {
       // requested bitblast=eager in incremental mode, must be QF_BV only.
-      throw OptionException(std::string(
-          "Eager bit-blasting is only support in incremental mode if the logic is quantifier-free bit-vectors"));
+      throw OptionException(
+          std::string("Eager bit-blasting is only support in incremental mode "
+                      "if the logic is quantifier-free bit-vectors"));
     }
   }
 
@@ -292,7 +293,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     notifyModifyOption("ackermann", "false", "model generation");
     opts.smt.ackermann = false;
     // we are not relying on ackermann to eliminate theories in this case
-    Assert (opts.bv.bitblastMode != options::BitblastMode::EAGER);
+    Assert(opts.bv.bitblastMode != options::BitblastMode::EAGER);
   }
 
   if (opts.smt.ackermann)
