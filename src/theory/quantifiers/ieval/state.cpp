@@ -150,7 +150,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     }
   } while (!visit.empty());
   // increment the count of quantified formulas
-  d_numActiveQuant = d_numActiveQuant+1;
+  d_numActiveQuant = d_numActiveQuant + 1;
 }
 
 bool State::initialize()
