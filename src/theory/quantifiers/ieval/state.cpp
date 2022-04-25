@@ -238,7 +238,8 @@ void State::getFailureExp(Node q, std::unordered_set<Node>& processed) const
       {
         continue;
       }
-      Assert (d_pInfo.find(cur)!=d_pInfo.end()) << "Missing pattern info for " << cur;
+      Assert(d_pInfo.find(cur) != d_pInfo.end())
+          << "Missing pattern info for " << cur;
       const PatTermInfo& pi = getPatTermInfo(cur);
       TNode pcexp = pi.d_evalExpChild.get();
       if (!pcexp.isNull())

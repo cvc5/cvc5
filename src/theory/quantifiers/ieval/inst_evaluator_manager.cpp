@@ -43,9 +43,9 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
     return nullptr;
   }
   std::pair<Node, TermEvaluatorMode> key(q, tev);
-  std::map<std::pair<Node, TermEvaluatorMode>, std::unique_ptr<InstEvaluator> >::iterator it =
-      d_evals.find(key);
-  if (it!=d_evals.end())
+  std::map<std::pair<Node, TermEvaluatorMode>,
+           std::unique_ptr<InstEvaluator> >::iterator it = d_evals.find(key);
+  if (it != d_evals.end())
   {
     return it->second.get();
   }
