@@ -385,10 +385,8 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
             setInactive = true;
             break;
           }
-          else
-          {
-            qi.setNoConflict();
-          }
+          qi.setNoConflict();
+          continue;
         }
         // if a disequality constraint
         bool isEq = true;
