@@ -481,15 +481,6 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
   return RewriteResponse(tresponse.d_status, trn.getNode());
 }
 
-void Rewriter::clearCaches()
-{
-#ifdef CVC5_ASSERTIONS
-  d_rewriteStack.reset(nullptr);
-#endif
-
-  clearCachesInternal();
-}
-
 bool Rewriter::hasRewrittenWithProofs(TNode n) const
 {
   return d_tpgNodes.find(n) != d_tpgNodes.end();
