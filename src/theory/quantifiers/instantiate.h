@@ -162,7 +162,6 @@ class Instantiate : public QuantifiersUtil
                         std::vector<Node>& terms,
                         InferenceId id,
                         Node pfArg = Node::null(),
-                        bool mkRep = false,
                         bool doVts = false);
   /**
    * Same as above, but we also compute a vector failMask indicating which
@@ -192,9 +191,13 @@ class Instantiate : public QuantifiersUtil
                                std::vector<bool>& failMask,
                                InferenceId id,
                                Node pfArg = Node::null(),
-                               bool mkRep = false,
                                bool doVts = false,
                                bool expFull = true);
+  /**
+   * Ensure each term in terms is the chosen representative for its
+   * corresponding variable in q.
+   */
+  void processInstantiationRep(Node q, std::vector<Node>& terms);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms, with virtual
