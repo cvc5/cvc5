@@ -63,7 +63,7 @@ bool RelationalMatchGenerator::reset(Node eqc)
   return true;
 }
 
-int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
+int RelationalMatchGenerator::getNextMatch(InstMatch& m)
 {
   Trace("relational-match-gen") << "getNextMatch, rel match gen" << std::endl;
   // try (up to) two different terms
@@ -104,7 +104,7 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     {
       Trace("relational-match-gen") << "...success" << std::endl;
       int ret = continueNextMatch(
-          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
+          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;

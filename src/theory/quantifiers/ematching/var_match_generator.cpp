@@ -43,7 +43,7 @@ bool VarMatchGeneratorTermSubs::reset(Node eqc)
   return true;
 }
 
-int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
+int VarMatchGeneratorTermSubs::getNextMatch(InstMatch& m)
 {
   size_t index = d_children_types[0];
   int ret_val = -1;
@@ -66,7 +66,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
     else
     {
       ret_val = continueNextMatch(
-          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
+          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
       if (ret_val > 0)
       {
         return ret_val;

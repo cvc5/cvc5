@@ -167,7 +167,7 @@ uint64_t Trigger::addInstantiations()
       }
     }
   }
-  uint64_t addedLemmas = d_mg->addInstantiations(d_quant, d_instMatch);
+  uint64_t addedLemmas = d_mg->addInstantiations(d_instMatch);
   if (TraceIsOn("inst-trigger"))
   {
     if (addedLemmas > 0)

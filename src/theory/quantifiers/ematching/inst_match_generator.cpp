@@ -282,7 +282,7 @@ void InstMatchGenerator::initialize(Node q,
 }
 
 /** get match (not modulo equality) */
-int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
+int InstMatchGenerator::getMatch(Node t, InstMatch& m)
 {
   Trace("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
                     << m << ")" << ", " << d_children.size() << ", pattern is " << d_pattern << std::endl;
@@ -428,7 +428,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     {
       Trace("matching-debug2") << "Continue next " << d_next << std::endl;
       ret_val =
-          continueNextMatch(f, m, InferenceId::QUANTIFIERS_INST_E_MATCHING);
+          continueNextMatch(m, InferenceId::QUANTIFIERS_INST_E_MATCHING);
     }
   }
   if (ret_val < 0)
@@ -441,12 +441,11 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
   return ret_val;
 }
 
-int InstMatchGenerator::continueNextMatch(Node q,
-                                          InstMatch& m,
+int InstMatchGenerator::continueNextMatch(InstMatch& m,
                                           InferenceId id)
 {
   if( d_next!=NULL ){
-    return d_next->getNextMatch(q, m);
+    return d_next->getNextMatch(m);
   }
   if (d_active_add)
   {
@@ -506,7 +505,7 @@ bool InstMatchGenerator::reset(Node eqc)
   return !d_curr_first_candidate.isNull();
 }
 
-int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
+int InstMatchGenerator::getNextMatch(InstMatch& m)
 {
   if( d_needsReset ){
     Trace("matching") << "Reset not done yet, must do the reset..." << std::endl;
@@ -524,7 +523,7 @@ int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
         Assert(t.getType().isComparableTo(d_match_pattern_type));
         Trace("matching-summary") << "Try " << d_match_pattern << " : " << t << std::endl;
-        success = getMatch(f, t, m);
+        success = getMatch(t, m);
         if( d_independent_gen && success<0 ){
           Assert(d_eq_class.isNull() || !d_eq_class_rel.isNull());
           d_curr_exclude_match[t] = true;
@@ -550,11 +549,12 @@ int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
   return success;
 }
 
-uint64_t InstMatchGenerator::addInstantiations(Node q, InstMatch& m)
+uint64_t InstMatchGenerator::addInstantiations(InstMatch& m)
 {
   //try to add instantiation for each match produced
   uint64_t addedLemmas = 0;
-  while (getNextMatch(q, m) > 0)
+  m.resetAll();
+  while (getNextMatch(m) > 0)
   {
     if( !d_active_add ){
       std::vector<Node> mc = m.get();

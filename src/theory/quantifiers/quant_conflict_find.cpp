@@ -627,6 +627,7 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
     // Set the inst match object if this corresponds to an original variable
     if (v < d_q[0].getNumChildren())
     {
+      // we overwrite, so we must reset/set here
       if (!d_instMatch.get(v).isNull())
       {
         d_instMatch.reset(v);
