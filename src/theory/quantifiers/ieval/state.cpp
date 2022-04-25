@@ -166,7 +166,8 @@ bool State::initialize()
   {
     Node bev = d_tec->evaluateBase(*this, b);
     Assert(!bev.isNull());
-    Trace("ieval") << "  " << b << " := " << bev << " (initialize)" << std::endl;
+    Trace("ieval") << "  " << b << " := " << bev << " (initialize)"
+                   << std::endl;
     notifyPatternEqGround(b, bev);
     if (isFinished())
     {
@@ -183,7 +184,7 @@ bool State::assignVar(TNode v,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
-  Assert (d_initialized.get());
+  Assert(d_initialized.get());
   // notify that the variable is equal to the ground term
   Node r = d_tec->evaluateBase(*this, s);
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
@@ -424,7 +425,8 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   if (setInactive)
   {
     setQuantInactive(qi);
-    Trace("ieval") << "  Q" << q.getId() << " inactive due to " << inactiveReason.str() << std::endl;
+    Trace("ieval") << "  Q" << q.getId() << " inactive due to "
+                   << inactiveReason.str() << std::endl;
   }
   else
   {

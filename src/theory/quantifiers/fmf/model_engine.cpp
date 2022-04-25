@@ -335,7 +335,9 @@ void ModelEngine::exhaustiveInstantiate(Node q, int effort)
         d_addedLemmas += addedLemmas;
         d_triedLemmas += triedLemmas;
       }
-    }else{
+    }
+    else
+    {
       Trace("fmf-exh-inst") << "...exhaustive instantiation did set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round

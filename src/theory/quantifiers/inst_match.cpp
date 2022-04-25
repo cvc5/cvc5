@@ -109,7 +109,7 @@ bool InstMatch::empty() const
   return true;
 }
 
-void InstMatch::resetAll() 
+void InstMatch::resetAll()
 {
   for (size_t i = 0, nvals = d_vals.size(); i < nvals; i++)
   {

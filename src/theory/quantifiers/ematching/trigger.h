@@ -25,11 +25,11 @@
 
 namespace cvc5::internal {
 namespace theory {
-  
+
 class Valuation;
 
 namespace quantifiers {
-  
+
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
@@ -215,7 +215,7 @@ class Trigger : protected EnvObj
   * algorithm associated with this trigger.
   */
   IMGenerator* d_mg;
-  /** 
+  /**
    * An instantiation match, for building instantiation terms and doing
    * incremental entailment checking.
    */

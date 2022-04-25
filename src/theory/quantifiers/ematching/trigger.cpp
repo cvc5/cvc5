@@ -50,7 +50,13 @@ Trigger::Trigger(Env& env,
                  TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : EnvObj(env), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q), d_instMatch(env, qs, tr, q)
+    : EnvObj(env),
+      d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
+      d_treg(tr),
+      d_quant(q),
+      d_instMatch(env, qs, tr, q)
 {
   // set evaluator mode to "no entail"
   d_instMatch.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
