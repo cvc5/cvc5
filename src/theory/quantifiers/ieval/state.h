@@ -57,7 +57,7 @@ class State : protected EnvObj
                  TNode s,
                  std::vector<Node>& assignedQuants,
                  bool trackAssignedQuant);
-  
+
   /**
    * Get failure explanation for q.
    */

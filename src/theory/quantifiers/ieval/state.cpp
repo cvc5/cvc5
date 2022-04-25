@@ -339,8 +339,8 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     // quantified formula is already inactive
     return;
   }
-  Assert (!val.isNull());
-  Assert (val.getType().isBoolean());
+  Assert(!val.isNull());
+  Assert(val.getType().isBoolean());
   if (!val.isConst())
   {
     // in the rare case that we are congruent to an (unassigned) Boolean
@@ -388,7 +388,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   }
   else
   {
-    Assert (val.isConst());
+    Assert(val.isConst());
     const std::map<TNode, std::vector<Node>>& cs = qi.getConstraints();
     std::map<TNode, std::vector<Node>>::const_iterator itm = cs.find(p);
     if (itm != cs.end())
