@@ -102,7 +102,7 @@ bool InstEvaluator::pushInternal(TNode v,
     {
       return false;
     }
-    Assert (d_state.hasInitialized());
+    Assert(d_state.hasInitialized());
   }
   // push the context
   d_context.push();

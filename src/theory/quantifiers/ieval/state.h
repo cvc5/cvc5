@@ -45,7 +45,7 @@ class State : protected EnvObj
 
   /** has initialize */
   bool hasInitialized() const;
-  
+
   /** initialize, return false if we are finished */
   bool initialize();
 

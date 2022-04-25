@@ -74,6 +74,7 @@ class QuantInfo
   static bool isTraverseTerm(TNode n);
   /** Debug print */
   std::string toStringDebug() const;
+
  private:
   /**
    * Process matching requirement for subterm cur which is a disjunct in the

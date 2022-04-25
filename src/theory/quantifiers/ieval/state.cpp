@@ -152,14 +152,11 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
   d_numActiveQuant = d_numActiveQuant + 1;
 }
 
-bool State::hasInitialized() const
-{
-  return d_initialized.get();
-}
+bool State::hasInitialized() const { return d_initialized.get(); }
 
 bool State::initialize()
 {
-  Assert (!d_initialized.get());
+  Assert(!d_initialized.get());
   Trace("ieval") << "INITIALIZE" << std::endl;
   // should have set a valid evaluator mode
   Assert(d_tec != nullptr);
