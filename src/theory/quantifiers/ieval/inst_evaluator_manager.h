@@ -39,22 +39,22 @@ namespace ieval {
 class InstEvaluatorManager : public QuantifiersUtil
 {
  public:
-  InstEvaluatorManager(Env& env,
-                QuantifiersState& qs,
-                TermRegistry& tr);
+  InstEvaluatorManager(Env& env, QuantifiersState& qs, TermRegistry& tr);
   /** reset (calculate which terms are active) */
   bool reset(Theory::Effort effort) override;
   /** identify */
   std::string identify() const override;
   /** Get evaluator */
   InstEvaluator* getEvaluator(Node q, TermEvaluatorMode tev);
+
  private:
   /** Quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to term registry */
   TermRegistry& d_treg;
   /** Maps to the evaluators */
-  std::map< std::pair<Node, TermEvaluatorMode>, std::unique_ptr<InstEvaluator> > d_evals;
+  std::map<std::pair<Node, TermEvaluatorMode>, std::unique_ptr<InstEvaluator> >
+      d_evals;
 };
 
 }  // namespace ieval

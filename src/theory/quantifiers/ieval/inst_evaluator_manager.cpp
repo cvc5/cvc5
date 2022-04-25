@@ -21,13 +21,16 @@ namespace quantifiers {
 namespace ieval {
 
 InstEvaluatorManager::InstEvaluatorManager(Env& env,
-              QuantifiersState& qs,
-              TermRegistry& tr) : QuantifiersUtil(env), d_qstate(qs), d_treg(tr) {}
-bool InstEvaluatorManager::reset(Theory::Effort effort)
+                                           QuantifiersState& qs,
+                                           TermRegistry& tr)
+    : QuantifiersUtil(env), d_qstate(qs), d_treg(tr)
 {
-  return true;
 }
-std::string InstEvaluatorManager::identify() const { return "InstEvaluatorManager"; }
+bool InstEvaluatorManager::reset(Theory::Effort effort) { return true; }
+std::string InstEvaluatorManager::identify() const
+{
+  return "InstEvaluatorManager";
+}
 
 InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
 {
