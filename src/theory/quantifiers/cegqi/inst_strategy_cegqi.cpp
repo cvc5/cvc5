@@ -455,7 +455,9 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
         d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
       }
     }
-  }else if( e==1 ){
+  }
+  else if (e == 1)
+  {
     //minimize the free delta heuristically on demand
     if( d_check_vts_lemma_lc ){
       Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
