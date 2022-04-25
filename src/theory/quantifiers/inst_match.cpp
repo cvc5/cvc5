@@ -45,11 +45,11 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
     if (d_ieval == nullptr)
     {
       d_ieval.reset(new ieval::InstEvaluator(d_env, d_qs, d_tr));
+      // set that we are watching quantified formula q
+      d_ieval->watch(d_quant);
     }
     // set the evaluator mode
     d_ieval->setEvaluatorMode(tev);
-    // set that we are watching quantified formula q
-    d_ieval->watch(d_quant);
   }
   else
   {

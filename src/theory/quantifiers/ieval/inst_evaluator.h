@@ -70,13 +70,17 @@ class InstEvaluator : protected EnvObj
   /** Same as above, with possibly preprocessed body. */
   void watch(Node q, Node body);
   /**
+   * Initialize the state, return false if we are infeasible.
+   */
+  bool initialize();
+  /**
    * Set that we are considering instantiations v -> s.
    *
    * Return false if all quantified formulas watched by this class are
    * infeasible.
    *
    * If this returns true, this adds quantified formulas that are fully
-   * instantiated.
+   * instantiated to assignedQuants if trackAssignedQuant is true.
    */
   void push();
   bool push(TNode v, TNode s);
@@ -106,6 +110,11 @@ class InstEvaluator : protected EnvObj
    * Learn failure, called immediately after the state is finished.
    */
   void learnFailure();
+  /** 
+   * Get the current list of assigned terms, based on the ordering in
+   * d_varList.
+   */
+  std::vector<Node> getCurrentTerms() const;
   /** A context object */
   context::Context d_context;
   /** do generalized learning */
@@ -120,11 +129,14 @@ class InstEvaluator : protected EnvObj
   NodeNodeMap d_varMap;
   /** Term canonizer */
   expr::TermCanonize d_tcanon;
+  /** Mapping variables to canonical variables */
+  NodeNodeMap d_varToCanonMap;
   /** The list of quantified formulas we are tracking */
   NodeList d_quantList;
-  /** The variables of the quantified formulas we are tracking */
+  /** The (canonical) variables of the quantified formulas we are tracking */
   NodeList d_varList;
   /** An index trie, if we are using generalized learning */
+  std::unique_ptr<IndexTrie> d_itrie;
 };
 
 }  // namespace ieval

@@ -68,6 +68,7 @@ void State::setEvaluatorMode(TermEvaluatorMode tev)
 
 void State::watch(Node q, const std::vector<Node>& vars, Node body)
 {
+  // Note this method cannot rely on d_tec currently!
   std::map<Node, QuantInfo>::iterator it = d_quantInfo.find(q);
   if (it != d_quantInfo.end())
   {

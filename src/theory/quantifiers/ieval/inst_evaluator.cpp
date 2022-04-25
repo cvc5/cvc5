@@ -35,6 +35,7 @@ InstEvaluator::InstEvaluator(Env& env,
       d_trackAssignedQuant(trackAssignedQuant),
       d_state(env, &d_context, qs, tr),
       d_varMap(&d_context),
+      d_varToCanonMap(&d_context),
       d_quantList(&d_context),
       d_varList(&d_context)
 {
@@ -49,7 +50,6 @@ void InstEvaluator::watch(Node q)
 void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
-  d_quantList.push_back(q);
   // must provide all quantified formulas before initializing the state
   Assert(d_context.getLevel() == 0);
   std::vector<Node> vars;
@@ -63,19 +63,57 @@ void InstEvaluator::watch(Node q, Node body)
       it = visited.find(v);
       vars.push_back(it->second);
       // initially map the variable to its canonical form
-      if (d_varMap.find(v) == d_varMap.end())
+      if (d_varToCanonMap.find(v) == d_varToCanonMap.end())
       {
-        d_varMap[v] = it->second;
+        d_varToCanonMap[v] = it->second;
         // remember the varisable
         d_varList.push_back(v);
+      }
+      else
+      {
+        Assert (false);
       }
     }
   }
   else
   {
+    // if we aren't canonizing, we should never add more than one quantified formula
+    Assert (d_quantList.empty());
+    Assert (d_varList.empty());
+    for (const Node& v : q[0])
+    {
+      d_varList.push_back(v);
+    }
     vars.insert(vars.end(), q[0].begin(), q[0].end());
   }
   d_state.watch(q, vars, body);
+  d_quantList.push_back(q);
+}
+
+bool InstEvaluator::initialize()
+{
+  // We ensure initialized before we push, since it is context independent.
+  // This does the initial evaluations of (ground) subterms in quantified
+  // formulas.
+  if (d_state.hasInitialized())
+  {
+    return !d_state.isFinished();
+  }
+  // Always push an outermost context here. This is because the initialization
+  // of ground terms depends on the (SAT) context.
+  d_context.push();
+  // clear what we have learned
+  if (d_genLearning)
+  {
+    d_itrie.reset(new IndexTrie);
+  }
+  if (!d_state.initialize())
+  {
+    learnFailure();
+    return false;
+  }
+  Assert(d_state.hasInitialized());
+  return true;
 }
 
 void InstEvaluator::push()
@@ -100,30 +138,20 @@ bool InstEvaluator::pushInternal(TNode v,
                                  TNode s,
                                  std::vector<Node>& assignedQuants)
 {
-  // We ensure initialized before we push, since it is context independent.
-  // This does the initial evaluations of (ground) subterms in quantified
-  // formulas.
-  if (!d_state.hasInitialized())
+  // initialize if not done so already
+  if (!initialize())
   {
-    // Always push an outermost context here. This is because the initialization
-    // of ground terms depends on the (SAT) context.
-    d_context.push();
-    if (!d_state.initialize())
-    {
-      learnFailure();
-      return false;
-    }
-    Assert(d_state.hasInitialized());
+    return false;
   }
   // push the context
   d_context.push();
   TNode canonVar = v;
   if (d_canonize)
   {
-    Assert(d_varMap.find(v) != d_varMap.end());
+    Assert(d_varToCanonMap.find(v) != d_varToCanonMap.end());
     // use the canonical variable for the state, which should be stored in the
     // variable map
-    canonVar = d_varMap[v];
+    canonVar = d_varToCanonMap[v];
   }
   // note that the first assigned variable will force an initialization of the
   // state
@@ -150,16 +178,27 @@ void InstEvaluator::resetAll()
 std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
 {
   NodeNodeMap::const_iterator it;
-  std::vector<Node> vars;
+  std::vector<Node> inst;
   for (const Node& v : q[0])
   {
+    Node vc = v;
+    if (d_canonize)
+    {
+      it = d_varToCanonMap.find(v);
+      Assert (it !=d_varToCanonMap.end());
+      vc = it->second;
+    }
     it = d_varMap.find(v);
     if (it != d_varMap.end())
     {
-      vars.push_back(it->second);
+      inst.push_back(it->second);
+    }
+    else
+    {
+      inst.push_back(v);
     }
   }
-  return vars;
+  return inst;
 }
 
 bool InstEvaluator::isFeasible() const { return !d_state.isFinished(); }
@@ -181,12 +220,32 @@ void InstEvaluator::learnFailure()
   {
     d_state.getFailureExp(q, processed);
   }
-  /*
+  std::vector<bool> mask;
+  std::vector<Node> cterms = getCurrentTerms();
   for (const Node& v : d_varList)
   {
-
+    mask.push_back(processed.find(v)!=processed.end());
   }
-  */
+  Assert (d_itrie!=nullptr);
+  d_itrie->add(mask, cterms);
+}
+
+std::vector<Node> InstEvaluator::getCurrentTerms() const
+{
+  std::vector<Node> terms;
+  NodeNodeMap::const_iterator it;
+  for (const Node& v : d_varList)
+  {
+    if (it != d_varMap.end())
+    {
+      terms.push_back(it->second);
+    }
+    else
+    {
+      terms.push_back(v);
+    }
+  }
+  return terms;
 }
 
 }  // namespace ieval
