@@ -226,7 +226,7 @@ bool State::assignVar(TNode v,
 std::vector<Node> State::getFailureExp(Node q) const
 {
   const QuantInfo& qi = getQuantInfo(q);
-  
+
   std::vector<Node> vars;
   return vars;
 }
@@ -399,8 +399,8 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     Assert(val.isConst());
     const std::map<TNode, bool>& cs = qi.getConstraints();
     std::map<TNode, bool>::const_iterator itm = cs.find(p);
-    Assert (itm != cs.end());
-    if (val.getConst<bool>()!=itm->second)
+    Assert(itm != cs.end());
+    if (val.getConst<bool>() != itm->second)
     {
       Trace("ieval-state-debug")
           << "...inactive due to constraint " << p << std::endl;

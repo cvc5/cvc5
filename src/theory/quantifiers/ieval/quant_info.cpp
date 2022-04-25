@@ -115,10 +115,7 @@ void QuantInfo::computeMatchReq(TNode cur, std::vector<TNode>& visit)
   d_req[cur] = !pol;
 }
 
-const std::map<TNode, bool>& QuantInfo::getConstraints() const
-{
-  return d_req;
-}
+const std::map<TNode, bool>& QuantInfo::getConstraints() const { return d_req; }
 
 size_t QuantInfo::getNumUnassignedVars() const
 {
