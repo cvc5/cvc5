@@ -1,5 +1,6 @@
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
+; DISABLE-TESTER: lfsc
 (set-logic HO_ALL)
 (set-option :miniscope-quant agg)
 (set-option :conjecture-gen true)

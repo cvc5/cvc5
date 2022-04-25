@@ -1,5 +1,6 @@
+; DISABLE-TESTER: proof
 ; REQUIRES: poly
-; COMMAND-LINE: --nl-ext-tplanes --no-check-proofs
+; COMMAND-LINE: --nl-ext-tplanes
 ; EXPECT: unsat
 (set-logic QF_NRA)
 (set-info :status unsat)

@@ -61,7 +61,6 @@ const char* toString(SkolemFunId id)
       return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";

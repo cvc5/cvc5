@@ -18,9 +18,9 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
@@ -1010,7 +1010,9 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
   {
     // create delta here if necessary
     vval = nm->mkNode(
-        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
+        ADD,
+        vval,
+        nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
   }
   vval = rewrite(vval);
   return vval;

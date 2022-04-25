@@ -121,6 +121,9 @@ class LfscNodeConverter : public NodeConverter
   const std::unordered_set<TypeNode>& getDeclaredTypes() const;
 
  private:
+  /** get name for a Node/TypeNode whose id is id and whose name is name */
+  std::string getNameForUserNameOfInternal(uint64_t id,
+                                           const std::string& name);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
@@ -169,9 +172,10 @@ class LfscNodeConverter : public NodeConverter
   std::unordered_set<Node> d_symbols;
   /**
    * Mapping from user symbols to the (list of) symbols with that name. This
-   * is used to resolve symbol overloading, which is forbidden in LFSC.
+   * is used to resolve symbol overloading, which is forbidden in LFSC. We use
+   * Node identifiers, since this map is used for both Node and TypeNode.
    */
-  std::map<std::string, std::vector<Node> > d_userSymbolList;
+  std::map<std::string, std::vector<uint64_t> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */

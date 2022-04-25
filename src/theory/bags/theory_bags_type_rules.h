@@ -152,9 +152,18 @@ struct BagFilterTypeRule
 
 /**
  * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
- * (-> T1 T2 T2), t of type T2, and B is a bag of type (Bag T1)
+ * (-> T1 T2 T2), t of type T2, and A is a bag of type (Bag T1)
  */
 struct BagFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (bag.partition r A) to make sure r is a binary operation of type
+ * (-> T1 T1 Bool), and A is a bag of type (Bag T1)
+ */
+struct BagPartitionTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagFoldTypeRule */
@@ -164,6 +173,17 @@ struct BagFoldTypeRule
  * and get the type of the cross product
  */
 struct TableProductTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Table project is indexed by a list of indices (n_1, ..., n_m). It ensures
+ * that the argument is a bag of tuples whose arity k is greater than each n_i
+ * for i = 1, ..., m. If the argument is of type (Bag (Tuple T_1 ... T_k)), then
+ * the returned type is (Bag (Tuple T_{n_1} ... T_{n_m})).
+ */
+struct TableProjectTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagFoldTypeRule */

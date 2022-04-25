@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -171,6 +172,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           return false;
         }
         Node cop = d_tproc.getOperatorOfClosure(res[0]);
+        Node pcop = d_tproc.getOperatorOfClosure(res[0], false, true);
         Trace("lfsc-pp-qcong") << "Operator for closure " << cop << std::endl;
         // start with base case body = body'
         Node curL = children[1][0];
@@ -179,10 +181,13 @@ bool LfscProofPostprocessCallback::update(Node res,
         Trace("lfsc-pp-qcong") << "Base congruence " << currEq << std::endl;
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
+          size_t ii = (nvars - 1) - i;
           Trace("lfsc-pp-qcong") << "Process child " << i << std::endl;
           // CONG rules for each variable
-          Node v = res[0][0][nvars - 1 - i];
-          Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
+          Node v = res[0][0][ii];
+          // Use partial version for each argument except the last one. This
+          // avoids type errors in internal representation of LFSC terms.
+          Node vop = d_tproc.getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
           Node vopEq = vop.eqNode(vop);
           cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
           Node nextEq;
@@ -357,6 +362,38 @@ bool LfscProofPostprocessCallback::update(Node res,
           addLfscRule(cdp, cur, newChildren, LfscRule::ARITH_SUM_UB, {});
         }
       }
+    }
+    break;
+    case PfRule::CONCAT_CONFLICT:
+    {
+      Assert(children.size() == 1);
+      Assert(children[0].getKind() == EQUAL);
+      if (children[0][0].getType().isString())
+      {
+        // no need to change
+        return false;
+      }
+      bool isRev = args[0].getConst<bool>();
+      std::vector<Node> tvec;
+      std::vector<Node> svec;
+      theory::strings::utils::getConcat(children[0][0], tvec);
+      theory::strings::utils::getConcat(children[0][1], svec);
+      Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+      Node s0 = svec[isRev ? svec.size() - 1 : 0];
+      Assert(t0.isConst() && s0.isConst());
+      // We introduce an explicit disequality for the constants:
+      // ------------------- EVALUATE
+      // (= (= c1 c2) false)
+      // ------------------- FALSE_ELIM
+      // (not (= c1 c2))
+      Node falsen = nm->mkConst(false);
+      Node eq = t0.eqNode(s0);
+      Node eqEqFalse = eq.eqNode(falsen);
+      cdp->addStep(eqEqFalse, PfRule::EVALUATE, {}, {eq});
+      Node deq = eq.notNode();
+      cdp->addStep(deq, PfRule::FALSE_ELIM, {eqEqFalse}, {});
+      addLfscRule(
+          cdp, falsen, {children[0], deq}, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
     default: return false; break;

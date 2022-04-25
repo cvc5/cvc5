@@ -24,6 +24,7 @@
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -562,14 +563,7 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     }
   }
   TypeNode tupleType = n[0].getType(check);
-  std::vector<TypeNode> types;
-  DType dType = tupleType.getDType();
-  DTypeConstructor constructor = dType[0];
-  for (uint32_t index : indices)
-  {
-    types.push_back(constructor.getArgType(index));
-  }
-  return nm->mkTupleType(types);
+  return TupleUtils::getTupleProjectionType(indices, tupleType);
 }
 
 TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,

@@ -42,6 +42,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt_util/boolean_simplification.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
@@ -792,6 +793,21 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  case kind::TABLE_PROJECT:
+  {
+    TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.project A)
+      out << "table.project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.project 2 4 4) A)
+      out << "(_ table.project" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];
@@ -1168,7 +1184,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_MAP: return "bag.map";
   case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
+  case kind::BAG_PARTITION: return "bag.partition";
   case kind::TABLE_PRODUCT: return "table.product";
+  case kind::TABLE_PROJECT: return "table.project";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1489,14 +1507,14 @@ void Smt2Printer::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "(assert " << n << ')' << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPush(std::ostream& out) const
+void Smt2Printer::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "(push 1)" << std::endl;
+  out << "(push " << nscopes << ")" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPop(std::ostream& out) const
+void Smt2Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 {
-  out << "(pop 1)" << std::endl;
+  out << "(pop " << nscopes << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
@@ -1561,6 +1579,15 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamDeclareType(out, type);
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
+                                              Node fun,
+                                              const std::string& binName) const
+{
+  out << "(declare-oracle-fun " << fun << " ";
+  toStreamDeclareType(out, fun.getType());
+  out << " " << binName << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclarePool(

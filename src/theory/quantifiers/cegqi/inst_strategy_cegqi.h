@@ -23,7 +23,6 @@
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
-#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_stats.h"
@@ -156,8 +155,6 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
-  /** virtual term substitution term cache for arithmetic instantiation */
-  std::unique_ptr<VtsTermCache> d_vtsCache;
   /** inversion utility for BV instantiation */
   std::unique_ptr<BvInverter> d_bv_invert;
   /**
@@ -182,6 +179,8 @@ class InstStrategyCegqi : public QuantifiersModule
   const Node d_small_const_multiplier;
   /** a small constant, used as a coefficient above */
   Node d_small_const;
+  /** whether we have initialized the lower bound on the free delta */
+  context::CDO<bool> d_freeDeltaLb;
   //---------------------- end for vts delta minimization
   /** register ce lemma */
   bool registerCbqiLemma( Node q );

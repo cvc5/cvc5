@@ -284,22 +284,34 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
     return true;
   }
-  if(getKind() == kind::TYPE_CONSTANT) {
-    switch(getConst<TypeConstant>()) {
-    case INTEGER_TYPE:
-      return t.getKind() == kind::TYPE_CONSTANT && t.getConst<TypeConstant>() == REAL_TYPE;
-    default:
-      return false;
-    }
+  if (isInteger())
+  {
+    return t.isReal();
   }
   if (isFunction() && t.isFunction())
   {
-    if (!isComparableTo(t))
+    if (!getRangeType().isSubtypeOf(t.getRangeType()))
     {
-      // incomparable, not subtype
+      // range is not subtype, return false
       return false;
     }
-    return getRangeType().isSubtypeOf(t.getRangeType());
+    // must have equal arguments
+    std::vector<TypeNode> t0a = getArgTypes();
+    std::vector<TypeNode> t1a = t.getArgTypes();
+    if (t0a.size() != t1a.size())
+    {
+      // different arities
+      return false;
+    }
+    for (size_t i = 0, nargs = t0a.size(); i < nargs; i++)
+    {
+      if (t0a[i] != t1a[i])
+      {
+        // an argument is different
+        return false;
+      }
+    }
+    return true;
   }
   // this should only return true for types T1, T2 where we handle equalities between T1 and T2
   // (more cases go here, if we want to support such cases)
@@ -307,18 +319,11 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
 }
 
 bool TypeNode::isComparableTo(TypeNode t) const {
-  if(*this == t) {
+  if (*this == t)
+  {
     return true;
   }
-  if(isSubtypeOf(NodeManager::currentNM()->realType())) {
-    return t.isSubtypeOf(NodeManager::currentNM()->realType());
-  }
-  if (isFunction() && t.isFunction())
-  {
-    // comparable if they have a common type node
-    return !leastCommonTypeNode(*this, t).isNull();
-  }
-  return false;
+  return isSubtypeOf(t) || t.isSubtypeOf(*this);
 }
 
 TypeNode TypeNode::getDatatypeTesterDomainType() const
@@ -491,103 +496,19 @@ bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
 }
 
 TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
-  return commonTypeNode( t0, t1, true );
-}
-
-TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
-  return commonTypeNode( t0, t1, false );
-}
-
-TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert(!t0.isNull());
-  Assert(!t1.isNull());
-
-  if(__builtin_expect( (t0 == t1), true )) {
+  if (t0 == t1)
+  {
     return t0;
   }
-
-  // t0 != t1 &&
-  if(t0.getKind() == kind::TYPE_CONSTANT) {
-    switch(t0.getConst<TypeConstant>()) {
-    case INTEGER_TYPE:
-      if(t1.isInteger()) {
-        // t0 == IntegerType && t1.isInteger()
-        return t0; //IntegerType
-      } else if(t1.isReal()) {
-        // t0 == IntegerType && t1.isReal() && !t1.isInteger()
-        return isLeast ? t1 : t0; // RealType
-      } else {
-        return TypeNode(); // null type
-      }
-    case REAL_TYPE:
-      if(t1.isReal()) {
-        return isLeast ? t0 : t1; // RealType
-      } else {
-        return TypeNode(); // null type
-      }
-    default:
-      return TypeNode(); // null type
-    }
-  } else if(t1.getKind() == kind::TYPE_CONSTANT) {
-    return commonTypeNode(t1, t0, isLeast); // decrease the number of special cases
+  if (t0.isSubtypeOf(t1))
+  {
+    return t1;
   }
-
-  // t0 != t1 &&
-  // t0.getKind() == kind::TYPE_CONSTANT &&
-  // t1.getKind() == kind::TYPE_CONSTANT
-  switch(t0.getKind()) {
-    case kind::FUNCTION_TYPE:
-    {
-      if (t1.getKind() != kind::FUNCTION_TYPE)
-      {
-        return TypeNode();
-      }
-      // must have equal arguments
-      std::vector<TypeNode> t0a = t0.getArgTypes();
-      std::vector<TypeNode> t1a = t1.getArgTypes();
-      if (t0a.size() != t1a.size())
-      {
-        // different arities
-        return TypeNode();
-      }
-      for (unsigned i = 0, nargs = t0a.size(); i < nargs; i++)
-      {
-        if (t0a[i] != t1a[i])
-        {
-          // an argument is different
-          return TypeNode();
-        }
-      }
-      TypeNode t0r = t0.getRangeType();
-      TypeNode t1r = t1.getRangeType();
-      TypeNode tr = commonTypeNode(t0r, t1r, isLeast);
-      std::vector<TypeNode> ftypes;
-      ftypes.insert(ftypes.end(), t0a.begin(), t0a.end());
-      ftypes.push_back(tr);
-      return NodeManager::currentNM()->mkFunctionType(ftypes);
-    }
-    break;
-    case kind::BITVECTOR_TYPE:
-    case kind::FLOATINGPOINT_TYPE:
-    case kind::INSTANTIATED_SORT_TYPE:
-    case kind::SORT_TYPE:
-    case kind::CONSTRUCTOR_TYPE:
-    case kind::SELECTOR_TYPE:
-    case kind::TESTER_TYPE:
-    case kind::ARRAY_TYPE:
-    case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE:
-    case kind::SEQUENCE_TYPE:
-    case kind::SET_TYPE:
-    case kind::BAG_TYPE:
-    {
-      // we don't support subtyping except for built in types Int and Real.
-      return TypeNode();  // return null type
-    }
-    default:
-      Unimplemented() << "don't have a commonType for types `" << t0
-                      << "' and `" << t1 << "'";
+  else if (t1.isSubtypeOf(t0))
+  {
+    return t0;
   }
+  return TypeNode();
 }
 
 /** Is this a sort kind */

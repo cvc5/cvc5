@@ -3674,6 +3674,33 @@ enum Kind : int32_t
    */
   BAG_FOLD,
   /**
+   * Bag partition.
+   *
+   * \rst
+   * This operator partitions of a bag of elements into disjoint bags.
+   * (bag.partition :math:`r \; B`) partitions the elements of bag :math:`B`
+   * of type :math:`(Bag \; E)` based on the equivalence relations :math:`r` of
+   * type :math:`(\rightarrow \; E \; E \; Bool)`.
+   * It returns a bag of bags of type :math:`(Bag \; (Bag \; E))`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow \; E \; E \; Bool)`
+   *   - ``2:`` Term of bag Sort (Bag :math:`E`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  BAG_PARTITION,
+  /**
    * Table cross product.
    *
    * - Arity: ``2``
@@ -3695,7 +3722,22 @@ enum Kind : int32_t
    * \endrst
    */
   TABLE_PRODUCT,
-
+  /**
+   * Table projection operator extends tuple projection operator to tables.
+   *
+   * - Arity: ``1``
+   *   - ``1:`` Term of tuple Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:`` The table indices to project
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  TABLE_PROJECT,
   /* Strings --------------------------------------------------------------- */
 
   /**
