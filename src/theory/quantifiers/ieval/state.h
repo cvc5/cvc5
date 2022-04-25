@@ -43,6 +43,9 @@ class State : protected EnvObj
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermRegistry& tr);
 
+  /** initialize, return false if we are finished */
+  bool initialize();
+
   /** Set evaluator mode */
   void setEvaluatorMode(TermEvaluatorMode tev);
 
@@ -98,8 +101,6 @@ class State : protected EnvObj
   PatTermInfo& getOrMkPatTermInfo(TNode p);
   PatTermInfo& getPatTermInfo(TNode p);
   //---------------queries
-  /** initialize, return false if we are finished */
-  bool initialize();
   /**
    * Called when it is determined what pattern p is equal to.
    *

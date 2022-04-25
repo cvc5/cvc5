@@ -52,7 +52,7 @@ class InstMatchGeneratorSimple : public IMGenerator
   /** Reset instantiation round. */
   void resetInstantiationRound() override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q) override;
+  uint64_t addInstantiations(Node q, InstMatch& m) override;
   /** Get active score. */
   int getActiveScore() override;
 
@@ -83,10 +83,6 @@ class InstMatchGeneratorSimple : public IMGenerator
    * child is not a variable.
    */
   std::map<size_t, int> d_var_num;
-  /**
-   * Add instantiations
-   */
-  void addInstantiations(uint64_t& addedLemmas, TNodeTrie* tat);
   /** add instantiations, helper function.
    *
    * @param m the current match we are building,

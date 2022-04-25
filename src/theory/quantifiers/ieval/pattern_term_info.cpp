@@ -55,6 +55,7 @@ bool PatTermInfo::notifyChild(State& s,
   d_eq = tec->partialEvaluateChild(s, d_pattern, child, val);
   if (!d_eq.get().isNull())
   {
+    Trace("ieval") << "  " << d_pattern << " := " << d_eq.get() << " (partial evaluate)" << std::endl;
     return true;
   }
 
@@ -80,6 +81,7 @@ bool PatTermInfo::notifyChild(State& s,
   // call the evaluator
   d_eq = tec->evaluate(s, d_pattern, childValues);
   Assert(!d_eq.get().isNull());
+  Trace("ieval") << "  " << d_pattern << " := " << d_eq.get() << " (evaluate)" << std::endl;
   return true;
 }
 

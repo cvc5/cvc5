@@ -115,7 +115,7 @@ class InstMatchGenerator : public IMGenerator {
   /** Get the next match. */
   int getNextMatch(Node q, InstMatch& m) override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q) override;
+  uint64_t addInstantiations(Node q, InstMatch& m) override;
 
   /** set active add flag (true by default)
    *

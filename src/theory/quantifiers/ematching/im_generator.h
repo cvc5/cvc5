@@ -92,7 +92,7 @@ class IMGenerator : protected EnvObj
    * It returns the number of instantiations added using calls to
    * Instantiate::addInstantiation(...).
    */
-  virtual uint64_t addInstantiations(Node q) { return 0; }
+  virtual uint64_t addInstantiations(Node q, InstMatch& m) { return 0; }
   /** get active score
    *
    * A heuristic value indicating how active this generator is.

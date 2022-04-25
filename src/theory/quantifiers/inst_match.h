@@ -53,8 +53,12 @@ class InstMatch : protected EnvObj
   bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */
   bool empty() const;
-  /** clear the instantiation, i.e. set all fields to the null node */
-  void clear();
+  /** 
+   * Clear the instantiation, i.e. set all fields to the null node.
+   * Note that this does not clear information regarding the instantiation
+   * evaluator, e.g. its evaluation mode and watched information.
+   */
+  void resetAll();
   /** debug print method */
   void debugPrint(const char* c);
   /** to stream */

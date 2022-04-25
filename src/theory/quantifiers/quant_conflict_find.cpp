@@ -289,7 +289,7 @@ bool QuantInfo::reset_round()
     d_match[i] = TNode::null();
     d_match_term[i] = TNode::null();
   }
-  d_instMatch.clear();
+  d_instMatch.resetAll();
   ieval::TermEvaluatorMode tev = d_parent->atConflictEffort()
                                      ? ieval::TermEvaluatorMode::CONFLICT
                                      : ieval::TermEvaluatorMode::PROP;

@@ -85,6 +85,13 @@ bool InstEvaluator::pushInternal(TNode v,
                                  TNode s,
                                  std::vector<Node>& assignedQuants)
 {
+  // We ensure initialized before we push, since it is context independent.
+  // This does the initial evaluations of (ground) subterms in quantified
+  // formulas.
+  if (!d_state.initialize())
+  {
+    return false;
+  }
   d_context.push();
   TNode canonVar = v;
   if (d_doCanonize)
@@ -105,7 +112,7 @@ bool InstEvaluator::pushInternal(TNode v,
 
 void InstEvaluator::pop() { d_context.pop(); }
 
-void InstEvaluator::clear()
+void InstEvaluator::resetAll()
 {
   // pop to level zero
   d_context.popto(0);

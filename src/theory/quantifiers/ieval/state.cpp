@@ -123,6 +123,11 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
+          // skip constants
+          if (cc.isConst())
+          {
+            continue;
+          }
           // require notifications to parent
           PatTermInfo& pic = getOrMkPatTermInfo(cc);
           pic.d_parentNotify.push_back(cur);
@@ -148,7 +153,12 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
 
 bool State::initialize()
 {
-  Assert(!d_initialized.get());
+  if (d_initialized.get())
+  {
+    // already intialized
+    return !isFinished();
+  }
+  Trace("ieval") << "INITIALIZE" << std::endl;
   // should have set a valid evaluator mode
   Assert(d_tec != nullptr);
   d_initialized = true;
@@ -156,6 +166,7 @@ bool State::initialize()
   {
     Node bev = d_tec->evaluateBase(*this, b);
     Assert(!bev.isNull());
+    Trace("ieval") << "  " << b << " := " << bev << " (initialize)" << std::endl;
     notifyPatternEqGround(b, bev);
     if (isFinished())
     {
@@ -172,17 +183,10 @@ bool State::assignVar(TNode v,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
-  if (!d_initialized.get())
-  {
-    // initialize if not done so already, which does the initial evaluations
-    // of (ground) subterms in quantified formulas.
-    if (!initialize())
-    {
-      return false;
-    }
-  }
+  Assert (d_initialized.get());
   // notify that the variable is equal to the ground term
   Node r = d_tec->evaluateBase(*this, s);
+  Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -333,6 +337,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   Assert(d_numActiveQuant.get() > 0);
   // check whether we should set inactive
   bool setInactive = false;
+  std::stringstream inactiveReason;
   if (isNone(val))
   {
     // a top-level constraint is "none", i.e. this instantiation will generate
@@ -342,6 +347,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     {
       // if we are looking for conflicts and propagations only, we are now
       // inactive
+      inactiveReason << "none, req conflict/prop";
       setInactive = true;
       Trace("ieval-state-debug") << "...inactive due to none" << std::endl;
     }
@@ -374,14 +380,14 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
           if (d_tevMode == TermEvaluatorMode::CONFLICT)
           {
             // if we require conflicts, we are inactive now
+            inactiveReason << "some, req conflict";
             setInactive = true;
+            break;
           }
           else
           {
             qi.setNoConflict();
           }
-          Trace("ieval-state-debug") << "...no conflict" << std::endl;
-          break;
         }
         // if a disequality constraint
         bool isEq = true;
@@ -399,6 +405,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
           Trace("ieval-state-debug")
               << "...inactive due to constraint " << c << std::endl;
           setInactive = true;
+          inactiveReason << "constraint-true";
           break;
         }
         else
@@ -417,6 +424,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   if (setInactive)
   {
     setQuantInactive(qi);
+    Trace("ieval") << "  Q" << q.getId() << " inactive due to " << inactiveReason.str() << std::endl;
   }
   else
   {
@@ -456,6 +464,10 @@ bool State::isQuantActive(TNode q) const
 
 TNode State::getValue(TNode p) const
 {
+  if (p.isConst())
+  {
+    return p;
+  }
   std::map<Node, PatTermInfo>::const_iterator it = d_pInfo.find(p);
   if (it != d_pInfo.end())
   {

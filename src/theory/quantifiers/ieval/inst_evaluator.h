@@ -80,7 +80,7 @@ class InstEvaluator : protected EnvObj
   /** pop the last (successful) push */
   void pop();
   /** full reset */
-  void clear();
+  void resetAll();
   /**
    * Get instantiation for quantified formula q.
    */

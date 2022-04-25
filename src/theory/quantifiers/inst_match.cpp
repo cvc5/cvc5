@@ -109,7 +109,8 @@ bool InstMatch::empty() const
   return true;
 }
 
-void InstMatch::clear() {
+void InstMatch::resetAll() 
+{
   for (size_t i = 0, nvals = d_vals.size(); i < nvals; i++)
   {
     d_vals[i] = Node::null();
@@ -117,7 +118,7 @@ void InstMatch::clear() {
   // clear information from the evaluator
   if (d_ieval != nullptr)
   {
-    d_ieval->clear();
+    d_ieval->resetAll();
   }
 }
 

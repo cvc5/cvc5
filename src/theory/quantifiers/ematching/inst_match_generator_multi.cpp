@@ -153,7 +153,7 @@ bool InstMatchGeneratorMulti::reset(Node eqc)
   return true;
 }
 
-uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
+uint64_t InstMatchGeneratorMulti::addInstantiations(Node q, InstMatch& m)
 {
   uint64_t addedLemmas = 0;
   Trace("multi-trigger-cache") << "Process smart multi trigger" << std::endl;
@@ -161,8 +161,6 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
   {
     Trace("multi-trigger-cache") << "Calculate matches " << i << std::endl;
     std::vector<InstMatch> newMatches;
-    InstMatch m(d_env, d_qstate, d_treg, q);
-    m.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
     while (d_children[i]->getNextMatch(q, m) > 0)
     {
       Trace("multi-trigger-cache2")
@@ -172,7 +170,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
       {
         return addedLemmas;
       }
-      m.clear();
+      m.resetAll();
     }
   }
   return addedLemmas;

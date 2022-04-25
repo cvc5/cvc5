@@ -72,7 +72,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
 }
 
 void InstMatchGeneratorSimple::resetInstantiationRound() {}
-uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
+uint64_t InstMatchGeneratorSimple::addInstantiations(Node q, InstMatch& m)
 {
   Assert(d_quant == q);
   uint64_t addedLemmas = 0;
@@ -99,7 +99,8 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
         {
           if (t.first != r)
           {
-            addInstantiations(addedLemmas, &(t.second));
+            m.resetAll();
+            addInstantiations(m, addedLemmas, 0, &(t.second));
             if (d_qstate.isInConflict())
             {
               break;
@@ -115,17 +116,10 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
       << d_eqc << std::endl;
   if (tat && !d_qstate.isInConflict())
   {
-    addInstantiations(addedLemmas, tat);
+    m.resetAll();
+    addInstantiations(m, addedLemmas, 0, tat);
   }
   return addedLemmas;
-}
-
-void InstMatchGeneratorSimple::addInstantiations(uint64_t& addedLemmas,
-                                                 TNodeTrie* tat)
-{
-  InstMatch m(d_env, d_qstate, d_treg, d_quant);
-  m.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
-  addInstantiations(m, addedLemmas, 0, tat);
 }
 
 void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
