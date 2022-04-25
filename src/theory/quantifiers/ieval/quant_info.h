@@ -89,10 +89,10 @@ class QuantInfo
   /** Canonical form of body */
   Node d_body;
   /**
-   * The match terms maped to their requirements. A requirement for p can be:
-   * (1) Node::null(), saying that the term must be equal to any ground term
-   * (2) (not (= p g)), saying that pattern must be disequal from g
-   * (3) g, saying that the pattern must be equal to g
+   * The match terms maped to their requirements. A requirement for p is a
+   * Boolean, indicating what value the term must be for the body of the
+   * quantified formula to be a conflict. Having the opposite value of
+   * the requirement implies the instance is entailed.
    */
   std::map<TNode, bool> d_req;
   /** The domain of d_req */
