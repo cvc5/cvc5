@@ -149,6 +149,8 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       }
     }
   } while (!visit.empty());
+  // increment the count of quantified formulas
+  d_numActiveQuant = d_numActiveQuant+1;
 }
 
 bool State::initialize()
@@ -176,8 +178,6 @@ bool State::initialize()
   }
   return true;
 }
-
-bool State::hasInitialized() const { return d_initialized.get(); }
 
 bool State::assignVar(TNode v,
                       TNode s,
@@ -425,7 +425,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   if (setInactive)
   {
     setQuantInactive(qi);
-    Trace("ieval") << "  Q" << q.getId() << " inactive due to "
+    Trace("ieval") << "  -> " << q << " inactive due to "
                    << inactiveReason.str() << std::endl;
   }
   else

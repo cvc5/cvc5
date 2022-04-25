@@ -28,13 +28,10 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-/**
- * Information for a free variable.
- */
+/** Information for a free variable. */
 class FreeVarInfo
 {
   using NodeList = context::CDList<Node>;
-
  public:
   FreeVarInfo(context::Context* c);
   /** List of quantifiers that contain this variable */

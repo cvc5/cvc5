@@ -658,7 +658,10 @@ void QuantInfo::unsetMatch(size_t v)
     // Reset the inst match object if this corresponds to an original variable
     if (v < d_q[0].getNumChildren())
     {
-      d_instMatch.reset(v);
+      if (!d_instMatch.get(v).isNull())
+      {
+        d_instMatch.reset(v);
+      }
     }
   }
   d_match[v] = TNode::null();

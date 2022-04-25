@@ -74,7 +74,6 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
 void InstMatchGeneratorSimple::resetInstantiationRound() {}
 uint64_t InstMatchGeneratorSimple::addInstantiations(InstMatch& m)
 {
-  Assert(d_quant == q);
   uint64_t addedLemmas = 0;
   TNodeTrie* tat;
   TermDb* tdb = d_treg.getTermDatabase();

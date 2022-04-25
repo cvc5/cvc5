@@ -46,7 +46,7 @@ void InstEvaluator::watch(Node q, Node body)
 {
   Assert(q.getKind() == kind::FORALL);
   // must provide all quantified formulas before initializing the state
-  Assert(!d_state.hasInitialized());
+  Assert(d_context.getLevel()==0);
   std::vector<Node> vars;
   if (d_doCanonize)
   {
@@ -57,6 +57,7 @@ void InstEvaluator::watch(Node q, Node body)
     {
       it = visited.find(v);
       vars.push_back(it->second);
+      // initially map the variable to its canonical form
       d_varMap[v] = it->second;
     }
   }
@@ -67,7 +68,10 @@ void InstEvaluator::watch(Node q, Node body)
   d_state.watch(q, vars, body);
 }
 
-void InstEvaluator::push() { d_context.push(); }
+void InstEvaluator::push() {
+  // TODO: interface may be useful for popping quantified formulas?
+  d_context.push();
+}
 
 bool InstEvaluator::push(TNode v, TNode s)
 {
@@ -92,13 +96,15 @@ bool InstEvaluator::pushInternal(TNode v,
   {
     return false;
   }
+  // push the context
   d_context.push();
   TNode canonVar = v;
   if (d_doCanonize)
   {
+    Assert (d_varMap.find(v)!=d_varMap.end());
+    // use the canonical variable for the state, which should be stored in the variable map
     canonVar = d_varMap[v];
   }
-  d_varMap[v] = s;
   // note that the first assigned variable will force an initialization of the
   // state
   if (!d_state.assignVar(canonVar, s, assignedQuants, d_trackAssignedQuant))
@@ -106,7 +112,7 @@ bool InstEvaluator::pushInternal(TNode v,
     d_context.pop();
     return false;
   }
-  Assert(d_state.hasInitialized());
+  d_varMap[v] = s;
   return true;
 }
 
@@ -137,7 +143,7 @@ bool InstEvaluator::isFeasible() const { return !d_state.isFinished(); }
 
 void InstEvaluator::setEvaluatorMode(TermEvaluatorMode tev)
 {
-  Assert(!d_state.hasInitialized());
+  Assert(d_context.getLevel()==0);
   d_state.setEvaluatorMode(tev);
 }
 

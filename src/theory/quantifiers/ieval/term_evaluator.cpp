@@ -132,7 +132,7 @@ Node TermEvaluatorEntailed::evaluate(const State& s,
     Node eval = d_tdb->getCongruentTerm(mop, childValues);
     if (!eval.isNull())
     {
-      ret = eval;
+      ret = d_qs.getRepresentative(eval);
     }
     return ret;
   }
@@ -210,7 +210,6 @@ Node TermEvaluatorEntailed::evaluate(const State& s,
   {
     TNode cval1 = childValues[0];
     Assert(!cval1.isNull());
-    Assert(cval1.isConst() || s.isNone(cval1) || s.isSome(cval1));
     if (cval1.isConst())
     {
       // if condition evaluates, get value of branch

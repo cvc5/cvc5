@@ -52,9 +52,6 @@ class State : protected EnvObj
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
-  /** has initialized */
-  bool hasInitialized() const;
-
   /** Assign variable, return false if we are finished */
   bool assignVar(TNode v,
                  TNode s,
