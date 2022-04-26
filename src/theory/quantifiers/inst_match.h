@@ -95,7 +95,7 @@ class InstMatch : protected EnvObj
   /** The quantified formula */
   Node d_quant;
   /** The instantiation evaluator */
-  std::unique_ptr<ieval::InstEvaluator> d_ieval;
+  ieval::InstEvaluator* d_ieval;
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {

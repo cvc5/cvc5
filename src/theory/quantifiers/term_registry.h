@@ -97,6 +97,8 @@ class TermRegistry : protected EnvObj
   TermPools* getTermPools() const;
   /** get the virtual term substitution term cache utility */
   VtsTermCache* getVtsTermCache() const;
+  /** get the instantiation evaluator manager */
+  ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
   /** get the model utility */
   FirstOrderModel* getModel() const;
 

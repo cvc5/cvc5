@@ -36,6 +36,11 @@ std::string InstEvaluatorManager::identify() const
 
 InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
 {
+  if (tev == ieval::TermEvaluatorMode::NONE)
+  {
+    // no evaluation specified
+    return nullptr;
+  }
   options::IevalMode mode = options().quantifiers.ievalMode;
   if (options().quantifiers.ievalMode == options::IevalMode::OFF)
   {
@@ -47,9 +52,11 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
            std::unique_ptr<InstEvaluator> >::iterator it = d_evals.find(key);
   if (it != d_evals.end())
   {
+    // already constructed
     return it->second.get();
   }
-  // don't use canonization or trackAssignments
+  // don't use canonization or trackAssignments, use generalized learning if
+  // option specifies it
   bool genLearning = mode == options::IevalMode::USE_LEARN;
   d_evals[key].reset(new InstEvaluator(d_env, d_qstate, d_tdb, genLearning));
   InstEvaluator* ret = d_evals[key].get();

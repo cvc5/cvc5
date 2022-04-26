@@ -18,13 +18,14 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
-    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q)
+    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q), d_ieval(nullptr)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
@@ -36,31 +37,11 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
 {
   // should only do this if we are empty
   Assert(empty());
-  options::IevalMode mode = options().quantifiers.ievalMode;
-  if (options().quantifiers.ievalMode == options::IevalMode::OFF)
+  // get the instantiation evaluator and reset it
+  d_ieval = d_tr.getInstEvaluatorManager()->getEvaluator(d_quant, tev);
+  if (d_ieval!=nullptr)
   {
-    // not using instantiation evaluation, don't initialize
-    return;
-  }
-  // initialize the evaluator?
-  if (tev != ieval::TermEvaluatorMode::NONE)
-  {
-    // make the instantiation evaluator
-    if (d_ieval == nullptr)
-    {
-      // TODO: get the standard evaluator from the term registry
-      bool genLearning = mode == options::IevalMode::USE_LEARN;
-      d_ieval.reset(new ieval::InstEvaluator(
-          d_env, d_qs, *d_tr.getTermDatabase(), genLearning));
-      // set that we are watching quantified formula q
-      d_ieval->watch(d_quant);
-    }
-    // set the evaluator mode
-    d_ieval->setEvaluatorMode(tev);
-  }
-  else
-  {
-    d_ieval.reset(nullptr);
+    d_ieval->resetAll();
   }
 }
 

@@ -165,6 +165,8 @@ TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
 
+ieval::InstEvaluatorManager* TermRegistry::getInstEvaluatorManager() const { return d_ievalMan.get(); }
+
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 
 }  // namespace quantifiers

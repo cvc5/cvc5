@@ -33,6 +33,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/quantifiers_statistics.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_registry.h"
@@ -103,6 +104,7 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(qim.getInstantiate());
   d_util.push_back(tr.getTermPools());
+  d_util.push_back(tr.getInstEvaluatorManager());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
