@@ -44,6 +44,7 @@ TermRegistry::TermRegistry(Env& env,
       d_echeck(new EntailmentCheck(env, qs, *d_termDb.get())),
       d_sygusTdb(nullptr),
       d_ochecker(nullptr),
+      d_vtsCache(new VtsTermCache(env)),
       d_qmodel(nullptr)
 {
   if (options().quantifiers.oracles)
@@ -160,6 +161,8 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 }
 
 TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
+
+VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 
