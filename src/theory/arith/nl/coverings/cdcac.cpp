@@ -353,6 +353,14 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
       // Add all discriminants
       res.add(discriminant(p));
 
+      // Add pairwise resultants
+      for (const auto& q : i.d_mainPolys)
+      {
+        // avoid symmetric duplicates
+        if (p >= q) continue;
+        res.add(resultant(p, q));
+      }
+
       for (const auto& q : requiredCoefficients(p))
       {
         // Add all required coefficients

@@ -255,15 +255,23 @@ sort BUILTIN_OPERATOR_TYPE \
     not-well-founded \
     "the type for built-in operators"
 
-variable SORT_TAG "sort tag"
-parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpreted' sorts"
-# This is really "unknown" cardinality, but maybe this will be good
-# enough (for now) ?
+variable SORT_TYPE "specifies types of user-declared 'uninterpreted' sorts"
+# The cardinality of uninterpreted sorts is defined infinite here, although they are given special treatment in TypeNode::getCardinalityClass
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
     "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
     "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
+enumerator SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
+
+# an instantiated sort has the same properties as an ordinary uninterpreted sort
+operator INSTANTIATED_SORT_TYPE 1: "instantiated uninterpreted sort"
+cardinality INSTANTIATED_SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
+well-founded INSTANTIATED_SORT_TYPE \
+    "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+enumerator INSTANTIATED_SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
 constant UNINTERPRETED_SORT_VALUE \
     class \
@@ -272,7 +280,6 @@ constant UNINTERPRETED_SORT_VALUE \
     "util/uninterpreted_sort_value.h" \
     "the kind of expressions representing uninterpreted sort values; payload is an instance of the cvc5::internal::AbstractValue class (used in models)"
 typerule UNINTERPRETED_SORT_VALUE ::cvc5::internal::theory::builtin::UninterpretedSortValueTypeRule
-enumerator SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
