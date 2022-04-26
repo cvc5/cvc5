@@ -215,7 +215,11 @@ name   = "Base"
   name = "pre-asserts"
   help = "print a benchmark corresponding to the assertions of the input problem before preprocessing"
   description = "With ``-o pre-asserts``, cvc5 prints a benchmark corresponding to the assertions of the input problem before preprocessing."
-  example-file = "regress0/printer/pre-asserts-output.smt2"
+[[option.mode.DEEP_RESTART]]
+  name = "deep-restart"
+  help = "print when cvc5 performs a deep restart along with the literals it has learned"
+  description = "With ``-o deep-restart``, cvc5 prints when it performs a deep restart along with the literals it has learned."
+  example-file = "regress0/printer/deep-restart-output.smt2"
 
 # Stores then enabled output tags.
 [[option]]
