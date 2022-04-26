@@ -171,7 +171,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions()
     literals.resize(numVar);
 
     // This complicated thing is basically making a truth table
-    // of with 2^numVar variable so that these can be put together emitted as a partition
+    // of with 2^numVar variable so that each row can be emitted as a partition
     // later. Each entry in resultNodeLists is a row corresponding to a cube:
     // resultNodeLists = {
     //   { l1,  l2}
