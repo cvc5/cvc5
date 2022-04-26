@@ -148,7 +148,7 @@ class TermDb : public QuantifiersUtil {
    * The match operator is the first instance of an application of the
    * parametric operator of its type.
    *
-   * If n has a kind that we do not index (like PLUS),
+   * If n has a kind that we do not index (like ADD),
    * then this function returns Node::null().
    */
   Node getMatchOperator(TNode n);
