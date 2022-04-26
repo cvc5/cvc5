@@ -1420,7 +1420,7 @@ void TheoryDatatypes::checkSplit()
     if (dt.isRecursiveSingleton(tn))
     {
       Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
-      bool isQuantifiedLogic = getLogicInfo().isQuantified();
+      bool isQuantifiedLogic = logicInfo().isQuantified();
       // handle recursive singleton case
       std::map<TypeNode, Node>::iterator itrs = rec_singletons.find(tn);
       if (itrs != rec_singletons.end())
