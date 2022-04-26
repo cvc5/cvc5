@@ -248,7 +248,13 @@ private:
                       bool firstTime = true);
   /** for checking if we should apply the instantiate rule */
   void checkInstantiate();
-  /** for checking if we should split */
+  /** 
+   * Applying splitting.
+   *
+   * This checks if we should add a splitting inference for datatype terms
+   * currently in the equality engine. If so, we add pending lemmas on the
+   * inference manager.
+   */
   void checkSplit();
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar(std::vector<Node>& part,
