@@ -28,7 +28,17 @@ InstEvaluatorManager::InstEvaluatorManager(Env& env,
     : QuantifiersUtil(env), d_qstate(qs), d_tdb(tdb)
 {
 }
-bool InstEvaluatorManager::reset(Theory::Effort effort) { return true; }
+
+bool InstEvaluatorManager::reset(Theory::Effort effort) 
+{
+  for (std::pair<const QuantEvPair, std::unique_ptr<InstEvaluator> >& e : d_evals)
+  {
+    // ensure the information is completely cleared
+    e.second->resetAll(false);
+  }
+  return true; 
+}
+
 std::string InstEvaluatorManager::identify() const
 {
   return "InstEvaluatorManager";
@@ -47,8 +57,8 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
     // not using instantiation evaluation, don't construct
     return nullptr;
   }
-  std::pair<Node, TermEvaluatorMode> key(q, tev);
-  std::map<std::pair<Node, TermEvaluatorMode>,
+  QuantEvPair key(q, tev);
+  std::map<QuantEvPair,
            std::unique_ptr<InstEvaluator> >::iterator it = d_evals.find(key);
   if (it != d_evals.end())
   {
@@ -64,6 +74,7 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
   ret->watch(q);
   // set the evaluation mode
   ret->setEvaluatorMode(tev);
+  // TODO: initialize?
   // return
   return ret;
 }

@@ -87,8 +87,15 @@ class InstEvaluator : protected EnvObj
   bool push(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /** pop the last (successful) push */
   void pop();
-  /** full reset */
-  void resetAll();
+  /**
+   * Reset all
+   * 
+   * If isSoft is true, this saves the state initialization of ground terms,
+   * the learned failures, and the watched quantifier information.
+   * 
+   * If isSoft is false, this saves the watched quantifier information only.
+   */
+  void resetAll(bool isSoft = true);
   /**
    * Get instantiation for quantified formula q.
    */

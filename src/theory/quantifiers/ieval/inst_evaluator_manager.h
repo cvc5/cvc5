@@ -38,6 +38,7 @@ namespace ieval {
  */
 class InstEvaluatorManager : public QuantifiersUtil
 {
+  using QuantEvPair = std::pair<Node, TermEvaluatorMode>;
  public:
   InstEvaluatorManager(Env& env, QuantifiersState& qs, TermDb& tdb);
   /** reset (calculate which terms are active) */
@@ -53,7 +54,7 @@ class InstEvaluatorManager : public QuantifiersUtil
   /** Reference to term database */
   TermDb& d_tdb;
   /** Maps to the evaluators */
-  std::map<std::pair<Node, TermEvaluatorMode>, std::unique_ptr<InstEvaluator> >
+  std::map<QuantEvPair, std::unique_ptr<InstEvaluator> >
       d_evals;
 };
 

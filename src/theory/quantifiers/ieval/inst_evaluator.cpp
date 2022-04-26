@@ -156,12 +156,16 @@ bool InstEvaluator::pushInternal(TNode v,
 
 void InstEvaluator::pop() { d_context.pop(); }
 
-void InstEvaluator::resetAll()
+void InstEvaluator::resetAll(bool isSoft)
 {
-  // pop to level zero.
-  // TODO: we undo the state's initialization here. We could save this
-  // by popping to level 1?
-  d_context.popto(0);
+  if (!d_state.hasInitialized())
+  {
+    // not necessary to reset if we have not initialized
+    return;
+  }
+  // pop to level one if soft, zero if not soft
+  Assert (d_context.getLevel()>=1);
+  d_context.popto(isSoft ? 1 : 0);
 }
 
 std::vector<Node> InstEvaluator::getInstantiationFor(Node q) const
