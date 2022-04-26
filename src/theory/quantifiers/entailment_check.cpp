@@ -355,11 +355,14 @@ bool EntailmentCheck::isEntailed2(TNode n,
       }
     }
   }
-  else if (k == FORALL && !pol)
+  else if (k == FORALL)
   {
-    return isEntailed2(n[1], subs, subsRep, pol);
+    if (!pol)
+    {
+      return isEntailed2(n[1], subs, subsRep, pol);
+    }
   }
-  else
+  else if (k == BOUND_VARIABLE || k == APPLY_UF)
   {
     // handles APPLY_UF, Boolean variable cases
     TNode n1 = getEntailedTerm2(n, subs, subsRep);
