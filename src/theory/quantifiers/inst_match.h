@@ -62,13 +62,11 @@ class InstMatch : protected EnvObj
    * If the d_vals[i] is not null, then this return true iff it is equal to
    * n based on the quantifiers state.
    *
-   * If the d_vals[i] is null, then this sets d_vals[i] to n, and pushes a
-   * context scope in the inst evaluator (if used).
+   * If the d_vals[i] is null, then this sets d_vals[i] to n.
    */
   bool set(size_t i, TNode n);
   /**
-   * Resets index i, which sets d_vals[i] to null, and pops a context scope in
-   * the inst evaluator (if used).
+   * Resets index i, which sets d_vals[i] to null.
    */
   void reset(size_t i);
   /** Get the values */
