@@ -249,6 +249,14 @@ private:
                       std::map<TNode, bool>& proc,
                       std::vector<Node>& explanation,
                       bool firstTime = true);
+  /** 
+   * Applying splitting.
+   *
+   * This checks if we should add a splitting inference for datatype terms
+   * currently in the equality engine. If so, we add pending lemmas on the
+   * inference manager.
+   */
+  void checkSplit();
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar(std::vector<Node>& part,
                          std::vector<std::vector<Node> >& part_out,
