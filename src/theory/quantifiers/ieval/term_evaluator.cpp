@@ -172,15 +172,15 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
     bool hasSome = false;
     for (TNode cvalue : childValues)
     {
-      if (s.isNone(cvalue))
-      {
-        // unknown, we are done
-        Trace("ieval-state-debug") << "...unknown child of AND/OR" << std::endl;
-        return ret;
-      }
-      else if (s.isSome(cvalue))
+      if (s.isSome(cvalue))
       {
         hasSome = true;
+      }
+      else if (!cvalue.isConst())
+      {
+        // unknown (possibly none), we are done
+        Trace("ieval-state-debug") << "...unknown child of AND/OR" << std::endl;
+        return ret;
       }
       else
       {
@@ -210,7 +210,7 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
     // equal, false the values are disequal (which includes checking
     // if cval1 and cval2 are distinct constants), and do not evaluate
     // otherwise.
-    if (childValues[0] == childValues[1])
+    if (d_qs.areEqual(childValues[0], childValues[1]))
     {
       ret = nm->mkConst(true);
       Trace("ieval-state-debug")

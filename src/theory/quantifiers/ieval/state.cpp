@@ -124,12 +124,12 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
           {
             continue;
           }
+          nchild++;
           // require notifications to parent
           PatTermInfo& pic = getOrMkPatTermInfo(cc);
           pic.d_parentNotify.push_back(cur);
           visit.push_back(cc);
         }
-        nchild = children.size();
       }
       if (nchild > 0)
       {
@@ -342,6 +342,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     Assert(it != d_pInfo.end());
     p = it->second.d_pattern;
     g = it->second.d_eq;
+    Trace("ieval-state-debug") << "process notifications (" << p << ", " << g << ")" << std::endl;
     Assert(!g.isNull());
     context::CDList<Node>& notifyList = it->second.d_parentNotify;
     for (TNode pp : notifyList)
@@ -381,10 +382,11 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   }
   Assert(!val.isNull());
   Assert(val.getType().isBoolean());
-  if (!val.isConst())
+  if (!val.isConst() && val!=d_none)
   {
-    // in the rare case that we are congruent to an (unassigned) Boolean
-    // term, we treat this as "some" here instead
+    // in the rare case that we evaluate to non-constant, we treat this as
+    // "some" here instead. This can happen if a term is congruent to an
+    // (unassigned) Boolean term.
     val = d_some;
   }
   Trace("ieval-state-debug") << "Notify quant constraint " << q.getId() << " "
