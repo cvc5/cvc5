@@ -683,6 +683,13 @@ bool QuantInfo::isMatchSpurious()
 
 bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
 {
+  if (options().quantifiers.ievalMode != options::IevalMode::OFF)
+  {
+    // We rely on the instantiation evaluator. When the instantiation evaluator
+    // is enabled, this method (almost) always returns false. It may return
+    // true based on minor differences in the entailment tests.
+    return false;
+  }
   if (options().quantifiers.cbqiEagerTest)
   {
     EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
