@@ -26,13 +26,15 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-TermEvaluator::TermEvaluator(Env& env) : EnvObj(env) {}
+TermEvaluator::TermEvaluator(Env& env, TermEvaluatorMode tev) : EnvObj(env), d_tevMode(tev) {}
 
-TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
+TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env, TermEvaluatorMode tev,
                                              QuantifiersState& qs,
                                              TermDb& tdb)
-    : TermEvaluator(env), d_qs(qs), d_tdb(tdb)
+    : TermEvaluator(env, tev), d_qs(qs), d_tdb(tdb), d_checkRelDom(false)
 {
+  // check relevant domain during partial evaluation
+  d_checkRelDom = (tev==TermEvaluatorMode::CONFLICT || tev==TermEvaluatorMode::PROP);
 }
 
 TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
@@ -106,6 +108,7 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
         }
       }
     }
+    return Node::null();
   }
   else if (s.isNone(val))
   {
@@ -113,6 +116,23 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
     // operator is automatic none
     Trace("ieval-state-debug") << "...none default" << std::endl;
     return val;
+  }
+  // if we are not in the relevant domain, we are immediately "none". We only
+  // do this if we are in conflict/prop mode
+  if (d_checkRelDom)
+  {
+    TNode mop = d_tdb.getMatchOperator(n);
+    if (!mop.isNull())
+    {
+      // scan the argument list of n to find occurrences of the child
+      for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++)
+      {
+        if (n[i]==child && !d_tdb.inRelevantDomain(mop, i, val))
+        {
+          return s.getNone();
+        }
+      }
+    }
   }
   // NOTE: could do other short circuiting like zero for mult?
   return Node::null();

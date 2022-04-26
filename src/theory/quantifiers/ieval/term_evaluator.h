@@ -52,7 +52,7 @@ class State;
 class TermEvaluator : protected EnvObj
 {
  public:
-  TermEvaluator(Env& env);
+  TermEvaluator(Env& env, TermEvaluatorMode tev);
   /**
    * Evaluate base child
    * Called on nodes n with no children, or for terms that we treat as
@@ -74,12 +74,15 @@ class TermEvaluator : protected EnvObj
   virtual TNode evaluate(const State& s,
                          TNode n,
                          const std::vector<TNode>& childValues) = 0;
+protected:
+  /** The mode */
+  TermEvaluatorMode d_tevMode;
 };
 
 class TermEvaluatorEntailed : public TermEvaluator
 {
  public:
-  TermEvaluatorEntailed(Env& env, QuantifiersState& qs, TermDb& tdb);
+  TermEvaluatorEntailed(Env& env, TermEvaluatorMode tev, QuantifiersState& qs, TermDb& tdb);
   /** Evaluate base */
   TNode evaluateBase(const State& s, TNode n) override;
   /** Partial evaluate child */
@@ -97,6 +100,8 @@ class TermEvaluatorEntailed : public TermEvaluator
   QuantifiersState& d_qs;
   /** Pointer to the term database */
   TermDb& d_tdb;
+  /** Whether we are using an optimization for checking the relevant domain */
+  bool d_checkRelDom;
 };
 
 #if 0

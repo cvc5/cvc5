@@ -54,7 +54,7 @@ void State::setEvaluatorMode(TermEvaluatorMode tev)
   if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP
       || tev == TermEvaluatorMode::NO_ENTAIL)
   {
-    d_tec.reset(new TermEvaluatorEntailed(d_env, d_qstate, d_tdb));
+    d_tec.reset(new TermEvaluatorEntailed(d_env, tev, d_qstate, d_tdb));
   }
   else if (tev == TermEvaluatorMode::MODEL)
   {

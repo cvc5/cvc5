@@ -362,23 +362,29 @@ void TermDb::computeUfTerms( TNode f ) {
       }
 
       computeArgReps(n);
+      std::vector<TNode>& reps = d_arg_reps[n];
       Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-      for (unsigned i = 0, size = d_arg_reps[n].size(); i < size; i++)
+      std::vector< std::vector< TNode > >& frds = d_fmapRelDom[f];
+      size_t rsize = reps.size();
+      frds.resize(rsize);
+      for (size_t i = 0; i < rsize; i++)
       {
-        Trace("term-db-debug") << d_arg_reps[n][i] << " ";
-        if (std::find(d_func_map_rel_dom[f][i].begin(),
-                      d_func_map_rel_dom[f][i].end(),
-                      d_arg_reps[n][i])
-            == d_func_map_rel_dom[f][i].end())
+        TNode r = reps[i];
+        Trace("term-db-debug") << r << " ";
+        std::vector<TNode>& frd = frds[i];
+        if (std::find(frd.begin(),
+                      frd.end(),
+                      r)
+            == frd.end())
         {
-          d_func_map_rel_dom[f][i].push_back(d_arg_reps[n][i]);
+          frd.push_back(r);
         }
       }
       Trace("term-db-debug") << std::endl;
       Assert(d_qstate.hasTerm(n));
       Trace("term-db-debug")
           << "  and value : " << d_qstate.getRepresentative(n) << std::endl;
-      Node at = d_func_map_trie[f].addOrGetTerm(n, d_arg_reps[n]);
+      Node at = d_func_map_trie[f].addOrGetTerm(n, reps);
       Assert(d_qstate.hasTerm(at));
       Trace("term-db-debug2") << "...add term returned " << at << std::endl;
       if (at != n && d_qstate.areEqual(at, n))
@@ -446,23 +452,21 @@ bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   return false;
 }
 
-bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
+bool TermDb::inRelevantDomain( TNode f, size_t i, TNode r )
+{
   // notice if we are not higher-order, getOperatorRepresentative is a no-op
   f = getOperatorRepresentative(f);
-  computeUfTerms( f );
+  computeUfTerms(f);
   Assert(!d_qstate.getEqualityEngine()->hasTerm(r)
          || d_qstate.getEqualityEngine()->getRepresentative(r) == r);
-  std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
-  if( it != d_func_map_rel_dom.end() ){
-    std::map< unsigned, std::vector< Node > >::iterator it2 = it->second.find( i );
-    if( it2!=it->second.end() ){
-      return std::find( it2->second.begin(), it2->second.end(), r )!=it2->second.end();
-    }else{
-      return false;
-    }
-  }else{
-    return false;
+  std::map< Node, std::vector< std::vector< TNode > > >::const_iterator it = d_fmapRelDom.find( f );
+  if( it != d_fmapRelDom.end() )
+  {
+    Assert (i<it->second.size());
+    const std::vector< TNode >& rd = it->second[i];
+    return std::find( rd.begin(), rd.end(), r )!=rd.end();
   }
+  return false;
 }
 
 bool TermDb::isTermActive( Node n ) {
@@ -593,7 +597,7 @@ bool TermDb::reset( Theory::Effort effort ){
   d_arg_reps.clear();
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
-  d_func_map_rel_dom.clear();
+  d_fmapRelDom.clear();
   d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();

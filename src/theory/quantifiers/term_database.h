@@ -180,7 +180,7 @@ class TermDb : public QuantifiersUtil {
   * (2) t is of the form f( t1, ..., tk ) and ti is in the
   *     equivalence class of r.
   */
-  bool inRelevantDomain(TNode f, unsigned i, TNode r);
+  bool inRelevantDomain(TNode f, size_t i, TNode r);
   /** is the term n active in the current context?
    *
   * By default, all terms are active. A term is inactive if:
@@ -249,8 +249,13 @@ class TermDb : public QuantifiersUtil {
   /** map from operators to trie */
   std::map<Node, TNodeTrie> d_func_map_trie;
   std::map<Node, TNodeTrie> d_func_map_eqc_trie;
-  /** mapping from operators to their representative relevant domains */
-  std::map< Node, std::map< unsigned, std::vector< Node > > > d_func_map_rel_dom;
+  /** 
+   * Mapping from operators to their representative relevant domains. The
+   * size of the range is equal to the arity of the domain symbol. The
+   * terms in each vector are the representatives that occur in a term for
+   * that argument position (see inRelevantDomain).
+   */
+  std::map< Node, std::vector< std::vector< TNode > > > d_fmapRelDom;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
