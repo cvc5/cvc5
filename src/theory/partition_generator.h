@@ -57,10 +57,10 @@ class PartitionGenerator : protected EnvObj
 
   /**
    * Partition using the "revised" strategy, which emits cubes such as C1, C2,
-   * C3, !C1 & !C2 & !C3. If specified, a modified version of this emits
+   * C3, !C1 & !C2 & !C3. If strict is set to true, a modified version of this emits
    * "strict cubes:" C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3.
    */
-  TrustNode makeRevisedPartitions();
+  TrustNode makeRevisedPartitions(bool strict);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive cubes 
