@@ -74,7 +74,8 @@ class TermEvaluator : protected EnvObj
   virtual TNode evaluate(const State& s,
                          TNode n,
                          const std::vector<TNode>& childValues) = 0;
-protected:
+
+ protected:
   /** The mode */
   TermEvaluatorMode d_tevMode;
 };
@@ -82,7 +83,10 @@ protected:
 class TermEvaluatorEntailed : public TermEvaluator
 {
  public:
-  TermEvaluatorEntailed(Env& env, TermEvaluatorMode tev, QuantifiersState& qs, TermDb& tdb);
+  TermEvaluatorEntailed(Env& env,
+                        TermEvaluatorMode tev,
+                        QuantifiersState& qs,
+                        TermDb& tdb);
   /** Evaluate base */
   TNode evaluateBase(const State& s, TNode n) override;
   /** Partial evaluate child */

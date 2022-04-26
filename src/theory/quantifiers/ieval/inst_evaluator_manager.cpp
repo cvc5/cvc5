@@ -29,14 +29,15 @@ InstEvaluatorManager::InstEvaluatorManager(Env& env,
 {
 }
 
-bool InstEvaluatorManager::reset(Theory::Effort effort) 
+bool InstEvaluatorManager::reset(Theory::Effort effort)
 {
-  for (std::pair<const QuantEvPair, std::unique_ptr<InstEvaluator> >& e : d_evals)
+  for (std::pair<const QuantEvPair, std::unique_ptr<InstEvaluator> >& e :
+       d_evals)
   {
     // ensure the information is completely cleared
     e.second->resetAll(false);
   }
-  return true; 
+  return true;
 }
 
 std::string InstEvaluatorManager::identify() const
@@ -58,8 +59,8 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
     return nullptr;
   }
   QuantEvPair key(q, tev);
-  std::map<QuantEvPair,
-           std::unique_ptr<InstEvaluator> >::iterator it = d_evals.find(key);
+  std::map<QuantEvPair, std::unique_ptr<InstEvaluator> >::iterator it =
+      d_evals.find(key);
   if (it != d_evals.end())
   {
     // already constructed

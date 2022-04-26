@@ -364,7 +364,7 @@ void TermDb::computeUfTerms( TNode f ) {
       computeArgReps(n);
       std::vector<TNode>& reps = d_arg_reps[n];
       Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-      std::vector< std::vector< TNode > >& frds = d_fmapRelDom[f];
+      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
       size_t rsize = reps.size();
       frds.resize(rsize);
       for (size_t i = 0; i < rsize; i++)
@@ -372,10 +372,7 @@ void TermDb::computeUfTerms( TNode f ) {
         TNode r = reps[i];
         Trace("term-db-debug") << r << " ";
         std::vector<TNode>& frd = frds[i];
-        if (std::find(frd.begin(),
-                      frd.end(),
-                      r)
-            == frd.end())
+        if (std::find(frd.begin(), frd.end(), r) == frd.end())
         {
           frd.push_back(r);
         }
@@ -452,19 +449,20 @@ bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   return false;
 }
 
-bool TermDb::inRelevantDomain( TNode f, size_t i, TNode r )
+bool TermDb::inRelevantDomain(TNode f, size_t i, TNode r)
 {
   // notice if we are not higher-order, getOperatorRepresentative is a no-op
   f = getOperatorRepresentative(f);
   computeUfTerms(f);
   Assert(!d_qstate.getEqualityEngine()->hasTerm(r)
          || d_qstate.getEqualityEngine()->getRepresentative(r) == r);
-  std::map< Node, std::vector< std::vector< TNode > > >::const_iterator it = d_fmapRelDom.find( f );
-  if( it != d_fmapRelDom.end() )
+  std::map<Node, std::vector<std::vector<TNode> > >::const_iterator it =
+      d_fmapRelDom.find(f);
+  if (it != d_fmapRelDom.end())
   {
-    Assert (i<it->second.size());
-    const std::vector< TNode >& rd = it->second[i];
-    return std::find( rd.begin(), rd.end(), r )!=rd.end();
+    Assert(i < it->second.size());
+    const std::vector<TNode>& rd = it->second[i];
+    return std::find(rd.begin(), rd.end(), r) != rd.end();
   }
   return false;
 }

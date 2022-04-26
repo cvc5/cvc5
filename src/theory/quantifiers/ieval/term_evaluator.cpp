@@ -26,15 +26,20 @@ namespace theory {
 namespace quantifiers {
 namespace ieval {
 
-TermEvaluator::TermEvaluator(Env& env, TermEvaluatorMode tev) : EnvObj(env), d_tevMode(tev) {}
+TermEvaluator::TermEvaluator(Env& env, TermEvaluatorMode tev)
+    : EnvObj(env), d_tevMode(tev)
+{
+}
 
-TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env, TermEvaluatorMode tev,
+TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
+                                             TermEvaluatorMode tev,
                                              QuantifiersState& qs,
                                              TermDb& tdb)
     : TermEvaluator(env, tev), d_qs(qs), d_tdb(tdb), d_checkRelDom(false)
 {
   // check relevant domain during partial evaluation
-  d_checkRelDom = (tev==TermEvaluatorMode::CONFLICT || tev==TermEvaluatorMode::PROP);
+  d_checkRelDom =
+      (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP);
 }
 
 TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
@@ -125,9 +130,9 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
     if (!mop.isNull())
     {
       // scan the argument list of n to find occurrences of the child
-      for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++)
+      for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
       {
-        if (n[i]==child && !d_tdb.inRelevantDomain(mop, i, val))
+        if (n[i] == child && !d_tdb.inRelevantDomain(mop, i, val))
         {
           return s.getNone();
         }

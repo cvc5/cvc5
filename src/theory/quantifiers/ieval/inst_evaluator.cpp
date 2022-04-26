@@ -164,7 +164,7 @@ void InstEvaluator::resetAll(bool isSoft)
     return;
   }
   // pop to level one if soft, zero if not soft
-  Assert (d_context.getLevel()>=1);
+  Assert(d_context.getLevel() >= 1);
   d_context.popto(isSoft ? 1 : 0);
 }
 

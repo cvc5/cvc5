@@ -249,13 +249,13 @@ class TermDb : public QuantifiersUtil {
   /** map from operators to trie */
   std::map<Node, TNodeTrie> d_func_map_trie;
   std::map<Node, TNodeTrie> d_func_map_eqc_trie;
-  /** 
+  /**
    * Mapping from operators to their representative relevant domains. The
    * size of the range is equal to the arity of the domain symbol. The
    * terms in each vector are the representatives that occur in a term for
    * that argument position (see inRelevantDomain).
    */
-  std::map< Node, std::vector< std::vector< TNode > > > d_fmapRelDom;
+  std::map<Node, std::vector<std::vector<TNode>>> d_fmapRelDom;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
