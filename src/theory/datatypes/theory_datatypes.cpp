@@ -1355,18 +1355,34 @@ void TheoryDatatypes::checkInstantiate()
   {
     // not using lazy instantiate
     return;
+  }  
+  std::set<Node> termSetReps;
+  /*
+  std::set<Node> termSet;
+  collectAssertedTerms(termSet);
+  for (const Node& t : termSet)
+  {
+    if (!t.getType().isDatatype())
+    {
+      continue;
+    }
+    Node tr = d_equalityEngine->getRepresentative(t);
+    termSetReps.insert(tr);
   }
+  */
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
     ++eqcs_i;
-    Trace("datatypes-infer") << "Look at " << eqc << std::endl;
-    TypeNode tn = eqc.getType();
-    if (!tn.isDatatype())
+    if (eqc.getType().isDatatype())
     {
-      continue;
+      termSetReps.insert(eqc);
     }
+  }
+  for (const Node& eqc : termSetReps)
+  {
+    Trace("datatypes-infer") << "Look at " << eqc << std::endl;
     EqcInfo* ei = getOrMakeEqcInfo(eqc);
     instantiate(ei, eqc);
   }
