@@ -1,11 +1,11 @@
 # solver=cvc4
 solver=./alethe-check.sh
-options="--lang=smt2 --dag-thresh=0"
+options="--tlimit=1500 --simplification=none --full-saturate-quant --no-stats"
 traces=""
 time=""
 ulimit="ulimit -S -t 10"
-file="isabelle-int-real-mix.txt"
-path="/home/hbarbosa/cvc/wt-diff/"
+file="isabelle-mirabelle.txt"
+path="/home/hbarbosa/benchmarks/isabelle-mirabelle/"
 
 echo "Options: $options"
 echo "Traces: $traces"
