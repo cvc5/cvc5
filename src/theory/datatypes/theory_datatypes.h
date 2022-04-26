@@ -249,6 +249,8 @@ private:
                       std::map<TNode, bool>& proc,
                       std::vector<Node>& explanation,
                       bool firstTime = true);
+  /** for checking if we should apply the instantiate rule */
+  void checkInstantiate();
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar(std::vector<Node>& part,
                          std::vector<std::vector<Node> >& part_out,

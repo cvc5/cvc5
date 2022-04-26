@@ -205,6 +205,14 @@ void TheoryDatatypes::postCheck(Effort level)
       {
         return;
       }
+      Trace("datatypes-proc") << "Check instantiate..." << std::endl;
+      checkInstantiate();
+      Trace("datatypes-proc") << "...finish check instantiate" << std::endl;
+      d_im.process();
+      if (d_state.isInConflict() || d_im.hasSentLemma())
+      {
+        return;
+      }
     } while (d_im.hasSentFact());
 
     //check for splits
@@ -671,7 +679,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
                   eqc2->d_constructor.get().isNull());
     }
   }
-  if (checkInst)
+  if (checkInst && !options().datatypes.dtLazyInst)
   {
     Trace("datatypes-debug") << "  checking instantiate" << std::endl;
     instantiate(eqc1, t1);
@@ -842,7 +850,10 @@ void TheoryDatatypes::addTester(
       const DType& dt = t_arg.getType().getDType();
       Trace("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
-        instantiate(eqc, n);
+        if (!options().datatypes.dtLazyInst)
+        {
+          instantiate(eqc, n);
+        }
         // We could propagate is-C1(x) => not is-C2(x) here for all other
         // constructors, but empirically this hurts performance.
       }else{
@@ -1496,6 +1507,27 @@ void TheoryDatatypes::checkCycles() {
         }
       }
     }
+  }
+}
+
+void TheoryDatatypes::checkInstantiate()
+{
+  if (!options().datatypes.dtLazyInst)
+  {
+    // not using lazy instantiate
+    return;
+  }
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+  while( !eqcs_i.isFinished() ){
+    Node eqc = (*eqcs_i);
+    ++eqcs_i;
+    TypeNode tn = eqc.getType();
+    if (!tn.isDatatype())
+    {
+      continue;
+    }
+    EqcInfo* ei = getOrMakeEqcInfo( eqc );
+    instantiate(ei, eqc);
   }
 }
 

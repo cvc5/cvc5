@@ -66,6 +66,14 @@ name   = "Datatypes Theory"
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
+  name       = "dtLazyInst"
+  category   = "regular"
+  long       = "dt-lazy-inst"
+  type       = "bool"
+  default    = "false"
+  help       = "apply the datatypes instantiate rule lazily"
+
+[[option]]
   name       = "sygusSimpleSymBreak"
   category   = "regular"
   long       = "sygus-simple-sym-break=MODE"
