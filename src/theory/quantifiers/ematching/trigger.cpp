@@ -178,7 +178,7 @@ bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 
 bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
 {
-  return sendInstantiation(m.d_vals, id);
+  return sendInstantiation(m.get(), id);
 }
 
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
