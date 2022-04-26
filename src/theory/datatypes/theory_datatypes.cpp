@@ -56,7 +56,6 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_term_sk(userContext()),
       d_labels(context()),
       d_selector_apps(context()),
-      d_collectTermsCache(context()),
       d_collectTermsCacheU(userContext()),
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
@@ -472,7 +471,6 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       Trace("dt-expand") << "...nested recursion ok" << std::endl;
     }
   }
-  collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
   case kind::APPLY_TESTER:
@@ -481,6 +479,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     d_equalityEngine->addTriggerPredicate(n);
     break;
   default:
+    // do initial lemmas (e.g. for dt.size)
+    doInitialLemma(n);
     // Function applications/predicates
     d_equalityEngine->addTerm(n);
     if (d_sygusExtension)
@@ -529,9 +529,71 @@ TrustNode TheoryDatatypes::explain(TNode literal)
 }
 
 /** called when a new equivalance class is created */
-void TheoryDatatypes::eqNotifyNewClass(TNode t){
-  if( t.getKind()==APPLY_CONSTRUCTOR ){
-    getOrMakeEqcInfo( t, true );
+void TheoryDatatypes::eqNotifyNewClass(TNode n){
+  Kind nk = n.getKind();
+  if (nk == APPLY_CONSTRUCTOR)
+  {
+    Trace("datatypes") << "  Found constructor " << n << endl;
+    getOrMakeEqcInfo( n, true );
+    if (n.getNumChildren() > 0)
+    {
+      d_functionTerms.push_back(n);
+    }
+  }
+  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  {
+    d_functionTerms.push_back(n);
+    // we must also record which selectors exist
+    Trace("dt-collapse-sel") << "  Found selector " << n << endl;
+    Node rep = getRepresentative(n[0]);
+    // record it in the selectors
+    EqcInfo* eqc = getOrMakeEqcInfo(rep, true);
+    // add it to the eqc info
+    addSelector(n, eqc, rep);
+  }
+}
+
+void TheoryDatatypes::doInitialLemma(Node n)
+{
+  if (d_collectTermsCacheU.find(n) != d_collectTermsCacheU.end())
+  {
+    return;
+  }
+  d_collectTermsCacheU[n] = true;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Kind nk = n.getKind();
+  if (nk == DT_SIZE)
+  {
+    Node lem = nm->mkNode(LEQ, d_zero, n);
+    Trace("datatypes-infer")
+        << "DtInfer : size geq zero : " << lem << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
+  }
+  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
+  {
+    std::vector<Node> children;
+    const DType& dt = n[0].getType().getDType();
+    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      if (utils::isNullaryConstructor(dt[i]))
+      {
+        Node test = utils::mkTester(n[0], i, dt);
+        children.push_back(test);
+      }
+    }
+    Node lem;
+    if (children.empty())
+    {
+      lem = n.negate();
+    }
+    else
+    {
+      lem = n.eqNode(children.size() == 1 ? children[0]
+                                          : nm->mkNode(OR, children));
+    }
+    Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::DATATYPES_HEIGHT_ZERO);
   }
 }
 
@@ -1267,83 +1329,6 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   }
 }
 
-void TheoryDatatypes::collectTerms( Node n ) {
-  if (d_collectTermsCache.find(n) != d_collectTermsCache.end())
-  {
-    // already processed
-    return;
-  }
-  d_collectTermsCache[n] = true;
-  Kind nk = n.getKind();
-  if (nk == APPLY_CONSTRUCTOR)
-  {
-    Trace("datatypes") << "  Found constructor " << n << endl;
-    if (n.getNumChildren() > 0)
-    {
-      d_functionTerms.push_back(n);
-    }
-    return;
-  }
-  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
-  {
-    d_functionTerms.push_back(n);
-    // we must also record which selectors exist
-    Trace("dt-collapse-sel") << "  Found selector " << n << endl;
-    Node rep = getRepresentative(n[0]);
-    // record it in the selectors
-    EqcInfo* eqc = getOrMakeEqcInfo(rep, true);
-    // add it to the eqc info
-    addSelector(n, eqc, rep);
-  }
-
-  // now, do user-context-dependent lemmas
-  if (nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
-  {
-    // if not one of these kinds, there are no lemmas
-    return;
-  }
-  if (d_collectTermsCacheU.find(n) != d_collectTermsCacheU.end())
-  {
-    return;
-  }
-  d_collectTermsCacheU[n] = true;
-
-  NodeManager* nm = NodeManager::currentNM();
-
-  if (nk == DT_SIZE)
-  {
-    Node lem = nm->mkNode(LEQ, d_zero, n);
-    Trace("datatypes-infer")
-        << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
-  }
-  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
-  {
-    std::vector<Node> children;
-    const DType& dt = n[0].getType().getDType();
-    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
-    {
-      if (utils::isNullaryConstructor(dt[i]))
-      {
-        Node test = utils::mkTester(n[0], i, dt);
-        children.push_back(test);
-      }
-    }
-    Node lem;
-    if (children.empty())
-    {
-      lem = n.negate();
-    }
-    else
-    {
-      lem = n.eqNode(children.size() == 1 ? children[0]
-                                          : nm->mkNode(OR, children));
-    }
-    Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::DATATYPES_HEIGHT_ZERO);
-  }
-}
-
 Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
 {
   if( n.getKind()==APPLY_CONSTRUCTOR && n.getNumChildren()==0 ){
@@ -1353,9 +1338,6 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   Node k = getTermSkolemFor( n );
   Node n_ic = utils::getInstCons(k, dt, index);
   n_ic = rewrite(n_ic);
-  // it may be a new term, so we collect terms and add it to the equality engine
-  collectTerms( n_ic );
-  d_equalityEngine->addTerm(n_ic);
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
 }
@@ -1518,9 +1500,11 @@ void TheoryDatatypes::checkInstantiate()
     return;
   }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
-  while( !eqcs_i.isFinished() ){
+  while( !eqcs_i.isFinished() )
+  {
     Node eqc = (*eqcs_i);
     ++eqcs_i;
+    Trace("datatypes-infer")  << "Look at " << eqc << std::endl;
     TypeNode tn = eqc.getType();
     if (!tn.isDatatype())
     {

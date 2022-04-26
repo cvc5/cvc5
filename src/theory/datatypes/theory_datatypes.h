@@ -139,11 +139,6 @@ private:
   /** The conflict node */
   Node d_conflictNode;
   /**
-   * SAT-context dependent cache for which terms we have called
-   * collectTerms(...) on.
-   */
-  BoolMap d_collectTermsCache;
-  /**
    * User-context dependent cache for which terms we have called
    * collectTerms(...) on.
    */
@@ -241,6 +236,8 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
+  /** do initial lemmas, e.g. for dt.size */
+  void doInitialLemma(Node n);
   /** for checking if cycles exist */
   void checkCycles();
   Node searchForCycle(TNode n,
@@ -263,8 +260,6 @@ private:
   Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */
   Node getSingletonLemma( TypeNode tn, bool pol );
-  /** collect terms */
-  void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate, return true if an inference was generated. */
