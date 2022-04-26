@@ -1355,7 +1355,7 @@ void TheoryDatatypes::checkInstantiate()
   {
     // not using lazy instantiate
     return;
-  }  
+  }
   std::set<Node> termSetReps;
   /*
   std::set<Node> termSet;

@@ -248,7 +248,7 @@ private:
                       bool firstTime = true);
   /** for checking if we should apply the instantiate rule */
   void checkInstantiate();
-  /** 
+  /**
    * Applying splitting.
    *
    * This checks if we should add a splitting inference for datatype terms
