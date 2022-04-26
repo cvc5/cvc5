@@ -366,8 +366,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = rew.size()==0 ? d_true :
-                ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
+      nn = NodeManager::currentNM()->mkAnd(rew );
     }
     if (in != nn)
     {
@@ -1224,14 +1223,22 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   const DType& dt = ttn.getDType();
   // instantiate this equivalence class
   eqc->d_inst = true;
+  // TODO: check if necessary based on existing selectors!!!
   Node tt_cons = getInstantiateCons(tt, dt, index);
-  Node eq;
   if (tt == tt_cons)
   {
     // not necessary
     return false;
   }
-  eq = tt.eqNode(tt_cons);
+  std::vector<Node> concs;
+  if (tt.getKind()==APPLY_CONSTRUCTOR)
+  {
+    utils::checkClash(tt, tt_cons, concs);
+  }
+  else
+  {
+    concs.push_back(tt.eqNode(tt_cons));
+  }
   // Determine if the equality must be sent out as a lemma. Notice that
   // we  keep new equalities from the instantiate rule internal
   // as long as they are for datatype constructors that have no arguments that
@@ -1250,11 +1257,14 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   {
     forceLemma = dt.involvesExternalType();
   }
-  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
+  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << concs
                                  << " forceLemma = " << forceLemma << std::endl;
-  Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
+  Trace("datatypes-infer") << "DtInfer : instantiate : " << concs << " by " << exp
                            << std::endl;
-  d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
+  for (const Node& eq : concs)
+  {
+    d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
+  }
   return true;
 }
 
