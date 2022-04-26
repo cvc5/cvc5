@@ -3222,12 +3222,20 @@ foreach(tester ${testers})
 endforeach()
 
 macro(cvc5_add_regression_test level file)
+  set(wrapper )
+  if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    # Make wineserver persistent for 60 seconds (this is for better
+    # performance)
+    set(wrapper "wine -p=60")
+  endif()
+
   add_test(${file}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    ${path_to_cvc5}/cvc5
+    ${wrapper}
+    ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
 
