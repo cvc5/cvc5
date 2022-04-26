@@ -16,7 +16,6 @@
 #include "theory/quantifiers/inst_match.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_registry.h"
 
