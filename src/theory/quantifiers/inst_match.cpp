@@ -52,7 +52,7 @@ void InstMatch::toStream(std::ostream& out) const
 {
   out << "INST_MATCH( ";
   bool printed = false;
-  for (unsigned i = 0; i < d_vals.size(); i++)
+  for (size_t i = 0, size = d_vals.size(); i < size; i++)
   {
     if (!d_vals[i].isNull())
     {
