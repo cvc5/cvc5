@@ -442,7 +442,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
-            AletheRule::RESOLUTION_OR, res, children, args, *cdp);
+            AletheRule::RESOLUTION_OR, res, children, 
+	   options::proofAletheResPivots()
+              ? args
+              : {};
+, *cdp);
       }
       return addAletheStep(AletheRule::RESOLUTION_OR,
                            res,
@@ -1224,6 +1228,10 @@ bool AletheProofPostprocessCallback::update(Node res,
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
+    }
+    case PfRule::BV_BITBLAST_STEP:
+    {
+      return addAletheStep(AletheRule::BV_BITBLAST_STEP, res, nm->mkNode(kind::SEXPR,d_cl,res),children,args,*cdp);
     }
     //================================================= Quantifiers rules
     // ======== Skolem intro

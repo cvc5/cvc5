@@ -407,6 +407,8 @@ enum class AletheRule : uint32_t
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
   REORDERING,
+  // ======== bitvector
+  BV_BITBLAST_STEP,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
