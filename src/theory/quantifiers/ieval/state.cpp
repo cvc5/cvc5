@@ -342,7 +342,8 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     Assert(it != d_pInfo.end());
     p = it->second.d_pattern;
     g = it->second.d_eq;
-    Trace("ieval-state-debug") << "process notifications (" << p << ", " << g << ")" << std::endl;
+    Trace("ieval-state-debug")
+        << "process notifications (" << p << ", " << g << ")" << std::endl;
     Assert(!g.isNull());
     context::CDList<Node>& notifyList = it->second.d_parentNotify;
     for (TNode pp : notifyList)
@@ -382,7 +383,7 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
   }
   Assert(!val.isNull());
   Assert(val.getType().isBoolean());
-  if (!val.isConst() && val!=d_none)
+  if (!val.isConst() && val != d_none)
   {
     // in the rare case that we evaluate to non-constant, we treat this as
     // "some" here instead. This can happen if a term is congruent to an

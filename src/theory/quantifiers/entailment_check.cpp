@@ -344,7 +344,7 @@ bool EntailmentCheck::isEntailed2(TNode n,
   }
   else if (k == EQUAL || k == ITE)
   {
-    Assert (n[0].getType().isBoolean());
+    Assert(n[0].getType().isBoolean());
     for (size_t i = 0; i < 2; i++)
     {
       if (isEntailed2(n[0], subs, subsRep, i == 0))
@@ -369,7 +369,7 @@ bool EntailmentCheck::isEntailed2(TNode n,
       n1 = d_qstate.getRepresentative(n1);
       if (n1.isConst())
       {
-        return n1.getConst<bool>()==pol;
+        return n1.getConst<bool>() == pol;
       }
     }
   }
