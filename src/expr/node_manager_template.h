@@ -81,18 +81,6 @@ class NodeManager
    */
   static bool isNAryKind(Kind k);
 
-  /**
-   * Returns a node representing the operator of this `TypeNode`.
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these) have an
-   * operator. "Little-p parameterized" types (like Array), are OPERATORs, not
-   * PARAMETERIZEDs.
-   */
-  static Node operatorFromType(const TypeNode& tn)
-  {
-    Assert(tn.getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(tn.d_nv->getOperator());
-  }
-
   /** The node manager in the current public-facing cvc5 library context */
   static NodeManager* currentNM();
 
