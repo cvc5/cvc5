@@ -529,12 +529,13 @@ TrustNode TheoryDatatypes::explain(TNode literal)
 }
 
 /** called when a new equivalance class is created */
-void TheoryDatatypes::eqNotifyNewClass(TNode n){
+void TheoryDatatypes::eqNotifyNewClass(TNode n)
+{
   Kind nk = n.getKind();
   if (nk == APPLY_CONSTRUCTOR)
   {
     Trace("datatypes") << "  Found constructor " << n << endl;
-    getOrMakeEqcInfo( n, true );
+    getOrMakeEqcInfo(n, true);
     if (n.getNumChildren() > 0)
     {
       d_functionTerms.push_back(n);
@@ -1500,17 +1501,17 @@ void TheoryDatatypes::checkInstantiate()
     return;
   }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
-  while( !eqcs_i.isFinished() )
+  while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
     ++eqcs_i;
-    Trace("datatypes-infer")  << "Look at " << eqc << std::endl;
+    Trace("datatypes-infer") << "Look at " << eqc << std::endl;
     TypeNode tn = eqc.getType();
     if (!tn.isDatatype())
     {
       continue;
     }
-    EqcInfo* ei = getOrMakeEqcInfo( eqc );
+    EqcInfo* ei = getOrMakeEqcInfo(eqc);
     instantiate(ei, eqc);
   }
 }
