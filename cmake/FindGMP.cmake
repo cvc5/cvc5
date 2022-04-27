@@ -83,6 +83,8 @@ if(NOT GMP_FOUND_SYSTEM)
           --enable-cxx
           --host=${TOOLCHAIN_PREFIX}
           --build=${CMAKE_HOST_SYSTEM_PROCESSOR}
+          --enable-fat
+          gmp_cv_asm_x86_mulx=no
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
