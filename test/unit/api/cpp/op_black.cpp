@@ -23,6 +23,12 @@ class TestApiBlackOp : public TestApi
 {
 };
 
+TEST_F(TestApiBlackOp, hash)
+{
+  std::hash<cvc5::Op> h;
+  EXPECT_NO_THROW(h(d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1})));
+}
+
 TEST_F(TestApiBlackOp, getKind)
 {
   Op x;
