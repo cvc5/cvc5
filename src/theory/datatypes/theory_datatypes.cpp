@@ -396,7 +396,7 @@ void TheoryDatatypes::postCheck(Effort level)
           }
           if (!options().datatypes.dtBlastSplits)
           {
-            return;
+            break;
           }
         }
       }
