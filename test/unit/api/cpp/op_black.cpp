@@ -173,6 +173,11 @@ TEST_F(TestApiBlackOp, opScopingToString)
   std::string op_repr = bitvector_repeat_ot.toString();
   Solver solver2;
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);
+  {
+    std::stringstream ss;
+    ss << bitvector_repeat_ot;
+    EXPECT_EQ(ss.str(), op_repr);
+  }
 }
 }  // namespace test
 }  // namespace cvc5::internal
