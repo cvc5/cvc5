@@ -24,7 +24,7 @@ int main(void)
 {
   if (!internal::Configuration::isBuiltWithPoly())
   {
-    return;
+    return 0;
   }
   Solver slv;
   slv.setLogic("QF_UFNRA");

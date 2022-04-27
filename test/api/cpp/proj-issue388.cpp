@@ -24,7 +24,7 @@ int main(void)
 {
   if (!internal::Configuration::isBuiltWithPoly())
   {
-    return;
+    return 0;
   }
   { // Original
     Solver slv;
