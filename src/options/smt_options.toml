@@ -26,6 +26,14 @@ name   = "SMT Layer"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
 [[option]]
+  name       = "simplificationBoolConstProp"
+  category   = "regular"
+  long       = "simplification-bcp"
+  type       = "bool"
+  default    = "false"
+  help       = "apply Boolean constant propagation as a substituion during simplification"
+
+[[option]]
   name       = "doStaticLearning"
   category   = "regular"
   long       = "static-learning"

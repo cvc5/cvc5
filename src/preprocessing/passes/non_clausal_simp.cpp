@@ -229,7 +229,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             c = learnedLiteral[1];
           }
         }
-        else
+        else if (options().smt.simplificationBoolConstProp)
         {
           // From non-equalities, learn the Boolean equality. Notice that
           // the equality case above is strictly more powerful that this, since
@@ -238,22 +238,28 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           c = nm->mkConst(pol);
           t = pol ? learnedLiteral : learnedLiteral[0];
         }
-        Assert(!t.isConst());
-        Assert(rewrite(cps.apply(t)) == t);
-        Assert(top_level_substs.apply(t) == t);
-        Assert(nss.apply(t) == t);
-        // also add to learned literal
-        ProofGenerator* cpg =
-            constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
-        // We need to justify (= t c) as a literal, since it is reasserted
-        // to the assertion pipeline below. We do this with the proof
-        // generator returned by the above call.
-        if (isProofEnabled())
+        if (!t.isNull())
         {
-          d_llpg->notifyNewAssert(t.eqNode(c), cpg);
+          Assert(!t.isConst());
+          Assert(rewrite(cps.apply(t)) == t);
+          Assert(top_level_substs.apply(t) == t);
+          Assert(nss.apply(t) == t);
+          // also add to learned literal
+          ProofGenerator* cpg =
+              constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
+          // We need to justify (= t c) as a literal, since it is reasserted
+          // to the assertion pipeline below. We do this with the proof
+          // generator returned by the above call.
+          if (isProofEnabled())
+          {
+            d_llpg->notifyNewAssert(t.eqNode(c), cpg);
+          }
         }
-        // Keep the learned literal
-        learned_literals[j++] = learned_literals[i];
+        else
+        {
+          // Keep the learned literal
+          learned_literals[j++] = learned_literals[i];
+        }
         // Its a literal that could not be processed as a substitution or
         // conflict. In this case, we notify the context of the learned
         // literal, which will process it with the learned literal manager.
