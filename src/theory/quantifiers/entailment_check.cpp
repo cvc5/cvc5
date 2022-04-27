@@ -364,6 +364,7 @@ bool EntailmentCheck::isEntailed2(TNode n,
   }
   else if (k == BOUND_VARIABLE || k == APPLY_UF)
   {
+    // handles APPLY_UF, Boolean variable cases
     TNode n1 = getEntailedTerm2(n, subs, subsRep);
     if (!n1.isNull())
     {

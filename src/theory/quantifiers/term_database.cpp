@@ -366,6 +366,7 @@ void TermDb::computeUfTerms( TNode f ) {
       Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
       std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
       size_t rsize = reps.size();
+      // ensure the relevant domain vector has been allocated
       frds.resize(rsize);
       for (size_t i = 0; i < rsize; i++)
       {
