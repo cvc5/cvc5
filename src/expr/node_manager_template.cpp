@@ -869,16 +869,12 @@ TypeNode NodeManager::mkRecordType(const Record& rec)
 TypeNode NodeManager::mkSort()
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder(this, kind::SORT_TAG);
-  nb << sortTag;
   return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSort(const std::string& name)
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder(this, kind::SORT_TAG);
-  nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
   return tn;
@@ -907,8 +903,6 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
 {
   Assert(arity > 0);
   NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder(this, kind::SORT_TAG);
-  nb << sortTag;
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
