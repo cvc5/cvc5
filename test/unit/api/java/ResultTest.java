@@ -59,7 +59,7 @@ class ResultTest
     Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
-    Result res;
+    Result res = null;
     Result res2 = d_solver.checkSat();
     Result res3 = d_solver.checkSat();
     assertTrue(res != res2);
