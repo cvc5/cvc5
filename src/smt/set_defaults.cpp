@@ -387,7 +387,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
     {
       std::stringstream ss;
-      ss << reasonNoSepLogic.str() << " not supported when using separation logic.";
+      ss << reasonNoSepLogic.str()
+         << " not supported when using separation logic.";
       throw OptionException(ss.str());
     }
   }
@@ -1285,8 +1286,8 @@ bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
   return false;
 }
 
-
-bool SetDefaults::incompatibleWithSeparationLogic(Options& opts, std::ostream& reason) const
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
+                                                  std::ostream& reason) const
 {
   if (options().smt.simplificationBoolConstProp)
   {

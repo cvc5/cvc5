@@ -245,8 +245,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
           // also add to learned literal
-          ProofGenerator* cpg =
-              constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
+          ProofGenerator* cpg = constantPropagations->addSubstitutionSolved(
+              t, c, tlearnedLiteral);
           // We need to justify (= t c) as a literal, since it is reasserted
           // to the assertion pipeline below. We do this with the proof
           // generator returned by the above call.
