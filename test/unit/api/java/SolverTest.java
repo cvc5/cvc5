@@ -1684,6 +1684,7 @@ class SolverTest
   @Test
   void getStatistics()
   {
+    assertDoesNotThrow(new Stat());
     // do some array reasoning to make sure we have a double statistics
     {
       Sort s1 = d_solver.getIntegerSort();

@@ -62,9 +62,11 @@ class ResultTest
     Result res;
     Result res2 = d_solver.checkSat();
     Result res3 = d_solver.checkSat();
+    assertTrue(res != res2);
     res = res2;
     assertEquals(res, res2);
     assertEquals(res3, res2);
+    assertEquals(res.toString(), "sat");
   }
 
   @Test
@@ -101,5 +103,8 @@ class ResultTest
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
     assertTrue(res.isUnknown());
+    UnknownExplanation ue = res.getUnknownExplanation();
+    assertEquals(ue, UnknownExplanation.UNKNOWN_REASON);
+    assertEquals(ue.toString(), "UNKNOWN_REASON");
   }
 }
