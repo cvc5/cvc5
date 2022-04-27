@@ -73,6 +73,7 @@ const char* toString(Resource r)
   switch (r)
   {
     case Resource::ArithPivotStep: return "ArithPivotStep";
+    case Resource::ArithNlCoveringStep: return "ArithNlCoveringStep";
     case Resource::ArithNlLemmaStep: return "ArithNlLemmaStep";
     case Resource::BitblastStep: return "BitblastStep";
     case Resource::BvEagerAssertStep: return "BvEagerAssertStep";

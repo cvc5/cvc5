@@ -73,6 +73,7 @@ class WallClockTimer
 enum class Resource
 {
   ArithPivotStep,
+  ArithNlCoveringStep,
   ArithNlLemmaStep,
   BitblastStep,
   BvEagerAssertStep,
