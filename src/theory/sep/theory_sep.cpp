@@ -1782,8 +1782,6 @@ void TheorySep::mergePto( Node p1, Node p2 ) {
   Trace("sep-lemma-debug") << "Merge pto " << p1 << " " << p2 << std::endl;
   Assert(p1.getKind() == kind::SEP_LABEL && p1[0].getKind() == kind::SEP_PTO);
   Assert(p2.getKind() == kind::SEP_LABEL && p2[0].getKind() == kind::SEP_PTO);
-  // should have the same label
-  Assert(p1[1] == p2[1]);
   if( !areEqual( p1[0][1], p2[0][1] ) ){
     std::vector< Node > exp;
     if( p1[1]!=p2[1] ){
