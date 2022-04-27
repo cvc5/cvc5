@@ -27,7 +27,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "simplificationBoolConstProp"
-  category   = "regular"
+  category   = "expert"
   long       = "simplification-bcp"
   type       = "bool"
   default    = "false"
