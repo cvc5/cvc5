@@ -21,16 +21,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstMatch::InstMatch(TNode q)
+InstMatch::InstMatch(TNode q) : d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
   // resize must initialize with null nodes
   Assert(d_vals[0].isNull());
-}
-
-InstMatch::InstMatch( InstMatch* m ) {
-  d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
 }
 
 void InstMatch::add(InstMatch& m)
@@ -52,8 +48,28 @@ void InstMatch::debugPrint( const char* c ){
   }
 }
 
-bool InstMatch::isComplete() {
-  for (Node& v : d_vals)
+void InstMatch::toStream(std::ostream& out) const
+{
+  out << "INST_MATCH( ";
+  bool printed = false;
+  for (size_t i = 0, size = d_vals.size(); i < size; i++)
+  {
+    if (!d_vals[i].isNull())
+    {
+      if (printed)
+      {
+        out << ", ";
+      }
+      out << i << " -> " << d_vals[i];
+      printed = true;
+    }
+  }
+  out << " )";
+}
+
+bool InstMatch::isComplete() const
+{
+  for (const Node& v : d_vals)
   {
     if (v.isNull())
     {
@@ -63,8 +79,9 @@ bool InstMatch::isComplete() {
   return true;
 }
 
-bool InstMatch::empty() {
-  for (Node& v : d_vals)
+bool InstMatch::empty() const
+{
+  for (const Node& v : d_vals)
   {
     if (!v.isNull())
     {
@@ -91,15 +108,27 @@ void InstMatch::setValue(size_t i, TNode n)
   Assert(i < d_vals.size());
   d_vals[i] = n;
 }
+
 bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
 {
   Assert(i < d_vals.size());
-  if( !d_vals[i].isNull() ){
+  if (!d_vals[i].isNull())
+  {
+    // if they are equal, we do nothing
     return qs.areEqual(d_vals[i], n);
   }
+  // otherwise, we update the value
   d_vals[i] = n;
   return true;
 }
+
+void InstMatch::reset(size_t i)
+{
+  Assert(!d_vals[i].isNull());
+  d_vals[i] = Node::null();
+}
+
+std::vector<Node>& InstMatch::get() { return d_vals; }
 
 }  // namespace quantifiers
 }  // namespace theory

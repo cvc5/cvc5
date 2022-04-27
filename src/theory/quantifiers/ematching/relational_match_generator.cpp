@@ -114,7 +114,7 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
       // failed
       if (rmPrev)
       {
-        m.d_vals[d_vindex] = Node::null();
+        m.reset(d_vindex);
       }
     }
   }

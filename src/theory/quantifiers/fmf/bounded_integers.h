@@ -193,7 +193,7 @@ private:
    * bound, z has a finite bound assuming x has a finite bound, and y does not
    * have a finite bound.
    */
-  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
+  void getBoundVarIndices(Node q, std::vector<size_t>& indices) const;
   /**
    * Get bound elements
    *
