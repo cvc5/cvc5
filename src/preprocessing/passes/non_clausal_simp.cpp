@@ -211,12 +211,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         return PreprocessingPassResult::CONFLICT;
       }
       default:
+        TNode t;
+        TNode c;
         if (learnedLiteral.getKind() == kind::EQUAL
             && (learnedLiteral[0].isConst() || learnedLiteral[1].isConst()))
         {
           // constant propagation
-          TNode t;
-          TNode c;
           if (learnedLiteral[0].isConst())
           {
             t = learnedLiteral[1];
@@ -227,26 +227,29 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             t = learnedLiteral[0];
             c = learnedLiteral[1];
           }
-          Assert(!t.isConst());
-          Assert(rewrite(cps.apply(t)) == t);
-          Assert(top_level_substs.apply(t) == t);
-          Assert(nss.apply(t) == t);
-          // also add to learned literal
-          ProofGenerator* cpg = constantPropagations->addSubstitutionSolved(
-              t, c, tlearnedLiteral);
-          // We need to justify (= t c) as a literal, since it is reasserted
-          // to the assertion pipeline below. We do this with the proof
-          // generator returned by the above call.
-          if (isProofEnabled())
-          {
-            d_llpg->notifyNewAssert(t.eqNode(c), cpg);
-          }
         }
         else
         {
-          // Keep the literal
-          learned_literals[j++] = learned_literals[i];
+          bool pol = learnedLiteral.getKind() != kind::NOT;
+          c = nm->mkConst(pol);
+          t = pol ? learnedLiteral : learnedLiteral[0];
         }
+        Assert(!t.isConst());
+        Assert(rewrite(cps.apply(t)) == t);
+        Assert(top_level_substs.apply(t) == t);
+        Assert(nss.apply(t) == t);
+        // also add to learned literal
+        ProofGenerator* cpg = constantPropagations->addSubstitutionSolved(
+            t, c, tlearnedLiteral);
+        // We need to justify (= t c) as a literal, since it is reasserted
+        // to the assertion pipeline below. We do this with the proof
+        // generator returned by the above call.
+        if (isProofEnabled())
+        {
+          d_llpg->notifyNewAssert(t.eqNode(c), cpg);
+        }
+        // Keep the learned literal
+        learned_literals[j++] = learned_literals[i];
         // Its a literal that could not be processed as a substitution or
         // conflict. In this case, we notify the context of the learned
         // literal, which will process it with the learned literal manager.
