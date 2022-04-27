@@ -40,8 +40,9 @@ TEST_F(TestApiBlackOp, isNull)
 {
   Op x;
   ASSERT_TRUE(x.isNull());
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
-  ASSERT_FALSE(x.isNull());
+  Op y = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
+  ASSERT_FALSE(y.isNull());
+  EXPECT_NE(x, y);
 }
 
 TEST_F(TestApiBlackOp, opFromKind)
