@@ -227,7 +227,8 @@ void TheoryDatatypes::postCheck(Effort level)
       std::map<TypeNode, Node> rec_singletons;
       for (const Node& n : termSetReps)
       {
-        Trace("datatypes-debug") << "Process equivalence class " << n << std::endl;
+        Trace("datatypes-debug")
+            << "Process equivalence class " << n << std::endl;
         EqcInfo* eqc = getOrMakeEqcInfo(n);
         // if there are more than 1 possible constructors for eqc
         if (hasLabel(eqc, n))
@@ -239,12 +240,13 @@ void TheoryDatatypes::postCheck(Effort level)
         Trace("datatypes-debug") << "No constructor..." << std::endl;
         TypeNode tn = n.getType();
         const DType& dt = tn.getDType();
-        Trace("datatypes-debug")
-            << "Datatype " << dt.getName() << " is " << dt.getCardinalityClass(tn)
-            << " " << dt.isRecursiveSingleton(tn) << std::endl;
+        Trace("datatypes-debug") << "Datatype " << dt.getName() << " is "
+                                 << dt.getCardinalityClass(tn) << " "
+                                 << dt.isRecursiveSingleton(tn) << std::endl;
         if (dt.isRecursiveSingleton(tn))
         {
-          Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
+          Trace("datatypes-debug")
+              << "Check recursive singleton..." << std::endl;
           bool isQuantifiedLogic = logicInfo().isQuantified();
           // handle recursive singleton case
           std::map<TypeNode, Node>::iterator itrs = rec_singletons.find(tn);
@@ -257,19 +259,21 @@ void TheoryDatatypes::postCheck(Effort level)
               // get assumptions
               bool success = true;
               std::vector<Node> assumptions;
-              // if there is at least one uninterpreted sort occurring within the
-              // datatype and the logic is not quantified, add lemmas ensuring
-              // cardinality is more than one,
+              // if there is at least one uninterpreted sort occurring within
+              // the datatype and the logic is not quantified, add lemmas
+              // ensuring cardinality is more than one,
               //  do not infer the equality if at least one sort was processed.
-              // otherwise, if the logic is quantified, under the assumption that
-              // all uninterpreted sorts have cardinality one,
+              // otherwise, if the logic is quantified, under the assumption
+              // that all uninterpreted sorts have cardinality one,
               //  infer the equality.
-              for (size_t i = 0; i < dt.getNumRecursiveSingletonArgTypes(tn); i++)
+              for (size_t i = 0; i < dt.getNumRecursiveSingletonArgTypes(tn);
+                   i++)
               {
                 TypeNode type = dt.getRecursiveSingletonArgType(tn, i);
                 if (isQuantifiedLogic)
                 {
-                  // under the assumption that the cardinality of this type is one
+                  // under the assumption that the cardinality of this type is
+                  // one
                   Node a = getSingletonLemma(type, true);
                   assumptions.push_back(a.negate());
                 }
@@ -288,8 +292,9 @@ void TheoryDatatypes::postCheck(Effort level)
                     assumptions.size() == 1
                         ? assumptions[0]
                         : NodeManager::currentNM()->mkNode(OR, assumptions);
-                Trace("dt-singleton") << "*************Singleton equality lemma "
-                                      << lemma << std::endl;
+                Trace("dt-singleton")
+                    << "*************Singleton equality lemma " << lemma
+                    << std::endl;
                 d_im.lemma(lemma, InferenceId::DATATYPES_REC_SINGLETON_EQ);
               }
             }
@@ -332,7 +337,8 @@ void TheoryDatatypes::postCheck(Effort level)
           // on those that are interpreted-finite when finite model
           // finding is disabled, but as a heuristic we choose to split
           // on those too.
-          bool ifin = dt[j].getCardinalityClass(tn) != CardinalityClass::INFINITE;
+          bool ifin =
+              dt[j].getCardinalityClass(tn) != CardinalityClass::INFINITE;
           Trace("datatypes-debug") << "...returned " << ifin << std::endl;
           if (!ifin)
           {
@@ -350,8 +356,8 @@ void TheoryDatatypes::postCheck(Effort level)
         if (!needSplit)
         {
           Trace("dt-split-debug")
-              << "Do not split constructor for " << n << " : " << n.getType() << " "
-              << dt.getNumConstructors() << std::endl;
+              << "Do not split constructor for " << n << " : " << n.getType()
+              << " " << dt.getNumConstructors() << std::endl;
           continue;
         }
         if (dt.getNumConstructors() == 1)
@@ -380,10 +386,11 @@ void TheoryDatatypes::postCheck(Effort level)
           }
           else
           {
-            Trace("dt-split") << "*************Split for constructors on " << n
-                              << endl;
+            Trace("dt-split")
+                << "*************Split for constructors on " << n << endl;
             Node lemma = utils::mkSplit(n, dt);
-            Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
+            Trace("dt-split-debug")
+                << "Split lemma is : " << lemma << std::endl;
             d_im.sendDtLemma(
                 lemma, InferenceId::DATATYPES_SPLIT, LemmaProperty::SEND_ATOMS);
           }
