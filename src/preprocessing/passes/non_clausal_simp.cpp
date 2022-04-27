@@ -231,6 +231,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         }
         else
         {
+          // From non-equalities, learn the Boolean equality. Notice that
+          // the equality case above is strictly more powerful that this, since
+          // e.g. (= t c) * { t -> c } also simplifies to true.
           bool pol = learnedLiteral.getKind() != kind::NOT;
           c = nm->mkConst(pol);
           t = pol ? learnedLiteral : learnedLiteral[0];
