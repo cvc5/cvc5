@@ -45,6 +45,7 @@ def test_eq(solver):
     solver.assertFormula(x.eqTerm(x))
     res2 = solver.checkSat()
     res3 = solver.checkSat()
+    res = Result()
     assert res != res2
     res = res2
     assert res == res2
@@ -82,4 +83,4 @@ def test_is_sat_unknown(solver):
     assert res.isUnknown()
     ue = res.getUnknownExplanation()
     assert ue == UnknownExplanation.UNKNOWN_REASON
-    assert str(ue) == "UNKNOWN_REASON"
+    assert str(ue) == "UnknownExplanation.UNKNOWN_REASON"
