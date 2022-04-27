@@ -140,9 +140,9 @@ private:
   Node d_conflictNode;
   /**
    * User-context dependent cache for which terms we have called
-   * collectTerms(...) on.
+   * registerInitialLemmas(...) on.
    */
-  BoolMap d_collectTermsCacheU;
+  BoolMap d_initialLemmaCache;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionTerms;
   /** uninterpreted constant to variable map */
@@ -236,8 +236,11 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
-  /** do initial lemmas, e.g. for dt.size */
-  void doInitialLemma(Node n);
+  /** 
+   * Register initial lemmas. This adds pending lemmas on the inference manager
+   * corresponding to unit lemmas for e.g. dt.size.
+   */
+  void registerInitialLemmas(Node n);
   /** for checking if cycles exist */
   void checkCycles();
   Node searchForCycle(TNode n,

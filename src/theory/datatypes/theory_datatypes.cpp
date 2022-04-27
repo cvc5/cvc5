@@ -56,7 +56,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_term_sk(userContext()),
       d_labels(context()),
       d_selector_apps(context()),
-      d_collectTermsCacheU(userContext()),
+      d_initialLemmaCache(userContext()),
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
@@ -336,7 +336,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     break;
   default:
     // do initial lemmas (e.g. for dt.size)
-    doInitialLemma(n);
+    registerInitialLemmas(n);
     // Function applications/predicates
     d_equalityEngine->addTerm(n);
     if (d_sygusExtension)
@@ -406,50 +406,6 @@ void TheoryDatatypes::eqNotifyNewClass(TNode n)
     EqcInfo* eqc = getOrMakeEqcInfo(rep, true);
     // add it to the eqc info
     addSelector(n, eqc, rep);
-  }
-}
-
-void TheoryDatatypes::doInitialLemma(Node n)
-{
-  if (d_collectTermsCacheU.find(n) != d_collectTermsCacheU.end())
-  {
-    return;
-  }
-  d_collectTermsCacheU[n] = true;
-
-  NodeManager* nm = NodeManager::currentNM();
-  Kind nk = n.getKind();
-  if (nk == DT_SIZE)
-  {
-    Node lem = nm->mkNode(LEQ, d_zero, n);
-    Trace("datatypes-infer")
-        << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
-  }
-  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
-  {
-    std::vector<Node> children;
-    const DType& dt = n[0].getType().getDType();
-    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
-    {
-      if (utils::isNullaryConstructor(dt[i]))
-      {
-        Node test = utils::mkTester(n[0], i, dt);
-        children.push_back(test);
-      }
-    }
-    Node lem;
-    if (children.empty())
-    {
-      lem = n.negate();
-    }
-    else
-    {
-      lem = n.eqNode(children.size() == 1 ? children[0]
-                                          : nm->mkNode(OR, children));
-    }
-    Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::DATATYPES_HEIGHT_ZERO);
   }
 }
 
@@ -1185,6 +1141,50 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   }
 }
 
+void TheoryDatatypes::registerInitialLemmas(Node n)
+{
+  if (d_initialLemmaCache.find(n) != d_initialLemmaCache.end())
+  {
+    return;
+  }
+  d_initialLemmaCache[n] = true;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Kind nk = n.getKind();
+  if (nk == DT_SIZE)
+  {
+    Node lem = nm->mkNode(LEQ, d_zero, n);
+    Trace("datatypes-infer")
+        << "DtInfer : size geq zero : " << lem << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
+  }
+  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
+  {
+    std::vector<Node> children;
+    const DType& dt = n[0].getType().getDType();
+    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      if (utils::isNullaryConstructor(dt[i]))
+      {
+        Node test = utils::mkTester(n[0], i, dt);
+        children.push_back(test);
+      }
+    }
+    Node lem;
+    if (children.empty())
+    {
+      lem = n.negate();
+    }
+    else
+    {
+      lem = n.eqNode(children.size() == 1 ? children[0]
+                                          : nm->mkNode(OR, children));
+    }
+    Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::DATATYPES_HEIGHT_ZERO);
+  }
+}
+
 Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
 {
   if( n.getKind()==APPLY_CONSTRUCTOR && n.getNumChildren()==0 ){
@@ -1193,7 +1193,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
   Node n_ic = utils::getInstCons(k, dt, index);
-  Assert(n_ic == rewrite(n_ic));
+  Assert (n_ic == rewrite(n_ic));
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
 }
