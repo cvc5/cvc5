@@ -116,6 +116,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
+  NodeManager * nm = NodeManager::currentNM();
   context::Context* u = userContext();
   Rewriter* rw = d_env.getRewriter();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
@@ -173,7 +174,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Trace("non-clausal-simplify")
             << "conflict with " << learned_literals[i].getNode() << std::endl;
         assertionsToPreprocess->clear();
-        Node n = NodeManager::currentNM()->mkConst<bool>(false);
+        Node n = nm->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n, false, false, d_llpg.get());
         return PreprocessingPassResult::CONFLICT;
       }
@@ -206,7 +207,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Trace("non-clausal-simplify")
             << "conflict while solving " << learnedLiteral << std::endl;
         assertionsToPreprocess->clear();
-        Node n = NodeManager::currentNM()->mkConst<bool>(false);
+        Node n = nm->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -403,7 +404,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   if (!learnedLitsToConjoin.empty())
   {
     size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
-    Node newConj = NodeManager::currentNM()->mkAnd(learnedLitsToConjoin);
+    Node newConj = nm->mkAnd(learnedLitsToConjoin);
     Trace("non-clausal-simplify")
         << "non-clausal simplification, reassert: " << newConj << std::endl;
     ProofGenerator* pg = nullptr;
