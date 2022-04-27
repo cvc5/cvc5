@@ -62,6 +62,7 @@ std::vector<TNode> PartitionGenerator::collectDecisionLiterals()
   for (const Node& n : decisionNodes)
   {
     Node originalN = SkolemManager::getOriginalForm(n);
+    modes::LearnedLitType litType = d_valuation->d_zll->computeLearnedLiteralType(n);
 
     // If the literal is the not of some node, do the checks for the child
     // of the not instead of the not itself.
