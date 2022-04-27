@@ -1669,6 +1669,7 @@ TEST_F(TestApiBlackSolver, getDriverOptions)
   
 TEST_F(TestApiBlackSolver, getStatistics)
 {
+  EXPECT_NO_THROW(cvc5::Stat());
   // do some array reasoning to make sure we have a double statistics
   {
     Sort s1 = d_solver.getIntegerSort();
