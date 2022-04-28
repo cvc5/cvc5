@@ -81,12 +81,16 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 {
   Assert(rewriter::isAtom(atom));
 
-  if (auto response = rewriter::tryEvaluateRelationReflexive(atom); response)
+  Kind kind = atom.getKind();
+  if (atom.getNumChildren()==2)
   {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
+    if (auto response = rewriter::tryEvaluateRelationReflexive(kind, atom[0], atom[1]); response)
+    {
+      return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
+    }
   }
 
-  switch (atom.getKind())
+  switch (kind)
   {
     case Kind::GT:
       return RewriteResponse(
@@ -144,16 +148,16 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
             nm->mkNode(kind::INTS_MODULUS_TOTAL, atom[0], rewriter::mkConst(k)),
             rewriter::mkConst(Integer(0))));
   }
-
-  if (auto response = rewriter::tryEvaluateRelationReflexive(atom); response)
-  {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
-  }
-
   // left |><| right
   Kind kind = atom.getKind();
   TNode left = removeToReal(atom[0]);
   TNode right = removeToReal(atom[1]);
+
+  if (auto response = rewriter::tryEvaluateRelationReflexive(kind, left, right); response)
+  {
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
+  }
+
   Assert(kind == kind::EQUAL || isRelationOperator(kind));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
@@ -512,8 +516,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
   Assert(t.getKind() == kind::DIVISION_TOTAL || t.getKind() == kind::DIVISION);
   Assert(t.getNumChildren() == 2);
 
-  Node left = t[0];
-  Node right = t[1];
+  Node left = removeToReal(t[0]);
+  Node right = removeToReal(t[1]);
   NodeManager* nm = NodeManager::currentNM();
   if (right.isConst())
   {
@@ -582,7 +586,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
       return RewriteResponse(REWRITE_AGAIN, mult);
     }
   }
-  return RewriteResponse(REWRITE_DONE, t);
+  Node ret = nm->mkNode(t.getKind(), left, right);
+  return RewriteResponse(REWRITE_DONE, ret);
 }
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
@@ -591,12 +596,20 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
+  if (t.getKind()==kind::CAST_TO_REAL)
+  {
+    // now, we make it explicit
+    NodeManager* nm = NodeManager::currentNM();
+    return RewriteResponse(REWRITE_DONE, nm->mkNode(kind::TO_REAL, t[0]));
+  }
+  /*
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
   {
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
+  */
   return RewriteResponse(REWRITE_DONE, t);
 }
 
