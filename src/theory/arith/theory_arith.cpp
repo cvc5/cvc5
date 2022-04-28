@@ -121,7 +121,8 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { 
+void TheoryArith::notifySharedTerm(TNode n)
+{
   n = n.getKind() == kind::TO_REAL ? n[0] : n;
   d_internal->notifySharedTerm(n);
 }

@@ -55,11 +55,10 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
       throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
     }
     TypeNode elseType = n[2].getType(check);
-    if (thenType!=elseType)
+    if (thenType != elseType)
     {
       std::stringstream ss;
-      ss << "Both branches of the ITE must be the same type."
-         << std::endl
+      ss << "Both branches of the ITE must be the same type." << std::endl
          << "then branch: " << n[1] << std::endl
          << "its type   : " << thenType << std::endl
          << "else branch: " << n[2] << std::endl

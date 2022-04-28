@@ -226,7 +226,9 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
   return {};
 }
 
-std::optional<bool> tryEvaluateRelationReflexive(Kind rel, TNode left, TNode right)
+std::optional<bool> tryEvaluateRelationReflexive(Kind rel,
+                                                 TNode left,
+                                                 TNode right)
 {
   if (left == right)
   {

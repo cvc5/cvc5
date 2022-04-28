@@ -82,9 +82,11 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
   Assert(rewriter::isAtom(atom));
 
   Kind kind = atom.getKind();
-  if (atom.getNumChildren()==2)
+  if (atom.getNumChildren() == 2)
   {
-    if (auto response = rewriter::tryEvaluateRelationReflexive(kind, atom[0], atom[1]); response)
+    if (auto response =
+            rewriter::tryEvaluateRelationReflexive(kind, atom[0], atom[1]);
+        response)
     {
       return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
     }
@@ -153,7 +155,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   TNode left = removeToReal(atom[0]);
   TNode right = removeToReal(atom[1]);
 
-  if (auto response = rewriter::tryEvaluateRelationReflexive(kind, left, right); response)
+  if (auto response = rewriter::tryEvaluateRelationReflexive(kind, left, right);
+      response)
   {
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
@@ -596,7 +599,7 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
-  if (t.getKind()==kind::CAST_TO_REAL)
+  if (t.getKind() == kind::CAST_TO_REAL)
   {
     // now, we make it explicit
     NodeManager* nm = NodeManager::currentNM();
