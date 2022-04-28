@@ -1131,10 +1131,12 @@ TrustNode ArithRewriter::expandDefinition(Node node)
 Node ArithRewriter::removeToReal(TNode t)
 {
   Kind k = t.getKind();
+  /*
   if (k == CONST_INTEGER)
   {
     return NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
   }
+  */
   return k == kind::TO_REAL ? t[0] : t;
 }
 

@@ -94,6 +94,10 @@ inline Node mkConst(const Integer& value)
 /** Create an integer or rational constant node */
 inline Node mkConst(const Rational& value)
 {
+  if (value.isIntegral())
+  {
+    return NodeManager::currentNM()->mkConstInt(value);
+  }
   return NodeManager::currentNM()->mkConstReal(value);
 }
 /** Create a real algebraic number node */
