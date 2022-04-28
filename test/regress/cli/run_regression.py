@@ -722,9 +722,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
+    tester_choices = ["all"] + list(g_testers.keys())
     parser.add_argument("--use-skip-return-code", action="store_true")
     parser.add_argument("--skip-timeout", action="store_true")
-    parser.add_argument("--tester", choices=g_testers.keys(), action="append")
+    parser.add_argument("--tester", choices=tester_choices, action="append")
     parser.add_argument("--lfsc-binary", default="")
     parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
@@ -750,6 +751,8 @@ def main():
     testers = g_args.tester
     if not testers:
         testers = g_default_testers
+    elif "all" in testers:
+        testers = tester_choices[1:]
 
     lfsc_sigs = []
     if not g_args.lfsc_sig_dir == "":
