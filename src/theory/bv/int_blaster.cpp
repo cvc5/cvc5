@@ -274,6 +274,17 @@ Node IntBlaster::translateWithChildren(
   // Store the translated node
   Node returnNode;
 
+   /**
+    * higher order logic allows comparing between functions
+    * The translation does not support this,
+    * as the translated functions may be different outside
+    * of the bounds that were relevant for the original
+    * bit-vectors.
+    */
+   if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
+   {
+     throw OptionException("bv-to-int does not support higher order logic ");
+   }
   // Translate according to the kind of the original node.
   switch (oldKind)
   {
@@ -524,17 +535,6 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::APPLY_UF:
     {
-      /**
-       * higher order logic allows comparing between functions
-       * The translation does not support this,
-       * as the translated functions may be different outside
-       * of the bounds that were relevant for the original
-       * bit-vectors.
-       */
-      if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
-      {
-        throw OptionException("bv-to-int does not support higher order logic ");
-      }
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
