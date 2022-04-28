@@ -807,13 +807,17 @@ bool IntBlaster::childrenTypesChanged(Node n)
   bool result = false;
   for (const Node& child : n)
   {
-    TypeNode originalType = child.getType();
-    Assert(d_intblastCache.find(child) != d_intblastCache.end());
-    TypeNode newType = d_intblastCache[child].get().getType();
-    if (!newType.isSubtypeOf(originalType))
+    // the child's type has changed only if it has been
+    // processed already
+    if (d_intblastCache.find(child) != d_intblastCache.end())
     {
-      result = true;
-      break;
+      TypeNode originalType = child.getType();
+      TypeNode newType = d_intblastCache[child].get().getType();
+      if (!newType.isSubtypeOf(originalType))
+      {
+        result = true;
+        break;
+      }
     }
   }
   return result;
