@@ -184,7 +184,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
-    if (kind == Kind::ARITH_EQ)
+    if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
                              rewriter::buildIntegerEquality(std::move(sum)));
@@ -194,7 +194,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
   else
   {
-    if (kind == Kind::ARITH_EQ)
+    if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
                              rewriter::buildRealEquality(std::move(sum)));
