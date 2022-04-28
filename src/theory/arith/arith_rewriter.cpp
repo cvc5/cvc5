@@ -243,6 +243,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::IS_INTEGER:
       case kind::TO_INTEGER:
       case kind::TO_REAL:
+      case kind::CAST_TO_REAL:
       case kind::POW:
       case kind::PI: return RewriteResponse(REWRITE_DONE, t);
       default: Unhandled() << k;
@@ -289,7 +290,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
       case kind::ABS: return rewriteAbs(t);
-      case kind::TO_REAL: return rewriteToReal(t);
+      case kind::TO_REAL: 
+      case kind::CAST_TO_REAL: return rewriteToReal(t);
       case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case kind::POW:
       {
@@ -590,12 +592,14 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
+  /*
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
   {
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
+  */
   return RewriteResponse(REWRITE_DONE, t);
 }
 
@@ -1107,7 +1111,7 @@ TNode ArithRewriter::removeToReal(TNode t)
 
 Node ArithRewriter::addToReal(TypeNode tn, TNode t)
 {
-  if (tn.isReal() && t.getType().isInteger())
+  if (!tn.isInteger() && t.getType().isInteger())
   {
     return NodeManager::currentNM()->mkNode(kind::TO_REAL, t);
   }
