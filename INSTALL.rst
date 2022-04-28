@@ -188,7 +188,7 @@ Google Test Unit Testing Framework (Unit Tests)
 
 `Google Test <https://github.com/google/googletest>`_ is required to optionally
 run cvc5's unit tests (included with the distribution). 
-See [Testing cvc5](INSTALL.rst#testing-cvc5)
+See `Testing cvc5`<INSTALL.rst#testing-cvc5>`_
 below for more details.
 
 
