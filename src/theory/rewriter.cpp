@@ -219,8 +219,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           TheoryId newTheory = theoryOf(newNode);
           rewriteStackTop.d_node = newNode;
           rewriteStackTop.d_theoryId = newTheory;
-          Assert(
-              newNode.getType()==rewriteStackTop.d_node.getType())
+          Assert(newNode.getType() == rewriteStackTop.d_node.getType())
               << "Pre-rewriting " << rewriteStackTop.d_node << " to " << newNode
               << " does not preserve type";
           // In the pre-rewrite, if changing theories, we just call the other
@@ -310,7 +309,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // We continue with the response we got
         TNode newNode = response.d_node;
         TheoryId newTheoryId = theoryOf(newNode);
-        Assert(newNode.getType()==rewriteStackTop.d_node.getType())
+        Assert(newNode.getType() == rewriteStackTop.d_node.getType())
             << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
