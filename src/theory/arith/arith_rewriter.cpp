@@ -588,7 +588,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
 {
-  if (t[0].getType().isReal())
+  if (!t[0].getType().isInteger())
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
