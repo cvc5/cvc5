@@ -1410,7 +1410,7 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfSum = d_pnm->mkNode(
           PfRule::MACRO_ARITH_SCALE_SUM_UB,
           {pfGt, pfLt},
-          {nm->mkConstRealOrInt(type, -1), nm->mkConstRealOrInt(type, 1)});
+          {nm->mkConstReal(-1), nm->mkConstReal(1)});
       Pf pfBot = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
       std::vector<Node> assumptions = {leq.getNode().negate(),
@@ -3897,7 +3897,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
         Rational qmodel = mod.substituteDelta(delta);
 
         Node qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
-        Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
+        Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qNode << ", true)" << endl;
         // Add to the map
         arithModel[term] = qNode;
       }else{
@@ -4461,8 +4461,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::transform(coeffs->begin(),
                        coeffs->end(),
                        std::back_inserter(farkasCoefficients),
-                       [nm, type](const Rational& r) {
-                         return nm->mkConstRealOrInt(type, r);
+                       [nm](const Rational& r) {
+                         return nm->mkConstReal(r);
                        });
 
         // Prove bottom.

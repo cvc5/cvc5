@@ -30,10 +30,24 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   {
     return nodeManager->integerType();
   }
-  else
+  return nodeManager->realType();
+#if 0
+  if (n.getKind() == kind::CONST_RATIONAL)
   {
     return nodeManager->realType();
   }
+  Assert(n.getKind() == kind::CONST_INTEGER);
+  if (check)
+  {
+    if (!n.getConst<Rational>().isIntegral())
+    {
+      Assert(false) << "Bad integer: " << n;
+      throw TypeCheckingExceptionPrivate(
+          n, "making an integer constant from a non-integral rational");
+    }
+  }
+  return nodeManager->integerType();
+#endif
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(

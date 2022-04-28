@@ -446,7 +446,7 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
 
   if (auto res = rewriter::getZeroChild(node); res)
   {
-    return RewriteResponse(REWRITE_DONE, *res);
+    return RewriteResponse(REWRITE_DONE, addToReal(node.getType(), *res));
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -460,7 +460,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   if (auto res = rewriter::getZeroChild(children); res)
   {
-    return RewriteResponse(REWRITE_DONE, *res);
+    return RewriteResponse(REWRITE_DONE, addToReal(t.getType(), *res));
   }
 
   // remove TO_REAL
@@ -488,7 +488,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       {
         if (child.getConst<Rational>().isZero())
         {
-          return RewriteResponse(REWRITE_DONE, child);
+          return RewriteResponse(REWRITE_DONE, addToReal(t.getType(), child));
         }
         ran *= child.getConst<Rational>();
       }
@@ -503,7 +503,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
     ret = rewriter::mkMultTerm(ran, std::move(leafs));
   }
-
   ret = addToReal(t.getType(), ret);
   return RewriteResponse(REWRITE_DONE, ret);
 }
@@ -592,14 +591,12 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
-  /*
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
   {
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
-  */
   return RewriteResponse(REWRITE_DONE, t);
 }
 
@@ -1113,6 +1110,15 @@ Node ArithRewriter::addToReal(TypeNode tn, TNode t)
 {
   if (!tn.isInteger() && t.getType().isInteger())
   {
+    Assert (tn.isReal());
+    /*
+    if (t.isConst())
+    {
+      Trace("arith-rewriter-debug") << "addToReal (const): " << t << std::endl;
+      return NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
+    }
+    */
+    Trace("arith-rewriter-debug") << "addToReal: " << t << std::endl;
     return NodeManager::currentNM()->mkNode(kind::TO_REAL, t);
   }
   return t;

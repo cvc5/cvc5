@@ -102,7 +102,11 @@ inline Node mkConst(const Rational& value)
 }
 /** Create a real algebraic number node */
 inline Node mkConst(const RealAlgebraicNumber& value)
-{
+{  
+  if (value.isRational())
+  {
+    return mkConst(value.toRational());
+  }
   return NodeManager::currentNM()->mkRealAlgebraicNumber(value);
 }
 
