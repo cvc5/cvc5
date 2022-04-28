@@ -81,12 +81,12 @@ TEST_F(TestApiBlackUncovered, Statistics)
     std::stringstream ss;
     ss << stats;
     auto it = stats.begin();
-    EXPECT_NE(it, stats.end());
+    ASSERT_NE(it, stats.end());
     it++;
     it--;
     ++it;
     --it;
-    EXPECT_EQ(it, stats.begin());
+    ASSERT_EQ(it, stats.begin());
     ss << it->first;
 
 }
