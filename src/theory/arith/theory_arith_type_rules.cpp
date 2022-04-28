@@ -25,7 +25,7 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
 {
-#if 0
+#if 1
   Assert(n.getKind() == kind::CONST_RATIONAL);
   if (n.getConst<Rational>().isIntegral())
   {

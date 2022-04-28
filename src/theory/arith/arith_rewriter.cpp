@@ -161,7 +161,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
 
-  Assert(kind == kind::EQUAL || isRelationOperator(kind));
+  Assert(isRelationOperator(kind));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
       response)
