@@ -249,7 +249,7 @@ private:
                       std::map<TNode, bool>& proc,
                       std::vector<Node>& explanation,
                       bool firstTime = true);
-  /** 
+  /**
    * Applying splitting.
    *
    * This checks if we should add a splitting inference for datatype terms
