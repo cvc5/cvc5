@@ -43,7 +43,7 @@ TEST_F(TestApiBlackSynthResult, hasSolution)
   ASSERT_TRUE(res.hasSolution());
   ASSERT_FALSE(res.hasNoSolution());
   ASSERT_FALSE(res.isUnknown());
-  EXPECT_EQ(res.toString(), "(SOLUTION)");
+  ASSERT_EQ(res.toString(), "(SOLUTION)");
 }
 
 TEST_F(TestApiBlackSynthResult, hasNoSolution)

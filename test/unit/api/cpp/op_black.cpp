@@ -26,7 +26,7 @@ class TestApiBlackOp : public TestApi
 TEST_F(TestApiBlackOp, hash)
 {
   std::hash<cvc5::Op> h;
-  EXPECT_NO_THROW(h(d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1})));
+  ASSERT_NO_THROW(h(d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1})));
 }
 
 TEST_F(TestApiBlackOp, getKind)
@@ -42,7 +42,7 @@ TEST_F(TestApiBlackOp, isNull)
   ASSERT_TRUE(x.isNull());
   Op y = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
   ASSERT_FALSE(y.isNull());
-  EXPECT_NE(x, y);
+  ASSERT_NE(x, y);
 }
 
 TEST_F(TestApiBlackOp, opFromKind)
@@ -176,7 +176,7 @@ TEST_F(TestApiBlackOp, opScopingToString)
   {
     std::stringstream ss;
     ss << bitvector_repeat_ot;
-    EXPECT_EQ(ss.str(), op_repr);
+    ASSERT_EQ(ss.str(), op_repr);
   }
 }
 }  // namespace test
