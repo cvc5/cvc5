@@ -152,8 +152,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
   // left |><| right
   Kind kind = atom.getKind();
-  TNode left = removeToReal(atom[0]);
-  TNode right = removeToReal(atom[1]);
+  Node left = removeToReal(atom[0]);
+  Node right = removeToReal(atom[1]);
 
   if (auto response = rewriter::tryEvaluateRelationReflexive(kind, left, right);
       response)
@@ -471,25 +471,26 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   }
 
   // remove TO_REAL
+  std::vector<Node> rchildren;
   for (TNode& tc : children)
   {
-    tc = removeToReal(tc);
+    rchildren.push_back(removeToReal(tc));
   }
 
   Node ret;
   // Distribute over addition
-  if (std::any_of(children.begin(), children.end(), [](TNode child) {
+  if (std::any_of(rchildren.begin(), rchildren.end(), [](Node child) {
         return child.getKind() == Kind::ADD;
       }))
   {
-    ret = rewriter::distributeMultiplication(children);
+    ret = rewriter::distributeMultiplication(rchildren);
   }
   else
   {
     RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
     std::vector<Node> leafs;
 
-    for (TNode child : children)
+    for (const Node& child : rchildren)
     {
       if (child.isConst())
       {
@@ -605,14 +606,12 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
     NodeManager* nm = NodeManager::currentNM();
     return RewriteResponse(REWRITE_DONE, nm->mkNode(kind::TO_REAL, t[0]));
   }
-  /*
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
   {
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
-  */
   return RewriteResponse(REWRITE_DONE, t);
 }
 
@@ -1123,9 +1122,14 @@ TrustNode ArithRewriter::expandDefinition(Node node)
   return ret;
 }
 
-TNode ArithRewriter::removeToReal(TNode t)
+Node ArithRewriter::removeToReal(TNode t)
 {
-  return t.getKind() == kind::TO_REAL ? t[0] : t;
+  Kind k = t.getKind();
+  if (k==CONST_INTEGER)
+  {
+    return NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
+  }
+  return k == kind::TO_REAL ? t[0] : t;
 }
 
 Node ArithRewriter::maybeEnsureReal(TypeNode tn, TNode t)
@@ -1142,6 +1146,13 @@ Node ArithRewriter::ensureReal(TNode t)
 {
   if (t.getType().isInteger())
   {
+    if (t.isConst())
+    {
+      // short-circuit
+      Node ret = NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
+      Assert (ret.getType().isReal());
+      return ret;
+    }
     Trace("arith-rewriter-debug") << "maybeEnsureReal: " << t << std::endl;
     return NodeManager::currentNM()->mkNode(kind::TO_REAL, t);
   }

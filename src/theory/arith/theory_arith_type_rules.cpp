@@ -25,13 +25,14 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
 {
+#if 0
   Assert(n.getKind() == kind::CONST_RATIONAL);
   if (n.getConst<Rational>().isIntegral())
   {
     return nodeManager->integerType();
   }
   return nodeManager->realType();
-#if 0
+#endif
   if (n.getKind() == kind::CONST_RATIONAL)
   {
     return nodeManager->realType();
@@ -47,7 +48,6 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   return nodeManager->integerType();
-#endif
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(

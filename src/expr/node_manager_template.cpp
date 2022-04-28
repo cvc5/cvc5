@@ -1285,7 +1285,7 @@ Node NodeManager::mkConstInt(const Rational& r)
 {
   // !!!! Note will update to CONST_INTEGER.
   Assert(r.isIntegral());
-  return mkConst(kind::CONST_RATIONAL, r);
+  return mkConst(kind::CONST_INTEGER, r);
 }
 
 Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)

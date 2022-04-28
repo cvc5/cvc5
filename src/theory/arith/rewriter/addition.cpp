@@ -205,7 +205,7 @@ Node collectSum(const Sum& sum)
   return nb.constructNode();
 }
 
-Node distributeMultiplication(const std::vector<TNode>& factors)
+Node distributeMultiplication(const std::vector<Node>& factors)
 {
   if (TraceIsOn("arith-rewriter-distribute"))
   {

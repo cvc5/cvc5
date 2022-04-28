@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "expr/node.h"
+#include "expr/subs.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -209,8 +210,7 @@ class ExtendedRewriter
                          const std::map<Kind, bool>& rkinds) const;
   /** same as above, with vectors */
   Node partialSubstitute(Node n,
-                         const std::vector<Node>& vars,
-                         const std::vector<Node>& subs,
+                         const Subs& subs,
                          const std::map<Kind, bool>& rkinds) const;
   /** solve equality
    *
@@ -229,8 +229,7 @@ class ExtendedRewriter
    * is n is a negation.
    */
   bool inferSubstitution(Node n,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& subs,
+                         Subs& subs,
                          bool usePred = false) const;
   /** extended rewrite
    *
