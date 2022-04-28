@@ -40,7 +40,6 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   TrustNode expandDefinition(Node node) override;
-
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
@@ -72,6 +71,8 @@ class ArithRewriter : public TheoryRewriter
 
   /** rewrite division */
   static RewriteResponse rewriteDiv(TNode t, bool pre);
+  /** rewrite to_real */
+  static RewriteResponse rewriteToReal(TNode t);
   /** rewrite absolute */
   static RewriteResponse rewriteAbs(TNode t);
   /** rewrite integer division and modulus */
@@ -93,6 +94,10 @@ class ArithRewriter : public TheoryRewriter
 
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+  /** Remove TO_REAL children */
+  static TNode removeToReal(TNode t);
+  /** Add TO_REAL if necessary */
+  static Node addToReal(TypeNode tn, TNode t);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */
