@@ -24,6 +24,7 @@
 #include "theory/arith/nl/coverings/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/resource_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -523,6 +524,7 @@ CACInterval CDCAC::intervalFromCharacterization(
 std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
                                                   bool returnFirstInterval)
 {
+  d_env.getResourceManager()->spendResource(Resource::ArithNlCoveringStep);
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
