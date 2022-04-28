@@ -255,8 +255,6 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
  protected:
   /** the selector operator */
   Node d_selOp;
-  /** the UF operator */
-  Node d_ufOp;
 };
 
 }  // namespace inst

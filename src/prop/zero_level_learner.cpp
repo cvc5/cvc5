@@ -39,7 +39,26 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_assertNoLearnCount(0)
 {
   // get the learned types
-  d_learnedTypes.insert(modes::LearnedLitType::INPUT);
+  options::DeepRestartMode lmode = options().smt.deepRestartMode;
+  if (lmode != options::DeepRestartMode::NONE)
+  {
+    d_learnedTypes.insert(modes::LearnedLitType::INPUT);
+    if (lmode == options::DeepRestartMode::ALL)
+    {
+      d_learnedTypes.insert(modes::LearnedLitType::INTERNAL);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
+    }
+    else if (lmode == options::DeepRestartMode::INPUT_AND_SOLVABLE)
+    {
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+    }
+    else if (lmode == options::DeepRestartMode::INPUT_AND_PROP)
+    {
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
+    }
+  }
 }
 
 ZeroLevelLearner::~ZeroLevelLearner() {}
@@ -143,6 +162,15 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
   Trace("level-zero") << d_ldb.toStringDebug();
+  // the threshold is by default d_ppnAtoms.size()*3.0, which means we restart
+  // if we have learned any literals, and the number of assertions since the
+  // last learned literal is equal to the total number of literals in the
+  // input problem times 3, i.e. each literal has been asserted on average 3
+  // times.
+  d_deepRestartThreshold = static_cast<size_t>(
+      static_cast<double>(d_ppnAtoms.size()) * options().smt.deepRestartFactor);
+  Trace("level-zero") << "Restart threshold is " << d_deepRestartThreshold
+                      << std::endl;
 }
 
 bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
@@ -168,6 +196,32 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
     processLearnedLiteral(assertion, ltype);
     return true;
   }
+  // request a deep restart?
+  if (options().smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    if (hasLearnedLiteralForRestart() > 0)
+    {
+      // if non-empty and non-learned atoms have been asserted beyond the
+      // threshold
+      if (d_assertNoLearnCount > d_deepRestartThreshold)
+      {
+        Trace("level-zero") << "DEEP RESTART after " << d_assertNoLearnCount
+                            << " asserts." << std::endl;
+        return false;
+      }
+    }
+  }
+  if (TraceIsOn("level-zero-debug"))
+  {
+    if (d_assertNoLearnCount > 0
+        && d_assertNoLearnCount % d_deepRestartThreshold == 0)
+    {
+      Trace("level-zero-debug")
+          << "#asserts without learning = " << d_assertNoLearnCount << " ("
+          << (d_assertNoLearnCount / d_deepRestartThreshold) << "x)"
+          << std::endl;
+    }
+  }
   return true;
 }
 
@@ -188,7 +242,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       // if we solved for any variable from input, we are SOLVABLE.
       for (const Node& v : ss.d_vars)
       {
-        if (d_ppnSyms.find(v) == d_ppnSyms.end())
+        if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
           ltype = modes::LearnedLitType::SOLVABLE;
@@ -263,6 +317,30 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
     }
   }
   return ret;
+}
+
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
+    const
+{
+  std::vector<Node> ret;
+  for (modes::LearnedLitType ltype : d_learnedTypes)
+  {
+    std::vector<Node> rett = getLearnedZeroLevelLiterals(ltype);
+    ret.insert(ret.end(), rett.begin(), rett.end());
+  }
+  return ret;
+}
+
+bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
+{
+  for (modes::LearnedLitType ltype : d_learnedTypes)
+  {
+    if (d_ldb.getNumLearnedLiterals(ltype) > 0)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const

@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 (set-logic QF_UFIDL)
 (set-info :source |
 UCLID benchmark suite.  See UCLID project: http://www.cs.cmu.edu/~uclid

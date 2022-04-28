@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --strings-exp
 ;EXPECT: unsat
 (set-logic ALL)

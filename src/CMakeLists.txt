@@ -998,6 +998,8 @@ libcvc5_add_sources(
   theory/relevance_manager.h
   theory/rep_set.cpp
   theory/rep_set.h
+  theory/rep_set_iterator.cpp
+  theory/rep_set_iterator.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h

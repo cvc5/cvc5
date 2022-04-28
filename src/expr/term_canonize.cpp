@@ -96,7 +96,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   return false;
 }
 
-Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
+Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
 {
   Assert(!tn.isNull());
   NodeManager* nm = NodeManager::currentNM();
