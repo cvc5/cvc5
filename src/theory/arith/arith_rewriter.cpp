@@ -532,7 +532,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     {
       if (t.getKind() == kind::DIVISION_TOTAL)
       {
-        Node ret = ensureReal(nm->mkConstReal(0));
+        Node ret = nm->mkConstReal(0);
         return RewriteResponse(REWRITE_DONE, ret);
       }
       else
@@ -546,13 +546,13 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     {
       const Rational& num = left.getConst<Rational>();
       return RewriteResponse(REWRITE_DONE,
-                             ensureReal(nm->mkConstReal(num / den)));
+                             nm->mkConstReal(num / den));
     }
     if (rewriter::isRAN(left))
     {
       return RewriteResponse(
           REWRITE_DONE,
-          ensureReal(nm->mkRealAlgebraicNumber(rewriter::getRAN(left) / den)));
+          nm->mkRealAlgebraicNumber(rewriter::getRAN(left) / den));
     }
 
     Node result = nm->mkConstReal(den.inverse());
