@@ -317,6 +317,9 @@ class PropEngine : protected EnvObj
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
+  /** Get the literal type through the ZLL utilities */
+  modes::LearnedLitType getLiteralType(const Node& lit) const;
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();

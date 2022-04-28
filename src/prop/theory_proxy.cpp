@@ -345,6 +345,15 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
   return {};
 }
 
+modes::LearnedLitType TheoryProxy::getLiteralType(const Node& lit) const
+{
+  if (d_zll != nullptr)
+  {
+    return d_zll->computeLearnedLiteralType(lit);
+  }
+  return {};
+}
+
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
 {
   if (d_zll != nullptr)
