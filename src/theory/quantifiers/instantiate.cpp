@@ -152,7 +152,7 @@ bool Instantiate::addInstantiation(Node q,
                     << terms[i] << std::endl;
       bad_inst = true;
     }
-    else if (!terms[i].getType().isSubtypeOf(q[0][i].getType()))
+    else if (terms[i].getType()!=q[0][i].getType())
     {
       Trace("inst") << "***& inst bad type : " << terms[i] << " "
                     << terms[i].getType() << "/" << q[0][i].getType()
@@ -761,13 +761,17 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
   Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
   TypeNode ntn = n.getType();
   Assert(ntn.isComparableTo(tn));
-  if (ntn.isSubtypeOf(tn))
+  if (ntn==tn)
   {
     return n;
   }
   if (tn.isInteger())
   {
     return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+  }
+  else if (tn.isReal())
+  {
+    return NodeManager::currentNM()->mkNode(TO_REAL, n);
   }
   return Node::null();
 }
