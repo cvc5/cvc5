@@ -1110,7 +1110,7 @@ Node ArithRewriter::addToReal(TypeNode tn, TNode t)
 {
   if (!tn.isInteger() && t.getType().isInteger())
   {
-    Assert (tn.isReal());
+    Assert(tn.isReal());
     /*
     if (t.isConst())
     {
