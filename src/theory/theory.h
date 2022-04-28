@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -202,15 +202,6 @@ class Theory : protected EnvObj
    * They are considered enabled if the ProofNodeManager is non-null.
    */
   bool proofsEnabled() const;
-
-  /**
-   * Set separation logic heap. This is called when the location and data
-   * types for separation logic are determined. This should be called at
-   * most once, before solving.
-   *
-   * This currently should be overridden by the separation logic theory only.
-   */
-  virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;

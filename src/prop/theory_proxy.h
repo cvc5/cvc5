@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Tim King
+ *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +24,7 @@
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
@@ -69,6 +70,13 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
 
+  /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
   /**
    * Notifies this module of the input assertions.
    * @param assertion The preprocessed input assertions,
@@ -169,7 +177,10 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   /** The prop engine we are using. */
@@ -208,6 +219,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
 
+  /** Whether we have been requested to stop the search */
+  context::CDO<bool> d_stopSearch;
 }; /* class TheoryProxy */
 
 }  // namespace prop

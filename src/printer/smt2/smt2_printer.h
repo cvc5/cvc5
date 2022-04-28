@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Tim King
+ *   Abdalrhman Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,15 +64,20 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdAssert(std::ostream& out, Node n) const override;
 
   /** Print push command */
-  void toStreamCmdPush(std::ostream& out) const override;
+  void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print pop command */
-  void toStreamCmdPop(std::ostream& out) const override;
+  void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,
                                   const std::string& id,
                                   TypeNode type) const override;
+
+  /** Print declare-oracle-fun command */
+  void toStreamCmdDeclareOracleFun(std::ostream& out,
+                                   Node fun,
+                                   const std::string& binName) const override;
 
   /** Print declare-pool command */
   void toStreamCmdDeclarePool(std::ostream& out,
@@ -280,6 +285,17 @@ class Smt2Printer : public cvc5::internal::Printer
                 TNode n,
                 int toDepth,
                 LetBinding* lbind = nullptr) const;
+  /**
+   * Prints the vector as a sorted variable list
+   */
+  void toStreamSortedVarList(std::ostream& out,
+                             const std::vector<Node>& vars) const;
+  /**
+   * Prints a type as part of e.g. a declare-fun command. This prints either
+   * `() T` if the type T is not a function, or `(T1 ... Tn) Tr` if T is
+   * a function type with argument types T1 ... Tn and return Tr.
+   */
+  void toStreamDeclareType(std::ostream& out, TypeNode tn) const;
   /** To stream type node, which ensures tn is printed in smt2 format */
   void toStreamType(std::ostream& out, TypeNode tn) const;
   /**

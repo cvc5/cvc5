@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Yoni Zohar, Abdalrhman Mohamed, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -47,7 +47,7 @@ def print_synth_solutions(terms, sols):
     for i in range(0, len(terms)):
         params = []
         body = sols[i]
-        if sols[i].getKind() == Kind.Lambda:
+        if sols[i].getKind() == Kind.LAMBDA:
             params += sols[i][0]
             body = sols[i][1]
         result += "  " + define_fun_to_string(terms[i], params, body) + "\n"

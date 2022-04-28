@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,6 +97,22 @@ Kind transKinds(Kind k1, Kind k2)
     }
   }
   return UNDEFINED_KIND;
+}
+
+Node mkZero(const TypeNode& tn)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+}
+
+bool isZero(const Node& n)
+{
+  Assert(n.getType().isRealOrInt());
+  return n.isConst() && n.getConst<Rational>().sgn() == 0;
+}
+
+Node mkOne(const TypeNode& tn, bool isNeg)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, isNeg ? -1 : 1);
 }
 
 bool isTranscendentalKind(Kind k)

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
-
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -860,8 +860,7 @@ class CVC5_EXPORT SolverEngine
   std::vector<Node> getExpandedAssertions();
 
   /**
-   * !!!!! temporary, until the environment is passsed to all classes that
-   * require it.
+   * Get the enviornment from this solver engine.
    */
   Env& getEnv();
   /* .......................................................................  */
@@ -951,6 +950,14 @@ class CVC5_EXPORT SolverEngine
    * this method was called.
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
+
+  /**
+   * Deep restart, assumes that we just ran a satisfiability check.
+   * Returns true if we wish to reconstruct the SMT solver and try again. If
+   * so, the SMT solver is deep restarted, and we are prepared to make another
+   * satisfiability check.
+   */
+  bool deepRestart();
 
   // --------------------------------------- callbacks from the state
   /**

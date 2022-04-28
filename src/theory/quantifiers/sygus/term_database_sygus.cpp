@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,12 +51,13 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(this)),
       d_funDefEval(new FunDefEvaluator(env)),
-      d_eval_unfold(new SygusEvalUnfold(env, this))
+      d_eval_unfold(new SygusEvalUnfold(env, this)),
+      d_ochecker(oc)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -738,6 +739,7 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 
 Node TermDbSygus::rewriteNode(Node n) const
 {
+  Trace("sygus-rewrite") << "Rewrite node: " << n << std::endl;
   Node res;
   if (options().datatypes.sygusRewriter == options::SygusRewriterMode::EXTENDED)
   {
@@ -747,6 +749,7 @@ Node TermDbSygus::rewriteNode(Node n) const
   {
     res = rewrite(n);
   }
+  Trace("sygus-rewrite") << "Rewrite node post-rewrite: " << res << std::endl;
   if (res.isConst())
   {
     // constant, we are done
@@ -761,12 +764,19 @@ Node TermDbSygus::rewriteNode(Node n) const
       Node fres = d_funDefEval->evaluateDefinitions(res);
       if (!fres.isNull())
       {
-        return fres;
+        res = fres;
       }
       // It may have failed, in which case there are undefined symbols in res or
       // we reached the limit of evaluations. In this case, we revert to the
       // result of rewriting in the return statement below.
     }
+    Trace("sygus-rewrite") << "Rewrite node post-rec-fun: " << res << std::endl;
+  }
+  if (d_ochecker != nullptr)
+  {
+    // evaluate oracles
+    res = d_ochecker->evaluate(res);
+    Trace("sygus-rewrite") << "Rewrite node post-oracles: " << res << std::endl;
   }
   return res;
 }

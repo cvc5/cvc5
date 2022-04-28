@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,6 +58,9 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
+
+  // initialize the heap types
+  initializeHeapTypes();
 }
 
 TheorySep::~TheorySep() {
@@ -66,26 +69,21 @@ TheorySep::~TheorySep() {
   }
 }
 
-void TheorySep::declareSepHeap(TypeNode locT, TypeNode dataT)
+void TheorySep::initializeHeapTypes()
 {
-  if (!d_type_ref.isNull())
+  TypeNode locT;
+  TypeNode dataT;
+  if (d_env.getSepHeapTypes(locT, dataT))
   {
-    TypeNode te1 = d_loc_to_data_type.begin()->first;
-    std::stringstream ss;
-    ss << "ERROR: cannot declare heap types for separation logic more than "
-          "once.  We are declaring heap of type ";
-    ss << locT << " -> " << dataT << ", but we already have ";
-    ss << d_type_ref << " -> " << d_type_data;
-    throw LogicException(ss.str());
+    // otherwise set it
+    Trace("sep-type") << "Sep: assume location type " << locT
+                      << " is associated with data type " << dataT << std::endl;
+    d_loc_to_data_type[locT] = dataT;
+    // for now, we only allow heap constraints of one type
+    d_type_ref = locT;
+    d_type_data = dataT;
+    d_bound_kind[locT] = bound_default;
   }
-  // otherwise set it
-  Trace("sep-type") << "Sep: assume location type " << locT
-                    << " is associated with data type " << dataT << std::endl;
-  d_loc_to_data_type[locT] = dataT;
-  // for now, we only allow heap constraints of one type
-  d_type_ref = locT;
-  d_type_data = dataT;
-  d_bound_kind[locT] = bound_default;
 }
 
 TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }

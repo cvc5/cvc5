@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@
 
 #include "expr/sequence.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/evaluator.h"
 
@@ -226,22 +227,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     const auto& x = args[0];
     const auto& y = args[1];
     const auto& s = args[2];
-    return nm->mkAnd(std::vector<Node>{
-        nm->mkAnd(std::vector<Node>{
-            nm->mkNode(Kind::GEQ, y, nm->mkNode(Kind::MULT, mone, pi)),
-            nm->mkNode(Kind::LEQ, y, pi)}),
-        nm->mkNode(
-            Kind::ITE,
-            nm->mkAnd(std::vector<Node>{
-                nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
-                nm->mkNode(Kind::LEQ, x, pi),
-            }),
-            x.eqNode(y),
-            x.eqNode(nm->mkNode(
-                Kind::ADD,
-                y,
-                nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
-        nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
+    return SineSolver::getPhaseShiftLemma(x, y, s);
   }
   else if (id == PfRule::ARITH_TRANS_SINE_SYMMETRY)
   {

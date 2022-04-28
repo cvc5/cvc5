@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -324,19 +324,16 @@ cvc5::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 
 cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 {
-  cvc5::Sort unresolved = d_solver->mkUninterpretedSort(name);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name);
   defineType(name, unresolved);
-  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
 cvc5::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                size_t arity)
 {
-  cvc5::Sort unresolved =
-      d_solver->mkUninterpretedSortConstructorSort(arity, name);
+  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
   defineType(name, vector<cvc5::Sort>(arity), unresolved);
-  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
@@ -346,10 +343,9 @@ cvc5::Sort Parser::mkUnresolvedTypeConstructor(
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
   cvc5::Sort unresolved =
-      d_solver->mkUninterpretedSortConstructorSort(params.size(), name);
+      d_solver->mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
   cvc5::Sort t = getSort(name, params);
-  d_unresolved.insert(unresolved);
   return unresolved;
 }
 
@@ -362,19 +358,11 @@ cvc5::Sort Parser::mkUnresolvedType(const std::string& name, size_t arity)
   return mkUnresolvedTypeConstructor(name, arity);
 }
 
-bool Parser::isUnresolvedType(const std::string& name) {
-  if (!isDeclared(name, SYM_SORT)) {
-    return false;
-  }
-  return d_unresolved.find(getSort(name)) != d_unresolved.end();
-}
-
 std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
     std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload)
 {
   try {
-    std::vector<cvc5::Sort> types =
-        d_solver->mkDatatypeSorts(datatypes, d_unresolved);
+    std::vector<cvc5::Sort> types = d_solver->mkDatatypeSorts(datatypes);
 
     Assert(datatypes.size() == types.size());
 
@@ -400,7 +388,7 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const cvc5::DatatypeConstructor& ctor = dt[j];
-        cvc5::Term constructor = ctor.getConstructorTerm();
+        cvc5::Term constructor = ctor.getTerm();
         Trace("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
@@ -426,7 +414,7 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
           const cvc5::DatatypeSelector& sel = ctor[k];
-          cvc5::Term selector = sel.getSelectorTerm();
+          cvc5::Term selector = sel.getTerm();
           Trace("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = sel.getName();
           if(selNames.find(selectorName)==selNames.end()) {
@@ -441,11 +429,6 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         }
       }
     }
-
-    // These are no longer used, and the ExprManager would have
-    // complained of a bad substitution if anything is left unresolved.
-    // Clear out the set.
-    d_unresolved.clear();
 
     // throw exception if any datatype is not well-founded
     for (unsigned i = 0; i < datatypes.size(); ++i) {
@@ -584,7 +567,7 @@ cvc5::Term Parser::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
       // lookup by name
       cvc5::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getInstantiatedConstructorTerm(s);
+      t = dc.getInstantiatedTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
@@ -748,9 +731,19 @@ void Parser::pushGetValueScope()
   for (const cvc5::Sort& s : declareSorts)
   {
     std::vector<cvc5::Term> elements = d_solver->getModelDomainElements(s);
+    Trace("parser") << "elements for " << s << ":" << std::endl;
     for (const cvc5::Term& e : elements)
     {
-      defineVar(e.getUninterpretedSortValue(), e);
+      Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
+      if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+      {
+        defineVar(e.getUninterpretedSortValue(), e);
+      }
+      else
+      {
+        Assert(false)
+            << "model domain element is not an uninterpreted sort value: " << e;
+      }
     }
   }
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Tim King
+ *   Gereon Kremer, Andrew Reynolds, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +13,6 @@
  * Rewriter for the theory of arithmetic.
  *
  * This rewrites to the normal form for arithmetic.
- * See theory/arith/normal_form.h for more information.
  */
 
 #include "cvc5_private.h"

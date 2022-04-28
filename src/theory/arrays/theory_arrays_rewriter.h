@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Clark Barrett, Morgan Deters, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,6 @@
 
 #include "theory/rewriter.h"
 #include "theory/theory_rewriter.h"
-#include "theory/type_enumerator.h"
 
 namespace cvc5::internal {
 
@@ -69,13 +68,16 @@ class TheoryArraysRewriter : public TheoryRewriter
 
   static inline void init() {}
 
- private:
   /**
    * Puts array constant node into normal form. This is so that array constants
    * that are distinct nodes are semantically disequal.
+   *
+   * This method should only be called on STORE chains whose AST is built
+   * from constant terms only.
    */
   static Node normalizeConstant(TNode node);
 
+ private:
   /** The associated rewriter. */
   Rewriter* d_rewriter;
 

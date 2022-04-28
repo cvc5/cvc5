@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -302,8 +303,8 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != status)
     {
-      Node lemma =
-          nm->mkAnd(exp).impNode(mkLit(oa, d_data->d_zero, status * 2));
+      Node zero = mkZero(oa.getType());
+      Node lemma = nm->mkAnd(exp).impNode(mkLit(oa, zero, status * 2));
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
@@ -318,6 +319,7 @@ int MonomialCheck::compareSign(
   }
   Assert(a_index < vla.size());
   Node av = vla[a_index];
+  Node zero = mkZero(av.getType());
   unsigned aexp = d_data->d_mdb.getExponent(a, av);
   // take current sign in model
   Node mvaav = d_data->d_model.computeAbstractModelValue(av);
@@ -328,8 +330,8 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node prem = av.eqNode(d_data->d_zero);
-      Node conc = oa.eqNode(d_data->d_zero);
+      Node prem = av.eqNode(zero);
+      Node conc = oa.eqNode(zero);
       Node lemma = prem.impNode(conc);
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
@@ -344,10 +346,10 @@ int MonomialCheck::compareSign(
   }
   if (aexp % 2 == 0)
   {
-    exp.push_back(av.eqNode(d_data->d_zero).negate());
+    exp.push_back(av.eqNode(zero).negate());
     return compareSign(oa, a, a_index + 1, status, exp);
   }
-  exp.push_back(nm->mkNode(sgn == 1 ? Kind::GT : Kind::LT, av, d_data->d_zero));
+  exp.push_back(nm->mkNode(sgn == 1 ? Kind::GT : Kind::LT, av, zero));
   return compareSign(oa, a, a_index + 1, status * sgn, exp);
 }
 
@@ -417,9 +419,10 @@ bool MonomialCheck::compareMonomial(
       if (status == 2)
       {
         // must state that all variables are non-zero
-        for (unsigned j = 0; j < vla.size(); j++)
+        Node zero = mkZero(oa.getType());
+        for (const Node& v : vla)
         {
-          exp.push_back(vla[j].eqNode(d_data->d_zero).negate());
+          exp.push_back(v.eqNode(zero).negate());
         }
       }
       NodeManager* nm = NodeManager::currentNM();
@@ -714,6 +717,7 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
 }
 Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
 {
+  Assert(a.getType().isComparableTo(b.getType()));
   if (status == 0)
   {
     Node a_eq_b = a.eqNode(b);
@@ -736,8 +740,9 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
     return nm->mkNode(greater_op, a, b);
   }
   // return nm->mkNode( greater_op, mkAbs( a ), mkAbs( b ) );
-  Node a_is_nonnegative = nm->mkNode(Kind::GEQ, a, d_data->d_zero);
-  Node b_is_nonnegative = nm->mkNode(Kind::GEQ, b, d_data->d_zero);
+  Node zero = mkZero(a.getType());
+  Node a_is_nonnegative = nm->mkNode(Kind::GEQ, a, zero);
+  Node b_is_nonnegative = nm->mkNode(Kind::GEQ, b, zero);
   Node negate_a = nm->mkNode(Kind::NEG, a);
   Node negate_b = nm->mkNode(Kind::NEG, b);
   return a_is_nonnegative.iteNode(

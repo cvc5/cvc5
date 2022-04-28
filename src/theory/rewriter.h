@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
+ *   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,9 +89,6 @@ class Rewriter {
   /** Set proof node manager */
   void setProofNodeManager(ProofNodeManager* pnm);
 
-  /** Garbage collects the rewrite caches. */
-  void clearCaches();
-
   /**
    * Registers a theory rewriter with this rewriter. The rewriter does not own
    * the theory rewriters.
@@ -152,8 +149,6 @@ class Rewriter {
    * Calls the equality-rewriter for the given theory.
    */
   Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
-
-  void clearCachesInternal();
 
   /**
    * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.

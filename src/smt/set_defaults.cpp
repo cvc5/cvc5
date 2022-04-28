@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parallel_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -62,6 +63,11 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+
+  if (opts.quantifiers.oracles)
+  {
+    throw OptionException(std::string("Oracles not yet supported"));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -180,6 +186,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // used by the user to rephrase the input.
     opts.quantifiers.sygusInference = false;
     opts.quantifiers.sygusRewSynthInput = false;
+    // deep restart does not work with internal subsolvers?
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 }
 
@@ -222,7 +230,15 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
     else if (!opts.base.incrementalSolving)
     {
+      // if not incremental, we rely on ackermann to eliminate other theories.
       opts.smt.ackermann = true;
+    }
+    else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
+    {
+      // requested bitblast=eager in incremental mode, must be QF_BV only.
+      throw OptionException(
+          std::string("Eager bit-blasting is only support in incremental mode "
+                      "if the logic is quantifier-free bit-vectors"));
     }
   }
 
@@ -276,6 +292,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
     notifyModifyOption("ackermann", "false", "model generation");
     opts.smt.ackermann = false;
+    // we are not relying on ackermann to eliminate theories in this case
+    Assert(opts.bv.bitblastMode != options::BitblastMode::EAGER);
   }
 
   if (opts.smt.ackermann)
@@ -359,6 +377,18 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     {
       std::stringstream ss;
       ss << reasonNoQuant.str() << " not supported in quantified logics.";
+      throw OptionException(ss.str());
+    }
+  }
+  // check if we have separation logic heap types
+  if (d_env.hasSepHeap())
+  {
+    std::stringstream reasonNoSepLogic;
+    if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
+    {
+      std::stringstream ss;
+      ss << reasonNoSepLogic.str()
+         << " not supported when using separation logic.";
       throw OptionException(ss.str());
     }
   }
@@ -815,7 +845,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
-           && logic.areRealsUsed() && !logic.areIntegersUsed())
+           && logic.areRealsUsed() && !logic.areIntegersUsed()
+           && !logic.areTranscendentalsUsed())
   {
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
@@ -949,6 +980,11 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
         << std::endl;
     opts.arith.nlCovVarElim = false;
   }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
+    return true;
+  }
   return false;
 }
 
@@ -988,6 +1024,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                                               std::ostream& reason,
                                               std::ostream& suggest) const
 {
+  if (d_env.hasSepHeap())
+  {
+    reason << "separation logic";
+    return true;
+  }
   if (opts.smt.ackermann)
   {
     reason << "ackermann";
@@ -1035,6 +1076,16 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
+    return true;
+  }
+  if (opts.parallel.computePartitions > 1)
+  {
+    reason << "compute partitions";
+    return true;
+  }
 
   // disable modes not supported by incremental
   notifyModifyOption("sortInference", "false", "incremental solving");
@@ -1045,7 +1096,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   notifyModifyOption("cegqiNestedQE", "false", "incremental solving");
   opts.quantifiers.cegqiNestedQE = false;
   opts.arith.arithMLTrick = false;
-
   return false;
 }
 
@@ -1061,6 +1111,13 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     notifyModifyOption("simplificationMode", "none", "unsat cores");
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
+    if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+    {
+      verbose(1) << "SolverEngine: turning off deep restart to support unsat "
+                    "cores"
+                 << std::endl;
+      opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
+    }
   }
 
   if (opts.smt.learnedRewrite)
@@ -1177,6 +1234,11 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     notifyModifyOption("unconstrainedSimp", "false", "unsat cores");
     opts.smt.unconstrainedSimp = false;
   }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
+    return true;
+  }
   return false;
 }
 
@@ -1194,6 +1256,11 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   // input
   if (usesInputConversion(opts, reason))
   {
+    return true;
+  }
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
+  {
+    reason << "deep restarts";
     return true;
   }
   return false;
@@ -1215,6 +1282,22 @@ bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
     // guard). Hence, we throw an option exception if quantifiers are enabled.
     reason << "--nl-ext-rlv";
     return true;
+  }
+  return false;
+}
+
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
+                                                  std::ostream& reason) const
+{
+  if (options().smt.simplificationBoolConstProp)
+  {
+    // Spatial formulas in separation logic have a semantics that depends on
+    // their position in the AST (e.g. their nesting beneath separation
+    // conjunctions). Thus, we cannot apply BCP as a substitution for spatial
+    // predicates to the input formula. We disable this option altogether to
+    // ensure this is the case
+    notifyModifyOption("simplification-bcp", "false", "separation logic");
+    options().smt.simplificationBoolConstProp = false;
   }
   return false;
 }
@@ -1548,6 +1631,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (!logic.isTheoryEnabled(THEORY_DATATYPES))
   {
     opts.quantifiers.quantDynamicSplit = options::QuantDSplitMode::NONE;
+  }
+  if (opts.quantifiers.globalNegate)
+  {
+    notifyModifyOption("deep-restart", "false", "global-negate");
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 }
 

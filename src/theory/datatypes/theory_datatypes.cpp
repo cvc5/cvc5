@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,8 +56,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_term_sk(userContext()),
       d_labels(context()),
       d_selector_apps(context()),
-      d_collectTermsCache(context()),
-      d_collectTermsCacheU(userContext()),
+      d_initialLemmaCache(userContext()),
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
@@ -464,7 +463,6 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       Trace("dt-expand") << "...nested recursion ok" << std::endl;
     }
   }
-  collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
   case kind::APPLY_TESTER:
@@ -473,6 +471,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     d_equalityEngine->addTriggerPredicate(n);
     break;
   default:
+    // do initial lemmas (e.g. for dt.size)
+    registerInitialLemmas(n);
     // Function applications/predicates
     d_equalityEngine->addTerm(n);
     if (d_sygusExtension)
@@ -521,9 +521,28 @@ TrustNode TheoryDatatypes::explain(TNode literal)
 }
 
 /** called when a new equivalance class is created */
-void TheoryDatatypes::eqNotifyNewClass(TNode t){
-  if( t.getKind()==APPLY_CONSTRUCTOR ){
-    getOrMakeEqcInfo( t, true );
+void TheoryDatatypes::eqNotifyNewClass(TNode n)
+{
+  Kind nk = n.getKind();
+  if (nk == APPLY_CONSTRUCTOR)
+  {
+    Trace("datatypes") << "  Found constructor " << n << endl;
+    getOrMakeEqcInfo(n, true);
+    if (n.getNumChildren() > 0)
+    {
+      d_functionTerms.push_back(n);
+    }
+  }
+  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  {
+    d_functionTerms.push_back(n);
+    // we must also record which selectors exist
+    Trace("dt-collapse-sel") << "  Found selector " << n << endl;
+    Node rep = getRepresentative(n[0]);
+    // record it in the selectors
+    EqcInfo* eqc = getOrMakeEqcInfo(rep, true);
+    // add it to the eqc info
+    addSelector(n, eqc, rep);
   }
 }
 
@@ -1256,49 +1275,16 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   }
 }
 
-void TheoryDatatypes::collectTerms( Node n ) {
-  if (d_collectTermsCache.find(n) != d_collectTermsCache.end())
-  {
-    // already processed
-    return;
-  }
-  d_collectTermsCache[n] = true;
-  Kind nk = n.getKind();
-  if (nk == APPLY_CONSTRUCTOR)
-  {
-    Trace("datatypes") << "  Found constructor " << n << endl;
-    if (n.getNumChildren() > 0)
-    {
-      d_functionTerms.push_back(n);
-    }
-    return;
-  }
-  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
-  {
-    d_functionTerms.push_back(n);
-    // we must also record which selectors exist
-    Trace("dt-collapse-sel") << "  Found selector " << n << endl;
-    Node rep = getRepresentative(n[0]);
-    // record it in the selectors
-    EqcInfo* eqc = getOrMakeEqcInfo(rep, true);
-    // add it to the eqc info
-    addSelector(n, eqc, rep);
-  }
-
-  // now, do user-context-dependent lemmas
-  if (nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
-  {
-    // if not one of these kinds, there are no lemmas
-    return;
-  }
-  if (d_collectTermsCacheU.find(n) != d_collectTermsCacheU.end())
+void TheoryDatatypes::registerInitialLemmas(Node n)
+{
+  if (d_initialLemmaCache.find(n) != d_initialLemmaCache.end())
   {
     return;
   }
-  d_collectTermsCacheU[n] = true;
+  d_initialLemmaCache[n] = true;
 
   NodeManager* nm = NodeManager::currentNM();
-
+  Kind nk = n.getKind();
   if (nk == DT_SIZE)
   {
     Node lem = nm->mkNode(LEQ, d_zero, n);
@@ -1341,10 +1327,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
   Node n_ic = utils::getInstCons(k, dt, index);
-  n_ic = rewrite(n_ic);
-  // it may be a new term, so we collect terms and add it to the equality engine
-  collectTerms( n_ic );
-  d_equalityEngine->addTerm(n_ic);
+  Assert (n_ic == rewrite(n_ic));
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
 }

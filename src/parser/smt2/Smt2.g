@@ -1,10 +1,10 @@
 /* ****************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,7 @@ options {
 /* ****************************************************************************
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -154,7 +154,7 @@ parseCommand returns [cvc5::Command* cmd_return = NULL]
     /* This extended command has to be in the outermost production so that
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
-  | LPAREN_TOK INCLUDE_TOK str[name,true] RPAREN_TOK
+  | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
     { if(!PARSER_STATE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this "
                                  "run.");
@@ -255,7 +255,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         sorts.push_back(PARSER_STATE->mkSort(*i));
       }
     }
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     { PARSER_STATE->popScope();
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
@@ -267,7 +267,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortList[sorts] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     { Trace("parser") << "declare fun: '" << name << "'" << std::endl;
       if( !sorts.empty() ) {
         t = PARSER_STATE->mkFlatFunctionType(sorts, t);
@@ -294,7 +294,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     { /* add variables to parser state before parsing term */
       Trace("parser") << "define fun: '" << name << "'" << std::endl;
       if( sortedVarNames.size() > 0 ) {
@@ -406,66 +406,25 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetLearnedLiteralsCommand); }
   | /* push */
-    PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    PUSH_TOK
     ( k=INTEGER_LITERAL
-      { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num == 0) {
-          cmd->reset(new EmptyCommand());
-        } else if(num == 1) {
-          PARSER_STATE->pushScope(true);
-          cmd->reset(new PushCommand());
-        } else {
-          std::unique_ptr<CommandSequence> seq(new CommandSequence());
-          do {
-            PARSER_STATE->pushScope(true);
-            Command* push_cmd = new PushCommand();
-            push_cmd->setMuted(num > 1);
-            seq->addCommand(push_cmd);
-            --num;
-            } while(num > 0);
-          cmd->reset(seq.release());
-        }
+      {
+        uint32_t num = AntlrInput::tokenToUnsigned(k);
+        *cmd = PARSER_STATE->handlePush(num);
       }
-    | { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Strict compliance mode demands an integer to be provided to "
-              "PUSH.  Maybe you want (push 1)?");
-        } else {
-          PARSER_STATE->pushScope(true);
-          cmd->reset(new PushCommand());
-        }
-      } )
-  | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    | {
+        *cmd = PARSER_STATE->handlePush(std::nullopt);
+      }
+    )
+  | /* pop */
+    POP_TOK
     ( k=INTEGER_LITERAL
-      { unsigned num = AntlrInput::tokenToUnsigned(k);
-        // we don't compare num to PARSER_STATE->scopeLevel() here, since
-        // when global declarations is true, the scope level of the parser
-        // is not indicative of the context level.
-        if(num == 0) {
-          cmd->reset(new EmptyCommand());
-        } else if(num == 1) {
-          PARSER_STATE->popScope();
-          cmd->reset(new PopCommand());
-        } else {
-          std::unique_ptr<CommandSequence> seq(new CommandSequence());
-          do {
-            PARSER_STATE->popScope();
-            Command* pop_command = new PopCommand();
-            pop_command->setMuted(num > 1);
-            seq->addCommand(pop_command);
-            --num;
-          } while(num > 0);
-          cmd->reset(seq.release());
-        }
+      {
+        uint32_t num = AntlrInput::tokenToUnsigned(k);
+        *cmd = PARSER_STATE->handlePop(num);
       }
-    | { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Strict compliance mode demands an integer to be provided to POP."
-              "Maybe you want (pop 1)?");
-        } else {
-          PARSER_STATE->popScope();
-          cmd->reset(new PopCommand());
-        }
+    | {
+        *cmd = PARSER_STATE->handlePop(std::nullopt);
       }
     )
     /* exit */
@@ -514,7 +473,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     {
       cvc5::Term var = SOLVER->declareSygusVar(name, t);
       PARSER_STATE->defineVar(name, var);
@@ -527,7 +486,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    ( sortSymbol[range,CHECK_DECLARED] )?
+    ( sortSymbol[range] )?
     {
       PARSER_STATE->pushScope();
       sygusVars = PARSER_STATE->bindBoundVars(sortedVarNames);
@@ -631,7 +590,7 @@ sygusGrammar[cvc5::Grammar*& ret,
   // error to recognize if the user is using the (deprecated) version 1.0
   // sygus syntax.
   ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
-    sortSymbol[t,CHECK_DECLARED] (
+    sortSymbol[t] (
       // SyGuS version 1.0 expects a grammar ((Start Int ( ...
       // SyGuS version 2.0 expects a predeclaration ((Start Int) ...
       LPAREN_TOK
@@ -675,7 +634,7 @@ sygusGrammar[cvc5::Grammar*& ret,
   LPAREN_TOK
   (
     LPAREN_TOK
-    symbol[name, CHECK_DECLARED, SYM_VARIABLE] sortSymbol[t, CHECK_DECLARED]
+    symbol[name, CHECK_DECLARED, SYM_VARIABLE] sortSymbol[t]
     {
       // check that it matches sortedVarNames
       if (sortedVarNames[dtProcessed].first != name)
@@ -701,11 +660,11 @@ sygusGrammar[cvc5::Grammar*& ret,
         // add term as constructor to datatype
         ret->addRule(ntSyms[dtProcessed], e);
       }
-      | LPAREN_TOK SYGUS_CONSTANT_TOK sortSymbol[t, CHECK_DECLARED] RPAREN_TOK {
+      | LPAREN_TOK SYGUS_CONSTANT_TOK sortSymbol[t] RPAREN_TOK {
         // allow constants in datatype for ntSyms[dtProcessed]
         ret->addAnyConstant(ntSyms[dtProcessed]);
       }
-      | LPAREN_TOK SYGUS_VARIABLE_TOK sortSymbol[t, CHECK_DECLARED] RPAREN_TOK {
+      | LPAREN_TOK SYGUS_VARIABLE_TOK sortSymbol[t] RPAREN_TOK {
         // add variable constructors to datatype
         ret->addAnyVariable(ntSyms[dtProcessed]);
       }
@@ -774,7 +733,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
   : DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     { // allow overloading here
       if( PARSER_STATE->sygus() )
       {
@@ -791,7 +750,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( str[s, true]
+    ( str[s]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
@@ -815,7 +774,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     symbol[fname,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(fname); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     {
       func =
           PARSER_STATE->bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
@@ -836,7 +795,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
       symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(fname); }
       LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-      sortSymbol[t,CHECK_DECLARED]
+      sortSymbol[t]
       {
         flattenVars.clear();
         func = PARSER_STATE->bindDefineFunRec(
@@ -914,72 +873,11 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
 
-  | DECLARE_SORTS_TOK
-    {
-      PARSER_STATE->checkThatLogicIsSet();
-      PARSER_STATE->checkLogicAllowsFreeSorts();
-      seq.reset(new cvc5::CommandSequence());
-    }
-    LPAREN_TOK
-    ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-      { PARSER_STATE->checkUserSymbol(name);
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
-        seq->addCommand(new DeclareSortCommand(name, 0, type));
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
-
-  | DECLARE_FUNS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::CommandSequence()); }
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      nonemptySortList[sorts] RPAREN_TOK
-      { cvc5::Sort tt;
-        if(sorts.size() > 1) {
-          PARSER_STATE->checkLogicAllowsFunctions();
-          // must flatten
-          cvc5::Sort range = sorts.back();
-          sorts.pop_back();
-          tt = PARSER_STATE->mkFlatFunctionType(sorts, range);
-        } else {
-          tt = sorts[0];
-        }
-        // allow overloading
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, tt, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, tt));
-        sorts.clear();
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
-  | DECLARE_PREDS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::CommandSequence()); }
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      sortList[sorts] RPAREN_TOK
-      { t = SOLVER->getBooleanSort();
-        if(sorts.size() > 0) {
-          PARSER_STATE->checkLogicAllowsFunctions();
-          t = SOLVER->mkFunctionSort(sorts, t);
-        }
-        // allow overloading
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
-        sorts.clear();
-      }
-    )+
-    RPAREN_TOK
-    { cmd->reset(seq.release()); }
   | // (define-const x U t)
     DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     term[e, e2]
     {
       // declare the name down here (while parsing term, signature
@@ -1028,14 +926,14 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       cmd->reset(new GetInterpolantNextCommand);
     }
   | DECLARE_HEAP LPAREN_TOK
-    sortSymbol[t, CHECK_DECLARED]
-    sortSymbol[s, CHECK_DECLARED]
+    sortSymbol[t]
+    sortSymbol[s]
     { cmd->reset(new DeclareHeapCommand(t, s)); }
     RPAREN_TOK
   | DECLARE_POOL { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
-    sortSymbol[t,CHECK_DECLARED]
+    sortSymbol[t]
     LPAREN_TOK
     ( term[e, e2]
       { terms.push_back( e ); }
@@ -1384,7 +1282,7 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           {
             // lookup constructor by name
             cvc5::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            cvc5::Term scons = dc.getInstantiatedConstructorTerm(expr.getSort());
+            cvc5::Term scons = dc.getInstantiatedTerm(expr.getSort());
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }
@@ -1509,6 +1407,12 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK TABLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1574,13 +1478,13 @@ qualIdentifier[cvc5::ParseOp& p]
 }
 : identifier[p]
   | LPAREN_TOK AS_TOK
-    ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
+    ( CONST_TOK sortSymbol[type]
       {
         p.d_kind = cvc5::CONST_ARRAY;
         PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     | identifier[p]
-      sortSymbol[type, CHECK_DECLARED]
+      sortSymbol[type]
       {
         PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
@@ -1650,6 +1554,13 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TUPLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
+    | TABLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::TABLE_PROJECT;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_PROJECT, numerals);
+       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
@@ -1704,7 +1615,7 @@ termAtomic[cvc5::Term& atomTerm]
   : INTEGER_LITERAL
     {
       std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
-      atomTerm = SOLVER->mkInteger(intStr);
+      atomTerm = PARSER_STATE->mkRealOrIntFromNumeral(intStr);
     }
   | DECIMAL_LITERAL
     {
@@ -1720,7 +1631,7 @@ termAtomic[cvc5::Term& atomTerm]
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
       }
-    | FMF_CARD_TOK sortSymbol[t,CHECK_DECLARED] INTEGER_LITERAL
+    | FMF_CARD_TOK sortSymbol[t] INTEGER_LITERAL
       {
         uint32_t ubound = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
         atomTerm = SOLVER->mkCardinalityConstraint(t, ubound);
@@ -1749,7 +1660,7 @@ termAtomic[cvc5::Term& atomTerm]
     }
 
   // String constant
-  | str[s,false] { atomTerm = PARSER_STATE->mkStringConstant(s); }
+  | str[s] { atomTerm = PARSER_STATE->mkStringConstant(s); }
 
   // NOTE: Theory constants go here
 
@@ -1839,7 +1750,7 @@ termList[std::vector<cvc5::Term>& formulas, cvc5::Term& expr]
 /**
  * Matches a string, and strips off the quotes.
  */
-str[std::string& s, bool fsmtlib]
+str[std::string& s]
   : STRING_LITERAL
     {
       s = AntlrInput::tokenText($STRING_LITERAL);
@@ -1855,34 +1766,21 @@ str[std::string& s, bool fsmtlib]
               "as escape sequences");
         }
       }
-      if (fsmtlib || PARSER_STATE->escapeDupDblQuote())
+      char* p_orig = strdup(s.c_str());
+      char *p = p_orig, *q = p_orig;
+      while (*q != '\0')
       {
-        char* p_orig = strdup(s.c_str());
-        char *p = p_orig, *q = p_orig;
-        while (*q != '\0')
+        if (*q == '"')
         {
-          if (PARSER_STATE->escapeDupDblQuote() && *q == '"')
-          {
-            // Handle SMT-LIB >=2.5 standard escape '""'.
-            ++q;
-            Assert(*q == '"');
-          }
-          else if (!PARSER_STATE->escapeDupDblQuote() && *q == '\\')
-          {
-            ++q;
-            // Handle SMT-LIB 2.0 standard escapes '\\' and '\"'.
-            if (*q != '\\' && *q != '"')
-            {
-              Assert(*q != '\0');
-              *p++ = '\\';
-            }
-          }
-          *p++ = *q++;
+          // Handle SMT-LIB >=2.5 standard escape '""'.
+          ++q;
+          Assert(*q == '"');
         }
-        *p = '\0';
-        s = p_orig;
-        free(p_orig);
+        *p++ = *q++;
       }
+      *p = '\0';
+      s = p_orig;
+      free(p_orig);
     }
   ;
 
@@ -1910,14 +1808,14 @@ sortList[std::vector<cvc5::Sort>& sorts]
 @declarations {
   cvc5::Sort t;
 }
-  : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )*
+  : ( sortSymbol[t] { sorts.push_back(t); } )*
   ;
 
 nonemptySortList[std::vector<cvc5::Sort>& sorts]
 @declarations {
   cvc5::Sort t;
 }
-  : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )+
+  : ( sortSymbol[t] { sorts.push_back(t); } )+
   ;
 
 /**
@@ -1930,7 +1828,7 @@ sortedVarList[std::vector<std::pair<std::string, cvc5::Sort> >& sortedVars]
   cvc5::Sort t;
 }
   : ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
-      sortSymbol[t,CHECK_DECLARED] RPAREN_TOK
+      sortSymbol[t] RPAREN_TOK
       { sortedVars.push_back(make_pair(name, t)); }
     )*
   ;
@@ -1959,7 +1857,7 @@ sortName[std::string& name, cvc5::parser::DeclarationCheck check]
   : symbol[name,check,SYM_SORT]
   ;
 
-sortSymbol[cvc5::Sort& t, cvc5::parser::DeclarationCheck check]
+sortSymbol[cvc5::Sort& t]
 @declarations {
   std::string name;
   std::vector<cvc5::Sort> args;
@@ -1968,11 +1866,7 @@ sortSymbol[cvc5::Sort& t, cvc5::parser::DeclarationCheck check]
 }
   : sortName[name,CHECK_NONE]
     {
-      if(check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT)) {
-        t = PARSER_STATE->getSort(name);
-      } else {
-        t = PARSER_STATE->mkUnresolvedType(name);
-      }
+      t = PARSER_STATE->getSort(name);
     }
   | LPAREN_TOK (INDEX_TOK {indexed = true;} | {indexed = false;})
     symbol[name,CHECK_NONE,SYM_SORT]
@@ -2048,22 +1942,14 @@ sortSymbol[cvc5::Sort& t, cvc5::parser::DeclarationCheck check]
           t = SOLVER->mkSequenceSort( args[0] );
         } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
           t = SOLVER->mkTupleSort(args);
-        } else if(check == CHECK_DECLARED ||
-                  PARSER_STATE->isDeclared(name, SYM_SORT)) {
-          t = PARSER_STATE->getSort(name, args);
+        } else if (name == "Relation" && !PARSER_STATE->strictModeEnabled()) {
+          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
+          t = SOLVER->mkSetSort(tupleSort);
+        } else if (name == "Table" && !PARSER_STATE->strictModeEnabled()) {
+          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
+          t = SOLVER->mkBagSort(tupleSort);
         } else {
-          // make unresolved type
-          if(args.empty()) {
-            t = PARSER_STATE->mkUnresolvedType(name);
-            Trace("parser-param") << "param: make unres type " << name
-                                  << std::endl;
-          } else {
-            t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
-            t = t.instantiate( args );
-            Trace("parser-param")
-                << "param: make unres param type " << name << " " << args.size()
-                << " " << PARSER_STATE->getArity( name ) << std::endl;
-          }
+          t = PARSER_STATE->getSort(name, args);
         }
       }
     ) RPAREN_TOK
@@ -2182,7 +2068,7 @@ selector[cvc5::DatatypeConstructorDecl& ctor]
   std::string id;
   cvc5::Sort t, t2;
 }
-  : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t,CHECK_NONE]
+  : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t]
     { 
       ctor.addSelector(id, t);
       Trace("parser-idt") << "selector: " << id.c_str()
@@ -2227,24 +2113,19 @@ AS_TOK : 'as';
 CONST_TOK : { !PARSER_STATE->strictModeEnabled() }? 'const';
 
 // extended commands
-DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-codatatype';
-DECLARE_DATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-datatype';
-DECLARE_DATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-datatypes';
-DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-datatypes';
-DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
-DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
-PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
+DECLARE_CODATATYPE_TOK : 'declare-codatatype';
+DECLARE_DATATYPE_TOK : 'declare-datatype';
+DECLARE_DATATYPES_TOK : 'declare-datatypes';
+DECLARE_CODATATYPES_TOK : 'declare-codatatypes';
+PAR_TOK : 'par';
 SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }?'set.comprehension';
-TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
-UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
-MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
+TESTER_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
+UPDATE_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
+MATCH_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
 ECHO_TOK : 'echo';
-DECLARE_SORTS_TOK : 'declare-sorts';
-DECLARE_FUNS_TOK : 'declare-funs';
-DECLARE_PREDS_TOK : 'declare-preds';
 DECLARE_CONST_TOK : 'declare-const';
 DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
@@ -2288,6 +2169,7 @@ FORALL_TOK        : 'forall';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
+TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
@@ -2384,24 +2266,15 @@ BINARY_LITERAL
   ;
 
 /**
- * Matches a double-quoted string literal. Depending on the language that is
- * being parsed, different escape sequences are supported:
+ * Matches a double-quoted string literal. A double-quote inside a string is
+ * escaped with "", e.g., "This is a string literal with "" a single, embedded
+ * double quote."
  *
- * For SMT-LIB 2.0 the sequence \" is interpreted as a double quote (") and the
- * sequence \\ is interpreted as a backslash (\).
- *
- * For SMT-LIB >=2.5 and SyGuS a double-quote inside a string is escaped with
- * "", e.g., "This is a string literal with "" a single, embedded double
- * quote."
- *
- * You shouldn't generally use this in parser rules, as the quotes
- * will be part of the token text.  Use the str[] parser rule instead.
+ * You shouldn't generally use this in parser rules, as the quotes will be part
+ * of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
-  : { !PARSER_STATE->escapeDupDblQuote() }?=>
-    '"' ('\\' . | ~('\\' | '"'))* '"'
-  | { PARSER_STATE->escapeDupDblQuote() }?=>
-    '"' (~('"') | '""')* '"'
+  : '"' (~('"') | '""')* '"' 
   ;
 
 /**

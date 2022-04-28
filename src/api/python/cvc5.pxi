@@ -46,23 +46,6 @@ cdef extern from "Python.h":
     object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
     void PyMem_Free(void*)
 
-################################## DECORATORS #################################
-def expand_list_arg(num_req_args=0):
-    """
-        Creates a decorator that looks at index num_req_args of the args,
-        if it's a list, it expands it before calling the function.
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(owner, *args):
-            if len(args) == num_req_args + 1 and \
-               isinstance(args[num_req_args], list):
-                args = list(args[:num_req_args]) + args[num_req_args]
-            return func(owner, *args)
-        return wrapper
-    return decorator
-###############################################################################
-
 # Style Guidelines
 ### Using PEP-8 spacing recommendations
 ### Limit linewidth to 79 characters
@@ -109,6 +92,16 @@ cdef class Datatype:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype constructor with the given index, where index can
+            be either a numeric id starting with zero, or the name of the
+            constructor. In the latter case, this is a linear search through the
+            constructors, so in case of multiple, similarly-named constructors,
+            the first is returned.
+
+            :param index: The id or name of the datatype constructor.
+            :return: The matching datatype constructor.
+        """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
@@ -126,16 +119,6 @@ cdef class Datatype:
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
-
-    def getConstructorTerm(self, str name):
-        """
-            :param name: The name of the constructor.
-            :return: The term representing the datatype constructor with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cd.getConstructorTerm(name.encode())
-        return term
 
     def getSelector(self, str name):
         """
@@ -174,6 +157,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype is parametric.
         """
         return self.cd.isParametric()
@@ -194,6 +178,7 @@ cdef class Datatype:
         """
             .. warning:: This method is experimental and may change in future
                          versions.
+
             :return: True if this datatype corresponds to a record.
         """
         return self.cd.isRecord()
@@ -206,7 +191,7 @@ cdef class Datatype:
 
     def isWellFounded(self):
         """
-            Is this datatype well-founded?
+            Determine if this datatype is well-founded.
 
             If this datatype is not a codatatype, this returns false if there
             are no values of this datatype that are of finite size.
@@ -228,6 +213,7 @@ cdef class Datatype:
         return self.cd.toString().decode()
 
     def __iter__(self):
+        """Iterate over all constructors."""
         for ci in self.cd:
             dc = DatatypeConstructor(self.solver)
             dc.cdc = ci
@@ -247,6 +233,16 @@ cdef class DatatypeConstructor:
         self.solver = solver
 
     def __getitem__(self, index):
+        """
+            Get the datatype selector with the given index, where index can be
+            either a numeric id starting with zero, or the name of the selector.
+            In the latter case, this is a linear search through the selectors,
+            so in case of multiple, similarly-named selectors, the first is
+            returned.
+
+            :param index: The id or name of the datatype selector.
+            :return: The matching datatype selector.
+        """
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
         if isinstance(index, int) and index >= 0:
             ds.cds = self.cdc[(<int?> index)]
@@ -262,17 +258,35 @@ cdef class DatatypeConstructor:
         """
         return self.cdc.getName().decode()
 
-    def getConstructorTerm(self):
-        """
-            :return: The constructor operator as a term.
+    def getTerm(self):
+        """   
+            Get the constructor term of this datatype constructor.
+            
+            Datatype constructors are a special class of function-like terms
+            whose sort is datatype constructor
+            (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
+            constructors, including nullary ones, should be used as the first
+            argument to Terms whose kind is
+            :py:obj:`APPLY_CONSTRUCTOR <Kind.APPLY_CONSTRUCTOR>`.
+            For example, the nil list can be constructed via
+            ``Solver.mkTerm(APPLY_CONSTRUCTOR, [nil])``, where nil is the Term
+            returned by this method.
+
+            .. note::
+
+                This method should not be used for parametric datatypes.
+                Instead, use the method
+                :py:meth:`DatatypeConstructor.getInstantiatedTerm()` below.
+
+            :return: The constructor term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getConstructorTerm()
+        term.cterm = self.cdc.getTerm()
         return term
 
-    def getInstantiatedConstructorTerm(self, Sort retSort):
+    def getInstantiatedTerm(self, Sort retSort):
         """
-            Get the constructor operator of this datatype constructor whose
+            Get the constructor term of this datatype constructor whose
             return type is retSort. This method is intended to be used on
             constructors of parametric datatypes and can be seen as returning
             the constructor term that has been explicitly cast to the given
@@ -300,24 +314,30 @@ cdef class DatatypeConstructor:
 
             .. note::
 
-                The returned constructor term ``t`` is an operator, while
-                ``Solver.mkTerm(APPLY_CONSTRUCTOR, [t])`` is used to construct
-                the above (nullary) application of nil.
+                The returned constructor term ``t`` is used to construct the
+                above (nullary) application of ``nil`` with
+                ``Solver.mkTerm(APPLY_CONSTRUCTOR, t)``.
 
             .. warning:: This method is experimental and may change in future
                          versions.
 
             :param retSort: The desired return sort of the constructor.
-            :return: The constructor operator as a term.
+            :return: The constructor term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getInstantiatedConstructorTerm(retSort.csort)
+        term.cterm = self.cdc.getInstantiatedTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):
         """
-            :return: The tester operator that is related to this constructor,
-                     as a term.
+            Get the tester term of this datatype constructor.
+
+            Similar to constructors, testers are a class of function-like terms
+            of tester sort (:py:meth:`Sort.isDatatypeTester`), and should
+            be used as the first argument of Terms of kind
+            :py:obj:`Kind.APPLY_TESTER`.
+
+            :return: The tester term for this constructor.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cdc.getTesterTerm()
@@ -339,16 +359,6 @@ cdef class DatatypeConstructor:
         ds.cds = self.cdc.getSelector(name.encode())
         return ds
 
-    def getSelectorTerm(self, str name):
-        """
-            :param name: The name of the datatype selector.
-            :return: A term representing the firstdatatype selector with the
-                     given name.
-        """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getSelectorTerm(name.encode())
-        return term
-
     def isNull(self):
         """
             :return: True if this DatatypeConstructor is a null object.
@@ -362,6 +372,7 @@ cdef class DatatypeConstructor:
         return self.cdc.toString().decode()
 
     def __iter__(self):
+        """Iterate over all datatype selectors."""
         for ci in self.cdc:
             ds = DatatypeSelector(self.solver)
             ds.cds = ci
@@ -370,7 +381,8 @@ cdef class DatatypeConstructor:
 
 cdef class DatatypeConstructorDecl:
     """
-        A cvc5 datatype constructor declaration.
+        A cvc5 datatype constructor declaration. A datatype constructor
+        declaration is a specification used for creating a datatype constructor.
 
         Wrapper class for :cpp:class:`cvc5::DatatypeConstructorDecl`.
     """
@@ -399,6 +411,18 @@ cdef class DatatypeConstructorDecl:
         """
         self.cddc.addSelectorSelf(name.encode())
 
+    def addSelectorUnresolved(self, str name, str unresDatatypeName):
+        """
+            Add datatype selector declaration whose codomain sort is an 
+            unresolved datatype with the given name.
+
+            :param name: The name of the datatype selector declaration to add.
+            :param unresDataypeName: The name of the unresolved datatype. The
+                                     codomain of the selector will be the
+                                     resolved datatype with the given name.
+        """
+        self.cddc.addSelectorUnresolved(name.encode(), unresDatatypeName.encode())
+
     def isNull(self):
         """
             :return: True if this DatatypeConstructorDecl is a null object.
@@ -414,7 +438,19 @@ cdef class DatatypeConstructorDecl:
 
 cdef class DatatypeDecl:
     """
-        A cvc5 datatype declaration.
+        A cvc5 datatype declaration. A datatype declaration is not itself a
+        datatype (see :py:class:`Datatype`), but a specification for creating a
+        datatype sort.
+
+        The interface for a datatype declaration coincides with the syntax for
+        the SMT-LIB 2.6 command `declare-datatype`, or a single datatype within
+        the `declare-datatypes` command.
+
+        Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
+        the methods:
+
+            - :py:meth:`Solver.mkDatatypeSort()`
+            - :py:meth:`Solver.mkDatatypeSorts()`
 
         Wrapper class for :cpp:class:`cvc5::DatatypeDecl`.
     """
@@ -440,6 +476,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :return: True if this datatype declaration is parametric.
         """
         return self.cdd.isParametric()
@@ -481,17 +520,31 @@ cdef class DatatypeSelector:
         """
         return self.cds.getName().decode()
 
-    def getSelectorTerm(self):
+    def getTerm(self):
         """
-            :return: The selector opeartor of this datatype selector as a term.
+            Get the selector term of this datatype selector.
+
+            Selector terms are a class of function-like terms of selector
+            sort (:py:meth:`Sort.isDatatypeSelector()`), and should be used as
+            the first argument of Terms of kind
+            :py:obj:`APPLY_SELECTOR <Kind.APPLY_SELECTOR>`.
+
+            :return: The selector term of this datatype selector.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cds.getSelectorTerm()
+        term.cterm = self.cds.getTerm()
         return term
 
     def getUpdaterTerm(self):
         """
-            :return: The updater opeartor of this datatype selector as a term.
+            Get the updater term of this datatype selector.
+
+            Similar to selectors, updater terms are a class of function-like
+            terms of updater Sort (:py:meth:`Sort.isDatatypeUpdater()`), and
+            should be used as the first argument of Terms of kind
+            :py:obj:`APPLY_UPDATER <Kind.APPLY_UPDATER>`.
+
+            :return: The updater term of this datatype selector.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getUpdaterTerm()
@@ -524,7 +577,8 @@ cdef class Op:
 
         An operator is a term that represents certain operators,
         instantiated with its required parameters, e.g.,
-        a term of kind :py:obj:`BVExtract <cvc5.Kind.BVExtract>`.
+        a term of kind
+        :py:obj:`BITVECTOR_EXTRACT <Kind.BITVECTOR_EXTRACT>`.
 
         Wrapper class for :cpp:class:`cvc5::Op`.
     """
@@ -573,7 +627,7 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def __getitem__(self, i):
+    def __getitem__(self, int i):
         """
             Get the index at position ``i``.
 
@@ -587,7 +641,9 @@ cdef class Op:
 
 cdef class Grammar:
     """
-        A Sygus Grammar.
+        A Sygus Grammar. This class can be used to define a context-free grammar
+        of terms. Its interface coincides with the definition of grammars
+        (``GrammarDef``) in the SyGuS IF 2.1 standard.
 
         Wrapper class for :cpp:class:`cvc5::Grammar`.
     """
@@ -862,17 +918,10 @@ cdef class Solver:
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
-    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
+    def mkDatatypeSorts(self, list dtypedecls):
         """
             Create a vector of datatype sorts using unresolved sorts. The names
             of the datatype declarations in dtypedecls must be distinct.
-
-            This method is called when the DatatypeDecl objects dtypedecls have
-            been built using "unresolved" sorts.
-
-            We associate each sort in unresolvedSorts with exacly one datatype
-            from dtypedecls. In particular, it must have the same name as
-            exactly one datatype declaration in dtypedecls.
 
             When constructing datatypes, unresolved sorts are replaced by the
             datatype sort constructed for the datatype declaration it is
@@ -880,25 +929,15 @@ cdef class Solver:
 
             :param dtypedecls: The datatype declarations from which the sort is
                                created.
-            :param unresolvedSorts: The list of unresolved sorts.
             :return: The datatype sorts.
         """
-        if unresolvedSorts == None:
-            unresolvedSorts = set([])
-        else:
-            assert isinstance(unresolvedSorts, set)
-
         sorts = []
         cdef vector[c_DatatypeDecl] decls
         for decl in dtypedecls:
             decls.push_back((<DatatypeDecl?> decl).cdd)
 
-        cdef c_set[c_Sort] usorts
-        for usort in unresolvedSorts:
-            usorts.insert((<Sort?> usort).csort)
-
         csorts = self.csolver.mkDatatypeSorts(
-            <const vector[c_DatatypeDecl]&> decls, <const c_set[c_Sort]&> usorts)
+            <const vector[c_DatatypeDecl]&> decls)
         for csort in csorts:
           sort = Sort(self)
           sort.csort = csort
@@ -945,13 +984,11 @@ cdef class Solver:
           sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkPredicateSort(self, *sorts):
         """
             Create a predicate sort.
 
-            :param sorts: The list of sorts of the predicate, as a list or as
-                          distinct arguments.
+            :param sorts: The list of sorts of the predicate.
             :return: The predicate sort.
         """
         cdef Sort sort = Sort(self)
@@ -961,7 +998,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkPredicateSort(<const vector[c_Sort]&> v)
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """
             Create a record sort
@@ -969,8 +1005,7 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
 
-            :param fields: The list of fields of the record, as a list or as
-                           distinct arguments.
+            :param fields: The list of fields of the record.
             :return: The record sort.
         """
         cdef Sort sort = Sort(self)
@@ -1032,9 +1067,9 @@ cdef class Solver:
           sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
-    def mkUnresolvedSort(self, str name, size_t arity = 0):
+    def mkUnresolvedDatatypeSort(self, str name, size_t arity = 0):
         """
-            Create an unresolved sort.
+            Create an unresolved datatype sort.
 
             This is for creating yet unresolved sort placeholders for mutually
             recursive datatypes.
@@ -1044,7 +1079,7 @@ cdef class Solver:
             :return: The unresolved sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
+        sort.csort = self.csolver.mkUnresolvedDatatypeSort(name.encode(), arity)
         return sort
 
     def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
@@ -1066,13 +1101,11 @@ cdef class Solver:
               arity, symbol.encode())
         return sort
 
-    @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
         """
             Create a tuple sort.
 
-            :param sorts: Of the elements of the tuple, as a list or as
-                          distinct arguments.
+            :param sorts: Of the elements of the tuple.
             :return: The tuple sort.
         """
         cdef Sort sort = Sort(self)
@@ -1082,7 +1115,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkTupleSort(v)
         return sort
 
-    @expand_list_arg(num_req_args=1)
     def mkTerm(self, kind_or_op, *args):
         """
             Create a term.
@@ -1131,7 +1163,6 @@ cdef class Solver:
         result.cterm = self.csolver.mkTuple(csorts, cterms)
         return result
 
-    @expand_list_arg(num_req_args=0)
     def mkOp(self, k, *args):
         """
             Create operator.
@@ -1198,7 +1229,7 @@ cdef class Solver:
         """
             Create a constant representing the number Pi.
 
-            :return: A constant representing :py:obj:`Pi <cvc5.Kind.Pi>`.
+            :return: A constant representing :py:obj:`PI <Kind.PI>`.
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPi()
@@ -1221,37 +1252,24 @@ cdef class Solver:
             term.cterm = self.csolver.mkInteger((<int?> val))
         return term
 
-    def mkReal(self, val, den=None):
+    def mkReal(self, numerator, denominator=None):
         """
-            Create a real constant.
+            Create a real constant from a numerator and an optional denominator.
+            
+            First converts the arguments to a temporary string, either
+            ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
+            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            thus represent an integer, a decimal number or a fraction.
 
-            :param val: The value of the term. Can be an integer, float, or
-                        string. It will be formatted as a string before the
-                        term is built.
-            :param den: If not None, the value is ``val``/``den``.
+            :param numerator: The numerator.
+            :param denominator: The denominator, or ``None``.
             :return: A real term with literal value.
-
-            Can be used in various forms:
-
-            - Given a string ``"N/D"`` constructs the corresponding rational.
-            - Given a string ``"W.D"`` constructs the reduction of
-              ``(W * P + D)/P``, where ``P`` is the appropriate power of 10.
-            - Given a float ``f``, constructs the rational matching ``f``'s
-              string representation. This means that ``mkReal(0.3)`` gives
-              ``3/10`` and not the IEEE-754 approximation of ``3/10``.
-            - Given a string ``"W"`` or an integer, constructs that integer.
-            - Given two strings and/or integers ``N`` and ``D``, constructs
-              ``N/D``.
         """
         cdef Term term = Term(self)
-        if den is None:
-            term.cterm = self.csolver.mkReal(str(val).encode())
+        if denominator is None:
+            term.cterm = self.csolver.mkReal(str(numerator).encode())
         else:
-            if not isinstance(val, int) or not isinstance(den, int):
-                raise ValueError("Expecting integers when"
-                                 " constructing a rational"
-                                 " but got: {}".format((val, den)))
-            term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
+            term.cterm = self.csolver.mkReal("{}/{}".format(numerator, denominator).encode())
         return term
 
     def mkRegexpAll(self):
@@ -1378,8 +1396,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-    @expand_list_arg(num_req_args=0)
-    def mkBitVector(self, *args):
+    def mkBitVector(self, int size, *args):
         """
             Create bit-vector value.
 
@@ -1397,25 +1414,18 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         if len(args) == 0:
-            raise ValueError("Missing arguments to mkBitVector")
-        size = args[0]
-        if not isinstance(size, int):
-            raise ValueError(
-                "Invalid first argument to mkBitVector '{}', "
-                "expected bit-vector size".format(size))
-        if len(args) == 1:
             term.cterm = self.csolver.mkBitVector(<uint32_t> size)
-        elif len(args) == 2:
-            val = args[1]
+        elif len(args) == 1:
+            val = args[0]
             if not isinstance(val, int):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
                 <uint32_t> size, <uint32_t> val)
-        elif len(args) == 3:
-            val = args[1]
-            base = args[2]
+        elif len(args) == 2:
+            val = args[0]
+            base = args[1]
             if not isinstance(val, str):
                 raise ValueError(
                     "Invalid second argument to mkBitVector '{}', "
@@ -1614,10 +1624,6 @@ cdef class Solver:
             if isinstance(sorts_or_bool, bool):
                 dd.cdd = self.csolver.mkDatatypeDecl(
                         <const string &> name.encode(), <bint> sorts_or_bool)
-            elif isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort)
             elif isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
@@ -1628,12 +1634,7 @@ cdef class Solver:
                 raise ValueError("Unhandled second argument type {}"
                                  .format(type(sorts_or_bool)))
         elif sorts_or_bool is not None and isCoDatatype is not None:
-            if isinstance(sorts_or_bool, Sort):
-                dd.cdd = self.csolver.mkDatatypeDecl(
-                        <const string &> name.encode(),
-                        (<Sort> sorts_or_bool).csort,
-                        <bint> isCoDatatype)
-            elif isinstance(sorts_or_bool, list):
+            if isinstance(sorts_or_bool, list):
                 for s in sorts_or_bool:
                     v.push_back((<Sort?> s).csort)
                 dd.cdd = self.csolver.mkDatatypeDecl(
@@ -1696,7 +1697,7 @@ cdef class Solver:
         r.cr = self.csolver.checkSat()
         return r
 
-    def mkSygusGrammar(self, boundVars, ntSymbols):
+    def mkGrammar(self, boundVars, ntSymbols):
         """
             Create a SyGuS grammar. The first non-terminal is treated as the
             starting non-terminal, so the order of non-terminals matters.
@@ -1713,7 +1714,7 @@ cdef class Solver:
             bvc.push_back((<Term?> bv).cterm)
         for nt in ntSymbols:
             ntc.push_back((<Term?> nt).cterm)
-        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
+        grammar.cgrammar = self.csolver.mkGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
     def declareSygusVar(self, str symbol, Sort sort):
@@ -1914,7 +1915,6 @@ cdef class Solver:
                     grammar.cgrammar)
         return term
 
-    @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
         """
             Check satisfiability assuming the given formula.
@@ -1925,8 +1925,7 @@ cdef class Solver:
 
                 ( check-sat-assuming ( <prop_literal> ) )
 
-            :param assumptions: The formulas to assume, as a list or as
-                                distinct arguments.
+            :param assumptions: The formulas to assume.
             :return: The result of the satisfiability check.
         """
         cdef Result r = Result()
@@ -1937,7 +1936,6 @@ cdef class Solver:
         r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
         return r
 
-    @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         """
             Create datatype sort.
@@ -1949,8 +1947,7 @@ cdef class Solver:
                 ( declare-datatype <symbol> <datatype_decl> )
 
             :param symbol: The name of the datatype sort.
-            :param ctors: The constructor declarations of the datatype sort, as
-                          a list or as distinct arguments.
+            :param ctors: The constructor declarations of the datatype sort.
             :return: The datatype sort.
         """
         cdef Sort sort = Sort(self)
@@ -2055,7 +2052,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
+            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2093,7 +2090,7 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst() <cvc5.Solver.mkConst()>`.
+            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2225,7 +2222,7 @@ cdef class Solver:
         """
             Get some information about the given option.
             Returns the information provided by the C++
-            :cpp:func:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
+            :cpp:class:`OptionInfo <cvc5::OptionInfo>` as a dictionary.
 
             :return: Information about the given option.
         """
@@ -2299,18 +2296,6 @@ cdef class Solver:
             res['default'] = mi.defaultValue.decode()
             res['modes'] = [s.decode() for s in mi.modes]
         return res
-
-    def getOptionNames(self):
-       """
-           Get all option names that can be used with
-           :py:meth:`Solver.setOption()`, :py:meth:`Solver.getOption()` and
-           :py:meth:`Solver.getOptionInfo()`.
-           :return: All option names.
-       """
-       result = []
-       for n in self.csolver.getOptionNames():
-           result += [n.decode()]
-       return result
 
     def getUnsatAssumptions(self):
         """
@@ -2713,7 +2698,7 @@ cdef class Solver:
         self.csolver.setOption(option.encode(), value.encode())
 
 
-    def getInterpolant(self, Term conj, *args):
+    def getInterpolant(self, Term conj, Grammar grammar=None):
         """
             Get an interpolant.
 
@@ -2724,38 +2709,33 @@ cdef class Solver:
                 ( get-interpolant <conj> )
                 ( get-interpolant <conj> <grammar> )
 
-            Requires option :ref:`produce-interpolants
-            <lbl-option-produce-interpolants>` to be set to a mode different
-            from `none`.
-
-            Supports the following variants:
-
-            - ``Term getInterpolant(Term conj)``
-            - ``Term getInterpolant(Term conj, Grammar grammar)``
+            Requires option
+            :ref:`produce-interpolants <lbl-option-produce-interpolants>`
+            to be set to a mode different from `none`.
 
             .. warning:: This method is experimental and may change in future
-                         versions.
+                        versions.
 
             :param conj: The conjecture term.
-            :param output: The term where the result will be stored.
             :param grammar: A grammar for the inteprolant.
-            :return: True iff an interpolant was found.
-            """
+            :return: The interpolant.
+                     See :cpp:func:`cvc5::Solver::getInterpolant` for details.
+        """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
             result.cterm = self.csolver.getInterpolant(
-                    conj.cterm, (<Grammar ?> args[0]).cgrammar)
+                conj.cterm, grammar.cgrammar)
         return result
 
 
     def getInterpolantNext(self):
         """
-            Get the next interpolant. Can only be called immediately after
-            a successful call to :py:func:`Solver.getInterpolant()` or
+            Get the next interpolant.
+
+            Can only be called immediately after a successful call to
+            :py:func:`Solver.getInterpolant()` or
             :py:func:`Solver.getInterpolantNext()`.
             Is guaranteed to produce a syntactically different interpolant wrt
             the last returned interpolant if successful.
@@ -2780,7 +2760,8 @@ cdef class Solver:
         result.cterm = self.csolver.getInterpolantNext()
         return result
 
-    def getAbduct(self, Term conj, *args):
+
+    def getAbduct(self, Term conj, Grammar grammar=None):
         """
             Get an abduct.
 
@@ -2791,36 +2772,30 @@ cdef class Solver:
                 ( get-abduct <conj> )
                 ( get-abduct <conj> <grammar> )
 
-            Requires to enable option :ref:`produce-abducts
-            <lbl-option-produce-abducts>`.
-
-            Supports the following variants:
-
-            - ``Term getAbduct(Term conj)``
-            - ``Term getAbduct(Term conj, Grammar grammar)``
+            Requires to enable option
+            :ref:`produce-abducts <lbl-option-produce-abducts>`.
 
             .. warning:: This method is experimental and may change in future
                          versions.
 
             :param conj: The conjecture term.
-            :param output: The term where the result will be stored.
             :param grammar: A grammar for the abduct.
-            :return: True iff an abduct was found.
+            :return: The abduct.
+                     See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         cdef Term result = Term(self)
-        if len(args) == 0:
+        if grammar is None:
             result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 1
-            assert isinstance(args[0], Grammar)
-            result.cterm = self.csolver.getAbduct(
-                    conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getAbduct(conj.cterm, grammar.cgrammar)
         return result
 
     def getAbductNext(self):
         """
-            Get the next abduct. Can only be called immediately after
-            a succesful call to :py:func:`Solver.getAbduct()` or
+            Get the next abduct.
+
+            Can only be called immediately after a succesful call to
+            :py:func:`Solver.getAbduct()` or
             :py:func:`Solver.getAbductNext()`.
             Is guaranteed to produce a syntactically different abduct wrt the
             last returned abduct if successful.
@@ -2857,8 +2832,6 @@ cdef class Solver:
 
             Requires enabling option
             :ref:`produce-models <lbl-option-produce-models>`
-            and setting option
-            :ref:`block-models <lbl-option-block-models>`
             to a mode other than ``none``.
 
             .. warning:: This method is experimental and may change in future
@@ -2959,7 +2932,7 @@ cdef class Sort:
 
     def getSymbol(self):
         """
-            Asserts :py:meth:`hasSymbol()`.
+            .. note:: Asserts :py:meth:`hasSymbol()`.
 
             :return: The raw symbol of the sort.
         """
@@ -2973,7 +2946,7 @@ cdef class Sort:
 
     def isBoolean(self):
         """
-            Is this a Boolean sort?
+            Determine if this is the Boolean sort (SMT-LIB: ``Bool``).
 
             :return: True if the sort is the Boolean sort.
         """
@@ -2981,7 +2954,7 @@ cdef class Sort:
 
     def isInteger(self):
         """
-            Is this an integer sort?
+            Determine if this is the integer sort (SMT-LIB: ``Int``).
 
             :return: True if the sort is the integer sort.
         """
@@ -2989,7 +2962,7 @@ cdef class Sort:
 
     def isReal(self):
         """
-            Is this a real sort?
+            Determine if this is the real sort (SMT-LIB: `Real`).
 
             :return: True if the sort is the real sort.
         """
@@ -2997,7 +2970,7 @@ cdef class Sort:
 
     def isString(self):
         """
-            Is this a string sort?
+            Determine if this is the string sort (SMT-LIB: `String`).
 
             :return: True if the sort is the string sort.
         """
@@ -3005,7 +2978,8 @@ cdef class Sort:
 
     def isRegExp(self):
         """
-            Is this a regexp sort?
+            Determine if this is the regular expression sort (SMT-LIB:
+            ``RegLan``).
 
             :return: True if the sort is the regexp sort.
         """
@@ -3013,7 +2987,8 @@ cdef class Sort:
 
     def isRoundingMode(self):
         """
-            Is this a rounding mode sort?
+            Determine if this is the rounding mode sort (SMT-LIB:
+            ``RoundingMode``).
 
             :return: True if the sort is the rounding mode sort.
         """
@@ -3021,7 +2996,7 @@ cdef class Sort:
 
     def isBitVector(self):
         """
-            Is this a bit-vector sort?
+            Determine if this is a bit-vector sort (SMT-LIB: ``(_ BitVec i)``).
 
             :return: True if the sort is a bit-vector sort.
         """
@@ -3029,7 +3004,8 @@ cdef class Sort:
 
     def isFloatingPoint(self):
         """
-            Is this a floating-point sort?
+            Determine if this is a floatingpoint sort
+            (SMT-LIB: ``(_ FloatingPoint eb sb)``).
 
             :return: True if the sort is a bit-vector sort.
         """
@@ -3037,7 +3013,7 @@ cdef class Sort:
 
     def isDatatype(self):
         """
-            Is this a datatype sort?
+            Determine if this is a datatype sort.
 
             :return: True if the sort is a datatype sort.
         """
@@ -3045,7 +3021,7 @@ cdef class Sort:
 
     def isDatatypeConstructor(self):
         """
-            Is this a datatype constructor sort?
+            Determine if this is a datatype constructor sort.
 
             :return: True if the sort is a datatype constructor sort.
         """
@@ -3053,7 +3029,7 @@ cdef class Sort:
 
     def isDatatypeSelector(self):
         """
-            Is this a datatype selector sort?
+            Determine if this is a datatype selector sort.
 
             :return: True if the sort is a datatype selector sort.
         """
@@ -3061,7 +3037,7 @@ cdef class Sort:
 
     def isDatatypeTester(self):
         """
-            Is this a tester sort?
+            Determine if this is a tester sort.
 
             :return: True if the sort is a selector sort.
         """
@@ -3069,7 +3045,7 @@ cdef class Sort:
 
     def isDatatypeUpdater(self):
         """
-            Is this a datatype updater sort?
+            Determine if this is a datatype updater sort.
 
             :return: True if the sort is a datatype updater sort.
         """
@@ -3077,7 +3053,7 @@ cdef class Sort:
 
     def isFunction(self):
         """
-            Is this a function sort?
+            Determine if this is a function sort.
 
             :return: True if the sort is a function sort.
         """
@@ -3085,9 +3061,10 @@ cdef class Sort:
 
     def isPredicate(self):
         """
-            Is this a predicate sort?
-            That is, is this a function sort mapping to Boolean? All predicate
-            sorts are also function sorts.
+            Determine if this is a predicate sort.
+
+            A predicate sort is a function sort that maps to the Boolean sort.
+            All predicate sorts are also function sorts.
 
             :return: True if the sort is a predicate sort.
         """
@@ -3095,7 +3072,7 @@ cdef class Sort:
 
     def isTuple(self):
         """
-            Is this a tuple sort?
+            Determine if this is a tuple sort.
 
             :return: True if the sort is a tuple sort.
         """
@@ -3103,10 +3080,10 @@ cdef class Sort:
 
     def isRecord(self):
         """
-            Is this a record sort?
+            Determine if this is a record sort.
 
             .. warning:: This method is experimental and may change in future
-                        versions.
+                         versions.
 
             :return: True if the sort is a record sort.
         """
@@ -3114,7 +3091,7 @@ cdef class Sort:
 
     def isArray(self):
         """
-            Is this an array sort?
+            Determine if this is an array sort.
 
             :return: True if the sort is an array sort.
         """
@@ -3122,7 +3099,7 @@ cdef class Sort:
 
     def isSet(self):
         """
-            Is this a set sort?
+            Determine if this is a set sort.
 
             :return: True if the sort is a set sort.
         """
@@ -3130,7 +3107,7 @@ cdef class Sort:
 
     def isBag(self):
         """
-            Is this a bag sort?
+            Determine if this is a bag sort.
 
             :return: True if the sort is a bag sort.
         """
@@ -3138,7 +3115,7 @@ cdef class Sort:
 
     def isSequence(self):
         """
-            Is this a sequence sort?
+            Determine if this is a sequence sort.
 
             :return: True if the sort is a sequence sort.
         """
@@ -3146,7 +3123,7 @@ cdef class Sort:
 
     def isUninterpretedSort(self):
         """
-            Is this a sort uninterpreted?
+            Determine if this is a sort uninterpreted.
 
             :return: True if the sort is uninterpreted.
         """
@@ -3154,7 +3131,7 @@ cdef class Sort:
 
     def isUninterpretedSortConstructor(self):
         """
-            Is this a sort constructor kind?
+            Determine if this is a sort constructor kind.
 
             An uninterpreted sort constructor is an uninterpreted sort with
             arity > 0.
@@ -3165,8 +3142,8 @@ cdef class Sort:
 
     def isInstantiated(self):
         """
-            Is this an instantiated (parametric datatype or uninterpreted sort
-            constructor) sort?
+            Determine if this is an instantiated (parametric datatype or
+            uninterpreted sort constructor) sort.
 
             An instantiated sort is a sort that has been constructed from
             instantiating a sort parameters with sort arguments
@@ -3536,6 +3513,12 @@ cdef class Term:
         return self.cterm >= other.cterm
 
     def __getitem__(self, int index):
+        """
+            Get the child term at a given index.
+
+            :param index: The index of the child term to return.
+            :return: The child term with the given index.
+        """
         cdef Term term = Term(self.solver)
         if index >= 0:
             term.cterm = self.cterm[index]
@@ -3550,6 +3533,7 @@ cdef class Term:
         return self.cterm.toString().decode()
 
     def __iter__(self):
+        """Iterate over all child terms."""
         for ci in self.cterm:
             term = Term(self.solver)
             term.cterm = ci
@@ -3572,13 +3556,13 @@ cdef class Term:
 
     def getKind(self):
         """
-            :return: The :py:class:`cvc5.Kind` of this term.
+            :return: The :py:class:`Kind` of this term.
         """
         return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
         """
-            :return: The :py:class:`cvc5.Sort` of this term.
+            :return: The :py:class:`Sort` of this term.
         """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
@@ -3641,12 +3625,11 @@ cdef class Term:
 
     def getOp(self):
         """
-            :return: The :py:class:`cvc5.Op` used to create this Term.
+            :return: The :py:class:`Op` used to create this Term.
 
             .. note::
 
-            This is safe to call when :py:meth:`hasOp()` returns True.
-
+                This is safe to call when :py:meth:`hasOp()` returns True.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -3660,7 +3643,7 @@ cdef class Term:
 
     def getSymbol(self):
         """
-            Asserts :py:meth:`hasSymbol()`.
+            ..note:: Asserts :py:meth:`hasSymbol()`.
 
             :return: The raw symbol of the term.
         """
@@ -3758,7 +3741,7 @@ cdef class Term:
 
     def getConstArrayBase(self):
         """
-           Asserts :py:meth:`isConstArray()`.
+           .. note:: Asserts :py:meth:`isConstArray()`.
 
            :return: The base (element stored at all indicies) of this constant
                     array.
@@ -3775,7 +3758,7 @@ cdef class Term:
 
     def getBooleanValue(self):
         """
-           Asserts :py:meth:`isBooleanValue()`
+           .. note:: Asserts :py:meth:`isBooleanValue()`
 
            :return: The representation of a Boolean value as a native Boolean
                     value.
@@ -3790,7 +3773,7 @@ cdef class Term:
 
     def getStringValue(self):
         """
-            Asserts :py:meth:`isStringValue()`.
+            .. note:: Asserts :py:meth:`isStringValue()`.
 
             .. note::
                This method is not to be confused with :py:meth:`__str__()`
@@ -3822,7 +3805,7 @@ cdef class Term:
 
     def getIntegerValue(self):
         """
-           Asserts :py:meth:`isIntegerValue()`.
+           .. note:: Asserts :py:meth:`isIntegerValue()`.
 
            :return: The integer term as a native python integer.
         """
@@ -3871,7 +3854,7 @@ cdef class Term:
 
     def getFloatingPointValue(self):
         """
-           Asserts :py:meth:`isFloatingPointValue()`.
+           .. note:: Asserts :py:meth:`isFloatingPointValue()`.
 
            :return: The representation of a floating-point value as a tuple of
                     the exponent width, the significand width and a bit-vector
@@ -3898,8 +3881,9 @@ cdef class Term:
             :math:`c_1 > \cdots > c_n`.
 
             .. note::
-                A universe set term ``(kind SET_UNIVERSE)`` is not considered
-                to be a set value.
+                A universe set term
+                (kind :py:obj:`SET_UNIVERSE <Kind.SET_UNIVERSE>`)
+                is not considered to be a set value.
 
             :return: True if the term is a set value.
         """
@@ -3907,7 +3891,7 @@ cdef class Term:
 
     def getSetValue(self):
         """
-           Asserts :py:meth:`isSetValue()`.
+           .. note:: Asserts :py:meth:`isSetValue()`.
 
            :return: The representation of a set value as a set of terms.
         """
@@ -3926,7 +3910,7 @@ cdef class Term:
 
     def getSequenceValue(self):
         """
-            Asserts :py:meth:`isSequenceValue()`.
+            .. note:: Asserts :py:meth:`isSequenceValue()`.
 
             .. note::
 
@@ -3958,6 +3942,7 @@ cdef class Term:
         """
             :return: The sort the cardinality constraint is for and its upper
                      bound.
+
             .. warning:: This method is experimental and may change in future
                          versions.
         """
@@ -3976,7 +3961,7 @@ cdef class Term:
 
     def getUninterpretedSortValue(self):
         """
-           Asserts :py:meth:`isUninterpretedSortValue()`.
+           .. note:: Asserts :py:meth:`isUninterpretedSortValue()`.
 
            :return: The representation of an uninterpreted value as a pair of
                     its sort and its index.
@@ -3998,14 +3983,15 @@ cdef class Term:
 
     def getRoundingModeValue(self):
         """
-            Asserts :py:meth:`isRoundingModeValue()`.
+            .. note:: Asserts :py:meth:`isRoundingModeValue()`.
+
             :return: The floating-point rounding mode value held by the term.
         """
         return RoundingMode(<int> self.cterm.getRoundingModeValue())
 
     def getTupleValue(self):
         """
-           Asserts :py:meth:`isTupleValue()`.
+           .. note:: Asserts :py:meth:`isTupleValue()`.
 
            :return: The representation of a tuple value as a vector of terms.
         """
@@ -4022,7 +4008,7 @@ cdef class Term:
 
             .. note::
 
-                A term of kind :py:obj:`Pi <cvc5.Kind.Pi>` is not considered
+                A term of kind :py:obj:`PI <Kind.PI>` is not considered
                 to be a real value.
 
         """
@@ -4030,7 +4016,7 @@ cdef class Term:
 
     def getRealValue(self):
         """
-           Asserts :py:meth:`isRealValue()`.
+           .. note:: Asserts :py:meth:`isRealValue()`.
 
            :return: The representation of a rational value as a python Fraction.
         """
@@ -4044,7 +4030,8 @@ cdef class Term:
 
     def getBitVectorValue(self, base = 2):
         """
-           Asserts :py:meth:`isBitVectorValue()`.
+           .. note:: Asserts :py:meth:`isBitVectorValue()`.
+
            Supported bases are 2 (bit string), 10 (decimal string) or 16
            (hexdecimal string).
 

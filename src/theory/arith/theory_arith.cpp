@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Alex Ozdemir
+ *   Andrew Reynolds, Gereon Kremer, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,8 @@
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
-#include "theory/arith/infer_bounds.h"
 #include "theory/arith/nl/nonlinear_extension.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -45,7 +44,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_ppre(d_env),
       d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(*this, env, d_bab)),
+      d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
@@ -363,12 +362,9 @@ Node TheoryArith::getModelValue(TNode var) {
 
 std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
-  ArithEntailmentCheckParameters def;
-  def.addLookupRowSumAlgorithms();
-  ArithEntailmentCheckSideEffects ase;
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
-  return res;
+  return d_internal->entailmentCheck(lit);
 }
+
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
   return d_im.getProofEqEngine();

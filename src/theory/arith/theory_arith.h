@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,10 @@ class NonlinearExtension;
 }
 
 class EqualitySolver;
+
+namespace linear {
 class TheoryArithPrivate;
+}
 
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
@@ -42,7 +45,7 @@ class TheoryArithPrivate;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class TheoryArithPrivate;
+  friend class linear::TheoryArithPrivate;
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
@@ -157,7 +160,7 @@ class TheoryArith : public Theory {
   /** The equality solver */
   std::unique_ptr<EqualitySolver> d_eqSolver;
   /** The (old) linear arithmetic solver */
-  TheoryArithPrivate* d_internal;
+  linear::TheoryArithPrivate* d_internal;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear

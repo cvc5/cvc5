@@ -1,4 +1,5 @@
-; COMMAND-LINE: --no-produce-proofs
+; DISABLE-TESTER: lfsc
+; DISABLE-TESTER: proof
 (set-option :incremental false)
 (set-info :status unsat)
 (set-logic QF_UF)

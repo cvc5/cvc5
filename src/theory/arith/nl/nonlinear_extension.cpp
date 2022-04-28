@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -99,6 +99,17 @@ void NonlinearExtension::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
          << " requires nl-ext mode to be set to value 'full'";
+      throw LogicException(ss.str());
+    }
+  }
+  if (isTranscendentalKind(k) || k == Kind::IAND || k == Kind::POW2)
+  {
+    if (options().arith.nlCov && !options().arith.nlCovForce)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " is not compatible with using the coverings-based solver. If you know what you are doing, "
+          "you can try --nl-cov-force, but expect crashes or incorrect results.";
       throw LogicException(ss.str());
     }
   }

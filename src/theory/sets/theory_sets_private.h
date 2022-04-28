@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,8 +119,6 @@ class TheorySetsPrivate : protected EnvObj
   bool d_fullCheckIncomplete;
   /** The reason we set the above flag to true */
   IncompleteId d_fullCheckIncompleteId;
-  std::map< Node, TypeNode > d_most_common_type;
-  std::map< Node, Node > d_most_common_type_term;
 
  public:
 

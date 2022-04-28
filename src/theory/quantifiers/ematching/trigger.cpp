@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -178,7 +178,7 @@ bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 
 bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
 {
-  return sendInstantiation(m.d_vals, id);
+  return sendInstantiation(m.get(), id);
 }
 
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }

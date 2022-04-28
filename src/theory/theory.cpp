@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *   Andrew Reynolds, Dejan Jovanovic, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -458,13 +458,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
-    }
-    if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        return PP_ASSERT_STATUS_CONFLICT;
-      }
     }
   }
   else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL

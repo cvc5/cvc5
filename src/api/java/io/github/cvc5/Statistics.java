@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed, Mudathir Mohamed
+ *   Mudathir Mohamed, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,14 +38,14 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
   // endregion
 
   /**
-   * @return a string representation of this Statistics
+   * @return A string representation of this Statistics.
    */
   protected native String toString(long pointer);
 
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
-   * a `CVC5ApiRecoverableException` if it does not.
+   * a {@code CVC5ApiRecoverableException} if it does not.
    * @param name Name of the statistic.
    * @return The statistic with the given name.
    */

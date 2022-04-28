@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -60,6 +60,8 @@ libcvc5_add_sources(
   node_traversal.h
   node_value.cpp
   node_value.h
+  oracle_caller.cpp
+  oracle_caller.h
   sequence.cpp
   sequence.h
   node_visitor.h

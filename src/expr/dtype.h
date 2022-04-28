@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -435,6 +435,14 @@ class DType
   void toStream(std::ostream& out) const;
 
  private:
+  /**
+   * Collect unresolved datatype types. This is called by NodeManager when
+   * constructing datatypes from datatype declarations. This adds all
+   * unresolved datatype types to unresTypes, which are then considered
+   * when constructing the datatype (for details, see
+   * NodeManager::mkMutualDatatypeTypesInternal).
+   */
+  void collectUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const;
   /**
    * DTypes refer to themselves, recursively, and we have a
    * chicken-and-egg problem.  The TypeNode around the DType

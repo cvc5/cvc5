@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -521,19 +521,14 @@ Node StringsPreprocess::reduce(Node t,
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, t12));
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
-    // nodes for the case where `seq.nth` is undefined.
-    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
-    Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
-
-    // the full ite, split on definedness of `seq.nth`
-    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+    // the lemma for `seq.nth`
+    Node lemma = nm->mkNode(IMPLIES, cond, b1);
 
     // assert:
-    // IF    n >=0 AND n < len( s )
-    // THEN: s = sk1 ++ unit(skt) ++ sk2 AND
-    //       len( sk1 ) = n AND
-    //       ( len( sk2 ) = len( s )- (n+1)
-    // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
+    // n >=0 AND n < len( s )
+    // IMPLIES: s = sk1 ++ unit(skt) ++ sk2 AND
+    //          len( sk1 ) = n AND
+    //          ( len( sk2 ) = len( s )- (n+1)
     asserts.push_back(lemma);
     retNode = skt;
   }

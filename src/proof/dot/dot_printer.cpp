@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Diego Della Rocca de Camargos
+ *   Haniel Barbosa, Diego Della Rocca de Camargos, Vinícius Braga Freire
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,12 +15,15 @@
 
 #include "proof/dot/dot_printer.h"
 
+#include <algorithm>
 #include <sstream>
 
 #include "options/expr_options.h"
+#include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -32,6 +35,16 @@ DotPrinter::DotPrinter()
                                           : 0),
       d_ruleID(0)
 {
+  const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};
+  const std::string colors[5] = {"purple", "yellow", "green", "brown", "blue"};
+
+  for (unsigned i = 0; i < 5; i++)
+  {
+    d_subgraphsStr.push_back(std::ostringstream());
+    d_subgraphsStr[i] << "\n\tsubgraph cluster_" << acronyms[i]
+                      << " {\n\t\tlabel=\"" << acronyms[i]
+                      << "\"\n\t\tbgcolor=\"" << colors[i] << "\"\n\t\t";
+  }
 }
 
 DotPrinter::~DotPrinter() {}
@@ -182,15 +195,34 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   }
 
   std::map<size_t, uint64_t> proofLet;
-  DotPrinter::printInternal(out, pn, proofLet, 0, false);
-  out << "}\n";
+  std::map<size_t, uint64_t> firstScopeLet;
+  std::unordered_map<const ProofNode*, bool> cfaMap;
+
+  DotPrinter::printInternal(out,
+                            pn,
+                            proofLet,
+                            firstScopeLet,
+                            cfaMap,
+                            ProofNodeClusterType::NOT_DEFINED);
+
+  if (options::printDotClusters())
+  {
+    // Print the sub-graphs
+    for (unsigned i = 0; i < 5; i++)
+    {
+      out << d_subgraphsStr[i].str() << "\n\t};";
+    }
+  }
+  out << "\n}\n";
 }
 
-uint64_t DotPrinter::printInternal(std::ostream& out,
-                                   const ProofNode* pn,
-                                   std::map<size_t, uint64_t>& pfLet,
-                                   uint64_t scopeCounter,
-                                   bool inPropositionalView)
+uint64_t DotPrinter::printInternal(
+    std::ostream& out,
+    const ProofNode* pn,
+    std::map<size_t, uint64_t>& pfLetClosed,
+    std::map<size_t, uint64_t>& pfLetOpen,
+    std::unordered_map<const ProofNode*, bool>& cfaMap,
+    ProofNodeClusterType parentType)
 {
   uint64_t currentRuleID = d_ruleID;
 
@@ -199,21 +231,85 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   {
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
-    auto proofIt = pfLet.find(currentHash);
+    auto openProofIt = pfLetOpen.find(currentHash);
 
-    // If this node has been already counted
-    if (proofIt != pfLet.end())
+    if (openProofIt != pfLetOpen.end())
     {
-      return proofIt->second;
+      return openProofIt->second;
     }
 
-    pfLet[currentHash] = currentRuleID;
+    auto proofIt = pfLetClosed.find(currentHash);
+    // If this node has been already saved to the global cache of closed proof
+    // nodes
+    if (proofIt != pfLetClosed.end())
+    {
+      Assert(!expr::containsAssumption(pn, cfaMap));
+      return proofIt->second;
+    }
+    // If this proof node is closed, we add it to the global cache
+    if (!expr::containsAssumption(pn, cfaMap))
+    {
+      pfLetClosed[currentHash] = currentRuleID;
+    }
+    pfLetOpen[currentHash] = currentRuleID;
   }
+
+  ProofNodeClusterType proofNodeType = ProofNodeClusterType::NOT_DEFINED;
+  if (options::printDotClusters())
+  {
+    // Define the type of this node
+    proofNodeType = defineProofNodeType(pn, parentType);
+    if (proofNodeType != ProofNodeClusterType::FIRST_SCOPE
+        && proofNodeType != ProofNodeClusterType::NOT_DEFINED)
+    {
+      d_subgraphsStr[static_cast<int>(proofNodeType) - 1] << d_ruleID << " ";
+    }
+  }
+
+  printProofNodeInfo(out, pn);
+
   d_ruleID++;
 
+  PfRule r = pn->getRule();
+
+  // Scopes trigger a traversal with a new local cache for proof nodes
+  if (isSCOPE(r) && currentRuleID)
+  {
+    // create a new pfLet
+    std::map<size_t, uint64_t> thisScopeLet;
+    uint64_t childId = printInternal(out,
+                                     pn->getChildren()[0].get(),
+                                     pfLetClosed,
+                                     thisScopeLet,
+                                     cfaMap,
+                                     proofNodeType);
+    out << "\t" << childId << " -> " << currentRuleID << ";\n";
+  }
+  else
+  {
+    const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+    for (const std::shared_ptr<ProofNode>& c : children)
+    {
+      uint64_t childId = printInternal(
+          out, c.get(), pfLetClosed, pfLetOpen, cfaMap, proofNodeType);
+      out << "\t" << childId << " -> " << currentRuleID << ";\n";
+    }
+  }
+
+  // If it's a scope, then remove from the stack
+  if (isSCOPE(r) && options::printDotClusters())
+  {
+    d_scopesArgs.pop_back();
+  }
+
+  return currentRuleID;
+}
+
+void DotPrinter::printProofNodeInfo(std::ostream& out, const ProofNode* pn)
+{
   std::ostringstream currentArguments, resultStr, classes, colors;
 
-  out << "\t" << currentRuleID << " [ label = \"{";
+  out << "\t" << d_ruleID << " [ label = \"{";
 
   resultStr << d_lbind.convert(pn->getResult(), "let");
   std::string astring = resultStr.str();
@@ -223,63 +319,116 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   DotPrinter::ruleArguments(currentArguments, pn);
   astring = currentArguments.str();
   out << "|" << r << sanitizeString(astring) << "}\"";
-  classes << ", class = \"";
-  colors << "";
 
-  // set classes and colors, based on the view that the rule belongs
-  switch (r)
-  {
-    case PfRule::SCOPE:
-      if (scopeCounter < 1)
-      {
-        classes << " basic";
-        colors << ", color = blue ";
-        inPropositionalView = true;
-      }
-      scopeCounter++;
-      break;
-    case PfRule::ASSUME:
-      // a node can belong to more than one view, so these if's must not be
-      // exclusive
-      if (scopeCounter < 2)
-      {
-        classes << " basic";
-        colors << ", color = blue ";
-      }
-      if (inPropositionalView)
-      {
-        classes << " propositional";
-        colors << ", fillcolor = aquamarine4, style = filled ";
-      }
-      break;
-    case PfRule::CHAIN_RESOLUTION:
-    case PfRule::FACTORING:
-    case PfRule::REORDERING:
-      if (inPropositionalView)
-      {
-        classes << " propositional";
-        colors << ", fillcolor = aquamarine4, style = filled ";
-      }
-      break;
-    default: inPropositionalView = false;
-  }
-  classes << " \"";
-  out << classes.str() << colors.str();
   // add number of subchildren
   std::map<const ProofNode*, size_t>::const_iterator it =
       d_subpfCounter.find(pn);
-  out << ", comment = \"{\\\"subProofQty\\\":" << it->second << "}\"";
-  out << " ];\n";
+  out << ", comment = \"{\\\"subProofQty\\\":" << it->second << "}\" ];\n";
+}
 
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
-  for (const std::shared_ptr<ProofNode>& c : children)
+ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
+                                                     ProofNodeClusterType last)
+{
+  PfRule rule = pn->getRule();
+  if (isSCOPE(rule))
   {
-    uint64_t childId =
-        printInternal(out, c.get(), pfLet, scopeCounter, inPropositionalView);
-    out << "\t" << childId << " -> " << currentRuleID << ";\n";
+    d_scopesArgs.push_back(pn->getArguments());
   }
 
-  return currentRuleID;
+  // If is the first node
+  if (!d_ruleID)
+  {
+    return ProofNodeClusterType::FIRST_SCOPE;
+  }
+  // If the rule is in the SAT range and the last node was: FF or SAT
+  if (isSat(rule) && last <= ProofNodeClusterType::SAT)
+  {
+    return ProofNodeClusterType::SAT;
+  }
+  // If is a ASSUME
+  if (isASSUME(rule))
+  {
+    if (isInput(pn))
+    {
+      return ProofNodeClusterType::INPUT;
+    }
+    return last;
+  }
+  // the last node was: FS, SAT or CNF
+  if (last <= ProofNodeClusterType::CNF)
+  {
+    // If the rule is in the CNF range
+    if (isCNF(rule))
+    {
+      return ProofNodeClusterType::CNF;
+    }
+    // If the first rule after a CNF is a scope
+    if (isSCOPE(rule))
+    {
+      return ProofNodeClusterType::THEORY_LEMMA;
+    }
+    // Is not a scope
+    return ProofNodeClusterType::PRE_PROCESSING;
+  }
+  // If the last rule was pre processing
+  if (last == ProofNodeClusterType::PRE_PROCESSING)
+  {
+    return ProofNodeClusterType::PRE_PROCESSING;
+  }
+  // If the last rule was theory lemma
+  if (last == ProofNodeClusterType::THEORY_LEMMA)
+  {
+    return ProofNodeClusterType::THEORY_LEMMA;
+  }
+
+  return ProofNodeClusterType::NOT_DEFINED;
+}
+
+inline bool DotPrinter::isInput(const ProofNode* pn)
+{
+  const TNode& thisAssumeArg = pn->getArguments()[0];
+  auto& firstScope = d_scopesArgs[0].get();
+
+  // Verifies if the arg of this assume are in the first scope
+  if (std::find(firstScope.begin(), firstScope.end(), thisAssumeArg)
+      == firstScope.end())
+  {
+    return false;
+  }
+
+  // Verifies if the arg of this assume is at any of the other scopes
+  for (size_t i = d_scopesArgs.size() - 1; i > 0; i--)
+  {
+    auto& args = d_scopesArgs[i].get();
+
+    if (std::find(args.begin(), args.end(), thisAssumeArg) != args.end())
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+inline bool DotPrinter::isSat(const PfRule& rule)
+{
+  return PfRule::CHAIN_RESOLUTION <= rule
+         && rule <= PfRule::MACRO_RESOLUTION_TRUST;
+}
+
+inline bool DotPrinter::isCNF(const PfRule& rule)
+{
+  return PfRule::NOT_NOT_ELIM <= rule && rule <= PfRule::CNF_ITE_NEG3;
+}
+
+inline bool DotPrinter::isSCOPE(const PfRule& rule)
+{
+  return PfRule::SCOPE == rule;
+}
+
+inline bool DotPrinter::isASSUME(const PfRule& rule)
+{
+  return PfRule::ASSUME == rule;
 }
 
 void DotPrinter::ruleArguments(std::ostringstream& currentArguments,

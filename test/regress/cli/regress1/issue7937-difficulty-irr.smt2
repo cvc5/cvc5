@@ -4,5 +4,5 @@
 (declare-const x Bool)
 (declare-fun a () Real)
 (declare-fun r () Real)
-(assert (xor (= 0 (/ 0 a)) (and x (= 0.0 (/ r a r)))))
+(assert (xor (= 0.0 (/ 0.0 a)) (and x (= 0.0 (/ r a r)))))
 (check-sat)

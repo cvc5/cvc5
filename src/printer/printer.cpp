@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
+ *   Abdalrhman Mohamed, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -183,12 +183,12 @@ void Printer::toStreamCmdAssert(std::ostream& out, Node n) const
   printUnknownCommand(out, "assert");
 }
 
-void Printer::toStreamCmdPush(std::ostream& out) const
+void Printer::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
   printUnknownCommand(out, "push");
 }
 
-void Printer::toStreamCmdPop(std::ostream& out) const
+void Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 {
   printUnknownCommand(out, "pop");
 }
@@ -212,6 +212,13 @@ void Printer::toStreamCmdDeclarePool(std::ostream& out,
                                      const std::vector<Node>& initValue) const
 {
   printUnknownCommand(out, "declare-pool");
+}
+
+void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
+                                          Node fun,
+                                          const std::string& binName) const
+{
+  printUnknownCommand(out, "declare-oracle-fun");
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,

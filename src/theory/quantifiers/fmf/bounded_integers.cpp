@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
@@ -560,7 +561,7 @@ BoundVarType BoundedIntegers::getBoundVarType(Node q, Node v) const
 }
 
 void BoundedIntegers::getBoundVarIndices(Node q,
-                                         std::vector<unsigned>& indices) const
+                                         std::vector<size_t>& indices) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_set.find(q);
   if (it != d_set.end())
