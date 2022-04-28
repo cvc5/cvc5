@@ -226,6 +226,13 @@ uint64_t DotPrinter::printInternal(
 {
   uint64_t currentRuleID = d_ruleID;
 
+  if (currentRuleID == 298)
+  {
+    auto n299 = pn->getChildren()[0].get();
+    auto filhoN299 = n299->getChildren()[0].get();
+    std::cout << 'a' << n299 << filhoN299;
+  }
+
   // Print DAG option enabled
   if (options::proofDotDAG())
   {
