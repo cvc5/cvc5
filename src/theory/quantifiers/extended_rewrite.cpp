@@ -1607,9 +1607,7 @@ Node ExtendedRewriter::partialSubstitute(
 }
 
 Node ExtendedRewriter::partialSubstitute(
-    Node n,
-    const Subs& subs,
-    const std::map<Kind, bool>& rkinds) const
+    Node n, const Subs& subs, const std::map<Kind, bool>& rkinds) const
 {
   std::map<Node, Node> assign;
   for (size_t i = 0, nvars = subs.size(); i < nvars; i++)
@@ -1627,9 +1625,7 @@ Node ExtendedRewriter::solveEquality(Node n) const
   return Node::null();
 }
 
-bool ExtendedRewriter::inferSubstitution(Node n,
-                                         Subs& subs,
-                                         bool usePred) const
+bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
 {
   if (n.getKind() == AND)
   {

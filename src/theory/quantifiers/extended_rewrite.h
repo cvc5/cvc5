@@ -228,9 +228,7 @@ class ExtendedRewriter
    * If usePred is true, we may additionally add n -> true, or n[0] -> false
    * is n is a negation.
    */
-  bool inferSubstitution(Node n,
-                         Subs& subs,
-                         bool usePred = false) const;
+  bool inferSubstitution(Node n, Subs& subs, bool usePred = false) const;
   /** extended rewrite
    *
    * Prints debug information, indicating the rewrite n ---> ret was found.

@@ -496,7 +496,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       {
         if (child.getConst<Rational>().isZero())
         {
-          return RewriteResponse(REWRITE_DONE, maybeEnsureReal(t.getType(), child));
+          return RewriteResponse(REWRITE_DONE,
+                                 maybeEnsureReal(t.getType(), child));
         }
         ran *= child.getConst<Rational>();
       }
@@ -544,7 +545,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     if (left.isConst())
     {
       const Rational& num = left.getConst<Rational>();
-      return RewriteResponse(REWRITE_DONE, ensureReal(nm->mkConstReal(num / den)));
+      return RewriteResponse(REWRITE_DONE,
+                             ensureReal(nm->mkConstReal(num / den)));
     }
     if (rewriter::isRAN(left))
     {
@@ -554,7 +556,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     }
 
     Node result = nm->mkConstReal(den.inverse());
-    Node mult = ensureReal(NodeManager::currentNM()->mkNode(kind::MULT, left, result));
+    Node mult =
+        ensureReal(NodeManager::currentNM()->mkNode(kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -571,16 +574,19 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     if (left.isConst())
     {
       return RewriteResponse(
-          REWRITE_DONE, ensureReal(rewriter::mkConst(left.getConst<Rational>() / den)));
+          REWRITE_DONE,
+          ensureReal(rewriter::mkConst(left.getConst<Rational>() / den)));
     }
     if (rewriter::isRAN(left))
     {
-      return RewriteResponse(REWRITE_DONE,
-                             ensureReal(rewriter::mkConst(rewriter::getRAN(left) / den)));
+      return RewriteResponse(
+          REWRITE_DONE,
+          ensureReal(rewriter::mkConst(rewriter::getRAN(left) / den)));
     }
 
     Node result = rewriter::mkConst(inverse(den));
-    Node mult = ensureReal(NodeManager::currentNM()->mkNode(kind::MULT, left, result));
+    Node mult =
+        ensureReal(NodeManager::currentNM()->mkNode(kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -1046,8 +1052,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             if (r_abs.getDenominator() == two)
             {
               Assert(r_abs.getNumerator() == one);
-              return RewriteResponse(REWRITE_DONE,
-                                     ensureReal(nm->mkConstReal(Rational(r.sgn()))));
+              return RewriteResponse(
+                  REWRITE_DONE, ensureReal(nm->mkConstReal(Rational(r.sgn()))));
             }
             else if (r_abs.getDenominator() == six)
             {
@@ -1125,7 +1131,7 @@ TrustNode ArithRewriter::expandDefinition(Node node)
 Node ArithRewriter::removeToReal(TNode t)
 {
   Kind k = t.getKind();
-  if (k==CONST_INTEGER)
+  if (k == CONST_INTEGER)
   {
     return NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
   }
@@ -1150,7 +1156,7 @@ Node ArithRewriter::ensureReal(TNode t)
     {
       // short-circuit
       Node ret = NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
-      Assert (ret.getType().isReal());
+      Assert(ret.getType().isReal());
       return ret;
     }
     Trace("arith-rewriter-debug") << "maybeEnsureReal: " << t << std::endl;
