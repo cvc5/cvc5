@@ -70,14 +70,6 @@ ArithCongruenceManager::ArithCongruenceManager(
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
 
-bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
-{
-  Assert(!options().arith.arithEqSolver);
-  esi.d_notify = &d_notify;
-  esi.d_name = "arithCong::ee";
-  return true;
-}
-
 void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 {
   if (options().arith.arithEqSolver)
@@ -99,12 +91,7 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
     // otherwise, we use the official one
     d_ee = ee;
   }
-  // set the congruence kinds on the separate equality engine
-  d_ee->addFunctionKind(kind::NONLINEAR_MULT);
-  d_ee->addFunctionKind(kind::EXPONENTIAL);
-  d_ee->addFunctionKind(kind::SINE);
-  d_ee->addFunctionKind(kind::IAND);
-  d_ee->addFunctionKind(kind::POW2);
+  // the congruence kinds are already set up
   // the proof equality engine is the one from the equality engine
   d_pfee = d_ee->getProofEqualityEngine();
   // have proof equality engine only if proofs are enabled

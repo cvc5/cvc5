@@ -57,10 +57,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 
-  if (options().arith.arithEqSolver)
-  {
-    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
-  }
+  // construct the equality solver
+  d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
 }
 
 TheoryArith::~TheoryArith(){
@@ -78,13 +76,7 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
   // if the equality solver is enabled, then it is responsible for setting
   // up the equality engine
-  if (d_eqSolver != nullptr)
-  {
-    return d_eqSolver->needsEqualityEngine(esi);
-  }
-  // otherwise, the linear arithmetic solver is responsible for setting up
-  // the equality engine
-  return d_internal->needsEqualityEngine(esi);
+  return d_eqSolver->needsEqualityEngine(esi);
 }
 void TheoryArith::finishInit()
 {
@@ -104,10 +96,7 @@ void TheoryArith::finishInit()
     d_nonlinearExtension.reset(
         new nl::NonlinearExtension(d_env, *this, d_astate));
   }
-  if (d_eqSolver != nullptr)
-  {
-    d_eqSolver->finishInit();
-  }
+  d_eqSolver->finishInit();
   // finish initialize in the old linear solver
   d_internal->finishInit();
 }
@@ -232,7 +221,7 @@ bool TheoryArith::preNotifyFact(
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.
   bool ret = true;
-  if (d_eqSolver != nullptr)
+  if (options().arith.arithEqSolver)
   {
     // the equality solver may indicate ret = false, after which the assertion
     // will be asserted to the equality engine in the default way.
@@ -253,7 +242,7 @@ bool TheoryArith::needsCheckLastEffort() {
 
 TrustNode TheoryArith::explain(TNode n)
 {
-  if (d_eqSolver != nullptr)
+  if (options().arith.arithEqSolver)
   {
     // if the equality solver has an explanation for it, use it
     TrustNode texp = d_eqSolver->explain(n);

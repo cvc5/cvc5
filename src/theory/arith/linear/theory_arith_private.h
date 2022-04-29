@@ -432,11 +432,6 @@ private:
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
-  /**
-   * Returns true if we need an equality engine, see
-   * Theory::needsEqualityEngine.
-   */
-  bool needsEqualityEngine(EeSetupInfo& esi);
   /** finish initialize */
   void finishInit();
   //--------------------------------- end initialization
