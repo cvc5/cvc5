@@ -3898,18 +3898,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
 
-        Node qNode;
-        if (!qmodel.isIntegral())
-        {
-          // Note that the linear solver may generate non-integer values for
-          // integer variables in rare cases. We construct real in this case;
-          // this will be corrected in TheoryArith::sanityCheckIntegerModel.
-          qNode = nm->mkConstReal(qmodel);
-        }
-        else
-        {
-          qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
-        }
+        Node qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
         Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", "
                                          << qNode << ", true)" << endl;
         // Add to the map
