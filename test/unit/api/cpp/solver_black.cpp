@@ -385,8 +385,7 @@ TEST_F(TestApiBlackSolver, mkTupleSort)
   ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort()}));
   Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}),
-               CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}));
 
   Solver slv;
   ASSERT_THROW(slv.mkTupleSort({d_solver.getIntegerSort()}), CVC5ApiException);
