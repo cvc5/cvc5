@@ -172,8 +172,15 @@ class NodeManager
    * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
    * which is used as an index to retrieve the DType via this call.
    */
-  const DType& getDTypeFor(TypeNode tn) const;
   const DType& getDTypeForIndex(size_t index) const;
+  /**
+   * Get the DType for a type. If tn is a datatype type, then we retrieve its
+   * internal index and use the above method to lookup its datatype.
+   *
+   * If it is a tuple, then we lookup its datatype representation and call
+   * this method on it.
+   */
+  const DType& getDTypeFor(TypeNode tn) const;
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType(TypeNode tn);

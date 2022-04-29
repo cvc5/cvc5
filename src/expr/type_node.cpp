@@ -387,20 +387,17 @@ bool TypeNode::isRecord() const
 
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
-  const DType& dt = getDType();
-  Assert(dt.getNumConstructors() == 1);
-  return dt[0].getNumArgs();
+  return getNumChildren();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
-  const DType& dt = getDType();
-  Assert(dt.getNumConstructors() == 1);
-  vector<TypeNode> types;
-  for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
-    types.push_back(dt[0][i].getRangeType());
+  std::vector<TypeNode> args;
+  for (uint32_t i = 0, i_end = getNumChildren(); i < i_end; ++i)
+  {
+    args.push_back((*this)[i]);
   }
-  return types;
+  return args;
 }
 
 /** Is this an instantiated datatype type */
