@@ -1808,7 +1808,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           TypeNode type = plit[0].getType();
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConstRealOrInt(type, Rational(r)));
+            farkasCoeffs.push_back(nm->mkConstReal(Rational(r)));
           }
 
           // Apply the scaled-sum rule.

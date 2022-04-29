@@ -1284,6 +1284,7 @@ Node NodeManager::mkConstReal(const Rational& r)
 Node NodeManager::mkConstInt(const Rational& r)
 {
   // !!!! Note will update to CONST_INTEGER.
+  Assert(r.isIntegral());
   return mkConst(kind::CONST_RATIONAL, r);
 }
 
@@ -1291,11 +1292,11 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
                            << tn;
-  if (tn.isReal())
+  if (tn.isInteger())
   {
-    return mkConstReal(r);
+    return mkConstInt(r);
   }
-  return mkConstInt(r);
+  return mkConstReal(r);
 }
 
 Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
