@@ -234,11 +234,6 @@ private:
 
   //--------------------------------- initialization
   /**
-   * Returns true if we need an equality engine, see
-   * Theory::needsEqualityEngine.
-   */
-  bool needsEqualityEngine(EeSetupInfo& esi);
-  /**
    * Finish initialize. This class is instructed by TheoryArithPrivate to use
    * the equality engine ee.
    */
