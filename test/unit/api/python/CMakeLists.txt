@@ -39,3 +39,5 @@ cvc5_add_python_api_unit_test(test_to_python_obj test_to_python_obj.py)
 cvc5_add_python_api_unit_test(test_op test_op.py)
 cvc5_add_python_api_unit_test(test_result test_result.py)
 cvc5_add_python_api_unit_test(test_synth_result test_synth_result.py)
+
+cvc5_add_unit_test_black(test_uncovered api/python)
