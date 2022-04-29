@@ -68,3 +68,5 @@ cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
 cvc5_add_java_api_test(TermTest)
+
+cvc5_add_unit_test_white(UncoveredTest api/java)
