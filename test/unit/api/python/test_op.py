@@ -27,6 +27,9 @@ def solver():
     return cvc5.Solver()
 
 
+def test_hash(solver):
+    hash(solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1))
+
 def test_get_kind(solver):
     x = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
     x.getKind()
@@ -35,8 +38,9 @@ def test_get_kind(solver):
 def test_is_null(solver):
     x = Op(solver)
     assert x.isNull()
-    x = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
-    assert not x.isNull()
+    y = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
+    assert not y.isNull()
+    assert x != y
 
 
 def test_op_from_kind(solver):

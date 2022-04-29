@@ -55,8 +55,9 @@ class OpTest
   {
     Op x = d_solver.getNullOp();
     assertTrue(x.isNull());
-    x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-    assertFalse(x.isNull());
+    Op y = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
+    assertFalse(y.isNull());
+    assertTrue(x != y);
   }
 
   @Test
