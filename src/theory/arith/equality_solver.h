@@ -38,7 +38,9 @@ class ArithCongruenceManager;
 
 /**
  * The arithmetic equality solver. This class manages arithmetic equalities
- * in the default way via an equality engine.
+ * in the default way via an equality engine, or defers to the congruence
+ * manager of linear arithmetic if setCongruenceManager is called on a
+ * non-null congruence manager.
  *
  * Since arithmetic has multiple ways of propagating literals, it tracks
  * the literals that it propagates and only explains the literals that
