@@ -94,10 +94,16 @@ class ArithRewriter : public TheoryRewriter
 
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
-  /** Remove TO_REAL children */
-  static Node removeToReal(TNode t);
-  /** Add TO_REAL if necessary */
+  /**
+   * Remove TO_REAL from t, returns t[0] if t has kind TO_REAL.
+   */
+  static TNode removeToReal(TNode t);
+  /**
+   * Ensure that t has real type if tn is the real type. Do so by applying
+   * TO_REAL to t.
+   */
   static Node maybeEnsureReal(TypeNode tn, TNode t);
+  /** Same as above, without a check for the type of tn. */
   static Node ensureReal(TNode t);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
