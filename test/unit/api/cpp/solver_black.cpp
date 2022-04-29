@@ -1687,7 +1687,7 @@ TEST_F(TestApiBlackSolver, getDriverOptions)
   ASSERT_EQ(dopts.in().rdbuf(), std::cin.rdbuf());
   ASSERT_EQ(dopts.out().rdbuf(), std::cout.rdbuf());
 }
-  
+
 TEST_F(TestApiBlackSolver, getStatistics)
 {
   ASSERT_NO_THROW(cvc5::Stat());
