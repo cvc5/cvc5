@@ -520,11 +520,25 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(x.abs());
           break;
         }
+        case kind::TO_REAL:
         case kind::CAST_TO_REAL:
         {
           // casting to real is a no-op
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x);
+          break;
+        }
+        case kind::TO_INTEGER:
+        {
+          // casting to int takes the floor
+          const Rational& x = results[currNode[0]].d_rat.floor();
+          results[currNode] = EvalResult(x);
+          break;
+        }
+        case kind::IS_INTEGER:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x.isIntegral());
           break;
         }
         case kind::CONST_STRING:

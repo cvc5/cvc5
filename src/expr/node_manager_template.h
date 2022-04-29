@@ -48,14 +48,21 @@ class DType;
 class Rational;
 
 namespace expr {
-  namespace attr {
-    class AttributeUniqueId;
-    class AttributeManager;
-    }  // namespace attr
 
-  class TypeChecker;
-  }  // namespace expr
+namespace attr {
+class AttributeUniqueId;
+class AttributeManager;
+}  // namespace attr
 
+class TypeChecker;
+}  // namespace expr
+
+/**
+ * The node manager.
+ *
+ * This class should not be used simulatenously in multiple threads. It is a
+ * singleton that is accessible via NodeManager::currentNM().
+ */
 class NodeManager
 {
   friend class cvc5::Solver;
@@ -66,24 +73,6 @@ class NodeManager
   friend class NodeBuilder;
 
  public:
-  /**
-   * Bits for use in mkDatatypeType() flags.
-   *
-   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
-   * out as a definition, for example, in models or during dumping.
-   */
-  enum
-  {
-    DATATYPE_FLAG_NONE = 0,
-    DATATYPE_FLAG_PLACEHOLDER = 1
-  }; /* enum */
-
-  /** Bits for use in mkSort() flags. */
-  enum
-  {
-    SORT_FLAG_NONE = 0,
-    SORT_FLAG_PLACEHOLDER = 1
-  }; /* enum */
 
   /**
    * Return true if given kind is n-ary. The test is based on n-ary kinds
@@ -91,18 +80,6 @@ class NodeManager
    * of a node.
    */
   static bool isNAryKind(Kind k);
-
-  /**
-   * Returns a node representing the operator of this `TypeNode`.
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these) have an
-   * operator. "Little-p parameterized" types (like Array), are OPERATORs, not
-   * PARAMETERIZEDs.
-   */
-  static Node operatorFromType(const TypeNode& tn)
-  {
-    Assert(tn.getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(tn.d_nv->getOperator());
-  }
 
   /** The node manager in the current public-facing cvc5 library context */
   static NodeManager* currentNM();
@@ -142,25 +119,6 @@ class NodeManager
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
-
-  /** Reclaim zombies while there are more than k nodes in the pool (if
-   * possible).*/
-  void reclaimZombiesUntil(uint32_t k);
-
-  /** Reclaims all zombies (if possible).*/
-  void reclaimAllZombies();
-
-  /** Size of the node pool. */
-  size_t poolSize() const;
-
-  /**
-   * This function gives developers a hook into the NodeManager.
-   * This can be changed in node_manager.cpp without recompiling most of cvc5.
-   *
-   * debugHook is a debugging only function, and should not be present in
-   * any published code!
-   */
-  void debugHook(int debugFlag);
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
@@ -501,14 +459,14 @@ class NodeManager
   TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing the given datatype. */
-  TypeNode mkDatatypeType(DType& datatype, uint32_t flags = DATATYPE_FLAG_NONE);
+  TypeNode mkDatatypeType(DType& datatype);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::vector<DType>& datatypes);
 
   /**
    * Make a type representing a constructor with the given argument (subfield)
@@ -663,9 +621,6 @@ class NodeManager
   /** Create a raw symbol with the given type. */
   Node mkRawSymbol(const std::string& name, const TypeNode& type);
 
-  /** Make a new uninterpreted sort value with the given type. */
-  Node mkUninterpretedSortValue(const TypeNode& type);
-
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
@@ -810,8 +765,7 @@ class NodeManager
    */
   std::vector<TypeNode> mkMutualDatatypeTypesInternal(
       const std::vector<DType>& datatypes,
-      const std::set<TypeNode>& unresolvedTypes,
-      uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::set<TypeNode>& unresolvedTypes);
 
   typedef std::unordered_set<expr::NodeValue*,
                              expr::NodeValuePoolHashFunction,
@@ -844,7 +798,7 @@ class NodeManager
   {
     expr::NodeValue nv;
     expr::NodeValue* child[N];
-  }; /* struct NodeManager::NVStorage<N> */
+  };
 
   /**
    * A map of tuple types to their corresponding datatype type, which are
@@ -1020,7 +974,8 @@ class NodeManager
 
   bool d_initialized;
 
-  size_t next_id;
+  /** The next node identifier */
+  size_t d_nextId;
 
   expr::attr::AttributeManager* d_attrManager;
 
@@ -1073,14 +1028,6 @@ class NodeManager
 
   TupleTypeCache d_tt_cache;
   RecTypeCache d_rt_cache;
-
-  /**
-   * Keep a count of all abstract values produced by this NodeManager.
-   * Abstract values have a type attribute, so if multiple SolverEngines
-   * are attached to this NodeManager, we don't want their abstract
-   * values to overlap.
-   */
-  uint32_t d_abstractValueCount;
 }; /* class NodeManager */
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,

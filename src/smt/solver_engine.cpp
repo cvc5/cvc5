@@ -762,7 +762,19 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   Assert(d_state->isFullyReady());
 
   // check the satisfiability with the solver object
-  Result r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions);
+  Assertions& as = *d_asserts.get();
+  Result r = d_smtSolver->checkSatisfiability(as, assumptions);
+
+  // If the result is unknown, we may optionally do a "deep restart" where
+  // the members of the SMT solver are reconstructed and given the
+  // preprocessed input formulas (plus additional learned formulas). Notice
+  // that assumptions are pushed to the preprocessed input in the above call, so
+  // any additional satisfiability checks use an empty set of assumptions.
+  while (r.getStatus() == Result::UNKNOWN && deepRestart())
+  {
+    Trace("smt") << "SolverEngine::checkSat after deep restart" << std::endl;
+    r = d_smtSolver->checkSatisfiability(as, {});
+  }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;
@@ -1802,6 +1814,39 @@ void SolverEngine::resetAssertions()
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();
+}
+
+bool SolverEngine::deepRestart()
+{
+  SolverEngineScope smts(this);
+  if (options().smt.deepRestartMode == options::DeepRestartMode::NONE)
+  {
+    // deep restarts not enabled
+    return false;
+  }
+  Trace("smt") << "SMT deepRestart()" << endl;
+
+  Assert(d_state->isFullyInited());
+
+  // get the zero-level learned literals now, before resetting the context
+  std::vector<Node> zll =
+      getPropEngine()->getLearnedZeroLevelLiteralsForRestart();
+
+  if (zll.empty())
+  {
+    // not worthwhile to restart if we didn't learn anything
+    Trace("deep-restart") << "No learned literals" << std::endl;
+    return false;
+  }
+
+  d_asserts->clearCurrent();
+  d_state->notifyResetAssertions();
+  // deep restart the SMT solver, which reconstructs the theory engine and
+  // prop engine.
+  d_smtSolver->deepRestart(*d_asserts.get(), zll);
+  // push the state to maintain global context around everything
+  d_state->setup();
+  return true;
 }
 
 void SolverEngine::interrupt()

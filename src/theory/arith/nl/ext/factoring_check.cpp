@@ -35,7 +35,7 @@ namespace nl {
 FactoringCheck::FactoringCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,
