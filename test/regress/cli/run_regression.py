@@ -752,7 +752,7 @@ def main():
     if not testers:
         testers = g_default_testers
     elif "all" in testers:
-        testers = tester_choices[1:]
+        testers = list(g_testers.keys())
 
     lfsc_sigs = []
     if not g_args.lfsc_sig_dir == "":
