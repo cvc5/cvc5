@@ -1363,7 +1363,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term conj = d_solver.mkTerm(GT, {y, zero});
   // Call the abduction api, while the resulting abduct is the output
   Term output = d_solver.getAbduct(conj);
-  // We ASSERT the resulting output to be a boolean formula
+  // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
 
   // try with a grammar, a simple grammar admitting true
@@ -1442,7 +1442,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   // Call the interpolation api, while the resulting interpolant is the output
   Term output = d_solver.getInterpolant(conj);
 
-  // We ASSERT the resulting output to be a boolean formula
+  // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
 }
 
@@ -1469,7 +1469,7 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
   Term output = d_solver.getInterpolant(conj);
   Term output2 = d_solver.getInterpolantNext();
 
-  // We ASSERT the next output to be distinct
+  // We expect the next output to be distinct
   ASSERT_TRUE(output != output2);
 }
 
