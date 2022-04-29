@@ -118,7 +118,7 @@ bool BagsUtils::areChildrenConstants(TNode n)
   return std::all_of(n.begin(), n.end(), [](Node c) { return c.isConst(); });
 }
 
-Node BagsUtils::evaluate(TNode n)
+Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
 {
   Assert(areChildrenConstants(n));
   if (n.isConst())
@@ -144,7 +144,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
-    case TABLE_JOIN: return evaluateJoin(n);
+    case TABLE_JOIN: return evaluateJoin(rewriter, n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
@@ -926,18 +926,13 @@ Node BagsUtils::evaluateProduct(TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateJoin(TNode n)
+Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
 {
   Assert(n.getKind() == TABLE_JOIN);
 
-  // Examples
-  // --------
-  //
-  // - (table.join (bag (tuple "a" 1) 4) (bag (tuple true) 5)) =
-  //     (bag (tuple "a" true) 20
-
   Node A = n[0];
   Node B = n[1];
+  auto [aIndices, bIndices] = splitTableJoinIndices(n);
 
   std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
   std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
@@ -946,10 +941,19 @@ Node BagsUtils::evaluateJoin(TNode n)
 
   for (const auto& [a, countA] : elementsA)
   {
+    Node aProjection = TupleUtils::getTupleProjection(aIndices, a);
+    aProjection = rewriter->rewrite(aProjection);
+    Assert(aProjection.isConst());
     for (const auto& [b, countB] : elementsB)
     {
-      Node element = constructProductTuple(n, a, b);
-      elements[element] = countA * countB;
+      Node bProjection = TupleUtils::getTupleProjection(bIndices, b);
+      bProjection = rewriter->rewrite(bProjection);
+      Assert(bProjection.isConst());
+      if (aProjection == bProjection)
+      {
+        Node element = constructProductTuple(n, a, b);
+        elements[element] = countA * countB;
+      }
     }
   }
 
@@ -996,10 +1000,11 @@ BagsUtils::splitTableJoinIndices(Node n)
   const std::vector<uint32_t>& indices = op.getIndices();
   size_t joinSize = indices.size() / 2;
   std::vector<uint32_t> indices1(joinSize), indices2(joinSize);
-  for (size_t i = 0; i < joinSize; i += 2)
+
+  for (size_t i = 0, index = 0; i < joinSize; i += 2, ++index)
   {
-    indices1.push_back(indices[i]);
-    indices2.push_back(indices[i + 1]);
+    indices1[index] = indices[i];
+    indices2[index] = indices[i + 1];
   }
   return std::make_pair(indices1, indices2);
 }

@@ -68,7 +68,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   }
   else if (BagsUtils::areChildrenConstants(n))
   {
-    Node value = BagsUtils::evaluate(n);
+    Node value = BagsUtils::evaluate(d_rewriter, n);
     response = BagsRewriteResponse(value, Rewrite::CONSTANT_EVALUATION);
   }
   else

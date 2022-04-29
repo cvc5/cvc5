@@ -54,7 +54,7 @@ class BagsUtils
    * evaluate the node n to a constant value.
    * As a precondition, children of n should be constants.
    */
-  static Node evaluate(TNode n);
+  static Node evaluate(Rewriter* rewriter, TNode n);
 
   /**
    * get the elements along with their multiplicities in a given bag
@@ -118,12 +118,12 @@ class BagsUtils
   static Node evaluateProduct(TNode n);
 
   /**
-   * @param n of the form ((_ table.join (m_1, n_1, ..., m_k, n_k) ) A B) where
+   * @param n of the form ((_ table.join (m_1 n_1 ... m_k n_k) ) A B) where
    * A, B are constants
    * @return the evaluation of inner joining tables A B on columns (m_1, n_1,
    * ..., m_k, n_k)
    */
-  static Node evaluateJoin(TNode n);
+  static Node evaluateJoin(Rewriter* rewriter, TNode n);
 
   /**
    * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a
