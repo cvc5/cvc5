@@ -26,7 +26,7 @@ UninterpretedSortEnumerator::UninterpretedSortEnumerator(
     TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<UninterpretedSortEnumerator>(type), d_count(0)
 {
-  Assert(type.getKind() == kind::SORT_TYPE);
+  Assert(type.isUninterpretedSort());
   d_has_fixed_bound = false;
   Trace("uf-type-enum") << "UF enum " << type << ", tep = " << tep << std::endl;
   if (tep && tep->d_fixed_usort_card)

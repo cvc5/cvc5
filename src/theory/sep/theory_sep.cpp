@@ -285,8 +285,25 @@ bool TheorySep::preNotifyFact(
       d_spatial_assertions.push_back(fact);
     }
   }
+  if (!slbl.isNull() && satom.getKind() == SEP_PTO)
+  {
+    if (polarity)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      // (SEP_LABEL (sep.pto x y) L) => L = (set.singleton x)
+      Node s = nm->mkSingleton(slbl.getType().getSetElementType(), satom[0]);
+      Node eq = slbl.eqNode(s);
+      TrustNode trn =
+          d_im.mkLemmaExp(eq, PfRule::THEORY_INFERENCE, {fact}, {fact}, {eq});
+      d_im.addPendingLemma(trn.getNode(),
+                           InferenceId::SEP_POS_PTO_SINGLETON,
+                           LemmaProperty::NONE,
+                           trn.getGenerator());
+    }
+    return false;
+  }
   // assert to equality if non-spatial or a labelled pto
-  if (!isSpatial || (!slbl.isNull() && satom.getKind() == SEP_PTO))
+  if (!isSpatial)
   {
     return false;
   }
@@ -1330,33 +1347,49 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 
 Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) {
   Assert(n.getKind() != kind::SEP_LABEL);
-  if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND || n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_EMP ){
-    return NodeManager::currentNM()->mkNode( kind::SEP_LABEL, n, lbl );
-  }else if( !n.getType().isBoolean() || n.getNumChildren()==0 ){
-    return n;
-  }else{
-    std::map< Node, Node >::iterator it = visited.find( n );
-    if( it==visited.end() ){
-      std::vector< Node > children;
-      if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        children.push_back( n.getOperator() );
-      }
-      bool childChanged = false;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node aln = applyLabel( n[i], lbl, visited );
-        children.push_back( aln );
-        childChanged = childChanged || aln!=n[i];
-      }
-      Node ret = n;
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-      visited[n] = ret;
-      return ret;
-    }else{
-      return it->second;
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n.getKind();
+  std::map<Node, Node>::iterator it = visited.find(n);
+  if (it != visited.end())
+  {
+    return it->second;
+  }
+  Node ret;
+  if (k == kind::SEP_STAR || k == kind::SEP_WAND || k == kind::SEP_PTO)
+  {
+    ret = nm->mkNode(kind::SEP_LABEL, n, lbl);
+  }
+  else if (k == kind::SEP_EMP)
+  {
+    // (SEP_LABEL sep.emp L) is the same as (= L set.empty)
+    ret = lbl.eqNode(nm->mkConst(EmptySet(lbl.getType())));
+  }
+  else if (n.getType().isBoolean() && n.getNumChildren() > 0)
+  {
+    ret = n;
+    std::vector<Node> children;
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      children.push_back(n.getOperator());
+    }
+    bool childChanged = false;
+    for (const Node& nc : n)
+    {
+      Node aln = applyLabel(nc, lbl, visited);
+      children.push_back(aln);
+      childChanged = childChanged || aln != nc;
+    }
+    if (childChanged)
+    {
+      ret = nm->mkNode(n.getKind(), children);
     }
   }
+  else
+  {
+    ret = n;
+  }
+  visited[n] = ret;
+  return ret;
 }
 
 Node TheorySep::instantiateLabel(Node n,

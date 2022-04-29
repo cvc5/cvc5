@@ -38,12 +38,8 @@ class QuantifiersState;
  * yet to be initialized.
  */
 class InstMatch {
-public:
-  InstMatch(){}
-  explicit InstMatch(TNode q);
-  InstMatch( InstMatch* m );
-  /* map from variable to ground terms */
-  std::vector<Node> d_vals;
+ public:
+  InstMatch(TNode q);
   /** add match m
    *
    * This adds the initialized fields of m to this match for each field that is
@@ -51,26 +47,15 @@ public:
    */
   void add(InstMatch& m);
   /** is this complete, i.e. are all fields non-null? */
-  bool isComplete();
+  bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */
-  bool empty();
+  bool empty() const;
   /** clear the instantiation, i.e. set all fields to the null node */
   void clear();
   /** debug print method */
   void debugPrint(const char* c);
   /** to stream */
-  inline void toStream(std::ostream& out) const {
-    out << "INST_MATCH( ";
-    bool printed = false;
-    for( unsigned i=0; i<d_vals.size(); i++ ){
-      if( !d_vals[i].isNull() ){
-        if( printed ){ out << ", "; }
-        out << i << " -> " << d_vals[i];
-        printed = true;
-      }
-    }
-    out << " )";
-  }
+  void toStream(std::ostream& out) const;
   /** get the i^th term in the instantiation */
   Node get(size_t i) const;
   /** set/overwrites the i^th field in the instantiation with n */
@@ -81,6 +66,19 @@ public:
    * or is equivalent to n modulo the equalities given by q.
    */
   bool set(QuantifiersState& qs, size_t i, TNode n);
+  /** Resets index i */
+  void reset(size_t i);
+  /** Get the values */
+  std::vector<Node>& get();
+
+ private:
+  /**
+   * Ground terms for each variable of the quantified formula, in order.
+   * Null nodes indicate the variable has not been set.
+   */
+  std::vector<Node> d_vals;
+  /** The quantified formula */
+  Node d_quant;
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {

@@ -1044,7 +1044,7 @@ bool SynthResult::isUnknown() const
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
 
-std::ostream& operator<<(std::ostream& out, const internal::SynthResult& sr)
+std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
 {
   out << sr.toString();
   return out;
@@ -3646,6 +3646,7 @@ bool DatatypeSelector::isNull() const
 std::string DatatypeSelector::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   std::stringstream ss;
   ss << *d_stor;
@@ -4464,9 +4465,7 @@ Sort Grammar::resolve()
   }
 
   std::vector<internal::TypeNode> datatypeTypes =
-      d_solver->getNodeManager()->mkMutualDatatypeTypes(
-          datatypes,
-          internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      d_solver->getNodeManager()->mkMutualDatatypeTypes(datatypes);
 
   // return is the first datatype
   return Sort(d_solver, datatypeTypes[0]);
@@ -4657,15 +4656,21 @@ Stat::Stat() {}
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
     : d_internal(s.d_internal),
-      d_default(s.d_default),
-      d_data(std::make_unique<StatData>(s.d_data->data))
+      d_default(s.d_default)
 {
+  if (s.d_data)
+  {
+    d_data = std::make_unique<StatData>(s.d_data->data);
+  }
 }
 Stat& Stat::operator=(const Stat& s)
 {
   d_internal = s.d_internal;
   d_default = s.d_default;
-  d_data = std::make_unique<StatData>(s.d_data->data);
+  if (s.d_data)
+  {
+    d_data = std::make_unique<StatData>(s.d_data->data);
+  }
   return *this;
 }
 
