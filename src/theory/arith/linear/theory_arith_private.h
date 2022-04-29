@@ -503,7 +503,8 @@ private:
   /** get the proof checker of this theory */
   ArithProofRuleChecker* getProofChecker();
   /** get the congruence manager, if we are using one */
-  ArithCongruenceManager * getCongruenceManager();
+  ArithCongruenceManager* getCongruenceManager();
+
  private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;

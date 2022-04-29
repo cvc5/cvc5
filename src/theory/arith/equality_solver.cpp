@@ -84,14 +84,14 @@ TrustNode EqualitySolver::explain(TNode lit)
   return d_aim.explainLit(lit);
 }
 
-void EqualitySolver::setCongruenceManager(linear::ArithCongruenceManager * acm)
+void EqualitySolver::setCongruenceManager(linear::ArithCongruenceManager* acm)
 {
   d_acm = acm;
 }
 
 bool EqualitySolver::propagateLit(Node lit)
 {
-  if (d_acm!=nullptr)
+  if (d_acm != nullptr)
   {
     // if we are using the congruence manager, notify it
     return d_acm->propagate(lit);
@@ -109,7 +109,7 @@ bool EqualitySolver::propagateLit(Node lit)
 }
 void EqualitySolver::conflictEqConstantMerge(TNode a, TNode b)
 {
-  if (d_acm!=nullptr)
+  if (d_acm != nullptr)
   {
     // if we are using the congruence manager, notify it
     Node eq = a.eqNode(b);

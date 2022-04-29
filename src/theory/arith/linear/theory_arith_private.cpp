@@ -4986,7 +4986,7 @@ ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
   return &d_checker;
 }
 
-ArithCongruenceManager * TheoryArithPrivate::getCongruenceManager()
+ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()
 {
   return d_cmEnabled.get() ? &d_congruenceManager : nullptr;
 }
