@@ -23,6 +23,12 @@ class TestApiBlackOp : public TestApi
 {
 };
 
+TEST_F(TestApiBlackOp, hash)
+{
+  std::hash<cvc5::Op> h;
+  ASSERT_NO_THROW(h(d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1})));
+}
+
 TEST_F(TestApiBlackOp, getKind)
 {
   Op x;
@@ -34,8 +40,9 @@ TEST_F(TestApiBlackOp, isNull)
 {
   Op x;
   ASSERT_TRUE(x.isNull());
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
-  ASSERT_FALSE(x.isNull());
+  Op y = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
+  ASSERT_FALSE(y.isNull());
+  ASSERT_NE(x, y);
 }
 
 TEST_F(TestApiBlackOp, opFromKind)
@@ -166,6 +173,11 @@ TEST_F(TestApiBlackOp, opScopingToString)
   std::string op_repr = bitvector_repeat_ot.toString();
   Solver solver2;
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);
+  {
+    std::stringstream ss;
+    ss << bitvector_repeat_ot;
+    ASSERT_EQ(ss.str(), op_repr);
+  }
 }
 }  // namespace test
 }  // namespace cvc5::internal
