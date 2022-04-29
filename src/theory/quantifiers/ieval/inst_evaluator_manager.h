@@ -35,20 +35,22 @@ namespace ieval {
 
 /**
  * Inst evaluator manager, used for allocating InstEvaluators.
+ *
+ * It ensures that all allocated inst evaluators that are allocated are
+ * hard-reset during the beginning of each instantiation round. This is to
+ * ensure that the evaluation of terms based on the term database is correct.
  */
 class InstEvaluatorManager : public QuantifiersUtil
 {
   using QuantEvPair = std::pair<Node, TermEvaluatorMode>;
-
  public:
   InstEvaluatorManager(Env& env, QuantifiersState& qs, TermDb& tdb);
   /** reset (calculate which terms are active) */
   bool reset(Theory::Effort effort) override;
   /** identify */
   std::string identify() const override;
-  /** Get evaluator */
+  /** Get evaluator for quantified formula q in evaluation mode tev */
   InstEvaluator* getEvaluator(Node q, TermEvaluatorMode tev);
-
  private:
   /** Reference to quantifiers state */
   QuantifiersState& d_qstate;

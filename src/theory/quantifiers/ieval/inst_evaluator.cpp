@@ -25,6 +25,7 @@ namespace ieval {
 InstEvaluator::InstEvaluator(Env& env,
                              QuantifiersState& qs,
                              TermDb& tdb,
+                             TermEvaluatorMode tev,
                              bool genLearning,
                              bool canonize,
                              bool trackAssignedQuant)
@@ -38,6 +39,7 @@ InstEvaluator::InstEvaluator(Env& env,
       d_quantList(&d_context),
       d_varList(&d_context)
 {
+  setEvaluatorMode(tev);
 }
 
 void InstEvaluator::watch(Node q)
@@ -100,12 +102,6 @@ bool InstEvaluator::initialize()
   }
   Assert(d_state.hasInitialized());
   return true;
-}
-
-void InstEvaluator::push()
-{
-  // TODO: interface may be useful for popping quantified formulas?
-  d_context.push();
 }
 
 bool InstEvaluator::push(TNode v, TNode s)

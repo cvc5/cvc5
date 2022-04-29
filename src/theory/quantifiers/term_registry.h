@@ -99,6 +99,18 @@ class TermRegistry : protected EnvObj
   VtsTermCache* getVtsTermCache() const;
   /** get the instantiation evaluator manager */
   ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
+  /**
+   * Get evaluator for quantified formula q and evaluator mode tev. We require
+   * that an evaluator is only used by one user at a time. The user of an
+   * evaluator has the responsibility to ensure it is cleaned (via a soft
+   * resetAll or push) when it is finished using it.
+   *
+   * Note the returned inst evaluator can be assumed to be watching quantified
+   * formula q only. It may or may not be initialized (i.e. such that the
+   * evaluation of ground terms is already computed), although the InstEvaluator
+   * interface automatically manages this initialization internally.
+   */
+  ieval::InstEvaluator* getEvaluator(Node q, ieval::TermEvaluatorMode tev);
   /** get the model utility */
   FirstOrderModel* getModel() const;
 

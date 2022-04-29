@@ -20,7 +20,6 @@
 
 #include <map>
 
-#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -34,14 +33,11 @@ class State;
 class TermEvaluator;
 
 /**
- * A quantified formula is a pattern term whose parent is
- * the quant
+ * Information for a pattern term in the instantiation evaluator.
  */
 class PatTermInfo
 {
   using NodeList = context::CDList<Node>;
-  using NodeSet = context::CDHashSet<Node>;
-
  public:
   PatTermInfo(context::Context* c);
   /** initialize */
@@ -49,8 +45,7 @@ class PatTermInfo
   /** Reset round */
   void resetRound();
   /**
-   * is active, false if it has merged to a ground equivalence class, or if
-   * its variables have been fully assigned.
+   * Is active, false if it has set to a ground term (possibly) the none term.
    */
   bool isActive() const;
   /**

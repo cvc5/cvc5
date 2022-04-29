@@ -16,7 +16,6 @@
 #include "theory/quantifiers/inst_match.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_registry.h"
 
@@ -38,7 +37,7 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
   // should only do this if we are empty
   Assert(empty());
   // get the instantiation evaluator and reset it
-  d_ieval = d_tr.getInstEvaluatorManager()->getEvaluator(d_quant, tev);
+  d_ieval = d_tr.getEvaluator(d_quant, tev);
   if (d_ieval != nullptr)
   {
     d_ieval->resetAll();

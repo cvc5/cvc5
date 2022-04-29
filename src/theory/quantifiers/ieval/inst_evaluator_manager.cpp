@@ -69,13 +69,10 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
   // don't use canonization or trackAssignments, use generalized learning if
   // option specifies it
   bool genLearning = mode == options::IevalMode::USE_LEARN;
-  d_evals[key].reset(new InstEvaluator(d_env, d_qstate, d_tdb, genLearning));
+  d_evals[key].reset(new InstEvaluator(d_env, d_qstate, d_tdb, tev, genLearning));
   InstEvaluator* ret = d_evals[key].get();
   // set that we are watching quantified formula q
   ret->watch(q);
-  // set the evaluation mode
-  ret->setEvaluatorMode(tev);
-  // TODO: initialize?
   // return
   return ret;
 }

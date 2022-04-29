@@ -42,13 +42,14 @@ namespace ieval {
  * Inst evaluator
  *
  * Incrementally maintains the state of the rewritten form of the quantified
- * formula.
+ * formula under a substitution.
  *
- * To use, you must:
- * - Construct
- * - Set a evaluator mode
- * - Watch quantified formulas
- * - push/pop variable assignments
+ * To use this class, after construction, you must:
+ * - Watch quantified formulas.
+ * - Push/pop variable assignments.
+ * 
+ * The main information that is provided by this class is whether the current
+ * variable assignment is feasible, which is based on the evaluation mode.
  */
 class InstEvaluator : protected EnvObj
 {
@@ -56,9 +57,28 @@ class InstEvaluator : protected EnvObj
   using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
+   /** Constructor
+    * 
+    * @param env Reference to the env
+    * @param qs Reference to the quantifiers state
+    * @param tev The evaluation mode for this inst evaluator
+    * @param genLearning If this flag is true, then whenever we discover
+    * that the set of quantified formulas watched by this class is infeasible,
+    * we learn the most general substitution from the current one that explains
+    * the failure. This is tracked in a data structure, which is subsequently
+    * used for fast lookups for future assignments.
+    * @param canonize If this flag is true, we canonize the bodies of quantified
+    * formulas are made canonical. This means that portions of quantified
+    * formulas that are alpha-equivalent share information on how they
+    * evaluate. This method is recommended if multiple quantified formulas
+    * are being watched
+    * @param trackAssignedQuant If this flag is true, we calculate when
+    * quantified formulas have a complete assignment, for push.
+    */
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermDb& tdb,
+                TermEvaluatorMode tev,
                 bool genLearning = false,
                 bool canonize = false,
                 bool trackAssignedQuant = false);
@@ -70,10 +90,6 @@ class InstEvaluator : protected EnvObj
   /** Same as above, with possibly preprocessed body. */
   void watch(Node q, Node body);
   /**
-   * Initialize the state, return false if we are infeasible.
-   */
-  bool initialize();
-  /**
    * Set that we are considering instantiations v -> s.
    *
    * Return false if all quantified formulas watched by this class are
@@ -82,13 +98,13 @@ class InstEvaluator : protected EnvObj
    * If this returns true, this adds quantified formulas that are fully
    * instantiated to assignedQuants if trackAssignedQuant is true.
    */
-  void push();
-  bool push(TNode v, TNode s);
   bool push(TNode v, TNode s, std::vector<Node>& assignedQuants);
+  /** Same as above, without tracking assigned quantifiers */
+  bool push(TNode v, TNode s);
   /** pop the last (successful) push */
   void pop();
   /**
-   * Reset all
+   * Reset all variable assignments.
    *
    * If isSoft is true, this saves the state initialization of ground terms,
    * the learned failures, and the watched quantifier information.
@@ -96,29 +112,34 @@ class InstEvaluator : protected EnvObj
    * If isSoft is false, this saves the watched quantifier information only.
    */
   void resetAll(bool isSoft = true);
-  /**
-   * Get instantiation for quantified formula q.
-   */
+  /** Get instantiation for quantified formula q. */
   std::vector<Node> getInstantiationFor(Node q) const;
   /**
-   * Is feasible, return true if any quantified formulas are feasible.
+   * Is feasible, return true if at least one watched quantified formula is
+   * feasible.
+   * 
+   * A quantified formula is feasible if it has not failed the criteria
+   * specified by the evaluation mode. For example, if this class was
+   * initialized with tev NO_ENTAIL, then the quantified formula is
+   * infeasible if all extensions of the current variable assignment
+   * lead to instantiations that are entailed by the ground context.
    */
   bool isFeasible() const;
-  /**
-   * Set evaluator mode. This can be modified if there are no variable
-   * assignments.
-   */
-  void setEvaluatorMode(TermEvaluatorMode tev);
 
  private:
-  /** push internal */
+  /** Set evaluator mode. */
+  void setEvaluatorMode(TermEvaluatorMode tev);
+  /** Initialize the state, return false if we are infeasible. */
+  bool initialize();
+  /** Push internal, helper for push methods above */
   bool pushInternal(TNode v, TNode s, std::vector<Node>& assignedQuants);
   /**
-   * Learn failure, called immediately after the state is finished.
+   * Learn failure, called immediately after the state is finished. Adds the
+   * current assignment to the database.
    */
   void learnFailure();
-  /**
-   * Check if there is currently a learned failure
+  /** 
+   * Check if there is currently a learned failure for the current assignment.
    */
   bool checkLearnedFailure() const;
   /**
@@ -126,7 +147,10 @@ class InstEvaluator : protected EnvObj
    * d_varList.
    */
   std::vector<Node> getCurrentTerms() const;
-  /** Lookup canonical term */
+  /** 
+   * Lookup canonical term, return the canonical form of n, assumes that it has
+   * been canonized.
+   */
   Node lookupCanonicalTerm(TNode n) const;
   /** A context object */
   context::Context d_context;
