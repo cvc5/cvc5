@@ -3206,6 +3206,7 @@ add_custom_target(regress
   DEPENDS build-regress)
 
 set(testers
+  all
   base
   unsat-core
   proof
