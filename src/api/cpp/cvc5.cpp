@@ -1038,7 +1038,7 @@ bool SynthResult::isUnknown() const
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
 
-std::ostream& operator<<(std::ostream& out, const internal::SynthResult& sr)
+std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
 {
   out << sr.toString();
   return out;
@@ -3640,6 +3640,7 @@ bool DatatypeSelector::isNull() const
 std::string DatatypeSelector::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   std::stringstream ss;
   ss << *d_stor;
