@@ -3802,7 +3802,6 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
     }
 
     default:
-      AlwaysAssert(false) << "Bad: " << term;
       throw ModelException(term, "No model assignment.");
   }
 }
