@@ -52,7 +52,7 @@ class InstMatchGeneratorSimple : public IMGenerator
   /** Reset instantiation round. */
   void resetInstantiationRound() override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q) override;
+  uint64_t addInstantiations(InstMatch& m) override;
   /** Get active score. */
   int getActiveScore() override;
 
