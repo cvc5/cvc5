@@ -1313,7 +1313,6 @@ def test_get_cardinality_constraint(solver):
     nullt.isCardinalityConstraint()
 
 
-
 def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
