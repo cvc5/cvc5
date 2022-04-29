@@ -1288,6 +1288,15 @@ Node NodeManager::mkConstInt(const Rational& r)
   return mkConst(kind::CONST_RATIONAL, r);
 }
 
+Node NodeManager::mkConstRealOrInt(const Rational& r)
+{
+  if (r.isIntegral())
+  {
+    return mkConstInt(r);
+  }
+  return mkConstReal(r);
+}
+
 Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
@@ -1303,7 +1312,8 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
 {
   if (ran.isRational())
   {
-    return mkConstReal(ran.toRational());
+    // may generate an integer it is it integral
+    return mkConstRealOrInt(ran.toRational());
   }
   // Creating this node may refine the ran to the point where isRational returns
   // true
@@ -1315,7 +1325,8 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
     const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
     if (cur.isRational())
     {
-      return mkConstReal(cur.toRational());
+      // may generate an integer it is it integral
+      return mkConstRealOrInt(cur.toRational());
     }
     if (cur == ran) break;
     inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);

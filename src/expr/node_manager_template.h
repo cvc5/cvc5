@@ -680,6 +680,12 @@ class NodeManager
 
   /**
    * Make constant real or int, which calls one of the above methods based
+   * on whether r is integral.
+   */
+  Node mkConstRealOrInt(const Rational& r);
+  
+  /**
+   * Make constant real or int, which calls one of the above methods based
    * on the type tn.
    */
   Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
