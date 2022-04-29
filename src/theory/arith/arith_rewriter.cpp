@@ -899,7 +899,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  if (t[0].getKind()==TO_REAL)
+  if (t[0].getKind() == TO_REAL)
   {
     // always strip TO_REAL from argument.
     Node ret = nm->mkNode(t.getKind(), t[0][0]);
@@ -1054,8 +1054,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             if (r_abs.getDenominator() == two)
             {
               Assert(r_abs.getNumerator() == one);
-              return RewriteResponse(
-                  REWRITE_DONE, nm->mkConstReal(Rational(r.sgn())));
+              return RewriteResponse(REWRITE_DONE,
+                                     nm->mkConstReal(Rational(r.sgn())));
             }
             else if (r_abs.getDenominator() == six)
             {

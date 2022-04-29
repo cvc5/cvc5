@@ -112,8 +112,7 @@ bool Variable::isTranscendentalMember(Node n) {
   case kind::ARCCOSECANT:
   case kind::ARCSECANT:
   case kind::ARCCOTANGENT:
-  case kind::SQRT:
-    return Polynomial::isMember(n[0]);
+  case kind::SQRT: return Polynomial::isMember(n[0]);
   case kind::PI:
     return true;
   default:
