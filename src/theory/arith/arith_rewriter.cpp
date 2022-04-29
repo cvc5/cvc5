@@ -470,26 +470,25 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   }
 
   // remove TO_REAL
-  std::vector<Node> rchildren;
   for (TNode& tc : children)
   {
-    rchildren.push_back(removeToReal(tc));
+    tc = removeToReal(tc);
   }
 
   Node ret;
   // Distribute over addition
-  if (std::any_of(rchildren.begin(), rchildren.end(), [](Node child) {
+  if (std::any_of(children.begin(), children.end(), [](TNode child) {
         return child.getKind() == Kind::ADD;
       }))
   {
-    ret = rewriter::distributeMultiplication(rchildren);
+    ret = rewriter::distributeMultiplication(children);
   }
   else
   {
     RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
     std::vector<Node> leafs;
 
-    for (const Node& child : rchildren)
+    for (TNode child : children)
     {
       if (child.isConst())
       {
@@ -599,11 +598,16 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   Assert(t.getKind() == kind::CAST_TO_REAL || t.getKind() == kind::TO_REAL);
   if (!t[0].getType().isInteger())
   {
+    // if it is already real type, then just return the argument
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
   {
+    // If the argument is constant, return a real constant.
+    // !!!! Note that this does not preserve the type of t, since rat is
+    // an integral rational. This will be corrected when the type rule for
+    // CONST_RATIONAL is changed to always return Real.
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
@@ -1121,16 +1125,9 @@ TrustNode ArithRewriter::expandDefinition(Node node)
   return ret;
 }
 
-Node ArithRewriter::removeToReal(TNode t)
+TNode ArithRewriter::removeToReal(TNode t)
 {
-  Kind k = t.getKind();
-  /*
-  if (k == CONST_INTEGER)
-  {
-    return NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
-  }
-  */
-  return k == kind::TO_REAL ? t[0] : t;
+  return t.getKind() == kind::TO_REAL ? t[0] : t;
 }
 
 Node ArithRewriter::maybeEnsureReal(TypeNode tn, TNode t)

@@ -89,7 +89,7 @@ Node collectSum(const Sum& sum);
  * monomials or products. This allows to combine summands with identical
  * monomials immediately and avoid a potential blow-up.
  */
-Node distributeMultiplication(const std::vector<Node>& factors);
+Node distributeMultiplication(const std::vector<TNode>& factors);
 
 }  // namespace rewriter
 }  // namespace arith
