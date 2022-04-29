@@ -143,7 +143,7 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
       }
     }
   }
-  // NOTE: could do other short circuiting like zero for mult?
+  // NOTE: could do other short circuiting like zero for mult
   return Node::null();
 }
 

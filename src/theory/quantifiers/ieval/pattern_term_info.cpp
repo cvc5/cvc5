@@ -53,11 +53,13 @@ bool PatTermInfo::notifyChild(State& s,
   }
   // ============================ handle short circuiting
   // maybe remember the child for explanations
-  d_eq = tec->partialEvaluateChild(s, d_pattern, child, val, d_evalExpChild);
+  Node exp;
+  d_eq = tec->partialEvaluateChild(s, d_pattern, child, val, exp);
   if (!d_eq.get().isNull())
   {
     Trace("ieval") << "  " << d_pattern << " := " << d_eq.get()
                    << " (partial evaluate)" << std::endl;
+    d_evalExpChild = exp;
     return true;
   }
 
