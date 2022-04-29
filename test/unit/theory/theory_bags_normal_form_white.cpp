@@ -56,6 +56,8 @@ class TestTheoryWhiteBagsNormalForm : public TestSmt
     return elements;
   }
 
+  Node rewrite(Node n) { return d_rewriter->postRewrite(n).d_node; }
+
   std::unique_ptr<BagsRewriter> d_rewriter;
 };
 
@@ -64,7 +66,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, empty_bag_normal_form)
   Node emptybag = d_nodeManager->mkConst(EmptyBag(d_nodeManager->stringType()));
   // empty bags are in normal form
   ASSERT_TRUE(emptybag.isConst());
-  Node n = BagsUtils::evaluate(emptybag);
+  Node n = d_rewriter->postRewrite(emptybag).d_node;
   ASSERT_EQ(emptybag, n);
 }
 
@@ -88,9 +90,9 @@ TEST_F(TestTheoryWhiteBagsNormalForm, mkBag_constant_element)
 
   ASSERT_FALSE(negative.isConst());
   ASSERT_FALSE(zero.isConst());
-  ASSERT_EQ(emptybag, BagsUtils::evaluate(negative));
-  ASSERT_EQ(emptybag, BagsUtils::evaluate(zero));
-  ASSERT_EQ(positive, BagsUtils::evaluate(positive));
+  ASSERT_EQ(emptybag, d_rewriter->postRewrite(negative).d_node);
+  ASSERT_EQ(emptybag, d_rewriter->postRewrite(zero).d_node);
+  ASSERT_EQ(positive, d_rewriter->postRewrite(positive).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, bag_count)
@@ -125,25 +127,25 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_count)
 
   Node input1 = d_nodeManager->mkNode(BAG_COUNT, x, empty);
   Node output1 = zero;
-  ASSERT_EQ(output1, BagsUtils::evaluate(input1));
+  ASSERT_EQ(output1, d_rewriter->postRewrite(input1).d_node);
 
   Node input2 = d_nodeManager->mkNode(BAG_COUNT, x, y_5);
   Node output2 = zero;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   Node input3 = d_nodeManager->mkNode(BAG_COUNT, x, x_4);
   Node output3 = four;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output3, d_rewriter->postRewrite(input3).d_node);
 
   Node unionDisjointXY = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, y_5);
   Node input4 = d_nodeManager->mkNode(BAG_COUNT, x, unionDisjointXY);
   Node output4 = four;
-  ASSERT_EQ(output3, BagsUtils::evaluate(input3));
+  ASSERT_EQ(output4, d_rewriter->postRewrite(input4).d_node);
 
   Node unionDisjointYZ = d_nodeManager->mkNode(BAG_UNION_DISJOINT, y_5, z_5);
   Node input5 = d_nodeManager->mkNode(BAG_COUNT, x, unionDisjointYZ);
   Node output5 = zero;
-  ASSERT_EQ(output4, BagsUtils::evaluate(input4));
+  ASSERT_EQ(output5, d_rewriter->postRewrite(input5).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
@@ -160,7 +162,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   Node input1 = d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, emptybag);
   Node output1 = emptybag;
-  ASSERT_EQ(output1, BagsUtils::evaluate(input1));
+  ASSERT_EQ(output1, d_rewriter->postRewrite(input1).d_node);
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -185,12 +187,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
 
   Node input2 = d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, x_4);
   Node output2 = x_1;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   Node normalBag = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, y_5);
   Node input3 = d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, normalBag);
   Node output3 = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_1, y_1);
-  ASSERT_EQ(output3, BagsUtils::evaluate(input3));
+  ASSERT_EQ(output3, d_rewriter->postRewrite(input3).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, union_max)
@@ -240,7 +242,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_max)
       d_nodeManager->mkNode(BAG_UNION_DISJOINT, y_1, z_2));
 
   ASSERT_TRUE(output.isConst());
-  ASSERT_EQ(output, BagsUtils::evaluate(input));
+  ASSERT_EQ(output, d_rewriter->postRewrite(input).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
@@ -264,12 +266,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
   // unionDisjointAB is already in a normal form
   ASSERT_TRUE(unionDisjointAB.isConst());
-  ASSERT_EQ(unionDisjointAB, BagsUtils::evaluate(unionDisjointAB));
+  ASSERT_EQ(unionDisjointAB, d_rewriter->postRewrite(unionDisjointAB).d_node);
 
   Node unionDisjointBA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, B, A);
   // unionDisjointAB is the normal form of unionDisjointBA
   ASSERT_FALSE(unionDisjointBA.isConst());
-  ASSERT_EQ(unionDisjointAB, BagsUtils::evaluate(unionDisjointBA));
+  ASSERT_EQ(unionDisjointAB, d_rewriter->postRewrite(unionDisjointBA).d_node);
 
   Node unionDisjointAB_C =
       d_nodeManager->mkNode(BAG_UNION_DISJOINT, unionDisjointAB, C);
@@ -279,7 +281,8 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
   // unionDisjointA_BC is the normal form of unionDisjointAB_C
   ASSERT_FALSE(unionDisjointAB_C.isConst());
   ASSERT_TRUE(unionDisjointA_BC.isConst());
-  ASSERT_EQ(unionDisjointA_BC, BagsUtils::evaluate(unionDisjointAB_C));
+  ASSERT_EQ(unionDisjointA_BC,
+            d_rewriter->postRewrite(unionDisjointA_BC).d_node);
 
   Node unionDisjointAA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, A);
   Node AA =
@@ -288,7 +291,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(4)));
   ASSERT_FALSE(unionDisjointAA.isConst());
   ASSERT_TRUE(AA.isConst());
-  ASSERT_EQ(AA, BagsUtils::evaluate(unionDisjointAA));
+  ASSERT_EQ(AA, d_rewriter->postRewrite(unionDisjointAA).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint2)
@@ -338,7 +341,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint2)
       d_nodeManager->mkNode(BAG_UNION_DISJOINT, y_1, z_2));
 
   ASSERT_TRUE(output.isConst());
-  ASSERT_EQ(output, BagsUtils::evaluate(input));
+  ASSERT_EQ(output, d_rewriter->postRewrite(input).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, intersection_min)
@@ -383,7 +386,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, intersection_min)
   Node output = x_3;
 
   ASSERT_TRUE(output.isConst());
-  ASSERT_EQ(output, BagsUtils::evaluate(input));
+  ASSERT_EQ(output, d_rewriter->postRewrite(input).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, difference_subtract)
@@ -432,7 +435,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_subtract)
   Node output = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_1, z_2);
 
   ASSERT_TRUE(output.isConst());
-  ASSERT_EQ(output, BagsUtils::evaluate(input));
+  ASSERT_EQ(output, d_rewriter->postRewrite(input).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, difference_remove)
@@ -481,7 +484,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_remove)
   Node output = z_2;
 
   ASSERT_TRUE(output.isConst());
-  ASSERT_EQ(output, BagsUtils::evaluate(input));
+  ASSERT_EQ(output, d_rewriter->postRewrite(input).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
@@ -508,16 +511,16 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
   Node input1 = d_nodeManager->mkNode(BAG_CARD, empty);
   Node output1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
 
-  ASSERT_EQ(output1, BagsUtils::evaluate(input1));
+  ASSERT_EQ(output1, d_rewriter->postRewrite(input1).d_node);
 
   Node input2 = d_nodeManager->mkNode(BAG_CARD, x_4);
   Node output2 = d_nodeManager->mkConst(CONST_RATIONAL, Rational(4));
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   Node union_disjoint = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, y_1);
   Node input3 = d_nodeManager->mkNode(BAG_CARD, union_disjoint);
   Node output3 = d_nodeManager->mkConst(CONST_RATIONAL, Rational(5));
-  ASSERT_EQ(output3, BagsUtils::evaluate(input3));
+  ASSERT_EQ(output3, d_rewriter->postRewrite(input3).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, is_singleton)
@@ -551,20 +554,20 @@ TEST_F(TestTheoryWhiteBagsNormalForm, is_singleton)
 
   Node input1 = d_nodeManager->mkNode(BAG_IS_SINGLETON, empty);
   Node output1 = falseNode;
-  ASSERT_EQ(output1, BagsUtils::evaluate(input1));
+  ASSERT_EQ(output1, d_rewriter->postRewrite(input1).d_node);
 
   Node input2 = d_nodeManager->mkNode(BAG_IS_SINGLETON, x_1);
   Node output2 = trueNode;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   Node input3 = d_nodeManager->mkNode(BAG_IS_SINGLETON, x_4);
   Node output3 = falseNode;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   Node union_disjoint = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_1, y_1);
   Node input4 = d_nodeManager->mkNode(BAG_IS_SINGLETON, union_disjoint);
   Node output4 = falseNode;
-  ASSERT_EQ(output3, BagsUtils::evaluate(input3));
+  ASSERT_EQ(output4, d_rewriter->postRewrite(input4).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
@@ -582,7 +585,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   Node input1 = d_nodeManager->mkNode(BAG_FROM_SET, emptyset);
   Node output1 = emptybag;
-  ASSERT_EQ(output1, BagsUtils::evaluate(input1));
+  ASSERT_EQ(output1, d_rewriter->postRewrite(input1).d_node);
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -601,13 +604,13 @@ TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
 
   Node input2 = d_nodeManager->mkNode(BAG_FROM_SET, xSingleton);
   Node output2 = x_1;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   // for normal sets, the first node is the largest, not smallest
   Node normalSet = d_nodeManager->mkNode(SET_UNION, ySingleton, xSingleton);
   Node input3 = d_nodeManager->mkNode(BAG_FROM_SET, normalSet);
   Node output3 = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_1, y_1);
-  ASSERT_EQ(output3, BagsUtils::evaluate(input3));
+  ASSERT_EQ(output3, d_rewriter->postRewrite(input3).d_node);
 }
 
 TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
@@ -625,7 +628,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   Node input1 = d_nodeManager->mkNode(BAG_TO_SET, emptybag);
   Node output1 = emptyset;
-  ASSERT_EQ(output1, BagsUtils::evaluate(input1));
+  ASSERT_EQ(output1, d_rewriter->postRewrite(input1).d_node);
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -644,13 +647,13 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
 
   Node input2 = d_nodeManager->mkNode(BAG_TO_SET, x_4);
   Node output2 = xSingleton;
-  ASSERT_EQ(output2, BagsUtils::evaluate(input2));
+  ASSERT_EQ(output2, d_rewriter->postRewrite(input2).d_node);
 
   // for normal sets, the first node is the largest, not smallest
   Node normalBag = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, y_5);
   Node input3 = d_nodeManager->mkNode(BAG_TO_SET, normalBag);
   Node output3 = d_nodeManager->mkNode(SET_UNION, ySingleton, xSingleton);
-  ASSERT_EQ(output3, BagsUtils::evaluate(input3));
+  ASSERT_EQ(output3, d_rewriter->postRewrite(input3).d_node);
 }
 }  // namespace test
 }  // namespace cvc5::internal
