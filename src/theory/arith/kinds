@@ -142,8 +142,8 @@ typerule INDEXED_ROOT_PREDICATE ::cvc5::internal::theory::arith::IndexedRootPred
 
 typerule TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule CAST_TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule TO_INTEGER ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
+typerule TO_INTEGER "SimpleTypeRule<RInteger, ARealOrInteger>"
+typerule IS_INTEGER "SimpleTypeRule<RBool, ARealOrInteger>"
 
 typerule ABS ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
