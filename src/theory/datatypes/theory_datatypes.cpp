@@ -1781,29 +1781,6 @@ void TheoryDatatypes::checkSplit()
   }
 }
 
-bool TheoryDatatypes::hasTerm(TNode a) { return d_equalityEngine->hasTerm(a); }
-
-bool TheoryDatatypes::areEqual( TNode a, TNode b ){
-  if( a==b ){
-    return true;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine->areEqual(a, b);
-  }else{
-    return false;
-  }
-}
-
-bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
-  if( a==b ){
-    return false;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine->areDisequal(a, b, false);
-  }else{
-    //TODO : constants here?
-    return false;
-  }
-}
-
 TNode TheoryDatatypes::getRepresentative( TNode a ){
   if (d_equalityEngine->hasTerm(a))
   {
