@@ -195,7 +195,7 @@ int ArithMSum::isolate(
       {
         if (vtn.isInteger())
         {
-          veq_c = nm->mkConstReal(r.abs());
+          veq_c = nm->mkConstInt(r.abs());
         }
         else
         {
