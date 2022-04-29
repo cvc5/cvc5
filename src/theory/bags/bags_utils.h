@@ -94,7 +94,7 @@ class BagsUtils
    * @param n has the form (bag.partition r A) where A is a constant bag
    * @return a partition of A based on the equivalence relation r
    */
-  static Node evaluateBagPartition(Rewriter *rewriter, TNode n);
+  static Node evaluateBagPartition(Rewriter* rewriter, TNode n);
 
   /**
    * @param n has the form (bag.filter p A) where A is a constant bag
@@ -116,6 +116,14 @@ class BagsUtils
    * @return the evaluation of the cross product of A B
    */
   static Node evaluateProduct(TNode n);
+
+  /**
+   * @param n of the form ((_ table.join (m_1, n_1, ..., m_k, n_k) ) A B) where
+   * A, B are constants
+   * @return the evaluation of inner joining tables A B on columns (m_1, n_1, ...,
+   * m_k, n_k)
+   */
+  static Node evaluateJoin(TNode n);
 
   /**
    * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a

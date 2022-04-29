@@ -144,6 +144,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
+    case TABLE_JOIN: return evaluateJoin(n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
@@ -902,6 +903,37 @@ Node BagsUtils::evaluateProduct(TNode n)
   // --------
   //
   // - (table.product (bag (tuple "a") 4) (bag (tuple true) 5)) =
+  //     (bag (tuple "a" true) 20
+
+  Node A = n[0];
+  Node B = n[1];
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
+
+  std::map<Node, Rational> elements;
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    for (const auto& [b, countB] : elementsB)
+    {
+      Node element = constructProductTuple(n, a, b);
+      elements[element] = countA * countB;
+    }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
+Node BagsUtils::evaluateJoin(TNode n)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+
+  // Examples
+  // --------
+  //
+  // - (table.join (bag (tuple "a" 1) 4) (bag (tuple true) 5)) =
   //     (bag (tuple "a" true) 20
 
   Node A = n[0];

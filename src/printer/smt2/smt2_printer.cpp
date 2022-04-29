@@ -1187,6 +1187,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::TABLE_PRODUCT: return "table.product";
   case kind::TABLE_PROJECT: return "table.project";
   case kind::TABLE_AGGREGATE: return "table.aggr";
+  case kind::TABLE_JOIN: return "table.join";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

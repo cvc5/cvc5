@@ -3739,6 +3739,7 @@ enum Kind : int32_t
    */
   TABLE_PROJECT,
   TABLE_AGGREGATE,
+  TABLE_JOIN,
   /* Strings --------------------------------------------------------------- */
 
   /**

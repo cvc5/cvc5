@@ -33,6 +33,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
+using namespace datatypes;
+
 TypeNode BinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check)
@@ -530,16 +532,8 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
     throw TypeCheckingExceptionPrivate(n, ss.str());
   }
 
-  std::vector<TypeNode> productTupleTypes;
-  std::vector<TypeNode> tupleATypes = elementAType.getTupleTypes();
-  std::vector<TypeNode> tupleBTypes = elementBType.getTupleTypes();
-
-  productTupleTypes.insert(
-      productTupleTypes.end(), tupleATypes.begin(), tupleATypes.end());
-  productTupleTypes.insert(
-      productTupleTypes.end(), tupleBTypes.begin(), tupleBTypes.end());
-
-  TypeNode retTupleType = nodeManager->mkTupleType(productTupleTypes);
+  TypeNode retTupleType =
+      TupleUtils::concatTupleTypes(elementAType, elementBType);
   TypeNode retType = nodeManager->mkBagType(retTupleType);
   return retType;
 }
@@ -595,7 +589,7 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
   }
   TypeNode tupleType = bagType.getBagElementType();
   TypeNode retTupleType =
-      datatypes::TupleUtils::getTupleProjectionType(indices, tupleType);
+      TupleUtils::getTupleProjectionType(indices, tupleType);
   return nm->mkBagType(retTupleType);
 }
 
@@ -631,20 +625,7 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
-    // make sure all indices are less than the length of the tuple type
-    DType dType = tupleType.getDType();
-    DTypeConstructor constructor = dType[0];
-    size_t numArgs = constructor.getNumArgs();
-    for (uint32_t index : indices)
-    {
-      std::stringstream ss;
-      if (index >= numArgs)
-      {
-        ss << "Index " << index << " in term " << n << " is >= " << numArgs
-           << " which is the number of columns in " << n[2] << ".";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
+    TupleUtils::checkTypeIndices(n, tupleType, indices);
 
     TypeNode elementType = bagType.getBagElementType();
 
@@ -676,6 +657,73 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
     }
   }
   return nm->mkBagType(functionType.getRangeType());
+}
+
+TypeNode TableJoinTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+{
+  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
+  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode aType = A.getType();
+  TypeNode bType = B.getType();
+
+  if (check)
+  {
+    if (!(aType.isBag() && bType.isBag()))
+    {
+      std::stringstream ss;
+      ss << "TABLE_JOIN operator expects two tables. Found '" << n[0] << "', '"
+         << n[1] << "' of types '" << aType << "', '" << bType
+         << "' respectively. ";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode aTupleType = aType.getBagElementType();
+    TypeNode bTupleType = bType.getBagElementType();
+    if (!(aTupleType.isTuple() && bTupleType.isTuple()))
+    {
+      std::stringstream ss;
+      ss << "TABLE_JOIN operator expects two tables. Found '" << n[0] << "', '"
+         << n[1] << "' of types '" << aType << "', '" << bType
+         << "' respectively. ";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TupleUtils::checkTypeIndices(n, aTupleType, indices);
+    TupleUtils::checkTypeIndices(n, bTupleType, indices);
+
+    if (indices.size() % 2 != 0)
+    {
+      std::stringstream ss;
+      ss << "TABLE_JOIN operator expects even number of indices. Found "
+         << indices.size() << " in term " << n;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    // check the types of columns
+    std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
+    std::vector<TypeNode> bTypes = aTupleType.getTupleTypes();
+    for (uint32_t i = 0; i < indices.size(); i += 2)
+    {
+      uint32_t j = i + 1;
+      if (aTypes[i] != bTypes[j])
+      {
+        std::stringstream ss;
+        ss << "TABLE_JOIN operator expects column " << i << " in table " << n[0]
+           << " to match column " << j << " in table " << n[1]
+           << ". But their types are " << aTypes[i] << " and " << bTypes[j]
+           << "' respectively. ";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  TypeNode aTupleType = aType.getBagElementType();
+  TypeNode bTupleType = bType.getBagElementType();
+  TypeNode retTupleType = TupleUtils::concatTupleTypes(aTupleType, bTupleType);
+  return nm->mkBagType(retTupleType);
 }
 
 Cardinality BagsProperties::computeCardinality(TypeNode type)

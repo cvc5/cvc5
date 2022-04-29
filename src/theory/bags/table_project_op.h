@@ -54,6 +54,22 @@ struct TableAggregateOpHashFunction : public ProjectOpHashFunction
 {
 }; /* struct TableAggregateOpHashFunction */
 
+
+class TableJoinOp : public ProjectOp
+{
+ public:
+  explicit TableJoinOp(std::vector<uint32_t> indices);
+  TableJoinOp(const TableJoinOp& op) = default;
+}; /* class TableProjectOp */
+
+/**
+ * Hash function for the TableJoinOpHashFunction objects.
+ */
+struct TableJoinOpHashFunction : public ProjectOpHashFunction
+{
+}; /* struct TableJoinOpHashFunction */
+
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__TABLE_PROJECT_OP_H */

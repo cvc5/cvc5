@@ -15,6 +15,8 @@
 
 #include "tuple_utils.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
@@ -23,6 +25,41 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
+
+void TupleUtils::checkTypeIndices(Node n,
+                                  TypeNode tupleType,
+                                  const std::vector<uint32_t> indices)
+{
+  // make sure all indices are less than the size of the tuple
+  DType dType = tupleType.getDType();
+  DTypeConstructor constructor = dType[0];
+  size_t numArgs = constructor.getNumArgs();
+  for (uint32_t index : indices)
+  {
+    std::stringstream ss;
+    if (index >= numArgs)
+    {
+      ss << "Index " << index << " in term " << n << " is > " << (numArgs - 1)
+         << " the maximum value ";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+}
+
+TypeNode TupleUtils::concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2)
+{
+  std::vector<TypeNode> concatTupleTypes;
+  std::vector<TypeNode> tuple1Types = tupleType1.getTupleTypes();
+  std::vector<TypeNode> tuple2Types = tupleType2.getTupleTypes();
+
+  concatTupleTypes.insert(
+      concatTupleTypes.end(), tuple1Types.begin(), tuple1Types.end());
+  concatTupleTypes.insert(
+      tuple2Types.end(), tuple2Types.begin(), tuple2Types.end());
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode ret = nm->mkTupleType(concatTupleTypes);
+  return ret;
+}
 
 Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
 {
