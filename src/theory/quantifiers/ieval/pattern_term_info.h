@@ -33,7 +33,9 @@ class State;
 class TermEvaluator;
 
 /**
- * Information for a pattern term in the instantiation evaluator.
+ * Information for a pattern term in the instantiation evaluator. This
+ * tracks what term the pattern is currently entailed to be equal to,
+ * and the child (if any) that explains why it is.
  */
 class PatTermInfo
 {

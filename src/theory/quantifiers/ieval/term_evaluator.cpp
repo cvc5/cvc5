@@ -55,7 +55,8 @@ TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
                                                   TNode n,
                                                   TNode child,
-                                                  TNode val)
+                                                  TNode val,
+                                                  Node& exp)
 {
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();
@@ -67,6 +68,7 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
     {
       // the value determines the value of this
       Trace("ieval-state-debug") << "...short circuit " << val << std::endl;
+      exp = child;
       return val;
     }
   }
@@ -120,6 +122,7 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
     // none on either side of equality, or for any child of any other
     // operator is automatic none
     Trace("ieval-state-debug") << "...none default" << std::endl;
+    exp = child;
     return val;
   }
   // if we are not in the relevant domain, we are immediately "none". We only
@@ -134,6 +137,7 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
       {
         if (n[i] == child && !d_tdb.inRelevantDomain(mop, i, val))
         {
+          exp = child;
           return s.getNone();
         }
       }
