@@ -904,11 +904,11 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       int ires_use =
           (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
                                                                           : -1;
-      val = 
-          nm->mkNode(ires_use == -1 ? ADD : SUB,
-                     nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
-                     nm->mkNode(TO_INTEGER, realPart));
-      Trace("cegqi-arith-debug") << "result (pre-rewrite) : " << val << std::endl;
+      val = nm->mkNode(ires_use == -1 ? ADD : SUB,
+                       nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
+                       nm->mkNode(TO_INTEGER, realPart));
+      Trace("cegqi-arith-debug")
+          << "result (pre-rewrite) : " << val << std::endl;
       val = rewrite(val);
       val = val.getKind() == TO_REAL ? val[0] : val;
       // could round up for upper bounds here

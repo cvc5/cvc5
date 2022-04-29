@@ -600,7 +600,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
 {
-  Assert (t.getKind()==kind::CAST_TO_REAL || t.getKind()==kind::TO_REAL);
+  Assert(t.getKind() == kind::CAST_TO_REAL || t.getKind() == kind::TO_REAL);
   if (!t[0].getType().isInteger())
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
@@ -614,7 +614,7 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   // CAST_TO_REAL is our way of marking integral constants coming from the
   // user as Real. It should only be applied to constants, which is handled
   // above.
-  Assert (t.getKind()!=kind::CAST_TO_REAL);
+  Assert(t.getKind() != kind::CAST_TO_REAL);
   return RewriteResponse(REWRITE_DONE, t);
 }
 
