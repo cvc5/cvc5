@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Testing stuff that is not exposed by the python API to fix code coverage
+ * Testing stuff that is not exposed by the Java API to fix code coverage
  */
 
 #include "test_api.h"
