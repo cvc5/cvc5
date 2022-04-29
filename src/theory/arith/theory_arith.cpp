@@ -100,7 +100,9 @@ void TheoryArith::finishInit()
   // finish initialize in the old linear solver
   d_internal->finishInit();
 
-  // set the congruence manager on the equality solver
+  // Set the congruence manager on the equality solver. If the congruence
+  // manager exists, it is responsible for managing the notifications from
+  // the equality engine, which the equality solver forwards to it.
   d_eqSolver->setCongruenceManager(d_internal->getCongruenceManager());
 }
 

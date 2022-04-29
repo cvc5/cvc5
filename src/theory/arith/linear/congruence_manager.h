@@ -92,8 +92,6 @@ class ArithCongruenceManager : protected EnvObj
 
   /** The equality engine being used by this class */
   eq::EqualityEngine* d_ee;
-  /** The equality engine we allocated */
-  std::unique_ptr<eq::EqualityEngine> d_allocEe;
   /** proof manager */
   ProofNodeManager* d_pnm;
   /** A proof generator for storing proofs of facts that are asserted to the EQ
