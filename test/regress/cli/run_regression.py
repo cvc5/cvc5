@@ -525,8 +525,8 @@ def run_benchmark(benchmark_info):
         output = output.decode()
     if isinstance(error, bytes):
         error = error.decode()
-    output = re.sub(r"^[ \t]*", "", output.strip(), flags=re.MULTILINE)
-    error = re.sub(r"^[ \t]*", "", error.strip(), flags=re.MULTILINE)
+    output = re.sub(r"^[ \t]*|\r", "", output.strip(), flags=re.MULTILINE)
+    error = re.sub(r"^[ \t]*|\r", "", error.strip(), flags=re.MULTILINE)
     # qemu (used for arm nightlies) emits additional error output for non-zero exit codes
     error = re.sub(r"qemu: uncaught target signal.*", "", error).strip()
     return (output, error, exit_status)

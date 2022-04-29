@@ -21,7 +21,7 @@ namespace theory {
 namespace quantifiers {
 
 void IndexTrie::add(const std::vector<bool>& mask,
-                    const std::vector<size_t>& values)
+                    const std::vector<Node>& values)
 {
   const size_t cardinality = std::count(mask.begin(), mask.end(), true);
   if (d_ignoreFullySpecified && cardinality == mask.size())
@@ -48,7 +48,7 @@ void IndexTrie::freeRec(IndexTrieNode* n)
 
 bool IndexTrie::findRec(const IndexTrieNode* n,
                         size_t index,
-                        const std::vector<size_t>& members,
+                        const std::vector<Node>& members,
                         size_t& nonBlankLength) const
 {
   if (!n || index >= members.size())
@@ -58,6 +58,11 @@ bool IndexTrie::findRec(const IndexTrieNode* n,
   if (n->d_blank && findRec(n->d_blank, index + 1, members, nonBlankLength))
   {
     return true;  // found in the blank branch
+  }
+  if (members[index].isNull())
+  {
+    // null is interpreted as "any", must have found in the blank branch
+    return false;
   }
   nonBlankLength = index + 1;
   for (const auto& c : n->d_children)
@@ -75,7 +80,7 @@ IndexTrieNode* IndexTrie::addRec(IndexTrieNode* n,
                                  size_t index,
                                  size_t cardinality,
                                  const std::vector<bool>& mask,
-                                 const std::vector<size_t>& values)
+                                 const std::vector<Node>& values)
 {
   if (!n)
   {
@@ -96,7 +101,7 @@ IndexTrieNode* IndexTrie::addRec(IndexTrieNode* n,
     return n;
   }
   Assert(cardinality);
-
+  Assert(!values[index].isNull());
   for (auto& edge : n->d_children)
   {
     if (edge.first == values[index])

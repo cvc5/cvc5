@@ -869,16 +869,12 @@ TypeNode NodeManager::mkRecordType(const Record& rec)
 TypeNode NodeManager::mkSort()
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder(this, kind::SORT_TAG);
-  nb << sortTag;
   return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSort(const std::string& name)
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder(this, kind::SORT_TAG);
-  nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
   return tn;
@@ -894,25 +890,19 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   Assert(hasAttribute(constructor.d_nv, expr::SortArityAttr())
          && hasAttribute(constructor.d_nv, expr::VarNameAttr()))
       << "expected a sort constructor";
-  std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
   Assert(getAttribute(constructor.d_nv, expr::SortArityAttr())
          == children.size())
       << "arity mismatch in application of sort constructor";
-  NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = Node(constructor.d_nv->d_children[0]);
-  nb << sortTag;
+  NodeBuilder nb(this, kind::INSTANTIATED_SORT_TYPE);
+  nb << constructor;
   nb.append(children);
-  TypeNode type = nb.constructTypeNode();
-  setAttribute(type, expr::VarNameAttr(), name);
-  return type;
+  return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
 {
   Assert(arity > 0);
   NodeBuilder nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder(this, kind::SORT_TAG);
-  nb << sortTag;
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
