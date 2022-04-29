@@ -560,10 +560,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
     }
-    else
-    {
-      return RewriteResponse(REWRITE_AGAIN, mult);
-    }
+    // requires again full since ensureReal may have added a to_real
+    return RewriteResponse(REWRITE_AGAIN_FULL, mult);
   }
   if (rewriter::isRAN(right))
   {
@@ -589,10 +587,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
     }
-    else
-    {
-      return RewriteResponse(REWRITE_AGAIN, mult);
-    }
+    // requires again full since ensureReal may have added a to_real
+    return RewriteResponse(REWRITE_AGAIN_FULL, mult);
   }
   Node ret = nm->mkNode(t.getKind(), left, right);
   return RewriteResponse(REWRITE_DONE, ret);
