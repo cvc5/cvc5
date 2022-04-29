@@ -42,7 +42,7 @@ from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 
 cdef extern from "Python.h":
-    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
     object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
     void PyMem_Free(void*)
 
