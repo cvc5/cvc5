@@ -3897,7 +3897,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
 
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
-        
+
         Node qNode;
         if (!qmodel.isIntegral())
         {
