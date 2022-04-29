@@ -120,8 +120,8 @@ class BagsUtils
   /**
    * @param n of the form ((_ table.join (m_1, n_1, ..., m_k, n_k) ) A B) where
    * A, B are constants
-   * @return the evaluation of inner joining tables A B on columns (m_1, n_1, ...,
-   * m_k, n_k)
+   * @return the evaluation of inner joining tables A B on columns (m_1, n_1,
+   * ..., m_k, n_k)
    */
   static Node evaluateJoin(TNode n);
 
@@ -131,6 +131,14 @@ class BagsUtils
    * @return the evaluation of the projection
    */
   static Node evaluateTableProject(TNode n);
+
+  /**
+   * @param n has the form ((_ table.join m1 n1 ... mk nk) A B)) where A, B are
+   * tables and m1 n1 ... mk nk are indices
+   * @return the pair <[m1 ... mk], [n1 ... nk]>
+   */
+  static std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+  splitTableJoinIndices(Node n);
 
  private:
   /**

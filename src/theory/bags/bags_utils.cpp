@@ -882,7 +882,7 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
 
 Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
 {
-  Assert(n.getKind() == TABLE_PRODUCT);
+  Assert(n.getKind() == TABLE_PRODUCT || n.getKind() == TABLE_JOIN);
   Node A = n[0];
   Node B = n[1];
   TypeNode typeA = A.getType().getBagElementType();
@@ -985,6 +985,23 @@ Node BagsUtils::evaluateTableProject(TNode n)
 
   Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
   return ret;
+}
+
+std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+BagsUtils::splitTableJoinIndices(Node n)
+{
+  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
+  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  size_t joinSize = indices.size() / 2;
+  std::vector<uint32_t> indices1(joinSize), indices2(joinSize);
+  for (size_t i = 0; i < joinSize; i += 2)
+  {
+    indices1.push_back(indices[i]);
+    indices2.push_back(indices[i + 1]);
+  }
+  return std::make_pair(indices1, indices2);
 }
 
 }  // namespace bags

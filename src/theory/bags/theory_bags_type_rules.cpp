@@ -692,9 +692,6 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm, TNode n, bool check)
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
-    TupleUtils::checkTypeIndices(n, aTupleType, indices);
-    TupleUtils::checkTypeIndices(n, bTupleType, indices);
-
     if (indices.size() % 2 != 0)
     {
       std::stringstream ss;
@@ -702,19 +699,22 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm, TNode n, bool check)
          << indices.size() << " in term " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
+    auto [aIndices, bIndices] = BagsUtils::splitTableJoinIndices(n);
+    TupleUtils::checkTypeIndices(n, aTupleType, aIndices);
+    TupleUtils::checkTypeIndices(n, bTupleType, bIndices);
 
     // check the types of columns
     std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
-    std::vector<TypeNode> bTypes = aTupleType.getTupleTypes();
-    for (uint32_t i = 0; i < indices.size(); i += 2)
+    std::vector<TypeNode> bTypes = bTupleType.getTupleTypes();
+    for (uint32_t i = 0; i < aIndices.size(); i++)
     {
-      uint32_t j = i + 1;
-      if (aTypes[i] != bTypes[j])
+      if (aTypes[aIndices[i]] != bTypes[bIndices[i]])
       {
         std::stringstream ss;
-        ss << "TABLE_JOIN operator expects column " << i << " in table " << n[0]
-           << " to match column " << j << " in table " << n[1]
-           << ". But their types are " << aTypes[i] << " and " << bTypes[j]
+        ss << "TABLE_JOIN operator expects column " << aIndices[i]
+           << " in table " << n[0] << " to match column " << bIndices[i]
+           << " in table " << n[1] << ". But their types are "
+           << aTypes[aIndices[i]] << " and " << bTypes[bIndices[i]]
            << "' respectively. ";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }

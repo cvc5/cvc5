@@ -55,7 +55,7 @@ TypeNode TupleUtils::concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2)
   concatTupleTypes.insert(
       concatTupleTypes.end(), tuple1Types.begin(), tuple1Types.end());
   concatTupleTypes.insert(
-      tuple2Types.end(), tuple2Types.begin(), tuple2Types.end());
+      concatTupleTypes.end(), tuple2Types.begin(), tuple2Types.end());
   NodeManager* nm = NodeManager::currentNM();
   TypeNode ret = nm->mkTupleType(concatTupleTypes);
   return ret;
