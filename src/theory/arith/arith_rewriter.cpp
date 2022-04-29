@@ -1030,7 +1030,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             if (rem.isNull())
             {
               return RewriteResponse(REWRITE_DONE,
-                                     ensureReal(nm->mkConstReal(Rational(0))));
+                                     nm->mkConstReal(Rational(0)));
             }
             else
             {
