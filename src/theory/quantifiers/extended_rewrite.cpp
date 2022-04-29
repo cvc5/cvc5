@@ -488,7 +488,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
     Subs subs;
     inferSubstitution(n[0], subs, true);
 
-    if (!subs.d_vars.empty())
+    if (!subs.empty())
     {
       // reverse substitution to opposite child
       // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r

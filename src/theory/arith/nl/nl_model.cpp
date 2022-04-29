@@ -36,9 +36,9 @@ NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
-  d_two = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(2));
+  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
+  d_two = NodeManager::currentNM()->mkConstReal(Rational(2));
 }
 
 NlModel::~NlModel() {}
