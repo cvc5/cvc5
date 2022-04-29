@@ -442,7 +442,6 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   }
   Node retSum = rewriter::collectSum(sum);
   retSum = maybeEnsureReal(t.getType(), retSum);
-  Assert(retSum.getType() == t.getType());
   return RewriteResponse(REWRITE_DONE, retSum);
 }
 
@@ -601,15 +600,10 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
 {
+  Assert (t.getKind()==kind::CAST_TO_REAL || t.getKind()==kind::TO_REAL);
   if (!t[0].getType().isInteger())
   {
     return RewriteResponse(REWRITE_DONE, t[0]);
-  }
-  if (t.getKind() == kind::CAST_TO_REAL)
-  {
-    // now, we make it explicit
-    NodeManager* nm = NodeManager::currentNM();
-    return RewriteResponse(REWRITE_DONE, nm->mkNode(kind::TO_REAL, t[0]));
   }
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
@@ -617,6 +611,10 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
+  // CAST_TO_REAL is our way of marking integral constants coming from the
+  // user as Real. It should only be applied to constants, which is handled
+  // above.
+  Assert (t.getKind()!=kind::CAST_TO_REAL);
   return RewriteResponse(REWRITE_DONE, t);
 }
 
@@ -1141,8 +1139,10 @@ Node ArithRewriter::removeToReal(TNode t)
 
 Node ArithRewriter::maybeEnsureReal(TypeNode tn, TNode t)
 {
+  // if we require being a real
   if (!tn.isInteger())
   {
+    // ensure that t has type real
     Assert(tn.isReal());
     return ensureReal(t);
   }
