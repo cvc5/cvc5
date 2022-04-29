@@ -28,6 +28,8 @@ TEST_F(TestApiBlackUncovered, exception_getmessage)
   d_solver.setOption("produce-models", "true");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
+
+  ASSERT_THROW(d_solver.getValue(x), CVC5ApiRecoverableException);
   
   try {
     d_solver.getValue(x);
