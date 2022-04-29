@@ -230,10 +230,7 @@ bool Monomial::isMember(TNode n){
   {
     return VarList::isMember(n[1]);
   }
-  else
-  {
-    return VarList::isMember(n);
-  }
+  return VarList::isMember(n);
 }
 
 Monomial Monomial::mkMonomial(const Constant& c, const VarList& vl) {
@@ -265,10 +262,7 @@ Monomial Monomial::parseMonomial(Node n) {
   {
     return Monomial::mkMonomial(Constant(n[0]),VarList::parseVarList(n[1]));
   }
-  else
-  {
-    return Monomial(VarList::parseVarList(n));
-  }
+  return Monomial(VarList::parseVarList(n));
 }
 Monomial Monomial::operator*(const Rational& q) const {
   if(q.isZero()){
@@ -654,7 +648,6 @@ bool Polynomial::isMember(TNode n) {
     Node::iterator currIter = n.begin(), end = n.end();
     Node prev = *currIter;
     if(!Monomial::isMember(prev)){
-      Trace("nf::tmp") << "Non-monomial: " << prev << std::endl;
       return false;
     }
 
@@ -663,12 +656,10 @@ bool Polynomial::isMember(TNode n) {
     for(; currIter != end; ++currIter){
       Node curr = *currIter;
       if(!Monomial::isMember(curr)){
-        Trace("nf::tmp") << "Non-monomial: " << curr << std::endl;
         return false;
       }
       Monomial mcurr = Monomial::parseMonomial(curr);
       if(!(mprev < mcurr)){
-        Trace("nf::tmp") << "Non-sort polynomial" << std::endl;
         return false;
       }
       mprev = mcurr;
@@ -677,7 +668,6 @@ bool Polynomial::isMember(TNode n) {
   }
   else
   {
-    Trace("nf::tmp") << "Non-add" << std::endl;
     return false;
   }
 }
@@ -1128,20 +1118,16 @@ bool Comparison::isNormalEqualityOrDisequality() const {
   if(pleft.numMonomials() == 1){
     Monomial mleft = pleft.getHead();
     if(mleft.isConstant()){
-      Trace("nf::tmp") << "left const" << endl;
       return false;
     }else{
       Polynomial pright = getRight();
       if(allIntegralVariables()){
         const Rational& lcoeff = mleft.getConstant().getValue();
         if(pright.isConstant()){
-          Trace("nf::tmp") << "right constant " << pright.isIntegral() << " "
-                           << lcoeff.isOne() << std::endl;
           return pright.isIntegral() && lcoeff.isOne();
         }
         Polynomial varRight = pright.containsConstant() ? pright.getTail() : pright;
         if(lcoeff.sgn() <= 0){
-          Trace("nf::tmp") << "coeff sign neg" << endl;
           return false;
         }else{
           Integer lcm = lcoeff.getDenominator().lcm(varRight.denominatorLCM());
@@ -1170,13 +1156,11 @@ bool Comparison::isNormalEqualityOrDisequality() const {
             << endl;
           return pright.variableMonomialAreStrictlyGreater(mleft);
         }else{
-          Trace("nf::tmp") << "coeff left one" << endl;
           return false;
         }
       }
     }
   }else{
-    Trace("nf::tmp") << "wrong monomials" << endl;
     return false;
   }
 }

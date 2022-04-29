@@ -304,7 +304,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     Assert(!realValue.isNull());
     Assert(abstractValue.isConst());
     Assert(rmValue.isConst());
-    Assert(realValue.isConst()) << "Non-constant: " << realValue;
+    Assert(realValue.isConst());
 
     // Work out the actual value for those args
     NodeManager *nm = NodeManager::currentNM();
