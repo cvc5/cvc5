@@ -25,7 +25,7 @@ namespace theory {
 namespace quantifiers {
 
 InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
-    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q), d_ieval(nullptr)
+    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
