@@ -435,7 +435,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
   {
     for (int& pv : prev)
     {
-      m.d_vals[pv] = Node::null();
+      m.reset(pv);
     }
   }
   return ret_val;

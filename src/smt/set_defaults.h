@@ -111,6 +111,13 @@ class SetDefaults : protected EnvObj
    * The output stream reason is similar to above.
    */
   bool incompatibleWithQuantifiers(Options& opts, std::ostream& reason) const;
+  /**
+   * Check if incompatible with separation logic. Notice this method may
+   * modify the options to ensure that we are compatible with separation logic.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithSeparationLogic(Options& opts,
+                                       std::ostream& reason) const;
   //------------------------- options setting, prior finalization of logic
   /**
    * Set defaults pre, which sets all options prior to finalizing the logic.

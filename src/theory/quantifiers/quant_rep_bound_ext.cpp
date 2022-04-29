@@ -30,7 +30,7 @@ QRepBoundExt::QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m)
 }
 
 RsiEnumType QRepBoundExt::setBound(Node owner,
-                                   unsigned i,
+                                   size_t i,
                                    std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
@@ -51,7 +51,7 @@ RsiEnumType QRepBoundExt::setBound(Node owner,
 
 bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
                               Node owner,
-                              unsigned i,
+                              size_t i,
                               bool initial,
                               std::vector<Node>& elements)
 {
@@ -73,7 +73,7 @@ bool QRepBoundExt::initializeRepresentativesForType(TypeNode tn)
   return d_model->initializeRepresentativesForType(tn);
 }
 
-bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
+bool QRepBoundExt::getVariableOrder(Node owner, std::vector<size_t>& varOrder)
 {
   // must set a variable index order based on bounded integers
   if (owner.getKind() != FORALL)
