@@ -47,7 +47,7 @@ namespace ieval {
  * To use this class, after construction, you must:
  * - Watch quantified formulas.
  * - Push/pop variable assignments.
- * 
+ *
  * The main information that is provided by this class is whether the current
  * variable assignment is feasible, which is based on the evaluation mode.
  */
@@ -57,24 +57,24 @@ class InstEvaluator : protected EnvObj
   using NodeNodeMap = context::CDHashMap<Node, Node>;
 
  public:
-   /** Constructor
-    * 
-    * @param env Reference to the env
-    * @param qs Reference to the quantifiers state
-    * @param tev The evaluation mode for this inst evaluator
-    * @param genLearning If this flag is true, then whenever we discover
-    * that the set of quantified formulas watched by this class is infeasible,
-    * we learn the most general substitution from the current one that explains
-    * the failure. This is tracked in a data structure, which is subsequently
-    * used for fast lookups for future assignments.
-    * @param canonize If this flag is true, we canonize the bodies of quantified
-    * formulas are made canonical. This means that portions of quantified
-    * formulas that are alpha-equivalent share information on how they
-    * evaluate. This method is recommended if multiple quantified formulas
-    * are being watched
-    * @param trackAssignedQuant If this flag is true, we calculate when
-    * quantified formulas have a complete assignment, for push.
-    */
+  /** Constructor
+   *
+   * @param env Reference to the env
+   * @param qs Reference to the quantifiers state
+   * @param tev The evaluation mode for this inst evaluator
+   * @param genLearning If this flag is true, then whenever we discover
+   * that the set of quantified formulas watched by this class is infeasible,
+   * we learn the most general substitution from the current one that explains
+   * the failure. This is tracked in a data structure, which is subsequently
+   * used for fast lookups for future assignments.
+   * @param canonize If this flag is true, we canonize the bodies of quantified
+   * formulas are made canonical. This means that portions of quantified
+   * formulas that are alpha-equivalent share information on how they
+   * evaluate. This method is recommended if multiple quantified formulas
+   * are being watched
+   * @param trackAssignedQuant If this flag is true, we calculate when
+   * quantified formulas have a complete assignment, for push.
+   */
   InstEvaluator(Env& env,
                 QuantifiersState& qs,
                 TermDb& tdb,
@@ -117,7 +117,7 @@ class InstEvaluator : protected EnvObj
   /**
    * Is feasible, return true if at least one watched quantified formula is
    * feasible.
-   * 
+   *
    * A quantified formula is feasible if it has not failed the criteria
    * specified by the evaluation mode. For example, if this class was
    * initialized with tev NO_ENTAIL, then the quantified formula is
@@ -138,7 +138,7 @@ class InstEvaluator : protected EnvObj
    * current assignment to the database.
    */
   void learnFailure();
-  /** 
+  /**
    * Check if there is currently a learned failure for the current assignment.
    */
   bool checkLearnedFailure() const;
@@ -147,7 +147,7 @@ class InstEvaluator : protected EnvObj
    * d_varList.
    */
   std::vector<Node> getCurrentTerms() const;
-  /** 
+  /**
    * Lookup canonical term, return the canonical form of n, assumes that it has
    * been canonized.
    */

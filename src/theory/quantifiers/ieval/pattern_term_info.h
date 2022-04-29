@@ -38,6 +38,7 @@ class TermEvaluator;
 class PatTermInfo
 {
   using NodeList = context::CDList<Node>;
+
  public:
   PatTermInfo(context::Context* c);
   /** initialize */

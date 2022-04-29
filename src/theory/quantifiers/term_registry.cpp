@@ -170,7 +170,8 @@ ieval::InstEvaluatorManager* TermRegistry::getInstEvaluatorManager() const
   return d_ievalMan.get();
 }
 
-ieval::InstEvaluator* TermRegistry::getEvaluator(Node q, ieval::TermEvaluatorMode tev)
+ieval::InstEvaluator* TermRegistry::getEvaluator(Node q,
+                                                 ieval::TermEvaluatorMode tev)
 {
   return d_ievalMan->getEvaluator(q, tev);
 }

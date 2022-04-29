@@ -43,6 +43,7 @@ namespace ieval {
 class InstEvaluatorManager : public QuantifiersUtil
 {
   using QuantEvPair = std::pair<Node, TermEvaluatorMode>;
+
  public:
   InstEvaluatorManager(Env& env, QuantifiersState& qs, TermDb& tdb);
   /** reset (calculate which terms are active) */
@@ -51,6 +52,7 @@ class InstEvaluatorManager : public QuantifiersUtil
   std::string identify() const override;
   /** Get evaluator for quantified formula q in evaluation mode tev */
   InstEvaluator* getEvaluator(Node q, TermEvaluatorMode tev);
+
  private:
   /** Reference to quantifiers state */
   QuantifiersState& d_qstate;
