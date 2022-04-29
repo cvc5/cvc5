@@ -140,8 +140,8 @@ typerule GEQ ::cvc5::internal::theory::arith::ArithRelationTypeRule
 typerule INDEXED_ROOT_PREDICATE_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule INDEXED_ROOT_PREDICATE ::cvc5::internal::theory::arith::IndexedRootPredicateTypeRule
 
-typerule TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule CAST_TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule TO_REAL "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule CAST_TO_REAL "SimpleTypeRule<RReal, ARealOrInteger>"
 typerule TO_INTEGER "SimpleTypeRule<RInteger, ARealOrInteger>"
 typerule IS_INTEGER "SimpleTypeRule<RBool, ARealOrInteger>"
 
