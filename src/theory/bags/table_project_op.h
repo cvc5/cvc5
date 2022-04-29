@@ -45,7 +45,7 @@ class TableAggregateOp : public ProjectOp
  public:
   explicit TableAggregateOp(std::vector<uint32_t> indices);
   TableAggregateOp(const TableAggregateOp& op) = default;
-}; /* class TableProjectOp */
+}; /* class TableAggregateOp */
 
 /**
  * Hash function for the TableAggregateOpHashFunction objects.
@@ -60,7 +60,7 @@ class TableJoinOp : public ProjectOp
  public:
   explicit TableJoinOp(std::vector<uint32_t> indices);
   TableJoinOp(const TableJoinOp& op) = default;
-}; /* class TableProjectOp */
+}; /* class TableJoinOp */
 
 /**
  * Hash function for the TableJoinOpHashFunction objects.
