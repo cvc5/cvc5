@@ -12,13 +12,15 @@ Semantics
 
    * (str.indexof_re String RegLan Int Int)
 
-     - ⟦str.indexof_re⟧(w, L, w₂) = -1    if no substring of w is in L
+     Let w₂ = ⟦str.substr⟧(w, i, |w| - i)
 
-     - ⟦str.indexof_re⟧(w, L, w₂) = |u₁|
+     - ⟦str.indexof_re⟧(w, L, i) = -1     if no substring of w₂ is in L or i < 0
+
+     - ⟦str.indexof_re⟧(w, L, i) = |u₁|
        where u₁, w₁ are the shortest words such that 
-         - w = u₁w₁u₂
+         - w₂ = u₁w₁u₂
          - w₁ ∈ L
-                                          if some substring of w is in L
+                                          if some substring of w₂ is in L and i > 0
 
    * (str.update String Int String)
 

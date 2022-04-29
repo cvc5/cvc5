@@ -21,6 +21,7 @@ Standardized theories
    Theory of integer arithmetic <https://smtlib.cs.uiowa.edu/theories-Ints.shtml>
    Theory of real arithmetic <https://smtlib.cs.uiowa.edu/theories-Reals.shtml>
    Theory of mixed-integer arithmetic <https://smtlib.cs.uiowa.edu/theories-Reals_Ints.shtml>
+   Theory of strings <https://smtlib.cs.uiowa.edu/theories-UnicodeStrings.shtml>
 
 Non-standard or extended theories
 ---------------------------------
