@@ -488,7 +488,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
     std::vector<Node> leafs;
 
-    for (TNode child : children)
+    for (const auto& child : children)
     {
       if (child.isConst())
       {

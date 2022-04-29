@@ -60,7 +60,7 @@ enum class Rewrite : uint32_t
   INT_EXT_INT,
   // (to_int real.pi) --> 3, (is_int real.pi) ---> false
   INT_EXT_PI,
-  // (to_int (to_real x)) --> (to_int x)
+  // (to_int (to_real x)) --> (to_int x), (is_int (to_real x)) --> (is_int x)
   INT_EXT_TO_REAL
 };
 
