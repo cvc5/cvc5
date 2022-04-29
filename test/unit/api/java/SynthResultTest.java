@@ -60,6 +60,7 @@ class SynthResultTest
     assertTrue(res.hasSolution());
     assertFalse(res.hasNoSolution());
     assertFalse(res.isUnknown());
+    assertEquals(res.toString(), "(SOLUTION)");
   }
 
   @Test
