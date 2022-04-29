@@ -4211,6 +4211,11 @@ bool Datatype::const_iterator::operator!=(
 
 bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
 
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
+{
+  return out << dtype.toString();
+}
+
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
