@@ -545,8 +545,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     if (left.isConst())
     {
       const Rational& num = left.getConst<Rational>();
-      return RewriteResponse(REWRITE_DONE,
-                             nm->mkConstReal(num / den));
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(num / den));
     }
     if (rewriter::isRAN(left))
     {

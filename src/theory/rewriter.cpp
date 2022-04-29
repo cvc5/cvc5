@@ -321,8 +321,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
 #else
-        Assert(
-            newNode.getType().isSubtypeOf(rewriteStackTop.d_node.getType()))
+        Assert(newNode.getType().isSubtypeOf(rewriteStackTop.d_node.getType()))
             << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
 #endif
