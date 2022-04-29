@@ -99,6 +99,9 @@ void TheoryArith::finishInit()
   d_eqSolver->finishInit();
   // finish initialize in the old linear solver
   d_internal->finishInit();
+  
+  // set the congruence manager on the equality solver
+  d_eqSolver->setCongruenceManager(d_internal->getCongruenceManager());
 }
 
 void TheoryArith::preRegisterTerm(TNode n)

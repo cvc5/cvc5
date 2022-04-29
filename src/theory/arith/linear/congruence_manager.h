@@ -72,27 +72,6 @@ class ArithCongruenceManager : protected EnvObj
   /** d_watchedVariables |-> (= x y) */
   ArithVarToNodeMap d_watchedEqualities;
 
-
-  class ArithCongruenceNotify : public eq::EqualityEngineNotify {
-  private:
-    ArithCongruenceManager& d_acm;
-  public:
-    ArithCongruenceNotify(ArithCongruenceManager& acm);
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-  };
-  ArithCongruenceNotify d_notify;
-
   context::CDList<Node> d_keepAlive;
 
   /** Store the propagations. */
@@ -167,6 +146,10 @@ class ArithCongruenceManager : protected EnvObj
 
   bool canExplain(TNode n) const;
 
+  /**
+   * Propagate. Called when the equality engine has inferred literal x.
+   */
+  bool propagate(TNode x);
 private:
   Node externalToInternal(TNode n) const;
 
@@ -176,7 +159,6 @@ private:
 
   void pushBack(TNode n, TNode r, TNode w);
 
-  bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
   /** Assert this literal to the eq engine. Common functionality for

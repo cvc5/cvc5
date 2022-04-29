@@ -134,7 +134,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this)),
-      d_cmEnabled(context(), options().arith.arithCongMan),
+      d_cmEnabled(context(), !options().arith.arithEqSolver),
 
       d_dualSimplex(
           env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -4984,6 +4984,11 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
 ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
 {
   return &d_checker;
+}
+
+ArithCongruenceManager * TheoryArithPrivate::getCongruenceManager()
+{
+  return d_cmEnabled.get() ? &d_congruenceManager : nullptr;
 }
 
 }  // namespace arith
