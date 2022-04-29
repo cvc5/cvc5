@@ -3823,6 +3823,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   Theory::shared_terms_iterator shared_end = d_containing.shared_terms_end();
   for(; shared_iter != shared_end; ++shared_iter){
     Node sharedCurr = *shared_iter;
+    sharedCurr =
+        sharedCurr.getKind() == kind::TO_REAL ? sharedCurr[0] : sharedCurr;
 
     // ModelException is fatal as this point. Don't catch!
     // DeltaRationalException is fatal as this point. Don't catch!

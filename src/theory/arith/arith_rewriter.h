@@ -40,7 +40,6 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   TrustNode expandDefinition(Node node) override;
-
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
@@ -72,6 +71,8 @@ class ArithRewriter : public TheoryRewriter
 
   /** rewrite division */
   static RewriteResponse rewriteDiv(TNode t, bool pre);
+  /** rewrite to_real */
+  static RewriteResponse rewriteToReal(TNode t);
   /** rewrite absolute */
   static RewriteResponse rewriteAbs(TNode t);
   /** rewrite integer division and modulus */
@@ -93,6 +94,17 @@ class ArithRewriter : public TheoryRewriter
 
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+  /**
+   * Remove TO_REAL from t, returns t[0] if t has kind TO_REAL.
+   */
+  static TNode removeToReal(TNode t);
+  /**
+   * Ensure that t has real type if tn is the real type. Do so by applying
+   * TO_REAL to t.
+   */
+  static Node maybeEnsureReal(TypeNode tn, TNode t);
+  /** Same as above, without a check for the type of tn. */
+  static Node ensureReal(TNode t);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */
