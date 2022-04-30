@@ -433,12 +433,12 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   Assert(t.getNumChildren() > 1);
 
   std::vector<TNode> children;
-  expr::algorithm::flatten(t, children);
+  expr::algorithm::flatten(t, children, Kind::ADD, Kind::TO_REAL);
 
   rewriter::Sum sum;
   for (const auto& child : children)
   {
-    rewriter::addToSum(sum, removeToReal(child));
+    rewriter::addToSum(sum, child);
   }
   Node retSum = rewriter::collectSum(sum);
   retSum = maybeEnsureReal(t.getType(), retSum);
@@ -462,17 +462,11 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getNumChildren() >= 2);
 
   std::vector<TNode> children;
-  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
+  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT, Kind::TO_REAL);
 
   if (auto res = rewriter::getZeroChild(children); res)
   {
     return RewriteResponse(REWRITE_DONE, maybeEnsureReal(t.getType(), *res));
-  }
-
-  // remove TO_REAL
-  for (TNode& tc : children)
-  {
-    tc = removeToReal(tc);
   }
 
   Node ret;
