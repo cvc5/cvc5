@@ -165,6 +165,9 @@ class ArithMSum
    * This function may return false if lit does not contain v,
    * or if lit is an integer equality with a coefficent on v,
    * e.g. 3*v = 7.
+   *
+   * Note this utility is agnostic to types, the returned term may be Int when
+   * v is Real.
    */
   static Node solveEqualityFor(Node lit, Node v);
 
