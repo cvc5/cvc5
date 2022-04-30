@@ -809,6 +809,7 @@ set(regress_0_tests
   regress0/nl/issue8515-cov-iand.smt2
   regress0/nl/issue8516-cov-sin.smt2
   regress0/nl/issue8638-cov-resultants.smt2
+  regress0/nl/issue8691-msum-subtypes.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
