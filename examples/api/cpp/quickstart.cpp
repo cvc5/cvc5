@@ -192,7 +192,7 @@ int main()
 
   // We check whether the revised assertion is satisfiable.
   //! [docs-cpp-quickstart-16 start]
-  Result r2 = solver.checkSat(); /?
+  Result r2 = solver.checkSat();
   //! [docs-cpp-quickstart-16 end]
 
   // This time the formula is unsatisfiable
