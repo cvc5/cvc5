@@ -77,6 +77,19 @@ enumerator PARAMETRIC_DATATYPE \
     "::cvc5::internal::theory::datatypes::DatatypesEnumerator" \
     "theory/datatypes/type_enumerator.h"
 
+operator TUPLE_TYPE 0: "tuple type"
+cardinality TUPLE_TYPE \
+    "%TYPE%.getDType().getCardinality(%TYPE%)" \
+    "expr/dtype.h"
+well-founded TUPLE_TYPE \
+    "%TYPE%.getDType().isWellFounded()" \
+    "%TYPE%.getDType().mkGroundTerm(%TYPE%)" \
+    "expr/dtype.h"
+
+enumerator TUPLE_TYPE \
+    "::cvc5::internal::theory::datatypes::DatatypesEnumerator" \
+    "expr/dtype.h"
+
 parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
     "type ascription, for datatype constructor applications; first parameter is an ASCRIPTION_TYPE, second is the datatype constructor application being ascribed"
 constant ASCRIPTION_TYPE \
