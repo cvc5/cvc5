@@ -34,4 +34,5 @@ Non-standard or extended theories
    separation-logic
    sequences
    sets-and-relations
+   strings
    transcendentals

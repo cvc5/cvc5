@@ -308,8 +308,7 @@ def test_mk_tuple_sort(solver):
     solver.mkTupleSort(solver.getIntegerSort())
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
                                     solver.getIntegerSort())
-    with pytest.raises(RuntimeError):
-        solver.mkTupleSort(solver.getIntegerSort(), funSort)
+    solver.mkTupleSort(solver.getIntegerSort(), funSort)
 
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):

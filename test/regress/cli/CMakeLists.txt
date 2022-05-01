@@ -270,6 +270,7 @@ set(regress_0_tests
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_415.smt2
   regress0/bv/bv_to_int_5230_binary.smt2
   regress0/bv/bv_to_int_5230_missing_op.smt2
   regress0/bv/bv_to_int_5230_shift_const.smt2
@@ -777,6 +778,7 @@ set(regress_0_tests
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/combined-uf.smt2
+  regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -3205,6 +3207,7 @@ add_custom_target(regress
   DEPENDS build-regress)
 
 set(testers
+  all
   base
   unsat-core
   proof

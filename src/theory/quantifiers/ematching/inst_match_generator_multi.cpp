@@ -153,7 +153,7 @@ bool InstMatchGeneratorMulti::reset(Node eqc)
   return true;
 }
 
-uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
+uint64_t InstMatchGeneratorMulti::addInstantiations(InstMatch& m)
 {
   uint64_t addedLemmas = 0;
   Trace("multi-trigger-cache") << "Process smart multi trigger" << std::endl;
@@ -161,8 +161,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
   {
     Trace("multi-trigger-cache") << "Calculate matches " << i << std::endl;
     std::vector<InstMatch> newMatches;
-    InstMatch m(q);
-    while (d_children[i]->getNextMatch(q, m) > 0)
+    while (d_children[i]->getNextMatch(m) > 0)
     {
       Trace("multi-trigger-cache2")
           << "...processing new match, #lemmas = " << addedLemmas << std::endl;
@@ -171,7 +170,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
       {
         return addedLemmas;
       }
-      m.clear();
+      m.resetAll();
     }
   }
   return addedLemmas;
@@ -213,7 +212,8 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
-    if (sendInstantiation(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
+    std::vector<Node> mc = m.get();
+    if (sendInstantiation(mc, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
     {
       addedLemmas++;
       Trace("multi-trigger-cache-debug")
@@ -233,7 +233,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
       for (std::pair<const Node, InstMatchTrie>& d : tr->d_data)
       {
         // try to set
-        if (!m.set(qs, curr_index, d.first))
+        if (!m.set(curr_index, d.first))
         {
           continue;
         }
