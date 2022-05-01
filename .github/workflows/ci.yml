@@ -9,7 +9,7 @@ jobs:
           - name: ubuntu:production
             os: ubuntu-latest
             config: production --auto-download --all-bindings --editline --docs
-            cache-key: production
+            #cache-key: production
             strip-bin: strip
             python-bindings: true
             build-documentation: true
@@ -21,7 +21,7 @@ jobs:
           - name: macos:production
             os: macos-11
             config: production --auto-download --python-bindings --editline
-            cache-key: production
+            #ache-key: production
             strip-bin: strip
             python-bindings: true
             check-examples: true
@@ -32,7 +32,7 @@ jobs:
           - name: win64:production
             os: ubuntu-latest
             config: production --auto-download --win64
-            cache-key: productionwin64
+            #cache-key: productionwin64
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
             binary-name: cvc5-Win64.exe
@@ -42,7 +42,7 @@ jobs:
             os: ubuntu-18.04
             env: CC=clang CXX=clang++
             config: production --auto-download --no-poly
-            cache-key: productionclang
+            #cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
@@ -50,7 +50,7 @@ jobs:
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline
-            cache-key: dbg
+            #cache-key: dbg
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
             python-bindings: true
@@ -59,7 +59,7 @@ jobs:
             os: ubuntu-latest
             env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --cln --gpl
-            cache-key: dbgclang
+            #cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
