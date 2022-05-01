@@ -495,6 +495,18 @@ Node LfscNodeConverter::postConvert(Node n)
   return n;
 }
 
+TypeNode LfscNodeConverter::preConvertType(TypeNode tn)
+{
+  if (tn.getKind() == TUPLE_TYPE)
+  {
+    // Must collect the tuple type here, since at post-order traversal, the
+    // type has been modified and no longer maintains the mapping to its
+    // datatype encoding.
+    d_declTypes.insert(tn);
+  }
+  return tn;
+}
+
 TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -539,7 +551,6 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   }
   else if (k == TUPLE_TYPE)
   {
-    d_declTypes.insert(tn);
     // special case: tuples must be distinguished by their arity
     size_t nargs = tn.getNumChildren();
     if (nargs > 0)
