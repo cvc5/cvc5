@@ -67,10 +67,10 @@
 
 ; Compute the reduction predicate for (str.substr x n m) of sort s.
 (program sc_string_reduction_substr ((x term) (n term) (m term) (u sort)) term
-  (let k (sc_mk_skolem (str.substr x n m))
+  (let k (skolem (str.substr x n m))
   (let npm (a.+ n (a.+ m (int 0)))
-  (let k1 (sc_mk_skolem (sc_skolem_prefix x n))
-  (let k2 (sc_mk_skolem (sc_skolem_suffix_rem x npm))
+  (let k1 (skolem (sc_skolem_prefix x n))
+  (let k2 (skolem (sc_skolem_suffix_rem x npm))
   (ite
     ; condition
     (and (a.>= n (int 0))
@@ -92,10 +92,10 @@
 
 ; Compute the reduction predicate for (str.indexof x y n) of sort s.
 (program sc_string_reduction_indexof ((x term) (y term) (n term) (u sort)) term
-  (let k (sc_mk_skolem (str.indexof x y n))
+  (let k (skolem (str.indexof x y n))
   (let xn (str.substr x n (a.- (str.len x) n))
-  (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre xn y))
-  (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post xn y))
+  (let k1 (skolem (sc_skolem_first_ctn_pre xn y))
+  (let k2 (skolem (sc_skolem_first_ctn_post xn y))
   (ite
     (or (not (str.contains xn y))
       (or (a.> n (str.len x))
@@ -144,7 +144,7 @@
 ; Returns the reduction predicate and purification equality for term t
 ; of sort s.
 (program sc_string_reduction ((t term) (u sort)) term
-  (and (sc_string_reduction_pred t u) (and (= t (sc_mk_skolem t)) true))
+  (and (sc_string_reduction_pred t u) (and (= t (skolem t)) true))
 )
 
 ; Compute the eager reduction predicate for (str.contains t r) where s
@@ -152,8 +152,8 @@
 ; This is the formula:
 ;    (ite (str.contains t r) (= t (str.++ sk1 r sk2)) (not (= t r)))
 (program sc_string_eager_reduction_contains ((t term) (r term) (u sort)) term
-  (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre t r))
-  (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post t r))
+  (let k1 (skolem (sc_skolem_first_ctn_pre t r))
+  (let k2 (skolem (sc_skolem_first_ctn_post t r))
   (ite
     (str.contains t r)
     (= t (str.++ k1 (str.++ r (str.++ k2 (sc_mk_emptystr u)))))

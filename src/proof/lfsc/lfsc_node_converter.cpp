@@ -132,7 +132,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
-    Node wi = SkolemManager::getOriginalForm(n);
+    Node wi = SkolemManager::getUnpurifiedForm(n);
     if (wi == n)
     {
       // if it is not a purification skolem, maybe it is a witness skolem
@@ -493,6 +493,15 @@ Node LfscNodeConverter::postConvert(Node n)
     return ret;
   }
   return n;
+}
+
+TypeNode LfscNodeConverter::preConvertType(TypeNode tn)
+{
+  if (tn.getKind() == TUPLE_TYPE)
+  {
+    d_declTypes.insert(tn);
+  }
+  return tn;
 }
 
 TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
