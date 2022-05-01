@@ -304,16 +304,17 @@ Node buildRealEquality(Sum&& sum)
 {
   Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(sum);
+  NodeManager * nm = NodeManager::currentNM();
   if (isZero(lterm.second))
   {
-    return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
+    return buildRelation(Kind::EQUAL, nm->mkConstReal(Integer(0)), ensureReal(collectSum(sum)));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
   {
     s.second = s.second / lcoeff;
   }
-  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
+  return buildRelation(Kind::EQUAL, ensureReal(lterm.first), ensureReal(collectSum(sum)));
 }
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
