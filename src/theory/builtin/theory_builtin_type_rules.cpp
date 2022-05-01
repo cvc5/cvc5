@@ -34,16 +34,17 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
     TypeNode lhsType = n[0].getType(check);
     TypeNode rhsType = n[1].getType(check);
 
-    if (lhsType != rhsType)
+    if (TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull())
     {
       std::stringstream ss;
-      ss << "Subexpressions must have the same type:" << std::endl;
+      ss << "Subexpressions must have a common base type:" << std::endl;
       ss << "Equation: " << n << std::endl;
       ss << "Type 1: " << lhsType << std::endl;
       ss << "Type 2: " << rhsType << std::endl;
 
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
+    // TODO : check isFirstClass for these types? (github issue #1202)
   }
   return booleanType;
 }
@@ -60,7 +61,8 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
     for (++child_it; child_it != child_it_end; ++child_it)
     {
       TypeNode currentType = (*child_it).getType();
-      if (joinType != currentType)
+      joinType = TypeNode::leastCommonTypeNode(joinType, currentType);
+      if (joinType.isNull())
       {
         throw TypeCheckingExceptionPrivate(
             n, "Not all arguments are of the same type");
