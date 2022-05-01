@@ -351,10 +351,21 @@ Node SkolemManager::getOriginalForm(Node n)
       }
       else if (cur.hasAttribute(ufa))
       {
+        // if it has an unpurified form, compute the original form of it
         Node ucur = cur.getAttribute(ufa);
-        Node ucuro = getOriginalForm(ucur);
-        cur.setAttribute(ofa, ucuro);
-        visited[cur] = ucuro;
+        if (ucur.hasAttribute(ofa))
+        {
+          // already computed, set
+          Node ucuro = ucur.getAttribute(ofa);
+          cur.setAttribute(ofa, ucuro);
+          visited[cur] = ucuro;
+        }
+        else
+        {
+          // visit ucur then visit cur again
+          visit.push_back(cur);
+          visit.push_back(ucur);
+        }
       }
       else
       {
