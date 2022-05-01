@@ -1344,7 +1344,7 @@ bool Smt2::isConstInt(const cvc5::Term& t)
   cvc5::Kind k = t.getKind();
   // !!! Note when arithmetic subtyping is eliminated, this will update to
   // CONST_INTEGER.
-  return k == cvc5::CONST_RATIONAL && t.getSort().isInteger();
+  return k == cvc5::CONST_INTEGER && t.getSort().isInteger();
 }
 
 }  // namespace parser

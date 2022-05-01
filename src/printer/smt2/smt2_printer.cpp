@@ -245,6 +245,12 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
+      toStreamRational(out, r, true, d_variant);
+      break;
+    }
+    case kind::CONST_INTEGER:
+    {
+      const Rational& r = n.getConst<Rational>();
       toStreamRational(out, r, false, d_variant);
       break;
     }
