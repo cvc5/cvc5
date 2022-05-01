@@ -539,6 +539,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   }
   else if (k == TUPLE_TYPE)
   {
+    d_declTypes.insert(tn);
     // special case: tuples must be distinguished by their arity
     size_t nargs = tn.getNumChildren();
     if (nargs > 0)
