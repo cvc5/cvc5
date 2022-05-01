@@ -45,9 +45,8 @@ ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
       type.toString().c_str());
   Trace("arrays") << "constructing constant array of type: '" << type
                   << "' and value: '" << value << "'" << std::endl;
-  Assert (value.isConst()) << "ArrayStoreAll requires a constant expression, got " << value;
   PrettyCheckArgument(
-      value.isConst(), value, "ArrayStoreAll requires a constant expression");\
+      value.isConst(), value, "ArrayStoreAll requires a constant expression");
 
   // Delay allocation until the checks above have been performed. If these
   // fail, the memory for d_type and d_value should not leak. The alternative
