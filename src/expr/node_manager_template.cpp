@@ -1327,7 +1327,7 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
                            << tn;
-  if (tn.isInteger())
+  if (r.isIntegral())
   {
     return mkConstInt(r);
   }
