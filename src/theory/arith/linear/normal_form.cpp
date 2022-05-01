@@ -29,9 +29,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-Constant Constant::mkConstant(const Rational& rat) 
+Constant Constant::mkConstant(const Rational& rat)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   return Constant(nm->mkConstReal(rat));
 }
 
