@@ -145,17 +145,17 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial);
 
 /**
-  * Remove TO_REAL from t, returns t[0] if t has kind TO_REAL.
-  */
+ * Remove TO_REAL from t, returns t[0] if t has kind TO_REAL.
+ */
 TNode removeToReal(TNode t);
 /**
-  * Ensure that t has real type if tn is the real type. Do so by applying
-  * TO_REAL to t.
-  */
+ * Ensure that t has real type if tn is the real type. Do so by applying
+ * TO_REAL to t.
+ */
 Node maybeEnsureReal(TypeNode tn, TNode t);
 /** Same as above, without a check for the type of tn. */
 Node ensureReal(TNode t);
-  
+
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory

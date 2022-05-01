@@ -452,7 +452,8 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
 
   if (auto res = rewriter::getZeroChild(node); res)
   {
-    return RewriteResponse(REWRITE_DONE, rewriter::maybeEnsureReal(node.getType(), *res));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::maybeEnsureReal(node.getType(), *res));
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -462,11 +463,13 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getNumChildren() >= 2);
 
   std::vector<TNode> children;
-  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT, Kind::TO_REAL);
+  expr::algorithm::flatten(
+      t, children, Kind::MULT, Kind::NONLINEAR_MULT, Kind::TO_REAL);
 
   if (auto res = rewriter::getZeroChild(children); res)
   {
-    return RewriteResponse(REWRITE_DONE, rewriter::maybeEnsureReal(t.getType(), *res));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::maybeEnsureReal(t.getType(), *res));
   }
 
   Node ret;
@@ -547,8 +550,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     }
 
     Node result = nm->mkConstReal(den.inverse());
-    Node mult =
-        rewriter::ensureReal(NodeManager::currentNM()->mkNode(kind::MULT, left, result));
+    Node mult = rewriter::ensureReal(
+        NodeManager::currentNM()->mkNode(kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -562,20 +565,20 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // mkConst is applied to RAN in this block, which are always Real
     if (left.isConst())
     {
-      return RewriteResponse(
-          REWRITE_DONE,
-          rewriter::ensureReal(rewriter::mkConst(left.getConst<Rational>() / den)));
+      return RewriteResponse(REWRITE_DONE,
+                             rewriter::ensureReal(rewriter::mkConst(
+                                 left.getConst<Rational>() / den)));
     }
     if (rewriter::isRAN(left))
     {
-      return RewriteResponse(
-          REWRITE_DONE,
-          rewriter::ensureReal(rewriter::mkConst(rewriter::getRAN(left) / den)));
+      return RewriteResponse(REWRITE_DONE,
+                             rewriter::ensureReal(rewriter::mkConst(
+                                 rewriter::getRAN(left) / den)));
     }
 
     Node result = rewriter::mkConst(inverse(den));
-    Node mult =
-        rewriter::ensureReal(NodeManager::currentNM()->mkNode(kind::MULT, left, result));
+    Node mult = rewriter::ensureReal(
+        NodeManager::currentNM()->mkNode(kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);

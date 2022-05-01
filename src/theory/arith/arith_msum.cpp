@@ -114,10 +114,10 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             }
             else
             {
-              msum[it->first] = it->second.isNull()
-                                    ? nm->mkConstInt(Rational(-1))
-                                    : nm->mkConstRealOrInt(
-                                          -it->second.getConst<Rational>());
+              msum[it->first] =
+                  it->second.isNull()
+                      ? nm->mkConstInt(Rational(-1))
+                      : nm->mkConstRealOrInt(-it->second.getConst<Rational>());
             }
           }
           return true;

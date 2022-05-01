@@ -81,11 +81,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
-
-TNode removeToReal(TNode t)
-{
-  return t.getKind() == kind::TO_REAL ? t[0] : t;
-}
+TNode removeToReal(TNode t) { return t.getKind() == kind::TO_REAL ? t[0] : t; }
 
 Node maybeEnsureReal(TypeNode tn, TNode t)
 {

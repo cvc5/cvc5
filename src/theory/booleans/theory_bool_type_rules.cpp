@@ -50,7 +50,7 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
   if (check)
   {
     TypeNode elseType = n[2].getType(check);
-    if (thenType!=elseType)
+    if (thenType != elseType)
     {
       std::stringstream ss;
       ss << "Both branches of the ITE must be a subtype of a common type."
