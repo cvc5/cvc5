@@ -85,7 +85,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     if (it == d_visited.end())
     {
       d_visited.insert(cur);
-      curw = SkolemManager::getOriginalForm(cur);
+      curw = SkolemManager::getUnpurifiedForm(cur);
       // if its witness form is different
       if (cur != curw)
       {
