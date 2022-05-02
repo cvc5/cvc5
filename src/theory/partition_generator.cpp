@@ -154,7 +154,10 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict)
   else
   {
     vector<Node> nots;
-    for (const Node& c : d_cubes) nots.push_back(c.notNode());
+    for (const Node& c : d_cubes)
+    {
+      nots.push_back(c.notNode());
+    }
     Node lemma = NodeManager::currentNM()->mkAnd(nots);
     // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
     emitCube(lemma);
@@ -203,7 +206,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions()
     // F F F
     // For the first column, numConsecutiveTF = 4, then 2 for the second column, 
     // and 1 for the third column.
-    size_t numConsecutiveTF = total/2;
+    size_t numConsecutiveTF = total / 2;
     for (Node n : literals)
     {
       Node not_n = n.notNode();
@@ -215,12 +218,12 @@ TrustNode PartitionGenerator::makeFullTrailPartitions()
         t = !t;
         for (size_t j = 0; j < numConsecutiveTF; ++j)
         {
-          resultNodeLists[loc].push_back((t ? n : not_n));
+          resultNodeLists[loc].push_back(t ? n : not_n);
           ++loc;
         }
       }
 
-      numConsecutiveTF = numConsecutiveTF/2;
+      numConsecutiveTF = numConsecutiveTF / 2;
     }
     for (const std::vector<TNode>& row : resultNodeLists)
     {
