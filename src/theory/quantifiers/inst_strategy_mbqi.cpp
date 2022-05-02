@@ -119,7 +119,17 @@ void InstStrategyMbqi::process(Node q)
   std::vector<Node> constraints;
 
   // include the negation of the skolemized body
-  constraints.push_back(cbody.negate());
+  Node bquery = rewrite(cbody.negate());
+  if (!bquery.isConst())
+  {
+    constraints.push_back(bquery);
+  }
+  else if (!bquery.getConst<bool>())
+  {
+    d_quantChecked.insert(q);
+    Trace("mbqi") << "...success, by rewriting" << std::endl;
+    return;
+  }
 
   // also include distinctness of variables introduced as constants
   std::vector<Node> allVars;
@@ -181,8 +191,10 @@ void InstStrategyMbqi::process(Node q)
 
   std::unique_ptr<SolverEngine> mbqiChecker;
   initializeSubsolver(mbqiChecker, d_env);
+  mbqiChecker->setOption("incremental", "false");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
+  Trace("mbqi") << "  query is : " << query << std::endl;
   Result r = mbqiChecker->checkSat();
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
