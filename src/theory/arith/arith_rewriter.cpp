@@ -433,12 +433,12 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   Assert(t.getNumChildren() > 1);
 
   std::vector<TNode> children;
-  expr::algorithm::flatten(t, children);
+  expr::algorithm::flatten(t, children, Kind::ADD, Kind::TO_REAL);
 
   rewriter::Sum sum;
   for (const auto& child : children)
   {
-    rewriter::addToSum(sum, removeToReal(child));
+    rewriter::addToSum(sum, child);
   }
   Node retSum = rewriter::collectSum(sum);
   retSum = maybeEnsureReal(t.getType(), retSum);
@@ -462,17 +462,11 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getNumChildren() >= 2);
 
   std::vector<TNode> children;
-  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
+  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT, Kind::TO_REAL);
 
   if (auto res = rewriter::getZeroChild(children); res)
   {
     return RewriteResponse(REWRITE_DONE, maybeEnsureReal(t.getType(), *res));
-  }
-
-  // remove TO_REAL
-  for (TNode& tc : children)
-  {
-    tc = removeToReal(tc);
   }
 
   Node ret;
@@ -899,6 +893,12 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  if (t[0].getKind() == TO_REAL)
+  {
+    // always strip TO_REAL from argument.
+    Node ret = nm->mkNode(t.getKind(), t[0][0]);
+    return RewriteResponse(REWRITE_AGAIN, ret);
+  }
   switch (t.getKind())
   {
     case kind::EXPONENTIAL:
@@ -982,7 +982,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             msum.erase(pi);
             if (!msum.empty())
             {
-              rem = ArithMSum::mkNode(t[0].getType(), msum);
+              rem = ArithMSum::mkNode(msum);
             }
           }
         }
@@ -1019,7 +1019,6 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             {
               new_arg = nm->mkNode(kind::ADD, new_arg, rem);
             }
-            new_arg = ensureReal(new_arg);
             // sin( 2*n*PI + x ) = sin( x )
             return RewriteResponse(REWRITE_AGAIN_FULL,
                                    nm->mkNode(kind::SINE, new_arg));
@@ -1049,8 +1048,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             if (r_abs.getDenominator() == two)
             {
               Assert(r_abs.getNumerator() == one);
-              return RewriteResponse(
-                  REWRITE_DONE, ensureReal(nm->mkConstReal(Rational(r.sgn()))));
+              return RewriteResponse(REWRITE_DONE,
+                                     nm->mkConstReal(Rational(r.sgn())));
             }
             else if (r_abs.getDenominator() == six)
             {

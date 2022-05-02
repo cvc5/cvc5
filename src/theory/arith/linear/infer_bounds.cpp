@@ -151,7 +151,7 @@ Node InferBoundsResult::getTerm() const { return d_term; }
 Node InferBoundsResult::getLiteral() const{
   const Rational& q = getValue().getNoninfinitesimalPart();
   NodeManager* nm = NodeManager::currentNM();
-  Node qnode = nm->mkConst(CONST_RATIONAL, q);
+  Node qnode = nm->mkConstReal(q);
 
   Kind k;
   if(d_upperBound){
