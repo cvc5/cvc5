@@ -53,7 +53,7 @@ using UnresolvedDatatypeAttr =
 /** Mapping tuples to their datatype type encoding */
 using TupleDatatypeAttr =
     expr::Attribute<expr::attr::TupleDatatypeTag, TypeNode>;
-    
+
 /** Mapping datatype types to the index of their datatype in node manager */
 using DatatypeIndexAttr = Attribute<attr::DatatypeIndexTag, uint64_t>;
 
