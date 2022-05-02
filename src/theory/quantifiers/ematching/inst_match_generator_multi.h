@@ -52,7 +52,7 @@ class InstMatchGeneratorMulti : public IMGenerator
   /** Reset. */
   bool reset(Node eqc) override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q) override;
+  uint64_t addInstantiations(InstMatch& m) override;
 
  private:
   /** process new match

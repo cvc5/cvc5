@@ -42,6 +42,7 @@ def test_has_solution(solver):
     assert res.hasSolution()
     assert not res.hasNoSolution()
     assert not res.isUnknown()
+    assert str(res) == '(SOLUTION)'
 
 def test_has_no_solution(solver):
     res_null = SynthResult(solver)
