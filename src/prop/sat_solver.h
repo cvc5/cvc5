@@ -149,6 +149,11 @@ class CDCLTSatSolverInterface : public SatSolver
   virtual std::vector<SatLiteral> getDecisions() const = 0;
 
   /**
+   * Return the order heap of the SAT solver.
+   */
+  virtual std::vector<Node> getOrderHeap() const = 0;
+
+  /**
    * Return the current decision level of `lit`.
    */
   virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }

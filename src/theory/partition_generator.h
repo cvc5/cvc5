@@ -50,8 +50,10 @@ class PartitionGenerator : protected EnvObj
   TrustNode check(Theory::Effort e);
 
  private:
+  enum LiteralListType { heap, decision, zll};
   /**
-   * Print the cube to the specified output.
+   * Increment d_numPartitionsSoFar and print the cube to 
+   * the output file specified by --write-partitions-to. 
    */
   void emitCube(Node toEmit);
 
@@ -60,7 +62,7 @@ class PartitionGenerator : protected EnvObj
    * C3, !C1 & !C2 & !C3. If strict is set to true, a modified version of this emits
    * "strict cubes:" C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3.
    */
-  TrustNode makeRevisedPartitions(bool strict);
+  TrustNode makeRevisedPartitions(bool strict, bool emitZLL);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive cubes 
@@ -70,7 +72,7 @@ class PartitionGenerator : protected EnvObj
    * C3: {!l1, !l2} 
    * C4: {!l1,  l2} 
    */
-  TrustNode makeFullTrailPartitions();
+  TrustNode makeFullTrailPartitions(LiteralListType litType, bool emitZLL);
 
   /**
    * Generate a lemma that is the negation of toBlock which ultimately blocks
@@ -84,9 +86,11 @@ class PartitionGenerator : protected EnvObj
   TrustNode stopPartitioning() const;
 
   /**
-   * Get the list of decisions from the SAT solver
+   * Get a list of literals.
+   * Current options are from the decision trail in the sat solver,
+   * from the order heap in the sat solver, and zero level learned literals.
    */
-  std::vector<TNode> collectDecisionLiterals();
+  std::vector<Node> collectLiterals(LiteralListType litType);
 
 /**
  * Returns the d_cubes, the cubes that have been created for partitioning the
@@ -134,6 +138,11 @@ std::vector<Node> d_assertedLemmas;
  * List of the cubes that have been created.
  */
 std::vector<Node> d_cubes;
+
+/**
+ * List of the strict cubes that have been created.
+ */
+std::vector<Node> d_strict_cubes;
 
 /**
  * Minimum number of literals required in the list of decisions for cubes to

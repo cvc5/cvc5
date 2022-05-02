@@ -2244,5 +2244,16 @@ bool Solver::assertionLevelOnly() const
          && options().base.incrementalSolving;
 }
 
+const std::vector<Node> Solver::getMiniSatOrderHeap()
+{
+  std::vector<Node> heapList;
+  for (int i = 0; i < order_heap.size(); ++i)
+  {
+    Node n = d_proxy->getNode(order_heap[i]);
+    heapList.push_back(n);
+  }
+  return heapList;
+}
+
 }  // namespace Minisat
 }  // namespace cvc5::internal

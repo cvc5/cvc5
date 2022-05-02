@@ -290,6 +290,8 @@ public:
 
  const vec<Lit>& getMiniSatDecisions() { return trail; }
 
+ const std::vector<Node> getMiniSatOrderHeap();
+
  // Read state:
  //
  lbool value(Var x) const;  // The current value of a variable.

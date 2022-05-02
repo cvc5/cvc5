@@ -159,6 +159,13 @@ class PropEngine : protected EnvObj
   std::vector<Node> getPropDecisions() const;
 
   /**
+   * Get the order heap from the SAT solver.
+   *
+   * @return List of Nodes from the SAT variables order heap.
+   */
+  std::vector<Node> getPropOrderHeap() const;
+
+  /**
    * Return SAT context level at which `lit` was decided on.
    *
    * @param lit: The node in question, must have an associated SAT literal.

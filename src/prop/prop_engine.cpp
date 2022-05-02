@@ -340,6 +340,11 @@ std::vector<Node> PropEngine::getPropDecisions() const
   return decisions;
 }
 
+std::vector<Node> PropEngine::getPropOrderHeap() const
+{
+  return d_satSolver->getOrderHeap();
+}
+
 int32_t PropEngine::getDecisionLevel(Node lit) const
 {
   Assert(isSatLiteral(lit));

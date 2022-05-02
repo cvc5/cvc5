@@ -50,7 +50,10 @@ name   = "Parallel"
   help = "For 4 partitions, creates cubes C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3"
 [[option.mode.DECISION_TRAIL]]
   name = "decision-trail"
-  help = "Creates mutually exclusive cubes from the decisions in minisat."
+  help = "Creates mutually exclusive cubes from the decisions in the sat solver."
+[[option.mode.HEAP_TRAIL]]
+  name = "heap-trail"
+  help = "Creates mutually exclusive cubes from the order_heap in the sat solver."
 
 [[option]]
   name       = "partitionCheck"
@@ -77,3 +80,12 @@ name   = "Parallel"
   default    = "ManagedOut()"
   includes   = ["<iostream>", "options/managed_streams.h"]
   help       = "set the output channel for writing partitions"
+
+[[option]]
+  name       = "emitLearnedLiterals"
+  category   = "expert"
+  long       = "emit-learned-literals"
+  type       = "bool"
+  default    = "false"
+  help       = "emit learned literals with the cubes"
+
