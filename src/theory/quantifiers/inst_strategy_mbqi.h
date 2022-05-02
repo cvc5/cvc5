@@ -63,11 +63,6 @@ class InstStrategyMbqi : public QuantifiersModule
                const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
-  /**
-   * converting quantified formula bodies to queries
-   * converting model values from queries to instantiations
-   */
-  std::unordered_map<Node, Node> d_convertMap;
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
 };

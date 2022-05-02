@@ -46,7 +46,6 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
 void InstStrategyMbqi::reset_round(Theory::Effort e)
 {
   d_quantChecked.clear();
-  d_convertMap.clear();
 }
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
@@ -84,6 +83,9 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 void InstStrategyMbqi::process(Node q)
 {
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
+  // Cache mapping terms in the skolemized body of q to the form passed to
+  // the subsolver. This is local to this call.
+  std::unordered_map<Node, Node> tmpConvertMap;
   // list of fresh variables per type
   std::map<TypeNode, std::unordered_set<Node> > freshVarType;
   // model values to the fresh variables
@@ -94,7 +96,7 @@ void InstStrategyMbqi::process(Node q)
 
   Skolemize* skm = d_qim.getSkolemize();
   Node body = skm->getSkolemizedBody(q);
-  Node cbody = convert(body, true, d_convertMap, freshVarType, mvToFreshVar);
+  Node cbody = convert(body, true, tmpConvertMap, freshVarType, mvToFreshVar);
 
   // check if there are any bad kinds
   if (expr::hasSubtermKinds(d_nonClosedKinds, cbody))
@@ -211,7 +213,7 @@ void InstStrategyMbqi::process(Node q)
     }
   }
   // try to convert those terms to an instantiation
-  std::unordered_map<Node, Node> tmpConvertMap;
+  tmpConvertMap.clear();
   for (Node& v : terms)
   {
     Node vc = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
