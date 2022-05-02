@@ -1425,12 +1425,12 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // apply fmfBound options
   if (opts.quantifiers.fmfBound)
   {
-    if (!opts.quantifiers.mbqiModeWasSetByUser
-        || (opts.quantifiers.mbqiMode != options::MbqiMode::NONE
-            && opts.quantifiers.mbqiMode != options::MbqiMode::FMC))
+    if (!opts.quantifiers.fmfMbqiModeWasSetByUser
+        || (opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE
+            && opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::FMC))
     {
       // if bounded integers are set, use no MBQI by default
-      opts.quantifiers.mbqiMode = options::MbqiMode::NONE;
+      opts.quantifiers.fmfMbqiMode = options::FmfMbqiMode::NONE;
     }
     if (!opts.quantifiers.prenexQuantUserWasSetByUser)
     {
@@ -1441,9 +1441,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
-    if (opts.quantifiers.mbqiMode != options::MbqiMode::NONE)
+    if (opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE)
     {
-      opts.quantifiers.mbqiMode = options::MbqiMode::NONE;
+      opts.quantifiers.fmfMbqiMode = options::FmfMbqiMode::NONE;
     }
     if (!opts.quantifiers.hoElimStoreAxWasSetByUser)
     {
