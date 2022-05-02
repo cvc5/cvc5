@@ -16,7 +16,6 @@
 
 #include <vector>
 
-#include "expr/datatype_index.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
