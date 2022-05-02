@@ -30,10 +30,7 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   {
     return nodeManager->integerType();
   }
-  else
-  {
-    return nodeManager->realType();
-  }
+  return nodeManager->realType();
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
