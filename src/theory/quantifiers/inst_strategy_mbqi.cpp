@@ -96,7 +96,9 @@ void InstStrategyMbqi::process(Node q)
 
   Skolemize* skm = d_qim.getSkolemize();
   Node body = skm->getSkolemizedBody(q);
+  Trace("mbqi") << "- body: " << body << std::endl;
   Node cbody = convert(body, true, tmpConvertMap, freshVarType, mvToFreshVar);
+  Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
   if (expr::hasSubtermKinds(d_nonClosedKinds, cbody))
