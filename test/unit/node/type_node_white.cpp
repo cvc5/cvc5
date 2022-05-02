@@ -51,7 +51,7 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
 
   Node x = d_nodeManager->mkBoundVar("x", realType);
   Node xPos = d_nodeManager->mkNode(
-      GT, x, d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
+      GT, x, d_nodeManager->mkConstInt(Rational(0)));
   TypeNode funtype = d_nodeManager->mkFunctionType(integerType, booleanType);
   Node lambda = d_nodeManager->mkVar("lambda", funtype);
   std::vector<Node> formals;
