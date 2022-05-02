@@ -1915,6 +1915,9 @@ size_t Op::getNumIndicesHelper() const
     case TUPLE_PROJECT:
       size = d_node->getConst<internal::TupleProjectOp>().getIndices().size();
       break;
+    case TABLE_PROJECT:
+      size = d_node->getConst<internal::TableProjectOp>().getIndices().size();
+      break;
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
   return size;
@@ -4207,6 +4210,11 @@ bool Datatype::const_iterator::operator!=(
 }
 
 bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
+
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
+{
+  return out << dtype.toString();
+}
 
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */

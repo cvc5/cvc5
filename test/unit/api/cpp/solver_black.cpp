@@ -91,6 +91,15 @@ TEST_F(TestApiBlackSolver, recoverableException)
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   ASSERT_THROW(d_solver.getValue(x), CVC5ApiRecoverableException);
+  
+  try {
+    d_solver.getValue(x);
+  }
+  catch (const CVC5ApiRecoverableException& e)
+  {
+    ASSERT_NO_THROW(e.what());
+    ASSERT_NO_THROW(e.getMessage());
+  }
 }
 
 TEST_F(TestApiBlackSolver, supportsFloatingPoint)
@@ -385,8 +394,7 @@ TEST_F(TestApiBlackSolver, mkTupleSort)
   ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort()}));
   Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}),
-               CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}));
 
   Solver slv;
   ASSERT_THROW(slv.mkTupleSort({d_solver.getIntegerSort()}), CVC5ApiException);
@@ -721,6 +729,8 @@ TEST_F(TestApiBlackSolver, mkString)
             "\"asdf\\u{5c}nasdf\"");
   ASSERT_EQ(d_solver.mkString("asdf\\u{005c}nasdf", true).toString(),
             "\"asdf\\u{5c}nasdf\"");
+  std::wstring s;
+  ASSERT_EQ(d_solver.mkString(s).getStringValue(), s);
 }
 
 TEST_F(TestApiBlackSolver, mkTerm)
@@ -1340,6 +1350,16 @@ TEST_F(TestApiBlackSolver, uFIteration)
   }
 }
 
+TEST_F(TestApiBlackSolver, getAssertions)
+{
+  Term a = d_solver.mkConst(d_solver.getBooleanSort(), "a");
+  Term b = d_solver.mkConst(d_solver.getBooleanSort(), "b");
+  d_solver.assertFormula(a);
+  d_solver.assertFormula(b);
+  std::vector<Term> asserts{a, b};
+  ASSERT_EQ(d_solver.getAssertions(), asserts);
+}
+
 TEST_F(TestApiBlackSolver, getInfo)
 {
   ASSERT_NO_THROW(d_solver.getInfo("name"));
@@ -1666,7 +1686,7 @@ TEST_F(TestApiBlackSolver, getDriverOptions)
   ASSERT_EQ(dopts.in().rdbuf(), std::cin.rdbuf());
   ASSERT_EQ(dopts.out().rdbuf(), std::cout.rdbuf());
 }
-  
+
 TEST_F(TestApiBlackSolver, getStatistics)
 {
   ASSERT_NO_THROW(cvc5::Stat());
@@ -1943,6 +1963,14 @@ TEST_F(TestApiBlackSolver, getValue3)
   ASSERT_NO_THROW(d_solver.getValue(z));
   ASSERT_NO_THROW(d_solver.getValue(sum));
   ASSERT_NO_THROW(d_solver.getValue(p_f_y));
+
+  std::vector<Term> a;
+  ASSERT_NO_THROW(a.emplace_back(d_solver.getValue(x)));
+  ASSERT_NO_THROW(a.emplace_back(d_solver.getValue(y)));
+  ASSERT_NO_THROW(a.emplace_back(d_solver.getValue(z)));
+  std::vector<Term> b;
+  ASSERT_NO_THROW(b = d_solver.getValue({x,y,z}));
+  ASSERT_EQ(a,b);
 
   Solver slv;
   ASSERT_THROW(slv.getValue(x), CVC5ApiException);
