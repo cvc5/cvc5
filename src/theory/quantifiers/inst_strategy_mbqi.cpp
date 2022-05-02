@@ -15,11 +15,11 @@
 
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 
+#include "expr/subs.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/subs.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
