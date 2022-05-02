@@ -34,7 +34,7 @@
 ; Get the term corresponding to the suffix of s after the first occurrence of
 ; t in s.
 (program sc_skolem_first_ctn_post ((s term) (t term)) term 
-  (sc_skolem_suffix_rem s (a.+ (str.len (sc_skolem_first_ctn_pre s t)) (a.+ (str.len t) (int 0)))))
+  (sc_skolem_suffix_rem s (a.+ (str.len (skolem (sc_skolem_first_ctn_pre s t))) (a.+ (str.len t) (int 0)))))
 
 ; Head and tail for string concatenation. Fails if not a concatentation term.
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
