@@ -65,8 +65,8 @@ QuantifiersEngine::QuantifiersEngine(
 {
   options::FmfMbqiMode mmode = options().quantifiers.fmfMbqiMode;
   Trace("quant-init-debug")
-      << "Initialize model engine, mbqi : " << mmode
-      << " " << options().quantifiers.fmfBound << std::endl;
+      << "Initialize model engine, mbqi : " << mmode << " "
+      << options().quantifiers.fmfBound << std::endl;
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.

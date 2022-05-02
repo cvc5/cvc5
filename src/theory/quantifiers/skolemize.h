@@ -108,8 +108,8 @@ class Skolemize : protected EnvObj
                                std::vector<Node>& sk,
                                Node& sub,
                                std::vector<unsigned>& sub_vars);
-  /** get the skolemized body for quantified formula q 
-   * 
+  /** get the skolemized body for quantified formula q
+   *
    * For example, if q is forall x. P( x ), this returns the formula P( k ) for
    * a fresh Skolem constant k.
    */
