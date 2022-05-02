@@ -40,6 +40,8 @@ class LfscNodeConverter : public NodeConverter
   Node preConvert(Node n) override;
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
+  /** convert type at pre-order traversal */
+  TypeNode preConvertType(TypeNode tn) override;
   /** convert type at post-order traversal */
   TypeNode postConvertType(TypeNode tn) override;
   /**
