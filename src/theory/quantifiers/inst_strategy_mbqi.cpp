@@ -82,6 +82,7 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 
 void InstStrategyMbqi::process(Node q)
 {
+  Assert (q.getKind()==FORALL);
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // Cache mapping terms in the skolemized body of q to the form passed to
   // the subsolver. This is local to this call.
@@ -94,10 +95,8 @@ void InstStrategyMbqi::process(Node q)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
-  Skolemize* skm = d_qim.getSkolemize();
-  Node body = skm->getSkolemizedBody(q);
-  Trace("mbqi") << "- body: " << body << std::endl;
-  Node cbody = convert(body, true, tmpConvertMap, freshVarType, mvToFreshVar);
+  std::vector<Node> vars(q[0].begin(), q[0].end());
+  Node cbody = convert(vars, q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
   Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
@@ -110,12 +109,10 @@ void InstStrategyMbqi::process(Node q)
 
   // get the skolem variables
   std::vector<Node> skolems;
-  if (!skm->getSkolemConstants(q, skolems))
+  for (const Node& v : vars)
   {
-    // should never happen
-    Assert (false);
-    Trace("mbqi") << "...failed to get skolem constants" << std::endl;
-    return;
+    Assert (tmpConvertMap.find(v)!=tmpConvertMap.end());
+    skolems.push_back(tmpConvertMap[v]);
   }
 
   std::vector<Node> constraints;
@@ -142,8 +139,8 @@ void InstStrategyMbqi::process(Node q)
     allVars.insert(allVars.end(), fv.second.begin(), fv.second.end());
     if (fv.second.size() > 1)
     {
-      std::vector<Node> vars(fv.second.begin(), fv.second.end());
-      constraints.push_back(nm->mkNode(DISTINCT, vars));
+      std::vector<Node> fvars(fv.second.begin(), fv.second.end());
+      constraints.push_back(nm->mkNode(DISTINCT, fvars));
     }
   }
   // get a term that has the same model value as the value each fresh variable represents
@@ -230,7 +227,7 @@ void InstStrategyMbqi::process(Node q)
   tmpConvertMap.clear();
   for (Node& v : terms)
   {
-    Node vc = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+    Node vc = convert(vars, v, false, tmpConvertMap, freshVarType, mvToFreshVar);
     Assert (!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
@@ -257,6 +254,7 @@ void InstStrategyMbqi::process(Node q)
 }
 
 Node InstStrategyMbqi::convert(
+    const std::vector<Node>& vars,
     Node t,
     bool toQuery,
     std::unordered_map<Node, Node>& cmap,
@@ -287,7 +285,15 @@ Node InstStrategyMbqi::convert(
       Kind ck = cur.getKind();
       if (ck == BOUND_VARIABLE)
       {
-        cmap[cur] = cur;
+        if (toQuery && std::find(vars.begin(), vars.end(), cur)!=vars.end())
+        {
+          Node k = sm->mkPurifySkolem(cur, "mbk");
+          cmap[cur] = k;
+        }
+        else
+        {
+          cmap[cur] = cur;
+        }
       }
       else if (ck == UNINTERPRETED_SORT_VALUE)
       {

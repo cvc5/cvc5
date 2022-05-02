@@ -56,7 +56,8 @@ class InstStrategyMbqi : public QuantifiersModule
   /** process quantified formula q */
   void process(Node q);
   /** convert to query */
-  Node convert(Node t,
+  Node convert(const std::vector<Node>& vars,
+               Node t,
                bool toQuery,
                std::unordered_map<Node, Node>& cmap,
                std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
