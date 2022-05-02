@@ -168,6 +168,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(ARCCOTANGENT, internal::Kind::ARCCOTANGENT),
         KIND_ENUM(SQRT, internal::Kind::SQRT),
         KIND_ENUM(CONST_RATIONAL, internal::Kind::CONST_RATIONAL),
+        KIND_ENUM(CONST_INTEGER, internal::Kind::CONST_INTEGER),
         KIND_ENUM(LT, internal::Kind::LT),
         KIND_ENUM(LEQ, internal::Kind::LEQ),
         KIND_ENUM(GT, internal::Kind::GT),
@@ -463,6 +464,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SQRT, SQRT},
         {internal::Kind::DIVISIBLE_OP, DIVISIBLE},
         {internal::Kind::CONST_RATIONAL, CONST_RATIONAL},
+        {internal::Kind::CONST_INTEGER, CONST_INTEGER},
         {internal::Kind::LT, LT},
         {internal::Kind::LEQ, LEQ},
         {internal::Kind::GT, GT},
@@ -2605,6 +2607,7 @@ const internal::Rational& getRational(const internal::Node& node)
   {
     case internal::Kind::CAST_TO_REAL:
       return node[0].getConst<internal::Rational>();
+    case internal::Kind::CONST_INTEGER:
     case internal::Kind::CONST_RATIONAL:
       return node.getConst<internal::Rational>();
     default:
@@ -2636,6 +2639,7 @@ bool checkReal64Bounds(const internal::Rational& r)
 bool isReal(const internal::Node& node)
 {
   return node.getKind() == internal::Kind::CONST_RATIONAL
+         || node.getKind() == internal::Kind::CONST_INTEGER
          || node.getKind() == internal::Kind::CAST_TO_REAL;
 }
 bool isReal32(const internal::Node& node)
@@ -2649,8 +2653,7 @@ bool isReal64(const internal::Node& node)
 
 bool isInteger(const internal::Node& node)
 {
-  return node.getKind() == internal::Kind::CONST_RATIONAL
-         && node.getConst<internal::Rational>().isIntegral();
+  return node.getKind() == internal::Kind::CONST_INTEGER;
 }
 bool isInt32(const internal::Node& node)
 {
@@ -5234,12 +5237,10 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
     // constructors. We do this cast using division with 1. This has the
     // advantage wrt using TO_REAL since (constant) division is always included
     // in the theory.
-    res = Term(
-        this,
-        d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                          *res.d_node,
-                          d_nodeMgr->mkConst(internal::kind::CONST_RATIONAL,
-                                             internal::Rational(1))));
+    res = Term(this,
+               d_nodeMgr->mkNode(extToIntKind(DIVISION),
+                                 *res.d_node,
+                                 d_nodeMgr->mkConstInt(internal::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
