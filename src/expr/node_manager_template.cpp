@@ -322,7 +322,7 @@ const DType& NodeManager::getDTypeFor(TypeNode tn) const
 
 const DType& NodeManager::getDTypeFor(Node n) const
 {
-  return getDTypeFor(TypeNode(n));
+  return getDTypeFor(TypeNode(n.d_nv));
 }
 
 const DType& NodeManager::getDTypeForIndex(size_t index) const

@@ -442,8 +442,7 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
   if (k == kind::PARAMETRIC_DATATYPE)
   {
     Assert(params.size() == getNumChildren() - 1);
-    TypeNode cons =
-        nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+    TypeNode cons = (*this)[0];
     std::vector<TypeNode> paramsNodes;
     paramsNodes.push_back(cons);
     for (const TypeNode& t : params)
