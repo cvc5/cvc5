@@ -185,12 +185,12 @@ name   = "Quantifiers"
   help       = "do global negation of input formula"
 
 [[option]]
-  name       = "quantModelOracle"
-  category   = "regular"
-  long       = "quant-model-oracle"
+  name       = "mbqi"
+  category   = "expert"
+  long       = "mbqi"
   type       = "bool"
   default    = "false"
-  help       = "use an oracle for determining satisfiable instances"
+  help       = "use model-based quantifier instantiation"
 
 #### E-matching options
 
@@ -610,10 +610,10 @@ name   = "Quantifiers"
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
-  name       = "mbqiMode"
+  name       = "fmfMbqiMode"
   category   = "expert"
-  long       = "mbqi=MODE"
-  type       = "MbqiMode"
+  long       = "fmf-mbqi=MODE"
+  type       = "FmfMbqiMode"
   default    = "FMC"
   help       = "choose mode for model-based quantifier instantiation"
   help_mode  = "Model-based quantifier instantiation modes."

@@ -1,55 +1,57 @@
-/*********************                                                        */
-/*! \file model_oracle.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model_oracle
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model-based quantifier instantiation
+ */
 
-#include "theory/quantifiers/model_oracle.h"
+#include "theory/quantifiers/inst_strategy_mbqi.h"
 
-#include <unordered_map>
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
   
-ModelOracle::ModelOracle( QuantifiersEngine * qe ) : QuantifiersModule(qe), d_check_success(false)
+InstStrategyMbqi::InstStrategyMbqi(Env& env,
+                   QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
+                   QuantifiersRegistry& qr,
+                   TermRegistry& tr) : QuantifiersModule(env, qs, qim, qr, tr), d_check_success(false)
 {
 
 }
 
-void ModelOracle::reset_round( Theory::Effort e )
+void InstStrategyMbqi::reset_round( Theory::Effort e )
 {
   d_check_success = false;
 }
 
-bool ModelOracle::needsCheck(Theory::Effort e) 
+bool InstStrategyMbqi::needsCheck(Theory::Effort e) 
 {
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort ModelOracle::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort InstStrategyMbqi::needsModel(Theory::Effort e)
 {
   return QEFFORT_MODEL; 
 }
   
-void ModelOracle::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
 {
   if( e!=Theory::EFFORT_LAST_CALL || quant_e != QEFFORT_MODEL )
   {
@@ -60,40 +62,45 @@ void ModelOracle::check(Theory::Effort e, QEffort quant_e)
   Trace("mb-oracle") << "  get the asserted quantified formulas...\n";
   // see if the negation of each quantified formula is satisfiable in the model
   std::vector< Node > disj;
-  FirstOrderModel * fm = d_quantEngine->getModel();
+  FirstOrderModel * fm = d_treg.getModel();
+  Skolemize * skm = d_qim.getSkolemize();
   std::vector<TNode> visit;
-  for( unsigned i=0, nquant = fm->getNumAssertedQuantifiers(); i<nquant; i++ )
+  for( size_t i=0, nquant = fm->getNumAssertedQuantifiers(); i<nquant; i++ )
   {
     Node q = fm->getAssertedQuantifier( i );
     Trace("mb-oracle-assert") << "  * " << q << std::endl;
-    Node skb = d_quantEngine->getSkolemize()->getSkolemizedBody(q);
+    Node skb = skm->getSkolemizedBody(q);
     // cannot contain (nested) quantifiers
+    /*
     if( QuantifiersRewriter::containsQuantifiers( skb ) )
     {
       Trace("mb-oracle") << "...fail due to nested quantification in " << q << std::endl;
       return;
     }
+    */
     // will collect free variables for q
     visit.push_back(q[1]);
     disj.push_back(skb.negate());
   }
+  
   if( disj.empty() )
   {
     // trivially succeeds
-      Trace("mb-oracle") << "...no asserted quantified formulas." << std::endl;
+    Trace("mb-oracle") << "...no asserted quantified formulas." << std::endl;
     return;
   }
+  
   NodeManager * nm = NodeManager::currentNM();
-  Node query = disj.size()==1 ? disj[0] : nm->mkNode(OR,disj);
+  Node query = nm->mkOr(disj);
   
   // now collect free variables and substitute the model
   std::vector< Node > new_asserts;
   Trace("mb-oracle") << "  construct the model substitution...\n";
-  std::unordered_set< TNode, TNodeHashFunction > op_proc;
+  std::unordered_set< TNode > op_proc;
   std::vector< Node > vars;
   std::vector< Node > subs;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction> mval_visited;
+  std::unordered_set<TNode> visited;
+  std::unordered_map<TNode, Node> mval_visited;
   TNode cur;
   do {
     cur = visit.back();
@@ -140,7 +147,7 @@ void ModelOracle::check(Theory::Effort e, QEffort quant_e)
   {
     query = query.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
   }
-  query = Rewriter::rewrite( query );
+  query = rewrite( query );
   if( query.isConst() )
   {
     Trace("mb-oracle") << "  ...query simplifies to constant " << query << std::endl;
@@ -148,7 +155,7 @@ void ModelOracle::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   // also include distinctness of variables introduced as constants
-  for( const std::pair< TypeNode, std::vector< Node > >& fv : d_fresh_var_type )
+  for( const std::pair< const TypeNode, std::vector< Node > >& fv : d_fresh_var_type )
   {
     Assert( !fv.second.empty() );
     if( fv.second.size()>1 )
@@ -167,29 +174,28 @@ void ModelOracle::check(Theory::Effort e, QEffort quant_e)
   // make a separate smt call
   Trace("mb-oracle") << "  make the satisfiability call...\n";
   Trace("mb-oracle-debug") << "  ...query is : " << query << std::endl;
-  SmtEngine mbOracle(nm->toExprManager());
-  mbOracle.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  mbOracle.assertFormula(query.toExpr());
+  std::unique_ptr<SolverEngine> mbqiChecker;
+  initializeSubsolver(mbqiChecker, d_env);
+  mbqiChecker->assertFormula(query);
   Trace("mb-oracle") << "*** Check sat..." << std::endl;
-  Result r = mbOracle.checkSat();
+  Result r = mbqiChecker->checkSat();
   Trace("mb-oracle") << "  ...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  if (r.getStatus() != Result::UNSAT)
   {
     return;
   }
-  
   // the model satisfies all asserted quantified formulas
   d_check_success = true;
 }
 
-bool ModelOracle::checkCompleteFor( Node q )
+bool InstStrategyMbqi::checkCompleteFor( Node q )
 {
   return d_check_success;
 }
 
-Node ModelOracle::cleanModelValue( Node n, std::unordered_map<TNode, Node, TNodeHashFunction> visited)
+Node InstStrategyMbqi::cleanModelValue( Node n, std::unordered_map<TNode, Node> visited)
 {
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -200,19 +206,19 @@ Node ModelOracle::cleanModelValue( Node n, std::unordered_map<TNode, Node, TNode
 
     if (it == visited.end()) {
       Kind ck = cur.getKind();
-      if( ck==UNINTERPRETED_CONSTANT )
+      if( ck==UNINTERPRETED_SORT_VALUE )
       {
         TypeNode ctn = cur.getType();
-        if( !ctn.isSort() )
+        if( !ctn.isUninterpretedSort() )
         {
           return Node::null();
         }
         // return the fresh variable for this term
         visited[cur] = getOrMkFreshVariableFor(cur);
       }
-      else if( ck==STORE_ALL )
+      else if (ck==CODATATYPE_BOUND_VARIABLE || ck==STORE_ALL )
       {
-        // do not support array constants
+        // do not support array or recursive codatatype constants
         return Node::null();
       }
       else
@@ -249,15 +255,16 @@ Node ModelOracle::cleanModelValue( Node n, std::unordered_map<TNode, Node, TNode
   return visited[n];
 }
   
-Node ModelOracle::getOrMkFreshVariableFor(Node n)
+Node InstStrategyMbqi::getOrMkFreshVariableFor(Node n)
 {
-  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = d_fresh_var.find(n);
+  std::unordered_map< Node, Node >::iterator it = d_fresh_var.find(n);
   if( it != d_fresh_var.end() )
   {
     return it->second;
   }
   TypeNode tn = n.getType();
-  Node k = NodeManager::currentNM()->mkSkolem("mbk",tn);
+  // FIXME
+  Node k;// = NodeManager::currentNM()->mkSkolem("mbk",tn);
   d_fresh_var_type[tn].push_back(k);
   d_fresh_var[n] = k;
   return k;
