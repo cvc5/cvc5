@@ -307,34 +307,6 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
 
-    case kind::DATATYPE_TYPE:
-    {
-      const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
-      if (dt.isTuple())
-      {
-        unsigned int nargs = dt[0].getNumArgs();
-        if (nargs == 0)
-        {
-          out << "Tuple";
-        }
-        else
-        {
-          out << "(Tuple";
-          for (unsigned int i = 0; i < nargs; i++)
-          {
-            out << " ";
-            toStreamType(out, dt[0][i].getRangeType());
-          }
-          out << ")";
-        }
-      }
-      else
-      {
-        out << cvc5::internal::quoteSymbol(dt.getName());
-      }
-      break;
-    }
-
     case kind::UNINTERPRETED_SORT_VALUE:
     {
       const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
@@ -466,7 +438,8 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if(n.getKind() == kind::SORT_TYPE) {
+  Kind k = n.getKind();
+  if(k == kind::SORT_TYPE) {
     string name;
     if(n.getNumChildren() != 0) {
       out << '(';
@@ -483,10 +456,36 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  else if (k== kind::DATATYPE_TYPE)
+  {
+    const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
+    if (dt.isTuple())
+    {
+      unsigned int nargs = dt[0].getNumArgs();
+      if (nargs == 0)
+      {
+        out << "Tuple";
+      }
+      else
+      {
+        out << "(Tuple";
+        for (unsigned int i = 0; i < nargs; i++)
+        {
+          out << " ";
+          toStreamType(out, dt[0][i].getRangeType());
+        }
+        out << ")";
+      }
+    }
+    else
+    {
+      out << cvc5::internal::quoteSymbol(dt.getName());
+    }
+    return;
+  }
 
   // determine if we are printing out a type ascription, store the argument of
   // the type ascription into type_asc_arg.
-  Kind k = n.getKind();
   Node type_asc_arg;
   TypeNode force_nt;
   if (k == kind::APPLY_TYPE_ASCRIPTION)
