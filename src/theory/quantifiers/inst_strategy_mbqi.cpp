@@ -103,23 +103,34 @@ void InstStrategyMbqi::process(Node q)
     return;
   }
   Assert(mvToFreshVar.empty());
-
+  
+  // get the skolem variables
+  std::vector<Node> skolems;
+  if (!skm->getSkolemConstants(q, skolems))
+  {
+    return;
+  }
+  
   std::vector<Node> constraints;
 
   // include the negation of the skolemized body
   constraints.push_back(cbody.negate());
 
   // also include distinctness of variables introduced as constants
+  std::vector<Node> allVars;
   for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
        freshVarType)
   {
     Assert(!fv.second.empty());
+    allVars.insert(allVars.end(), fv.second.begin(), fv.second.end());
     if (fv.second.size() > 1)
     {
       std::vector<Node> vars(fv.second.begin(), fv.second.end());
       constraints.push_back(nm->mkNode(DISTINCT, vars));
     }
   }
+  // TODO: ensure the skolems of the given type are equal to one of the
+  // variables
 
   // make the query
   Node query = nm->mkAnd(constraints);
@@ -135,26 +146,15 @@ void InstStrategyMbqi::process(Node q)
     d_quantChecked.insert(q);
     return;
   }
-  // otherwise, construct an instantiation from the model
-  std::vector<Node> skolems;
-  if (!skm->getSkolemConstants(q, skolems))
-  {
-    return;
-  }
 
   // get the model values for all fresh variables
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
-       freshVarType)
+  Subs fvToInst;
+  for (const Node& v : allVars)
   {
-    if (fv.second.size() > 1)
-    {
-      for (const Node& v : fv.second)
-      {
-        Node mv = mbqiChecker->getValue(v);
-        Assert(d_mvToFreshVar.find(mv) != d_mvToFreshVar.end());
-        mvToFreshVar[mv] = v;
-      }
-    }
+    Node mv = mbqiChecker->getValue(v);
+    Assert(mvToFreshVar.find(mv) == mvToFreshVar.end());
+    mvToFreshVar[mv] = v;
+    // get a term that witnesses this variable
   }
 
   // get the model values for skolems
@@ -170,7 +170,16 @@ void InstStrategyMbqi::process(Node q)
     {
       return;
     }
+    //
+    v = fvToInst.apply(v);
   }
+  
+  // now convert fresh variables into terms
+  for (Node& v : mvs)
+  {
+    v = fvToInst.apply(v);
+  }
+  
   // add instantiation?
 }
 
