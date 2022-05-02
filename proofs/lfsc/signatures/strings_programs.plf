@@ -16,6 +16,14 @@
     (emptystr tt)
     (default ff)))
 
+;;-------------------- Skolem terms
+; The following side conditions are used for computing terms that define
+; Skolems, which are used in reductions. Notice that Skolem terms may use
+; terms that are not in original form, meaning that the definitions of Skolems
+; may themselves contain Skolems. This is to avoid the use of a side condition
+; for computing the original form of a term in the LFSC signature, which
+; naively is exponential.
+
 ; Get the term corresponding to the prefix of term s of fixed length n.
 (program sc_skolem_prefix ((s term) (n term)) term 
   (str.substr s (int 0) n)
@@ -35,6 +43,8 @@
 ; t in s.
 (program sc_skolem_first_ctn_post ((s term) (t term)) term 
   (sc_skolem_suffix_rem s (a.+ (str.len (skolem (sc_skolem_first_ctn_pre s t))) (a.+ (str.len t) (int 0)))))
+
+;;-------------------- Utilities
 
 ; Head and tail for string concatenation. Fails if not a concatentation term.
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
@@ -61,6 +71,8 @@
 
 ; Convert t into a str.++ application, if it is not already in n-ary form.
 (program sc_string_nary_intro ((t term) (u sort)) term (nary_intro f_str.++ t (sc_mk_emptystr u)))
+
+;;-------------------- Reductions
 
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string function in terms of (simpler) functions.
