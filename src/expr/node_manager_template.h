@@ -122,13 +122,13 @@ class NodeManager
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
-   * associated with datatypes through the DatatypeIndexConstant class. The
+   * associated with datatypes through the DatatypeIndexAttr attribute. The
    * argument index is intended to be a value taken from that class.
    *
    * Type nodes must access their DTypes through a level of indirection to
    * prevent cycles in the Node AST (as DTypes themselves contain Nodes), which
-   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
-   * which is used as an index to retrieve the DType via this call.
+   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexAttr
+   * attribute which is used as an index to retrieve the DType via this call.
    */
   const DType& getDTypeForIndex(size_t index) const;
   /**
