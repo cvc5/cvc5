@@ -5240,8 +5240,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
         this,
         d_nodeMgr->mkNode(extToIntKind(DIVISION),
                           *res.d_node,
-                          d_nodeMgr->mkConst(internal::kind::CONST_RATIONAL,
-                                             internal::Rational(1))));
+                          d_nodeMgr->mkConstInt(internal::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
