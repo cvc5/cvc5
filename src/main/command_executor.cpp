@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file command_executor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An additional layer between commands and invoking them.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An additional layer between commands and invoking them.
+ */
 
 #include "main/command_executor.h"
 
@@ -18,7 +19,7 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
-#include <cassert>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -26,9 +27,9 @@
 
 #include "main/main.h"
 #include "smt/command.h"
+#include "smt/solver_engine.h"
 
-namespace CVC4 {
-namespace main {
+namespace cvc5::main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
 // This is used for competitions while a solution (proof or model)
@@ -46,44 +47,60 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
+CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
+    : d_solver(solver), d_symman(new SymbolManager(d_solver.get())), d_result()
+{
+}
+CommandExecutor::~CommandExecutor()
+{
+}
 
-CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
-  d_exprMgr(exprMgr),
-  d_smtEngine(new SmtEngine(&exprMgr)),
-  d_options(options),
-  d_stats("driver"),
-  d_result(),
-  d_replayStream(NULL)
-{}
+void CommandExecutor::storeOptionsAsOriginal()
+{
+  d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
+}
 
-void CommandExecutor::setReplayStream(ExprStream* replayStream) {
-  assert(d_replayStream == NULL);
-  d_replayStream = replayStream;
-  d_smtEngine->setReplayStream(d_replayStream);
+void CommandExecutor::printStatistics(std::ostream& out) const
+{
+  if (d_solver->getOptionInfo("stats").boolValue())
+  {
+    const auto& stats = d_solver->getStatistics();
+    auto it = stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
+                          d_solver->getOptionInfo("stats-all").boolValue());
+    for (; it != stats.end(); ++it)
+    {
+      out << it->first << " = " << it->second << std::endl;
+    }
+  }
+}
+
+void CommandExecutor::printStatisticsSafe(int fd) const
+{
+  if (d_solver->getOptionInfo("stats").boolValue())
+  {
+    d_solver->printStatisticsSafe(fd);
+  }
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if( d_options.getParseOnly() ) {
-    return true;
-  }
-
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
-  if(seq != NULL) {
+  if(seq != nullptr) {
     // assume no error
     bool status = true;
 
-    for(CommandSequence::iterator subcmd = seq->begin();
-        (status || d_options.getContinuedExecution()) && subcmd != seq->end();
-        ++subcmd) {
+    for (CommandSequence::iterator subcmd = seq->begin();
+         status && subcmd != seq->end();
+         ++subcmd)
+    {
       status = doCommand(*subcmd);
     }
 
     return status;
   } else {
-    if(d_options.getVerbosity() > 2) {
-      *d_options.getOut() << "Invoking: " << *cmd << std::endl;
+    if (d_solver->getOptionInfo("verbosity").intValue() > 2)
+    {
+      d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
     }
 
     return doCommandSingleton(cmd);
@@ -92,83 +109,75 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  if(d_options.getStatistics()) {
-    flushStatistics(*d_options.getErr());
-  }
-  delete d_smtEngine;
-  d_smtEngine = new SmtEngine(&d_exprMgr);
+  printStatistics(d_solver->getDriverOptions().err());
+  Command::resetSolver(d_solver.get());
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
-  bool status = true;
-  if(d_options.getVerbosity() >= -1) {
-    status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
-  } else {
-    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
-  }
+  bool status = solverInvoke(
+      d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
 
-  Result res;
-  CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
-  if(cs != NULL) {
+  cvc5::Result res;
+  const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
+  if(cs != nullptr) {
     d_result = res = cs->getResult();
   }
-  QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
-  if(q != NULL) {
-    d_result = res = q->getResult();
-  }
-  CheckSynthCommand* csy = dynamic_cast<CheckSynthCommand*>(cmd);
-  if(csy != NULL) {
-    d_result = res = csy->getResult();
+  const CheckSatAssumingCommand* csa =
+      dynamic_cast<const CheckSatAssumingCommand*>(cmd);
+  if (csa != nullptr)
+  {
+    d_result = res = csa->getResult();
   }
 
-  if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {
-    std::ostringstream ossCurStats;
-    flushStatistics(ossCurStats);
-    std::ostream& err = *d_options.getErr();
-    printStatsIncremental(err, d_lastStatistics, ossCurStats.str());
-    d_lastStatistics = ossCurStats.str();
-  }
+  bool isResultUnsat = res.isUnsat();
+  bool isResultSat = res.isSat();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (d_options.getProduceModels() && d_options.getDumpModels() &&
-        (res.asSatisfiabilityResult() == Result::SAT ||
-         (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
+    if (d_solver->getOptionInfo("dump-models").boolValue()
+        && (isResultSat
+            || (res.isUnknown()
+                && res.getUnknownExplanation()
+                       == cvc5::UnknownExplanation::INCOMPLETE)))
+    {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getProof() && d_options.getDumpProofs() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_solver->getOptionInfo("dump-proofs").boolValue() && isResultUnsat)
+    {
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_options.getDumpInstantiations() &&
-        ((d_options.getInstFormatMode() != INST_FORMAT_MODE_SZS &&
-          (res.asSatisfiabilityResult() == Result::SAT ||
-           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
-         res.asSatisfiabilityResult() == Result::UNSAT)) {
+    if ((d_solver->getOptionInfo("dump-instantiations").boolValue()
+         || d_solver->getOptionInfo("dump-instantiations-debug").boolValue())
+        && GetInstantiationsCommand::isEnabled(d_solver.get(), res))
+    {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if (d_options.getDumpSynth() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
-      getterCommands.emplace_back(new GetSynthSolutionCommand());
+    if (d_solver->getOptionInfo("dump-unsat-cores").boolValue()
+        && isResultUnsat)
+    {
+      getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
-    if (d_options.getDumpUnsatCores() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
-      getterCommands.emplace_back(new GetUnsatCoreCommand());
+    if (d_solver->getOptionInfo("dump-difficulty").boolValue()
+        && (isResultUnsat || isResultSat || res.isUnknown()))
+    {
+      getterCommands.emplace_back(new GetDifficultyCommand());
     }
 
     if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
-      if (d_options.getForceNoLimitCpuWhileDump()) {
+      if (d_solver->getOptionInfo("force-no-limit-cpu-while-dump").boolValue())
+      {
         setNoLimitCPU();
       }
       for (const auto& getterCommand : getterCommands) {
         status = doCommandSingleton(getterCommand.get());
-        if (!status && !d_options.getContinuedExecution()) {
+        if (!status)
+        {
           break;
         }
       }
@@ -177,129 +186,38 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
+bool solverInvoke(cvc5::Solver* solver,
+                  SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream& out)
 {
-  if(out == NULL) {
-    cmd->invoke(smt);
-  } else {
-    cmd->invoke(smt, *out);
+  // print output for -o raw-benchmark
+  if (solver->isOutputOn("raw-benchmark"))
+  {
+    cmd->toStream(solver->getOutput("raw-benchmark"));
   }
-  // ignore the error if the command-verbosity is 0 for this command
-  std::string commandName =
-      std::string("command-verbosity:") + cmd->getCommandName();
-  if(smt->getOption(commandName).getIntegerValue() == 0) {
+
+  // In parse-only mode, we do not invoke any of the commands except define-fun
+  // commands. We invoke define-fun commands because they add function names
+  // to the symbol table.
+  if (solver->getOptionInfo("parse-only").boolValue()
+      && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
+      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
+      && dynamic_cast<ResetCommand*>(cmd) == nullptr)
+  {
     return true;
   }
+
+  cmd->invoke(solver, sm, out);
   return !cmd->fail();
 }
 
-void printStatsIncremental(std::ostream& out,
-                           const std::string& prvsStatsString,
-                           const std::string& curStatsString)
-{
-  if(prvsStatsString == "") {
-    out << curStatsString;
-    return;
-  }
-
-  // read each line
-  // if a number, subtract and add that to parentheses
-  std::istringstream issPrvs(prvsStatsString);
-  std::istringstream issCur(curStatsString);
-
-  std::string prvsStatName, prvsStatValue, curStatName, curStatValue;
-
-  std::getline(issPrvs, prvsStatName, ',');
-  std::getline(issCur, curStatName, ',');
-
-  /**
-   * Stat are assumed to one-per line: "<statName>, <statValue>"
-   *   e.g. "sat::decisions, 100"
-   * Output is of the form: "<statName>, <statValue> (<statDiffFromPrvs>)"
-   *   e.g. "sat::decisions, 100 (20)"
-   * If the value is not numeric, no change is made.
-   */
-  while( !issCur.eof() ) {
-
-    std::getline(issCur, curStatValue, '\n');
-
-    if(curStatName == prvsStatName) {
-      std::getline(issPrvs, prvsStatValue, '\n');
-
-      double prvsFloat, curFloat;
-      bool isFloat =
-        (std::istringstream(prvsStatValue) >> prvsFloat) &&
-        (std::istringstream(curStatValue) >> curFloat);
-
-      if(isFloat) {
-        const std::streamsize old_precision = out.precision();
-        out << curStatName << ", " << curStatValue << " "
-            << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
-            << std::endl;
-        out.precision(old_precision);
-      } else {
-        out << curStatName << ", " << curStatValue << std::endl;
-      }
-
-      std::getline(issPrvs, prvsStatName, ',');
-    } else {
-      out << curStatName << ", " << curStatValue << std::endl;
-    }
-
-    std::getline(issCur, curStatName, ',');
-  }
-}
-
-void CommandExecutor::printStatsFilterZeros(std::ostream& out,
-                                            const std::string& statsString) {
-  // read each line, if a number, check zero and skip if so
-  // Stat are assumed to one-per line: "<statName>, <statValue>"
-
-  std::istringstream iss(statsString);
-  std::string statName, statValue;
-
-  std::getline(iss, statName, ',');
-
-  while (!iss.eof())
-  {
-    std::getline(iss, statValue, '\n');
-
-    bool skip = false;
-    try
-    {
-      double dval = std::stod(statValue);
-      skip = (dval == 0.0);
-    }
-    // Value can not be converted, don't skip
-    catch (const std::invalid_argument&) {}
-    catch (const std::out_of_range&) {}
-
-    skip = skip || (statValue == " \"0\"" || statValue == " \"[]\"");
-
-    if (!skip)
-    {
-      out << statName << "," << statValue << std::endl;
-    }
-
-    std::getline(iss, statName, ',');
-  }
-}
-
 void CommandExecutor::flushOutputStreams() {
-  if(d_options.getStatistics()) {
-    if(d_options.getStatsHideZeros() == false) {
-      flushStatistics(*(d_options.getErr()));
-    } else {
-      std::ostringstream ossStats;
-      flushStatistics(ossStats);
-      printStatsFilterZeros(*(d_options.getErr()), ossStats.str());
-    }
-  }
+  printStatistics(d_solver->getDriverOptions().err());
 
   // make sure out and err streams are flushed too
-  d_options.flushOut();
-  d_options.flushErr();
+  d_solver->getDriverOptions().out() << std::flush;
+  d_solver->getDriverOptions().err() << std::flush;
 }
 
-}/* CVC4::main namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::main

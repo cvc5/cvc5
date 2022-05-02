@@ -1,91 +1,137 @@
-/*********************                                                        */
-/*! \file candidate_rewrite_database.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief candidate_rewrite_database
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * candidate_rewrite_database
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
-#define __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
+#define CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 
-#include <map>
+#include <vector>
+
+#include "theory/quantifiers/candidate_rewrite_filter.h"
+#include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 /** CandidateRewriteDatabase
  *
  * This maintains the necessary data structures for generating a database
- * of candidate rewrite rules (see Reynolds et al "Rewrites for SMT Solvers
- * Using Syntax-Guided Enumeration" SMT 2018). The primary responsibilities
+ * of candidate rewrite rules (see Noetzli et al "Syntax-Guided Rewrite Rule
+ * Enumeration for SMT Solvers" SAT 2019). The primary responsibilities
  * of this class are to perform the "equivalence checking" and "congruence
  * and matching filtering" in Figure 1. The equivalence checking is done
  * through a combination of the sygus sampler object owned by this class
- * and the calls made to copies of the SmtEngine in ::addTerm. The rewrite
+ * and the calls made to copies of the SolverEngine in ::addTerm. The rewrite
  * rule filtering (based on congruence, matching, variable ordering) is also
  * managed by the sygus sampler object.
  */
-class CandidateRewriteDatabase
+class CandidateRewriteDatabase : public ExprMiner
 {
  public:
-  CandidateRewriteDatabase();
+  /**
+   * Constructor
+   * @param env Reference to the environment
+   * @param doCheck Whether to check rewrite rules using subsolvers.
+   * @param rewAccel Whether to construct symmetry breaking lemmas based on
+   * discovered rewrites (see option sygusRewSynthAccel()).
+   * @param silent Whether to silence the output of rewrites discovered by this
+   * class.
+   * @param filterPairs Whether to filter rewrite pairs using filtering
+   * techniques from the SAT 2019 paper above.
+   */
+  CandidateRewriteDatabase(Env& env,
+                           bool doCheck,
+                           bool rewAccel = false,
+                           bool silent = false,
+                           bool filterPairs = true);
   ~CandidateRewriteDatabase() {}
+  /**  Initialize this class */
+  void initialize(const std::vector<Node>& var, SygusSampler* ss) override;
   /**  Initialize this class
    *
-   * qe : pointer to quantifiers engine,
+   * Serves the same purpose as the above function, but we will be using
+   * sygus to enumerate terms and generate samples.
+   *
+   * tds : pointer to sygus term database. We use the extended rewriter of this
+   * database when computing candidate rewrites,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f. This is the
-   * "candidate variable" CegConjecture::d_candidates,
-   * nsamples : number of sample points this class will test,
-   * useSygusType : whether we will register terms with this sampler that have
-   * the same type as f. If this flag is false, then we will be registering
-   * terms of the analog of the type of f, that is, the builtin type that
-   * f's type encodes in the deep embedding.
-   *
-   * These arguments are used to initialize the sygus sampler class.
+   * "candidate variable" CegConjecture::d_candidates.
    */
-  void initialize(QuantifiersEngine* qe,
-                  Node f,
-                  unsigned nsamples,
-                  bool useSygusType);
+  void initializeSygus(const std::vector<Node>& vars,
+                       TermDbSygus* tds,
+                       Node f,
+                       SygusSampler* ss);
   /** add term
    *
    * Notifies this class that the solution sol was enumerated. This may
    * cause a candidate-rewrite to be printed on the output stream out.
+   *
+   * @param sol The term to add to this class.
+   * @param rec If true, then we also recursively add all subterms of sol
+   * to this class as well.
+   * @param out The stream to output rewrite rules on.
+   * @param rew_print Set to true if this class printed a rewrite involving sol.
+   * @return A previous term eq_sol added to this class, such that sol is
+   * equivalent to eq_sol based on the criteria used by this class. We return
+   * only terms that are verified to be equivalent to sol.
    */
-  bool addTerm(Node sol, std::ostream& out);
+  Node addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
+  Node addTerm(Node sol, bool rec, std::ostream& out);
+  /**
+   * Same as above, returns true if the return value of addTerm was equal to
+   * sol, in other words, sol was a new unique term. This assumes false for
+   * the argument rec.
+   */
+  bool addTerm(Node sol, std::ostream& out) override;
+  /** sets whether this class should output candidate rewrites it finds */
+  void setSilent(bool flag);
+  /** Enable the (extended) rewriter for this class */
+  void enableExtendedRewriter();
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** the function-to-synthesize we are testing */
+  /** (required) pointer to the sygus term database of d_qe */
+  TermDbSygus* d_tds;
+  /** Whether we use the extended rewriter */
+  bool d_useExtRewriter;
+  /** the function-to-synthesize we are testing (if sygus) */
   Node d_candidate;
-  /** sygus sampler objects for each program variable
-   *
-   * This is used for the sygusRewSynth() option to synthesize new candidate
-   * rewrite rules.
-   */
-  SygusSamplerExt d_sampler;
+  /** whether we are checking equivalence using subsolver */
+  bool d_doCheck;
   /**
-   * Cache of skolems for each free variable that appears in a synthesis check
-   * (for --sygus-rr-synth-check).
+   * If true, we use acceleration for symmetry breaking rewrites (see option
+   * sygusRewSynthAccel()).
    */
-  std::map<Node, Node> d_fv_to_skolem;
+  bool d_rewAccel;
+  /** if true, we silence the output of candidate rewrites */
+  bool d_silent;
+  /** if true, we filter pairs of terms to check equivalence */
+  bool d_filterPairs;
+  /** whether we are using sygus */
+  bool d_using_sygus;
+  /** candidate rewrite filter */
+  CandidateRewriteFilter d_crewrite_filter;
+  /** the cache for results of addTerm */
+  std::unordered_map<Node, Node> d_add_term_cache;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H */

@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_BV)
+(declare-fun x () (_ BitVec 32))
+(check-sat-assuming ( (not (= ((_ extract 3 2) ((_ extract 15 1) x)) ((_ extract 4 3) x))) ))

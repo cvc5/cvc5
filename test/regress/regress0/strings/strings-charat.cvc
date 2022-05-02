@@ -1,9 +1,0 @@
-% EXPECT: unsat
-
-x : STRING;
-y : STRING;
-
-ASSERT x = CONCAT( "abcd", y );
-ASSERT CHARAT(x,0) = CHARAT(x,2);
-
-CHECKSAT;

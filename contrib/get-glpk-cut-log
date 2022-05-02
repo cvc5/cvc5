@@ -1,34 +1,44 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 
-commit=b420454e732f4b3d229c552ef7cd46fec75fe65c
+# get the full path to the contrib dir; needs to be the full path so we can
+# refer the patch from within the 'glpk-cut-log' build directory
+contrib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd -P)"
 
-if [ -e glpk-cut-log ]; then
-  echo 'error: file or directory "glpk-cut-log" exists; please move it out of the way.' >&2
-  exit 1
+# Get the full path the patch we wish to apply
+patch_file=${contrib_dir}/glpk-cut-log.patch
+
+GLPK_DIR="$DEPS_DIR/glpk-cut-log"
+version="4.52"
+
+setup_dep \
+  "https://ftp.gnu.org/gnu/glpk/glpk-${version}.tar.gz" \
+  "$GLPK_DIR"
+cd "$GLPK_DIR"
+
+patch -p1 < ${patch_file}
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    glibtoolize
+else
+    libtoolize
 fi
-
-mkdir glpk-cut-log
-cd glpk-cut-log
-webget https://github.com/timothy-king/glpk-cut-log/archive/$commit.zip glpk-cut-log-$commit.zip
-unzip glpk-cut-log-$commit.zip
-cd glpk-cut-log-$commit
-
-libtoolize
 aclocal
 autoheader
 autoconf
 automake --add-missing
-./configure --without-pic --prefix=`pwd`/.. --disable-shared --enable-static --disable-dependency-tracking
-make && make install
-mv `pwd`/../lib/libglpk.a `pwd`/../lib/libglpk-static.a
-make distclean
-./configure --with-pic --prefix=`pwd`/.. --disable-shared --enable-static --disable-dependency-tracking
-make && make install
 
-cd ..
+./configure --without-pic --prefix="$INSTALL_DIR" --disable-shared --enable-static --disable-dependency-tracking
+make install -j$(nproc)
+make distclean
+
+# Find and move the static build
+rename_installed_lib "libglpk.a" "libglpk-static.a"
+
+./configure --with-pic --prefix="$INSTALL_DIR" --disable-shared --enable-static --disable-dependency-tracking
+make install -j$(nproc)
 
 echo
-echo ===================== Now configure CVC4 with =====================
-echo ./configure --enable-gpl --with-glpk --with-glpk-dir=`pwd`
+echo ===================== Now configure cvc5 with =====================
+echo ./configure.sh --gpl --glpk

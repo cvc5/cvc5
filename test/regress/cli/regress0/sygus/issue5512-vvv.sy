@@ -1,0 +1,19 @@
+; DISABLE-TESTER: dump
+; COMMAND-LINE: -vvv --sygus-out=status --check-synth-sol --check-abducts
+; ERROR-SCRUBBER: sed -e 's/.*//g'
+; SCRUBBER: sed -e 's/.*//g'
+; EXIT: 0
+
+; This regression ensures that printing Sygus commands with option -vvv does not
+; crash CVC4
+
+(set-logic UF)
+(declare-var x Bool)
+(synth-fun f ((x Bool)) Bool ((Start Bool)) ((Start Bool (true))))
+(synth-inv inv-f ((x Bool)))
+(define-fun pre-f ((x Bool)) Bool true)
+(define-fun trans-f ((x Bool) (x! Bool)) Bool true)
+(define-fun post-f ((x Bool)) Bool true)
+(inv-constraint inv-f pre-f trans-f post-f)
+(constraint true)
+(check-synth)

@@ -1,0 +1,48 @@
+%--------------------------------------------------------------------------
+% File     : BOO004-0 : TPTP v5.5.0. Released v1.0.0.
+% Domain   : Boolean Algebra
+% Axioms   : Boolean algebra (equality) axioms
+% Version  : [Ver94] (equality) axioms.
+% English  :
+
+% Refs     : [Ver94] Veroff (1994), Problem Set
+% Source   : [Ver94]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    8 (   0 non-Horn;   8 unit;   0 RR)
+%            Number of atoms      :    8 (   8 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    5 (   2 constant; 0-2 arity)
+%            Number of variables  :   14 (   0 set.singleton)
+%            Maximal term depth   :    3 (   2 average)
+% SPC      : 
+
+% Comments :
+%--------------------------------------------------------------------------
+cnf(commutativity_of_add,axiom,
+    ( add(X,Y) = add(Y,X) )).
+
+cnf(commutativity_of_multiply,axiom,
+    ( multiply(X,Y) = multiply(Y,X) )).
+
+cnf(distributivity1,axiom,
+    ( add(X,multiply(Y,Z)) = multiply(add(X,Y),add(X,Z)) )).
+
+cnf(distributivity2,axiom,
+    ( multiply(X,add(Y,Z)) = add(multiply(X,Y),multiply(X,Z)) )).
+
+cnf(additive_id1,axiom,
+    ( add(X,additive_identity) = X )).
+
+cnf(multiplicative_id1,axiom,
+    ( multiply(X,multiplicative_identity) = X )).
+
+cnf(additive_inverse1,axiom,
+    ( add(X,inverse(X)) = multiplicative_identity )).
+
+cnf(multiplicative_inverse1,axiom,
+    ( multiply(X,inverse(X)) = additive_identity )).
+
+%--------------------------------------------------------------------------

@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_AUFLIA)
+(declare-fun v1 () Int)
+(check-sat-assuming ( (>= (- (ite (distinct v1 0) v1 0)) 0) ))

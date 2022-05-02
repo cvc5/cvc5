@@ -1,5 +1,0 @@
-% EXPECT: sat
-DATATYPE list[T] = cons(car:T, cdr:list[T]) | nil END;
-x : list[REAL];
-ASSERT x = cons(1.0,nil::list[REAL])::list[REAL];
-CHECKSAT;

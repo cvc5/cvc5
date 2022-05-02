@@ -1,31 +1,32 @@
-/*********************                                                        */
-/*! \file atom_requests.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class AtomRequests {
 
@@ -34,24 +35,18 @@ public:
   /** Which atom and where to send it */
   struct Request {
     /** Atom */
-    Node atom;
+    Node d_atom;
     /** Where to send it */
-    theory::TheoryId toTheory;
+    theory::TheoryId d_toTheory;
 
-    Request(TNode atom, theory::TheoryId toTheory)
-    : atom(atom), toTheory(toTheory) {}
-    Request()
-    : toTheory(theory::THEORY_LAST)
-    {}
+    Request(TNode a, theory::TheoryId tt) : d_atom(a), d_toTheory(tt) {}
+    Request() : d_toTheory(theory::THEORY_LAST) {}
 
     bool operator == (const Request& other) const {
-      return atom == other.atom && toTheory == other.toTheory;
+      return d_atom == other.d_atom && d_toTheory == other.d_toTheory;
     }
 
-    size_t hash() const {
-      return atom.getId();
-    }
-
+    size_t hash() const { return d_atom.getId(); }
   };
 
   AtomRequests(context::Context* context);
@@ -66,11 +61,14 @@ public:
   typedef size_t element_index;
 
   class atom_iterator {
-    const AtomRequests& requests;
-    element_index index;
+    const AtomRequests& d_requests;
+    element_index d_index;
     friend class AtomRequests;
     atom_iterator(const AtomRequests& requests, element_index start)
-    : requests(requests), index(start) {}
+        : d_requests(requests), d_index(start)
+    {
+    }
+
   public:
     /** Is this iterator done  */
     bool done() const;
@@ -97,19 +95,17 @@ private:
 
   struct Element {
     /** Current request */
-    Request request;
+    Request d_request;
     /** Previous request */
-    element_index previous;
+    element_index d_previous;
 
-    Element(const Request& request, element_index previous)
-    : request(request), previous(previous)
-    {}
+    Element(const Request& r, element_index p) : d_request(r), d_previous(p) {}
   };
 
   /** We index the requests in this vector, it's a list */
   context::CDList<Element> d_requests;
 
-  typedef context::CDHashMap<Node, element_index, NodeHashFunction> trigger_to_list_map;
+  typedef context::CDHashMap<Node, element_index> trigger_to_list_map;
 
   /** Map from triggers, to the list of elements they trigger */
   trigger_to_list_map d_triggerToRequestMap;
@@ -119,8 +115,4 @@ private:
 
 };
 
-}
-
-
-
-
+}  // namespace cvc5::internal

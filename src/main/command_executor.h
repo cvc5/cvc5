@@ -1,103 +1,116 @@
-/*********************                                                        */
-/*! \file command_executor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An additional layer between commands and invoking them.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An additional layer between commands and invoking them.
+ */
 
-#ifndef __CVC4__MAIN__COMMAND_EXECUTOR_H
-#define __CVC4__MAIN__COMMAND_EXECUTOR_H
+#ifndef CVC5__MAIN__COMMAND_EXECUTOR_H
+#define CVC5__MAIN__COMMAND_EXECUTOR_H
 
 #include <iosfwd>
 #include <string>
 
-#include "expr/expr_manager.h"
-#include "options/options.h"
-#include "smt/command.h"
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
+#include "api/cpp/cvc5.h"
+#include "expr/symbol_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class Command;
+
 namespace main {
 
-class CommandExecutor {
-private:
-  std::string d_lastStatistics;
+class CommandExecutor
+{
+ protected:
+  /**
+   * The solver object, which is allocated by this class and is used for
+   * executing most commands (e.g. check-sat).
+   */
+  std::unique_ptr<cvc5::Solver>& d_solver;
+  /**
+   * The symbol manager, which is allocated by this class. This manages
+   * all things related to definitions of symbols and their impact on behaviors
+   * for commands (e.g. get-unsat-core, get-model, get-assignment), as well
+   * as tracking expression names. Note the symbol manager is independent from
+   * the parser, which uses this symbol manager given a text input.
+   *
+   * Certain commands (e.g. reset-assertions) have a specific impact on the
+   * symbol manager.
+   */
+  std::unique_ptr<SymbolManager> d_symman;
 
-protected:
-  ExprManager& d_exprMgr;
-  SmtEngine* d_smtEngine;
-  Options& d_options;
-  StatisticsRegistry d_stats;
-  Result d_result;
-  ExprStream* d_replayStream;
+  cvc5::Result d_result;
 
-public:
-  CommandExecutor(ExprManager &exprMgr, Options &options);
+ public:
+  CommandExecutor(std::unique_ptr<cvc5::Solver>& solver);
 
-  virtual ~CommandExecutor() {
-    delete d_smtEngine;
-    if(d_replayStream != NULL){
-      delete d_replayStream;
-    }
-  }
+  virtual ~CommandExecutor();
 
   /**
    * Executes a command. Recursively handles if cmd is a command
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(CVC4::Command* cmd);
+  bool doCommand(cvc5::Command* cmd);
 
-  Result getResult() const { return d_result; }
+  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
+  {
+    return doCommand(cmd.get());
+  }
+
+  /** Get a pointer to the solver object owned by this CommandExecutor. */
+  cvc5::Solver* getSolver() { return d_solver.get(); }
+
+  /** Get a pointer to the symbol manager owned by this CommandExecutor */
+  SymbolManager* getSymbolManager() { return d_symman.get(); }
+
+  cvc5::Result getResult() const { return d_result; }
   void reset();
 
-  StatisticsRegistry& getStatisticsRegistry() {
-    return d_stats;
-  }
-
-  virtual void flushStatistics(std::ostream& out) const {
-    d_exprMgr.getStatistics().flushInformation(out);
-    d_smtEngine->getStatistics().flushInformation(out);
-    d_stats.flushInformation(out);
-  }
+  /** Store the current options as the original options */
+  void storeOptionsAsOriginal();
 
   /**
-   * Flushes statistics to a file descriptor. Safe to use in a signal handler.
+   * Prints statistics to an output stream.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  void safeFlushStatistics(int fd) const {
-    d_exprMgr.safeFlushStatistics(fd);
-    d_smtEngine->safeFlushStatistics(fd);
-    d_stats.safeFlushInformation(fd);
-  }
+  virtual void printStatistics(std::ostream& out) const;
 
-  static void printStatsFilterZeros(std::ostream& out,
-                                    const std::string& statsString);
+  /**
+   * Safely prints statistics to a file descriptor.
+   * This method is safe to be used within a signal handler.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
+   */
+  void printStatisticsSafe(int fd) const;
 
-  LemmaChannels* channels() { return d_smtEngine->channels(); }
   void flushOutputStreams();
-
-  void setReplayStream(ExprStream* replayStream);
 
 protected:
   /** Executes treating cmd as a singleton */
-  virtual bool doCommandSingleton(CVC4::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::Command* cmd);
 
 private:
   CommandExecutor();
 
-};/* class CommandExecutor */
+}; /* class CommandExecutor */
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
+bool solverInvoke(cvc5::Solver* solver,
+                  SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream& out);
 
-}/* CVC4::main namespace */
-}/* CVC4 namespace */
+}  // namespace main
+}  // namespace cvc5
 
-#endif  /* __CVC4__MAIN__COMMAND_EXECUTOR_H */
+#endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */

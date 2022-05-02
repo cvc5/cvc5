@@ -1,0 +1,153 @@
+on: [push, pull_request]
+name: CI
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu:production
+            os: ubuntu-latest
+            config: production --auto-download --all-bindings --editline --docs
+            cache-key: production
+            strip-bin: strip
+            python-bindings: true
+            build-documentation: true
+            check-examples: true
+            binary-name: cvc5-Linux
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: macos:production
+            os: macos-11
+            config: production --auto-download --python-bindings --editline
+            cache-key: production
+            strip-bin: strip
+            python-bindings: true
+            check-examples: true
+            binary-name: cvc5-macOS
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: win64:production
+            os: ubuntu-latest
+            config: production --auto-download --win64
+            cache-key: productionwin64
+            strip-bin: x86_64-w64-mingw32-strip
+            windows-build: true
+            binary-name: cvc5-Win64.exe
+            binary-ext: .exe
+
+          - name: ubuntu:production-clang
+            os: ubuntu-18.04
+            env: CC=clang CXX=clang++
+            config: production --auto-download --no-poly
+            cache-key: productionclang
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: ubuntu:production-dbg
+            os: ubuntu-18.04
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline
+            cache-key: dbg
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
+            python-bindings: true
+
+          - name: ubuntu:production-dbg-clang
+            os: ubuntu-latest
+            env: CC=clang CXX=clang++
+            config: production --auto-download --assertions --tracing --cln --gpl
+            cache-key: dbgclang
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    # cancel already running jobs for the same branch/pr/tag
+    concurrency:
+      group: build-${{ github.ref }}-${{ matrix.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
+      cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      with:
+        with-documentation: ${{ matrix.build-documentation }}
+        with-python-bindings: ${{ matrix.python-bindings }}
+        windows-build: ${{ matrix.windows-build }}
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        cache-key: ${{ matrix.cache-key }}
+
+    - name: Configure and build
+      id: configure-and-build
+      uses: ./.github/actions/configure-and-build
+      with:
+        configure-env: ${{ matrix.env }}
+        configure-config: ${{ matrix.config }}
+        build-shared: ${{ matrix.build-shared }}
+        build-static: ${{ matrix.build-static }}
+        strip-bin: ${{ matrix.strip-bin }}
+
+    - name: ccache Statistics
+      run: ccache -s
+
+    - name: Run tests
+      if: matrix.run_regression_args
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+        check-examples: ${{ matrix.check-examples }}
+        check-python-bindings: ${{ matrix.python-bindings }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: ${{ matrix.exclude_regress }}
+  
+    - name: Run tests
+      if: matrix.run_regression_args
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        check-examples: false
+        check-install: false
+        check-python-bindings: false
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: 1-4
+
+    - name: Build documentation
+      if: matrix.build-documentation
+      uses: ./.github/actions/build-documentation
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+
+    - name: Add binary to latest and release
+      if: matrix.binary-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/store-binary
+      with:
+        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
+        binary-name: ${{ matrix.binary-name }}
+        # when using GITHUB_TOKEN, no further workflows are triggered
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+
+  update-pr:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: update-pr
+    steps:
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.6.0
+        with:
+          token: ${{ secrets.ACTION_USER_TOKEN }}
+          base: 'main'
+          sort: 'created'
+          direction: 'asc'
+          required_approval_count: 1

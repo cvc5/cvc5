@@ -1,34 +1,32 @@
-/*********************                                                        */
-/*! \file bv_to_bool.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- **
- ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Yoni Zohar, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Preprocessing pass that lifts bit-vectors of size 1 to booleans.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H
-#define __CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H
+#ifndef CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H
+#define CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
+typedef std::unordered_map<Node, Node> NodeNodeMap;
 
 class BVToBool : public PreprocessingPass
 {
@@ -46,8 +44,7 @@ class BVToBool : public PreprocessingPass
     IntStat d_numTermsLifted;
     IntStat d_numAtomsLifted;
     IntStat d_numTermsForcedLifted;
-    Statistics();
-    ~Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
   void addToBoolCache(TNode term, Node new_term);
   Node getBoolCache(TNode term) const;
@@ -74,6 +71,6 @@ class BVToBool : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H */
+#endif /* CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H */

@@ -21,20 +21,19 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_SimpSolver_h
 #define Minisat_SimpSolver_h
 
-#include "cvc4_private.h"
-
+#include "base/check.h"
+#include "cvc5_private.h"
 #include "proof/clause_id.h"
-#include "prop/minisat/mtl/Queue.h"
 #include "prop/minisat/core/Solver.h"
+#include "prop/minisat/mtl/Queue.h"
 
-
-namespace CVC4 {
+namespace cvc5::internal {
 namespace prop {
   class TheoryProxy;
 }
-}
+}  // namespace cvc5::internal
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace Minisat {
 
 //=================================================================================================
@@ -43,41 +42,67 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-    SimpSolver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, bool enableIncremental = false);
-    CVC4_PUBLIC ~SimpSolver();
+  SimpSolver(Env& env,
+             cvc5::internal::prop::TheoryProxy* proxy,
+             context::Context* context,
+             context::UserContext* userContext,
+             ProofNodeManager* pnm,
+             bool enableIncremental = false);
+  ~SimpSolver();
 
-    // Problem specification:
-    //
-    Var     newVar    (bool polarity = true, bool dvar = true, bool isTheoryAtom = false, bool preRegister = false, bool canErase = true);
-    bool    addClause (const vec<Lit>& ps, bool removable, ClauseId& id);
-    bool    addEmptyClause(bool removable); // Add the empty clause to the solver.
-    bool    addClause (Lit p, bool removable, ClauseId& id); // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, bool removable, ClauseId& id); // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, bool removable, ClauseId& id); // Add a ternary clause to the solver.
-    bool    addClause_(vec<Lit>& ps, bool removable, ClauseId& id);
-    bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
+  // Problem specification:
+  //
+  Var newVar(bool polarity = true,
+             bool dvar = true,
+             bool isTheoryAtom = false,
+             bool preRegister = false,
+             bool canErase = true);
+  bool addClause(const vec<Lit>& ps, bool removable, ClauseId& id);
+  bool addEmptyClause(bool removable);  // Add the empty clause to the solver.
+  bool addClause(Lit p,
+                 bool removable,
+                 ClauseId& id);  // Add a unit clause to the solver.
+  bool addClause(Lit p,
+                 Lit q,
+                 bool removable,
+                 ClauseId& id);  // Add a binary clause to the solver.
+  bool addClause(Lit p,
+                 Lit q,
+                 Lit r,
+                 bool removable,
+                 ClauseId& id);  // Add a ternary clause to the solver.
+  bool addClause_(vec<Lit>& ps, bool removable, ClauseId& id);
+  bool substitute(Var v, Lit x);  // Replace all occurrences of v with x (may
+                                  // cause a contradiction).
 
-    // Variable mode:
-    // 
-    void    setFrozen (Var v, bool b); // If a variable is frozen it will not be eliminated.
-    bool    isEliminated(Var v) const;
+  // Variable mode:
+  //
+  void setFrozen(Var v,
+                 bool b);  // If a variable is frozen it will not be eliminated.
+  bool isEliminated(Var v) const;
 
-    // Solving:
-    //
-    lbool    solve       (const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
-    lbool    solveLimited(const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
-    lbool    solve       (                     bool do_simp = true, bool turn_off_simp = false);
-    lbool    solve       (Lit p       ,        bool do_simp = true, bool turn_off_simp = false);       
-    lbool    solve       (Lit p, Lit q,        bool do_simp = true, bool turn_off_simp = false);
-    lbool    solve       (Lit p, Lit q, Lit r, bool do_simp = true, bool turn_off_simp = false);
-    bool    eliminate   (bool turn_off_elim = false);  // Perform variable elimination based simplification. 
+  // Solving:
+  //
+  lbool solve(const vec<Lit>& assumps,
+              bool do_simp = true,
+              bool turn_off_simp = false);
+  lbool solveLimited(const vec<Lit>& assumps,
+                     bool do_simp = true,
+                     bool turn_off_simp = false);
+  lbool solve(bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(Lit p, bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(Lit p, Lit q, bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(
+      Lit p, Lit q, Lit r, bool do_simp = true, bool turn_off_simp = false);
+  bool eliminate(bool turn_off_elim = false);  // Perform variable elimination
+                                               // based simplification.
 
-    // Memory managment:
-    //
-    void garbageCollect() override;
+  // Memory managment:
+  //
+  void garbageCollect() override;
 
-    // Generate a (possibly simplified) DIMACS file:
-    //
+  // Generate a (possibly simplified) DIMACS file:
+  //
 #if 0
     void    toDimacs  (const char* file, const vec<Lit>& assumps);
     void    toDimacs  (const char* file);
@@ -96,7 +121,6 @@ class SimpSolver : public Solver {
 
     bool    use_asymm;         // Shrink clauses by asymmetric branching.
     bool    use_rcheck;        // Check if a clause is already implied. Prett costly, and subsumes subsumptions :)
-    bool    use_elim;          // Perform variable elimination.
 
     // Statistics:
     //
@@ -118,11 +142,13 @@ class SimpSolver : public Solver {
 
         // old ordering function
         // bool operator()(Var x, Var y) const { return cost(x) < cost(y); }
-        
-         bool operator()(Var x, Var y) const { 
-             int c_x = cost(x);
-             int c_y = cost(y);
-             return c_x < c_y || (c_x == c_y && x < y); }
+
+        bool operator()(Var x, Var y) const
+        {
+          int c_x = cost(x);
+          int c_y = cost(y);
+          return c_x < c_y || (c_x == c_y && x < y);
+        }
     };
 
     struct ClauseDeleted {
@@ -177,11 +203,12 @@ class SimpSolver : public Solver {
 
 inline bool SimpSolver::isEliminated (Var v) const { return eliminated[v]; }
 inline void SimpSolver::updateElimHeap(Var v) {
-    assert(use_simplification);
-    // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
-    if (elim_heap.inHeap(v) || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
-        elim_heap.update(v); }
-
+  Assert(use_simplification);
+  // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
+  if (elim_heap.inHeap(v)
+      || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
+    elim_heap.update(v);
+}
 
 inline bool SimpSolver::addClause(const vec<Lit>& ps, bool removable, ClauseId& id)
 { ps.copyTo(add_tmp); return addClause_(add_tmp, removable, id); }
@@ -200,14 +227,14 @@ inline lbool SimpSolver::solve        (                     bool do_simp, bool t
   assumptions.clear();
   return solve_(do_simp, turn_off_simp);
  }
- 
+
 inline lbool SimpSolver::solve        (Lit p       ,        bool do_simp, bool turn_off_simp)  {
   budgetOff();
   assumptions.clear();
   assumptions.push(p);
   return solve_(do_simp, turn_off_simp);
  }
- 
+
 inline lbool SimpSolver::solve        (Lit p, Lit q,        bool do_simp, bool turn_off_simp)  {
   budgetOff();
   assumptions.clear();
@@ -215,7 +242,7 @@ inline lbool SimpSolver::solve        (Lit p, Lit q,        bool do_simp, bool t
   assumptions.push(q);
   return solve_(do_simp, turn_off_simp);
  }
- 
+
 inline lbool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool turn_off_simp)  {
   budgetOff();
   assumptions.clear();
@@ -225,17 +252,25 @@ inline lbool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool t
   return solve_(do_simp, turn_off_simp);
  }
 
- inline lbool SimpSolver::solve        (const vec<Lit>& assumps, bool do_simp, bool turn_off_simp){ 
+ inline lbool SimpSolver::solve(const vec<Lit>& assumps,
+                                bool do_simp,
+                                bool turn_off_simp)
+ {
    budgetOff();
     assumps.copyTo(assumptions);
     return solve_(do_simp, turn_off_simp);
  }
 
-inline lbool SimpSolver::solveLimited (const vec<Lit>& assumps, bool do_simp, bool turn_off_simp){ 
-    assumps.copyTo(assumptions); return solve_(do_simp, turn_off_simp); }
+ inline lbool SimpSolver::solveLimited(const vec<Lit>& assumps,
+                                       bool do_simp,
+                                       bool turn_off_simp)
+ {
+   assumps.copyTo(assumptions);
+   return solve_(do_simp, turn_off_simp);
+ }
 
-//=================================================================================================
-} /* CVC4::Minisat namespace */
-} /* CVC4 namespace */
+ //=================================================================================================
+ }  // namespace Minisat
+ }  // namespace cvc5::internal
 
 #endif

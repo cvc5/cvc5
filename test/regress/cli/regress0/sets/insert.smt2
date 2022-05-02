@@ -1,0 +1,7 @@
+(set-option :produce-models true)
+(set-logic QF_UFLIAFS)
+(set-info :status sat)
+(declare-fun X () (Set Int))
+(assert (= X (set.insert 1 2 (set.singleton 3))))
+(check-sat)
+;(get-model)

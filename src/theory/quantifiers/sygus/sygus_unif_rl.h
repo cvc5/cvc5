@@ -1,41 +1,43 @@
-/*********************                                                        */
-/*! \file sygus_unif_rl.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_unif_rl
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_unif_rl
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H
 
 #include <map>
-#include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "options/main_options.h"
 #include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/sygus/sygus_unif.h"
+#include "util/bool.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 using BoolNodePair = std::pair<bool, Node>;
 using BoolNodePairHashFunction =
-    PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
+    PairHashFunction<bool, Node, BoolHashFunction, std::hash<Node>>;
 using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
-using NodePairMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using NodePairMap = std::unordered_map<Node, Node>;
 using NodePair = std::pair<Node, Node>;
 
-class CegConjecture;
+class SynthConjecture;
 
 /** Sygus unification Refinement Lemmas utility
  *
@@ -46,12 +48,12 @@ class CegConjecture;
 class SygusUnifRl : public SygusUnif
 {
  public:
-  SygusUnifRl(CegConjecture* p);
+  SygusUnifRl(Env& env, SynthConjecture* p);
   ~SygusUnifRl();
 
   /** initialize */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;
@@ -80,7 +82,7 @@ class SygusUnifRl : public SygusUnif
    * whether f is being synthesized with unification strategies. This can be
    * checked through wehether f has conditional or point enumerators (we use the
    * former)
-    */
+   */
   bool usingUnif(Node f) const;
   /** get condition for evaluation point
    *
@@ -103,11 +105,23 @@ class SygusUnifRl : public SygusUnif
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
 
+  /**
+   * Whether we are using condition pool enumeration (Section 4 of Barbosa et al
+   * FMCAD 2019). This is determined by option::sygusUnifPi().
+   */
+  bool usingConditionPool() const;
+  /** Whether we are additionally using information gain.  */
+  bool usingConditionPoolInfoGain() const;
+
  protected:
   /** reference to the parent conjecture */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
+  /** Whether we are using condition pool enumeration */
+  bool d_useCondPool;
+  /** Whether we are additionally using information gain heuristics */
+  bool d_useCondPoolIGain;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
-  std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
+  std::unordered_set<Node> d_unif_candidates;
   /** construct sol */
   Node constructSol(Node f,
                     Node e,
@@ -193,7 +207,10 @@ class SygusUnifRl : public SygusUnif
   class DecisionTreeInfo
   {
    public:
-    DecisionTreeInfo() {}
+    DecisionTreeInfo()
+        : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0)
+    {
+    }
     ~DecisionTreeInfo() {}
     /** initializes this class */
     void initialize(Node cond_enum,
@@ -202,16 +219,27 @@ class SygusUnifRl : public SygusUnif
                     unsigned strategy_index);
     /** returns index of strategy information of strategy node for this DT */
     unsigned getStrategyIndex() const;
-    /** builds solution stored in DT, if any, using the given constructor
+    /** builds solution, if possible, using the given constructor
      *
-     * The DT contains a solution when no class contains two heads of evaluation
-     * points with different model values, i.e. when all points that must be
-     * separated indeed are separated by the current set of conditions.
-     *
-     * This method either returns a solution (if all points are separated).
-     * It it fails, it adds a conflict lemma to lemmas.
+     * A solution is possible when all different valued heads can be separated,
+     * i.e. the current set of conditions separates them in a decision tree
      */
     Node buildSol(Node cons, std::vector<Node>& lemmas);
+    /** bulids a solution by considering all condition values ever enumerated */
+    Node buildSolAllCond(Node cons, std::vector<Node>& lemmas);
+    /** builds a solution by incrementally adding points and conditions to DT
+     *
+     * Differently from the above method, here a condition is only added to the
+     * DT when it's necessary for resolving a separation conflict (i.e. heads
+     * with different values in the same leaf of the DT). Only one value per
+     * condition enumerated is considered.
+     *
+     * If a solution cannot be built, then there are more conflicts to be
+     * resolved than condition enumerators. A conflict lemma is added to lemmas
+     * that forces a new assigment in which the conflict is removed (heads are
+     * made equal) or a new condition is enumerated to try to separate them.
+     */
+    Node buildSolMinCond(Node cons, std::vector<Node>& lemmas);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
@@ -220,6 +248,8 @@ class SygusUnifRl : public SygusUnif
     std::vector<Node> d_conds;
     /** gathered evaluation point heads */
     std::vector<Node> d_hds;
+    /** all enumerated model values for conditions */
+    std::unordered_set<Node> d_cond_mvs;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** set conditions */
@@ -228,6 +258,12 @@ class SygusUnifRl : public SygusUnif
                        const std::vector<Node>& conds);
 
    private:
+    /** true and false nodes */
+    Node d_true;
+    Node d_false;
+    /** Accumulates solutions built when considering all enumerated condition
+     * values (which may generate repeated solutions) */
+    std::unordered_set<Node> d_sols;
     /**
      * Conditional enumerator variables corresponding to the condition values in
      * d_conds. These are used for generating separation lemmas during
@@ -256,6 +292,63 @@ class SygusUnifRl : public SygusUnif
      * decision tree.
      */
     Node d_cond_enum;
+    /** extracts solution from decision tree built
+     *
+     * Depending on the active options, the decision tree might be rebuilt
+     * before a solution is extracted, for example to optimize size (smaller
+     * DTs) or chance of having a general solution (information gain heuristics)
+     */
+    Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
+
+    /** rebuild decision tree using information gain heuristic
+     *
+     * In a scenario in which the decision tree potentially contains more
+     * conditions than necessary, it is beneficial to rebuild it in a way that
+     * "better" conditions occurr closer to the top.
+     *
+     * The information gain heuristic selects conditions that lead to a
+     * greater reduction of the Shannon entropy in the set of points
+     */
+    void recomputeSolHeuristically(std::map<Node, Node>& hd_mv);
+    /** recursively select (best) conditions to split heads
+     *
+     * At each call picks the best condition based on the information gain
+     * heuristic and splits the set of heads accordingly, then recurses on
+     * them.
+     *
+     * The base case is a set being fully classified (i.e. all heads have the
+     * same value)
+     *
+     * hds is the set of evaluation point heads we must classify with the
+     * values in conds. The classification is guided by how a condition value
+     * splits the heads through its evaluation on the points associated with
+     * the heads. The metric is based on the model values of the heads (hd_mv)
+     * in the resulting splits.
+     *
+     * ind is the current level of indentation (for debugging)
+     */
+    void buildDtInfoGain(std::vector<Node>& hds,
+                         std::vector<Node> conds,
+                         std::map<Node, Node>& hd_mv,
+                         int ind);
+    /** computes the Shannon entropy of a set of heads
+     *
+     * The entropy depends on how many positive and negative heads are in the
+     * set and in their distribution. The polarity of the evaluation heads is
+     * queried from their model values in hd_mv.
+     *
+     * ind is the current level of indentation (for debugging)
+     */
+    double getEntropy(const std::vector<Node>& hds,
+                      std::map<Node, Node>& hd_mv,
+                      int ind);
+    /** evaluates a condition on a set of points
+     *
+     * The result is two sets of points: those on which the condition holds
+     * and those on which it does not
+     */
+    std::pair<std::vector<Node>, std::vector<Node>> evaluateCond(
+        std::vector<Node>& pts, Node cond);
     /** Classifies evaluation points according to enumerated condition values
      *
      * Maintains the invariant that points evaluated in the same way in the
@@ -264,6 +357,7 @@ class SygusUnifRl : public SygusUnif
     class PointSeparator : public LazyTrieEvaluator
     {
      public:
+      PointSeparator() : d_dt(nullptr) {}
       /** initializes this class */
       void initialize(DecisionTreeInfo* dt);
       /**
@@ -274,10 +368,28 @@ class SygusUnifRl : public SygusUnif
 
       /** the lazy trie for building the separation classes */
       LazyTrieMulti d_trie;
+      /** extracts solution from decision tree built */
+      Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
+      /** computes the result of applying cond on the respective point of hd
+       *
+       * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
+       * in point (hd 0 1) this function will result in true, since
+       *   (\lambda xy. x < y) 0 1 evaluates to true
+       */
+      Node computeCond(Node cond, Node hd);
 
      private:
       /** reference to parent unif util */
       DecisionTreeInfo* d_dt;
+      /** cache of conditions evaluations on heads
+       *
+       * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
+       * in point (hd 0 1), then after invoking computeCond(cond, hd) this map
+       * will contain d_eval_cond_hd[<cond, hd>] = true, since
+       *
+       *   (\lambda xy. x < y) 0 1 evaluates to true
+       */
+      std::map<std::pair<Node, Node>, Node> d_eval_cond_hd;
     };
     /**
      * Utility for determining how evaluation points are separated by currently
@@ -331,8 +443,8 @@ class SygusUnifRl : public SygusUnif
                                      unsigned strategy_index);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H */

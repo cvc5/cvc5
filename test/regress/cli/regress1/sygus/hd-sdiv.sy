@@ -1,0 +1,16 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status
+(set-logic BV)
+
+(define-fun hd01 ((x (_ BitVec 32))) (_ BitVec 32) (bvand x #x00000001))
+
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32)
+    ((Start (_ BitVec 32)))
+    ((Start (_ BitVec 32) ((bvsdiv Start Start)
+                         (bvand Start Start)
+                         x
+                         #x00000001))))
+
+(declare-var y (_ BitVec 32))
+(constraint (= (hd01 y) (f y)))
+(check-synth)

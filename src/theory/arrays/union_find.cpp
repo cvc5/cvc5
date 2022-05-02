@@ -1,30 +1,27 @@
-/*********************                                                        */
-/*! \file union_find.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Path-compressing, backtrackable union-find using an undo
- ** stack. Refactored from the UF union-find.
- **
- ** Path-compressing, backtrackable union-find using an undo stack
- ** rather than storing items in a CDMap<>.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Path-compressing, backtrackable union-find using an undo
+ * stack. Refactored from the UF union-find.
+ */
 
 #include <iostream>
 
-#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "theory/arrays/union_find.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -48,10 +45,10 @@ void UnionFind<NodeType, NodeHash>::notify() {
 // The following declarations allow us to put functions in the .cpp file
 // instead of the header, since we know which instantiations are needed.
 
-template void UnionFind<Node, NodeHashFunction>::notify();
+template void UnionFind<Node, std::hash<Node>>::notify();
 
-template void UnionFind<TNode, TNodeHashFunction>::notify();
+template void UnionFind<TNode, std::hash<TNode>>::notify();
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5::internal

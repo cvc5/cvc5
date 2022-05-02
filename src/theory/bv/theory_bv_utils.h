@@ -1,42 +1,41 @@
-/*********************                                                        */
-/*! \file theory_bv_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for theory BV.
- **
- ** Util functions for theory BV.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for theory BV.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include <set>
-#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include "expr/node_manager.h"
+#include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node> NodeSet;
+typedef std::unordered_set<TNode> TNodeSet;
 
 namespace utils {
 
-typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
+typedef std::unordered_map<TNode, bool> TNodeBoolMap;
+typedef std::unordered_set<Node> NodeSet;
 
 /* Get the bit-width of given node. */
 unsigned getSize(TNode node);
@@ -52,8 +51,14 @@ unsigned getExtractLow(TNode node);
 /* Get the number of bits by which a given node is extended. */
 unsigned getSignExtendAmount(TNode node);
 
+/* Returns true if given node represents a bit-vector comprised of ones.  */
+bool isOnes(TNode node);
+
 /* Returns true if given node represents a zero bit-vector.  */
 bool isZero(TNode node);
+
+/* Returns true if given node represents a one bit-vector.  */
+bool isOne(TNode node);
 
 /* If node is a constant of the form 2^c or -2^c, then this function returns
  * c+1. Otherwise, this function returns 0. The flag isNeg is updated to
@@ -112,15 +117,10 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children);
 template<bool ref_count>
 Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
 {
-  Assert (k == kind::AND
-          || k == kind::OR
-          || k == kind::XOR
-          || k == kind::BITVECTOR_AND
-          || k == kind::BITVECTOR_OR
-          || k == kind::BITVECTOR_XOR
-          || k == kind::BITVECTOR_PLUS
-          || k == kind::BITVECTOR_SUB
-          || k == kind::BITVECTOR_MULT);
+  Assert(k == kind::AND || k == kind::OR || k == kind::XOR
+         || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+         || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_ADD
+         || k == kind::BITVECTOR_SUB || k == kind::BITVECTOR_MULT);
 
   if (nodes.size() == 1) { return nodes[0]; }
   return NodeManager::currentNM()->mkNode(k, nodes);
@@ -140,8 +140,8 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
 
-  NodeBuilder<> conjunction(kind::AND);
-  for (const Node& n : all) { conjunction << n; }
+  NodeBuilder conjunction(kind::AND);
+  for (TNode n : all) { conjunction << n; }
   return conjunction;
 }
 
@@ -159,8 +159,8 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
 
-  NodeBuilder<> disjunction(kind::OR);
-  for (const Node& n : all) { disjunction << n; }
+  NodeBuilder disjunction(kind::OR);
+  for (TNode n : all) { disjunction << n; }
   return disjunction;
 }
 /* Create node of kind XOR. */
@@ -205,7 +205,25 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 
+/**
+ * Returns the rewritten form of node, which is a term of the form bv2nat(x).
+ * The return value of this method is the integer sum:
+ *   (+ ite( (= ((_ extract (n-1) (n-1)) x) 1) (^ 2 (n-1)) 0)
+ *      ...
+ *      ite( (= ((_ extract 0 0) x) 1) (^ 2 0) 0))
+ * where n is the bitwidth of x.
+ */
+Node eliminateBv2Nat(TNode node);
+/**
+ * Returns the rewritten form of node, which is a term of the form int2bv(x).
+ * The return value of this method is the concatenation term:
+ *   (bvconcat ite( (>= (mod x (^ 2 n)) (^ 2 (n-1))) (_ bv1 1) (_ bv1 0))
+ *             ...
+ *             ite( (>= (mod x (^ 2 1)) (^ 2 0)) (_ bv1 1) (_ bv1 0)))
+ * where n is the bit-width of x.
+ */
+Node eliminateInt2Bv(TNode node);
 }
 }
 }
-}
+}  // namespace cvc5::internal

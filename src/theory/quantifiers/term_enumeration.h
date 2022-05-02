@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_enumeration.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utilities for term enumeration
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for term enumeration.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
 
 #include <unordered_map>
 #include <vector>
@@ -24,9 +25,11 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+class QuantifiersBoundInference;
 
 /** Term enumeration
  *
@@ -38,46 +41,36 @@ namespace quantifiers {
 class TermEnumeration
 {
  public:
-  TermEnumeration() {}
+  TermEnumeration(QuantifiersBoundInference* qbi = nullptr);
   ~TermEnumeration() {}
   /** get i^th term for type tn */
   Node getEnumerateTerm(TypeNode tn, unsigned i);
-  /** is closed enumerable type
+
+  /** get domain
    *
-   * This returns true if this type has an enumerator that produces
-   * constants that are handled by ground theory solvers.
-   * Examples of types that are not closed enumerable are:
-   * (1) uninterpreted sorts,
-   * (2) arrays,
-   * (3) codatatypes,
-   * (4) parametric sorts involving any of the above.
+   * If tn is a type such that d_qbi.mayComplete(tn) returns true, this method
+   * adds all domain elements of tn to dom and returns true. Otherwise, this
+   * method returns false.
    */
-  bool isClosedEnumerableType(TypeNode tn);
-  /** may complete type
-   *
-   * Returns true if the type tn is closed 
-   * enumerable, and is small enough
-   * for finite model finding to enumerate it,
-   * by some heuristic (current cardinality < 1000).
-   */
-  bool mayComplete(TypeNode tn);
+  bool getDomain(TypeNode tn, std::vector<Node>& dom);
 
  private:
+  /**
+   * Reference to quantifiers bound inference, which determines when it is
+   * possible to enumerate the entire domain of a type. If this is not provided,
+   * getDomain above always returns false.
+   */
+  QuantifiersBoundInference* d_qbi;
   /** ground terms enumerated for types */
-  std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
-      d_enum_terms;
+  std::unordered_map<TypeNode, std::vector<Node>> d_enum_terms;
   /** map from type to the index of its type enumerator in d_typ_enum. */
-  std::unordered_map<TypeNode, size_t, TypeNodeHashFunction> d_typ_enum_map;
+  std::unordered_map<TypeNode, size_t> d_typ_enum_map;
   /** type enumerators */
   std::vector<TypeEnumerator> d_typ_enum;
-  /** closed enumerable type cache */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_typ_closed_enum;
-  /** may complete */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */

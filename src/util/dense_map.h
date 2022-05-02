@@ -1,39 +1,42 @@
-/*********************                                                        */
-/*! \file dense_map.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Paul Meng, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This is an abstraction of a Map from unsigned integers to elements of type T.
- **
- ** This is an abstraction of a Map from an unsigned integer to elements of type T.
- ** This class is designed to provide constant time insertion, deletion, element_of,
- ** and fast iteration. This is done by storing backing vectors of size greater than
- ** the maximum key.  This datastructure is appropriate for heavy use datastructures
- ** where the Keys are a dense set of integers.
- **
- ** T must support T(), and operator=().
- **
- ** The derived utility classes DenseSet and DenseMultiset are also defined.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Dejan Jovanovic, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This is an abstraction of a Map from unsigned integers to elements
+ * of type T.
+ *
+ * This is an abstraction of a Map from an unsigned integer to elements of
+ * type T.
+ * This class is designed to provide constant time insertion, deletion,
+ * element_of, and fast iteration. This is done by storing backing vectors of
+ * size greater than the maximum key.
+ * This datastructure is appropriate for heavy use datastructures where the
+ * Keys are a dense set of integers.
+ *
+ * T must support T(), and operator=().
+ *
+ * The derived utility classes DenseSet and DenseMultiset are also defined.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
-#include <boost/integer_traits.hpp>
+#include <limits>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "util/index.h"
 
-
-namespace CVC4 {
+namespace cvc5::internal {
 
 template <class T>
 class DenseMap {
@@ -48,7 +51,8 @@ private:
 
   typedef Index Position;
   typedef std::vector<Position> PositionMap;
-  static const Position POSITION_SENTINEL = boost::integer_traits<Position>::const_max;
+  static const Position POSITION_SENTINEL =
+      std::numeric_limits<Position>::max();
 
   //Each Key in the set is mapped to its position in d_list.
   //Each Key not in the set is mapped to KEY_SENTINEL
@@ -100,7 +104,7 @@ public:
     if( x >= allocated()){
       return false;
     }else{
-      Assert(x <  allocated());
+      Assert(x < allocated());
       return d_posVector[x] != +POSITION_SENTINEL;
     }
   }
@@ -335,4 +339,4 @@ public:
   void pop_back() { d_map.pop_back(); }
 }; /* class DenseMultiset */
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal

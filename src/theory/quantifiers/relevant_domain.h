@@ -1,28 +1,33 @@
-/*********************                                                        */
-/*! \file relevant_domain.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief relevant domain class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Relevant domain class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
-#define __CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
+#ifndef CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
+#define CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
 
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+class QuantifiersState;
+class QuantifiersRegistry;
+class TermRegistry;
 
 /** Relevant Domain
  *
@@ -40,7 +45,10 @@ namespace quantifiers {
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersEngine* qe);
+  RelevantDomain(Env& env,
+                 QuantifiersState& qs,
+                 QuantifiersRegistry& qr,
+                 TermRegistry& tr);
   virtual ~RelevantDomain();
   /** Reset. */
   bool reset(Theory::Effort e) override;
@@ -84,7 +92,7 @@ class RelevantDomain : public QuantifiersUtil
     /** remove redundant terms for d_terms, removes
      * duplicates modulo equality.
      */
-    void removeRedundantTerms( QuantifiersEngine * qe );
+    void removeRedundantTerms(QuantifiersState& qs);
     /** is n in this relevant domain? */
     bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
 
@@ -100,23 +108,19 @@ class RelevantDomain : public QuantifiersUtil
    * of the equivalence class of relevant domain objects,
    * which is computed as a union find (see RDomain::d_parent).
    */
-  RDomain* getRDomain(Node n, int i, bool getParent = true);
+  RDomain* getRDomain(Node n, size_t i, bool getParent = true);
 
  private:
   /** the relevant domains for each quantified formula and function,
    * for each variable # and argument #.
    */
-  std::map< Node, std::map< int, RDomain * > > d_rel_doms;
-  /** stores the function or quantified formula associated with
-   * each relevant domain object.
-   */
-  std::map< RDomain *, Node > d_rn_map;
-  /** stores the argument or variable number associated with
-   * each relevant domain object.
-   */
-  std::map< RDomain *, int > d_ri_map;
-  /** Quantifiers engine associated with this utility. */
-  QuantifiersEngine* d_qe;
+  std::map<Node, std::map<size_t, RDomain*> > d_rel_doms;
+  /** Reference to the quantifiers state object */
+  QuantifiersState& d_qs;
+  /** Reference to the quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** have we computed the relevant domain on this full effort check? */
   bool d_is_computed;
   /** relevant domain literal
@@ -142,10 +146,12 @@ class RelevantDomain : public QuantifiersUtil
   };
   /** Cache of the effect of literals on the relevant domain */
   std::map< bool, std::map< bool, std::map< Node, RDomainLit > > > d_rel_dom_lit;
+  /** Compute the relevant domain for quantified formula q. */
+  void computeRelevantDomain(Node q);
   /** Compute the relevant domain for a subformula n of q,
    * whose polarity is given by hasPol/pol.
    */
-  void computeRelevantDomain(Node q, Node n, bool hasPol, bool pol);
+  void computeRelevantDomainNode(Node q, Node n, bool hasPol, bool pol);
   /** Compute the relevant domain when the term n
    * is in a position to be included in relevant domain rf.
    */
@@ -158,9 +164,8 @@ class RelevantDomain : public QuantifiersUtil
   void computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n );
 };/* class RelevantDomain */
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* __CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H */

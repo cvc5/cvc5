@@ -1,6 +1,0 @@
-% EXPECT: valid
-% Simple test for right associativity of <=>
-
-A, B, C: BOOLEAN;
-
-QUERY (A <=> B <=> C) <=> (A <=> (B <=> C));

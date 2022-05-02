@@ -1,0 +1,10 @@
+; COMMAND-LINE: --unconstrained-simp
+(set-logic QF_AUFBV )
+(set-info :status sat)
+(declare-sort U 0)
+(declare-fun a () (Array U (_ BitVec 64) ) )
+(declare-fun i () U)
+(declare-fun p () Bool)
+(assert (= (_ bv0 64) (ite p (select a i) (_ bv1 64))))
+(check-sat)
+(exit)

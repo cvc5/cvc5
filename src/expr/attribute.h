@@ -1,42 +1,77 @@
-/*********************                                                        */
-/*! \file attribute.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Node attributes.
- **
- ** Node attributes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node attributes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 /* There are strong constraints on ordering of declarations of
  * attributes and nodes due to template use */
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef __CVC4__EXPR__ATTRIBUTE_H
-#define __CVC4__EXPR__ATTRIBUTE_H
+#ifndef CVC5__EXPR__ATTRIBUTE_H
+#define CVC5__EXPR__ATTRIBUTE_H
 
 #include <string>
-#include <stdint.h>
 #include "expr/attribute_unique_id.h"
 
 // include supporting templates
-#define CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#define CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #include "expr/attribute_internals.h"
-#undef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#undef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 namespace attr {
 
+/**
+ * Attributes are roughly speaking [almost] global hash tables from Nodes
+ * (TNodes) to data. Attributes can be thought of as additional fields used to
+ * extend NodeValues. Attributes are mutable. Attributes live only as long as
+ * the node itself does. If a Node is garbage-collected, Attributes associated
+ * with it will automatically be garbage collected. (Being in the domain of an
+ * Attribute does not increase a Node's reference count.) To achieve this
+ * special relationship with Nodes, Attributes are mapped by hash tables
+ * (AttrHash<>) that live in the AttributeManager. The AttributeManager is
+ * owned by the NodeManager.
+ *
+ * Example:
+ *
+ * Attributes tend to be defined in a fixed pattern:
+ *
+ * ```
+ * struct InstLevelAttributeId {};
+ * typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+ * ```
+ *
+ * To get the value of an Attribute InstLevelAttribute on a Node n, use
+ * ```
+ * n.getAttribute(InstLevelAttribute());
+ * ```
+ *
+ * To check whether the attribute has been set:
+ * ```
+ * n.hasAttribute(InstLevelAttribute());
+ * ```
+ *
+ * To separate Attributes of the same type in the same table, each of the
+ * structures `struct InstLevelAttributeId {};` is given a different unique
+ * value at load time. An example is the empty struct InstLevelAttributeId.
+ * These should be unique for each Attribute. Then via some template messiness
+ * when InstLevelAttribute() is passed as the argument to getAttribute(...) the
+ * load time id is instantiated.
+ */
 // ATTRIBUTE MANAGER ===========================================================
 
 /**
@@ -61,7 +96,7 @@ class AttributeManager {
    * getTable<> is a helper template that gets the right table from an
    * AttributeManager given its type.
    */
-  template <class T, bool context_dep>
+  template <class T, class Enable>
   friend struct getTable;
 
   bool d_inGarbageCollection;
@@ -88,8 +123,6 @@ public:
   AttrHash<TypeNode> d_types;
   /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
-  /** Underlying hash table for pointer-valued attributes */
-  AttrHash<void*> d_ptrs;
 
   /**
    * Get a particular attribute on a particular node.
@@ -177,13 +210,13 @@ public:
 
   /**
    * debugHook() is an empty function for the purpose of debugging
-   * the AttributeManager without recompiling all of CVC4.
+   * the AttributeManager without recompiling all of cvc5.
    * Formally this is a nop.
    */
   void debugHook(int debugFlag);
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // MAPPING OF ATTRIBUTE KINDS TO TABLES IN THE ATTRIBUTE MANAGER ===============
 
@@ -192,13 +225,19 @@ namespace attr {
 /**
  * The getTable<> template provides (static) access to the
  * AttributeManager field holding the table.
+ *
+ * The `Enable` template parameter is used to instantiate the template
+ * conditionally: If the template substitution of Enable fails (e.g. when using
+ * `std::enable_if` in the template parameter and the condition is false), the
+ * instantiation is ignored due to the SFINAE rule.
  */
-template <class T, bool context_dep>
+template <class T, class Enable = void>
 struct getTable;
 
 /** Access the "d_bools" member of AttributeManager. */
 template <>
-struct getTable<bool, false> {
+struct getTable<bool>
+{
   static const AttrTableId id = AttrTableBool;
   typedef AttrHash<bool> table_type;
   static inline table_type& get(AttributeManager& am) {
@@ -210,8 +249,11 @@ struct getTable<bool, false> {
 };
 
 /** Access the "d_ints" member of AttributeManager. */
-template <>
-struct getTable<uint64_t, false> {
+template <class T>
+struct getTable<T,
+                // Use this specialization only for unsigned integers
+                typename std::enable_if<std::is_unsigned<T>::value>::type>
+{
   static const AttrTableId id = AttrTableUInt64;
   typedef AttrHash<uint64_t> table_type;
   static inline table_type& get(AttributeManager& am) {
@@ -224,7 +266,8 @@ struct getTable<uint64_t, false> {
 
 /** Access the "d_tnodes" member of AttributeManager. */
 template <>
-struct getTable<TNode, false> {
+struct getTable<TNode>
+{
   static const AttrTableId id = AttrTableTNode;
   typedef AttrHash<TNode> table_type;
   static inline table_type& get(AttributeManager& am) {
@@ -237,7 +280,8 @@ struct getTable<TNode, false> {
 
 /** Access the "d_nodes" member of AttributeManager. */
 template <>
-struct getTable<Node, false> {
+struct getTable<Node>
+{
   static const AttrTableId id = AttrTableNode;
   typedef AttrHash<Node> table_type;
   static inline table_type& get(AttributeManager& am) {
@@ -250,7 +294,8 @@ struct getTable<Node, false> {
 
 /** Access the "d_types" member of AttributeManager. */
 template <>
-struct getTable<TypeNode, false> {
+struct getTable<TypeNode>
+{
   static const AttrTableId id = AttrTableTypeNode;
   typedef AttrHash<TypeNode> table_type;
   static inline table_type& get(AttributeManager& am) {
@@ -263,7 +308,8 @@ struct getTable<TypeNode, false> {
 
 /** Access the "d_strings" member of AttributeManager. */
 template <>
-struct getTable<std::string, false> {
+struct getTable<std::string>
+{
   static const AttrTableId id = AttrTableString;
   typedef AttrHash<std::string> table_type;
   static inline table_type& get(AttributeManager& am) {
@@ -274,33 +320,7 @@ struct getTable<std::string, false> {
   }
 };
 
-/** Access the "d_ptrs" member of AttributeManager. */
-template <class T>
-struct getTable<T*, false> {
-  static const AttrTableId id = AttrTablePointer;
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
-  }
-};
-
-/** Access the "d_ptrs" member of AttributeManager. */
-template <class T>
-struct getTable<const T*, false> {
-  static const AttrTableId id = AttrTablePointer;
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
-  }
-};
-
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE MANAGER IMPLEMENTATIONS ===========================================
 
@@ -312,11 +332,9 @@ typename AttrKind::value_type
 AttributeManager::getAttribute(NodeValue* nv, const AttrKind&) const {
   typedef typename AttrKind::value_type value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
-  typedef typename getTable<value_type, AttrKind::context_dependent>::
-            table_type table_type;
+  typedef typename getTable<value_type>::table_type table_type;
 
-  const table_type& ah =
-    getTable<value_type, AttrKind::context_dependent>::get(*this);
+  const table_type& ah = getTable<value_type>::get(*this);
   typename table_type::const_iterator i =
     ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -354,12 +372,9 @@ struct HasAttribute<true, AttrKind> {
                                   typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
-    typedef typename getTable<value_type,
-                              AttrKind::context_dependent>::table_type
-      table_type;
+    typedef typename getTable<value_type>::table_type table_type;
 
-    const table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*am);
+    const table_type& ah = getTable<value_type>::get(*am);
     typename table_type::const_iterator i =
       ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -383,11 +398,9 @@ struct HasAttribute<false, AttrKind> {
                                   NodeValue* nv) {
     typedef typename AttrKind::value_type value_type;
     //typedef KindValueToTableValueMapping<value_type> mapping;
-    typedef typename getTable<value_type, AttrKind::context_dependent>::
-              table_type table_type;
+    typedef typename getTable<value_type>::table_type table_type;
 
-    const table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*am);
+    const table_type& ah = getTable<value_type>::get(*am);
     typename table_type::const_iterator i =
       ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -403,11 +416,9 @@ struct HasAttribute<false, AttrKind> {
                                   typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
-    typedef typename getTable<value_type, AttrKind::context_dependent>::
-              table_type table_type;
+    typedef typename getTable<value_type>::table_type table_type;
 
-    const table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*am);
+    const table_type& ah = getTable<value_type>::get(*am);
     typename table_type::const_iterator i =
       ah.find(std::make_pair(AttrKind::getId(), nv));
 
@@ -443,74 +454,29 @@ AttributeManager::setAttribute(NodeValue* nv,
                                const typename AttrKind::value_type& value) {
   typedef typename AttrKind::value_type value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
-  typedef typename getTable<value_type, AttrKind::context_dependent>::
-            table_type table_type;
+  typedef typename getTable<value_type>::table_type table_type;
 
-  table_type& ah =
-      getTable<value_type, AttrKind::context_dependent>::get(*this);
+  table_type& ah = getTable<value_type>::get(*this);
   ah[std::make_pair(AttrKind::getId(), nv)] = mapping::convert(value);
 }
 
-/**
- * Search for the NodeValue in all attribute tables and remove it,
- * calling the cleanup function if one is defined.
- *
- * This cannot use nv as anything other than a pointer!
- */
+/** Search for the NodeValue in all attribute tables and remove it. */
 template <class T>
 inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
                                               NodeValue* nv) {
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
-    typedef AttributeTraits<T, false> traits_t;
-    typedef AttrHash<T> hash_t;
-    std::pair<uint64_t, NodeValue*> pr = std::make_pair(id, nv);
-    if(traits_t::getCleanup()[id] != NULL) {
-      typename hash_t::iterator i = table.find(pr);
-      if(i != table.end()) {
-        traits_t::getCleanup()[id]((*i).second);
-        table.erase(pr);
-      }
-    } else {
-      table.erase(pr);
-    }
+  // This cannot use nv as anything other than a pointer!
+  const uint64_t last = attr::LastAttributeId<T>::getId();
+  for (uint64_t id = 0; id < last; ++id)
+  {
+    table.erase(std::make_pair(id, nv));
   }
 }
 
-/**
- * Remove all attributes from the table calling the cleanup function
- * if one is defined.
- */
+/** Remove all attributes from the table. */
 template <class T>
 inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
   Assert(!d_inGarbageCollection);
   d_inGarbageCollection = true;
-
-  bool anyRequireClearing = false;
-  typedef AttributeTraits<T, false> traits_t;
-  typedef AttrHash<T> hash_t;
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
-    if(traits_t::getCleanup()[id] != NULL) {
-      anyRequireClearing = true;
-    }
-  }
-
-  if(anyRequireClearing) {
-    typename hash_t::iterator it = table.begin();
-    typename hash_t::iterator it_end = table.end();
-
-    while (it != it_end){
-      uint64_t id = (*it).first.first;
-      /*
-      Debug("attrgc") << "id " << id
-                      << " node_value: " << ((*it).first.second)
-                      << std::endl;
-      */
-      if(traits_t::getCleanup()[id] != NULL) {
-        traits_t::getCleanup()[id]((*it).second);
-      }
-      ++it;
-    }
-  }
   table.clear();
   d_inGarbageCollection = false;
   Assert(!d_inGarbageCollection);
@@ -519,15 +485,13 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
 template <class AttrKind>
 AttributeUniqueId AttributeManager::getAttributeId(const AttrKind& attr){
   typedef typename AttrKind::value_type value_type;
-  AttrTableId tableId = getTable<value_type,
-                                 AttrKind::context_dependent>::id;
+  AttrTableId tableId = getTable<value_type>::id;
   return AttributeUniqueId(tableId, attr.getId());
 }
 
 template <class T>
 void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::vector<uint64_t>& ids){
   d_inGarbageCollection = true;
-  typedef AttributeTraits<T, false> traits_t;
   typedef AttrHash<T> hash_t;
 
   typename hash_t::iterator it = table.begin();
@@ -544,9 +508,6 @@ void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::
     if(std::binary_search(begin_ids, end_ids, id)){
       tmp = it;
       ++it;
-      if(traits_t::getCleanup()[id] != NULL) {
-        traits_t::getCleanup()[id]((*tmp).second);
-      }
       table.erase(tmp);
     }else{
       ++it;
@@ -569,9 +530,8 @@ void AttributeManager::reconstructTable(AttrHash<T>& table){
   d_inGarbageCollection = false;
 }
 
-
-}/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
+}  // namespace attr
+}  // namespace expr
 
 template <class AttrKind>
 inline typename AttrKind::value_type
@@ -651,6 +611,6 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
   d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__EXPR__ATTRIBUTE_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_H */

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file ho_trigger.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief higher-order trigger class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Higher-order trigger class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H
-#define __CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
+#define CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
 
 #include <map>
 #include <unordered_set>
@@ -25,8 +26,9 @@
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/ematching/trigger.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 class Trigger;
@@ -34,15 +36,15 @@ class Trigger;
 /** HigherOrder trigger
  *
  * This extends the trigger class with techniques that post-process
- * instantiations, specified by InstMatch objects, according to a variant of
+ * instantiations, specified by vectors of terms, according to a variant of
  * Huet's algorithm. For details, see Chapter 16 of the Handbook of Automated
  * Reasoning (vol. 2), by Gilles Dowek.
  *
  * The main difference between HigherOrderTrigger and Trigger is the function
  * sendInstantiation(...). Recall that this function is called when its
- * underlying IMGenerator generates an InstMatch m using E-matching technique.
- * We enumerate additional instantiations based on m, when the domain of m
- * contains variables of function type.
+ * underlying IMGenerator generates a vectors of terms m using E-matching
+ * technique. We enumerate additional instantiations based on m, when the
+ * domain of m contains variables of function type.
  *
  * Examples below (f, x, y are universal variables):
  *
@@ -89,16 +91,17 @@ class Trigger;
  */
 class HigherOrderTrigger : public Trigger
 {
-  friend class Trigger;
-
- private:
-  HigherOrderTrigger(QuantifiersEngine* qe,
+ public:
+  HigherOrderTrigger(Env& env,
+                     QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim,
+                     QuantifiersRegistry& qr,
+                     TermRegistry& tr,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);
   virtual ~HigherOrderTrigger();
 
- public:
   /** Collect higher order var apply terms
    *
    * Collect all top-level HO_APPLY terms in n whose head is a variable x in
@@ -122,7 +125,7 @@ class HigherOrderTrigger : public Trigger
    * Extends Trigger::addInstantiations to also send
    * lemmas based on addHoTypeMatchPredicateLemmas.
    */
-  int addInstantiations() override;
+  uint64_t addInstantiations() override;
 
  protected:
   /**
@@ -143,7 +146,7 @@ class HigherOrderTrigger : public Trigger
   std::map<TNode, std::vector<Node> > d_ho_var_bvs;
   std::map<TNode, Node> d_ho_var_bvl;
   /** the set of types of ho variables */
-  std::unordered_set<TypeNode, TypeNodeHashFunction> d_ho_var_types;
+  std::unordered_set<TypeNode> d_ho_var_types;
   /** add higher-order type predicate lemmas
    *
    * Adds lemmas of the form P( f ), where P is the predicate
@@ -158,7 +161,7 @@ class HigherOrderTrigger : public Trigger
    *
    * TODO: we may eliminate this based on how github issue #1115 is resolved.
    */
-  int addHoTypeMatchPredicateLemmas();
+  uint64_t addHoTypeMatchPredicateLemmas();
   /** send instantiation
    *
   * Sends an instantiation that is equivalent to m via
@@ -167,7 +170,7 @@ class HigherOrderTrigger : public Trigger
   * matching ground terms to function applications with variable heads.
   * See examples (EX1)-(EX3) above.
   */
-  bool sendInstantiation(InstMatch& m) override;
+  bool sendInstantiation(std::vector<Node>& m, InferenceId id) override;
 
  private:
   //-------------------- current information about the match
@@ -219,23 +222,23 @@ class HigherOrderTrigger : public Trigger
 
   /** higher-order pattern unification algorithm
    *
-  * Sends an instantiation that is equivalent to m via
-  * d_quantEngine->addInstantiation(...),
-  * based on Huet's algorithm.
-  *
-  * This is a helper function of sendInstantiation( m ) above.
-  *
-  * var_index is the index of the variable in m that we are currently processing
-  *   i.e. we are processing the var_index^{th} higher-order variable.
-  *
-  * For example, say we are processing the match from (EX4) above.
-  *   when var_index = 0,1, we are processing possibilities for
-  *    instantiation of f1,f2 respectively.
-  */
-  bool sendInstantiation(InstMatch& m, unsigned var_index);
+   * Sends an instantiation that is equivalent to m via
+   * Instantiate::addInstantiation(...),
+   * based on Huet's algorithm.
+   *
+   * This is a helper function of sendInstantiation( m ) above.
+   *
+   * var_index is the index of the variable in m that we are currently
+   * processing i.e. we are processing the var_index^{th} higher-order variable.
+   *
+   * For example, say we are processing the match from (EX4) above.
+   *   when var_index = 0,1, we are processing possibilities for
+   *    instantiation of f1,f2 respectively.
+   */
+  bool sendInstantiation(std::vector<Node>& m, size_t var_index);
   /** higher-order pattern unification algorithm
    * Sends an instantiation that is equivalent to m via
-   * d_quantEngine->addInstantiation(...).
+   * Instantiate::addInstantiation(...).
    * This is a helper function of sendInstantiation( m, var_index ) above.
    *
    * var_index is the index of the variable in m that we are currently
@@ -263,7 +266,7 @@ class HigherOrderTrigger : public Trigger
    *   arg_changed is true, since we modified at least one previous
    *     argument of f1 or f2.
    */
-  bool sendInstantiationArg(InstMatch& m,
+  bool sendInstantiationArg(std::vector<Node>& m,
                             unsigned var_index,
                             unsigned vnum,
                             unsigned arg_index,
@@ -271,8 +274,9 @@ class HigherOrderTrigger : public Trigger
                             bool arg_changed);
 };
 
-} /* CVC4::theory::inst namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H */

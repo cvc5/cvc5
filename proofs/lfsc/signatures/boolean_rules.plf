@@ -1,0 +1,52 @@
+; depends: boolean_programs.plf theory_def.plf
+
+(declare resolution (! c1 term (! c2 term (! c term (! p1 (holds c1) (! p2 (holds c2) (! pol flag (! l term (! r (^ (sc_resolution c1 c2 pol l) c) (holds c))))))))))
+(declare reordering (! c1 term (! c2 term (! p1 (holds c1) (! r (^ (nary_is_subset f_or c1 c2) tt) (holds c2))))))
+(declare factoring (! c1 term (! c2 term (! p1 (holds c1) (! r (^ (nary_drop_dups f_or c1 false) c2) (holds c2))))))
+
+(declare split (! f term (holds (or f (or (not f) false)))))
+
+(declare eq_resolve (! f term (! g term (! p1 (holds f) (! p2 (holds (= f g)) (holds g))))))
+
+(declare modus_ponens (! f term (! g term (! p1 (holds f) (! p2 (holds (=> f g)) (holds g))))))
+
+(declare not_not_elim (! f term (! p (holds (not (not f))) (holds f))))
+
+(declare contra (! f term (! p1 (holds f) (! p2 (holds (not f)) (holds false)))))
+
+(declare and_elim (! f1 term (! f2 term (! n mpz (! p (holds f1) (! r (^ (nary_extract f_and f1 n) f2)  (holds f2)))))))
+
+; And introduction. Since PfRule::AND_INTRO is n-ary, we require n applications
+; of the following two rules. The proof (AND_INTRO P1 ... Pn) is translated to
+; the LFSC proof: (and_intro2* _ _ P{n-1} (and_intro1 _ Pn)).
+(declare and_intro1 (! f term (! p (holds f) (holds (and f true)))))
+(declare and_intro2 (! f1 term (! f2 term (! p1 (holds f1) (! p2 (holds f2) (holds (and f1 f2)))))))
+
+(declare not_or_elim (! f1 term (! f2 term (! n mpz (! p (holds (not f1)) (! r (^ (nary_extract f_or f1 n) f2) (holds (not f2))))))))
+
+(declare implies_elim (! f1 term (! f2 term (! p1 (holds (=> f1 f2)) (holds (or (not f1) (or f2 false)))))))
+(declare not_implies_elim1 (! f1 term (! f2 term (! p1 (holds (not (=> f1 f2))) (holds f1)))))
+(declare not_implies_elim2 (! f1 term (! f2 term (! p1 (holds (not (=> f1 f2))) (holds (not f2))))))
+
+(declare equiv_elim1 (! f1 term (! f2 term (! p1 (holds (= f1 f2)) (holds (or (not f1) (or f2 false)))))))
+(declare equiv_elim2 (! f1 term (! f2 term (! p1 (holds (= f1 f2)) (holds (or f1 (or (not f2) false)))))))
+(declare not_equiv_elim1 (! f1 term (! f2 term (! p1 (holds (not (= f1 f2))) (holds (or f1 (or f2 false)))))))
+(declare not_equiv_elim2 (! f1 term (! f2 term (! p1 (holds (not (= f1 f2))) (holds (or (not f1) (or (not f2) false)))))))
+
+(declare xor_elim1 (! f1 term (! f2 term (! p1 (holds (xor f1 f2)) (holds (or f1 (or f2 false)))))))
+(declare xor_elim2 (! f1 term (! f2 term (! p1 (holds (xor f1 f2)) (holds (or (not f1) (or (not f2) false)))))))
+(declare not_xor_elim1 (! f1 term (! f2 term (! p1 (holds (not (xor f1 f2))) (holds (or f1 (or (not f2) false)))))))
+(declare not_xor_elim2 (! f1 term (! f2 term (! p1 (holds (not (xor f1 f2))) (holds (or (not f1) (or f2 false)))))))
+
+(declare ite_elim1 (! c term (! f1 term (! f2 term (! p1 (holds (ite c f1 f2)) (holds (or (not c) (or f1 false))))))))
+(declare ite_elim2 (! c term (! f1 term (! f2 term (! p1 (holds (ite c f1 f2)) (holds (or c (or f2 false))))))))
+(declare not_ite_elim1 (! c term (! f1 term (! f2 term (! p1 (holds (not (ite c f1 f2))) (holds (or (not c) (or (not f1) false))))))))
+(declare not_ite_elim2 (! c term (! f1 term (! f2 term (! p1 (holds (not (ite c f1 f2))) (holds (or c (or (not f2) false))))))))
+
+(declare not_and (! c1 term (! c2 term (! p1 (holds (not c1)) (! r (^ (sc_not_and c1) c2) (holds c2))))))
+
+(declare not_and_rev (! c1 term (! c2 term (! p1 (holds c1) (! r (^ (sc_not_and_rev c1) c2) (holds (not c2)))))))
+
+; Process scope, which is used to translate PfRule::SCOPE. It runs the side
+; condition sc_process_scope on f to generate an equivalent formula g.
+(declare process_scope (! f term (! g term (! c term (! p1 (holds f) (! r (^ (sc_process_scope f c) g) (holds g)))))))

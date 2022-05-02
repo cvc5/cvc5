@@ -1,0 +1,10 @@
+(set-info :source |fuzzsmt|)
+(set-info :smt-lib-version 2.6)
+(set-info :category "random")
+(set-info :status sat)
+(set-logic QF_AUFBV)
+(declare-fun _substvar_43_ () (_ BitVec 3))
+(declare-fun a2 () (Array (_ BitVec 8) (_ BitVec 1)))
+(assert (let ((e5 (_ bv53513 16))) (let ((e7 (ite (bvult e5 ((_ zero_extend 13) _substvar_43_)) (_ bv1 1) (_ bv0 1)))) (let ((e8 a2)) (let ((e9 (store e8 ((_ zero_extend 5) _substvar_43_) (_ bv0 1)))) (let ((e11 (select a2 (_ bv0 8)))) (let ((e12 (select e9 ((_ sign_extend 5) _substvar_43_)))) (let ((e14 (select e8 ((_ sign_extend 7) e7)))) (let ((e28 (bvult e11 e12))) (let ((e30 (bvslt e12 e7))) (let ((e32 (bvult (_ bv0 1) e14))) (let ((e38 (bvslt (_ bv0 1) e12))) (let ((e60 (bvslt e14 e11))) (let ((e65 (=> true e60))) (let ((e74 e38)) (let ((e76 e65)) (let ((e79 (and e74 e74))) (let ((e82 (ite e79 true false))) (let ((e84 (=> true e32))) (let ((e86 (ite e76 false true))) (let ((e90 (=> e82 false))) (let ((e94 (= e84 true))) (let ((e97 e30)) (let ((e98 (not e94))) (let ((e99 (= e98 false))) (let ((e100 (and e97 e97))) (let ((e102 (= true e99))) (let ((e103 e86)) (let ((e104 (= e103 e90))) (let ((e105 (and e102 e100))) (let ((e106 (ite e104 e28 e105))) (let ((e107 e106)) e107))))))))))))))))))))))))))))))))
+(check-sat)
+

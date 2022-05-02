@@ -1,34 +1,33 @@
-/*********************                                                        */
-/*! \file cdtrail_queue.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent queue class with an explicit trail of elements
- **
- ** Context-dependent First-In-First-Out queue class.
- ** The implementation is based on a combination of CDList and a CDO<size_t>
- ** for tracking the next element to dequeue from the list.
- ** The implementation is currently not full featured.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context-dependent queue class with an explicit trail of elements
+ *
+ * The implementation is based on a combination of CDList and a CDO<size_t>
+ * for tracking the next element to dequeue from the list.
+ * The implementation is currently not full featured.
+ */
 
+#include "cvc5_private.h"
 
-#include "cvc4_private.h"
+#ifndef CVC5__CONTEXT__CDTRAIL_QUEUE_H
+#define CVC5__CONTEXT__CDTRAIL_QUEUE_H
 
-#ifndef __CVC4__CONTEXT__CDTRAIL_QUEUE_H
-#define __CVC4__CONTEXT__CDTRAIL_QUEUE_H
-
-#include "context/context.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
+class Context;
 
 template <class T>
 class CDTrailQueue {
@@ -74,7 +73,7 @@ public:
 
   /** Moves the iterator for the queue forward. */
   void dequeue(){
-    Assert(!empty(), "Attempting to queue from an empty queue.");
+    Assert(!empty()) << "Attempting to queue from an empty queue.";
     d_iter = d_iter + 1;
   }
 
@@ -89,7 +88,6 @@ public:
 
 };/* class CDTrailQueue<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::context
 
-#endif /* __CVC4__CONTEXT__CDTRAIL_QUEUE_H */
+#endif /* CVC5__CONTEXT__CDTRAIL_QUEUE_H */

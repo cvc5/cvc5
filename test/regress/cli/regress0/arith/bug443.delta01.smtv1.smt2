@@ -1,0 +1,8 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_UFLRA)
+(declare-fun v1 () Real)
+(declare-fun v2 () Real)
+(declare-fun v0 () Real)
+(declare-fun p1 (Real) Bool)
+(check-sat-assuming ( (let ((_let_0 (* v2 (/ (- 5) 1)))) (let ((_let_1 (+ _let_0 v1))) (let ((_let_2 (- 1.0 (- _let_0)))) (xor (p1 0.0) (=> (= 1.0 v2) (and (= _let_0 (ite (= 5.0 _let_1) 1 v1)) (=> (p1 (ite (p1 v0) 0 v1)) (> (ite (>= _let_2 _let_1) (ite (> _let_2 0.0) (ite (= _let_1 v0) _let_1 _let_2) _let_0) v2) v1)))))))) ))

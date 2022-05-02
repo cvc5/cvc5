@@ -1,0 +1,7 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_AUFLIA)
+(declare-fun v4 () (Array Int Int))
+(declare-fun f0 (Int) Int)
+(declare-fun p0 (Int Int Int) Bool)
+(check-sat-assuming ( (and (< 0 (ite (< 0 (ite (p0 0 0 0) 1 0)) (ite (p0 1 0 0) 1 0) 1)) (=> (xor true (> (* 3 (f0 0)) (select v4 0))) false)) ))

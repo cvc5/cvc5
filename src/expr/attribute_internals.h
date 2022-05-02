@@ -1,31 +1,30 @@
-/*********************                                                        */
-/*! \file attribute_internals.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Node attributes' internals.
- **
- ** Node attributes' internals.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node attributes' internals.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #  error expr/attribute_internals.h should only be included by expr/attribute.h
-#endif /* CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
-#ifndef __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
-#define __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5__EXPR__ATTRIBUTE_INTERNALS_H
+#define CVC5__EXPR__ATTRIBUTE_INTERNALS_H
 
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 
 // ATTRIBUTE HASH FUNCTIONS ====================================================
@@ -54,7 +53,7 @@ struct AttrBoolHashFunction {
   }
 };/* struct AttrBoolHashFunction */
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE TYPE MAPPINGS =====================================================
 
@@ -90,9 +89,15 @@ namespace attr {
  *
  * This general (non-specialized) implementation of the template does
  * nothing.
+ *
+ * The `Enable` template parameter is used to instantiate the template
+ * conditionally: If the template substitution of Enable fails (e.g. when using
+ * `std::enable_if` in the template parameter and the condition is false), the
+ * instantiation is ignored due to the SFINAE rule.
  */
-template <class T>
-struct KindValueToTableValueMapping {
+template <class T, class Enable = void>
+struct KindValueToTableValueMapping
+{
   /** Simple case: T == table_value_type */
   typedef T table_value_type;
   /** No conversion necessary */
@@ -102,46 +107,42 @@ struct KindValueToTableValueMapping {
 };
 
 /**
- * Specialization of KindValueToTableValueMapping<> for pointer-valued
+ * This converts arbitrary unsigned integers (up to 64-bit) to and from 64-bit
+ * integers s.t. they can be stored in the hash table for integral-valued
  * attributes.
  */
 template <class T>
-struct KindValueToTableValueMapping<T*> {
-  /** Table's value type is void* */
-  typedef void* table_value_type;
-  /** A simple reinterpret_cast<>() conversion from T* to void* */
-  inline static void* convert(const T* const& t) {
-    return reinterpret_cast<void*>(const_cast<T*>(t));
+struct KindValueToTableValueMapping<
+    T,
+    // Use this specialization only for unsigned integers
+    typename std::enable_if<std::is_unsigned<T>::value>::type>
+{
+  typedef uint64_t table_value_type;
+  /** Convert from unsigned integer to uint64_t */
+  static uint64_t convert(const T& t)
+  {
+    static_assert(sizeof(T) <= sizeof(uint64_t),
+                  "Cannot store integer attributes of a bit-width that is "
+                  "greater than 64-bits");
+    return static_cast<uint64_t>(t);
   }
-  /** A simple reinterpret_cast<>() conversion from void* to T* */
-  inline static T* convertBack(void* const& t) {
-    return reinterpret_cast<T*>(t);
-  }
+  /** Convert from uint64_t to unsigned integer */
+  static T convertBack(const uint64_t& t) { return static_cast<T>(t); }
 };
 
-/**
- * Specialization of KindValueToTableValueMapping<> for const
- * pointer-valued attributes.
- */
-template <class T>
-struct KindValueToTableValueMapping<const T*> {
-  /** Table's value type is void* */
-  typedef void* table_value_type;
-  /** A simple reinterpret_cast<>() conversion from const T* const to void* */
-  inline static void* convert(const T* const& t) {
-    return reinterpret_cast<void*>(const_cast<T*>(t));
-  }
-  /** A simple reinterpret_cast<>() conversion from const void* const to T* */
-  inline static const T* convertBack(const void* const& t) {
-    return reinterpret_cast<const T*>(t);
-  }
-};
-
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE HASH TABLES =======================================================
 
 namespace attr {
+
+// Returns a 64 bit integer with a single `bit` set when `bit` < 64.
+// Avoids problems in (1 << x) when sizeof(x) <= sizeof(uint64_t).
+inline uint64_t GetBitSet(uint64_t bit)
+{
+  constexpr uint64_t kOne = 1;
+  return kOne << bit;
+}
 
 /**
  * An "AttrHash<value_type>"---the hash table underlying
@@ -177,30 +178,24 @@ class AttrHash<bool> :
 
     uint64_t& d_word;
 
-    unsigned d_bit;
+    uint64_t d_bit;
 
-  public:
-
-    BitAccessor(uint64_t& word, unsigned bit) :
-      d_word(word),
-      d_bit(bit) {
-    }
+   public:
+    BitAccessor(uint64_t& word, uint64_t bit) : d_word(word), d_bit(bit) {}
 
     BitAccessor& operator=(bool b) {
       if(b) {
         // set the bit
-        d_word |= (1 << d_bit);
+        d_word |= GetBitSet(d_bit);
       } else {
         // clear the bit
-        d_word &= ~(1 << d_bit);
+        d_word &= ~GetBitSet(d_bit);
       }
 
       return *this;
     }
 
-    operator bool() const {
-      return (d_word & (1 << d_bit)) ? true : false;
-    }
+    operator bool() const { return (d_word & GetBitSet(d_bit)) ? true : false; }
   };/* class AttrHash<bool>::BitAccessor */
 
   /**
@@ -213,18 +208,18 @@ class AttrHash<bool> :
 
     std::pair<NodeValue* const, uint64_t>* d_entry;
 
-    unsigned d_bit;
+    uint64_t d_bit;
 
-  public:
+   public:
 
     BitIterator() :
       d_entry(NULL),
       d_bit(0) {
     }
 
-    BitIterator(std::pair<NodeValue* const, uint64_t>& entry, unsigned bit) :
-      d_entry(&entry),
-      d_bit(bit) {
+    BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint64_t bit)
+        : d_entry(&entry), d_bit(bit)
+    {
     }
 
     std::pair<NodeValue* const, BitAccessor> operator*() {
@@ -247,9 +242,9 @@ class AttrHash<bool> :
 
     const std::pair<NodeValue* const, uint64_t>* d_entry;
 
-    unsigned d_bit;
+    uint64_t d_bit;
 
-  public:
+   public:
 
     ConstBitIterator() :
       d_entry(NULL),
@@ -257,14 +252,15 @@ class AttrHash<bool> :
     }
 
     ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
-                     unsigned bit) :
-      d_entry(&entry),
-      d_bit(bit) {
+                     uint64_t bit)
+        : d_entry(&entry), d_bit(bit)
+    {
     }
 
-    std::pair<NodeValue* const, bool> operator*() {
-      return std::make_pair(d_entry->first,
-                            (d_entry->second & (1 << d_bit)) ? true : false);
+    std::pair<NodeValue* const, bool> operator*()
+    {
+      return std::make_pair(
+          d_entry->first, (d_entry->second & GetBitSet(d_bit)) ? true : false);
     }
 
     bool operator==(const ConstBitIterator& b) {
@@ -293,11 +289,11 @@ public:
       return BitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
+                 (uint64_t)((*i).second),
+                 uint64_t(k.first));
     */
     return BitIterator(*i, k.first);
   }
@@ -317,11 +313,11 @@ public:
       return ConstBitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
+                 (uint64_t)((*i).second),
+                 uint64_t(k.first));
     */
     return ConstBitIterator(*i, k.first);
   }
@@ -366,114 +362,7 @@ public:
   }
 };/* class AttrHash<bool> */
 
-}/* CVC4::expr::attr namespace */
-
-// ATTRIBUTE CLEANUP FUNCTIONS =================================================
-
-namespace attr {
-
-/** Default cleanup for unmanaged Attribute<> */
-struct NullCleanupStrategy {
-};/* struct NullCleanupStrategy */
-
-/** Default cleanup for ManagedAttribute<> */
-template <class T>
-struct ManagedAttributeCleanupStrategy {
-};/* struct ManagedAttributeCleanupStrategy<> */
-
-/** Specialization for T* */
-template <class T>
-struct ManagedAttributeCleanupStrategy<T*> {
-  static inline void cleanup(T* p) { delete p; }
-};/* struct ManagedAttributeCleanupStrategy<T*> */
-
-/** Specialization for const T* */
-template <class T>
-struct ManagedAttributeCleanupStrategy<const T*> {
-  static inline void cleanup(const T* p) { delete p; }
-};/* struct ManagedAttributeCleanupStrategy<const T*> */
-
-/**
- * Helper for Attribute<> class below to determine whether a cleanup
- * is defined or not.
- */
-template <class T, class C>
-struct getCleanupStrategy {
-  typedef T value_type;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void fn(typename mapping::table_value_type t) {
-    C::cleanup(mapping::convertBack(t));
-  }
-};/* struct getCleanupStrategy<> */
-
-/**
- * Specialization for NullCleanupStrategy.
- */
-template <class T>
-struct getCleanupStrategy<T, NullCleanupStrategy> {
-  typedef T value_type;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void (*const fn)(typename mapping::table_value_type);
-};/* struct getCleanupStrategy<T, NullCleanupStrategy> */
-
-// out-of-class initialization required (because it's a non-integral type)
-template <class T>
-void (*const getCleanupStrategy<T, NullCleanupStrategy>::fn)
-     (typename getCleanupStrategy<T, NullCleanupStrategy>::
-               mapping::table_value_type) = NULL;
-
-/**
- * Specialization for ManagedAttributeCleanupStrategy<T>.
- */
-template <class T>
-struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> > {
-  typedef T value_type;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void (*const fn)(typename mapping::table_value_type);
-};/* struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> > */
-
-// out-of-class initialization required (because it's a non-integral type)
-template <class T>
-void (*const getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> >::fn)
-     (typename getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> >::
-               mapping::table_value_type) = NULL;
-
-/**
- * Specialization for ManagedAttributeCleanupStrategy<T*>.
- */
-template <class T>
-struct getCleanupStrategy<T*, ManagedAttributeCleanupStrategy<T*> > {
-  typedef T* value_type;
-  typedef ManagedAttributeCleanupStrategy<value_type> C;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void fn(typename mapping::table_value_type t) {
-    C::cleanup(mapping::convertBack(t));
-  }
-};/* struct getCleanupStrategy<T*, ManagedAttributeCleanupStrategy<T*> > */
-
-/**
- * Specialization for ManagedAttributeCleanupStrategy<const T*>.
- */
-template <class T>
-struct getCleanupStrategy<const T*,
-                          ManagedAttributeCleanupStrategy<const T*> > {
-  typedef const T* value_type;
-  typedef ManagedAttributeCleanupStrategy<value_type> C;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void fn(typename mapping::table_value_type t) {
-    C::cleanup(mapping::convertBack(t));
-  }
-};/* struct getCleanupStrategy<const T*,
-                               ManagedAttributeCleanupStrategy<const T*> > */
-
-/**
- * Cause compile-time error for improperly-instantiated
- * getCleanupStrategy<>.
- */
-template <class T, class U>
-struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<U> >;
-
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT TEMPLATE ====================================
 
@@ -483,34 +372,28 @@ namespace attr {
  * This is the last-attribute-assigner.  IDs are not globally
  * unique; rather, they are unique for each table_value_type.
  */
-template <class T, bool context_dep>
-struct LastAttributeId {
-  static uint64_t& getId() {
+template <class T>
+struct LastAttributeId
+{
+ public:
+  static uint64_t getNextId() {
+    uint64_t* id = raw_id();
+    const uint64_t next_id = *id;
+    ++(*id);
+    return next_id;
+  }
+  static uint64_t getId() {
+    return *raw_id();
+  }
+ private:
+  static uint64_t* raw_id()
+  {
     static uint64_t s_id = 0;
-    return s_id;
+    return &s_id;
   }
 };
 
-}/* CVC4::expr::attr namespace */
-
-// ATTRIBUTE TRAITS ============================================================
-
-namespace attr {
-
-/**
- * This is the last-attribute-assigner.  IDs are not globally
- * unique; rather, they are unique for each table_value_type.
- */
-template <class T, bool context_dep>
-struct AttributeTraits {
-  typedef void (*cleanup_t)(T);
-  static std::vector<cleanup_t>& getCleanup() {
-    static std::vector<cleanup_t> cleanup;
-    return cleanup;
-  }
-};
-
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE DEFINITION ========================================================
 
@@ -520,19 +403,10 @@ struct AttributeTraits {
  * @param T the tag for the attribute kind.
  *
  * @param value_t the underlying value_type for the attribute kind
- *
- * @param CleanupStrategy Clean-up routine for associated values when the
- * Node goes away.  Useful, e.g., for pointer-valued attributes when
- * the values are "owned" by the table.
- *
- * @param context_dep whether this attribute kind is
- * context-dependent
  */
-template <class T,
-          class value_t,
-          class CleanupStrategy = attr::NullCleanupStrategy,
-          bool context_dep = false>
-class Attribute {
+template <class T, class value_t>
+class Attribute
+{
   /**
    * The unique ID associated to this attribute.  Assigned statically,
    * at load time.
@@ -556,11 +430,6 @@ public:
   static const bool has_default_value = false;
 
   /**
-   * Expose this setting to the users of this Attribute kind.
-   */
-  static const bool context_dependent = context_dep;
-
-  /**
    * Register this attribute kind and check that the ID is a valid ID
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
@@ -568,33 +437,16 @@ public:
   static inline uint64_t registerAttribute() {
     typedef typename attr::KindValueToTableValueMapping<value_t>::
                      table_value_type table_value_type;
-    typedef attr::AttributeTraits<table_value_type, context_dep> traits;
-    uint64_t id = attr::LastAttributeId<table_value_type, context_dep>::getId()++;
-    Assert(traits::getCleanup().size() == id);// sanity check
-    traits::getCleanup().push_back(attr::getCleanupStrategy<value_t,
-                                                       CleanupStrategy>::fn);
-    return id;
+    return attr::LastAttributeId<table_value_type>::getNextId();
   }
 };/* class Attribute<> */
 
 /**
- * An "attribute type" structure for boolean flags (special).  The
- * full one is below; the existence of this one disallows for boolean
- * flag attributes with a specialized cleanup function.
- */
-/* -- doesn't work; other specialization is "more specific" ??
-template <class T, class CleanupStrategy, bool context_dep>
-class Attribute<T, bool, CleanupStrategy, context_dep> {
-  template <bool> struct ERROR_bool_attributes_cannot_have_cleanup_functions;
-  ERROR_bool_attributes_cannot_have_cleanup_functions<true> blah;
-};
-*/
-
-/**
  * An "attribute type" structure for boolean flags (special).
  */
-template <class T, bool context_dep>
-class Attribute<T, bool, attr::NullCleanupStrategy, context_dep> {
+template <class T>
+class Attribute<T, bool>
+{
   /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
 
@@ -621,66 +473,31 @@ public:
   static const bool default_value = false;
 
   /**
-   * Expose this setting to the users of this Attribute kind.
-   */
-  static const bool context_dependent = context_dep;
-
-  /**
    * Register this attribute kind and check that the ID is a valid ID
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
    */
   static inline uint64_t registerAttribute() {
-    uint64_t id = attr::LastAttributeId<bool, context_dep>::getId()++;
-    AlwaysAssert( id <= 63,
-                  "Too many boolean node attributes registered "
-                  "during initialization !" );
+    const uint64_t id = attr::LastAttributeId<bool>::getNextId();
+    AlwaysAssert(id <= 63) << "Too many boolean node attributes registered "
+                              "during initialization !";
     return id;
   }
 };/* class Attribute<..., bool, ...> */
 
-/**
- * This is a managed attribute kind (the only difference between
- * ManagedAttribute<> and Attribute<> is the default cleanup function
- * and the fact that ManagedAttributes cannot be context-dependent).
- * In the default ManagedAttribute cleanup function, the value is
- * destroyed with the delete operator.  If the value is allocated with
- * the array version of new[], an alternate cleanup function should be
- * provided that uses array delete[].  It is an error to create a
- * ManagedAttribute<> kind with a non-pointer value_type if you don't
- * also supply a custom cleanup function.
- */
-template <class T,
-          class value_type,
-          class CleanupStrategy =
-                    attr::ManagedAttributeCleanupStrategy<value_type> >
-struct ManagedAttribute :
-    public Attribute<T, value_type, CleanupStrategy, false> {};
-
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
 /** Assign unique IDs to attributes at load time. */
-// Use of the comma-operator here forces instantiation (and
-// initialization) of the AttributeTraits<> structure and its
-// "cleanup" vector before registerAttribute() is called.  This is
-// important because otherwise the vector is initialized later,
-// clearing the first-pushed cleanup function.
-template <class T, class value_t, class CleanupStrategy, bool context_dep>
-const uint64_t Attribute<T, value_t, CleanupStrategy, context_dep>::s_id =
-  ( attr::AttributeTraits<typename attr::KindValueToTableValueMapping<value_t>::
-                                   table_value_type,
-                          context_dep>::getCleanup().size(),
-    Attribute<T, value_t, CleanupStrategy, context_dep>::registerAttribute() );
+template <class T, class value_t>
+const uint64_t Attribute<T, value_t>::s_id =
+    Attribute<T, value_t>::registerAttribute();
 
 /** Assign unique IDs to attributes at load time. */
-template <class T, bool context_dep>
-const uint64_t Attribute<T,
-                         bool,
-                         attr::NullCleanupStrategy, context_dep>::s_id =
-  Attribute<T, bool, attr::NullCleanupStrategy, context_dep>::
-    registerAttribute();
+template <class T>
+const uint64_t Attribute<T, bool>::s_id =
+    Attribute<T, bool>::registerAttribute();
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__EXPR__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_INTERNALS_H */

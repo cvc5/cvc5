@@ -1,96 +1,55 @@
-/*********************                                                        */
-/*! \file bv_gauss.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Gaussian Elimination preprocessing pass.
- **
- ** Simplify a given equation system modulo a (prime) number via Gaussian
- ** Elimination if possible.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Gaussian Elimination preprocessing pass.
+ *
+ * Simplify a given equation system modulo a (prime) number via Gaussian
+ * Elimination if possible.
+ */
 
 #include "preprocessing/passes/bv_gauss.h"
-
-#include "expr/node.h"
-#include "theory/rewriter.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
-#include "util/bitvector.h"
 
 #include <unordered_map>
 #include <vector>
 
+#include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
+#include "util/bitvector.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-namespace {
-
-/**
- *  Represents the result of Gaussian Elimination where the solution
- *  of the given equation system is
- *
- *   INVALID ... i.e., NOT of the form c1*x1 + c2*x2 + ... % p = b,
- *               where ci, b and p are
- *                 - bit-vector constants
- *                 - extracts or zero extensions on bit-vector constants
- *                 - of arbitrary nesting level
- *               and p is co-prime to all bit-vector constants for which
- *               a multiplicative inverse has to be computed.
- *
- *   UNIQUE  ... determined for all unknowns, e.g., x = 4
- *
- *   PARTIAL ... e.g., x = 4 - 2z
- *
- *   NONE    ... no solution
- *
- *   Given a matrix A representing an equation system, the resulting
- *   matrix B after applying GE represents, e.g.:
- *
- *   B = 1 0 0 2 <-    UNIQUE
- *       0 1 0 3 <-
- *       0 0 1 1 <-
- *
- *   B = 1 0 2 4 <-    PARTIAL
- *       0 1 3 2 <-
- *       0 0 1 1
- *
- *   B = 1 0 0 1       NONE
- *       0 1 1 2
- *       0 0 0 2 <-
- */
-enum class Result
-{
-  INVALID,
-  UNIQUE,
-  PARTIAL,
-  NONE
-};
-
-bool is_bv_const(Node n)
+bool BVGauss::is_bv_const(Node n)
 {
   if (n.isConst()) { return true; }
-  return Rewriter::rewrite(n).getKind() == kind::CONST_BITVECTOR;
+  return rewrite(n).getKind() == kind::CONST_BITVECTOR;
 }
 
-Node get_bv_const(Node n)
+Node BVGauss::get_bv_const(Node n)
 {
   Assert(is_bv_const(n));
-  return Rewriter::rewrite(n);
+  return rewrite(n);
 }
 
-Integer get_bv_const_value(Node n)
+Integer BVGauss::get_bv_const_value(Node n)
 {
   Assert(is_bv_const(n));
   return get_bv_const(n).getConst<BitVector>().getValue();
@@ -112,12 +71,12 @@ Integer get_bv_const_value(Node n)
  * will be handled via the default case, which is not incorrect but also not
  * necessarily the minimum.
  */
-unsigned getMinBwExpr(Node expr)
+uint32_t BVGauss::getMinBwExpr(Node expr)
 {
   std::vector<Node> visit;
   /* Maps visited nodes to the determined minimum bit-width required. */
-  std::unordered_map<Node, unsigned, NodeHashFunction> visited;
-  std::unordered_map<Node, unsigned, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, unsigned> visited;
+  std::unordered_map<Node, unsigned>::iterator it;
 
   visit.push_back(expr);
   while (!visit.empty())
@@ -202,7 +161,7 @@ unsigned getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_UREM_TOTAL:
+        case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
         {
@@ -229,7 +188,7 @@ unsigned getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_ADD:
         {
           Integer maxval = Integer(0);
           for (const Node& nn : n)
@@ -251,7 +210,7 @@ unsigned getMinBwExpr(Node expr)
 
         default:
         {
-          /* BITVECTOR_UDIV_TOTAL (since x / 0 = -1)
+          /* BITVECTOR_UDIV (since x / 0 = -1)
            * BITVECTOR_NOT
            * BITVECTOR_NEG
            * BITVECTOR_SHL */
@@ -280,10 +239,9 @@ unsigned getMinBwExpr(Node expr)
  * form) is stored in 'rhs' and 'lhs', i.e., the given matrix is overwritten
  * with the resulting matrix.
  */
-Result gaussElim(
-    Integer prime,
-    std::vector<Integer>& rhs,
-    std::vector<std::vector<Integer>>& lhs)
+BVGauss::Result BVGauss::gaussElim(Integer prime,
+                                   std::vector<Integer>& rhs,
+                                   std::vector<std::vector<Integer>>& lhs)
 {
   Assert(prime > 0);
   Assert(lhs.size());
@@ -296,15 +254,15 @@ Result gaussElim(
     rhs = std::vector<Integer>(rhs.size(), Integer(0));
     lhs = std::vector<std::vector<Integer>>(
         lhs.size(), std::vector<Integer>(lhs[0].size(), Integer(0)));
-    return Result::UNIQUE;
+    return BVGauss::Result::UNIQUE;
   }
 
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
 
-  #ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
-  #endif
+#endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
    *     by element in pivot column modulo prime, i.e., multiply row with
    *     multiplicative inverse of element in pivot column modulo prime
@@ -323,8 +281,11 @@ Result gaussElim(
     /* lhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
     {
-#ifdef CVC4_ASSERTIONS
-      for (size_t k = 0; k < pcol; ++k) { Assert(lhs[j][k] == 0); }
+#ifdef CVC5_ASSERTIONS
+      for (size_t k = 0; k < pcol; ++k)
+      {
+        Assert(lhs[j][k] == 0);
+      }
 #endif
       /* normalize element in pivot column to modulo prime */
       lhs[j][pcol] = lhs[j][pcol].euclidianDivideRemainder(prime);
@@ -361,7 +322,7 @@ Result gaussElim(
           Integer inv = lhs[j][pcol].modInverse(prime);
           if (inv == -1)
           {
-            return Result::INVALID; /* not coprime */
+            return BVGauss::Result::INVALID; /* not coprime */
           }
           for (size_t k = pcol; k < ncols; ++k)
           {
@@ -409,7 +370,7 @@ Result gaussElim(
       if (rhs[i] != 0)
       {
         /* no solution */
-        return Result::NONE;
+        return BVGauss::Result::NONE;
       }
       continue;
     }
@@ -426,9 +387,12 @@ Result gaussElim(
     }
   }
 
-  if (ispart) { return Result::PARTIAL; }
+  if (ispart)
+  {
+    return BVGauss::Result::PARTIAL;
+  }
 
-  return Result::UNIQUE;
+  return BVGauss::Result::UNIQUE;
 }
 
 /**
@@ -452,21 +416,20 @@ Result gaussElim(
  * to result (modulo prime). These mapped results are added as constraints
  * of the form 'unknown = mapped result' in applyInternal.
  */
-Result gaussElimRewriteForUrem(
-    const std::vector<Node>& equations,
-    std::unordered_map<Node, Node, NodeHashFunction>& res)
+BVGauss::Result BVGauss::gaussElimRewriteForUrem(
+    const std::vector<Node>& equations, std::unordered_map<Node, Node>& res)
 {
   Assert(res.empty());
 
   Node prime;
   Integer iprime;
-  std::unordered_map<Node, std::vector<Integer>, NodeHashFunction> vars;
+  std::unordered_map<Node, std::vector<Integer>> vars;
   size_t neqs = equations.size();
   std::vector<Integer> rhs;
   std::vector<std::vector<Integer>> lhs =
       std::vector<std::vector<Integer>>(neqs, std::vector<Integer>());
 
-  res = std::unordered_map<Node, Node, NodeHashFunction>();
+  res = std::unordered_map<Node, Node>();
 
   for (size_t i = 0; i < neqs; ++i)
   {
@@ -487,13 +450,13 @@ Result gaussElimRewriteForUrem(
       Assert(is_bv_const(eq[0]));
       eqrhs = eq[0];
     }
-    if (getMinBwExpr(Rewriter::rewrite(urem[0])) == 0)
+    if (getMinBwExpr(rewrite(urem[0])) == 0)
     {
       Trace("bv-gauss-elim")
           << "Minimum required bit-width exceeds given bit-width, "
              "will not apply Gaussian Elimination."
           << std::endl;
-      return Result::INVALID;
+      return BVGauss::Result::INVALID;
     }
     rhs.push_back(get_bv_const_value(eqrhs));
 
@@ -505,7 +468,7 @@ Result gaussElimRewriteForUrem(
       iprime = get_bv_const_value(prime);
     }
 
-    std::unordered_map<Node, Integer, NodeHashFunction> tmp;
+    std::unordered_map<Node, Integer> tmp;
     std::vector<Node> stack;
     stack.push_back(urem[0]);
     while (!stack.empty())
@@ -523,7 +486,7 @@ Result gaussElimRewriteForUrem(
 
       /* Split into matrix columns */
       Kind k = n.getKind();
-      if (k == kind::BITVECTOR_PLUS)
+      if (k == kind::BITVECTOR_ADD)
       {
         for (const Node& nn : n) { stack.push_back(nn); }
       }
@@ -533,11 +496,11 @@ Result gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder<> nb_consts(NodeManager::currentNM(), k);
-        NodeBuilder<> nb_nonconsts(NodeManager::currentNM(), k);
+        NodeBuilder nb_consts(NodeManager::currentNM(), k);
+        NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
         {
-          Node nnrw = Rewriter::rewrite(nn);
+          Node nnrw = rewrite(nn);
           if (is_bv_const(nnrw))
           {
             nb_consts << nnrw;
@@ -552,7 +515,7 @@ Result gaussElimRewriteForUrem(
         unsigned nc = nb_consts.getNumChildren();
         if (nc > 1)
         {
-          n0 = Rewriter::rewrite(nb_consts.constructNode());
+          n0 = rewrite(nb_consts.constructNode());
         }
         else if (nc == 1)
         {
@@ -565,7 +528,7 @@ Result gaussElimRewriteForUrem(
         /* n1 is a mult with non-const operands */
         if (nb_nonconsts.getNumChildren() > 1)
         {
-          n1 = Rewriter::rewrite(nb_nonconsts.constructNode());
+          n1 = rewrite(nb_nonconsts.constructNode());
         }
         else
         {
@@ -605,15 +568,21 @@ Result gaussElimRewriteForUrem(
   }
 
   size_t nvars = vars.size();
-  Assert(nvars);
+  if (nvars == 0)
+  {
+    return BVGauss::Result::INVALID;
+  }
   size_t nrows = vars.begin()->second.size();
-#ifdef CVC4_ASSERTIONS
-  for (const auto& p : vars) { Assert(p.second.size() == nrows); }
+#ifdef CVC5_ASSERTIONS
+  for (const auto& p : vars)
+  {
+    Assert(p.second.size() == nrows);
+  }
 #endif
 
   if (nrows < 1)
   {
-    return Result::INVALID;
+    return BVGauss::Result::INVALID;
   }
 
   for (size_t i = 0; i < nrows; ++i)
@@ -624,20 +593,23 @@ Result gaussElimRewriteForUrem(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
-  for (const auto& row : lhs) { Assert(row.size() == nvars); }
+#ifdef CVC5_ASSERTIONS
+  for (const auto& row : lhs)
+  {
+    Assert(row.size() == nvars);
+  }
   Assert(lhs.size() == rhs.size());
 #endif
 
   if (lhs.size() > lhs[0].size())
   {
-    return Result::INVALID;
+    return BVGauss::Result::INVALID;
   }
 
   Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << std::endl;
-  Result ret = gaussElim(iprime, rhs, lhs);
+  BVGauss::Result ret = gaussElim(iprime, rhs, lhs);
 
-  if (ret != Result::NONE && ret != Result::INVALID)
+  if (ret != BVGauss::Result::NONE && ret != BVGauss::Result::INVALID)
   {
     std::vector<Node> vvars;
     for (const auto& p : vars) { vvars.push_back(p.first); }
@@ -645,7 +617,7 @@ Result gaussElimRewriteForUrem(
     Assert(nrows == lhs.size());
     Assert(nrows == rhs.size());
     NodeManager *nm = NodeManager::currentNM();
-    if (ret == Result::UNIQUE)
+    if (ret == BVGauss::Result::UNIQUE)
     {
       for (size_t i = 0; i < nvars; ++i)
       {
@@ -655,7 +627,7 @@ Result gaussElimRewriteForUrem(
     }
     else
     {
-      Assert(ret == Result::PARTIAL);
+      Assert(ret == BVGauss::Result::PARTIAL);
 
       for (size_t pcol = 0, prow = 0; pcol < nvars && prow < nrows;
            ++pcol, ++prow)
@@ -692,16 +664,15 @@ Result gaussElimRewriteForUrem(
         }
         else
         {
-          Node tmp = stack.size() == 1
-                         ? stack[0]
-                         : nm->mkNode(kind::BITVECTOR_PLUS, stack);
+          Node tmp = stack.size() == 1 ? stack[0]
+                                       : nm->mkNode(kind::BITVECTOR_ADD, stack);
 
           if (rhs[prow] != 0)
           {
-            tmp = nm->mkNode(kind::BITVECTOR_PLUS,
-                             bv::utils::mkConst(
-                                 bv::utils::getSize(vvars[pcol]), rhs[prow]),
-                             tmp);
+            tmp = nm->mkNode(
+                kind::BITVECTOR_ADD,
+                bv::utils::mkConst(bv::utils::getSize(vvars[pcol]), rhs[prow]),
+                tmp);
           }
           Assert(!is_bv_const(tmp));
           res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
@@ -712,12 +683,9 @@ Result gaussElimRewriteForUrem(
   return ret;
 }
 
-}  // namespace
-
-
-
-BVGauss::BVGauss(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-gauss")
+BVGauss::BVGauss(PreprocessingPassContext* preprocContext,
+                 const std::string& name)
+    : PreprocessingPass(preprocContext, name)
 {
 }
 
@@ -725,13 +693,13 @@ PreprocessingPassResult BVGauss::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   std::vector<Node> assertions(assertionsToPreprocess->ref());
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> equations;
+  std::unordered_map<Node, std::vector<Node>> equations;
 
   while (!assertions.empty())
   {
     Node a = assertions.back();
     assertions.pop_back();
-    CVC4::Kind k = a.getKind();
+    cvc5::internal::Kind k = a.getKind();
 
     if (k == kind::AND)
     {
@@ -757,38 +725,39 @@ PreprocessingPassResult BVGauss::applyInternal(
         continue;
       }
 
-      if (urem[0].getKind() == kind::BITVECTOR_PLUS && is_bv_const(urem[1]))
+      if (urem[0].getKind() == kind::BITVECTOR_ADD && is_bv_const(urem[1]))
       {
         equations[urem[1]].push_back(a);
       }
     }
   }
 
-  std::unordered_map<Node, Node, NodeHashFunction> subst;
-  std::vector<Node>& atpp = assertionsToPreprocess->ref();
+  std::unordered_map<Node, Node> subst;
 
+  NodeManager* nm = NodeManager::currentNM();
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
 
-    std::unordered_map<Node, Node, NodeHashFunction> res;
-    Result ret = gaussElimRewriteForUrem(eq.second, res);
+    std::unordered_map<Node, Node> res;
+    BVGauss::Result ret = gaussElimRewriteForUrem(eq.second, res);
     Trace("bv-gauss-elim") << "result: "
-                           << (ret == Result::INVALID
+                           << (ret == BVGauss::Result::INVALID
                                    ? "INVALID"
-                                   : (ret == Result::UNIQUE
+                                   : (ret == BVGauss::Result::UNIQUE
                                           ? "UNIQUE"
-                                          : (ret == Result::PARTIAL
+                                          : (ret == BVGauss::Result::PARTIAL
                                                  ? "PARTIAL"
                                                  : "NONE")))
                            << std::endl;
-    if (ret != Result::INVALID)
+    if (ret != BVGauss::Result::INVALID)
     {
-      NodeManager *nm = NodeManager::currentNM();
-      if (ret == Result::NONE)
+      if (ret == BVGauss::Result::NONE)
       {
-        atpp.clear();
-        atpp.push_back(nm->mkConst<bool>(false));
+        assertionsToPreprocess->clear();
+        Node n = nm->mkConst<bool>(false);
+        assertionsToPreprocess->push_back(n);
+        return PreprocessingPassResult::CONFLICT;
       }
       else
       {
@@ -801,7 +770,8 @@ PreprocessingPassResult BVGauss::applyInternal(
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
           Trace("bv-gauss-elim") << "added assertion: " << a << std::endl;
-          atpp.push_back(a);
+          // add new assertion
+          assertionsToPreprocess->push_back(a);
         }
       }
     }
@@ -810,14 +780,19 @@ PreprocessingPassResult BVGauss::applyInternal(
   if (!subst.empty())
   {
     /* delete (= substitute with true) obsolete assertions */
-    for (auto& a : atpp)
+    const std::vector<Node>& aref = assertionsToPreprocess->ref();
+    for (size_t i = 0, asize = aref.size(); i < asize; ++i)
     {
-      a = a.substitute(subst.begin(), subst.end());
+      Node a = aref[i];
+      Node as = a.substitute(subst.begin(), subst.end());
+      // replace the assertion
+      assertionsToPreprocess->replace(i, as);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

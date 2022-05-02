@@ -1,0 +1,5 @@
+(set-logic QF_BV)
+(set-info :status sat)
+(declare-const x (_ BitVec 2))
+(assert (= (_ bv0 256) (bvand (_ bv131070 256) ((_ zero_extend 128) ((_ zero_extend 126) x)))))
+(check-sat)

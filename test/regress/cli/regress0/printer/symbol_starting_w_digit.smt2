@@ -1,0 +1,12 @@
+; EXPECT: sat
+; EXPECT: ((|0_0| #b0001))
+; EXPECT: ((x #b0011))
+(set-option :produce-models true)
+(set-logic QF_BV)
+(declare-const |0_0| (_ BitVec 4))
+(declare-const x (_ BitVec 4))
+(assert (= |0_0| #b0001))
+(assert (= x #b0011))
+(check-sat)
+(get-value (|0_0|))
+(get-value (x))

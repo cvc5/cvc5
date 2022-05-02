@@ -1,33 +1,21 @@
 id     = "SETS"
-name   = "Sets"
-header = "options/sets_options.h"
+name   = "Sets Theory"
 
 [[option]]
   name       = "setsProxyLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "sets-proxy-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "introduce proxy variables eagerly to shorten lemmas"
 
 [[option]]
   name       = "setsInferAsLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "sets-infer-as-lemmas"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "send inferences as lemmas"
-
-[[option]]
-  name       = "setsRelEager"
-  category   = "regular"
-  long       = "sets-rel-eager"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "standard effort checks for relations"
 
 [[option]]
   name       = "setsExt"
@@ -35,5 +23,4 @@ header = "options/sets_options.h"
   long       = "sets-ext"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "enable extended symbols such as complement and universe in theory of sets"

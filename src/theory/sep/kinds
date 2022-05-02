@@ -4,27 +4,27 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_SEP ::CVC4::theory::sep::TheorySep "theory/sep/theory_sep.h"
+theory THEORY_SEP ::cvc5::internal::theory::sep::TheorySep "theory/sep/theory_sep.h"
 typechecker "theory/sep/theory_sep_type_rules.h"
 
 properties polite stable-infinite parametric
-properties check propagate presolve getNextDecisionRequest
+properties check presolve
 
-rewriter ::CVC4::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.h"
+rewriter ::cvc5::internal::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.h"
 
 nullaryoperator SEP_NIL "separation nil"
 
-operator SEP_EMP 2 "separation empty heap"
+nullaryoperator SEP_EMP "separation logic empty heap constraint"
 operator SEP_PTO 2 "points to relation"
 operator SEP_STAR 2: "separation star"
 operator SEP_WAND 2 "separation magic wand"
 operator SEP_LABEL 2 "separation label (internal use only)"
 
-typerule SEP_EMP ::CVC4::theory::sep::SepEmpTypeRule
-typerule SEP_PTO ::CVC4::theory::sep::SepPtoTypeRule
-typerule SEP_STAR ::CVC4::theory::sep::SepStarTypeRule
-typerule SEP_WAND ::CVC4::theory::sep::SepWandTypeRule
-typerule SEP_LABEL ::CVC4::theory::sep::SepLabelTypeRule
-typerule SEP_NIL ::CVC4::theory::sep::SepNilTypeRule
+typerule SEP_EMP ::cvc5::internal::theory::sep::SepEmpTypeRule
+typerule SEP_PTO ::cvc5::internal::theory::sep::SepPtoTypeRule
+typerule SEP_STAR ::cvc5::internal::theory::sep::SepStarTypeRule
+typerule SEP_WAND ::cvc5::internal::theory::sep::SepWandTypeRule
+typerule SEP_LABEL ::cvc5::internal::theory::sep::SepLabelTypeRule
+typerule SEP_NIL ::cvc5::internal::theory::sep::SepNilTypeRule
 
 endtheory

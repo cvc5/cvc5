@@ -1,0 +1,11 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic LIA)
+(synth-fun findSum ((y1 Int) (y2 Int)) Int ((Start Int) (BoolExpr Bool)) (
+(Start Int (0 1 y1 y2 (+ Start Start) (ite BoolExpr Start Start)))
+(BoolExpr Bool ((< Start Start) (<= Start Start)))))
+(declare-var x1 Int)
+(declare-var x2 Int)
+(constraint (=> (> (+ x1 x2) 0) (= (findSum x1 x2) x1)))
+(constraint (=> (<= (+ x1 x2) 0) (= (findSum x1 x2) x2)))
+(check-synth)

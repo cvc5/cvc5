@@ -1,0 +1,51 @@
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 1 * * *'
+
+name: PyPi packaging
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+
+    runs-on: ${{ matrix.os }}
+    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      if: runner.os == 'Linux'
+      with:
+        with-documentation: false
+        with-python-bindings: false
+        with-python-packaging: true
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      if: runner.os == 'macOS'
+      with:
+        with-documentation: false
+        with-python-bindings: true
+        with-python-packaging: true
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        cache-key: cvc5-pypi
+
+    - name: Package PyPi wheel packages
+      uses: ./.github/actions/package-python-wheel
+      with:
+        upload-to-pypi: ${{ github.event_name == 'release' }}
+        upload-to-test-pypi: false
+        test-pypi-token: ${{ secrets.PYPI_TOKEN }}
+        pypi-token: ${{ secrets.PYPI_TOKEN }}
+

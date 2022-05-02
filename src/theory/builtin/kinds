@@ -1,7 +1,7 @@
 # kinds [for builtin theory]                                          -*- sh -*-
 #
 # This "kinds" file is written in a domain-specific language for
-# declaring CVC4 kinds.  Comments are marked with #, as this line is.
+# declaring cvc5 kinds.  Comments are marked with #, as this line is.
 #
 # The first non-blank, non-comment line in this file must be a theory
 # declaration:
@@ -40,7 +40,6 @@
 #       notifyRestart     the theory supports notifyRestart()
 #       presolve          the theory supports presolve()
 #       postsolve         the theory supports postsolve()
-#       getNextDecisionRequest the theory supports getNextDecisionRequest()
 #
 #     In the case of the "theory-supports-function" properties, you
 #     need to declare these for your theory or the functions will not
@@ -95,7 +94,7 @@
 #     upper bound, leave the colon after LB, but omit UB.  For example,
 #     an N-ary operator might be defined as:
 #
-#         operator PLUS 2: "addition on two or more arguments"
+#         operator ADD 2: "addition on two or more arguments"
 #
 #   parameterized K1 K2 #children ["comment"]
 #
@@ -120,12 +119,14 @@
 #     For consistency these should start with "APPLY_", but this is
 #     not enforced.
 #
-#   constant K T Hasher header ["comment"]
+#   constant K F T Hasher header ["comment"]
 #
-#     Declares a constant kind K.  T is the C++ type representing the
-#     constant internally (and it should be
-#     ::fully::qualified::like::this), and header is the header needed
-#     to define it.  Hasher is a hash functor type defined like this:
+#     Declares a constant kind K.  F is the type of the forward declaration to
+#     generate (e.g., `class`, `struct`). If F is `skip` then then no forward
+#     declaration is generated.  T is the C++ type representing the constant
+#     internally (the type is expected to be in the cvc5 namespace), and header
+#     is the header needed to define it.  Hasher is a hash functor type defined
+#     like this:
 #
 #       struct MyHashFcn {
 #         size_t operator()(const T& val) const;
@@ -197,7 +198,7 @@
 #     is with your type checker:
 #
 #       cardinality MY_TYPE \
-#           ::CVC4::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
+#           ::cvc5::internal::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
 #           "theory/foo/theory_foo_type_rules.h"
 #
 #   well-founded K wellfoundedness-computer ground-term-computer [header]
@@ -241,57 +242,55 @@
 # commands.
 #
 
-theory THEORY_BUILTIN ::CVC4::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
+theory THEORY_BUILTIN ::cvc5::internal::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
 typechecker "theory/builtin/theory_builtin_type_rules.h"
 
 properties stable-infinite
 
 # Rewriter responsible for all the terms of the theory
-rewriter ::CVC4::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
+rewriter ::cvc5::internal::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
 
 sort BUILTIN_OPERATOR_TYPE \
     Cardinality::INTEGERS \
     not-well-founded \
     "the type for built-in operators"
 
-variable SORT_TAG "sort tag"
-parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpreted' sorts"
-# This is really "unknown" cardinality, but maybe this will be good
-# enough (for now) ?
+variable SORT_TYPE "specifies types of user-declared 'uninterpreted' sorts"
+# The cardinality of uninterpreted sorts is defined infinite here, although they are given special treatment in TypeNode::getCardinalityClass
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
-    "::CVC4::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
+    "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+enumerator SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
-constant UNINTERPRETED_CONSTANT \
-    ::CVC4::UninterpretedConstant \
-    ::CVC4::UninterpretedConstantHashFunction \
-    "expr/uninterpreted_constant.h" \
-    "the kind of expressions representing uninterpreted constants; payload is an instance of the CVC4::UninterpretedConstant class (used in models)"
-typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
-enumerator SORT_TYPE \
-    ::CVC4::theory::builtin::UninterpretedSortEnumerator \
-    "theory/builtin/type_enumerator.h"
+# an instantiated sort has the same properties as an ordinary uninterpreted sort
+operator INSTANTIATED_SORT_TYPE 1: "instantiated uninterpreted sort"
+cardinality INSTANTIATED_SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
+well-founded INSTANTIATED_SORT_TYPE \
+    "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+enumerator INSTANTIATED_SORT_TYPE ::cvc5::internal::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
-constant ABSTRACT_VALUE \
-    ::CVC4::AbstractValue \
-    ::CVC4::AbstractValueHashFunction \
-    "util/abstract_value.h" \
-    "the kind of expressions representing abstract values (other than uninterpreted sort constants); payload is an instance of the CVC4::AbstractValue class (used in models)"
-typerule ABSTRACT_VALUE ::CVC4::theory::builtin::AbstractValueTypeRule
+constant UNINTERPRETED_SORT_VALUE \
+    class \
+    UninterpretedSortValue \
+    ::cvc5::internal::UninterpretedSortValueHashFunction \
+    "util/uninterpreted_sort_value.h" \
+    "the kind of expressions representing uninterpreted sort values; payload is an instance of the cvc5::internal::AbstractValue class (used in models)"
+typerule UNINTERPRETED_SORT_VALUE ::cvc5::internal::theory::builtin::UninterpretedSortValueTypeRule
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
 # not stored that way.  If you ask for the operator of (EQUAL a b),
 # you'll get a special, singleton (BUILTIN EQUAL) Node.
 constant BUILTIN \
-    ::CVC4::Kind \
-    ::CVC4::kind::KindHashFunction \
+    skip \
+    Kind \
+    ::cvc5::internal::kind::KindHashFunction \
     "expr/kind.h" \
     "the kind of expressions representing built-in operators"
-
-variable FUNCTION "a defined function"
-parameterized APPLY FUNCTION 0: "application of a defined function"
 
 operator EQUAL 2 "equality (two parameters only, sorts must match)"
 operator DISTINCT 2: "disequality (N-ary, sorts must match)"
@@ -300,49 +299,24 @@ variable BOUND_VARIABLE "a bound variable (permitted in bindings and the associa
 variable SKOLEM "a Skolem variable (internal only)"
 operator SEXPR 0: "a symbolic expression (any arity)"
 
-operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
-
-operator CHOICE 2 "a Hilbert choice (epsilon) expression; first parameter is a BOUND_VAR_LIST, second is the Hilbert choice body"
-
-parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjunction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
-constant CHAIN_OP \
-    ::CVC4::Chain \
-    ::CVC4::ChainHashFunction \
-    "expr/chain.h" \
-    "the chained operator; payload is an instance of the CVC4::Chain class"
+operator WITNESS 2:3 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
-    ::CVC4::TypeConstant \
-    ::CVC4::TypeConstantHashFunction \
+    skip \
+    TypeConstant \
+    ::cvc5::internal::TypeConstantHashFunction \
     "expr/kind.h" \
     "a representation for basic types"
-operator FUNCTION_TYPE 2: "a function type"
-cardinality FUNCTION_TYPE \
-    "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded FUNCTION_TYPE false
-enumerator FUNCTION_TYPE \
-    ::CVC4::theory::builtin::FunctionEnumerator \
-    "theory/builtin/type_enumerator.h"
-operator SEXPR_TYPE 0: "the type of a symbolic expression"
-cardinality SEXPR_TYPE \
-    "::CVC4::theory::builtin::SExprProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded SEXPR_TYPE \
-    "::CVC4::theory::builtin::SExprProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::SExprProperties::mkGroundTerm(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
+sort SEXPR_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "the type of a symbolic expression"
 
-typerule APPLY ::CVC4::theory::builtin::ApplyTypeRule
-typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
-typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
-typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
-typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-typerule CHOICE ::CVC4::theory::builtin::ChoiceTypeRule
-typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
-typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
+typerule EQUAL ::cvc5::internal::theory::builtin::EqualityTypeRule
+typerule DISTINCT ::cvc5::internal::theory::builtin::DistinctTypeRule
+typerule SEXPR ::cvc5::internal::theory::builtin::SExprTypeRule
+typerule WITNESS ::cvc5::internal::theory::builtin::WitnessTypeRule
 
-# lambda expressions that are isomorphic to array constants can be considered constants
-construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+variable RAW_SYMBOL "a variable that is not quoted in the smt2 printer (internal only)"
 
 endtheory

@@ -1,0 +1,15 @@
+; COMMAND-LINE: --cegqi-nested-qe
+; EXPECT: sat
+(set-logic BV)
+(set-info :status sat)
+(declare-fun lambda () (_ BitVec 32))
+(declare-fun lambdaprime () (_ BitVec 32))
+(declare-fun x5 () (_ BitVec 32))
+(declare-fun x4 () (_ BitVec 32))
+(declare-fun bool.b22 () Bool)
+(declare-fun bool.b7 () Bool)
+(declare-fun bool.b5 () Bool)
+(declare-fun bool.b6 () Bool)
+(assert (forall ((?lambda (_ BitVec 32))) (or (or (exists ((?lambdaprime (_ BitVec 32))) (let ((?v_1 (not bool.b22)) (?v_3 (not bool.b7)) (?v_4 (not bool.b5))) (let ((?v_2 (and ?v_4 (not bool.b6))) (?v_0 (bvmul (bvneg (_ bv1 32)) (bvadd x4 (bvmul (_ bv30 32) ?lambdaprime))))) (and (and (bvsle (_ bv0 32) ?lambdaprime) (bvsle ?lambdaprime ?lambda)) (not (and (not (bvsle (bvmul (bvneg (_ bv1 32)) (bvadd x5 (bvmul (_ bv1 32) ?lambdaprime))) (bvneg (_ bv10 32)))) (and (and (not (and (bvsle ?v_0 (bvneg (_ bv4100 32))) (and ?v_1 (and ?v_3 ?v_2)))) (not (and (bvsle ?v_0 (bvneg (_ bv4500 32))) (and ?v_1 (and bool.b7 ?v_2))))) (not (and (bvsle ?v_0 (bvneg (_ bv4910 32))) (and ?v_1 (and ?v_3 (and ?v_4 bool.b6)))))))))))) (bvslt ?lambda (_ bv0 32))) (not (and (not bool.b22) (and (not bool.b7) (and bool.b5 (not bool.b6))))))))
+(check-sat)
+(exit)

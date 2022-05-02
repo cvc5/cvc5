@@ -1,71 +1,102 @@
-/*********************                                                        */
-/*! \file theory_fp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Martin Brain
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of floating-point arithmetic.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_H
-#define __CVC4__THEORY__FP__THEORY_FP_H
+#ifndef CVC5__THEORY__FP__THEORY_FP_H
+#define CVC5__THEORY__FP__THEORY_FP_H
 
 #include <string>
 #include <utility>
 
+#include "context/cdhashset.h"
 #include "context/cdo.h"
-#include "theory/fp/fp_converter.h"
+#include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_inference_manager.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
-class TheoryFp : public Theory {
+class FpWordBlaster;
+
+class TheoryFp : public Theory
+{
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo);
+  TheoryFp(Env& env, OutputChannel& out, Valuation valuation);
 
-  Node expandDefinition(LogicRequest& lr, Node node) override;
+  //--------------------------------- initialization
+  /** Get the official theory rewriter of this theory. */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** Finish initialization. */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   void preRegisterTerm(TNode node) override;
-  void addSharedTerm(TNode node) override;
+  TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
 
-  Node ppRewrite(TNode node) override;
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
+  bool needsCheckLastEffort() override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  //--------------------------------- end standard check
 
-  void check(Effort) override;
-
-  bool needsCheckLastEffort() override { return true; }
   Node getModelValue(TNode var) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelInfo(TheoryModel* m,
+                        const std::set<Node>& relevantTerms) override;
+  /**
+   * Collect model values in m based on the relevant terms given by
+   * relevantTerms.
+   */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& relevantTerms) override;
 
   std::string identify() const override { return "THEORY_FP"; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  protected:
-  /** Equality engine */
+  using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
+  using AbstractionMap = context::CDHashMap<Node, Node>;
+
+  /** Equality engine. */
   class NotifyClass : public eq::EqualityEngineNotify {
    protected:
     TheoryFp& d_theorySolver;
 
    public:
     NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -73,79 +104,61 @@ class TheoryFp : public Theory {
                                      bool value) override;
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
   friend NotifyClass;
 
-  NotifyClass d_notification;
-  eq::EqualityEngine d_equalityEngine;
+  void notifySharedTerm(TNode n) override;
 
-  /** General utility **/
+  NotifyClass d_notification;
+
+  /** General utility. */
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
-  context::CDHashSet<Node, NodeHashFunction> d_registeredTerms;
+  context::CDHashSet<Node> d_registeredTerms;
 
-  /** Bit-blasting conversion */
-  FpConverter d_conv;
+  /** The word-blaster. Translates FP -> BV. */
+  std::unique_ptr<FpWordBlaster> d_wordBlaster;
+
   bool d_expansionRequested;
 
-  void convertAndEquateTerm(TNode node);
+  void wordBlastAndEquateTerm(TNode node);
 
   /** Interaction with the rest of the solver **/
-  void handleLemma(Node node);
-  bool handlePropagation(TNode node);
-  void handleConflict(TNode node);
-
-  context::CDO<bool> d_conflict;
-  context::CDO<Node> d_conflictNode;
-
-  /** Uninterpretted functions for partially defined functions. **/
-  void enableUF(LogicRequest& lr);
-
-  typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
-      ComparisonUFMap;
-
-  ComparisonUFMap d_minMap;
-  ComparisonUFMap d_maxMap;
-
-  Node minUF(Node);
-  Node maxUF(Node);
-
-  typedef context::CDHashMap<std::pair<TypeNode, TypeNode>, Node,
-                             PairTypeNodeHashFunction>
-      ConversionUFMap;
-
-  ConversionUFMap d_toUBVMap;
-  ConversionUFMap d_toSBVMap;
-
-  Node toUBVUF(Node);
-  Node toSBVUF(Node);
-
-  ComparisonUFMap d_toRealMap;
-
-  Node toRealUF(Node);
-
-  /** Uninterpretted functions for lazy handling of conversions */
-  typedef ComparisonUFMap conversionAbstractionMap;
-
-  conversionAbstractionMap realToFloatMap;
-  conversionAbstractionMap floatToRealMap;
-
-  Node abstractRealToFloat(Node);
-  Node abstractFloatToReal(Node);
-
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> abstractionMapType;
-  abstractionMapType abstractionMap;  // abstract -> original
+  void handleLemma(Node node, InferenceId id);
+  /**
+   * Called when literal node is inferred by the equality engine. This
+   * propagates node on the output channel.
+   */
+  bool propagateLit(TNode node);
+  /**
+   * Called when two constants t1 and t2 merge in the equality engine. This
+   * sends a conflict on the output channel.
+   */
+  void conflictEqConstantMerge(TNode t1, TNode t2);
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
-}; /* class TheoryFp */
+ private:
+  AbstractionMap d_abstractionMap;  // abstract -> original
+
+  /** The theory rewriter for this theory. */
+  TheoryFpRewriter d_rewriter;
+  /** A (default) theory state object. */
+  TheoryState d_state;
+  /** A (default) inference manager. */
+  TheoryInferenceManager d_im;
+  /** Cache of word-blasted facts. */
+  context::CDHashSet<Node> d_wbFactsCache;
+
+  /** True constant. */
+  Node d_true;
+};
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC5__THEORY__FP__THEORY_FP_H */

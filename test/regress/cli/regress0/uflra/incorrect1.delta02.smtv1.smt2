@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_UFLRA)
+(declare-fun f1 (Real Real) Real)
+(check-sat-assuming ( (distinct (+ (/ 6 (- 6)) 1.0) (f1 1.0 1.0)) ))

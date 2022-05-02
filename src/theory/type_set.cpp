@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file type_set.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of type set class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of type set class.
+ */
 #include "theory/type_set.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 TypeSet::~TypeSet()
@@ -24,18 +25,12 @@ TypeSet::~TypeSet()
   iterator it;
   for (it = d_typeSet.begin(); it != d_typeSet.end(); ++it)
   {
-    if ((*it).second != NULL)
-    {
-      delete (*it).second;
-    }
+    delete (*it).second;
   }
   TypeToTypeEnumMap::iterator it2;
   for (it2 = d_teMap.begin(); it2 != d_teMap.end(); ++it2)
   {
-    if ((*it2).second != NULL)
-    {
-      delete (*it2).second;
-    }
+    delete (*it2).second;
   }
 }
 
@@ -118,14 +113,14 @@ Node TypeSet::nextTypeEnum(TypeNode t, bool useBaseType)
   // this is necessary for parametric types whose values are constructed from
   // other types to ensure that we do not enumerate subterms of other 
   // previously enumerated values
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   addSubTerms(n, visited);
   ++(*te);
   return n;
 }
 
 void TypeSet::addSubTerms(TNode n,
-                          std::unordered_set<TNode, TNodeHashFunction>& visited,
+                          std::unordered_set<TNode>& visited,
                           bool topLevel)
 {
   if (visited.find(n) == visited.end())
@@ -142,5 +137,5 @@ void TypeSet::addSubTerms(TNode n,
   }
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5::internal

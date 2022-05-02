@@ -1,24 +1,23 @@
-/*********************                                                        */
-/*! \file bitvector.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A fixed-size bit-vector.
- **
- ** A fixed-size bit-vector, implemented as a wrapper around Integer.
- **
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Liana Hadarean, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A fixed-size bit-vector, implemented as a wrapper around Integer.
+ */
 
 #include "util/bitvector.h"
 
-namespace CVC4 {
+#include "base/exception.h"
+
+namespace cvc5::internal {
 
 unsigned BitVector::getSize() const { return d_size; }
 
@@ -58,11 +57,11 @@ size_t BitVector::hash() const
   return d_value.hash() + d_size;
 }
 
-BitVector BitVector::setBit(uint32_t i) const
+BitVector& BitVector::setBit(uint32_t i, bool value)
 {
   CheckArgument(i < d_size, i);
-  Integer res = d_value.setBit(i);
-  return BitVector(d_size, res);
+  d_value.setBit(i, value);
+  return *this;
 }
 
 bool BitVector::isBitSet(uint32_t i) const
@@ -77,7 +76,7 @@ unsigned BitVector::isPow2() const
 }
 
 /* -----------------------------------------------------------------------
- ** Operators
+ * Operators
  * ----------------------------------------------------------------------- */
 
 /* String Operations ----------------------------------------------------- */
@@ -338,8 +337,20 @@ BitVector BitVector::arithRightShift(const BitVector& y) const
 }
 
 /* -----------------------------------------------------------------------
- ** Static helpers.
+ * Static helpers.
  * ----------------------------------------------------------------------- */
+
+BitVector BitVector::mkZero(unsigned size)
+{
+  CheckArgument(size > 0, size);
+  return BitVector(size);
+}
+
+BitVector BitVector::mkOne(unsigned size)
+{
+  CheckArgument(size > 0, size);
+  return BitVector(size, 1u);
+}
 
 BitVector BitVector::mkOnes(unsigned size)
 {
@@ -350,7 +361,9 @@ BitVector BitVector::mkOnes(unsigned size)
 BitVector BitVector::mkMinSigned(unsigned size)
 {
   CheckArgument(size > 0, size);
-  return BitVector(size).setBit(size - 1);
+  BitVector res(size);
+  res.setBit(size - 1, true);
+  return res;
 }
 
 BitVector BitVector::mkMaxSigned(unsigned size)
@@ -359,4 +372,4 @@ BitVector BitVector::mkMaxSigned(unsigned size)
   return ~BitVector::mkMinSigned(size);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal

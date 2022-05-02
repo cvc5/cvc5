@@ -1,30 +1,30 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for types
- **
- ** Enumerators for types.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for types.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__TYPE_ENUMERATOR_H
 
+#include "base/check.h"
 #include "base/exception.h"
-#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 class NoMoreValuesException : public Exception {
@@ -64,16 +64,29 @@ class TypeEnumeratorInterface {
   const TypeNode d_type;
 }; /* class TypeEnumeratorInterface */
 
-// AJR: This class stores particular information that is relevant to type enumeration.
-//      For finite model finding, we set d_fixed_usort=true,
-//      and store the finite cardinality bounds for each uninterpreted sort encountered in the model.
+/**
+ * This class stores particular information that is relevant to type
+ * enumeration. For finite model finding, we set d_fixed_usort=true, and store
+ * the finite cardinality bounds for each uninterpreted sort encountered in the
+ * model. For strings, we store the cardinality for the alphabet that we are
+ * assuming.
+ */
 class TypeEnumeratorProperties
 {
 public:
-  TypeEnumeratorProperties() : d_fixed_usort_card(false){}
-  Integer getFixedCardinality( TypeNode tn ) { return d_fixed_card[tn]; }
-  bool d_fixed_usort_card;
-  std::map< TypeNode, Integer > d_fixed_card;
+ TypeEnumeratorProperties(bool fixUSortCard, uint32_t strAlphaCard)
+     : d_fixed_usort_card(fixUSortCard), d_stringAlphaCard(strAlphaCard)
+ {
+ }
+ Integer getFixedCardinality(TypeNode tn) { return d_fixed_card[tn]; }
+ bool d_fixed_usort_card;
+ std::map<TypeNode, Integer> d_fixed_card;
+ /** Get the alphabet for strings */
+ uint32_t getStringsAlphabetCard() const { return d_stringAlphaCard; }
+
+private:
+ /** The cardinality of the alphabet */
+ uint32_t d_stringAlphaCard;
 };
 
 template <class T>
@@ -125,11 +138,11 @@ class TypeEnumerator {
 // On Mac clang, there appears to be a code generation bug in an exception
 // block here.  For now, there doesn't appear a good workaround; just disable
 // assertions on that setup.
-#if defined(CVC4_ASSERTIONS) && !(defined(__clang__))
+#if defined(CVC5_ASSERTIONS) && !(defined(__clang__))
     if(d_te->isFinished()) {
       try {
         **d_te;
-        Assert(false, "expected an NoMoreValuesException to be thrown");
+        Assert(false) << "expected an NoMoreValuesException to be thrown";
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
         //
@@ -142,10 +155,10 @@ class TypeEnumerator {
       try {
         **d_te;
       } catch(NoMoreValuesException&) {
-        Assert(false, "didn't expect a NoMoreValuesException to be thrown");
+        Assert(false) << "didn't expect a NoMoreValuesException to be thrown";
       }
     }
-#endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
+#endif /* CVC5_ASSERTIONS && !(APPLE || clang) */
     return d_te->isFinished();
   }
   Node operator*()
@@ -153,19 +166,20 @@ class TypeEnumerator {
 // On Mac clang, there appears to be a code generation bug in an exception
 // block above (and perhaps here, too).  For now, there doesn't appear a
 // good workaround; just disable assertions on that setup.
-#if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
+#if defined(CVC5_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
     try {
       Node n = **d_te;
-      Assert(n.isConst());
-      Assert(! isFinished());
+      Assert(n.isConst()) << "Term " << n
+                          << " from type enumerator is not constant";
+      Assert(!isFinished());
       return n;
     } catch(NoMoreValuesException&) {
       Assert(isFinished());
       throw;
     }
-#else /* CVC4_ASSERTIONS && !(APPLE || clang) */
+#else  /* CVC5_ASSERTIONS && !(APPLE || clang) */
     return **d_te;
-#endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
+#endif /* CVC5_ASSERTIONS && !(APPLE || clang) */
   }
   TypeEnumerator& operator++()
   {
@@ -182,7 +196,7 @@ class TypeEnumerator {
   TypeNode getType() const { return d_te->getType(); }
 };/* class TypeEnumerator */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__TYPE_ENUMERATOR_H */

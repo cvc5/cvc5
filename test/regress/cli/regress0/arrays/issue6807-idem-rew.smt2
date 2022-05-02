@@ -1,0 +1,8 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-fun i () Int)
+(declare-fun a () (Array Int Int))
+(declare-fun _3 () (Array Int Int))
+(assert (and (= (select a 1) 0) (= _3 (store (store (store a 2 0) 1 1) 0 (select a 0)))))
+(assert (= 0 (select (store _3 1 (select a 1)) i)))
+(check-sat)

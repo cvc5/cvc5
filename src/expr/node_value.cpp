@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file node_value.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An expression node.
- **
- ** An expression node.
- **
- ** Instances of this class are generally referenced through
- ** cvc4::Node rather than by pointer; cvc4::Node maintains the
- ** reference count on NodeValue instances and
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A node value.
+ *
+ * The actual node implementation.
+ * Instances of this class are generally referenced through cvc5::internal::Node
+ * rather than by pointer. Note that cvc5::internal::Node maintains the
+ * reference count on NodeValue instances.
+ */
 #include "expr/node_value.h"
 
 #include <sstream>
@@ -25,33 +25,33 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "printer/printer.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 
 string NodeValue::toString() const {
   stringstream ss;
-
-  OutputLanguage outlang = (this == &null()) ? language::output::LANG_AUTO
-                                             : options::outputLanguage();
-  toStream(ss, -1, false, false, outlang);
+  toStream(ss, -1, false);
   return ss.str();
 }
 
-void NodeValue::toStream(std::ostream& out, int toDepth, bool types, size_t dag,
-                         OutputLanguage language) const {
+void NodeValue::toStream(std::ostream& out,
+                         int toDepth,
+                         size_t dag) const
+{
   // Ensure that this node value is live for the length of this call.
   // It really breaks things badly if we don't have a nonzero ref
   // count, even just for printing.
   RefCountGuard guard(this);
 
-  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, types,
-                                          dag);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
 }
 
 void NodeValue::printAst(std::ostream& out, int ind) const {
@@ -64,7 +64,7 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
     out << ' ' << getId();
   } else if (getMetaKind() == kind::metakind::CONSTANT) {
     out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, this);
+    kind::metakind::nodeValueConstantToStream(out, this);
   } else {
     if (nv_begin() != nv_end()) {
       for (const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
@@ -78,5 +78,51 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
   out << ')';
 }
 
-} /* CVC4::expr namespace */
-} /* CVC4 namespace */
+NodeValue::iterator<NodeTemplate<true> > operator+(
+    NodeValue::iterator<NodeTemplate<true> >::difference_type p,
+    NodeValue::iterator<NodeTemplate<true> > i)
+{
+  return i + p;
+}
+
+NodeValue::iterator<NodeTemplate<false> > operator+(
+    NodeValue::iterator<NodeTemplate<false> >::difference_type p,
+    NodeValue::iterator<NodeTemplate<false> > i)
+{
+  return i + p;
+}
+
+std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
+{
+  nv.toStream(out,
+              options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out));
+  return out;
+}
+
+void NodeValue::markRefCountMaxedOut()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on incrementing of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markRefCountMaxedOut(this);
+}
+
+void NodeValue::markForDeletion()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on destruction of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markForDeletion(this);
+}
+
+bool NodeValue::isBeingDeleted() const
+{
+  return NodeManager::currentNM() != NULL
+         && NodeManager::currentNM()->isCurrentlyDeleting(this);
+}
+
+}  // namespace expr
+}  // namespace cvc5::internal

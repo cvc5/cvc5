@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file arith_utilities.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arith utilities are common inline functions for dealing with nodes.
- **
- ** Arith utilities are common functions for dealing with nodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common functions for dealing with nodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
-#define __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
+#ifndef CVC5__THEORY__ARITH__ARITH_UTILITIES_H
+#define CVC5__THEORY__ARITH__ARITH_UTILITIES_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -25,45 +24,26 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/arith/arithvar.h"
-#include "theory/arith/delta_rational.h"
+#include "expr/subs.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
 //Sets of Nodes
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
-
-//Maps from Nodes -> ArithVars, and vice versa
-typedef std::unordered_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
-typedef DenseMap<Node> ArithVarToNodeMap;
+typedef std::unordered_set<Node> NodeSet;
+typedef std::unordered_set<TNode> TNodeSet;
+typedef context::CDHashSet<Node> CDNodeSet;
 
 inline Node mkRationalNode(const Rational& q){
-  return NodeManager::currentNM()->mkConst<Rational>(q);
+  return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
 }
 
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
-}
-
-inline Node mkIntSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->integerType());
-}
-
-inline Node mkRealSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->realType());
-}
-
-inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
-  NodeManager* currNM = NodeManager::currentNM();
-  TypeNode functionType = currNM->mkFunctionType(dom, range);
-  return currNM->mkSkolem(name, functionType);
 }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
@@ -197,21 +177,20 @@ inline Kind negateKind(Kind k){
 
 inline Node negateConjunctionAsClause(TNode conjunction){
   Assert(conjunction.getKind() == kind::AND);
-  NodeBuilder<> orBuilder(kind::OR);
+  NodeBuilder orBuilder(kind::OR);
 
   for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
     TNode child = *i;
-    Node negatedChild = NodeBuilder<1>(kind::NOT)<<(child);
+    Node negatedChild = NodeBuilder(kind::NOT) << (child);
     orBuilder << negatedChild;
   }
   return orBuilder;
 }
 
-inline Node maybeUnaryConvert(NodeBuilder<>& builder){
-  Assert(builder.getKind() == kind::OR ||
-         builder.getKind() == kind::AND ||
-         builder.getKind() == kind::PLUS ||
-         builder.getKind() == kind::MULT);
+inline Node maybeUnaryConvert(NodeBuilder& builder)
+{
+  Assert(builder.getKind() == kind::OR || builder.getKind() == kind::AND
+         || builder.getKind() == kind::ADD || builder.getKind() == kind::MULT);
   Assert(builder.getNumChildren() >= 1);
   if(builder.getNumChildren() == 1){
     return builder[0];
@@ -238,25 +217,33 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+/** Make zero of the given type */
+Node mkZero(const TypeNode& tn);
+
+/** Is n (integer or real) zero? */
+bool isZero(const Node& n);
+
+/** Make one of the given type, maybe negated */
+Node mkOne(const TypeNode& tn, bool isNeg = false);
+
 // Returns an node that is the identity of a select few kinds.
-inline Node getIdentity(Kind k){
-  switch(k){
-  case kind::AND:
-    return mkBoolNode(true);
-  case kind::PLUS:
-    return mkRationalNode(0);
-  case kind::MULT:
-  case kind::NONLINEAR_MULT:
-    return mkRationalNode(1);
-  default:
-    Unreachable();
+inline Node getIdentityType(const TypeNode& tn, Kind k)
+{
+  switch (k)
+  {
+    case kind::ADD: return mkZero(tn);
+    case kind::MULT:
+    case kind::NONLINEAR_MULT:
+      return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
+    default: Unreachable(); return Node::null();  // silence warning
   }
 }
 
-inline Node safeConstructNary(NodeBuilder<>& nb) {
+inline Node mkAndFromBuilder(NodeBuilder& nb)
+{
+  Assert(nb.getKind() == kind::AND);
   switch (nb.getNumChildren()) {
-    case 0:
-      return getIdentity(nb.getKind());
+    case 0: return mkBoolNode(true);
     case 1:
       return nb[0];
     default:
@@ -264,14 +251,15 @@ inline Node safeConstructNary(NodeBuilder<>& nb) {
   }
 }
 
-inline Node safeConstructNary(Kind k, const std::vector<Node>& children) {
-  switch (children.size()) {
-    case 0:
-      return getIdentity(k);
-    case 1:
-      return children[0];
-    default:
-      return NodeManager::currentNM()->mkNode(k, children);
+inline Node safeConstructNaryType(const TypeNode& tn,
+                                  Kind k,
+                                  const std::vector<Node>& children)
+{
+  switch (children.size())
+  {
+    case 0: return getIdentityType(tn, k);
+    case 1: return children[0];
+    default: return NodeManager::currentNM()->mkNode(k, children);
   }
 }
 
@@ -293,18 +281,69 @@ inline Node mkInRange(Node term, Node start, Node end) {
 // when n is 0 or not. Useful for division by 0 logic.
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
-  Node zero = mkRationalNode(0);
+  Node zero = mkZero(n.getType());
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
 inline Node mkPi()
 {
-  return NodeManager::currentNM()->mkNullaryOperator(
-      NodeManager::currentNM()->realType(), kind::PI);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNullaryOperator(nm->realType(), kind::PI);
 }
+/** Join kinds, where k1 and k2 are arithmetic relations returns an
+ * arithmetic relation ret such that
+ * if (a <k1> b) and (a <k2> b), then (a <ret> b).
+ */
+Kind joinKinds(Kind k1, Kind k2);
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+/** Transitive kinds, where k1 and k2 are arithmetic relations returns an
+ * arithmetic relation ret such that
+ * if (a <k1> b) and (b <k2> c) then (a <ret> c).
+ */
+Kind transKinds(Kind k1, Kind k2);
 
-#endif /* __CVC4__THEORY__ARITH__ARITH_UTILITIES_H */
+/** Is k a transcendental function kind? */
+bool isTranscendentalKind(Kind k);
+/**
+ * Get a lower/upper approximation of the constant r within the given
+ * level of precision. In other words, this returns a constant c' such that
+ *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
+ *   c' + 1/(10^prec) <= c <= c' if isLower is false.
+ * where c' is a rational of the form n/d for some n and d <= 10^prec.
+ */
+Node getApproximateConstant(Node c, bool isLower, unsigned prec);
+
+/** print rational approximation of cr with precision prec on trace c */
+void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
+
+/** Arithmetic substitute
+ *
+ * This computes the substitution n { subs }, but with the caveat
+ * that subterms of n that belong to a theory other than arithmetic are
+ * not traversed. In other words, terms that belong to other theories are
+ * treated as atomic variables. For example:
+ *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
+ */
+Node arithSubstitute(Node n, const Subs& sub);
+
+/** Make the node u >= a ^ a >= l */
+Node mkBounded(Node l, Node a, Node u);
+
+Rational leastIntGreaterThan(const Rational&);
+
+Rational greatestIntLessThan(const Rational&);
+
+/** Negates a node in arithmetic proof normal form. */
+Node negateProofLiteral(TNode n);
+
+/**
+ * Return the result of multiplying constant integer or real nodes c1 and c2.
+ * The returned type is real if either have type real.
+ */
+Node multConstants(const Node& c1, const Node& c2);
+
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5::internal
+
+#endif /* CVC5__THEORY__ARITH__ARITH_UTILITIES_H */

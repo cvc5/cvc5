@@ -1,28 +1,27 @@
-/*********************                                                        */
-/*! \file ostream_util.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for using ostreams.
- **
- ** Utilities for using ostreams.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for using ostreams.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__UTIL__OSTREAM_UTIL_H
-#define __CVC4__UTIL__OSTREAM_UTIL_H
+#ifndef CVC5__UTIL__OSTREAM_UTIL_H
+#define CVC5__UTIL__OSTREAM_UTIL_H
 
 #include <ios>
-#include <ostream>
+#include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 // Saves the formatting of an ostream and restores the previous settings on
 // destruction. Example usage:
@@ -44,6 +43,6 @@ class StreamFormatScope
   std::streamsize d_precision;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__UTIL__OSTREAM_UTIL_H */
+#endif /* CVC5__UTIL__OSTREAM_UTIL_H */

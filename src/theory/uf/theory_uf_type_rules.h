@@ -1,181 +1,125 @@
-/*********************                                                        */
-/*! \file theory_uf_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add brief comments here ]]
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Typing and cardinality rules for the theory of UF.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
-#define __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
+#ifndef CVC5__THEORY__UF__THEORY_UF_TYPE_RULES_H
+#define CVC5__THEORY__UF__THEORY_UF_TYPE_RULES_H
 
-namespace CVC4 {
+#include "expr/node.h"
+#include "expr/type_node.h"
+
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-class UfTypeRule {
+/**
+ * Type rule for applications of uninterpreted functions, which are associated
+ * to types (-> T1 ... Tn T). This ensures the arguments of n have type
+ * T1 ... Tn and returns T.
+ */
+class UfTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    TNode f = n.getOperator();
-    TypeNode fType = f.getType(check);
-    if (!fType.isFunction()) {
-      throw TypeCheckingExceptionPrivate(
-          n, "operator does not have function type");
-    }
-    if (check) {
-      if (n.getNumChildren() != fType.getNumChildren() - 1) {
-        throw TypeCheckingExceptionPrivate(
-            n, "number of arguments does not match the function type");
-      }
-      TNode::iterator argument_it = n.begin();
-      TNode::iterator argument_it_end = n.end();
-      TypeNode::iterator argument_type_it = fType.begin();
-      for (; argument_it != argument_it_end;
-           ++argument_it, ++argument_type_it) {
-        TypeNode currentArgument = (*argument_it).getType();
-        TypeNode currentArgumentType = *argument_type_it;
-        if (!currentArgument.isSubtypeOf(currentArgumentType)) { 
-          std::stringstream ss;
-          ss << "argument type is not a subtype of the function's argument "
-             << "type:\n"
-             << "argument:  " << *argument_it << "\n"
-             << "has type:  " << (*argument_it).getType() << "\n"
-             << "not subtype: " << *argument_type_it << "\n"
-             << "in term : " << n;
-          throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
-      }
-    }
-    return fType.getRangeType();
-  }
-}; /* class UfTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-class CardinalityConstraintTypeRule {
+/**
+ * A cardinality constraint specified by its operator, returns the Boolean type.
+ */
+class CardinalityConstraintTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    if (check) {
-      // don't care what it is, but it should be well-typed
-      n[0].getType(check);
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-      TypeNode valType = n[1].getType(check);
-      if (valType != nodeManager->integerType()) {
-        throw TypeCheckingExceptionPrivate(
-            n, "cardinality constraint must be integer");
-      }
-      if (n[1].getKind() != kind::CONST_RATIONAL) {
-        throw TypeCheckingExceptionPrivate(
-            n, "cardinality constraint must be a constant");
-      }
-      CVC4::Rational r(INT_MAX);
-      if (n[1].getConst<Rational>() > r) {
-        throw TypeCheckingExceptionPrivate(
-            n, "Exceeded INT_MAX in cardinality constraint");
-      }
-      if (n[1].getConst<Rational>().getNumerator().sgn() != 1) {
-        throw TypeCheckingExceptionPrivate(
-            n, "cardinality constraint must be positive");
-      }
-    }
-    return nodeManager->booleanType();
-  }
-}; /* class CardinalityConstraintTypeRule */
-
-class CombinedCardinalityConstraintTypeRule {
+/**
+ * The type rule for cardinality constraint operators, which is indexed by a
+ * type and an integer. Ensures that type is an uninterpreted sort and the
+ * integer is positive, and returns the builtin type.
+ */
+class CardinalityConstraintOpTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    if (check) {
-      TypeNode valType = n[0].getType(check);
-      if (valType != nodeManager->integerType()) {
-        throw TypeCheckingExceptionPrivate(
-            n, "combined cardinality constraint must be integer");
-      }
-      if (n[0].getKind() != kind::CONST_RATIONAL) {
-        throw TypeCheckingExceptionPrivate(
-            n, "combined cardinality constraint must be a constant");
-      }
-      CVC4::Rational r(INT_MAX);
-      if (n[0].getConst<Rational>() > r) {
-        throw TypeCheckingExceptionPrivate(
-            n, "Exceeded INT_MAX in combined cardinality constraint");
-      }
-      if (n[0].getConst<Rational>().getNumerator().sgn() == -1) {
-        throw TypeCheckingExceptionPrivate(
-            n, "combined cardinality constraint must be non-negative");
-      }
-    }
-    return nodeManager->booleanType();
-  }
-}; /* class CardinalityConstraintTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-class PartialTypeRule {
+/**
+ * A combined cardinality constraint specified by its operator, returns the
+ * Boolean type.
+ */
+class CombinedCardinalityConstraintTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    return n.getOperator().getType().getRangeType();
-  }
-}; /* class PartialTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-class CardinalityValueTypeRule {
+/**
+ * The type rule for combined cardinality constraint operators, which is indexed
+ * by an integer. Ensures that the integer is positive, and returns the builtin
+ * type.
+ */
+class CombinedCardinalityConstraintOpTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    if (check) {
-      n[0].getType(check);
-    }
-    return nodeManager->integerType();
-  }
-}; /* class CardinalityValueTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-// class with the typing rule for HO_APPLY terms
-class HoApplyTypeRule {
+/**
+ * Type rule for HO_APPLY terms. Ensures the first argument is a function type
+ * (-> T1 ... Tn T), the second argument is T1, and returns (-> T2 ... Tn T) if
+ * n > 1 or T otherwise.
+ */
+class HoApplyTypeRule
+{
  public:
   // the typing rule for HO_APPLY terms
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    Assert( n.getKind()==kind::HO_APPLY );
-    TypeNode fType = n[0].getType(check);
-    if (!fType.isFunction()) {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument does not have function type");
-    }
-    Assert( fType.getNumChildren()>=2 );
-    if (check) {
-      TypeNode aType = n[1].getType(check);
-      if( !aType.isSubtypeOf( fType[0] ) ){
-        throw TypeCheckingExceptionPrivate(
-            n, "argument does not match function type");
-      }
-    }
-    if( fType.getNumChildren()==2 ){
-      return fType.getRangeType();
-    }else{
-      std::vector< TypeNode > children;
-      TypeNode::iterator argument_type_it = fType.begin();
-      TypeNode::iterator argument_type_it_end = fType.end();
-      ++argument_type_it;
-      for (; argument_type_it != argument_type_it_end; ++argument_type_it) {
-        children.push_back( *argument_type_it );
-      }
-      return nodeManager->mkFunctionType( children );
-    }
-  }
-}; /* class HoApplyTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-} /* CVC4::theory::uf namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+/**
+ * Type rule for lambas. Ensures the first argument is a bound varible list
+ * (x1 ... xn). Returns the function type (-> T1 ... Tn T) where T1...Tn are
+ * the types of x1..xn and T is the type of the second argument.
+ */
+class LambdaTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  // computes whether a lambda is a constant value, via conversion to array
+  // representation
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+}; /* class LambdaTypeRule */
 
-#endif /* __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H */
+class FunctionProperties
+{
+ public:
+  static Cardinality computeCardinality(TypeNode type);
+
+  /** Function type is well-founded if its component sorts are */
+  static bool isWellFounded(TypeNode type);
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
+  static Node mkGroundTerm(TypeNode type);
+}; /* class FuctionProperties */
+
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5::internal
+
+#endif /* CVC5__THEORY__UF__THEORY_UF_TYPE_RULES_H */

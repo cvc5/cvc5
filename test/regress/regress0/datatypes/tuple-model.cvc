@@ -1,5 +1,0 @@
-% This was breaking with --check-models due to tuple model breakage.
-% EXPECT: sat
-x : [ INT, INT ];
-ASSERT x.0 = 5;
-CHECKSAT;

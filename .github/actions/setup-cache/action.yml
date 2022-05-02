@@ -1,0 +1,71 @@
+name: Setup cache
+description: Setup caches (ccache, contribs and dependencies)
+inputs:
+  cache-key:
+    default: "none"
+
+# The GitHub action for caching currently does not support modifying an
+# already existing cache. We thus have a few different possibilities:
+# - If having (partially) outdated data in the cached directory is fine, we
+#   may want to restore any old cache via `restore-keys`. We should try hard
+#   to detect that we have (partially) outdated data and make sure that the
+#   updated data is stored to a new cache key.
+# - If a cache is updated frequently (i.e. almost with every commit), we
+#   should use the current commit hash as suffix and use `restore-keys` to
+#   restore the cache from the previous commit.
+#
+# We define three caches: ccache, contrib and deps.
+# - ccache changes with (almost) every commit and handles outdated contents
+#   properly. We thus use `restore-keys` and store a new cache for every
+#   commit.
+# - contrib (deps/) does not handle outdated contents gracefully. As it is
+#   not updated frequently, we completely rebuild it whenever it might
+#   change, which is when the contrib scripts or the CI config changes.
+# - deps (build/deps/) does handle outdated contents gracefully, but does
+#   not change frequently. We thus use `restore-keys` to restore any recent
+#   cache, but only store a new cache if the cmake or CI config changes.
+#
+# All caches are separated by operating system. Both ccache and deps are
+# additionally separated by `cache-key`, i.e. the CI job type, because they
+# depend on the configured compiler.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup ccache cache
+      uses: actions/cache@v2
+      with:
+        path: ccache-dir
+        key: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-${{ github.sha }}
+        restore-keys: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-
+
+    - name: Configure ccache
+      shell: bash
+      run: |
+        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=compression=true
+        ccache --set-config=compression_level=6
+        ccache -M 500M
+        ccache -z
+
+    - name: Setup contrib dependencies cache
+      id: contrib-cache
+      uses: actions/cache@v2
+      with:
+        path: deps/install
+        key: ${{ inputs.cache-key }}-${{ runner.os }}-contrib-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/**') }}
+
+    - name: Install contrib dependencies
+      shell: bash
+      run: |
+        if [[ "${{ steps.contrib-cache.outputs.cache-hit }}" == "true" ]]; then exit 0; fi
+        ./contrib/get-lfsc-checker
+
+    - name: Setup dependencies cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          build-shared/deps
+          build-static/deps
+        key: ${{ inputs.cache-key }}-${{ runner.os }}-deps-${{ hashFiles('cmake/**') }}-${{ hashFiles('.github/**') }}
+

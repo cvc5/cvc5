@@ -1,71 +1,119 @@
-/*********************                                                        */
-/*! \file theory_proxy.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** SAT Solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__PROP__SAT_H
-#define __CVC4__PROP__SAT_H
+#ifndef CVC5__PROP__SAT_H
+#define CVC5__PROP__SAT_H
 
-// Just defining this for now, since there's no other SAT solver bindings.
-// Optional blocks below will be unconditionally included
-#define __CVC4_USE_MINISAT
-
-#include <iosfwd>
 #include <unordered_set>
 
+#include "context/cdhashset.h"
 #include "context/cdqueue.h"
-#include "expr/expr_stream.h"
 #include "expr/node.h"
-#include "prop/sat_solver.h"
-#include "smt_util/lemma_channels.h"
-#include "smt_util/lemma_input_channel.h"
-#include "smt_util/lemma_output_channel.h"
+#include "proof/trust_node.h"
+#include "prop/learned_db.h"
+#include "prop/registrar.h"
+#include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "theory/theory_preprocessor.h"
+#include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-class DecisionEngine;
+class Env;
 class TheoryEngine;
+
+namespace decision {
+class DecisionEngine;
+}
 
 namespace prop {
 
 class PropEngine;
 class CnfStream;
+class SkolemDefManager;
+class ZeroLevelLearner;
 
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
-class TheoryProxy {
-public:
-  TheoryProxy(PropEngine* propEngine,
+class TheoryProxy : protected EnvObj, public Registrar
+{
+  using NodeSet = context::CDHashSet<Node>;
+
+ public:
+  TheoryProxy(Env& env,
+              PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              DecisionEngine* decisionEngine,
-              context::Context* context,
-              CnfStream* cnfStream,
-              std::ostream* replayLog,
-              ExprStream* replayStream,
-              LemmaChannels* globals);
+              decision::DecisionEngine* decisionEngine,
+              SkolemDefManager* skdm);
 
   ~TheoryProxy();
 
+  /** Finish initialize */
+  void finishInit(CnfStream* cnfStream);
+
+  /** Presolve, which calls presolve for the modules managed by this class */
+  void presolve();
+
+  /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
+  /**
+   * Notifies this module of the input assertions.
+   * @param assertion The preprocessed input assertions,
+   * @param skolemMap Map from indices in assertion to the Skolem they are
+   * the definition for
+   */
+  void notifyInputFormulas(const std::vector<Node>& assertions,
+                           std::unordered_map<size_t, Node>& skolemMap);
+  /**
+   * Notify a lemma or input assertion, possibly corresponding to a skolem
+   * definition.
+   */
+  void notifyAssertion(Node lem,
+                       TNode skolem = TNode::null(),
+                       bool isLemma = false);
 
   void theoryCheck(theory::Theory::Effort effort);
 
+  /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
+  /** Notify that current propagation inserted at lower level than current.
+   *
+   * This method should be called by the SAT solver when the explanation of the
+   * current propagation is added at lower level than the current user level.
+   * It'll trigger a call to the ProofCnfStream to notify it that the proof of
+   * this propagation should be saved in case it's needed after this user
+   * context is popped.
+   */
+  void notifyCurrPropagationInsertedAtLevel(int explLevel);
+  /** Notify that added clause was inserted at lower level than current.
+   *
+   * As above, but for clauses asserted into the SAT solver. This cannot be done
+   * in terms of "current added clause" because the clause added at a lower
+   * level could be for example a lemma derived at a prior moment whose
+   * assertion the SAT solver delayed.
+   */
+  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
   void theoryPropagate(SatClause& output);
 
@@ -77,6 +125,9 @@ public:
 
   bool theoryNeedCheck() const;
 
+  /** Is incomplete */
+  bool isIncomplete() const;
+
   /**
    * Notifies of a new variable at a decision level.
    */
@@ -86,13 +137,7 @@ public:
 
   void notifyRestart();
 
-  void notifyNewLemma(SatClause& lemma);
-
-  SatLiteral getNextReplayDecision();
-
-  void logDecision(SatLiteral lit);
-
-  void spendResource(unsigned amount);
+  void spendResource(Resource r);
 
   bool isDecisionEngineDone();
 
@@ -100,8 +145,42 @@ public:
 
   SatValue getDecisionPolarity(SatVariable var);
 
-  /** Shorthand for Dump("state") << PopCommand() */
-  void dumpStatePop();
+  CnfStream* getCnfStream();
+
+  /**
+   * Call the preprocessor on node, return trust node corresponding to the
+   * rewrite.
+   */
+  TrustNode preprocessLemma(TrustNode trn,
+                            std::vector<theory::SkolemLemma>& newLemmas);
+  /**
+   * Call the preprocessor on node, return trust node corresponding to the
+   * rewrite.
+   */
+  TrustNode preprocess(TNode node, std::vector<theory::SkolemLemma>& newLemmas);
+  /**
+   * Remove ITEs from the node.
+   */
+  TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& newLemmas);
+  /**
+   * Get the skolems within node and their corresponding definitions, store
+   * them in sks and skAsserts respectively. Note that this method does not
+   * necessary include all of the skolems in skAsserts. In other words, it
+   * collects from node only. To compute all skolems that node depends on
+   * requires calling this method again on each lemma in skAsserts until a
+   * fixed point is reached.
+   */
+  void getSkolems(TNode node,
+                  std::vector<Node>& skAsserts,
+                  std::vector<Node>& sks);
+  /** Preregister term */
+  void preRegister(Node n) override;
+
+  /** Get the zero-level assertions */
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   /** The prop engine we are using. */
@@ -111,26 +190,16 @@ public:
   CnfStream* d_cnfStream;
 
   /** The decision engine we are using. */
-  DecisionEngine* d_decisionEngine;
+  decision::DecisionEngine* d_decisionEngine;
+
+  /**
+   * Whether the decision engine needs notification of active skolem
+   * definitions, see DecisionEngine::needsActiveSkolemDefs.
+   */
+  bool d_dmNeedsActiveDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
-
-
-  /** Container for inputChannel() and outputChannel(). */
-  LemmaChannels* d_channels;
-
-  /** Stream on which to log replay events. */
-  std::ostream* d_replayLog;
-
-  /** Stream for replaying decisions. */
-  ExprStream* d_replayStream;
-
-  /** The lemma input channel we are using. */
-  LemmaInputChannel* inputChannel();
-
-  /** The lemma output channel we are using. */
-  LemmaOutputChannel* outputChannel();
 
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
@@ -139,17 +208,22 @@ public:
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
    * all imported and exported lemmas.
    */
-  std::unordered_set<Node, NodeHashFunction> d_shared;
+  std::unordered_set<Node> d_shared;
 
-  /**
-   * Statistic: the number of replayed decisions (via --replay).
-   */
-  IntStat d_replayedDecisions;
+  /** The theory preprocessor */
+  theory::TheoryPreprocessor d_tpp;
 
-};/* class SatSolver */
+  /** The skolem definition manager */
+  SkolemDefManager* d_skdm;
 
-}/* CVC4::prop namespace */
+  /** The zero level learner */
+  std::unique_ptr<ZeroLevelLearner> d_zll;
 
-}/* CVC4 namespace */
+  /** Whether we have been requested to stop the search */
+  context::CDO<bool> d_stopSearch;
+}; /* class TheoryProxy */
 
-#endif /* __CVC4__PROP__SAT_H */
+}  // namespace prop
+}  // namespace cvc5::internal
+
+#endif

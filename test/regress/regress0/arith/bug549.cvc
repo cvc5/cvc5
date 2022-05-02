@@ -1,3 +1,0 @@
-% EXPECT: valid
-a, b : REAL;
-QUERY (a*b)^5 = b*a*a*a*a*b*b*b*b*a;

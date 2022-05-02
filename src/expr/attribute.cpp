@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file attribute.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AttributeManager implementation.
- **
- ** AttributeManager implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AttributeManager implementation.
+ */
 #include "expr/attribute.h"
 
 #include <utility>
@@ -22,7 +21,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 namespace attr {
 
@@ -37,7 +36,7 @@ bool AttributeManager::inGarbageCollection() const {
 void AttributeManager::debugHook(int debugFlag) {
   /* DO NOT CHECK IN ANY CODE INTO THE DEBUG HOOKS!
    * debugHook() is an empty function for the purpose of debugging
-   * the AttributeManager without recompiling all of CVC4.
+   * the AttributeManager without recompiling all of cvc5.
    * Formally this is a nop.
    */
 }
@@ -50,7 +49,6 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   deleteFromTable(d_nodes, nv);
   deleteFromTable(d_types, nv);
   deleteFromTable(d_strings, nv);
-  deleteFromTable(d_ptrs, nv);
 }
 
 void AttributeManager::deleteAllAttributes() {
@@ -60,7 +58,6 @@ void AttributeManager::deleteAllAttributes() {
   deleteAllFromTable(d_nodes);
   deleteAllFromTable(d_types);
   deleteAllFromTable(d_strings);
-  deleteAllFromTable(d_ptrs);
 }
 
 void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
@@ -81,7 +78,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
 
     switch(tableId) {
     case AttrTableBool:
-      Unimplemented("delete attributes is unimplemented for bools");
+      Unimplemented() << "delete attributes is unimplemented for bools";
       break;
     case AttrTableUInt64:
       deleteAttributesFromTable(d_ints, ids);
@@ -98,9 +95,6 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
     case AttrTableString:
       deleteAttributesFromTable(d_strings, ids);
       break;
-    case AttrTablePointer:
-      deleteAttributesFromTable(d_ptrs, ids);
-      break;
 
     case AttrTableCDBool:
     case AttrTableCDUInt64:
@@ -108,7 +102,8 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
     case AttrTableCDNode:
     case AttrTableCDString:
     case AttrTableCDPointer:
-      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired.");
+      Unimplemented() << "CDAttributes cannot be deleted. Contact Tim/Morgan "
+                         "if this behavior is desired.";
       break;
 
     case LastAttrTable:
@@ -118,6 +113,6 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
   }
 }
 
-}/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace attr
+}  // namespace expr
+}  // namespace cvc5::internal

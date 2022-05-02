@@ -1,43 +1,49 @@
-/*********************                                                        */
-/*! \file theory_fp_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Paul Meng, Tim King
- ** Copyright (c) 2013  University of Oxford
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Rewrite rules for floating point theories. ]]
- **
- ** \todo [[ Single argument constant propagate / simplify
-             Push negations through arithmetic operators (include max and min? maybe not due to +0/-0)
- **          classifications to normal tests (maybe)
- **          (= x (fp.neg x)) --> (isNaN x)
- **          (fp.eq x (fp.neg x)) --> (isZero x)   (previous and reorganise should be sufficient)
- **          (fp.eq x const) --> various = depending on const
- **          (fp.abs (fp.neg x)) --> (fp.abs x)
- **          (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
- **          (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
- **          (fp.isPositive (fp.abs x)) --> (not (isNaN x))
- **          (fp.isNegative (fp.abs x)) --> false
- **          A -> castA --> A
- **          A -> castB -> castC  -->  A -> castC if A <= B <= C
- **          A -> castB -> castA  -->  A if A <= B
- **          promotion converts can ignore rounding mode
- **          Samuel Figuer results
- **       ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Aina Niemetz, Andres Noetzli
+ * Copyright (c) 2013  University of Oxford
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite rules for floating point theories.
+ *
+ * \todo - Single argument constant propagate / simplify
+ *       - Push negations through arithmetic operators (include max and min?
+ *         maybe not due to +0/-0)
+ *       - classifications to normal tests (maybe)
+ *       - (= x (fp.neg x)) --> (isNaN x)
+ *       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
+ *             should be sufficient)
+ *       - (fp.eq x const) --> various = depending on const
+ *       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
+ *       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
+ *       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
+ *       - (fp.isNegative (fp.abs x)) --> false
+ *       - A -> castA --> A
+ *       - A -> castB -> castC  -->  A -> castC if A <= B <= C
+ *       - A -> castB -> castA  -->  A if A <= B
+ *       - promotion converts can ignore rounding mode
+ *       - Samuel Figuer results
+ */
+
+#include "theory/fp/theory_fp_rewriter.h"
 
 #include <algorithm>
 
-#include "base/cvc4_assert.h"
-#include "theory/fp/fp_converter.h"
-#include "theory/fp/theory_fp_rewriter.h"
+#include "base/check.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/fp/fp_word_blaster.h"
+#include "util/floatingpoint.h"
 
-namespace CVC4 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -47,38 +53,63 @@ namespace rewrite {
   RewriteResponse then (TNode node, bool isPreRewrite) {
     RewriteResponse result(first(node, isPreRewrite));
 
-    if (result.status == REWRITE_DONE) {
-      return second(result.node, isPreRewrite);
-    } else {
+    if (result.d_status == REWRITE_DONE)
+    {
+      return second(result.d_node, isPreRewrite);
+    }
+    else
+    {
       return result;
     }
   }
 
-  RewriteResponse notFP (TNode node, bool) {
-    Unreachable("non floating-point kind (%d) in floating point rewrite?",node.getKind());
+  RewriteResponse notFP(TNode node, bool isPreRewrite)
+  {
+    Unreachable() << "non floating-point kind (" << node.getKind()
+                  << ") in floating point rewrite?";
   }
 
-  RewriteResponse identity (TNode node, bool) {
+  RewriteResponse identity(TNode node, bool isPreRewrite)
+  {
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  RewriteResponse type (TNode node, bool) {
-    Unreachable("sort kind (%d) found in expression?",node.getKind());
+  RewriteResponse type(TNode node, bool isPreRewrite)
+  {
+    Unreachable() << "sort kind (" << node.getKind()
+                  << ") found in expression?";
   }
 
-  RewriteResponse removeDoubleNegation (TNode node, bool) {
+  RewriteResponse removeDoubleNegation(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
     if (node[0].getKind() == kind::FLOATINGPOINT_NEG) {
-      RewriteResponse(REWRITE_AGAIN, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
     }
 
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  RewriteResponse convertSubtractionToAddition (TNode node, bool) {
+  RewriteResponse compactAbs(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
+    if (node[0].getKind() == kind::FLOATINGPOINT_NEG
+        || node[0].getKind() == kind::FLOATINGPOINT_ABS)
+    {
+      Node ret =
+          NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_ABS, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN, ret);
+    }
+
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  RewriteResponse convertSubtractionToAddition(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_SUB);
     Node negation = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_NEG,node[2]);
-    Node addition = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_PLUS,node[0],node[1],negation);
+    Node addition = NodeManager::currentNM()->mkNode(
+        kind::FLOATINGPOINT_ADD, node[0], node[1], negation);
     return RewriteResponse(REWRITE_DONE, addition);
   }
 
@@ -86,17 +117,13 @@ namespace rewrite {
     Assert(isPreRewrite);  // Should be run first
 
     Kind k = node.getKind();
-    Assert(k == kind::FLOATINGPOINT_EQ ||
-	   k == kind::FLOATINGPOINT_GEQ ||
-	   k == kind::FLOATINGPOINT_LEQ ||
-	   k == kind::FLOATINGPOINT_GT ||
-	   k == kind::FLOATINGPOINT_LT);
-
+    Assert(k == kind::FLOATINGPOINT_EQ || k == kind::FLOATINGPOINT_GEQ
+           || k == kind::FLOATINGPOINT_LEQ || k == kind::FLOATINGPOINT_GT
+           || k == kind::FLOATINGPOINT_LT);
 
     size_t children = node.getNumChildren();
     if (children > 2) {
-
-      NodeBuilder<> conjunction(kind::AND);
+      NodeBuilder conjunction(kind::AND);
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {
@@ -114,60 +141,73 @@ namespace rewrite {
   /* Implies (fp.eq x x) --> (not (isNaN x))
    */
 
-  RewriteResponse ieeeEqToEq (TNode node, bool) {
+  RewriteResponse ieeeEqToEq(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
     NodeManager *nm = NodeManager::currentNM();
 
-    return RewriteResponse(REWRITE_DONE,
-			   nm->mkNode(kind::AND,
-				      nm->mkNode(kind::AND,
-						 nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0])),
-						 nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[1]))),
-				      nm->mkNode(kind::OR,
-						 nm->mkNode(kind::EQUAL, node[0], node[1]),
-						 nm->mkNode(kind::AND,
-							    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-							    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[1])))));
+    return RewriteResponse(
+        REWRITE_DONE,
+        nm->mkNode(
+            kind::AND,
+            nm->mkNode(
+                kind::AND,
+                nm->mkNode(kind::NOT,
+                           nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0])),
+                nm->mkNode(kind::NOT,
+                           nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[1]))),
+            nm->mkNode(
+                kind::OR,
+                nm->mkNode(kind::EQUAL, node[0], node[1]),
+                nm->mkNode(kind::AND,
+                           nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[0]),
+                           nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[1])))));
   }
 
-
-  RewriteResponse geqToleq (TNode node, bool) {
+  RewriteResponse geqToleq(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_GEQ);
     return RewriteResponse(REWRITE_DONE,NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_LEQ,node[1],node[0]));
   }
 
-  RewriteResponse gtTolt (TNode node, bool) {
+  RewriteResponse gtTolt(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_GT);
     return RewriteResponse(REWRITE_DONE,NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_LT,node[1],node[0]));
   }
 
-  RewriteResponse removed (TNode node, bool) {  
-    Unreachable("kind (%s) should have been removed?",kindToString(node.getKind()).c_str());
+  RewriteResponse removed(TNode node, bool isPreRewrite)
+  {
+    Unreachable() << "kind (" << node.getKind()
+                  << ") should have been removed?";
   }
 
-  RewriteResponse variable (TNode node, bool) {  
+  RewriteResponse variable(TNode node, bool isPreRewrite)
+  {
     // We should only get floating point and rounding mode variables to rewrite.
     TypeNode tn = node.getType(true);
     Assert(tn.isFloatingPoint() || tn.isRoundingMode());
- 
+
     // Not that we do anything with them...
     return RewriteResponse(REWRITE_DONE, node);
   }
 
   RewriteResponse equal (TNode node, bool isPreRewrite) {
     Assert(node.getKind() == kind::EQUAL);
-  
+
     // We should only get equalities of floating point or rounding mode types.
     TypeNode tn = node[0].getType(true);
 
     Assert(tn.isFloatingPoint() || tn.isRoundingMode());
-    Assert(tn == node[1].getType(true));   // Should be ensured by the typing rules
+    Assert(tn
+           == node[1].getType(true));  // Should be ensured by the typing rules
 
     if (node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
     } else if (!isPreRewrite && (node[0] > node[1])) {
-	Node normal = NodeManager::currentNM()->mkNode(kind::EQUAL,node[1],node[0]);
-	return RewriteResponse(REWRITE_DONE, normal);
+      Node normal =
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
+      return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     }
@@ -176,13 +216,14 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
-    Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX) ||
-	   (k == kind::FLOATINGPOINT_MIN_TOTAL) || (k == kind::FLOATINGPOINT_MAX_TOTAL));
+    Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
+           || (k == kind::FLOATINGPOINT_MIN_TOTAL)
+           || (k == kind::FLOATINGPOINT_MAX_TOTAL));
 #endif
     if (node[0] == node[1]) {
-      return RewriteResponse(REWRITE_DONE, node[0]);
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     }
@@ -191,7 +232,7 @@ namespace rewrite {
 
   RewriteResponse reorderFPEquality (TNode node, bool isPreRewrite) {
     Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
-    Assert(!isPreRewrite);    // Likely redundant in pre-rewrite
+    Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[0] > node[1]) {
       Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_EQ,node[1],node[0]);
@@ -203,8 +244,8 @@ namespace rewrite {
 
   RewriteResponse reorderBinaryOperation (TNode node, bool isPreRewrite) {
     Kind k = node.getKind();
-    Assert((k == kind::FLOATINGPOINT_PLUS) || (k == kind::FLOATINGPOINT_MULT));
-    Assert(!isPreRewrite);    // Likely redundant in pre-rewrite
+    Assert((k == kind::FLOATINGPOINT_ADD) || (k == kind::FLOATINGPOINT_MULT));
+    Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
       Node normal = NodeManager::currentNM()->mkNode(k,node[0],node[2],node[1]);
@@ -216,10 +257,11 @@ namespace rewrite {
 
   RewriteResponse reorderFMA (TNode node, bool isPreRewrite) {
     Assert(node.getKind() == kind::FLOATINGPOINT_FMA);
-    Assert(!isPreRewrite);    // Likely redundant in pre-rewrite
+    Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
-      Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_FMA,node[0],node[2],node[1],node[3]);
+      Node normal = NodeManager::currentNM()->mkNode(
+          kind::FLOATINGPOINT_FMA, {node[0], node[2], node[1], node[3]});
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -227,11 +269,11 @@ namespace rewrite {
   }
 
   RewriteResponse removeSignOperations (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISN   ||
-	   node.getKind() == kind::FLOATINGPOINT_ISSN  ||
-	   node.getKind() == kind::FLOATINGPOINT_ISZ   ||
-	   node.getKind() == kind::FLOATINGPOINT_ISINF ||
-	   node.getKind() == kind::FLOATINGPOINT_ISNAN);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NORMAL
+           || node.getKind() == kind::FLOATINGPOINT_IS_SUBNORMAL
+           || node.getKind() == kind::FLOATINGPOINT_IS_ZERO
+           || node.getKind() == kind::FLOATINGPOINT_IS_INF
+           || node.getKind() == kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
     Kind childKind(node[0].getKind());
@@ -240,249 +282,366 @@ namespace rewrite {
 	(childKind == kind::FLOATINGPOINT_ABS)) {
 
       Node rewritten = NodeManager::currentNM()->mkNode(node.getKind(),node[0][0]);
-      return RewriteResponse(REWRITE_AGAIN, rewritten);
+      return RewriteResponse(REWRITE_AGAIN_FULL, rewritten);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     } 
   }
 
-}; /* CVC4::theory::fp::rewrite */
+  RewriteResponse compactRemainder (TNode node, bool isPreRewrite) {
+    Assert(node.getKind() == kind::FLOATINGPOINT_REM);
+    Assert(!isPreRewrite);  // status assumes parts have been rewritten
 
+    Node working = node;
+
+    // (fp.rem (fp.rem X Y) Y) == (fp.rem X Y)
+    if (working[0].getKind() == kind::FLOATINGPOINT_REM && // short-cut matters!
+	working[0][1] == working[1]) {
+      working = working[0];
+    }
+
+    // Sign of the RHS does not matter
+    if (working[1].getKind() == kind::FLOATINGPOINT_NEG ||
+	working[1].getKind() == kind::FLOATINGPOINT_ABS) {
+      working[1] = working[1][0];
+    }
+
+    // Lift negation out of the LHS so it can be cancelled out
+    if (working[0].getKind() == kind::FLOATINGPOINT_NEG) {
+      NodeManager * nm = NodeManager::currentNM();
+      working = nm->mkNode(
+          kind::FLOATINGPOINT_NEG,
+          nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
+      // in contrast to other rewrites here, this requires rewrite again full
+      return RewriteResponse(REWRITE_AGAIN_FULL, working);
+    }
+
+    return RewriteResponse(REWRITE_DONE, working);
+  }
+
+  RewriteResponse leqId(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_LEQ);
+
+    if (node[0] == node[1])
+    {
+      NodeManager *nm = NodeManager::currentNM();
+      return RewriteResponse(
+          isPreRewrite ? REWRITE_DONE : REWRITE_AGAIN_FULL,
+          nm->mkNode(kind::NOT,
+                     nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0])));
+    }
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  RewriteResponse ltId(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_LT);
+
+    if (node[0] == node[1])
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             NodeManager::currentNM()->mkConst(false));
+    }
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  RewriteResponse toFPSignedBV(TNode node, bool isPreRewrite)
+  {
+    Assert(!isPreRewrite);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
+
+    /* symFPU does not allow conversions from signed bit-vector of size 1 */
+    if (node[1].getType().getBitVectorSize() == 1)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node op = nm->mkConst(FloatingPointToFPUnsignedBitVector(
+          node.getOperator().getConst<FloatingPointToFPSignedBitVector>()));
+      Node fromubv = nm->mkNode(op, node[0], node[1]);
+      return RewriteResponse(
+          REWRITE_AGAIN_FULL,
+          nm->mkNode(kind::ITE,
+                     node[1].eqNode(bv::utils::mkOne(1)),
+                     nm->mkNode(kind::FLOATINGPOINT_NEG, fromubv),
+                     fromubv));
+    }
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  };  // namespace rewrite
 
 namespace constantFold {
 
+RewriteResponse fpLiteral(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_FP);
 
-  RewriteResponse fpLiteral (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_FP);
-    
-    BitVector bv(node[0].getConst<BitVector>());
-    bv = bv.concat(node[1].getConst<BitVector>());
-    bv = bv.concat(node[2].getConst<BitVector>());
-    
-    // +1 to support the hidden bit
-    Node lit =
-      NodeManager::currentNM()->mkConst(FloatingPoint(node[1].getConst<BitVector>().getSize(),
-						      node[2].getConst<BitVector>().getSize() + 1,
-						      bv));
-    
+  BitVector bv(node[0].getConst<BitVector>());
+  bv = bv.concat(node[1].getConst<BitVector>());
+  bv = bv.concat(node[2].getConst<BitVector>());
+
+  // +1 to support the hidden bit
+  Node lit = NodeManager::currentNM()->mkConst(
+      FloatingPoint(node[1].getConst<BitVector>().getSize(),
+                    node[2].getConst<BitVector>().getSize() + 1,
+                    bv));
+
+  return RewriteResponse(REWRITE_DONE, lit);
+}
+
+RewriteResponse abs(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
+  Assert(node.getNumChildren() == 1);
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(
+                             node[0].getConst<FloatingPoint>().absolute()));
+}
+
+RewriteResponse neg(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
+  Assert(node.getNumChildren() == 1);
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(
+                             node[0].getConst<FloatingPoint>().negate()));
+}
+
+RewriteResponse add(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_ADD);
+  Assert(node.getNumChildren() == 3);
+
+  RoundingMode rm(node[0].getConst<RoundingMode>());
+  FloatingPoint arg1(node[1].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[2].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg1.add(rm, arg2)));
+}
+
+RewriteResponse mult(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_MULT);
+  Assert(node.getNumChildren() == 3);
+
+  RoundingMode rm(node[0].getConst<RoundingMode>());
+  FloatingPoint arg1(node[1].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[2].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+
+  return RewriteResponse(
+      REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.mult(rm, arg2)));
+}
+
+RewriteResponse fma(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_FMA);
+  Assert(node.getNumChildren() == 4);
+
+  RoundingMode rm(node[0].getConst<RoundingMode>());
+  FloatingPoint arg1(node[1].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[2].getConst<FloatingPoint>());
+  FloatingPoint arg3(node[3].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+  Assert(arg1.getSize() == arg3.getSize());
+
+  return RewriteResponse(
+      REWRITE_DONE,
+      NodeManager::currentNM()->mkConst(arg1.fma(rm, arg2, arg3)));
+}
+
+RewriteResponse div(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_DIV);
+  Assert(node.getNumChildren() == 3);
+
+  RoundingMode rm(node[0].getConst<RoundingMode>());
+  FloatingPoint arg1(node[1].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[2].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg1.div(rm, arg2)));
+}
+
+RewriteResponse sqrt(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_SQRT);
+  Assert(node.getNumChildren() == 2);
+
+  RoundingMode rm(node[0].getConst<RoundingMode>());
+  FloatingPoint arg(node[1].getConst<FloatingPoint>());
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg.sqrt(rm)));
+}
+
+RewriteResponse rti(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_RTI);
+  Assert(node.getNumChildren() == 2);
+
+  RoundingMode rm(node[0].getConst<RoundingMode>());
+  FloatingPoint arg(node[1].getConst<FloatingPoint>());
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg.rti(rm)));
+}
+
+RewriteResponse rem(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_REM);
+  Assert(node.getNumChildren() == 2);
+
+  FloatingPoint arg1(node[0].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[1].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+
+  return RewriteResponse(REWRITE_DONE,
+                         NodeManager::currentNM()->mkConst(arg1.rem(arg2)));
+}
+
+RewriteResponse min(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
+  Assert(node.getNumChildren() == 2);
+
+  FloatingPoint arg1(node[0].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[1].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+
+  FloatingPoint::PartialFloatingPoint res(arg1.min(arg2));
+
+  if (res.second)
+  {
+    Node lit = NodeManager::currentNM()->mkConst(res.first);
     return RewriteResponse(REWRITE_DONE, lit);
   }
-
-  RewriteResponse abs (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
-    Assert(node.getNumChildren() == 1);
-
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().absolute()));
+  else
+  {
+    // Can't constant fold the underspecified case
+    return RewriteResponse(REWRITE_DONE, node);
   }
+}
 
+RewriteResponse max(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_MAX);
+  Assert(node.getNumChildren() == 2);
 
-  RewriteResponse neg (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
-    Assert(node.getNumChildren() == 1);
+  FloatingPoint arg1(node[0].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().negate()));
+  Assert(arg1.getSize() == arg2.getSize());
+
+  FloatingPoint::PartialFloatingPoint res(arg1.max(arg2));
+
+  if (res.second)
+  {
+    Node lit = NodeManager::currentNM()->mkConst(res.first);
+    return RewriteResponse(REWRITE_DONE, lit);
   }
-
-
-  RewriteResponse plus (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_PLUS);
-    Assert(node.getNumChildren() == 3);
-
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    FloatingPoint arg1(node[1].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[2].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-      
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.plus(rm, arg2)));
+  else
+  {
+    // Can't constant fold the underspecified case
+    return RewriteResponse(REWRITE_DONE, node);
   }
+}
 
-  RewriteResponse mult (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_MULT);
-    Assert(node.getNumChildren() == 3);
+RewriteResponse minTotal(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL);
+  Assert(node.getNumChildren() == 3);
 
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    FloatingPoint arg1(node[1].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[2].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-    
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.mult(rm, arg2)));
+  FloatingPoint arg1(node[0].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[1].getConst<FloatingPoint>());
+
+  Assert(arg1.getSize() == arg2.getSize());
+
+  // Can be called with the third argument non-constant
+  if (node[2].getMetaKind() == kind::metakind::CONSTANT)
+  {
+    BitVector arg3(node[2].getConst<BitVector>());
+
+    FloatingPoint folded(arg1.minTotal(arg2, arg3.isBitSet(0)));
+    Node lit = NodeManager::currentNM()->mkConst(folded);
+    return RewriteResponse(REWRITE_DONE, lit);
   }
-
-  RewriteResponse fma (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_FMA);
-    Assert(node.getNumChildren() == 4);
-
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    FloatingPoint arg1(node[1].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[2].getConst<FloatingPoint>());
-    FloatingPoint arg3(node[3].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-    Assert(arg1.t == arg3.t);
-    
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.fma(rm, arg2, arg3)));
-  }
-
-  RewriteResponse div (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_DIV);
-    Assert(node.getNumChildren() == 3);
-
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    FloatingPoint arg1(node[1].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[2].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-    
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.div(rm, arg2)));
-  }
-  
-  RewriteResponse sqrt (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_SQRT);
-    Assert(node.getNumChildren() == 2);
-
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    FloatingPoint arg(node[1].getConst<FloatingPoint>());
-    
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg.sqrt(rm)));
-  }
-
-  RewriteResponse rti (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_RTI);
-    Assert(node.getNumChildren() == 2);
-
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    FloatingPoint arg(node[1].getConst<FloatingPoint>());
-    
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg.rti(rm)));
-  }
-
-  RewriteResponse rem (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_REM);
-    Assert(node.getNumChildren() == 2);
-
-    FloatingPoint arg1(node[0].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-    
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.rem(arg2)));
-  }
-
-  RewriteResponse min (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
-    Assert(node.getNumChildren() == 2);
-
-    FloatingPoint arg1(node[0].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-
+  else
+  {
     FloatingPoint::PartialFloatingPoint res(arg1.min(arg2));
 
-    if (res.second) {
+    if (res.second)
+    {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
-    } else {
+    }
+    else
+    {
       // Can't constant fold the underspecified case
       return RewriteResponse(REWRITE_DONE, node);
     }
   }
+}
 
-  RewriteResponse max (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_MAX);
-    Assert(node.getNumChildren() == 2);
+RewriteResponse maxTotal(TNode node, bool isPreRewrite)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL);
+  Assert(node.getNumChildren() == 3);
 
-    FloatingPoint arg1(node[0].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
+  FloatingPoint arg1(node[0].getConst<FloatingPoint>());
+  FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
+  Assert(arg1.getSize() == arg2.getSize());
+
+  // Can be called with the third argument non-constant
+  if (node[2].getMetaKind() == kind::metakind::CONSTANT)
+  {
+    BitVector arg3(node[2].getConst<BitVector>());
+
+    FloatingPoint folded(arg1.maxTotal(arg2, arg3.isBitSet(0)));
+    Node lit = NodeManager::currentNM()->mkConst(folded);
+    return RewriteResponse(REWRITE_DONE, lit);
+  }
+  else
+  {
     FloatingPoint::PartialFloatingPoint res(arg1.max(arg2));
 
-    if (res.second) {
+    if (res.second)
+    {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
-    } else {
+    }
+    else
+    {
       // Can't constant fold the underspecified case
       return RewriteResponse(REWRITE_DONE, node);
     }
   }
+}
 
-  RewriteResponse minTotal (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL);
-    Assert(node.getNumChildren() == 3);
-
-    FloatingPoint arg1(node[0].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-
-    Assert(arg1.t == arg2.t);
-
-    // Can be called with the third argument non-constant
-    if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
-      BitVector arg3(node[2].getConst<BitVector>());
-
-      FloatingPoint folded(arg1.minTotal(arg2, arg3.isBitSet(0)));
-      Node lit = NodeManager::currentNM()->mkConst(folded);
-      return RewriteResponse(REWRITE_DONE, lit);
-
-    } else {
-      FloatingPoint::PartialFloatingPoint res(arg1.min(arg2));
-
-      if (res.second) {
-	Node lit = NodeManager::currentNM()->mkConst(res.first);
-	return RewriteResponse(REWRITE_DONE, lit);
-      } else {
-	// Can't constant fold the underspecified case
-	return RewriteResponse(REWRITE_DONE, node);
-      }
-    }
-  }
-
-  RewriteResponse maxTotal (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL);
-    Assert(node.getNumChildren() == 3);
-
-    FloatingPoint arg1(node[0].getConst<FloatingPoint>());
-    FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-
-    Assert(arg1.t == arg2.t);
-
-    // Can be called with the third argument non-constant
-    if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
-      BitVector arg3(node[2].getConst<BitVector>());
-
-      FloatingPoint folded(arg1.maxTotal(arg2, arg3.isBitSet(0)));
-      Node lit = NodeManager::currentNM()->mkConst(folded);
-     return RewriteResponse(REWRITE_DONE, lit);
-
-    } else {
-      FloatingPoint::PartialFloatingPoint res(arg1.max(arg2));
-
-      if (res.second) {
-	Node lit = NodeManager::currentNM()->mkConst(res.first);
-	return RewriteResponse(REWRITE_DONE, lit);
-      } else {
-	// Can't constant fold the underspecified case
-	return RewriteResponse(REWRITE_DONE, node);
-      }
-    }
-  }
-
-  
   RewriteResponse equal (TNode node, bool isPreRewrite) {
     Assert(node.getKind() == kind::EQUAL);
-  
+
     // We should only get equalities of floating point or rounding mode types.
     TypeNode tn = node[0].getType(true);
 
     if (tn.isFloatingPoint()) {
       FloatingPoint arg1(node[0].getConst<FloatingPoint>());
       FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-    
-      Assert(arg1.t == arg2.t);
-    
+
+      Assert(arg1.getSize() == arg2.getSize());
+
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
     } else if (tn.isRoundingMode()) {
@@ -492,169 +651,196 @@ namespace constantFold {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
     }
-    Unreachable("Equality of unknown type");
+    Unreachable() << "Equality of unknown type";
   }
 
-
-  RewriteResponse leq (TNode node, bool) {
+  RewriteResponse leq(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_LEQ);
     Assert(node.getNumChildren() == 2);
 
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-    
+
+    Assert(arg1.getSize() == arg2.getSize());
+
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 <= arg2));
   }
 
-
-  RewriteResponse lt (TNode node, bool) {
+  RewriteResponse lt(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_LT);
     Assert(node.getNumChildren() == 2);
 
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
-    
-    Assert(arg1.t == arg2.t);
-    
+
+    Assert(arg1.getSize() == arg2.getSize());
+
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 < arg2));
   }
 
-
-  RewriteResponse isNormal (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISN);
+  RewriteResponse isNormal(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NORMAL);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNormal()));
   }
 
-  RewriteResponse isSubnormal (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISSN);
+  RewriteResponse isSubnormal(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_SUBNORMAL);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isSubnormal()));
   }
 
-  RewriteResponse isZero (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISZ);
+  RewriteResponse isZero(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_ZERO);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isZero()));
   }
 
-  RewriteResponse isInfinite (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISINF);
+  RewriteResponse isInfinite(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_INF);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isInfinite()));
   }
 
-  RewriteResponse isNaN (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISNAN);
+  RewriteResponse isNaN(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNaN()));
   }
 
-  RewriteResponse isNegative (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISNEG);
+  RewriteResponse isNegative(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NEG);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNegative()));
   }
 
-  RewriteResponse isPositive (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISPOS);
+  RewriteResponse isPositive(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_POS);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isPositive()));
   }
 
-  RewriteResponse convertFromIEEEBitVectorLiteral (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
+  RewriteResponse convertFromIEEEBitVectorLiteral(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
 
     TNode op = node.getOperator();
     const FloatingPointToFPIEEEBitVector &param = op.getConst<FloatingPointToFPIEEEBitVector>();
     const BitVector &bv = node[0].getConst<BitVector>();
-    
-    Node lit =
-      NodeManager::currentNM()->mkConst(FloatingPoint(param.t.exponent(),
-						      param.t.significand(),
-						      bv));
-    
+
+    Node lit = NodeManager::currentNM()->mkConst(
+        FloatingPoint(param.getSize().exponentWidth(),
+                      param.getSize().significandWidth(),
+                      bv));
+
     return RewriteResponse(REWRITE_DONE, lit);
   }
 
-  RewriteResponse constantConvert (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
+  RewriteResponse constantConvert(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_FP);
     Assert(node.getNumChildren() == 2);
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPointToFPFloatingPoint info = node.getOperator().getConst<FloatingPointToFPFloatingPoint>();
 
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.convert(info.t,rm)));
+    return RewriteResponse(
+        REWRITE_DONE,
+        NodeManager::currentNM()->mkConst(arg1.convert(info.getSize(), rm)));
   }
 
-  RewriteResponse convertFromRealLiteral (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
-  
+  RewriteResponse convertFromRealLiteral(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL);
+
     TNode op = node.getOperator();
-    const FloatingPointToFPReal &param = op.getConst<FloatingPointToFPReal>();
+    const FloatingPointSize& size =
+        op.getConst<FloatingPointToFPReal>().getSize();
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     Rational arg(node[1].getConst<Rational>());
 
-    FloatingPoint res(param.t, rm, arg);
-    
+    FloatingPoint res(size, rm, arg);
+
     Node lit = NodeManager::currentNM()->mkConst(res);
-    
+
     return RewriteResponse(REWRITE_DONE, lit);
   }
 
-  RewriteResponse convertFromSBV (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
-  
+  RewriteResponse convertFromSBV(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
+
     TNode op = node.getOperator();
-    const FloatingPointToFPSignedBitVector &param = op.getConst<FloatingPointToFPSignedBitVector>();
+    const FloatingPointSize& size =
+        op.getConst<FloatingPointToFPSignedBitVector>().getSize();
+
+    RoundingMode rm(node[0].getConst<RoundingMode>());
+    BitVector sbv(node[1].getConst<BitVector>());
+
+    NodeManager* nm = NodeManager::currentNM();
+
+    /* symFPU does not allow conversions from signed bit-vector of size 1 */
+    if (sbv.getSize() == 1)
+    {
+      FloatingPoint fromubv(size, rm, sbv, false);
+      if (sbv.isBitSet(0))
+      {
+        return RewriteResponse(REWRITE_DONE, nm->mkConst(fromubv.negate()));
+      }
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(fromubv));
+    }
+
+    return RewriteResponse(REWRITE_DONE,
+                           nm->mkConst(FloatingPoint(size, rm, sbv, true)));
+  }
+
+  RewriteResponse convertFromUBV(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_UBV);
+
+    TNode op = node.getOperator();
+    const FloatingPointSize& size =
+        op.getConst<FloatingPointToFPUnsignedBitVector>().getSize();
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.t, rm, arg, true);
-    
+    FloatingPoint res(size, rm, arg, false);
+
     Node lit = NodeManager::currentNM()->mkConst(res);
-    
+
     return RewriteResponse(REWRITE_DONE, lit);
   }
 
-  RewriteResponse convertFromUBV (TNode node, bool) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
-  
-    TNode op = node.getOperator();
-    const FloatingPointToFPUnsignedBitVector &param = op.getConst<FloatingPointToFPUnsignedBitVector>();
-
-    RoundingMode rm(node[0].getConst<RoundingMode>());
-    BitVector arg(node[1].getConst<BitVector>());
-
-    FloatingPoint res(param.t, rm, arg, false);
-    
-    Node lit = NodeManager::currentNM()->mkConst(res);
-    
-    return RewriteResponse(REWRITE_DONE, lit);
-  }
-
-  RewriteResponse convertToUBV (TNode node, bool) {
+  RewriteResponse convertToUBV(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
-  
+
     TNode op = node.getOperator();
-    const FloatingPointToUBV &param = op.getConst<FloatingPointToUBV>();
+    const BitVectorSize& size = op.getConst<FloatingPointToUBV>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
-    FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, false));
+    FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, false));
 
     if (res.second) {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -665,16 +851,17 @@ namespace constantFold {
     }
   }
 
-  RewriteResponse convertToSBV (TNode node, bool) {
+  RewriteResponse convertToSBV(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
-  
+
     TNode op = node.getOperator();
-    const FloatingPointToSBV &param = op.getConst<FloatingPointToSBV>();
+    const BitVectorSize& size = op.getConst<FloatingPointToSBV>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
-    FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, true));
+    FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, true));
 
     if (res.second) {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -685,15 +872,16 @@ namespace constantFold {
     }
   }
 
-  RewriteResponse convertToReal (TNode node, bool) {
+  RewriteResponse convertToReal(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL);
-  
+
     FloatingPoint arg(node[0].getConst<FloatingPoint>());
 
     FloatingPoint::PartialRational res(arg.convertToRational());
 
     if (res.second) {
-      Node lit = NodeManager::currentNM()->mkConst(res.first);
+      Node lit = NodeManager::currentNM()->mkConstReal(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -701,11 +889,13 @@ namespace constantFold {
     }
   }
 
-  RewriteResponse convertToUBVTotal (TNode node, bool) {
+  RewriteResponse convertToUBVTotal(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL);
 
     TNode op = node.getOperator();
-    const FloatingPointToUBVTotal &param = op.getConst<FloatingPointToUBVTotal>();
+    const BitVectorSize& size =
+        op.getConst<FloatingPointToUBVTotal>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
@@ -714,12 +904,12 @@ namespace constantFold {
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
 
-      BitVector folded(arg.convertToBVTotal(param.bvs, rm, false, partialValue));
+      BitVector folded(arg.convertToBVTotal(size, rm, false, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
-      FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, false));
+      FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, false));
 
       if (res.second) {
 	Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -731,11 +921,13 @@ namespace constantFold {
     }
   }
 
-  RewriteResponse convertToSBVTotal (TNode node, bool) {
+  RewriteResponse convertToSBVTotal(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL);
 
     TNode op = node.getOperator();
-    const FloatingPointToSBVTotal &param = op.getConst<FloatingPointToSBVTotal>();
+    const BitVectorSize& size =
+        op.getConst<FloatingPointToSBVTotal>().d_bv_size;
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
@@ -744,13 +936,12 @@ namespace constantFold {
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
 
-      BitVector folded(arg.convertToBVTotal(param.bvs, rm, true, partialValue));
+      BitVector folded(arg.convertToBVTotal(size, rm, true, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
-
-      FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, true));
+      FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, true));
 
       if (res.second) {
 	Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -762,7 +953,8 @@ namespace constantFold {
     }
   }
 
-  RewriteResponse convertToRealTotal (TNode node, bool) {
+  RewriteResponse convertToRealTotal(TNode node, bool isPreRewrite)
+  {
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
     FloatingPoint arg(node[0].getConst<FloatingPoint>());
@@ -772,15 +964,15 @@ namespace constantFold {
       Rational partialValue(node[1].getConst<Rational>());
 
       Rational folded(arg.convertToRationalTotal(partialValue));
-      Node lit = NodeManager::currentNM()->mkConst(folded);
+      Node lit = NodeManager::currentNM()->mkConstReal(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialRational res(arg.convertToRational());
 
       if (res.second) {
-	Node lit = NodeManager::currentNM()->mkConst(res.first);
-	return RewriteResponse(REWRITE_DONE, lit);
+        Node lit = NodeManager::currentNM()->mkConstReal(res.first);
+        return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
 	return RewriteResponse(REWRITE_DONE, node);
@@ -788,7 +980,7 @@ namespace constantFold {
     }
   }
 
-  RewriteResponse componentFlag(TNode node, bool)
+  RewriteResponse componentFlag(TNode node, bool isPreRewrite)
   {
     Kind k = node.getKind();
 
@@ -802,21 +994,11 @@ namespace constantFold {
     bool result;
     switch (k)
     {
-#ifdef CVC4_USE_SYMFPU
-      case kind::FLOATINGPOINT_COMPONENT_NAN:
-        result = arg0.getLiteral().nan;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_INF:
-        result = arg0.getLiteral().inf;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_ZERO:
-        result = arg0.getLiteral().zero;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_SIGN:
-        result = arg0.getLiteral().sign;
-        break;
-#endif
-      default: Unreachable("Unknown kind used in componentFlag"); break;
+      case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
+      case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
+      case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
+      case kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
+      default: Unreachable() << "Unknown kind used in componentFlag"; break;
     }
 
     BitVector res(1U, (result) ? 1U : 0U);
@@ -825,7 +1007,7 @@ namespace constantFold {
                            NodeManager::currentNM()->mkConst(res));
   }
 
-  RewriteResponse componentExponent(TNode node, bool)
+  RewriteResponse componentExponent(TNode node, bool isPreRewrite)
   {
     Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_EXPONENT);
 
@@ -834,337 +1016,341 @@ namespace constantFold {
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
-        NodeManager::currentNM()->mkConst((BitVector)arg0.getLiteral().exponent)
-#else
-        node
-#endif
-            );
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
+    );
   }
 
-  RewriteResponse componentSignificand(TNode node, bool)
+  RewriteResponse componentSignificand(TNode node, bool isPreRewrite)
   {
     Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
-    return RewriteResponse(REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
-                           NodeManager::currentNM()->mkConst(
-                               (BitVector)arg0.getLiteral().significand)
-#else
-                           node
-#endif
-                               );
+    return RewriteResponse(
+        REWRITE_DONE,
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
+    );
   }
 
-  RewriteResponse roundingModeBitBlast(TNode node, bool)
+  RewriteResponse roundingModeBitBlast(TNode node, bool isPreRewrite)
   {
     Assert(node.getKind() == kind::ROUNDINGMODE_BITBLAST);
 
     BitVector value;
 
-#ifdef CVC4_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());
     switch (arg0)
     {
-      case roundNearestTiesToEven:
+      case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
         value = symfpuSymbolic::traits::RNE().getConst<BitVector>();
         break;
 
-      case roundNearestTiesToAway:
+      case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
         value = symfpuSymbolic::traits::RNA().getConst<BitVector>();
         break;
 
-      case roundTowardPositive:
+      case RoundingMode::ROUND_TOWARD_POSITIVE:
         value = symfpuSymbolic::traits::RTP().getConst<BitVector>();
         break;
 
-      case roundTowardNegative:
+      case RoundingMode::ROUND_TOWARD_NEGATIVE:
         value = symfpuSymbolic::traits::RTN().getConst<BitVector>();
         break;
 
-      case roundTowardZero:
+      case RoundingMode::ROUND_TOWARD_ZERO:
         value = symfpuSymbolic::traits::RTZ().getConst<BitVector>();
         break;
 
       default:
-        Unreachable("Unknown rounding mode in roundingModeBitBlast");
+        Unreachable() << "Unknown rounding mode in roundingModeBitBlast";
         break;
     }
-#else
-    value = BitVector(5U, 0U);
-#endif
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(value));
   }
 
-};  /* CVC4::theory::fp::constantFold */
-
-
-RewriteFunction TheoryFpRewriter::preRewriteTable[kind::LAST_KIND]; 
-RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND]; 
-RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND]; 
-
+  };  // namespace constantFold
 
   /**
    * Initialize the rewriter.
    */
-  void TheoryFpRewriter::init() {
-
+  TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
+  {
     /* Set up the pre-rewrite dispatch table */
-    for (unsigned i = 0; i < kind::LAST_KIND; ++i) {
-      preRewriteTable[i] = rewrite::notFP;
+    for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
+    {
+      d_preRewriteTable[i] = rewrite::notFP;
     }
 
     /******** Constants ********/
     /* No rewriting possible for constants */
-    preRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    preRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity; 
+    d_preRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
+    d_preRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
 
     /******** Sorts(?) ********/
     /* These kinds should only appear in types */
-    //preRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
-    preRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
-      
+    // d_preRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
+    d_preRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+
     /******** Operations ********/
-    preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-    preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::convertSubtractionToAddition;
-    preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
-    preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
-    preRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
-    preRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
+    d_preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
+    d_preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
+    d_preRewriteTable[kind::FLOATINGPOINT_ADD] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_SUB] =
+        rewrite::convertSubtractionToAddition;
+    d_preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
+    d_preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
+    d_preRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
+    d_preRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
 
     /******** Comparisons ********/
-    preRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::then<rewrite::breakChain,rewrite::ieeeEqToEq>;
-    preRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::breakChain;
-    preRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::breakChain;
-    preRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::then<rewrite::breakChain,rewrite::geqToleq>;
-    preRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::then<rewrite::breakChain,rewrite::gtTolt>;
+    d_preRewriteTable[kind::FLOATINGPOINT_EQ] =
+        rewrite::then<rewrite::breakChain, rewrite::ieeeEqToEq>;
+    d_preRewriteTable[kind::FLOATINGPOINT_LEQ] =
+        rewrite::then<rewrite::breakChain, rewrite::leqId>;
+    d_preRewriteTable[kind::FLOATINGPOINT_LT] =
+        rewrite::then<rewrite::breakChain, rewrite::ltId>;
+    d_preRewriteTable[kind::FLOATINGPOINT_GEQ] =
+        rewrite::then<rewrite::breakChain, rewrite::geqToleq>;
+    d_preRewriteTable[kind::FLOATINGPOINT_GT] =
+        rewrite::then<rewrite::breakChain, rewrite::gtTolt>;
 
     /******** Classifications ********/
-    preRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;  
-    preRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_NORMAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_SUBNORMAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_ZERO] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_INF] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_NAN] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_NEG] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
 
     /******** Conversions ********/
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
-    preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
+        rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
 
     /******** Variables ********/
-    preRewriteTable[kind::VARIABLE] = rewrite::variable;
-    preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
-    preRewriteTable[kind::SKOLEM] = rewrite::variable;
-    preRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
+    d_preRewriteTable[kind::VARIABLE] = rewrite::variable;
+    d_preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
+    d_preRewriteTable[kind::SKOLEM] = rewrite::variable;
+    d_preRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
 
-    preRewriteTable[kind::EQUAL] = rewrite::equal;
-
+    d_preRewriteTable[kind::EQUAL] = rewrite::equal;
 
     /******** Components for bit-blasting ********/
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = rewrite::identity;
-    preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
-
-
-
+    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+        rewrite::identity;
+    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+        rewrite::identity;
+    d_preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
     /* Set up the post-rewrite dispatch table */
-    for (unsigned i = 0; i < kind::LAST_KIND; ++i) {
-      postRewriteTable[i] = rewrite::notFP;
+    for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
+    {
+      d_postRewriteTable[i] = rewrite::notFP;
     }
 
     /******** Constants ********/
     /* No rewriting possible for constants */
-    postRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    postRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity; 
+    d_postRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
+    d_postRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
 
     /******** Sorts(?) ********/
     /* These kinds should only appear in types */
-    //postRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
-    postRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
-      
+    // d_postRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
+    d_postRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+
     /******** Operations ********/
-    postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-    postRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::reorderBinaryOperation;
-    postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::reorderBinaryOperation;
-    postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::reorderFMA;
-    postRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
-    postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
-    postRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
-    postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
+    d_postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
+    d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
+    d_postRewriteTable[kind::FLOATINGPOINT_ADD] =
+        rewrite::reorderBinaryOperation;
+    d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
+        rewrite::reorderBinaryOperation;
+    d_postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::reorderFMA;
+    d_postRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::compactRemainder;
+    d_postRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
+    d_postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
+    d_postRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
+    d_postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
 
     /******** Comparisons ********/
-    postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
+    d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::leqId;
+    d_postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::ltId;
+    d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::identity;
 
     /******** Classifications ********/
-    postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_NORMAL] =
+        rewrite::removeSignOperations;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_SUBNORMAL] =
+        rewrite::removeSignOperations;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_ZERO] =
+        rewrite::removeSignOperations;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_INF] =
+        rewrite::removeSignOperations;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_NAN] =
+        rewrite::removeSignOperations;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_NEG] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
 
     /******** Conversions ********/
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
+        rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
+        rewrite::toFPSignedBV;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
 
     /******** Variables ********/
-    postRewriteTable[kind::VARIABLE] = rewrite::variable;
-    postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
-    postRewriteTable[kind::SKOLEM] = rewrite::variable;
-    postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
+    d_postRewriteTable[kind::VARIABLE] = rewrite::variable;
+    d_postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
+    d_postRewriteTable[kind::SKOLEM] = rewrite::variable;
+    d_postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
 
-    postRewriteTable[kind::EQUAL] = rewrite::equal;
-
+    d_postRewriteTable[kind::EQUAL] = rewrite::equal;
 
     /******** Components for bit-blasting ********/
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = rewrite::identity;
-    postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
-
-
+    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+        rewrite::identity;
+    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+        rewrite::identity;
+    d_postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
     /* Set up the post-rewrite constant fold table */
-    for (unsigned i = 0; i < kind::LAST_KIND; ++i) {
+    for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
+    {
       // Note that this is identity, not notFP
       // Constant folding is called after post-rewrite
       // So may have to deal with cases of things being
       // re-written to non-floating-point sorts (i.e. true).
-      constantFoldTable[i] = rewrite::identity;
+      d_constantFoldTable[i] = rewrite::identity;
     }
 
     /******** Constants ********/
     /* Already folded! */
-    constantFoldTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    constantFoldTable[kind::CONST_ROUNDINGMODE] = rewrite::identity; 
+    d_constantFoldTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
+    d_constantFoldTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
 
     /******** Sorts(?) ********/
     /* These kinds should only appear in types */
-    constantFoldTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
-      
+    d_constantFoldTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+
     /******** Operations ********/
-    constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
-    constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
-    constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
-    constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
-    constantFoldTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
-    constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
-    constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
-    constantFoldTable[kind::FLOATINGPOINT_SQRT] = constantFold::sqrt;
-    constantFoldTable[kind::FLOATINGPOINT_REM] = constantFold::rem;
-    constantFoldTable[kind::FLOATINGPOINT_RTI] = constantFold::rti;
-    constantFoldTable[kind::FLOATINGPOINT_MIN] = constantFold::min;
-    constantFoldTable[kind::FLOATINGPOINT_MAX] = constantFold::max;
-    constantFoldTable[kind::FLOATINGPOINT_MIN_TOTAL] = constantFold::minTotal;
-    constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
+    d_constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
+    d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
+    d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
+    d_constantFoldTable[kind::FLOATINGPOINT_ADD] = constantFold::add;
+    d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
+    d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
+    d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
+    d_constantFoldTable[kind::FLOATINGPOINT_SQRT] = constantFold::sqrt;
+    d_constantFoldTable[kind::FLOATINGPOINT_REM] = constantFold::rem;
+    d_constantFoldTable[kind::FLOATINGPOINT_RTI] = constantFold::rti;
+    d_constantFoldTable[kind::FLOATINGPOINT_MIN] = constantFold::min;
+    d_constantFoldTable[kind::FLOATINGPOINT_MAX] = constantFold::max;
+    d_constantFoldTable[kind::FLOATINGPOINT_MIN_TOTAL] = constantFold::minTotal;
+    d_constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
 
     /******** Comparisons ********/
-    constantFoldTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
-    constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
-    constantFoldTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
+    d_constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
+    d_constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
 
     /******** Classifications ********/
-    constantFoldTable[kind::FLOATINGPOINT_ISN] = constantFold::isNormal;
-    constantFoldTable[kind::FLOATINGPOINT_ISSN] = constantFold::isSubnormal;
-    constantFoldTable[kind::FLOATINGPOINT_ISZ] = constantFold::isZero;
-    constantFoldTable[kind::FLOATINGPOINT_ISINF] = constantFold::isInfinite;
-    constantFoldTable[kind::FLOATINGPOINT_ISNAN] = constantFold::isNaN;
-    constantFoldTable[kind::FLOATINGPOINT_ISNEG] = constantFold::isNegative;
-    constantFoldTable[kind::FLOATINGPOINT_ISPOS] = constantFold::isPositive;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_NORMAL] = constantFold::isNormal;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_SUBNORMAL] =
+        constantFold::isSubnormal;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_ZERO] = constantFold::isZero;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_INF] = constantFold::isInfinite;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_NAN] = constantFold::isNaN;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_NEG] = constantFold::isNegative;
+    d_constantFoldTable[kind::FLOATINGPOINT_IS_POS] = constantFold::isPositive;
 
     /******** Conversions ********/
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = constantFold::convertFromIEEEBitVectorLiteral;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] = constantFold::constantConvert;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_REAL] = constantFold::convertFromRealLiteral;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = constantFold::convertFromSBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = constantFold::convertFromUBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_REAL] = constantFold::convertToReal;
-    constantFoldTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = constantFold::convertToUBVTotal;
-    constantFoldTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = constantFold::convertToSBVTotal;
-    constantFoldTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = constantFold::convertToRealTotal;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
+        constantFold::convertFromIEEEBitVectorLiteral;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] =
+        constantFold::constantConvert;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] =
+        constantFold::convertFromRealLiteral;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
+        constantFold::convertFromSBV;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] =
+        constantFold::convertFromUBV;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] =
+        constantFold::convertToUBV;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] =
+        constantFold::convertToSBV;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL] =
+        constantFold::convertToReal;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] =
+        constantFold::convertToUBVTotal;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] =
+        constantFold::convertToSBVTotal;
+    d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] =
+        constantFold::convertToRealTotal;
 
     /******** Variables ********/
-    constantFoldTable[kind::VARIABLE] = rewrite::variable;
-    constantFoldTable[kind::BOUND_VARIABLE] = rewrite::variable;
+    d_constantFoldTable[kind::VARIABLE] = rewrite::variable;
+    d_constantFoldTable[kind::BOUND_VARIABLE] = rewrite::variable;
 
-    constantFoldTable[kind::EQUAL] = constantFold::equal;
-
+    d_constantFoldTable[kind::EQUAL] = constantFold::equal;
 
     /******** Components for bit-blasting ********/
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_NAN] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_INF] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = constantFold::componentExponent;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = constantFold::componentSignificand;
-    constantFoldTable[kind::ROUNDINGMODE_BITBLAST] = constantFold::roundingModeBitBlast;
-
-
-  }
-
-
-
+    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_NAN] =
+        constantFold::componentFlag;
+    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_INF] =
+        constantFold::componentFlag;
+    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_ZERO] =
+        constantFold::componentFlag;
+    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGN] =
+        constantFold::componentFlag;
+    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+        constantFold::componentExponent;
+    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+        constantFold::componentSignificand;
+    d_constantFoldTable[kind::ROUNDINGMODE_BITBLAST] =
+        constantFold::roundingModeBitBlast;
+}
 
   /**
    * Rewrite a node into the normal form for the theory of fp
@@ -1178,10 +1364,12 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 
   RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node << std::endl;
-    RewriteResponse res = preRewriteTable [node.getKind()] (node, true);
-    if (res.node != node) {
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  " << res.node << std::endl;
+    RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
+    if (res.d_node != node)
+    {
+      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
+      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
+                          << res.d_node << std::endl;
     }
     return res;
   }
@@ -1211,106 +1399,126 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 
   RewriteResponse TheoryFpRewriter::postRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): " << node << std::endl;
-    RewriteResponse res = postRewriteTable [node.getKind()] (node, false);
-    if (res.node != node) {
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  " << res.node << std::endl;
+    RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
+    if (res.d_node != node)
+    {
+      Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
+      Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  "
+                          << res.d_node << std::endl;
     }
 
-    if (res.status == REWRITE_DONE) {
+    if (res.d_status == REWRITE_DONE)
+    {
       bool allChildrenConst = true;
       bool apartFromRoundingMode = false;
       bool apartFromPartiallyDefinedArgument = false;
-      for (Node::const_iterator i = res.node.begin();
-	   i != res.node.end();
-	   ++i) {
-
-	if ((*i).getMetaKind() != kind::metakind::CONSTANT) {
+      for (Node::const_iterator i = res.d_node.begin(); i != res.d_node.end();
+           ++i)
+      {
+        if ((*i).getMetaKind() != kind::metakind::CONSTANT) {
 	  if ((*i).getType().isRoundingMode() && !apartFromRoundingMode) {
 	    apartFromRoundingMode = true;
-	  } else if ((res.node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL) &&
-		     ((*i).getType().isBitVector() ||
-		      (*i).getType().isReal()) &&
-		     !apartFromPartiallyDefinedArgument) {
-	    apartFromPartiallyDefinedArgument = true;
-	  } else {
-	    allChildrenConst = false;
+          }
+          else if ((res.d_node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL
+                    || res.d_node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL
+                    || res.d_node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL
+                    || res.d_node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL
+                    || res.d_node.getKind()
+                           == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+                   && ((*i).getType().isBitVector() || (*i).getType().isReal())
+                   && !apartFromPartiallyDefinedArgument)
+          {
+            apartFromPartiallyDefinedArgument = true;
+          }
+          else
+          {
+            allChildrenConst = false;
 	    break;
-	  }
-	}
+          }
+        }
       }
 
-      if (allChildrenConst) {
-	RewriteStatus rs = REWRITE_DONE;    // This is a bit messy because
-	Node rn = res.node;                 // RewriteResponse is too functional..
+      if (allChildrenConst)
+      {
+        RewriteStatus rs = REWRITE_DONE;  // This is a bit messy because
+        Node rn = res.d_node;             // RewriteResponse is too functional..
 
-	if (apartFromRoundingMode) {
-          if (!(res.node.getKind() == kind::EQUAL)
+        if (apartFromRoundingMode)
+        {
+          if (!(res.d_node.getKind() == kind::EQUAL)
               &&  // Avoid infinite recursion...
-              !(res.node.getKind() == kind::ROUNDINGMODE_BITBLAST))
-          {  // Don't eliminate the bit-blast
+              !(res.d_node.getKind() == kind::ROUNDINGMODE_BITBLAST))
+          {
+            // Don't eliminate the bit-blast
             // We are close to being able to constant fold this
             // and in many cases the rounding mode really doesn't matter.
             // So we can try brute forcing our way through them.
 
-            NodeManager *nm = NodeManager::currentNM();
+            NodeManager* nm = NodeManager::currentNM();
 
-	    Node RNE(nm->mkConst(roundNearestTiesToEven));
-	    Node RNA(nm->mkConst(roundNearestTiesToAway));
-	    Node RTZ(nm->mkConst(roundTowardPositive));
-	    Node RTN(nm->mkConst(roundTowardNegative));
-	    Node RTP(nm->mkConst(roundTowardZero));
+            Node rne(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+            Node rna(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+            Node rtz(nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE));
+            Node rtn(nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE));
+            Node rtp(nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO));
 
-	    TNode RM(res.node[0]);
+            TNode rm(res.d_node[0]);
 
-	    Node wRNE(res.node.substitute(RM, TNode(RNE)));
-	    Node wRNA(res.node.substitute(RM, TNode(RNA)));
-	    Node wRTZ(res.node.substitute(RM, TNode(RTZ)));
-	    Node wRTN(res.node.substitute(RM, TNode(RTN)));
-	    Node wRTP(res.node.substitute(RM, TNode(RTP)));
+            Node w_rne(res.d_node.substitute(rm, TNode(rne)));
+            Node w_rna(res.d_node.substitute(rm, TNode(rna)));
+            Node w_rtz(res.d_node.substitute(rm, TNode(rtz)));
+            Node w_rtn(res.d_node.substitute(rm, TNode(rtn)));
+            Node w_rtp(res.d_node.substitute(rm, TNode(rtp)));
 
+            rs = REWRITE_AGAIN_FULL;
+            rn = nm->mkNode(
+                kind::ITE,
+                nm->mkNode(kind::EQUAL, rm, rne),
+                w_rne,
+                nm->mkNode(
+                    kind::ITE,
+                    nm->mkNode(kind::EQUAL, rm, rna),
+                    w_rna,
+                    nm->mkNode(kind::ITE,
+                               nm->mkNode(kind::EQUAL, rm, rtz),
+                               w_rtz,
+                               nm->mkNode(kind::ITE,
+                                          nm->mkNode(kind::EQUAL, rm, rtn),
+                                          w_rtn,
+                                          w_rtp))));
+          }
+        }
+        else
+        {
+          RewriteResponse tmp =
+              d_constantFoldTable[res.d_node.getKind()](res.d_node, false);
+          rs = tmp.d_status;
+          rn = tmp.d_node;
+        }
 
-	    rs = REWRITE_AGAIN_FULL;
-	    rn = nm->mkNode(kind::ITE,
-			    nm->mkNode(kind::EQUAL, RM, RNE),
-			    wRNE,
-			    nm->mkNode(kind::ITE,
-				       nm->mkNode(kind::EQUAL, RM, RNA),
-				       wRNA,
-				       nm->mkNode(kind::ITE,
-						  nm->mkNode(kind::EQUAL, RM, RTZ),
-						  wRTZ,
-						  nm->mkNode(kind::ITE,
-							     nm->mkNode(kind::EQUAL, RM, RTN),
-							     wRTN,
-							     wRTP))));
-	  }
-	} else {
-	  RewriteResponse tmp = constantFoldTable [res.node.getKind()] (res.node, false);
-	  rs = tmp.status;
-	  rn = tmp.node;
-	}
+        RewriteResponse constRes(rs, rn);
 
-	RewriteResponse constRes(rs,rn);
+        if (constRes.d_node != res.d_node)
+        {
+          Trace("fp-rewrite")
+              << "TheoryFpRewriter::postRewrite(): before constant fold "
+              << res.d_node << std::endl;
+          Trace("fp-rewrite")
+              << "TheoryFpRewriter::postRewrite(): after constant fold "
+              << constRes.d_node << std::endl;
+        }
 
-	if (constRes.node != res.node) {
-	  Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before constant fold " << res.node << std::endl;
-	  Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after constant fold " << constRes.node << std::endl;
-	}
-
-	return constRes;
+        return constRes;
       }
     }
 
     return res;
   }
+  TrustNode TheoryFpRewriter::expandDefinition(Node node)
+  {
+    return d_fpExpDef.expandDefinition(node);
+  }
 
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+  }  // namespace fp
+  }  // namespace theory
+  }  // namespace cvc5::internal

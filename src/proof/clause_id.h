@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file clause_id.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definition of ClauseId
- **
- ** A ClauseId is a shared identifier between the proofs module and the sat
- ** solver for a clause.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Paul Meng, Liana Hadarean, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of ClauseId.
+ *
+ * A ClauseId is a shared identifier between the proofs module and the sat
+ * solver for a clause.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__PROOF__CLAUSE_ID_H
-#define __CVC4__PROOF__CLAUSE_ID_H
+#ifndef CVC5__PROOF__CLAUSE_ID_H
+#define CVC5__PROOF__CLAUSE_ID_H
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * A ClauseId is a shared identifier between the proofs module and the sat
@@ -28,6 +29,13 @@ namespace CVC4 {
  */
 typedef unsigned ClauseId;
 
-}/* CVC4 namespace */
+/** Reserved clauseId values used in the resolution proof. The represent,
+ * respectively, the empty clause, that adding the clause to the SAT solver was
+ * a no-op, and that an error occurred when trying to add. */
+const ClauseId ClauseIdEmpty(-1);
+const ClauseId ClauseIdUndef(-2);
+const ClauseId ClauseIdError(-3);
 
-#endif /* __CVC4__PROOF__CLAUSE_ID_H */
+}  // namespace cvc5::internal
+
+#endif /* CVC5__PROOF__CLAUSE_ID_H */

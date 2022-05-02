@@ -1,25 +1,23 @@
-/*********************                                                        */
-/*! \file union_find.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Path-compressing, backtrackable union-find using an undo
- ** stack. Refactored from the UF union-find.
- **
- ** Path-compressing, backtrackable union-find using an undo stack
- ** rather than storing items in a CDMap<>.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Path-compressing, backtrackable union-find using an undo
+ * stack. Refactored from the UF union-find.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__UNION_FIND_H
-#define __CVC4__THEORY__ARRAYS__UNION_FIND_H
+#ifndef CVC5__THEORY__ARRAYS__UNION_FIND_H
+#define CVC5__THEORY__ARRAYS__UNION_FIND_H
 
 #include <utility>
 #include <vector>
@@ -28,18 +26,18 @@
 #include "expr/node.h"
 #include "context/cdo.h"
 
-namespace CVC4 {
+namespace cvc5::context {
+class Context;
+}
 
-namespace context {
-  class Context;
-}/* CVC4::context namespace */
-
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
 // NodeType \in { Node, TNode }
 template <class NodeType, class NodeHash>
-class UnionFind : context::ContextNotifyObj {
+class UnionFind : context::ContextNotifyObj
+{
   /** Our underlying map type. */
   typedef std::unordered_map<NodeType, NodeType, NodeHash> MapType;
 
@@ -57,9 +55,9 @@ class UnionFind : context::ContextNotifyObj {
   context::CDO<size_t> d_offset;
 
  public:
-  UnionFind(context::Context* ctxt) :
-    context::ContextNotifyObj(ctxt),
-    d_offset(ctxt, 0) {
+  UnionFind(context::Context* ctxt)
+      : context::ContextNotifyObj(ctxt), d_offset(ctxt, 0)
+  {
   }
 
   /**
@@ -86,7 +84,7 @@ class UnionFind : context::ContextNotifyObj {
    */
   void notify();
 
-};/* class UnionFind<> */
+}; /* class UnionFind<> */
 
 template <class NodeType, class NodeHash>
 inline TNode UnionFind<NodeType, NodeHash>::debugFind(TNode n) const {
@@ -135,8 +133,8 @@ inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
   }
 }
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /*__CVC4__THEORY__ARRAYS__UNION_FIND_H */
+#endif /*CVC5__THEORY__ARRAYS__UNION_FIND_H */

@@ -1,56 +1,93 @@
-/*********************                                                        */
-/*! \file model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief implementation of Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of Model class.
+ */
 
 #include "smt/model.h"
 
-#include <vector>
-
-#include "expr/expr_iomanip.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "printer/printer.h"
-#include "smt/command.h"
-#include "smt/command_list.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 
-using namespace std;
+namespace cvc5::internal {
+namespace smt {
 
-namespace CVC4 {
+Model::Model(bool isKnownSat, const std::string& inputName)
+    : d_inputName(inputName), d_isKnownSat(isKnownSat)
+{
+}
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
-  smt::SmtScope smts(&m.d_smt);
-  expr::ExprDag::Scope scope(out, false);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, m);
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, m);
   return out;
 }
 
-Model::Model() :
-  d_smt(*smt::currentSmtEngine()) {
+const std::vector<Node>& Model::getDomainElements(TypeNode tn) const
+{
+  std::map<TypeNode, std::vector<Node>>::const_iterator it =
+      d_domainElements.find(tn);
+  Assert(it != d_domainElements.end());
+  return it->second;
 }
 
-size_t Model::getNumCommands() const {
-  return d_smt.d_modelCommands->size() + d_smt.d_modelGlobalCommands.size();
+Node Model::getValue(TNode n) const
+{
+  std::map<Node, Node>::const_iterator it = d_declareTermValues.find(n);
+  Assert(it != d_declareTermValues.end());
+  return it->second;
 }
 
-const Command* Model::getCommand(size_t i) const {
-  Assert(i < getNumCommands());
-  // index the global commands first, then the locals
-  if(i < d_smt.d_modelGlobalCommands.size()) {
-    return d_smt.d_modelGlobalCommands[i];
-  } else {
-    return (*d_smt.d_modelCommands)[i - d_smt.d_modelGlobalCommands.size()];
+bool Model::getHeapModel(Node& h, Node& nilEq) const
+{
+  if (d_sepHeap.isNull() || d_sepNilEq.isNull())
+  {
+    return false;
   }
+  h = d_sepHeap;
+  nilEq = d_sepNilEq;
+  return true;
 }
 
-}/* CVC4 namespace */
+void Model::addDeclarationSort(TypeNode tn, const std::vector<Node>& elements)
+{
+  d_declareSorts.push_back(tn);
+  d_domainElements[tn] = elements;
+}
+
+void Model::addDeclarationTerm(Node n, Node value)
+{
+  d_declareTerms.push_back(n);
+  d_declareTermValues[n] = value;
+}
+
+void Model::setHeapModel(Node h, Node nilEq)
+{
+  d_sepHeap = h;
+  d_sepNilEq = nilEq;
+}
+
+const std::vector<TypeNode>& Model::getDeclaredSorts() const
+{
+  return d_declareSorts;
+}
+
+const std::vector<Node>& Model::getDeclaredTerms() const
+{
+  return d_declareTerms;
+}
+
+}  // namespace smt
+}  // namespace cvc5::internal

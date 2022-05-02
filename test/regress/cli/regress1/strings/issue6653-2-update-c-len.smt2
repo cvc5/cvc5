@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :strings-lazy-pp false)
+(set-option :check-unsat-cores true)
+(declare-fun s () String)
+(assert (not (= "A" (str.substr (str.update "AAAAAA" 1 s) 5 1))))
+(check-sat)

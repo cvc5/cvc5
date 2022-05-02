@@ -1,2 +1,0 @@
-% EXPECT: valid
-QUERY FORALL (x:INT) : EXISTS (y:INT) : (x*y=x) ;

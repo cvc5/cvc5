@@ -1,300 +1,312 @@
-/*********************                                                        */
-/*! \file resource_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
-
- ** \todo document this file
-
-**/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Liana Hadarean, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This file provides the ResourceManager class. It can be used to impose
+ * (cumulative and per-call) resource limits on the solver, as well as per-call
+ * time limits.
+ */
 #include "util/resource_manager.h"
 
-#include "base/cvc4_assert.h"
+#include <algorithm>
+#include <ostream>
+
+#include "base/check.h"
+#include "base/listener.h"
 #include "base/output.h"
-#include "options/smt_options.h"
+#include "options/base_options.h"
+#include "options/option_exception.h"
+#include "options/options.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-void Timer::set(uint64_t millis, bool wallTime) {
-  d_ms = millis;
-  Trace("limit") << "Timer::set(" << d_ms << ")" << std::endl;
-  // keep track of when it was set, even if it's disabled (i.e. == 0)
-  d_wall_time = wallTime;
-  if (d_wall_time) {
-    // Wall time
-    gettimeofday(&d_wall_limit, NULL);
-    Trace("limit") << "Timer::set(): it's " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-    d_wall_limit.tv_sec += millis / 1000;
-    d_wall_limit.tv_usec += (millis % 1000) * 1000;
-    if(d_wall_limit.tv_usec > 1000000) {
-      ++d_wall_limit.tv_sec;
-      d_wall_limit.tv_usec -= 1000000;
-    }
-    Trace("limit") << "Timer::set(): limit is at " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-  } else {
-    // CPU time
-    d_cpu_start_time = ((double)clock())/(CLOCKS_PER_SEC *0.001);
-    d_cpu_limit = d_cpu_start_time + d_ms;
+bool WallClockTimer::on() const
+{
+  // default-constructed time points are at the respective epoch
+  return d_limit.time_since_epoch().count() != 0;
+}
+void WallClockTimer::set(uint64_t millis)
+{
+  if (millis == 0)
+  {
+    // reset / deactivate
+    d_start = time_point();
+    d_limit = time_point();
+  }
+  else
+  {
+    // set to now() + millis
+    d_start = clock::now();
+    d_limit = d_start + std::chrono::milliseconds(millis);
   }
 }
-
-/** Return the milliseconds elapsed since last set(). */
-uint64_t Timer::elapsedWall() const {
-  Assert (d_wall_time);
-  timeval tv;
-  gettimeofday(&tv, NULL);
-  Trace("limit") << "Timer::elapsedWallTime(): it's now " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-  tv.tv_sec -= d_wall_limit.tv_sec - d_ms / 1000;
-  tv.tv_usec -= d_wall_limit.tv_usec - (d_ms % 1000) * 1000;
-  Trace("limit") << "Timer::elapsedWallTime(): elapsed time is " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+uint64_t WallClockTimer::elapsed() const
+{
+  if (!on()) return 0;
+  // now() - d_start casted to milliseconds
+  return std::chrono::duration_cast<std::chrono::milliseconds>(clock::now()
+                                                               - d_start)
+      .count();
 }
-
-uint64_t Timer::elapsedCPU() const {
-  Assert (!d_wall_time);
-  clock_t elapsed = ((double)clock())/(CLOCKS_PER_SEC *0.001)- d_cpu_start_time;
-  Trace("limit") << "Timer::elapsedCPUTime(): elapsed time is " << elapsed << " ms" <<std::endl;
-  return elapsed;
-}
-
-uint64_t Timer::elapsed() const {
-  if (d_wall_time)
-    return elapsedWall();
-  return elapsedCPU();
-}
-
-bool Timer::expired() const {
+bool WallClockTimer::expired() const
+{
+  // whether d_limit is in the past
   if (!on()) return false;
+  return d_limit <= clock::now();
+}
 
-  if (d_wall_time) {
-    timeval tv;
-    gettimeofday(&tv, NULL);
-    Debug("limit") << "Timer::expired(): current wall time is " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-    Debug("limit") << "Timer::expired(): limit wall time is " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-    if(d_wall_limit.tv_sec < tv.tv_sec ||
-       (d_wall_limit.tv_sec == tv.tv_sec && d_wall_limit.tv_usec <= tv.tv_usec)) {
-      Debug("limit") << "Timer::expired(): OVER LIMIT!" << std::endl;
+/*---------------------------------------------------------------------------*/
+
+const char* toString(Resource r)
+{
+  switch (r)
+  {
+    case Resource::ArithPivotStep: return "ArithPivotStep";
+    case Resource::ArithNlCoveringStep: return "ArithNlCoveringStep";
+    case Resource::ArithNlLemmaStep: return "ArithNlLemmaStep";
+    case Resource::BitblastStep: return "BitblastStep";
+    case Resource::BvEagerAssertStep: return "BvEagerAssertStep";
+    case Resource::BvPropagationStep: return "BvPropagationStep";
+    case Resource::BvSatConflictsStep: return "BvSatConflictsStep";
+    case Resource::BvSatPropagateStep: return "BvSatPropagateStep";
+    case Resource::BvSatSimplifyStep: return "BvSatSimplifyStep";
+    case Resource::CnfStep: return "CnfStep";
+    case Resource::DecisionStep: return "DecisionStep";
+    case Resource::LemmaStep: return "LemmaStep";
+    case Resource::NewSkolemStep: return "NewSkolemStep";
+    case Resource::ParseStep: return "ParseStep";
+    case Resource::PreprocessStep: return "PreprocessStep";
+    case Resource::QuantifierStep: return "QuantifierStep";
+    case Resource::RestartStep: return "RestartStep";
+    case Resource::RewriteStep: return "RewriteStep";
+    case Resource::SatConflictStep: return "SatConflictStep";
+    case Resource::TheoryCheckStep: return "TheoryCheckStep";
+    default: return "?Resource?";
+  }
+}
+std::ostream& operator<<(std::ostream& os, Resource r)
+{
+  return os << toString(r);
+}
+
+struct ResourceManager::Statistics
+{
+  ReferenceStat<uint64_t> d_resourceUnitsUsed;
+  IntStat d_spendResourceCalls;
+  HistogramStat<theory::InferenceId> d_inferenceIdSteps;
+  HistogramStat<Resource> d_resourceSteps;
+  Statistics(StatisticsRegistry& stats);
+};
+
+ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
+    : d_resourceUnitsUsed(
+        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
+      d_inferenceIdSteps(stats.registerHistogram<theory::InferenceId>(
+          "resource::steps::inference-id")),
+      d_resourceSteps(
+          stats.registerHistogram<Resource>("resource::steps::resource"))
+{
+}
+
+bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)
+{
+  auto pos = optarg.find('=');
+  // Check if there is a '='
+  if (pos == std::string::npos) return false;
+  // The name is the part before '='
+  name = optarg.substr(0, pos);
+  // The weight is the part after '='
+  std::string num = optarg.substr(pos + 1);
+  std::size_t converted;
+  weight = std::stoull(num, &converted);
+  // Check everything after '=' was converted
+  return converted == num.size();
+}
+
+template <typename T, typename Weights>
+bool setWeight(const std::string& name, uint64_t weight, Weights& weights)
+{
+  using theory::toString;
+  for (std::size_t i = 0; i < weights.size(); ++i)
+  {
+    if (name == toString(static_cast<T>(i)))
+    {
+      weights[i] = weight;
       return true;
     }
-    Debug("limit") << "Timer::expired(): within limit" << std::endl;
-    return false;
-  }
-
-  // cpu time
-  double current = ((double)clock())/(CLOCKS_PER_SEC*0.001);
-  Debug("limit") << "Timer::expired(): current cpu time is " << current <<  std::endl;
-  Debug("limit") << "Timer::expired(): limit cpu time is " << d_cpu_limit <<  std::endl;
-  if (current >= d_cpu_limit) {
-    Debug("limit") << "Timer::expired(): OVER LIMIT!" << current <<  std::endl;
-    return true;
   }
   return false;
 }
 
-const uint64_t ResourceManager::s_resourceCount = 1000;
+/*---------------------------------------------------------------------------*/
 
-ResourceManager::ResourceManager()
-  : d_cumulativeTimer()
-  , d_perCallTimer()
-  , d_timeBudgetCumulative(0)
-  , d_timeBudgetPerCall(0)
-  , d_resourceBudgetCumulative(0)
-  , d_resourceBudgetPerCall(0)
-  , d_cumulativeTimeUsed(0)
-  , d_cumulativeResourceUsed(0)
-  , d_thisCallResourceUsed(0)
-  , d_thisCallTimeBudget(0)
-  , d_thisCallResourceBudget(0)
-  , d_isHardLimit()
-  , d_on(false)
-  , d_cpuTime(false)
-  , d_spendResourceCalls(0)
-  , d_hardListeners()
-  , d_softListeners()
-{}
+ResourceManager::ResourceManager(StatisticsRegistry& stats,
+                                 const Options& options)
+    : d_options(options),
+      d_perCallTimer(),
+      d_cumulativeTimeUsed(0),
+      d_cumulativeResourceUsed(0),
+      d_thisCallResourceUsed(0),
+      d_thisCallResourceBudget(0),
+      d_statistics(new ResourceManager::Statistics(stats))
+{
+  d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
 
-
-void ResourceManager::setResourceLimit(uint64_t units, bool cumulative) {
-  d_on = true;
-  if(cumulative) {
-    Trace("limit") << "ResourceManager: setting cumulative resource limit to " << units << endl;
-    d_resourceBudgetCumulative = (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
-    d_thisCallResourceBudget = d_resourceBudgetCumulative;
-  } else {
-    Trace("limit") << "ResourceManager: setting per-call resource limit to " << units << endl;
-    d_resourceBudgetPerCall = units;
+  d_infidWeights.fill(1);
+  d_resourceWeights.fill(1);
+  for (const auto& opt : d_options.base.resourceWeightHolder)
+  {
+    std::string name;
+    uint64_t weight;
+    if (parseOption(opt, name, weight))
+    {
+      if (setWeight<theory::InferenceId>(name, weight, d_infidWeights))
+        continue;
+      if (setWeight<Resource>(name, weight, d_resourceWeights)) continue;
+      throw OptionException("Did not recognize resource type " + name);
+    }
   }
 }
 
-void ResourceManager::setTimeLimit(uint64_t millis, bool cumulative) {
-  d_on = true;
-  if(cumulative) {
-    Trace("limit") << "ResourceManager: setting cumulative time limit to " << millis << " ms" << endl;
-    d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
-    d_cumulativeTimer.set(millis, !d_cpuTime);
-  } else {
-    Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
-    d_timeBudgetPerCall = millis;
-    // perCall timer will be set in beginCall
-  }
+ResourceManager::~ResourceManager() {}
 
-}
-
-const uint64_t& ResourceManager::getResourceUsage() const {
+uint64_t ResourceManager::getResourceUsage() const
+{
   return d_cumulativeResourceUsed;
 }
 
-uint64_t ResourceManager::getTimeUsage() const {
-  if (d_timeBudgetCumulative) {
-    return d_cumulativeTimer.elapsed();
-  }
-  return d_cumulativeTimeUsed;
-}
+uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
-uint64_t ResourceManager::getResourceRemaining() const {
-  if (d_thisCallResourceBudget <= d_thisCallResourceUsed)
-    return 0;
-  return d_thisCallResourceBudget - d_thisCallResourceUsed;
-}
-
-uint64_t ResourceManager::getTimeRemaining() const {
-  uint64_t time_passed = d_cumulativeTimer.elapsed();
-  if (time_passed >= d_thisCallTimeBudget)
-    return 0;
-  return d_thisCallTimeBudget - time_passed;
-}
-
-void ResourceManager::spendResource(unsigned amount)
+uint64_t ResourceManager::getRemainingTime() const
 {
-  ++d_spendResourceCalls;
+  return d_options.base.perCallMillisecondLimit - d_perCallTimer.elapsed();
+}
+
+uint64_t ResourceManager::getResourceRemaining() const
+{
+  if (d_options.base.cumulativeResourceLimit <= d_cumulativeResourceUsed)
+    return 0;
+  return d_options.base.cumulativeResourceLimit - d_cumulativeResourceUsed;
+}
+
+void ResourceManager::spendResource(uint64_t amount)
+{
+  ++d_statistics->d_spendResourceCalls;
   d_cumulativeResourceUsed += amount;
-  if (!d_on) return;
 
-  Debug("limit") << "ResourceManager::spendResource()" << std::endl;
+  Trace("limit") << "ResourceManager::spendResource()" << std::endl;
   d_thisCallResourceUsed += amount;
-  if(out()) {
+  if (out())
+  {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
-    Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;
-    if (outOfTime()) {
+    Trace("limit") << "          on call "
+                   << d_statistics->d_spendResourceCalls.get() << std::endl;
+    if (outOfTime())
+    {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"
-                     << d_cumulativeTimer.elapsed() << std::endl;
+                     << d_perCallTimer.elapsed() << std::endl;
     }
 
-    if (d_isHardLimit) {
-      d_hardListeners.notify();
-      throw UnsafeInterruptException();
-    } else {
-      d_softListeners.notify();
+    for (Listener* l : d_listeners)
+    {
+      l->notify();
     }
-
   }
 }
 
-void ResourceManager::beginCall() {
+void ResourceManager::spendResource(Resource r)
+{
+  std::size_t i = static_cast<std::size_t>(r);
+  Assert(d_resourceWeights.size() > i);
+  d_statistics->d_resourceSteps << r;
+  spendResource(d_resourceWeights[i]);
+}
 
-  d_perCallTimer.set(d_timeBudgetPerCall, !d_cpuTime);
+void ResourceManager::spendResource(theory::InferenceId iid)
+{
+  std::size_t i = static_cast<std::size_t>(iid);
+  Assert(d_infidWeights.size() > i);
+  d_statistics->d_inferenceIdSteps << iid;
+  spendResource(d_infidWeights[i]);
+}
+
+void ResourceManager::beginCall()
+{
+  d_perCallTimer.set(d_options.base.perCallMillisecondLimit);
   d_thisCallResourceUsed = 0;
-  if (!d_on) return;
 
-  if (cumulativeLimitOn()) {
-    if (d_resourceBudgetCumulative) {
-      d_thisCallResourceBudget = d_resourceBudgetCumulative <= d_cumulativeResourceUsed ? 0 :
-                                 d_resourceBudgetCumulative - d_cumulativeResourceUsed;
-    }
-
-    if (d_timeBudgetCumulative) {
-
-      AlwaysAssert(d_cumulativeTimer.on());
-      // timer was on since the option was set
-      d_cumulativeTimeUsed = d_cumulativeTimer.elapsed();
-      d_thisCallTimeBudget = d_timeBudgetCumulative <= d_cumulativeTimeUsed? 0 :
-                             d_timeBudgetCumulative - d_cumulativeTimeUsed;
-      d_cumulativeTimer.set(d_thisCallTimeBudget, d_cpuTime);
-    }
-    // we are out of resources so we shouldn't update the
-    // budget for this call to the per call budget
-    if (d_thisCallTimeBudget == 0 ||
-        d_thisCallResourceUsed == 0)
-      return;
+  if (d_options.base.cumulativeResourceLimit > 0)
+  {
+    // Compute remaining cumulative resource budget
+    d_thisCallResourceBudget =
+        d_options.base.cumulativeResourceLimit - d_cumulativeResourceUsed;
   }
-
-  if (perCallLimitOn()) {
-    // take min of what's left and per-call budget
-    if (d_resourceBudgetPerCall) {
-      d_thisCallResourceBudget = d_thisCallResourceBudget < d_resourceBudgetPerCall && d_thisCallResourceBudget != 0 ? d_thisCallResourceBudget : d_resourceBudgetPerCall;
-    }
-
-    if (d_timeBudgetPerCall) {
-      d_thisCallTimeBudget = d_thisCallTimeBudget < d_timeBudgetPerCall && d_thisCallTimeBudget != 0 ? d_thisCallTimeBudget : d_timeBudgetPerCall;
+  if (d_options.base.perCallResourceLimit > 0)
+  {
+    // Check if per-call resource budget is even smaller
+    if (d_options.base.perCallResourceLimit < d_thisCallResourceBudget)
+    {
+      d_thisCallResourceBudget = d_options.base.perCallResourceLimit;
     }
   }
 }
 
-void ResourceManager::endCall() {
-  uint64_t usedInCall = d_perCallTimer.elapsed();
+void ResourceManager::endCall()
+{
+  d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
-  d_cumulativeTimeUsed += usedInCall;
+  d_thisCallResourceUsed = 0;
 }
 
-bool ResourceManager::cumulativeLimitOn() const {
-  return d_timeBudgetCumulative || d_resourceBudgetCumulative;
-}
-
-bool ResourceManager::perCallLimitOn() const {
-  return d_timeBudgetPerCall || d_resourceBudgetPerCall;
-}
-
-bool ResourceManager::outOfResources() const {
-  // resource limiting not enabled
-  if (d_resourceBudgetPerCall == 0 &&
-      d_resourceBudgetCumulative == 0)
-    return false;
-
-  return getResourceRemaining() == 0;
-}
-
-bool ResourceManager::outOfTime() const {
-  if (d_timeBudgetPerCall == 0 &&
-      d_timeBudgetCumulative == 0)
-    return false;
-
-  return d_cumulativeTimer.expired() || d_perCallTimer.expired();
-}
-
-void ResourceManager::useCPUTime(bool cpu) {
-  Trace("limit") << "ResourceManager::useCPUTime("<< cpu <<")\n";
-  d_cpuTime = cpu;
-}
-
-void ResourceManager::setHardLimit(bool value) {
-  Trace("limit") << "ResourceManager::setHardLimit("<< value <<")\n";
-  d_isHardLimit = value;
-}
-
-void ResourceManager::enable(bool on) {
-  Trace("limit") << "ResourceManager::enable("<< on <<")\n";
-  d_on = on;
-}
-
-ListenerCollection::Registration* ResourceManager::registerHardListener(
-    Listener* listener)
+bool ResourceManager::limitOn() const
 {
-  return d_hardListeners.registerListener(listener);
+  return (d_options.base.cumulativeResourceLimit > 0)
+         || (d_options.base.perCallMillisecondLimit > 0)
+         || (d_options.base.perCallResourceLimit > 0);
 }
 
-ListenerCollection::Registration* ResourceManager::registerSoftListener(
-    Listener* listener)
+bool ResourceManager::outOfResources() const
 {
-  return d_softListeners.registerListener(listener);
+  if (d_options.base.perCallResourceLimit > 0)
+  {
+    // Check if per-call resources are exhausted
+    if (d_thisCallResourceUsed >= d_options.base.perCallResourceLimit)
+    {
+      return true;
+    }
+  }
+  if (d_options.base.cumulativeResourceLimit > 0)
+  {
+    // Check if cumulative resources are exhausted
+    if (d_cumulativeResourceUsed >= d_options.base.cumulativeResourceLimit)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
-} /* namespace CVC4 */
+bool ResourceManager::outOfTime() const
+{
+  if (d_options.base.perCallMillisecondLimit == 0) return false;
+  return d_perCallTimer.expired();
+}
+
+void ResourceManager::registerListener(Listener* listener)
+{
+  return d_listeners.push_back(listener);
+}
+
+}  // namespace cvc5::internal

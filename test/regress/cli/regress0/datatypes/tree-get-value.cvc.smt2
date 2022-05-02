@@ -1,0 +1,10 @@
+; EXPECT: sat
+; EXPECT: (((left x) leaf))
+(set-logic ALL)
+(set-option :incremental false)
+(set-option :produce-models true)
+(declare-datatypes ((tree 0)) (((node (left tree) (right tree)) (leaf))))
+(declare-fun x () tree)
+(assert ((_ is leaf) (left x)))
+(check-sat)
+(get-value ( (left x) ))

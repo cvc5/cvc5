@@ -1,49 +1,46 @@
-/*********************                                                        */
-/*! \file emptyset.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Kshitij Bansal, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#pragma once
+#ifndef CVC5__EMPTY_SET_H
+#define CVC5__EMPTY_SET_H
 
 #include <iosfwd>
+#include <memory>
 
-namespace CVC4 {
-  // messy; Expr needs EmptySet (because it's the payload of a
-  // CONSTANT-kinded expression), EmptySet needs SetType, and
-  // SetType needs Expr. Using a forward declaration here in
-  // order to break the build cycle.
-  // Uses of SetType need to be as an incomplete type throughout
-  // this header.
-  class SetType;
-}/* CVC4 namespace */
+namespace cvc5::internal {
 
-namespace CVC4 {
-class CVC4_PUBLIC EmptySet {
+class TypeNode;
+
+class EmptySet
+{
  public:
   /**
    * Constructs an emptyset of the specified type. Note that the argument
    * is the type of the set itself, NOT the type of the elements.
    */
-  EmptySet(const SetType& setType);
+  EmptySet(const TypeNode& setType);
   ~EmptySet();
   EmptySet(const EmptySet& other);
   EmptySet& operator=(const EmptySet& other);
 
-  const SetType& getType() const;
+  const TypeNode& getType() const;
   bool operator==(const EmptySet& es) const;
   bool operator!=(const EmptySet& es) const;
   bool operator<(const EmptySet& es) const;
@@ -52,17 +49,18 @@ class CVC4_PUBLIC EmptySet {
   bool operator>=(const EmptySet& es) const;
 
  private:
-  /** Pointer to the SetType node. This is never NULL. */
-  SetType* d_type;
-
   EmptySet();
 
-};/* class EmptySet */
+  std::unique_ptr<TypeNode> d_type;
+}; /* class EmptySet */
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptySet& es);
 
-struct CVC4_PUBLIC EmptySetHashFunction {
+struct EmptySetHashFunction
+{
   size_t operator()(const EmptySet& es) const;
-};/* struct EmptySetHashFunction */
+}; /* struct EmptySetHashFunction */
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
+
+#endif /* CVC5__EMPTY_SET_H */

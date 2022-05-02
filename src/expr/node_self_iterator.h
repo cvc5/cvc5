@@ -1,37 +1,55 @@
-/*********************                                                        */
-/*! \file node_self_iterator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Iterator supporting Node "self-iteration"
- **
- ** Iterator supporting Node "self-iteration."
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Yancheng Ou, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Iterator supporting Node "self-iteration."
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__EXPR__NODE_SELF_ITERATOR_H
-#define __CVC4__EXPR__NODE_SELF_ITERATOR_H
+#ifndef CVC5__EXPR__NODE_SELF_ITERATOR_H
+#define CVC5__EXPR__NODE_SELF_ITERATOR_H
 
 #include <iterator>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 
-class NodeSelfIterator : public std::iterator<std::input_iterator_tag, Node> {
+class NodeSelfIterator {
   Node d_node;
   Node::const_iterator d_child;
 
 public:
+  /* The following types are required by trait std::iterator_traits */
+
+  /** Iterator tag */
+  using iterator_category = std::forward_iterator_tag;
+
+  /** The type of the item */
+  using value_type = Node;
+
+  /** The pointer type of the item */
+  using pointer = Node*;
+
+  /** The reference type of the item */
+  using reference = Node&;
+
+  /** The type returned when two iterators are subtracted */
+  using difference_type = std::ptrdiff_t;
+
+  /* End of std::iterator_traits required types */
+
   static NodeSelfIterator self(TNode n);
   static NodeSelfIterator selfEnd(TNode n);
 
@@ -53,12 +71,12 @@ public:
 };/* class NodeSelfIterator */
 
 inline NodeSelfIterator NodeSelfIterator::self(TNode n) {
-  Assert(!n.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!n.isNull()) << "Self-iteration over null nodes not permitted.";
   return NodeSelfIterator(n);
 }
 
 inline NodeSelfIterator NodeSelfIterator::selfEnd(TNode n) {
-  Assert(!n.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!n.isNull()) << "Self-iteration over null nodes not permitted.";
   return NodeSelfIterator(n.end());
 }
 
@@ -70,13 +88,13 @@ inline NodeSelfIterator::NodeSelfIterator() :
 inline NodeSelfIterator::NodeSelfIterator(Node node) :
   d_node(node),
   d_child() {
-  Assert(!node.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!node.isNull()) << "Self-iteration over null nodes not permitted.";
 }
 
 inline NodeSelfIterator::NodeSelfIterator(TNode node) :
   d_node(node),
   d_child() {
-  Assert(!node.isNull(), "Self-iteration over null nodes not permitted.");
+  Assert(!node.isNull()) << "Self-iteration over null nodes not permitted.";
 }
 
 inline NodeSelfIterator::NodeSelfIterator(const NodeSelfIterator& i) :
@@ -122,7 +140,7 @@ inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
   return !(*this == i);
 }
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__EXPR__NODE_SELF_ITERATOR_H */
+#endif /* CVC5__EXPR__NODE_SELF_ITERATOR_H */

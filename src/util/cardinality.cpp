@@ -1,24 +1,29 @@
-/*********************                                                        */
-/*! \file cardinality.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Representation of cardinality
- **
- ** Implementation of a simple class to represent a cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Representation of cardinality.
+ *
+ * Implementation of a simple class to represent a cardinality.
+ */
 
 #include "util/cardinality.h"
 
-#include "base/cvc4_assert.h"
+#include <ostream>
+#include <sstream>
 
-namespace CVC4 {
+#include "base/check.h"
+#include "base/exception.h"
+
+namespace cvc5::internal {
 
 const Integer Cardinality::s_unknownCard(0);
 const Integer Cardinality::s_intCard(-1);
@@ -174,9 +179,10 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
     // inf ^ finite == inf
     return *this;
   } else {
-    Assert(compare(2) != LESS && !c.isFinite(),
-           "fall-through case not as expected:\n%s\n%s",
-           this->toString().c_str(), c.toString().c_str());
+    Assert(compare(2) != LESS && !c.isFinite())
+        << "fall-through case not as expected:\n"
+        << this << "\n"
+        << c;
     // (>= 2) ^ beth_k == beth_(k+1)
     // unless the base is already > the exponent
     if (compare(c) == GREATER) {
@@ -258,4 +264,4 @@ std::ostream& operator<<(std::ostream& out, const Cardinality& c) {
   return out;
 }
 
-} /* CVC4 namespace */
+}  // namespace cvc5::internal

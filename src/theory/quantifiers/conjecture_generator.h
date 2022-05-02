@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file conjecture_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Paul Meng, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief conjecture generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * conjecture generator class
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CONJECTURE_GENERATOR_H
 #define CONJECTURE_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers_engine.h"
+#include "expr/node_trie.h"
+#include "expr/term_canonize.h"
+#include "smt/env_obj.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;
 
 //algorithm for computing candidate subgoals
 
@@ -70,10 +72,20 @@ class TermGenEnv;
 
 class TermGenerator
 {
-private:
+ private:
   unsigned calculateGeneralizationDepth( TermGenEnv * s, std::map< TypeNode, std::vector< int > >& fvs );
-public:
-  TermGenerator(){}
+
+ public:
+  TermGenerator()
+      : d_id(0),
+        d_status(0),
+        d_status_num(0),
+        d_status_child_num(0),
+        d_match_status(0),
+        d_match_status_child_num(0),
+        d_match_mode(0)
+  {
+  }
   TypeNode d_typ;
   unsigned d_id;
   //1 : consider as unique variable
@@ -95,8 +107,8 @@ public:
   //2 : variables must map to non-ground terms
   unsigned d_match_mode;
   //children
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children;
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children_end;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_match_children;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_match_children_end;
 
   void reset( TermGenEnv * s, TypeNode tn );
   bool getNextTerm( TermGenEnv * s, unsigned depth );
@@ -228,19 +240,15 @@ class ConjectureGenerator : public QuantifiersModule
   friend class SubsEqcIndex;
   friend class TermGenerator;
   friend class TermGenEnv;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-//this class maintains a congruence closure for *universal* facts
-private:
+  typedef context::CDHashMap<Node, Node> NodeMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  // this class maintains a congruence closure for *universal* facts
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     ConjectureGenerator& d_sg;
   public:
     NotifyClass(ConjectureGenerator& sg): d_sg(sg) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       return true;
@@ -254,29 +262,27 @@ private:
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
     void eqNotifyNewClass(TNode t) override { d_sg.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      d_sg.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      d_sg.eqNotifyPostMerge(t1, t2);
+      d_sg.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      d_sg.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class ConjectureGenerator::NotifyClass */
   /** The notify class */
   NotifyClass d_notify;
   class EqcInfo{
   public:
-    EqcInfo( context::Context* c );
-    //representative
-    context::CDO< Node > d_rep;
+   EqcInfo(context::Context* c);
+   // representative
+   context::CDO<Node> d_rep;
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
   /** (universal) equaltity engine */
   eq::EqualityEngine d_uequalityEngine;
   /** pending adds */
@@ -287,18 +293,14 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** are universal equal */
   bool areUniversalEqual( TNode n1, TNode n2 );
   /** are universal disequal */
   bool areUniversalDisequal( TNode n1, TNode n2 );
   /** get universal representative */
-  TNode getUniversalRepresentative( TNode n, bool add = false );
+  Node getUniversalRepresentative(TNode n, bool add = false);
   /** set relevant */
   void setUniversalRelevant( TNode n );
   /** ordering for universal terms */
@@ -378,7 +380,23 @@ private:
   std::map< TypeNode, Node > d_typ_pred;
   //get predicate for type
   Node getPredicateForType( TypeNode tn );
-  //
+  /** get enumerate uf term
+   *
+   * This function adds up to #num f-applications to terms, where f is
+   * n.getOperator(). These applications are enumerated in a fair manner based
+   * on an iterative deepening of the sum of indices of the arguments. For
+   * example, if f : U x U -> U, an the term enumerator for U gives t1, t2, t3
+   * ..., then we add f-applications to terms in this order:
+   *   f( t1, t1 )
+   *   f( t2, t1 )
+   *   f( t1, t2 )
+   *   f( t1, t3 )
+   *   f( t2, t2 )
+   *   f( t3, t1 )
+   *   ...
+   * This function may add fewer than #num terms to terms if the enumeration is
+   * exhausted, or if an internal error occurs.
+   */
   void getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms );
   //
   void getEnumeratePredUfTerm( Node n, unsigned num, std::vector< Node >& terms );
@@ -418,8 +436,13 @@ private:  //information about ground equivalence classes
   bool d_hasAddedLemma;
   //flush the waiting conjectures
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
-public:
-  ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
+
+ public:
+  ConjectureGenerator(Env& env,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
+                      QuantifiersRegistry& qr,
+                      TermRegistry& tr);
   ~ConjectureGenerator();
 
   /* needs check */
@@ -439,11 +462,13 @@ public:
   unsigned optFullCheckConjectures();
 
   bool optStatsOnly();
+  /** term canonizer */
+  expr::TermCanonize d_termCanon;
 };
 
 
 }
 }
-}
+}  // namespace cvc5::internal
 
 #endif

@@ -1,29 +1,32 @@
-/*********************                                                        */
-/*! \file single_inv_partition.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility for single invocation partitioning
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for single invocation partitioning.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
-#define __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#define CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
 
 #include <map>
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/subs.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -54,10 +57,10 @@ namespace quantifiers {
  * see Example 5 of Reynolds et al. SYNT 2017.
  *
  */
-class SingleInvocationPartition
+class SingleInvocationPartition : protected EnvObj
 {
  public:
-  SingleInvocationPartition() : d_has_input_funcs(false) {}
+  SingleInvocationPartition(Env& env);
   ~SingleInvocationPartition() {}
   /** initialize this partition for formula n, with input functions funcs
    *
@@ -201,7 +204,7 @@ class SingleInvocationPartition
   std::vector<Node> d_si_vars;
 
   /** every free variable of conjuncts[2] */
-  std::vector<Node> d_all_vars;
+  std::unordered_set<Node> d_all_vars;
   /** map from functions to first-order variables that anti-skolemized them */
   std::map<Node, Node> d_func_fo_var;
   /** map from first-order variables to the function it anti-skolemized */
@@ -228,6 +231,8 @@ class SingleInvocationPartition
   std::vector<Node> d_input_funcs;
   /** all input functions */
   std::vector<Node> d_all_funcs;
+  /** skolem of the same type as input functions */
+  std::vector<Node> d_input_func_sks;
 
   /** infer the argument types of uninterpreted function applications
    *
@@ -281,15 +286,17 @@ class SingleInvocationPartition
   bool processConjunct(Node n,
                        std::map<Node, bool>& visited,
                        std::vector<Node>& args,
-                       std::vector<Node>& terms,
-                       std::vector<Node>& subs);
+                       Subs& sb);
 
   /** get the and node corresponding to d_conjuncts[index] */
   Node getConjunct(int index);
+  /** Quantified simplify (treat free variables in n as quantified and run
+   * rewriter) */
+  Node getQuantSimplify(TNode n) const;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */

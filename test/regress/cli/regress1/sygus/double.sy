@@ -1,0 +1,26 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic SLIA)
+(declare-datatype Ex ((Ex2 (ex Int))))
+
+(synth-fun double ((x1 Ex)) Int
+	((ntInt Int) (ntEx Ex))
+	(
+		(ntInt Int
+			(
+				(ex ntEx)
+				(+ ntInt ntInt)
+			)
+		)
+		(ntEx Ex
+			( 
+				x1
+				(Ex2 ntInt)
+			)
+		)
+	)
+)
+(constraint (= (double (Ex2 1)) 2))
+(constraint (= (double (Ex2 4)) 8))
+(check-synth)

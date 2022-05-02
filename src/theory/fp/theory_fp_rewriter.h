@@ -1,67 +1,65 @@
-/*********************                                                        */
-/*! \file theory_fp_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Martin Brain, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_REWRITER_H
-#define __CVC4__THEORY__FP__THEORY_FP_REWRITER_H
+#ifndef CVC5__THEORY__FP__THEORY_FP_REWRITER_H
+#define CVC5__THEORY__FP__THEORY_FP_REWRITER_H
 
-#include "theory/rewriter.h"
+#include "theory/fp/fp_expand_defs.h"
+#include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
 typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
-class TheoryFpRewriter {
- protected :
-  static RewriteFunction preRewriteTable[kind::LAST_KIND];
-  static RewriteFunction postRewriteTable[kind::LAST_KIND];
-  static RewriteFunction constantFoldTable[kind::LAST_KIND]; 
-
-
+class TheoryFpRewriter : public TheoryRewriter
+{
  public:
+  TheoryFpRewriter(context::UserContext* u);
 
-  static RewriteResponse preRewrite(TNode node);
-  static RewriteResponse postRewrite(TNode node);
-
+  RewriteResponse preRewrite(TNode node) override;
+  RewriteResponse postRewrite(TNode node) override;
 
   /**
    * Rewrite an equality, in case special handling is required.
    */
-  static Node rewriteEquality(TNode equality) {
+  Node rewriteEquality(TNode equality)
+  {
     // often this will suffice
-    return postRewrite(equality).node;
+    return postRewrite(equality).d_node;
   }
+  /** Expand definitions in node */
+  TrustNode expandDefinition(Node node) override;
 
-  static void init();
+ protected:
+  /** TODO: document (projects issue #265) */
+  RewriteFunction d_preRewriteTable[kind::LAST_KIND];
+  RewriteFunction d_postRewriteTable[kind::LAST_KIND];
+  RewriteFunction d_constantFoldTable[kind::LAST_KIND];
+  /** The expand definitions module. */
+  FpExpandDefs d_fpExpDef;
+}; /* class TheoryFpRewriter */
 
-  /**
-   * Shut down the rewriter.
-   */
-  static inline void shutdown() {
-    // nothing to do
-  }
+}  // namespace fp
+}  // namespace theory
+}  // namespace cvc5::internal
 
-};/* class TheoryFpRewriter */
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* __CVC4__THEORY__FP__THEORY_FP_REWRITER_H */
+#endif /* CVC5__THEORY__FP__THEORY_FP_REWRITER_H */

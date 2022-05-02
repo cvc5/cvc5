@@ -1,36 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
-
-// These headers should be the first two included.
-// See the documentation in "parser/antlr_undefines.h" for more details.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add file-specific comments here ]]
+ */
 
 #include "parser/smt2/sygus_input.h"
 
-#include "expr/expr_manager.h"
+#include <antlr3.h>
+
+#include "base/check.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt2/sygus_input.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
+#include "parser/smt2/sygus_input.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=2 */
@@ -38,7 +35,7 @@ SygusInput::SygusInput(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
 
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
-  assert( input != NULL );
+  Assert(input != NULL);
 
   d_pSmt2Lexer = Smt2LexerNew(input);
   if( d_pSmt2Lexer == NULL ) {
@@ -48,7 +45,7 @@ SygusInput::SygusInput(AntlrInputStream& inputStream) :
   setAntlr3Lexer( d_pSmt2Lexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
-  assert( tokenStream != NULL );
+  Assert(tokenStream != NULL);
 
   d_pSmt2Parser = Smt2ParserNew(tokenStream);
   if( d_pSmt2Parser == NULL ) {
@@ -67,9 +64,10 @@ Command* SygusInput::parseCommand() {
   return d_pSmt2Parser->parseSygus(d_pSmt2Parser);
 }
 
-Expr SygusInput::parseExpr() {
+cvc5::Term SygusInput::parseExpr()
+{
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

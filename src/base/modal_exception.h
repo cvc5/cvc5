@@ -1,33 +1,32 @@
-/*********************                                                        */
-/*! \file modal_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An exception that is thrown when an interactive-only
- ** feature while CVC4 is being used in a non-interactive setting
- **
- ** An exception that is thrown when an interactive-only feature while
- ** CVC4 is being used in a non-interactive setting (for example, the
- ** "(get-assertions)" command in an SMT-LIBv2 script).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An exception that is thrown when an interactive-only feature while
+ * cvc5 is being used in a non-interactive setting (for example, the
+ * "(get-assertions)" command in an SMT-LIBv2 script).
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef __CVC4__SMT__MODAL_EXCEPTION_H
-#define __CVC4__SMT__MODAL_EXCEPTION_H
+#ifndef CVC5__SMT__MODAL_EXCEPTION_H
+#define CVC5__SMT__MODAL_EXCEPTION_H
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-class CVC4_PUBLIC ModalException : public CVC4::Exception {
-public:
+class ModalException : public cvc5::internal::Exception
+{
+ public:
   ModalException() :
     Exception("Feature used while operating in "
               "incorrect state") {
@@ -40,7 +39,7 @@ public:
   ModalException(const char* msg) :
     Exception(msg) {
   }
-};/* class ModalException */
+}; /* class ModalException */
 
 /**
  * Special case of ModalException that allows the execution of the solver to
@@ -49,13 +48,14 @@ public:
  * TODO(#1108): This exception should not be needed anymore in future versions
  * of the public API.
  */
-class CVC4_PUBLIC RecoverableModalException : public CVC4::ModalException {
+class RecoverableModalException : public cvc5::internal::ModalException
+{
  public:
   RecoverableModalException(const std::string& msg) : ModalException(msg) {}
 
   RecoverableModalException(const char* msg) : ModalException(msg) {}
 }; /* class RecoverableModalException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__SMT__MODAL_EXCEPTION_H */
+#endif /* CVC5__SMT__MODAL_EXCEPTION_H */

@@ -1,124 +1,72 @@
-/*********************                                                        */
-/*! \file theory_datatypes.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of datatypes.
- **
- ** Theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of datatypes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
-#define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
+#define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include <iostream>
 #include <map>
 
 #include "context/cdlist.h"
 #include "expr/attribute.h"
-#include "expr/datatype.h"
-#include "theory/datatypes/datatypes_sygus.h"
+#include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/inference_manager.h"
+#include "theory/datatypes/proof_checker.h"
+#include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
  private:
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
-
-  /** transitive closure to record equivalence/subterm relation.  */
-  // TransitiveClosureNode d_cycle_check;
-  /** has seen cycle */
-  context::CDO<bool> d_hasSeenCycle;
-  /** inferences */
-  NodeList d_infer;
-  NodeList d_infer_exp;
-  Node d_true;
-  Node d_zero;
-  /** mkAnd */
-  Node mkAnd(std::vector<TNode>& assumptions);
+  /** maps nodes to an index in a vector */
+  typedef context::CDHashMap<Node, size_t> NodeUIntMap;
+  typedef context::CDHashMap<Node, bool> BoolMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  private:
   //notification class for equality engine
-  class NotifyClass : public eq::EqualityEngineNotify {
+  class NotifyClass : public TheoryEqNotifyClass
+  {
     TheoryDatatypes& d_dt;
   public:
-    NotifyClass(TheoryDatatypes& dt): d_dt(dt) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_dt.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_dt.propagate(equality.notNode());
-      }
+   NotifyClass(TheoryInferenceManager& im, TheoryDatatypes& dt)
+       : TheoryEqNotifyClass(im), d_dt(dt)
+   {
+   }
+   void eqNotifyNewClass(TNode t) override
+   {
+     Trace("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+     d_dt.eqNotifyNewClass(t);
     }
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_dt.propagate(predicate);
-      } else {
-       return d_dt.propagate(predicate.notNode());
-      }
-    }
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
-      if (value) {
-        return d_dt.propagate(t1.eqNode(t2));
-      } else {
-        return d_dt.propagate(t1.eqNode(t2).notNode());
-      }
-    }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.conflict(t1, t2);
-    }
-    void eqNotifyNewClass(TNode t) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
-      d_dt.eqNotifyNewClass(t);
-    }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.eqNotifyPostMerge(t1, t2);
-    }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
-      d_dt.eqNotifyDisequal(t1, t2, reason);
+      Trace("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+                  << std::endl;
+      d_dt.eqNotifyMerge(t1, t2);
     }
   };/* class TheoryDatatypes::NotifyClass */
 private:
@@ -130,14 +78,14 @@ private:
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    //whether we have instantiatied this eqc
-    context::CDO< bool > d_inst;
-    //constructor equal to this eqc
-    context::CDO< Node > d_constructor;
-    //all selectors whose argument is this eqc
-    context::CDO< bool > d_selectors;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // whether we have instantiatied this eqc
+   context::CDO<bool> d_inst;
+   // constructor equal to this eqc
+   context::CDO<Node> d_constructor;
+   // all selectors whose argument is this eqc
+   context::CDO<bool> d_selectors;
   };
   /** does eqc of n have a label (do we know its constructor)? */
   bool hasLabel( EqcInfo* eqc, Node n );
@@ -149,58 +97,54 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
-  /** mkExpDefSkolem */
-  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
   /** skolems for terms */
   NodeMap d_term_sk;
   Node getTermSkolemFor( Node n );
 private:
-  /** The notify class */
-  NotifyClass d_notify;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
-  /** map from nodes to their instantiated equivalent for each constructor type */
-  std::map< Node, std::map< int, Node > > d_inst_map;
-  /** which instantiation lemmas we have sent */
-  //std::map< Node, std::vector< Node > > d_inst_lemmas;
+  //---------------------------------labels
   /** labels for each equivalence class
-   * for each eqc n, d_labels[n] is testers that hold for this equivalence class, either:
+   *
+   * For each eqc r, d_labels[r] is testers that hold for this equivalence
+   * class, either:
    * a list of equations of the form
-   *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t ), each of which are unique testers
-   *   and n is less than the number of possible constructors for t minus one,
+   *   NOT is_[constructor_1]( t1 )...NOT is_[constructor_n]( tn ), each of
+   *   which are unique testers, n is less than the number of possible
+   *   constructors for t minus one,
    * or a list of equations of the form
-   *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t )  followed by
-   *   is_[constructor_(n+1)]( t ), each of which is a unique tester.
-  */
-  NodeIntMap d_labels;
+   *   NOT is_[constructor_1]( t1 )...NOT is_[constructor_n]( tn ) followed by
+   *   is_[constructor_(n+1)]( t{n+1} ), each of which is a unique tester.
+   * In both cases, t1, ..., tn, t{n+1} are terms in the equivalence class of r.
+   *
+   * We store this list in a context-dependent way, using the four data
+   * structures below. The three vectors d_labels_data, d_labels_args, and
+   * d_labels_tindex store the tester applications, their arguments and the
+   * tester index of the application. The map d_labels stores the number of
+   * values in these vectors that is valid in the current context (this is an
+   * optimization that ensures we don't need to pop data when changing SAT
+   * contexts).
+   */
+  NodeUIntMap d_labels;
+  /** the tester applications */
   std::map< Node, std::vector< Node > > d_labels_data;
+  /** the argument of each node in d_labels_data */
+  std::map<Node, std::vector<Node> > d_labels_args;
+  /** the tester index of each node in d_labels_data */
+  std::map<Node, std::vector<unsigned> > d_labels_tindex;
+  //---------------------------------end labels
   /** selector apps for eqch equivalence class */
-  NodeIntMap d_selector_apps;
+  NodeUIntMap d_selector_apps;
   std::map< Node, std::vector< Node > > d_selector_apps_data;
-  /** constructor terms */
-  //BoolMap d_consEqc;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-  /** Added lemma ? */
-  bool d_addedLemma;
-  bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
-  /** cache for which terms we have called collectTerms(...) on */
-  BoolMap d_collectTermsCache;
-  /** pending assertions/merges */
-  std::vector< Node > d_pending_lem;
-  std::vector< Node > d_pending;
-  std::map< Node, Node > d_pending_exp;
-  std::vector< Node > d_pending_merge;
+  /**
+   * User-context dependent cache for which terms we have called
+   * registerInitialLemmas(...) on.
+   */
+  BoolMap d_initialLemmaCache;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionTerms;
-  /** counter for forcing assignments (ensures fairness) */
-  unsigned d_dtfCounter;
-  /** expand definition skolem functions */
-  std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:
@@ -208,20 +152,10 @@ private:
   std::map< TypeNode, Node > d_singleton_lemma[2];
   /** Cache for singleton equalities processed */
   BoolMap d_singleton_eq;
-  /** list of all lemmas produced */
-  BoolMap d_lemmas_produced_c;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
 
-  /** flush pending facts */
-  void flushPendingFacts();
-
-  /** do pending merged */
-  void doPendingMerges();
-  /** do send lemma */
-  bool doSendLemma( Node lem );
-  bool doSendLemmas( std::vector< Node >& lem );
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 
@@ -232,72 +166,68 @@ private:
   TNode getEqcConstructor( TNode r );
 
  protected:
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth,
+                    unsigned& n_pairs);
   /** compute care graph */
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c, context::UserContext* u,
-                  OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo);
+  TheoryDatatypes(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
   /** propagate */
-  void propagate(Effort effort) override;
-  /** propagate */
-  bool propagate(TNode literal);
-  /** explain */
-  void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
-  void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
-  void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
-  void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain(TNode literal) override;
-  Node explain( std::vector< Node >& lits );
+  bool propagateLit(TNode literal);
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
+  /** explain */
+  TrustNode explain(TNode literal) override;
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
-  void check(Effort e) override;
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Effort level) override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
   void preRegisterTerm(TNode n) override;
-  void finishInit() override;
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
-  Node ppRewrite(TNode n) override;
-  void presolve() override;
-  void addSharedTerm(TNode t) override;
+  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-  bool collectModelInfo(TheoryModel* m) override;
-  void shutdown() override {}
   std::string identify() const override
   {
     return std::string("TheoryDatatypes");
   }
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
-  std::pair<bool, Node> entailmentCheck(
-      TNode lit,
-      const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL) override;
+  std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
  private:
   /** add tester to equivalence class info */
-  void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );
+  void addTester(unsigned ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg);
   /** add selector to equivalence class info */
   void addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts = true );
   /** add constructor */
@@ -306,51 +236,80 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
-  /** remove uninterpreted constants */
-  Node removeUninterpretedConstants( Node n, std::map< Node, Node >& visited );
+  /** 
+   * Register initial lemmas. This adds pending lemmas on the inference manager
+   * corresponding to unit lemmas for e.g. dt.size.
+   */
+  void registerInitialLemmas(Node n);
   /** for checking if cycles exist */
   void checkCycles();
-  Node searchForCycle( TNode n, TNode on,
-                       std::map< TNode, bool >& visited, std::map< TNode, bool >& proc,
-                       std::vector< TNode >& explanation, bool firstTime = true );
+  Node searchForCycle(TNode n,
+                      TNode on,
+                      std::map<TNode, bool>& visited,
+                      std::map<TNode, bool>& proc,
+                      std::vector<Node>& explanation,
+                      bool firstTime = true);
+  /**
+   * Applying splitting.
+   *
+   * This checks if we should add a splitting inference for datatype terms
+   * currently in the equality engine. If so, we add pending lemmas on the
+   * inference manager.
+   */
+  void checkSplit();
   /** for checking whether two codatatype terms must be equal */
-  void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
-                          std::vector< TNode >& exp,
-                          std::map< Node, Node >& cn,
-                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
+  void separateBisimilar(std::vector<Node>& part,
+                         std::vector<std::vector<Node> >& part_out,
+                         std::vector<Node>& exp,
+                         std::map<Node, Node>& cn,
+                         std::map<Node, std::map<Node, int> >& dni,
+                         int dniLvl,
+                         bool mkExp);
   /** build model */
   Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */
   Node getSingletonLemma( TypeNode tn, bool pol );
-  /** collect terms */
-  void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index );
-  /** check instantiate */
-  void instantiate( EqcInfo* eqc, Node n );
-  /** must communicate fact */
-  bool mustCommunicateFact( Node n, Node exp );
-  /** check clash mod eq */
-  bool checkClashModEq( TNode n1, TNode n2, std::vector< Node >& exp, std::vector< std::pair< TNode, TNode > >& deq_cand );
-  /** get relevant terms */
-  void getRelevantTerms( std::set<Node>& termSet );
-private:
+  Node getInstantiateCons(Node n, const DType& dt, int index);
+  /** check instantiate, return true if an inference was generated. */
+  bool instantiate(EqcInfo* eqc, Node n);
+
+ private:
   //equality queries
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );
   bool areDisequal( TNode a, TNode b );
-  bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
-private:
- /** sygus symmetry breaking utility */
- SygusSymBreakNew* d_sygus_sym_break;
 
-public:
- Node getNextDecisionRequest(unsigned& priority) override;
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
+  /**
+   * Compute relevant terms. This includes datatypes in non-singleton
+   * equivalence classes.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+  /** Commonly used terms */
+  Node d_true;
+  Node d_zero;
+  /** sygus symmetry breaking utility */
+  std::unique_ptr<SygusExtension> d_sygusExtension;
+  /** The theory rewriter for this theory. */
+  DatatypesRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
+  /** The inference manager */
+  InferenceManager d_im;
+  /** The notify class */
+  NotifyClass d_notify;
+  /** Proof checker for datatypes */
+  DatatypesProofRuleChecker d_checker;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryDatatypes */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */
+#endif /* CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H */

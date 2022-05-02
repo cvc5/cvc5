@@ -1,37 +1,41 @@
-/*********************                                                        */
-/*! \file int_to_bv.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The IntToBV preprocessing pass
- **
- ** Converts integer operations into bitvector operations. The width of the
- ** bitvectors is controlled through the `--solve-int-as-bv` command line
- ** option.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Aina Niemetz, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The IntToBV preprocessing pass.
+ *
+ * Converts integer operations into bitvector operations. The width of the
+ * bitvectors is controlled through the `--solve-int-as-bv` command line
+ * option.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__INT_TO_BV_H
-#define __CVC4__PREPROCESSING__PASSES__INT_TO_BV_H
+#ifndef CVC5__PREPROCESSING__PASSES__INT_TO_BV_H
+#define CVC5__PREPROCESSING__PASSES__INT_TO_BV_H
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
+
+using NodeMap = std::unordered_map<Node, Node>;
 
 class IntToBV : public PreprocessingPass
 {
  public:
   IntToBV(PreprocessingPassContext* preprocContext);
+  Node intToBV(TNode n, NodeMap& cache);
 
  protected:
   PreprocessingPassResult applyInternal(
@@ -40,6 +44,6 @@ class IntToBV : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__PREPROCESSING__PASSES__INT_TO_BV_H */
+#endif /* CVC5__PREPROCESSING__PASSES__INT_TO_BV_H */

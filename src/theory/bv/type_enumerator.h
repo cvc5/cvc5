@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An enumerator for bitvectors
- **
- ** An enumerator for bitvectors.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An enumerator for bitvectors.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__BV__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__BV__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__BV__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__BV__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -26,7 +25,7 @@
 #include "util/bitvector.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -59,8 +58,8 @@ public:
   bool isFinished() override { return d_bits != d_bits.modByPow2(d_size); }
 };/* BitVectorEnumerator */
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__BV__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__BV__TYPE_ENUMERATOR_H */

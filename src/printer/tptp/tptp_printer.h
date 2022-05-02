@@ -1,61 +1,69 @@
-/*********************                                                        */
-/*! \file tptp_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the TPTP output language
- **
- ** The pretty-printer interface for the TPTP output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the TPTP output language.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__PRINTER__TPTP_PRINTER_H
-#define __CVC4__PRINTER__TPTP_PRINTER_H
+#ifndef CVC5__PRINTER__TPTP_PRINTER_H
+#define CVC5__PRINTER__TPTP_PRINTER_H
 
 #include <iostream>
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace printer {
 namespace tptp {
 
-class TptpPrinter : public CVC4::Printer {
+class TptpPrinter : public cvc5::internal::Printer
+{
  public:
-  using CVC4::Printer::toStream;
+  using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
-                bool types,
-                size_t dag) const override;
-  void toStream(std::ostream& out,
-                const Command* c,
-                int toDepth,
-                bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
-  void toStream(std::ostream& out, const Model& m) const override;
-  /** print unsat core to stream
-  * We use the expression names stored in the SMT engine associated with the unsat core
-  * with UnsatCore::getSmtEngine.
-  */
+  void toStream(std::ostream& out, const smt::Model& m) const override;
+  /**
+   * Print unsat core to stream.
+   * We use the expression names associated with the unsat core
+   * (UnsatCore::getCoreNames).
+   */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
  private:
-  void toStream(std::ostream& out,
-                const Model& m,
-                const Command* c) const override;
-};/* class TptpPrinter */
+  /**
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  void toStreamModelSort(std::ostream& out,
+                         TypeNode tn,
+                         const std::vector<Node>& elements) const override;
 
-}/* CVC4::printer::tptp namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+  /**
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
+   */
+  void toStreamModelTerm(std::ostream& out,
+                         const Node& n,
+                         const Node& value) const override;
 
-#endif /* __CVC4__PRINTER__TPTP_PRINTER_H */
+}; /* class TptpPrinter */
+
+}  // namespace tptp
+}  // namespace printer
+}  // namespace cvc5::internal
+
+#endif /* CVC5__PRINTER__TPTP_PRINTER_H */

@@ -1,39 +1,34 @@
-/*********************                                                        */
-/*! \file context.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context class and context manager.
- **
- ** Context class and context manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context class and context manager.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__CONTEXT__CONTEXT_H
-#define __CVC4__CONTEXT__CONTEXT_H
+#ifndef CVC5__CONTEXT__CONTEXT_H
+#define CVC5__CONTEXT__CONTEXT_H
 
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 #include <memory>
-#include <new>
 #include <typeinfo>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
-
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
 class Context;
 class Scope;
@@ -94,8 +89,8 @@ class Context {
   friend std::ostream& operator<<(std::ostream&, const Context&);
 
   // disable copy, assignment
-  Context(const Context&) CVC4_UNDEFINED;
-  Context& operator=(const Context&) CVC4_UNDEFINED;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
 
 public:
 
@@ -135,10 +130,10 @@ public:
     }
     ~ScopedPush() noexcept(false) {
       d_context->pop();
-      AlwaysAssert(d_context->getTopScope() == d_scope,
-                   "Context::ScopedPush observed an uneven Context (at pop, "
-                   "top scope doesn't match what it was at the time the "
-                   "ScopedPush was applied)");
+      AlwaysAssert(d_context->getTopScope() == d_scope)
+          << "Context::ScopedPush observed an uneven Context (at pop, "
+             "top scope doesn't match what it was at the time the "
+             "ScopedPush was applied)";
     }
   };/* Context::ScopedPush */
 
@@ -208,8 +203,8 @@ public:
 class UserContext : public Context {
 private:
   // disable copy, assignment
-  UserContext(const UserContext&) CVC4_UNDEFINED;
-  UserContext& operator=(const UserContext&) CVC4_UNDEFINED;
+  UserContext(const UserContext&) = delete;
+  UserContext& operator=(const UserContext&) = delete;
 public:
   UserContext() {}
 };/* class UserContext */
@@ -261,7 +256,7 @@ class Scope {
    *
    * This is either nullptr or list owned by this scope.
    */
-  std::unique_ptr<std::vector<ContextObj*>> d_garbage;
+  std::vector<ContextObj*> d_garbage;
 
   friend std::ostream& operator<<(std::ostream&, const Scope&);
 
@@ -318,7 +313,6 @@ class Scope {
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM)
   {
-    Trace("context_mm") << "Scope::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -569,7 +563,7 @@ class ContextObj {
    * calling deleteSelf().
    */
   static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
   /**
@@ -581,7 +575,6 @@ class ContextObj {
    * to be done using the restore method.
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM) {
-    Trace("context_mm") << "Context::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -644,7 +637,6 @@ class ContextObj {
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
-    Debug("context") << "deleteSelf(" << this << ") " << typeid(*this).name() << std::endl;
     this->~ContextObj();
     ::operator delete(this);
   }
@@ -742,7 +734,6 @@ inline void Scope::addToChain(ContextObj* pContextObj)
   d_pContextObjList = pContextObj;
 }
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::context
 
-#endif /* __CVC4__CONTEXT__CONTEXT_H */
+#endif /* CVC5__CONTEXT__CONTEXT_H */

@@ -1,0 +1,17 @@
+; COMMAND-LINE: -i
+; SCRUBBER: grep "define-fun" | sort
+; EXPECT: (define-fun f ((x Int) (y Int)) Int 0)
+; EXPECT: (define-fun f ((x Int) (y Int)) Int 1)
+; EXPECT: (define-fun f ((x Int) (y Int)) Int x)
+; EXPECT: (define-fun f ((x Int) (y Int)) Int y)
+
+(set-logic LIA)
+
+(synth-fun f ((x Int) (y Int)) Int
+  ((Start Int))
+  ((Start Int (0 1 x y))))
+
+(check-synth)
+(check-synth-next)
+(check-synth-next)
+(check-synth-next)

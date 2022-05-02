@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file type_set.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type set class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type set class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__TYPE_SET_H
-#define __CVC4__THEORY__TYPE_SET_H
+#ifndef CVC5__THEORY__TYPE_SET_H
+#define CVC5__THEORY__TYPE_SET_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 /* Type set
@@ -32,10 +33,8 @@ namespace theory {
 class TypeSet
 {
  public:
-  typedef std::unordered_map<TypeNode, std::set<Node>*, TypeNodeHashFunction>
-      TypeSetMap;
-  typedef std::unordered_map<TypeNode, TypeEnumerator*, TypeNodeHashFunction>
-      TypeToTypeEnumMap;
+  typedef std::unordered_map<TypeNode, std::set<Node>*> TypeSetMap;
+  typedef std::unordered_map<TypeNode, TypeEnumerator*> TypeToTypeEnumMap;
   typedef TypeSetMap::iterator iterator;
   typedef TypeSetMap::const_iterator const_iterator;
 
@@ -80,11 +79,11 @@ class TypeSet
    * (very low expression depth).
    */
   void addSubTerms(TNode n,
-                   std::unordered_set<TNode, TNodeHashFunction>& visited,
+                   std::unordered_set<TNode>& visited,
                    bool topLevel = true);
 }; /* class TypeSet */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__TYPE_SET_H */
+#endif /* CVC5__THEORY__TYPE_SET_H */

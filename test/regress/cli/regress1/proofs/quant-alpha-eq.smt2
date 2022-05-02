@@ -1,0 +1,8 @@
+(set-logic AUFLIA)
+(set-info :status unsat)
+(declare-sort A$ 0)
+(declare-fun p$ (A$) Bool)
+(assert (exists ((?v0 A$)) (p$ ?v0)))
+(assert (forall ((?v0 A$)) (not (p$ ?v0))))
+(assert (not false))
+(check-sat)

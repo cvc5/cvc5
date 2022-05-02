@@ -1,33 +1,37 @@
-/*********************                                                        */
-/*! \file sygus_invariance.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus invariance tests
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus invariance tests.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
 
 #include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+
+class Rewriter;
+
 namespace quantifiers {
 
 class TermDbSygus;
-class CegConjecture;
+class SynthConjecture;
 
 /* SygusInvarianceTest
 *
@@ -43,6 +47,7 @@ class CegConjecture;
 class SygusInvarianceTest
 {
  public:
+  SygusInvarianceTest(Rewriter* r) : d_rewriter(r) {}
   virtual ~SygusInvarianceTest() {}
 
   /** Is nvn invariant with respect to this test ?
@@ -68,6 +73,8 @@ class SygusInvarianceTest
   /** set updated term */
   void setUpdatedTerm(Node n) { d_update_nvn = n; }
  protected:
+  /** Pointer to the rewriter */
+  Rewriter* d_rewriter;
   /** result of the node that satisfies this invariant */
   Node d_update_nvn;
   /** check whether nvn[ x ] is invariant */
@@ -97,32 +104,44 @@ class SygusInvarianceTest
 class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EvalSygusInvarianceTest() {}
+  EvalSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r),
+        d_kind(kind::UNDEFINED_KIND),
+        d_is_conjunctive(false)
+  {
+  }
 
   /** initialize this invariance test
-    * This sets d_conj/d_var/d_result, where
-    * we are checking whether:
-    *   d_conj { d_var -> n } ----> d_result.
-    * for terms n.
-    */
+   *
+   * This sets d_terms/d_var/d_result, where we are checking whether:
+   *   <d_kind>(d_terms) { d_var -> n } ----> d_result.
+   * for terms n.
+   */
   void init(Node conj, Node var, Node res);
 
-  /** do evaluate with unfolding, using the cache of this class */
-  Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
-
  protected:
-  /** does d_conj{ d_var -> nvn } still rewrite to d_result? */
+  /** does d_terms{ d_var -> nvn } still rewrite to d_result? */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
-  /** the formula we are evaluating */
-  Node d_conj;
+  /** the formulas we are evaluating */
+  std::vector<Node> d_terms;
   /** the variable */
   TNode d_var;
   /** the result of the evaluation */
   Node d_result;
-  /** cache of n -> the simplified form of eval( n ) */
-  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
+  /** the parent kind we are checking, undefined if size(d_terms) is 1. */
+  Kind d_kind;
+  /** whether we are conjunctive
+   *
+   * If this flag is true, then the evaluation tests:
+   *   d_terms[1] {d_var -> n} = d_result ... d_term[k] {d_var -> n} = d_result
+   * should be processed conjunctively, that is,
+   * <d_kind>(d_terms) { d_var -> n } = d_result only if each of the above
+   * holds. If this flag is false, then these tests are interpreted
+   * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
+   */
+  bool d_is_conjunctive;
 };
 
 /** EquivSygusInvarianceTest
@@ -157,7 +176,10 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 class EquivSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EquivSygusInvarianceTest() : d_conj(nullptr) {}
+  EquivSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r), d_conj(nullptr)
+  {
+  }
 
   /** initialize this invariance test
    * tn is the sygus type for e
@@ -166,7 +188,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
    * are checking for invariance
    */
   void init(
-      TermDbSygus* tds, TypeNode tn, CegConjecture* aconj, Node e, Node bvr);
+      TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr);
 
  protected:
   /** checks whether the analog of nvn still rewrites to d_bvr */
@@ -174,7 +196,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 
  private:
   /** the conjecture associated with the enumerator d_enum */
-  CegConjecture* d_conj;
+  SynthConjecture* d_conj;
   /** the enumerator associated with the term for which this test is for */
   Node d_enum;
   /** the RHS of the evaluation */
@@ -198,7 +220,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  DivByZeroSygusInvarianceTest() {}
+  DivByZeroSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r) {}
 
  protected:
   /** checks whether nvn involves division by zero. */
@@ -234,7 +256,10 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  NegContainsSygusInvarianceTest() {}
+  NegContainsSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r), d_isUniversal(false)
+  {
+  }
 
   /** initialize this invariance test
    *  e is the enumerator which we are reasoning about (associated with a synth
@@ -251,9 +276,19 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
             std::vector<std::vector<Node> >& ex,
             std::vector<Node>& exo,
             std::vector<unsigned>& ncind);
+  /** set universal
+   *
+   * This updates the semantics of this check such that *all* instead of some
+   * examples must fail the containment test.
+   */
+  void setUniversal() { d_isUniversal = true; }
 
  protected:
-  /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
+  /**
+   * Checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i; if
+   * d_isUniversal is true, then we check if the rewrite holds for *all* I/O
+   * pairs.
+   */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
@@ -267,10 +302,12 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
    *    contains( out_i, nvn[in_i] ) ---> false
    */
   std::vector<unsigned> d_neg_con_indices;
+  /** requires not being in all examples */
+  bool d_isUniversal;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */

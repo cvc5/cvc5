@@ -1,59 +1,57 @@
-/*********************                                                        */
-/*! \file simple_vc_cxx.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the C++ interface
- **
- ** A simple demonstration of the C++ interface.  Compare to the Java
- ** interface in SimpleVC.java; they are virtually line-by-line
- ** identical.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the C++ interface
+ *
+ * Compare to the Java interface in SimpleVC.java; they are virtually
+ * line-by-line identical.
+ */
+
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
-#include "smt/smt_engine.h"
-
-using namespace std;
-using namespace CVC4;
+using namespace cvc5;
 
 int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
+  Solver slv;
 
   // Prove that for integers x and y:
   //   x > 0 AND y > 0  =>  2x + y >= 3
 
-  Type integer = em.integerType();
+  Sort integer = slv.getIntegerSort();
 
-  Expr x = em.mkVar("x", integer);
-  Expr y = em.mkVar("y", integer);
-  Expr zero = em.mkConst(Rational(0));
+  Term x = slv.mkConst(integer, "x");
+  Term y = slv.mkConst(integer, "y");
+  Term zero = slv.mkInteger(0);
 
-  Expr x_positive = em.mkExpr(kind::GT, x, zero);
-  Expr y_positive = em.mkExpr(kind::GT, y, zero);
+  Term x_positive = slv.mkTerm(Kind::GT, {x, zero});
+  Term y_positive = slv.mkTerm(Kind::GT, {y, zero});
 
-  Expr two = em.mkConst(Rational(2));
-  Expr twox = em.mkExpr(kind::MULT, two, x);
-  Expr twox_plus_y = em.mkExpr(kind::PLUS, twox, y);
+  Term two = slv.mkInteger(2);
+  Term twox = slv.mkTerm(Kind::MULT, {two, x});
+  Term twox_plus_y = slv.mkTerm(Kind::ADD, {twox, y});
 
-  Expr three = em.mkConst(Rational(3));
-  Expr twox_plus_y_geq_3 = em.mkExpr(kind::GEQ, twox_plus_y, three);
+  Term three = slv.mkInteger(3);
+  Term twox_plus_y_geq_3 = slv.mkTerm(Kind::GEQ, {twox_plus_y, three});
 
-  Expr formula =
-    em.mkExpr(kind::AND, x_positive, y_positive).
-    impExpr(twox_plus_y_geq_3);
+  Term formula = slv.mkTerm(Kind::AND, {x_positive, y_positive})
+                     .impTerm(twox_plus_y_geq_3);
 
-  cout << "Checking validity of formula " << formula << " with CVC4." << endl;
-  cout << "CVC4 should report VALID." << endl;
-  cout << "Result from CVC4 is: " << smt.query(formula) << endl;
+  std::cout << "Checking entailment of formula " << formula << " with cvc5."
+            << std::endl;
+  std::cout << "cvc5 should report UNSAT." << std::endl;
+  std::cout << "Result from cvc5 is: "
+            << slv.checkSatAssuming(formula.notTerm()) << std::endl;
 
   return 0;
 }

@@ -1,107 +1,111 @@
-/*********************                                                        */
-/*! \file kind_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Template for the Node kind header
- **
- ** Template for the Node kind header.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Template for the Node kind header.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef __CVC4__KIND_H
-#define __CVC4__KIND_H
+#ifndef CVC5__KIND_H
+#define CVC5__KIND_H
 
 #include <iosfwd>
 
 #include "base/exception.h"
+#include "theory/theory_id.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace kind {
 
-enum CVC4_PUBLIC Kind_t {
+enum Kind_t
+{
   UNDEFINED_KIND = -1, /**< undefined */
-  NULL_EXPR, /**< Null kind */
-${kind_decls}
-  LAST_KIND /**< marks the upper-bound of this enumeration */
+  NULL_EXPR,           /**< Null kind */
+  // clang-format off
+  ${kind_decls} LAST_KIND /**< marks the upper-bound of this enumeration */
+  // clang-format on
 
-};/* enum Kind_t */
+}; /* enum Kind_t */
 
-}/* CVC4::kind namespace */
+}  // namespace kind
 
-// import Kind into the "CVC4" namespace but keep the individual kind
+// import Kind into the "cvc5" namespace but keep the individual kind
 // constants under kind::
-typedef ::CVC4::kind::Kind_t Kind;
+typedef cvc5::internal::kind::Kind_t Kind;
 
 namespace kind {
 
-std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
+/**
+ * Converts an kind to a string. Note: This function is also used in
+ * `safe_print()`. Changing this functions name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param k The kind
+ * @return The name of the kind
+ */
+const char* toString(cvc5::internal::Kind k);
 
-#line 48 "${template}"
+/**
+ * Writes a kind name to a stream.
+ *
+ * @param out The stream to write to
+ * @param k The kind to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream&, cvc5::internal::Kind);
 
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
 /* TODO: This could be generated. */
-bool isAssociative(::CVC4::Kind k) CVC4_PUBLIC;
-std::string kindToString(::CVC4::Kind k) CVC4_PUBLIC;
+bool isAssociative(cvc5::internal::Kind k);
+std::string kindToString(cvc5::internal::Kind k);
 
-struct KindHashFunction {
-  inline size_t operator()(::CVC4::Kind k) const {
-    return k;
-  }
-};/* struct KindHashFunction */
+struct KindHashFunction
+{
+  inline size_t operator()(cvc5::internal::Kind k) const { return k; }
+}; /* struct KindHashFunction */
 
-}/* CVC4::kind namespace */
+}  // namespace kind
 
 /**
  * The enumeration for the built-in atomic types.
  */
-enum CVC4_PUBLIC TypeConstant {
-${type_constant_list}
-#line 70 "${template}"
-  LAST_TYPE
-};/* enum TypeConstant */
+enum TypeConstant
+{
+  // clang-format off
+  ${type_constant_list} LAST_TYPE
+  // clang-format on
+}; /* enum TypeConstant */
 
 /**
  * We hash the constants with their values.
  */
-struct TypeConstantHashFunction {
-  inline size_t operator()(TypeConstant tc) const {
-    return tc;
-  }
-};/* struct TypeConstantHashFunction */
+struct TypeConstantHashFunction
+{
+  inline size_t operator()(TypeConstant tc) const { return tc; }
+}; /* struct TypeConstantHashFunction */
 
+const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-enum TheoryId {
-${theory_enum}
-#line 89 "${template}"
-  THEORY_LAST
-};/* enum TheoryId */
+cvc5::internal::theory::TheoryId kindToTheoryId(cvc5::internal::Kind k);
+cvc5::internal::theory::TheoryId typeConstantToTheoryId(
+    cvc5::internal::TypeConstant typeConstant);
 
-const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
-const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
+}  // namespace theory
+}  // namespace cvc5::internal
 
-CVC4_PUBLIC inline TheoryId& operator++(TheoryId& id) {
-  return id = static_cast<TheoryId>(static_cast<int>(id) + 1);
-}
-
-std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
-TheoryId kindToTheoryId(::CVC4::Kind k) CVC4_PUBLIC;
-TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) CVC4_PUBLIC;
-std::string getStatsPrefix(TheoryId theoryId) CVC4_PUBLIC;
-
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* __CVC4__KIND_H */
+#endif /* CVC5__KIND_H */

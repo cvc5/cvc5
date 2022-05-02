@@ -1,78 +1,103 @@
-/*********************                                                        */
-/*! \file theory_quantifiers.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of quantifiers.
- **
- ** Theory of quantifiers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of quantifiers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
-#define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#define CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include "context/cdhashmap.h"
-#include "context/context.h"
 #include "expr/node.h"
-#include "theory/output_channel.h"
+#include "theory/quantifiers/proof_checker.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
-#include "theory/theory_engine.h"
 #include "theory/valuation.h"
-#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersMacros;
+
 class TheoryQuantifiers : public Theory {
  public:
-  TheoryQuantifiers(context::Context* c, context::UserContext* u,
-                    OutputChannel& out, Valuation valuation,
-                    const LogicInfo& logicInfo);
+  TheoryQuantifiers(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryQuantifiers();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-  void addSharedTerm(TNode t) override;
-  void notifyEq(TNode lhs, TNode rhs);
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /** finish initialization */
   void finishInit() override;
+  /** needs equality engine */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  //--------------------------------- end initialization
+
   void preRegisterTerm(TNode n) override;
   void presolve() override;
+  /**
+   * Preprocess assert, which solves for quantifier macros when enabled.
+   */
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
-  void check(Effort e) override;
-  Node getNextDecisionRequest(unsigned& priority) override;
-  Node getValue(TNode n);
-  bool collectModelInfo(TheoryModel* m) override;
-  void shutdown() override {}
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  //--------------------------------- end standard check
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   std::string identify() const override
   {
     return std::string("TheoryQuantifiers");
   }
-  void setUserAttribute(const std::string& attr,
-                        Node n,
-                        std::vector<Node> node_values,
-                        std::string str_value) override;
 
  private:
-  void assertUniversal( Node n );
-  void assertExistential( Node n );
-  void computeCareGraph() override;
-  /** number of instantiations */
-  int d_numInstantiations;
-  int d_baseDecLevel;
-
+  /** The theory rewriter for this theory. */
+  QuantifiersRewriter d_rewriter;
+  /** The proof rule checker */
+  QuantifiersProofRuleChecker d_checker;
+  /** The quantifiers state */
+  QuantifiersState d_qstate;
+  /** The quantifiers registry */
+  QuantifiersRegistry d_qreg;
+  /** The term registry */
+  TermRegistry d_treg;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager d_qim;
+  /** The quantifiers engine, which lives here */
+  std::unique_ptr<QuantifiersEngine> d_qengine;
+  /** The quantifiers macro module, used for ppAssert. */
+  std::unique_ptr<QuantifiersMacros> d_qmacros;
 };/* class TheoryQuantifiers */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */

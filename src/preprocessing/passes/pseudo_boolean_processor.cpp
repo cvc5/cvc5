@@ -1,40 +1,43 @@
-/*********************                                                        */
-/*! \file pseudo_boolean_processor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 
 #include "base/output.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::arith;
 
 PseudoBooleanProcessor::PseudoBooleanProcessor(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "pseudo-boolean-processor"),
-      d_pbBounds(preprocContext->getUserContext()),
-      d_subCache(preprocContext->getUserContext()),
-      d_pbs(preprocContext->getUserContext(), 0)
+      d_pbBounds(userContext()),
+      d_subCache(userContext()),
+      d_pbs(userContext(), 0)
 {
 }
 
@@ -58,30 +61,30 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   }
   Assert(assertion.getKind() == kind::GEQ);
 
-  Debug("pbs::rewrites") << "decomposeAssertion" << assertion << std::endl;
+  Trace("pbs::rewrites") << "decomposeAssertion" << assertion << std::endl;
 
   Node l = assertion[0];
   Node r = assertion[1];
 
-  if (r.getKind() != kind::CONST_RATIONAL)
+  if (!r.isConst())
   {
-    Debug("pbs::rewrites") << "not rhs constant" << assertion << std::endl;
+    Trace("pbs::rewrites") << "not rhs constant" << assertion << std::endl;
     return false;
   }
   // don't bother matching on anything other than + on the left hand side
-  if (l.getKind() != kind::PLUS)
+  if (l.getKind() != kind::ADD)
   {
-    Debug("pbs::rewrites") << "not plus" << assertion << std::endl;
+    Trace("pbs::rewrites") << "not plus" << assertion << std::endl;
     return false;
   }
 
-  if (!Polynomial::isMember(l))
+  if (!linear::Polynomial::isMember(l))
   {
-    Debug("pbs::rewrites") << "not polynomial" << assertion << std::endl;
+    Trace("pbs::rewrites") << "not polynomial" << assertion << std::endl;
     return false;
   }
 
-  Polynomial p = Polynomial::parsePolynomial(l);
+  linear::Polynomial p = linear::Polynomial::parsePolynomial(l);
   clear();
   if (negated)
   {
@@ -109,9 +112,9 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   Assert(d_off.value().isIntegral());
 
   int adj = negated ? -1 : 1;
-  for (Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
+  for (linear::Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
   {
-    Monomial m = *i;
+    linear::Monomial m = *i;
     const Rational& coeff = m.getConstant().getValue();
     if (!(coeff.isOne() || coeff.isNegativeOne()))
     {
@@ -119,7 +122,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     }
     Assert(coeff.sgn() != 0);
 
-    const VarList& vl = m.getVarList();
+    const linear::VarList& vl = m.getVarList();
     Node v = vl.getNode();
 
     if (!isPseudoBoolean(v))
@@ -158,7 +161,7 @@ void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
   Assert(!exp.isNull());
   CDNode2PairMap::const_iterator ci = d_pbBounds.find(v);
 
-  Debug("pbs::rewrites") << "addGeqZero " << v << std::endl;
+  Trace("pbs::rewrites") << "addGeqZero " << v << std::endl;
 
   if (ci == d_pbBounds.end())
   {
@@ -171,7 +174,7 @@ void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
     {
       Assert(!p.second.isNull());
       d_pbBounds.insert(v, std::make_pair(exp, p.second));
-      Debug("pbs::rewrites") << "add pbs " << v << std::endl;
+      Trace("pbs::rewrites") << "add pbs " << v << std::endl;
       Assert(isPseudoBoolean(v));
       d_pbs = d_pbs + 1;
     }
@@ -182,7 +185,7 @@ void PseudoBooleanProcessor::addLeqOne(Node v, Node exp)
 {
   Assert(isIntVar(v));
   Assert(!exp.isNull());
-  Debug("pbs::rewrites") << "addLeqOne " << v << std::endl;
+  Trace("pbs::rewrites") << "addLeqOne " << v << std::endl;
   CDNode2PairMap::const_iterator ci = d_pbBounds.find(v);
   if (ci == d_pbBounds.end())
   {
@@ -195,7 +198,7 @@ void PseudoBooleanProcessor::addLeqOne(Node v, Node exp)
     {
       Assert(!p.first.isNull());
       d_pbBounds.insert(v, std::make_pair(p.first, exp));
-      Debug("pbs::rewrites") << "add pbs " << v << std::endl;
+      Trace("pbs::rewrites") << "add pbs " << v << std::endl;
       Assert(isPseudoBoolean(v));
       d_pbs = d_pbs + 1;
     }
@@ -207,13 +210,13 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
                                                Node orig)
 {
   Assert(assertion.getKind() == kind::GEQ);
-  Assert(assertion == Rewriter::rewrite(assertion));
+  Assert(assertion == rewrite(assertion));
 
   // assume assertion is rewritten
   Node l = assertion[0];
   Node r = assertion[1];
 
-  if (r.getKind() == kind::CONST_RATIONAL)
+  if (r.isConst())
   {
     const Rational& rc = r.getConst<Rational>();
     if (isIntVar(l))
@@ -230,8 +233,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
     else if (l.getKind() == kind::MULT && l.getNumChildren() == 2)
     {
       Node c = l[0], v = l[1];
-      if (c.getKind() == kind::CONST_RATIONAL
-          && c.getConst<Rational>().isNegativeOne())
+      if (c.isConst() && c.getConst<Rational>().isNegativeOne())
       {
         if (isIntVar(v))
         {
@@ -261,7 +263,7 @@ void PseudoBooleanProcessor::learnInternal(Node assertion,
     case kind::LEQ:
     case kind::LT:
     {
-      Node rw = Rewriter::rewrite(assertion);
+      Node rw = rewrite(assertion);
       if (assertion == rw)
       {
         if (assertion.getKind() == kind::GEQ)
@@ -299,7 +301,8 @@ void PseudoBooleanProcessor::learn(Node assertion)
 Node PseudoBooleanProcessor::mkGeqOne(Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::GEQ, v, mkRationalNode(Rational(1)));
+  return nm->mkNode(
+      kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
 
 void PseudoBooleanProcessor::learn(const std::vector<Node>& assertions)
@@ -317,7 +320,7 @@ void PseudoBooleanProcessor::addSub(Node from, Node to)
 {
   if (!d_subCache.hasSubstitution(from))
   {
-    Node rw_to = Rewriter::rewrite(to);
+    Node rw_to = rewrite(to);
     d_subCache.addSubstitution(from, rw_to);
   }
 }
@@ -329,7 +332,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
   bool success = decomposeAssertion(geq, negated);
   if (!success)
   {
-    Debug("pbs::rewrites") << "failed " << std::endl;
+    Trace("pbs::rewrites") << "failed " << std::endl;
     return;
   }
   Assert(d_off.value().isIntegral());
@@ -383,12 +386,12 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
 
 Node PseudoBooleanProcessor::applyReplacements(Node pre)
 {
-  Node assertion = Rewriter::rewrite(pre);
+  Node assertion = rewrite(pre);
 
   Node result = d_subCache.apply(assertion);
-  if (Debug.isOn("pbs::rewrites") && result != assertion)
+  if (TraceIsOn("pbs::rewrites") && result != assertion)
   {
-    Debug("pbs::rewrites") << "applyReplacements" << assertion << "-> "
+    Trace("pbs::rewrites") << "applyReplacements" << assertion << "-> "
                            << result << std::endl;
   }
   return result;
@@ -408,11 +411,12 @@ void PseudoBooleanProcessor::applyReplacements(
 
 void PseudoBooleanProcessor::clear()
 {
-  d_off.clear();
+  d_off.reset();
   d_pos.clear();
   d_neg.clear();
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

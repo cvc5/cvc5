@@ -1,0 +1,37 @@
+%------------------------------------------------------------------------------
+% File     : SYN000+0 : TPTP v5.5.0. Released v3.6.0.
+% Domain   : Syntactic
+% Axioms   : A simple include file for FOF
+% Version  : Biased.
+% English  :
+
+% Refs     :
+% Source   : [TPTP]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of formulae    :    3 (   3 unit)
+%            Number of atoms       :    3 (   0 equality)
+%            Maximal formula depth :    1 (   1 average)
+%            Number of connectives :    0 (   0 ~  ;   0  |;   0  &)
+%                                         (   0 <=>;   0 =>;   0 <=)
+%                                         (   0 <~>;   0 ~|;   0 ~&)
+%            Number of predicates  :    3 (   3 propositional; 0-0 arity)
+%            Number of functors    :    0 (   0 constant; --- arity)
+%            Number of variables   :    0 (   0 set.singleton;   0 !;   0 ?)
+%            Maximal term depth    :    0 (   0 average)
+% SPC      : 
+
+% Comments :
+%------------------------------------------------------------------------------
+%----Some axioms to include
+fof(ia1,axiom,
+    ia1).
+
+fof(ia2,axiom,
+    ia2).
+
+fof(ia3,axiom,
+    ia3).
+
+%------------------------------------------------------------------------------

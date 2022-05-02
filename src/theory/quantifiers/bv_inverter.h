@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file bv_inverter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__BV_INVERTER_H
-#define __CVC4__BV_INVERTER_H
+#ifndef CVC5__BV_INVERTER_H
+#define CVC5__BV_INVERTER_H
 
 #include <map>
 #include <unordered_map>
@@ -24,8 +25,11 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+
+class Rewriter;
+
 namespace quantifiers {
 
 /** BvInverterQuery
@@ -49,7 +53,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter() {}
+  BvInverter(Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -85,8 +89,8 @@ class BvInverter
    * non-null node t, then sv = t is the solved form of lit.
    *
    * If the BvInverterQuery provided to this function call is null, then
-   * the solution returned by this call will not contain CHOICE expressions.
-   * If the solved form for lit requires introducing a CHOICE expression,
+   * the solution returned by this call will not contain WITNESS expressions.
+   * If the solved form for lit requires introducing a WITNESS expression,
    * then this call will return null.
    */
   Node solveBvLit(Node sv,
@@ -95,15 +99,12 @@ class BvInverter
                   BvInverterQuery* m);
 
  private:
-  /** Dummy variables for each type */
-  std::map<TypeNode, Node> d_solve_var;
-
   /** Helper function for getPathToPv */
   Node getPathToPv(Node lit,
                    Node pv,
                    Node sv,
                    std::vector<unsigned>& path,
-                   std::unordered_set<TNode, TNodeHashFunction>& visited);
+                   std::unordered_set<TNode>& visited);
 
   /** Helper function for getInv.
    *
@@ -112,7 +113,7 @@ class BvInverter
    * is a BV tautology where x is getSolveVariable( tn ).
    *
    * It returns a term of the form:
-   *   (choice y. cond { x -> y })
+   *   (witness y. cond { x -> y })
    * where y is a bound variable and x is getSolveVariable( tn ).
    *
    * In some cases, we may return a term t if cond implies an equality on
@@ -124,10 +125,14 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
+  /** (Optional) rewriter used as helper in getInversionNode */
+  Rewriter* d_rewriter;
+  /** Dummy variables for each type */
+  std::map<TypeNode, Node> d_solve_var;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__BV_INVERTER_H */
+#endif /* CVC5__BV_INVERTER_H */

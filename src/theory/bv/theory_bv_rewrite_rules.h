@@ -1,33 +1,33 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * BV rewrite rule enum.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include <sstream>
 
 #include "context/context.h"
-#include "smt/command.h"
+#include "printer/printer.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -66,9 +66,12 @@ enum RewriteRuleId
   NorEliminate,
   XnorEliminate,
   SdivEliminate,
+  SdivEliminateFewerBitwiseOps,
   UdivEliminate,
   SmodEliminate,
+  SmodEliminateFewerBitwiseOps,
   SremEliminate,
+  SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
   BVToNatEliminate,
@@ -82,7 +85,7 @@ enum RewriteRuleId
   EvalXor,
   EvalNot,
   EvalMult,
-  EvalPlus,
+  EvalAdd,
   EvalUdiv,
   EvalUrem,
   EvalShl,
@@ -101,15 +104,29 @@ enum RewriteRuleId
   EvalSle,
   EvalITEBv,
   EvalComp,
+  EvalEagerAtom,
 
   /// simplification rules
   /// all of these rules decrease formula size
+  BvIteConstCond,
+  BvIteEqualChildren,
+  BvIteConstChildren,
+  BvIteEqualCond,
+  BvIteMergeThenIf,
+  BvIteMergeElseIf,
+  BvIteMergeThenElse,
+  BvIteMergeElseElse,
+  BvComp,
   ShlByConst,
   LshrByConst,
   AshrByConst,
   BitwiseIdemp,
   AndZero,
   AndOne,
+  AndOrXorConcatPullUp,
+  NegEliminate,
+  OrEliminate,
+  XorEliminate,
   OrZero,
   OrOne,
   XorDuplicate,
@@ -140,6 +157,7 @@ enum RewriteRuleId
   UremOne,
   UremSelf,
   ShiftZero,
+  UgtUrem,
 
   UltOne,
   SltZero,
@@ -159,14 +177,14 @@ enum RewriteRuleId
   DoubleNeg,
   NegMult,
   NegSub,
-  NegPlus,
+  NegAdd,
   NotConcat,
   NotAnd,  // not sure why this would help (not done)
   NotOr,   // not sure why this would help (not done)
   NotXor,  // not sure why this would help (not done)
   FlattenAssocCommut,
   FlattenAssocCommutNoDuplicates,
-  PlusCombineLikeTerms,
+  AddCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
   MultDistrib,
@@ -176,13 +194,13 @@ enum RewriteRuleId
   OrSimplify,
   XorSimplify,
   BitwiseSlicing,
-  NormalizeEqPlusNeg,
+  NormalizeEqAddNeg,
   // rules to simplify bitblasting
-  BBPlusNeg,
-  UltPlusOne,
+  BBAddNeg,
+  UltAddOne,
   ConcatToMult,
-  IsPowerOfTwo,
   MultSltMult,
+  BitOfConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -191,6 +209,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatFlatten:       out << "ConcatFlatten";       return out;
   case ConcatExtractMerge:  out << "ConcatExtractMerge";  return out;
   case ConcatConstantMerge: out << "ConcatConstantMerge"; return out;
+  case AndOrXorConcatPullUp:out << "AndOrXorConcatPullUp";return out;
+  case NegEliminate: out << "NegEliminate"; return out;
+  case OrEliminate: out << "OrEliminate"; return out;
+  case XorEliminate: out << "XorEliminate"; return out;
   case ExtractExtract:      out << "ExtractExtract";      return out;
   case ExtractWhole:        out << "ExtractWhole";        return out;
   case ExtractConcat:       out << "ExtractConcat";       return out;
@@ -212,8 +234,17 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
+  case SdivEliminateFewerBitwiseOps:
+    out << "SdivEliminateFewerBitwiseOps";
+    return out;
   case SremEliminate :      out << "SremEliminate";       return out;
+  case SremEliminateFewerBitwiseOps:
+    out << "SremEliminateFewerBitwiseOps";
+    return out;
   case SmodEliminate :      out << "SmodEliminate";       return out;
+  case SmodEliminateFewerBitwiseOps:
+    out << "SmodEliminateFewerBitwiseOps";
+    return out;
   case ZeroExtendEliminate :out << "ZeroExtendEliminate"; return out;
   case EvalEquals :         out << "EvalEquals";          return out;
   case EvalConcat :         out << "EvalConcat";          return out;
@@ -222,7 +253,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalXor :            out << "EvalXor";             return out;
   case EvalNot :            out << "EvalNot";             return out;
   case EvalMult :           out << "EvalMult";            return out;
-  case EvalPlus :           out << "EvalPlus";            return out;
+  case EvalAdd: out << "EvalAdd"; return out;
   case EvalUdiv :           out << "EvalUdiv";            return out;
   case EvalUrem :           out << "EvalUrem";            return out;
   case EvalShl :            out << "EvalShl";             return out;
@@ -235,11 +266,21 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
+  case EvalEagerAtom: out << "EvalEagerAtom"; return out;
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;
   case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
   case EvalRotateRight :    out << "EvalRotateRight";     return out;
   case EvalNeg :            out << "EvalNeg";             return out;
+  case BvIteConstCond :     out << "BvIteConstCond";      return out;
+  case BvIteEqualChildren : out << "BvIteEqualChildren";  return out;
+  case BvIteConstChildren : out << "BvIteConstChildren";  return out;
+  case BvIteEqualCond :     out << "BvIteEqualCond";      return out;
+  case BvIteMergeThenIf :   out << "BvIteMergeThenIf";    return out;
+  case BvIteMergeElseIf :   out << "BvIteMergeElseIf";    return out;
+  case BvIteMergeThenElse : out << "BvIteMergeThenElse";  return out;
+  case BvIteMergeElseElse : out << "BvIteMergeElseElse";  return out;
+  case BvComp :             out << "BvComp";              return out;
   case ShlByConst :         out << "ShlByConst";          return out;
   case LshrByConst :        out << "LshrByConst";         return out;
   case AshrByConst :        out << "AshrByConst";         return out;
@@ -286,6 +327,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UremOne :            out << "UremOne";             return out;
   case UremSelf :            out << "UremSelf";             return out;
   case ShiftZero :            out << "ShiftZero";             return out;
+  case UgtUrem: out << "UgtUrem"; return out;
   case SubEliminate :            out << "SubEliminate";             return out;
   case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;
@@ -293,8 +335,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
   case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
-  case FlattenAssocCommutNoDuplicates:     out << "FlattenAssocCommutNoDuplicates"; return out; 
-  case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
+  case FlattenAssocCommutNoDuplicates:
+    out << "FlattenAssocCommutNoDuplicates";
+    return out;
+  case AddCombineLikeTerms: out << "AddCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
   case SolveEq : out << "SolveEq"; return out;
@@ -304,8 +348,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case AndSimplify : out << "AndSimplify"; return out;
   case OrSimplify : out << "OrSimplify"; return out;
   case XorSimplify : out << "XorSimplify"; return out;
-  case NegPlus : out << "NegPlus"; return out;
-  case BBPlusNeg : out << "BBPlusNeg"; return out;
+  case NegAdd: out << "NegAdd"; return out;
+  case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
@@ -319,11 +363,11 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
   case MultDistrib: out << "MultDistrib"; return out;
-  case UltPlusOne: out << "UltPlusOne"; return out;
+  case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
-  case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
-  case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
+  case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
+  case BitOfConst: out << "BitOfConst"; return out;
   default:
     Unreachable();
   }
@@ -360,15 +404,16 @@ class RewriteRule {
 
   // /* Statistics about the rule */
   // // NOTE: Cannot have static fields like this, or else you can't have
-  // // two SmtEngines in the process (the second-to-be-destroyed will
+  // // two SolverEngines in the process (the second-to-be-destroyed will
   // // have a dangling pointer and segfault).  If this statistic is needed,
-  // // fix the rewriter by making it an instance per-SmtEngine (instead of
+  // // fix the rewriter by making it an instance per-SolverEngine (instead of
   // // static).
   // static RuleStatistics* s_statistics;
 
   /** Actually apply the rewrite rule */
   static inline Node apply(TNode node) {
     Unreachable();
+    SuppressWrongNoReturnWarning;
   }
 
 public:
@@ -388,32 +433,27 @@ public:
     
   }
 
-  static inline bool applies(TNode node) {
+  static inline bool applies(TNode node)
+  {
     Unreachable();
+    SuppressWrongNoReturnWarning;
   }
 
-  template<bool checkApplies>
-  static inline Node run(TNode node) {
-    if (!checkApplies || applies(node)) {
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
+  template <bool checkApplies>
+  static inline Node run(TNode node)
+  {
+    if (!checkApplies || applies(node))
+    {
+      Trace("theory::bv::rewrite")
+          << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
-      //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
-      if (result != node) {
-        if(Dump.isOn("bv-rewrites")) {
-          std::ostringstream os;
-          os << "RewriteRule <"<<rule<<">; expect unsat";
-
-          Node condition = node.eqNode(result).notNode();
-
-          Dump("bv-rewrites")
-            << CommentCommand(os.str())
-            << CheckSatCommand(condition.toExpr());
-        }
-      }
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
+      Trace("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
+                                   << ") => " << result << std::endl;
       return result;
-    } else {
+    }
+    else
+    {
       return node;
     }
   }
@@ -426,132 +466,148 @@ public:
 
 /** Have to list all the rewrite rules to get the statistics out */
 struct AllRewriteRules {
-  RewriteRule<EmptyRule>            rule00;
-  RewriteRule<ConcatFlatten>        rule01;
-  RewriteRule<ConcatExtractMerge>   rule02;
-  RewriteRule<ConcatConstantMerge>  rule03;
-  RewriteRule<ExtractExtract>       rule04;
-  RewriteRule<ExtractWhole>         rule05;
-  RewriteRule<ExtractConcat>        rule06;
-  RewriteRule<ExtractConstant>      rule07;
-  RewriteRule<FailEq>               rule08;
-  RewriteRule<SimplifyEq>           rule09;
-  RewriteRule<ReflexivityEq>        rule10;
-  RewriteRule<UgtEliminate>             rule11;
-  RewriteRule<SgtEliminate>             rule12;
-  RewriteRule<UgeEliminate>             rule13;
-  RewriteRule<SgeEliminate>             rule14;
-  RewriteRule<NegMult>              rule15;
-  RewriteRule<NegSub>               rule16;
-  RewriteRule<RepeatEliminate>      rule17;
-  RewriteRule<RotateLeftEliminate>  rule18;
-  RewriteRule<RotateRightEliminate> rule19;
-  RewriteRule<NandEliminate>        rule20;
-  RewriteRule<NorEliminate>         rule21;
-  RewriteRule<SdivEliminate>        rule22;
-  RewriteRule<SremEliminate>        rule23;
-  RewriteRule<SmodEliminate>        rule24;
-  RewriteRule<EvalConcat>           rule25;
-  RewriteRule<EvalAnd>              rule26;
-  RewriteRule<EvalOr>               rule27;
-  RewriteRule<EvalXor>              rule28;
-  RewriteRule<EvalNot>              rule29;
-  RewriteRule<EvalSlt>              rule30;
-  RewriteRule<EvalMult>             rule31;
-  RewriteRule<EvalPlus>             rule32;
-  RewriteRule<XorSimplify>          rule33;
-  RewriteRule<EvalUdiv>             rule34;
-  RewriteRule<EvalUrem>             rule35;
-  RewriteRule<EvalShl>              rule36;
-  RewriteRule<EvalLshr>             rule37;
-  RewriteRule<EvalAshr>             rule38;
-  RewriteRule<EvalUlt>              rule39;
-  RewriteRule<EvalUle>              rule40;
-  RewriteRule<EvalSle>              rule41;
-  RewriteRule<EvalExtract>          rule43;
-  RewriteRule<EvalSignExtend>       rule44;
-  RewriteRule<EvalRotateLeft>       rule45;
-  RewriteRule<EvalRotateRight>      rule46;
-  RewriteRule<EvalEquals>           rule47;
-  RewriteRule<EvalNeg>              rule48;
-  RewriteRule<ShlByConst>             rule50;
-  RewriteRule<LshrByConst>             rule51;
-  RewriteRule<AshrByConst>             rule52;
-  RewriteRule<ExtractBitwise>             rule53;
-  RewriteRule<ExtractNot>             rule54;
-  RewriteRule<ExtractArith>             rule55;
-  RewriteRule<DoubleNeg>             rule56;
-  RewriteRule<NotConcat>             rule57;
-  RewriteRule<NotAnd>             rule58;
-  RewriteRule<NotOr>             rule59;
-  RewriteRule<NotXor>             rule60;
-  RewriteRule<BitwiseIdemp>             rule61;
-  RewriteRule<XorDuplicate>             rule62;
-  RewriteRule<BitwiseNotAnd>             rule63;
-  RewriteRule<BitwiseNotOr>             rule64;
-  RewriteRule<XorNot>             rule65;
-  RewriteRule<LtSelf>             rule66;
-  RewriteRule<LtSelf>             rule67;
-  RewriteRule<UltZero>             rule68;
-  RewriteRule<UleZero>             rule69;
-  RewriteRule<ZeroUle>             rule70;
-  RewriteRule<NotUlt>             rule71;
-  RewriteRule<NotUle>             rule72;
-  RewriteRule<ZeroExtendEliminate> rule73;
-  RewriteRule<UleMax> rule74;
-  RewriteRule<LteSelf> rule75;
-  RewriteRule<SltEliminate> rule76;
-  RewriteRule<SleEliminate> rule77; 
-  RewriteRule<AndZero> rule78;
-  RewriteRule<AndOne> rule79; 
-  RewriteRule<OrZero> rule80;
-  RewriteRule<OrOne> rule81;
-  RewriteRule<SubEliminate> rule82; 
-  RewriteRule<XorOne> rule83;
-  RewriteRule<XorZero> rule84;
-  RewriteRule<MultSlice> rule85;
+  RewriteRule<EmptyRule>                      rule00;
+  RewriteRule<ConcatFlatten>                  rule01;
+  RewriteRule<ConcatExtractMerge>             rule02;
+  RewriteRule<ConcatConstantMerge>            rule03;
+  RewriteRule<ExtractExtract>                 rule04;
+  RewriteRule<ExtractWhole>                   rule05;
+  RewriteRule<ExtractConcat>                  rule06;
+  RewriteRule<ExtractConstant>                rule07;
+  RewriteRule<FailEq>                         rule08;
+  RewriteRule<SimplifyEq>                     rule09;
+  RewriteRule<ReflexivityEq>                  rule10;
+  RewriteRule<UgtEliminate>                   rule11;
+  RewriteRule<SgtEliminate>                   rule12;
+  RewriteRule<UgeEliminate>                   rule13;
+  RewriteRule<SgeEliminate>                   rule14;
+  RewriteRule<NegMult>                        rule15;
+  RewriteRule<NegSub>                         rule16;
+  RewriteRule<RepeatEliminate>                rule17;
+  RewriteRule<RotateLeftEliminate>            rule18;
+  RewriteRule<RotateRightEliminate>           rule19;
+  RewriteRule<NandEliminate>                  rule20;
+  RewriteRule<NorEliminate>                   rule21;
+  RewriteRule<SdivEliminate>                  rule22;
+  RewriteRule<SremEliminate>                  rule23;
+  RewriteRule<SmodEliminate>                  rule24;
+  RewriteRule<EvalConcat>                     rule25;
+  RewriteRule<EvalAnd>                        rule26;
+  RewriteRule<EvalOr>                         rule27;
+  RewriteRule<EvalXor>                        rule28;
+  RewriteRule<EvalNot>                        rule29;
+  RewriteRule<EvalSlt>                        rule30;
+  RewriteRule<EvalMult>                       rule31;
+  RewriteRule<EvalAdd> rule32;
+  RewriteRule<XorSimplify>                    rule33;
+  RewriteRule<EvalUdiv>                       rule34;
+  RewriteRule<EvalUrem>                       rule35;
+  RewriteRule<EvalShl>                        rule36;
+  RewriteRule<EvalLshr>                       rule37;
+  RewriteRule<EvalAshr>                       rule38;
+  RewriteRule<EvalUlt>                        rule39;
+  RewriteRule<EvalUle>                        rule40;
+  RewriteRule<EvalSle>                        rule41;
+  RewriteRule<EvalExtract>                    rule43;
+  RewriteRule<EvalSignExtend>                 rule44;
+  RewriteRule<EvalRotateLeft>                 rule45;
+  RewriteRule<EvalRotateRight>                rule46;
+  RewriteRule<EvalEquals>                     rule47;
+  RewriteRule<EvalNeg>                        rule48;
+  RewriteRule<ShlByConst>                     rule50;
+  RewriteRule<LshrByConst>                    rule51;
+  RewriteRule<AshrByConst>                    rule52;
+  RewriteRule<ExtractBitwise>                 rule53;
+  RewriteRule<ExtractNot>                     rule54;
+  RewriteRule<ExtractArith>                   rule55;
+  RewriteRule<DoubleNeg>                      rule56;
+  RewriteRule<NotConcat>                      rule57;
+  RewriteRule<NotAnd>                         rule58;
+  RewriteRule<NotOr>                          rule59;
+  RewriteRule<NotXor>                         rule60;
+  RewriteRule<BitwiseIdemp>                   rule61;
+  RewriteRule<XorDuplicate>                   rule62;
+  RewriteRule<BitwiseNotAnd>                  rule63;
+  RewriteRule<BitwiseNotOr>                   rule64;
+  RewriteRule<XorNot>                         rule65;
+  RewriteRule<LtSelf>                         rule66;
+  RewriteRule<LtSelf>                         rule67;
+  RewriteRule<UltZero>                        rule68;
+  RewriteRule<UleZero>                        rule69;
+  RewriteRule<ZeroUle>                        rule70;
+  RewriteRule<NotUlt>                         rule71;
+  RewriteRule<NotUle>                         rule72;
+  RewriteRule<ZeroExtendEliminate>            rule73;
+  RewriteRule<UleMax>                         rule74;
+  RewriteRule<LteSelf>                        rule75;
+  RewriteRule<SltEliminate>                   rule76;
+  RewriteRule<SleEliminate>                   rule77;
+  RewriteRule<AndZero>                        rule78;
+  RewriteRule<AndOne>                         rule79;
+  RewriteRule<OrZero>                         rule80;
+  RewriteRule<OrOne>                          rule81;
+  RewriteRule<SubEliminate>                   rule82;
+  RewriteRule<XorOne>                         rule83;
+  RewriteRule<XorZero>                        rule84;
+  RewriteRule<MultSlice>                      rule85;
   RewriteRule<FlattenAssocCommutNoDuplicates> rule86;
-  RewriteRule<MultPow2> rule87;
-  RewriteRule<ExtractMultLeadingBit> rule88;
-  RewriteRule<NegIdemp> rule91;
-  RewriteRule<UdivPow2> rule92;
-  RewriteRule<UdivZero> rule93;
-  RewriteRule<UdivOne> rule94;
-  RewriteRule<UremPow2> rule95;
-  RewriteRule<UremOne> rule96;
-  RewriteRule<UremSelf> rule97;
-  RewriteRule<ShiftZero> rule98;
-  RewriteRule<CompEliminate> rule99;
-  RewriteRule<XnorEliminate> rule100;
-  RewriteRule<SignExtendEliminate> rule101;
-  RewriteRule<NotIdemp> rule102;
-  RewriteRule<UleSelf> rule103;
-  RewriteRule<FlattenAssocCommut> rule104;
-  RewriteRule<PlusCombineLikeTerms> rule105;
-  RewriteRule<MultSimplify> rule106;
-  RewriteRule<MultDistribConst> rule107;
-  RewriteRule<AndSimplify> rule108;
-  RewriteRule<OrSimplify> rule109;
-  RewriteRule<NegPlus> rule110;
-  RewriteRule<BBPlusNeg> rule111;
-  RewriteRule<SolveEq> rule112;
-  RewriteRule<BitwiseEq> rule113;
-  RewriteRule<UltOne> rule114;
-  RewriteRule<SltZero> rule115;
-  RewriteRule<BVToNatEliminate>  rule116;
-  RewriteRule<IntToBVEliminate>  rule117;
-  RewriteRule<MultDistrib> rule118;
-  RewriteRule<UltPlusOne> rule119;
-  RewriteRule<ConcatToMult> rule120;
-  RewriteRule<IsPowerOfTwo> rule121;
-  RewriteRule<RedorEliminate> rule122;
-  RewriteRule<RedandEliminate> rule123;
-  RewriteRule<SignExtendEqConst> rule124;
-  RewriteRule<ZeroExtendEqConst> rule125;
-  RewriteRule<SignExtendUltConst> rule126;
-  RewriteRule<ZeroExtendUltConst> rule127;
-  RewriteRule<MultSltMult> rule128;
-  RewriteRule<NormalizeEqPlusNeg> rule129;
+  RewriteRule<MultPow2>                       rule87;
+  RewriteRule<ExtractMultLeadingBit>          rule88;
+  RewriteRule<NegIdemp>                       rule91;
+  RewriteRule<UdivPow2>                       rule92;
+  RewriteRule<UdivZero>                       rule93;
+  RewriteRule<UdivOne>                        rule94;
+  RewriteRule<UremPow2>                       rule95;
+  RewriteRule<UremOne>                        rule96;
+  RewriteRule<UremSelf>                       rule97;
+  RewriteRule<ShiftZero>                      rule98;
+  RewriteRule<CompEliminate>                  rule99;
+  RewriteRule<XnorEliminate>                  rule100;
+  RewriteRule<SignExtendEliminate>            rule101;
+  RewriteRule<NotIdemp>                       rule102;
+  RewriteRule<UleSelf>                        rule103;
+  RewriteRule<FlattenAssocCommut>             rule104;
+  RewriteRule<AddCombineLikeTerms> rule105;
+  RewriteRule<MultSimplify>                   rule106;
+  RewriteRule<MultDistribConst>               rule107;
+  RewriteRule<AndSimplify>                    rule108;
+  RewriteRule<OrSimplify>                     rule109;
+  RewriteRule<NegAdd> rule110;
+  RewriteRule<BBAddNeg> rule111;
+  RewriteRule<SolveEq>                        rule112;
+  RewriteRule<BitwiseEq>                      rule113;
+  RewriteRule<UltOne>                         rule114;
+  RewriteRule<SltZero>                        rule115;
+  RewriteRule<BVToNatEliminate>               rule116;
+  RewriteRule<IntToBVEliminate>               rule117;
+  RewriteRule<MultDistrib>                    rule118;
+  RewriteRule<UltAddOne> rule119;
+  RewriteRule<ConcatToMult>                   rule120;
+  RewriteRule<RedorEliminate>                 rule122;
+  RewriteRule<RedandEliminate>                rule123;
+  RewriteRule<SignExtendEqConst>              rule124;
+  RewriteRule<ZeroExtendEqConst>              rule125;
+  RewriteRule<SignExtendUltConst>             rule126;
+  RewriteRule<ZeroExtendUltConst>             rule127;
+  RewriteRule<MultSltMult>                    rule128;
+  RewriteRule<NormalizeEqAddNeg> rule129;
+  RewriteRule<BvComp>                         rule130;
+  RewriteRule<BvIteConstCond>                 rule131;
+  RewriteRule<BvIteEqualChildren>             rule132;
+  RewriteRule<BvIteConstChildren>             rule133;
+  RewriteRule<BvIteEqualCond>                 rule134;
+  RewriteRule<BvIteMergeThenIf>               rule135;
+  RewriteRule<BvIteMergeElseIf>               rule136;
+  RewriteRule<BvIteMergeThenElse>             rule137;
+  RewriteRule<BvIteMergeElseElse>             rule138;
+  RewriteRule<AndOrXorConcatPullUp>           rule139;
+  RewriteRule<NegEliminate> rule140;
+  RewriteRule<OrEliminate> rule141;
+  RewriteRule<XorEliminate> rule142;
+  RewriteRule<SdivEliminate> rule143;
+  RewriteRule<SremEliminate> rule144;
+  RewriteRule<SmodEliminate> rule145;
+  RewriteRule<UgtUrem> rule146;
 };
 
 template<> inline
@@ -561,7 +617,7 @@ bool RewriteRule<EmptyRule>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<EmptyRule>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
+  Trace("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
   Unreachable();
   return node;
 }
@@ -573,7 +629,7 @@ struct ApplyRuleToChildren {
     if (node.getKind() != kind) {
       return RewriteRule<rule>::template run<true>(node);
     }
-    NodeBuilder<> result(kind);
+    NodeBuilder result(kind);
     for (unsigned i = 0, end = node.getNumChildren(); i < end; ++ i) {
       result << RewriteRule<rule>::template run<true>(node[i]);
     }
@@ -701,4 +757,4 @@ struct FixpointRewriteStrategy {
 
 } // End namespace bv
 } // End namespace theory
-} // End namespace CVC4
+}  // End namespace cvc5::internal

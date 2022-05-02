@@ -1,41 +1,61 @@
-/*********************                                                        */
-/*! \file theory_builtin.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Built-in theory.
- **
- ** Built-in theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Built-in theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
-#define __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
+#ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
+#define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
 
+#include "theory/builtin/proof_checker.h"
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_inference_manager.h"
+#include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-class TheoryBuiltin : public Theory {
-public:
-  TheoryBuiltin(context::Context* c, context::UserContext* u,
-                OutputChannel& out, Valuation valuation,
-                const LogicInfo& logicInfo)
-      : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo) {}
-  std::string identify() const override { return std::string("TheoryBuiltin"); }
-};/* class TheoryBuiltin */
+class TheoryBuiltin : public Theory
+{
+ public:
+  TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation);
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
-#endif /* __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H */
+  std::string identify() const override;
+
+  /** finish initialization */
+  void finishInit() override;
+
+ private:
+  /** The theory rewriter for this theory. */
+  TheoryBuiltinRewriter d_rewriter;
+  /** Proof rule checker */
+  BuiltinProofRuleChecker d_checker;
+  /** A (default) theory state object */
+  TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
+}; /* class TheoryBuiltin */
+
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5::internal
+
+#endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H */

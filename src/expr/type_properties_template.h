@@ -1,39 +1,36 @@
-/*********************                                                        */
-/*! \file type_properties_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Template for the Type properties header
- **
- ** Template for the Type properties header.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Template for the Type properties header.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__TYPE_PROPERTIES_H
-#define __CVC4__TYPE_PROPERTIES_H
-
-#line 23 "${template}"
+#ifndef CVC5__TYPE_PROPERTIES_H
+#define CVC5__TYPE_PROPERTIES_H
 
 #include <sstream>
 
-#include "base/cvc4_assert.h"
-#include "options/language.h"
-#include "expr/type_node.h"
+#include "base/check.h"
 #include "expr/kind.h"
-#include "expr/expr.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
+#include "options/language.h"
 
+// clang-format off
 ${type_properties_includes}
+// clang-format on
 
-#line 35 "${template}"
-
-namespace CVC4 {
+namespace cvc5::internal {
 namespace kind {
 
 /**
@@ -42,17 +39,16 @@ namespace kind {
  * "kinds" files, so includes contributions from each theory regarding
  * that theory's types.
  */
-inline Cardinality getCardinality(TypeConstant tc) {
-  switch(tc) {
+inline Cardinality getCardinality(TypeConstant tc)
+{
+  switch (tc)
+  {
+    // clang-format off
 ${type_constant_cardinalities}
-#line 49 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "No cardinality known for type constant " << tc;
-    InternalError(ss.str());
+      // clang-format on
+    default: InternalError() << "No cardinality known for type constant " << tc;
   }
-  }
-}/* getCardinality(TypeConstant) */
+} /* getCardinality(TypeConstant) */
 
 /**
  * Return the cardinality of the type represented by the TypeNode
@@ -65,27 +61,24 @@ inline Cardinality getCardinality(TypeNode typeNode) {
   switch(Kind k = typeNode.getKind()) {
   case TYPE_CONSTANT:
     return getCardinality(typeNode.getConst<TypeConstant>());
+    // clang-format off
 ${type_cardinalities}
-#line 70 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "A theory kinds file did not provide a cardinality "
-       << "or cardinality computer for type:\n" << typeNode
-       << "\nof kind " << k;
-    InternalError(ss.str());
-  }
+    // clang-format on
+  default:
+    InternalError() << "A theory kinds file did not provide a cardinality "
+                    << "or cardinality computer for type:\n"
+                    << typeNode << "\nof kind " << k;
   }
 }/* getCardinality(TypeNode) */
 
 inline bool isWellFounded(TypeConstant tc) {
   switch(tc) {
+    // clang-format off
 ${type_constant_wellfoundednesses}
-#line 84 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "No well-foundedness status known for type constant: " << tc;
-    InternalError(ss.str());
-  }
+    // clang-format on
+    default:
+      InternalError() << "No well-foundedness status known for type constant: "
+                      << tc;
   }
 }/* isWellFounded(TypeConstant) */
 
@@ -94,48 +87,20 @@ inline bool isWellFounded(TypeNode typeNode) {
   switch(Kind k = typeNode.getKind()) {
   case TYPE_CONSTANT:
     return isWellFounded(typeNode.getConst<TypeConstant>());
+    // clang-format off
 ${type_wellfoundednesses}
-#line 99 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "A theory kinds file did not provide a well-foundedness "
-       << "or well-foundedness computer for type:\n" << typeNode
-       << "\nof kind " << k;
-    InternalError(ss.str());
-  }
+    // clang-format on
+  default:
+    InternalError() << "A theory kinds file did not provide a well-foundedness "
+                    << "or well-foundedness computer for type:\n"
+                    << typeNode << "\nof kind " << k;
   }
 }/* isWellFounded(TypeNode) */
 
-inline Node mkGroundTerm(TypeConstant tc) {
-  switch(tc) {
-${type_constant_groundterms}
-#line 113 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "No ground term known for type constant: " << tc;
-    InternalError(ss.str());
-  }
-  }
-}/* mkGroundTerm(TypeConstant) */
+Node mkGroundTerm(TypeConstant tc);
+Node mkGroundTerm(TypeNode typeNode);
 
-inline Node mkGroundTerm(TypeNode typeNode) {
-  AssertArgument(!typeNode.isNull(), typeNode);
-  switch(Kind k = typeNode.getKind()) {
-  case TYPE_CONSTANT:
-    return mkGroundTerm(typeNode.getConst<TypeConstant>());
-${type_groundterms}
-#line 128 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "A theory kinds file did not provide a ground term "
-       << "or ground term computer for type:\n" << typeNode
-       << "\nof kind " << k;
-    InternalError(ss.str());
-  }
-  }
-}/* mkGroundTerm(TypeNode) */
+}  // namespace kind
+}  // namespace cvc5::internal
 
-}/* CVC4::kind namespace */
-}/* CVC4 namespace */
-
-#endif /* __CVC4__TYPE_PROPERTIES_H */
+#endif /* CVC5__TYPE_PROPERTIES_H */

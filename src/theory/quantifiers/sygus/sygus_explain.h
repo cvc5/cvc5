@@ -1,30 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_explain.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus explanations
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus explanations
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
 
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus/sygus_invariance.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+class SygusInvarianceTest;
+class TermDbSygus;
 
 /** Recursive term builder
  *
@@ -65,7 +68,7 @@ class TermRecBuild
   /** get the i^th child of the active term */
   Node getChild(unsigned i);
   /** build the (modified) version of the term
-   * we intialized via the call to init().
+   * we initialized via the call to init().
    */
   Node build(unsigned p = 0);
 
@@ -202,6 +205,13 @@ class SygusExplain
                          Node vn,
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
+                         Node vnr,
+                         std::map<TypeNode, int>& var_count,
+                         unsigned& sz);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
                          bool strict = true);
   void getExplanationFor(Node n,
                          Node vn,
@@ -230,8 +240,8 @@ class SygusExplain
                          int& sz);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */

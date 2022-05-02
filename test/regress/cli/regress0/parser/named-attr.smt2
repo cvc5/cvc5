@@ -1,0 +1,8 @@
+(set-logic QF_UF)
+(declare-const x Bool)
+(declare-const y Bool)
+(define-fun f () Bool (! x :named foo))
+(define-const g Bool (! y :named bar))
+(assert (and foo bar))
+(set-info :status sat)
+(check-sat)

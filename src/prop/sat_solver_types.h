@@ -1,33 +1,36 @@
-/*********************                                                        */
-/*! \file sat_solver_types.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Kshitij Bansal, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This class transforms a sequence of formulas into clauses.
- **
- ** This class takes a sequence of formulas.
- ** It outputs a stream of clauses that is propositionally
- ** equi-satisfiable with the conjunction of the formulas.
- ** This stream is maintained in an online fashion.
- **
- ** Unlike other parts of the system it is aware of the PropEngine's
- ** internals such as the representation and translation of [??? -Chris]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Alex Ozdemir, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This class transforms a sequence of formulas into clauses.
+ *
+ * This class takes a sequence of formulas.
+ * It outputs a stream of clauses that is propositionally
+ * equi-satisfiable with the conjunction of the formulas.
+ * This stream is maintained in an online fashion.
+ *
+ * Unlike other parts of the system it is aware of the PropEngine's
+ * internals such as the representation and translation of [??? -Chris]
+ */
 
 #pragma once
 
-#include "cvc4_private.h"
-
-#include <string>
 #include <sstream>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
-namespace CVC4 {
+#include "cvc5_private.h"
+
+namespace cvc5::internal {
 namespace prop {
 
 /**
@@ -120,11 +123,21 @@ public:
   }
 
   /**
+   * Compare two literals
+   */
+  bool operator<(const SatLiteral& other) const
+  {
+    return getSatVariable() == other.getSatVariable()
+               ? isNegated() < other.isNegated()
+               : getSatVariable() < other.getSatVariable();
+  }
+
+  /**
    * Returns a string representation of the literal.
    */
   std::string toString() const {
     std::ostringstream os;
-    os << (isNegated()? "~" : "") << getSatVariable() << " ";
+    os << (isNegated() ? "~" : "") << getSatVariable();
     return os.str();
   }
 
@@ -166,6 +179,26 @@ struct SatLiteralHashFunction {
  */
 typedef std::vector<SatLiteral> SatClause;
 
+struct SatClauseSetHashFunction
+{
+  inline size_t operator()(
+      const std::unordered_set<SatLiteral, SatLiteralHashFunction>& clause)
+      const
+  {
+    size_t acc = 0;
+    for (const auto& l : clause)
+    {
+      acc ^= l.hash();
+    }
+    return acc;
+  }
+};
+
+struct SatClauseLessThan
+{
+  bool operator()(const SatClause& l, const SatClause& r) const;
+};
+
 /**
  * Each object in the SAT solver, such as as variables and clauses, can be assigned a life span,
  * so that the SAT solver can (or should) remove them when the lifespan is over.
@@ -203,6 +236,4 @@ enum SatSolverLifespan
 };
 
 }
-}
-
-
+}  // namespace cvc5::internal

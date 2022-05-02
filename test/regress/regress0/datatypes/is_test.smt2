@@ -1,6 +1,0 @@
-(set-logic ALL_SUPPORTED)
-(set-info :status unsat)
-(declare-datatypes ((Unit 0)) (((u))))
-(declare-fun x () Unit)
-(assert (not (is-u x)))
-(check-sat)

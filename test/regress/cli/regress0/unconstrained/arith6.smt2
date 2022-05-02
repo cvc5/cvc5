@@ -1,0 +1,13 @@
+; COMMAND-LINE: --unconstrained-simp
+(set-logic QF_AUFBVLRA)
+(set-info :smt-lib-version 2.6)
+(set-info :category "crafted")
+(set-info :status sat)
+(declare-fun v1 () Real)
+(declare-fun a2 (Real) (_ BitVec 1024))
+(declare-fun v3 () (_ BitVec 1024))
+(declare-fun v4 () (_ BitVec 1024))
+(declare-fun v5 () (_ BitVec 1024))
+(assert (not (= (a2 (/ v1 2)) (bvudiv (bvudiv v4 v5) (bvudiv (bvudiv v3 v4) (bvudiv v3 v5))))))
+(check-sat)
+(exit)

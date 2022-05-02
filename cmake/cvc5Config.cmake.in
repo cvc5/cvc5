@@ -1,0 +1,27 @@
+###############################################################################
+# Top contributors (to current version):
+#   Mudathir Mohamed, Mathias Preiner, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+##
+
+@PACKAGE_INIT@
+
+set(CVC5_BINDINGS_JAVA @BUILD_BINDINGS_JAVA@)
+set(CVC5_BINDINGS_PYTHON @BUILD_BINDINGS_PYTHON@)
+set(CVC5_BINDINGS_PYTHON_VERSION @BUILD_BINDINGS_PYTHON_VERSION@)
+
+if(NOT TARGET cvc5::cvc5)
+  include(${CMAKE_CURRENT_LIST_DIR}/cvc5Targets.cmake)
+endif()
+
+if(CVC5_BINDINGS_JAVA AND NOT TARGET cvc5::cvc5jar)
+ include(${CMAKE_CURRENT_LIST_DIR}/cvc5JavaTargets.cmake)
+endif()
+

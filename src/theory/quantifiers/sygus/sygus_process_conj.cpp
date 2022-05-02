@@ -1,56 +1,58 @@
-/*********************                                                        */
-/*! \file sygus_process_conj.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of techniqures for static preprocessing and analysis
- ** of sygus conjectures.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of techniqures for static preprocessing and analysis
+ * of sygus conjectures.
+ */
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 
+#include <sstream>
 #include <stack>
 
-#include "expr/datatype.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void CegConjectureProcessFun::init(Node f)
+SynthConjectureProcessFun::SynthConjectureProcessFun(Env& env) : EnvObj(env) {}
+
+void SynthConjectureProcessFun::init(Node f)
 {
   d_synth_fun = f;
   Assert(f.getType().isFunction());
 
   // initialize the arguments
-  std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
-      type_to_init_deq_id;
-  std::vector<Type> argTypes =
-      static_cast<FunctionType>(f.getType().toType()).getArgTypes();
+  std::unordered_map<TypeNode, unsigned> type_to_init_deq_id;
+  std::vector<TypeNode> argTypes = f.getType().getArgTypes();
   for (unsigned j = 0; j < argTypes.size(); j++)
   {
-    TypeNode atn = TypeNode::fromType(argTypes[j]);
+    TypeNode atn = argTypes[j];
     std::stringstream ss;
     ss << "a" << j;
     Node k = NodeManager::currentNM()->mkBoundVar(ss.str(), atn);
     d_arg_vars.push_back(k);
     d_arg_var_num[k] = j;
-    d_arg_props.push_back(CegConjectureProcessArg());
+    d_arg_props.push_back(SynthConjectureProcessArg());
   }
 }
 
-bool CegConjectureProcessFun::checkMatch(
+bool SynthConjectureProcessFun::checkMatch(
     Node cn, Node n, std::unordered_map<unsigned, Node>& n_arg_map)
 {
   std::vector<Node> vars;
@@ -67,17 +69,16 @@ bool CegConjectureProcessFun::checkMatch(
   }
   Node cn_subs =
       cn.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-  cn_subs = Rewriter::rewrite(cn_subs);
-  Assert(Rewriter::rewrite(n) == n);
+  cn_subs = rewrite(cn_subs);
+  n = rewrite(n);
   return cn_subs == n;
 }
 
-bool CegConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
+bool SynthConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
 {
   if (n.isVar())
   {
-    std::unordered_map<Node, unsigned, NodeHashFunction>::iterator ita =
-        d_arg_var_num.find(n);
+    std::unordered_map<Node, unsigned>::iterator ita = d_arg_var_num.find(n);
     if (ita != d_arg_var_num.end())
     {
       arg_index = ita->second;
@@ -87,15 +88,13 @@ bool CegConjectureProcessFun::isArgVar(Node n, unsigned& arg_index)
   return false;
 }
 
-Node CegConjectureProcessFun::inferDefinition(
+Node SynthConjectureProcessFun::inferDefinition(
     Node n,
-    std::unordered_map<Node, unsigned, NodeHashFunction>& term_to_arg_carry,
-    std::unordered_map<Node,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       NodeHashFunction>& free_vars)
+    std::unordered_map<Node, unsigned>& term_to_arg_carry,
+    std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
@@ -114,7 +113,7 @@ Node CegConjectureProcessFun::inferDefinition(
       else
       {
         // if it is term used by another argument, use it
-        std::unordered_map<Node, unsigned, NodeHashFunction>::iterator itt =
+        std::unordered_map<Node, unsigned>::iterator itt =
             term_to_arg_carry.find(cur);
         if (itt != term_to_arg_carry.end())
         {
@@ -165,8 +164,8 @@ Node CegConjectureProcessFun::inferDefinition(
   return visited[n];
 }
 
-unsigned CegConjectureProcessFun::assignRelevantDef(Node def,
-                                                    std::vector<unsigned>& args)
+unsigned SynthConjectureProcessFun::assignRelevantDef(
+    Node def, std::vector<unsigned>& args)
 {
   unsigned id = 0;
   if (def.isNull())
@@ -184,7 +183,7 @@ unsigned CegConjectureProcessFun::assignRelevantDef(Node def,
   }
   unsigned rid = args[id];
   // for merging previously equivalent definitions
-  std::unordered_map<Node, unsigned, NodeHashFunction> prev_defs;
+  std::unordered_map<Node, unsigned> prev_defs;
   for (unsigned j = 0; j < args.size(); j++)
   {
     unsigned i = args[j];
@@ -198,8 +197,7 @@ unsigned CegConjectureProcessFun::assignRelevantDef(Node def,
       else
       {
         Node t = d_arg_props[i].d_template;
-        std::unordered_map<Node, unsigned, NodeHashFunction>::iterator itt =
-            prev_defs.find(t);
+        std::unordered_map<Node, unsigned>::iterator itt = prev_defs.find(t);
         if (itt != prev_defs.end())
         {
           // merge previously equivalent definitions
@@ -249,14 +247,12 @@ unsigned CegConjectureProcessFun::assignRelevantDef(Node def,
   return rid;
 }
 
-void CegConjectureProcessFun::processTerms(
+void SynthConjectureProcessFun::processTerms(
     std::vector<Node>& ns,
     std::vector<Node>& ks,
     Node nf,
-    std::unordered_set<Node, NodeHashFunction>& synth_fv,
-    std::unordered_map<Node,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       NodeHashFunction>& free_vars)
+    std::unordered_set<Node>& synth_fv,
+    std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
   Assert(ns.size() == ks.size());
   Trace("sygus-process-arg-deps") << "Process " << ns.size()
@@ -265,14 +261,14 @@ void CegConjectureProcessFun::processTerms(
 
   // get the relevant variables
   // relevant variables are those that appear in the body of the conjunction
-  std::unordered_set<Node, NodeHashFunction> rlv_vars;
+  std::unordered_set<Node> rlv_vars;
   Assert(free_vars.find(nf) != free_vars.end());
   rlv_vars = free_vars[nf];
 
   // get the single occurrence variables
   // single occurrence variables are those that appear in only one position,
   // as an argument to the function-to-synthesize.
-  std::unordered_map<Node, bool, NodeHashFunction> single_occ_variables;
+  std::unordered_map<Node, bool> single_occ_variables;
   for (unsigned index = 0; index < ns.size(); index++)
   {
     Node n = ns[index];
@@ -281,7 +277,7 @@ void CegConjectureProcessFun::processTerms(
       Node nn = n[i];
       if (nn.isVar())
       {
-        std::unordered_map<Node, bool, NodeHashFunction>::iterator its =
+        std::unordered_map<Node, bool>::iterator its =
             single_occ_variables.find(nn);
         if (its == single_occ_variables.end())
         {
@@ -295,12 +291,10 @@ void CegConjectureProcessFun::processTerms(
       }
       else
       {
-        std::unordered_map<Node,
-                           std::unordered_set<Node, NodeHashFunction>,
-                           NodeHashFunction>::iterator itf = free_vars.find(nn);
+        std::unordered_map<Node, std::unordered_set<Node>>::iterator itf =
+            free_vars.find(nn);
         Assert(itf != free_vars.end());
-        for (std::unordered_set<Node, NodeHashFunction>::iterator itfv =
-                 itf->second.begin();
+        for (std::unordered_set<Node>::iterator itfv = itf->second.begin();
              itfv != itf->second.end();
              ++itfv)
         {
@@ -326,10 +320,9 @@ void CegConjectureProcessFun::processTerms(
     std::unordered_map<unsigned, Node> n_arg_map;
     // terms to the argument that is carrying it.
     // the arguments in the range of this map must be marked as relevant.
-    std::unordered_map<Node, unsigned, NodeHashFunction> term_to_arg_carry;
+    std::unordered_map<Node, unsigned> term_to_arg_carry;
     // map of terms to (unprocessed) arguments where it occurs
-    std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>
-        term_to_args;
+    std::unordered_map<Node, std::vector<unsigned>> term_to_args;
 
     // initialize
     for (unsigned a = 0; a < n.getNumChildren(); a++)
@@ -407,14 +400,14 @@ void CegConjectureProcessFun::processTerms(
     // list of all arguments
     std::vector<Node> arg_list;
     // now look at the terms for unprocessed arguments
-    for (std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::
-             iterator it = term_to_args.begin();
+    for (std::unordered_map<Node, std::vector<unsigned>>::iterator it =
+             term_to_args.begin();
          it != term_to_args.end();
          ++it)
     {
       Node nn = it->first;
       arg_list.push_back(nn);
-      if (Trace.isOn("sygus-process-arg-deps"))
+      if (TraceIsOn("sygus-process-arg-deps"))
       {
         Trace("sygus-process-arg-deps") << "    argument " << nn;
         Trace("sygus-process-arg-deps") << " (" << it->second.size()
@@ -453,8 +446,8 @@ void CegConjectureProcessFun::processTerms(
       {
         infer_def_t = Node::null();
         // see if we can infer a definition
-        for (std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::
-                 iterator it = term_to_args.begin();
+        for (std::unordered_map<Node, std::vector<unsigned>>::iterator it =
+                 term_to_args.begin();
              it != term_to_args.end();
              ++it)
         {
@@ -482,8 +475,8 @@ void CegConjectureProcessFun::processTerms(
       while (arg_list_counter < arg_list.size() && !success)
       {
         Node curr = arg_list[arg_list_counter];
-        std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::
-            iterator it = term_to_args.find(curr);
+        std::unordered_map<Node, std::vector<unsigned>>::iterator it =
+            term_to_args.find(curr);
         if (it != term_to_args.end())
         {
           Trace("sygus-process-arg-deps") << "  *** Decide relevant " << curr
@@ -503,12 +496,12 @@ void CegConjectureProcessFun::processTerms(
   }
 }
 
-bool CegConjectureProcessFun::isArgRelevant(unsigned i)
+bool SynthConjectureProcessFun::isArgRelevant(unsigned i)
 {
   return d_arg_props[i].d_relevant;
 }
 
-void CegConjectureProcessFun::getIrrelevantArgs(
+void SynthConjectureProcessFun::getIrrelevantArgs(
     std::unordered_set<unsigned>& args)
 {
   for (unsigned i = 0; i < d_arg_vars.size(); i++)
@@ -520,61 +513,67 @@ void CegConjectureProcessFun::getIrrelevantArgs(
   }
 }
 
-CegConjectureProcess::CegConjectureProcess(QuantifiersEngine* qe) {}
-CegConjectureProcess::~CegConjectureProcess() {}
-Node CegConjectureProcess::preSimplify(Node q)
+SynthConjectureProcess::SynthConjectureProcess(Env& env) : EnvObj(env) {}
+SynthConjectureProcess::~SynthConjectureProcess() {}
+Node SynthConjectureProcess::preSimplify(Node q)
 {
   Trace("sygus-process") << "Pre-simplify conjecture : " << q << std::endl;
   return q;
 }
 
-Node CegConjectureProcess::postSimplify(Node q)
+Node SynthConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
 
-  // initialize the information about each function to synthesize
-  for (unsigned i = 0; i < q[0].getNumChildren(); i++)
+  if (options().quantifiers.sygusArgRelevant)
   {
-    Node f = q[0][i];
-    if (f.getType().isFunction())
+    // initialize the information about each function to synthesize
+    for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
     {
-      d_sf_info[f].init(f);
+      Node f = q[0][i];
+      if (f.getType().isFunction())
+      {
+        std::pair<std::map<Node, SynthConjectureProcessFun>::iterator, bool>
+            it = d_sf_info.emplace(f, d_env);
+        it.first->second.init(f);
+      }
     }
-  }
 
-  // get the base on the conjecture
-  Node base = q[1];
-  std::unordered_set<Node, NodeHashFunction> synth_fv;
-  if (base.getKind() == NOT && base[0].getKind() == FORALL)
-  {
-    for (unsigned j = 0; j < base[0][0].getNumChildren(); j++)
+    // get the base on the conjecture
+    Node base = q[1];
+    std::unordered_set<Node> synth_fv;
+    if (base.getKind() == NOT && base[0].getKind() == FORALL)
     {
-      synth_fv.insert(base[0][0][j]);
+      for (unsigned j = 0, size = base[0][0].getNumChildren(); j < size; j++)
+      {
+        synth_fv.insert(base[0][0][j]);
+      }
+      base = base[0][1];
     }
-    base = base[0][1];
-  }
-  std::vector<Node> conjuncts;
-  getComponentVector(AND, base, conjuncts);
+    std::vector<Node> conjuncts;
+    getComponentVector(AND, base, conjuncts);
 
-  // process the conjunctions
-  for (std::map<Node, CegConjectureProcessFun>::iterator it = d_sf_info.begin();
-       it != d_sf_info.end();
-       ++it)
-  {
-    Node f = it->first;
-    for (unsigned i = 0; i < conjuncts.size(); i++)
+    // process the conjunctions
+    for (std::map<Node, SynthConjectureProcessFun>::iterator it =
+             d_sf_info.begin();
+         it != d_sf_info.end();
+         ++it)
     {
-      processConjunct(conjuncts[i], f, synth_fv);
+      Node f = it->first;
+      for (const Node& conj : conjuncts)
+      {
+        processConjunct(conj, f, synth_fv);
+      }
     }
   }
 
   return q;
 }
 
-void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
+void SynthConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 {
-  if (Trace.isOn("sygus-process"))
+  if (TraceIsOn("sygus-process"))
   {
     Trace("sygus-process") << "Process conjecture : " << n
                            << " with candidates: " << std::endl;
@@ -585,9 +584,13 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
   }
 }
 
-bool CegConjectureProcess::isArgRelevant(Node f, unsigned i)
+bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
 {
-  std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+  if (!options().quantifiers.sygusArgRelevant)
+  {
+    return true;
+  }
+  std::map<Node, SynthConjectureProcessFun>::iterator its = d_sf_info.find(f);
   if (its != d_sf_info.end())
   {
     return its->second.isArgRelevant(i);
@@ -596,10 +599,10 @@ bool CegConjectureProcess::isArgRelevant(Node f, unsigned i)
   return true;
 }
 
-bool CegConjectureProcess::getIrrelevantArgs(Node f,
-                                             std::unordered_set<unsigned>& args)
+bool SynthConjectureProcess::getIrrelevantArgs(
+    Node f, std::unordered_set<unsigned>& args)
 {
-  std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+  std::map<Node, SynthConjectureProcessFun>::iterator its = d_sf_info.find(f);
   if (its != d_sf_info.end())
   {
     its->second.getIrrelevantArgs(args);
@@ -608,8 +611,9 @@ bool CegConjectureProcess::getIrrelevantArgs(Node f,
   return false;
 }
 
-void CegConjectureProcess::processConjunct(
-    Node n, Node f, std::unordered_set<Node, NodeHashFunction>& synth_fv)
+void SynthConjectureProcess::processConjunct(Node n,
+                                             Node f,
+                                             std::unordered_set<Node>& synth_fv)
 {
   Trace("sygus-process-arg-deps") << "Process conjunct: " << std::endl;
   Trace("sygus-process-arg-deps") << "  " << n << " for synth fun " << f
@@ -617,24 +621,20 @@ void CegConjectureProcess::processConjunct(
 
   // first, flatten the conjunct
   // make a copy of free variables since we may add new ones
-  std::unordered_set<Node, NodeHashFunction> synth_fv_n = synth_fv;
-  std::unordered_map<Node, Node, NodeHashFunction> defs;
+  std::unordered_set<Node> synth_fv_n = synth_fv;
+  std::unordered_map<Node, Node> defs;
   Node nf = flatten(n, f, synth_fv_n, defs);
 
   Trace("sygus-process-arg-deps") << "Flattened to: " << std::endl;
   Trace("sygus-process-arg-deps") << "  " << nf << std::endl;
 
   // get free variables in nf
-  std::unordered_map<Node,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     NodeHashFunction>
-      free_vars;
+  std::unordered_map<Node, std::unordered_set<Node>> free_vars;
   getFreeVariables(nf, synth_fv_n, free_vars);
   // get free variables in each application
   std::vector<Node> ns;
   std::vector<Node> ks;
-  for (std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-           defs.begin();
+  for (std::unordered_map<Node, Node>::iterator it = defs.begin();
        it != defs.end();
        ++it)
   {
@@ -646,7 +646,7 @@ void CegConjectureProcess::processConjunct(
   // process the applications of synthesis functions
   if (!ns.empty())
   {
-    std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
+    std::map<Node, SynthConjectureProcessFun>::iterator its = d_sf_info.find(f);
     if (its != d_sf_info.end())
     {
       its->second.processTerms(ns, ks, nf, synth_fv_n, free_vars);
@@ -654,14 +654,14 @@ void CegConjectureProcess::processConjunct(
   }
 }
 
-Node CegConjectureProcess::CegConjectureProcess::flatten(
+Node SynthConjectureProcess::SynthConjectureProcess::flatten(
     Node n,
     Node f,
-    std::unordered_set<Node, NodeHashFunction>& synth_fv,
-    std::unordered_map<Node, Node, NodeHashFunction>& defs)
+    std::unordered_set<Node>& synth_fv,
+    std::unordered_map<Node, Node>& defs)
 {
-  std::unordered_map<Node, Node, NodeHashFunction> visited;
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, Node> visited;
+  std::unordered_map<Node, Node>::iterator it;
   std::stack<Node> visit;
   Node cur;
   visit.push(n);
@@ -719,17 +719,15 @@ Node CegConjectureProcess::CegConjectureProcess::flatten(
   return visited[n];
 }
 
-void CegConjectureProcess::getFreeVariables(
+void SynthConjectureProcess::getFreeVariables(
     Node n,
-    std::unordered_set<Node, NodeHashFunction>& synth_fv,
-    std::unordered_map<Node,
-                       std::unordered_set<Node, NodeHashFunction>,
-                       NodeHashFunction>& free_vars)
+    std::unordered_set<Node>& synth_fv,
+    std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
   // first must compute free variables in each subterm of n,
   // as well as contains_synth_fun
-  std::unordered_map<Node, bool, NodeHashFunction> visited;
-  std::unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  std::unordered_map<Node, bool> visited;
+  std::unordered_map<Node, bool>::iterator it;
   std::stack<Node> visit;
   Node cur;
   visit.push(n);
@@ -770,16 +768,16 @@ void CegConjectureProcess::getFreeVariables(
   } while (!visit.empty());
 }
 
-Node CegConjectureProcess::getSymmetryBreakingPredicate(
+Node SynthConjectureProcess::getSymmetryBreakingPredicate(
     Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth)
 {
   return Node::null();
 }
 
-void CegConjectureProcess::debugPrint(const char* c) {}
-void CegConjectureProcess::getComponentVector(Kind k,
-                                              Node n,
-                                              std::vector<Node>& args)
+void SynthConjectureProcess::debugPrint(const char* c) {}
+void SynthConjectureProcess::getComponentVector(Kind k,
+                                                Node n,
+                                                std::vector<Node>& args)
 {
   if (n.getKind() == k)
   {
@@ -794,6 +792,6 @@ void CegConjectureProcess::getComponentVector(Kind k,
   }
 }
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal

@@ -1,39 +1,37 @@
-/*********************                                                        */
-/*! \file cdhashset.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent set class.
- **
- ** Context-dependent set class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context-dependent set class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHSET_H
-#define __CVC4__CONTEXT__CDHASHSET_H
+#ifndef CVC5__CONTEXT__CDHASHSET_H
+#define CVC5__CONTEXT__CDHASHSET_H
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/context.h"
 
+namespace cvc5::context {
 
-namespace CVC4 {
-namespace context {
-
-template <class V, class HashFcn>
-class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
+template <class V, class HashFcn = std::hash<V>>
+class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn>
+{
   typedef CDInsertHashMap<V, bool, HashFcn> super;
 
   // no copy or assignment
-  CDHashSet(const CDHashSet&) CVC4_UNDEFINED;
-  CDHashSet& operator=(const CDHashSet&) CVC4_UNDEFINED;
+  CDHashSet(const CDHashSet&) = delete;
+  CDHashSet& operator=(const CDHashSet&) = delete;
 
 public:
 
@@ -51,7 +49,7 @@ public:
   }
 
   static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
   CDHashSet(Context* context) :
@@ -116,6 +114,7 @@ public:
       V operator*() const {
         return d_val;
       }
+      V* operator->() const { return &d_val; }
     };/* class CDSet<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.
@@ -149,13 +148,8 @@ public:
     return super::key_end();
   }
 
-  void insertAtContextLevelZero(const V& v) {
-    return super::insertAtContextLevelZero(v, true);
-  }
+}; /* class CDHashSet */
 
-};/* class CDHashSet */
+}  // namespace cvc5::context
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
-
-#endif /* __CVC4__CONTEXT__CDHASHSET_H */
+#endif /* CVC5__CONTEXT__CDHASHSET_H */

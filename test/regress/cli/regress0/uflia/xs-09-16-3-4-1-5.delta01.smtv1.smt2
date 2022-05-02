@@ -1,0 +1,7 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_UFLIA)
+(declare-fun s_count (Int) Int)
+(declare-fun fmt1 () Int)
+(declare-fun fmt_length () Int)
+(check-sat-assuming ( (and (and (= 0 (s_count 6)) (and (= 0 (s_count 5)) (and (= 0 (s_count 4)) (and (= 0 (s_count 3)) (and (and (= 1 (s_count 0)) (= 0 (s_count 1))) (= 0 (s_count 2))))))) (and (= 9 fmt_length) (and (and (> fmt1 1) (< fmt1 fmt_length)) (= 0 (+ 1 (s_count (- fmt1 2))))))) ))

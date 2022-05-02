@@ -1,0 +1,89 @@
+; depends: theory_def.plf
+
+
+; get the mpq from the real constant term c
+(program sc_arith_get_mpq ((c term)) mpq
+  (match c ((real q) q)))
+
+; get the mpz from the integer constant term c
+(program sc_arith_get_mpz ((c term)) mpz
+  (match c ((int z) z)))
+
+; get the relation symbol from f, for example for (a.>= t1 t2), return a.>=
+(program sc_arith_get_rel ((f term)) term
+  (match f ((apply f1 f2) (match f1 ((apply f11 f12) f11)))))
+
+; get the left hand side of a relation, for example for (a.>= t1 t2), return t1
+(program sc_arith_get_lhs ((f term)) term
+  (match f ((apply f1 f2) (match f1 ((apply f11 f12) f12)))))
+
+; get the right hand side of a relation, for example for (a.>= t1 t2), return t2
+(program sc_arith_get_rhs ((f term)) term
+  (match f ((apply f1 f2) (match f1 ((apply f11 f12) f2)))))
+
+; Get the relation entailed by summing two arithmetic relations.
+; This side condition handles lower bounds only.
+; Note that = summed with = is <= to match internal calculus, although it could
+; be =.
+(program sc_arith_sum_rels ((r1 term) (r2 term)) term
+  (match r1
+    (f_a.< f_a.<)
+    (default 
+      (match r2
+      (f_a.< f_a.<)
+      (f_a.<= f_a.<=)
+      (f_= f_a.<=)))))
+
+; Get the inverse relation for r, i.e. flips left and right hand side.
+(program sc_arith_rel_inv ((r term)) term
+  (match r
+    (f_= f_=)
+    (f_a.< f_a.>)
+    (f_a.> f_a.<)
+    (f_a.<= f_a.>=)
+    (f_a.>= f_a.<=)))
+
+; Get the negated relation for r, i.e. is equivalent to negating the relation.
+(program sc_arith_rel_neg ((r term)) term
+  (match r
+    (f_a.< f_a.>=)
+    (f_a.> f_a.<=)
+    (f_a.<= f_a.>)
+    (f_a.>= f_a.<)))
+
+; A helper for computing the conclusion relation used in the rule
+; PfRule::ARITH_TRICHOTOMY. For relations r1 and r2, this returns the
+; third possibility for the relationship between two arithmetic terms.
+(program sc_arith_rel_trichotomy ((r1 term) (r2 term)) term
+  (match r1
+    (f_= (match r2 (f_a.> f_a.<) (f_a.< f_a.>)))
+    (f_a.> (match r2 (f_= f_a.<) (f_a.< f_=)))
+    (f_a.< (match r2 (f_= f_a.>) (f_a.> f_=)))))
+
+; Add term for t1 and t2. Assumes t2 in n-ary form.
+(program sc_arith_add_nary ((t1 term) (t2 term)) term
+  (a.+ t1 t2))
+
+; Multiply term for t1 and t2, where t2 is not in n-ary form.
+(program sc_arith_mult ((t1 term) (t2 term)) term
+  (a.* t1 (a.* t2 (int 1))))
+
+; Returns (> t 0).
+(program sc_arith_>_zero ((t term)) term
+  (a.> t (int 0)))
+
+; Returns (< t 0).
+(program sc_arith_<_zero ((t term)) term
+  (a.< t (int 0)))
+
+; Get relation for the negation of arithmetic literal f.
+(program sc_arith_get_rel_neg ((f term)) term
+  (match f
+    ((apply f1 f2)
+      (ifequal f1 f_not
+        (sc_arith_get_rel f2)
+        (sc_arith_rel_neg (sc_arith_get_rel f))))))
+
+; Get the atom for possibly negated arithmetic literal f.
+(program sc_arith_get_atom ((f term)) term
+  (match f ((apply f1 f2) (ifequal f1 f_not f2 f))))

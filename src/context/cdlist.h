@@ -1,37 +1,36 @@
-/*********************                                                        */
-/*! \file cdlist.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Francois Bobot
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent list class (only supports append)
- **
- ** Context-dependent list class.  This list only supports appending
- ** to the list; on backtrack, the list is simply shortened.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Context-dependent list class (only supports append).
+ *
+ * This list only supports appending to the list; on backtrack, the list is
+ * simply shortened.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__CONTEXT__CDLIST_H
-#define __CVC4__CONTEXT__CDLIST_H
+#ifndef CVC5__CONTEXT__CDLIST_H
+#define CVC5__CONTEXT__CDLIST_H
 
+#include <cstring>
 #include <iterator>
 #include <memory>
 #include <string>
-#include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
+#include "context/cdlist_forward.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdlist_forward.h"
 
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Generic context-dependent dynamic array.  Note that for efficiency,
@@ -95,64 +94,75 @@ private:
    */
   Allocator d_allocator;
 
-protected:
+ protected:
   /**
    * Private copy constructor used only by save().  d_list and
    * d_sizeAlloc are not copied: only the base class information and
    * d_size are needed in restore.
    */
-  CDList(const CDList& l) :
-    ContextObj(l),
-    d_list(NULL),
-    d_size(l.d_size),
-    d_callDestructor(false),
-    d_sizeAlloc(0),
-    d_cleanUp(l.d_cleanUp),
-    d_allocator(l.d_allocator) {
-    Debug("cdlist") << "copy ctor: " << this
-                    << " from " << &l
-                    << " size " << d_size << std::endl;
+  CDList(const CDList& l)
+      : ContextObj(l),
+        d_list(nullptr),
+        d_size(l.d_size),
+        d_callDestructor(false),
+        d_sizeAlloc(0),
+        d_cleanUp(l.d_cleanUp),
+        d_allocator(l.d_allocator)
+  {
+    Trace("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+                    << d_size << std::endl;
   }
-  CDList& operator=(const CDList& l) CVC4_UNDEFINED;
+  CDList& operator=(const CDList& l) = delete;
 
-private:
+ private:
   /**
-   * Reallocate the array with more space.
-   * Throws bad_alloc if memory allocation fails.
+   * Reallocate the array with more space. Throws bad_alloc if memory
+   * allocation fails. Does not perform any action if there is still unused
+   * allocated space.
    */
   void grow() {
-    if(d_list == NULL) {
+    if (d_size != d_sizeAlloc)
+    {
+      // If there is still unused allocated space
+      return;
+    }
+
+    const size_t maxSize =
+        std::allocator_traits<AllocatorT>::max_size(d_allocator);
+    if (d_list == nullptr)
+    {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = INITIAL_SIZE;
-      Debug("cdlist") << "initial grow of cdlist " << this
-                      << " level " << getContext()->getLevel()
-                      << " to " << d_sizeAlloc << std::endl;
-      if(d_sizeAlloc > d_allocator.max_size()) {
-        d_sizeAlloc = d_allocator.max_size();
+      if (d_sizeAlloc > maxSize)
+      {
+        d_sizeAlloc = maxSize;
       }
-      d_list = d_allocator.allocate(d_sizeAlloc);
-      if(d_list == NULL) {
+      d_list =
+          std::allocator_traits<AllocatorT>::allocate(d_allocator, d_sizeAlloc);
+      if (d_list == nullptr)
+      {
         throw std::bad_alloc();
       }
-    } else {
+    }
+    else
+    {
       // Allocate a new array with double the size
       size_t newSize = GROWTH_FACTOR * d_sizeAlloc;
-      if(newSize > d_allocator.max_size()) {
-        newSize = d_allocator.max_size();
-        Assert(newSize > d_sizeAlloc,
-               "cannot request larger list due to allocator limits");
+      if (newSize > maxSize)
+      {
+        newSize = maxSize;
+        Assert(newSize > d_sizeAlloc)
+            << "cannot request larger list due to allocator limits";
       }
-      T* newList = d_allocator.allocate(newSize);
-      Debug("cdlist") << "2x grow of cdlist " << this
-                      << " level " << getContext()->getLevel()
-                      << " to " << newSize
-                      << " (from " << d_list
-                      << " to " << newList << ")" << std::endl;
-      if(newList == NULL) {
+      T* newList =
+          std::allocator_traits<AllocatorT>::allocate(d_allocator, newSize);
+      if (newList == nullptr)
+      {
         throw std::bad_alloc();
       }
       std::memcpy(newList, d_list, sizeof(T) * d_sizeAlloc);
-      d_allocator.deallocate(d_list, d_sizeAlloc);
+      std::allocator_traits<AllocatorT>::deallocate(
+          d_allocator, d_list, d_sizeAlloc);
       d_list = newList;
       d_sizeAlloc = newSize;
     }
@@ -168,12 +178,6 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDList<T, CleanUp, Allocator>(*this);
-    Debug("cdlist") << "save " << this
-                    << " at level " << this->getContext()->getLevel()
-                    << " size at " << this->d_size
-                    << " sizeAlloc at " << this->d_sizeAlloc
-                    << " d_list is " << this->d_list
-                    << " data:" << data << std::endl;
     return data;
   }
 
@@ -185,15 +189,7 @@ protected:
    */
  void restore(ContextObj* data) override
  {
-   Debug("cdlist") << "restore " << this << " level "
-                   << this->getContext()->getLevel() << " data == " << data
-                   << " call dtor == " << this->d_callDestructor
-                   << " d_list == " << this->d_list << std::endl;
    truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
-   Debug("cdlist") << "restore " << this << " level "
-                   << this->getContext()->getLevel() << " size back to "
-                   << this->d_size << " sizeAlloc at " << this->d_sizeAlloc
-                   << std::endl;
   }
 
   /**
@@ -211,30 +207,30 @@ protected:
       while(d_size != size) {
         --d_size;
         d_cleanUp(&d_list[d_size]);
-        d_allocator.destroy(&d_list[d_size]);
+        std::allocator_traits<AllocatorT>::destroy(d_allocator,
+                                                   &d_list[d_size]);
       }
     } else {
       d_size = size;
     }
   }
 
-
-public:
-
+ public:
   /**
-   * Main constructor: d_list starts as NULL, size is 0
+   * Main constructor: d_list starts as nullptr, size is 0
    */
   CDList(Context* context,
          bool callDestructor = true,
          const CleanUp& cleanup = CleanUp(),
-         const Allocator& alloc = Allocator()) :
-    ContextObj(context),
-    d_list(NULL),
-    d_size(0),
-    d_callDestructor(callDestructor),
-    d_sizeAlloc(0),
-    d_cleanUp(cleanup),
-    d_allocator(alloc) {
+         const Allocator& alloc = Allocator())
+      : ContextObj(context),
+        d_list(nullptr),
+        d_size(0),
+        d_callDestructor(callDestructor),
+        d_sizeAlloc(0),
+        d_cleanUp(cleanup),
+        d_allocator(alloc)
+  {
   }
 
   /**
@@ -247,7 +243,8 @@ public:
       truncateList(0);
     }
 
-    this->d_allocator.deallocate(this->d_list, this->d_sizeAlloc);
+    std::allocator_traits<AllocatorT>::deallocate(
+        d_allocator, this->d_list, this->d_sizeAlloc);
   }
 
   /**
@@ -266,47 +263,51 @@ public:
   }
 
   /**
-   * Add an item to the end of the list.
+   * Add an item to the end of the list. This method uses the copy constructor
+   * of T, so the type has to support it. As a result, this method cannot be
+   * used with types that do not have a copy constructor such as
+   * std::unique_ptr. Use CDList::emplace_back() instead of CDList::push_back()
+   * to avoid this issue.
    */
   void push_back(const T& data) {
-    Debug("cdlist") << "push_back " << this
+    Trace("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": make-current, "
                     << "d_list == " << d_list << std::endl;
     makeCurrent();
-
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": grow? " << d_size
-                    << " " << d_sizeAlloc << std::endl;
-    if(d_size == d_sizeAlloc) {
-      Debug("cdlist") << "push_back " << this
-                      << " " << getContext()->getLevel()
-                      << ": grow!" << std::endl;
-      grow();
-    }
+    grow();
     Assert(d_size < d_sizeAlloc);
 
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": construct! at " << d_list
-                    << "[" << d_size << "] == " << &d_list[d_size]
-                    << std::endl;
-    d_allocator.construct(&d_list[d_size], data);
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": done..." << std::endl;
+    std::allocator_traits<AllocatorT>::construct(
+        d_allocator, &d_list[d_size], data);
     ++d_size;
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": size now " << d_size << std::endl;
+  }
+
+  /**
+   * Construct an item to the end of the list. This method constructs the item
+   * in-place (similar to std::vector::emplace_back()), so it can be used for
+   * types that do not have a copy constructor such as std::unique_ptr.
+   */
+  template <typename... Args>
+  void emplace_back(Args&&... args)
+  {
+    Trace("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": make-current, "
+                    << "d_list == " << d_list << std::endl;
+    makeCurrent();
+    grow();
+    Assert(d_size < d_sizeAlloc);
+
+    std::allocator_traits<AllocatorT>::construct(
+        d_allocator, &d_list[d_size], std::forward<Args>(args)...);
+    ++d_size;
   }
 
   /**
    * Access to the ith item in the list.
    */
   const T& operator[](size_t i) const {
-    Assert(i < d_size, "index out of bounds in CDList::operator[]");
+    Assert(i < d_size) << "index out of bounds in CDList::operator[]";
     return d_list[i];
   }
 
@@ -314,7 +315,7 @@ public:
    * Returns the most recent item added to the list.
    */
   const T& back() const {
-    Assert(d_size > 0, "CDList::back() called on empty list");
+    Assert(d_size > 0) << "CDList::back() called on empty list";
     return d_list[d_size - 1];
   }
 
@@ -324,7 +325,7 @@ public:
    * wrapper around a pointer.  Note that for efficiency, we implement
    * only prefix increment and decrement.  Also note that it's OK to
    * create an iterator from an empty, uninitialized list, as begin()
-   * and end() will have the same value (NULL).
+   * and end() will have the same value (nullptr).
    */
   class const_iterator {
     T const* d_it;
@@ -337,13 +338,13 @@ public:
 
     // FIXME we support operator--, but do we satisfy all the
     // requirements of a bidirectional iterator ?
-    typedef std::input_iterator_tag iterator_category;
+    typedef std::bidirectional_iterator_tag iterator_category;
     typedef T value_type;
     typedef std::ptrdiff_t difference_type;
     typedef const T* pointer;
     typedef const T& reference;
 
-    const_iterator() : d_it(NULL) {}
+    const_iterator() : d_it(nullptr) {}
 
     inline bool operator==(const const_iterator& i) const {
       return d_it == i.d_it;
@@ -356,6 +357,8 @@ public:
     inline const T& operator*() const {
       return *d_it;
     }
+
+    inline const T* operator->() const { return d_it; }
 
     /** Prefix increment */
     const_iterator& operator++() {
@@ -433,7 +436,6 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
                 "Cannot create a CDList with a ContextMemoryAllocator.");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::context
 
-#endif /* __CVC4__CONTEXT__CDLIST_H */
+#endif /* CVC5__CONTEXT__CDLIST_H */

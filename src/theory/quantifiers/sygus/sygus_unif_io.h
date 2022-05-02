@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file sygus_unif_io.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_unif_io
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_unif_io
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -83,7 +84,7 @@ class UnifContextIo : public UnifContext
   * role to nrole.
   */
   bool updateStringPosition(SygusUnifIo* sui,
-                            std::vector<unsigned>& pos,
+                            std::vector<size_t>& pos,
                             NodeRole nrole);
   /** get current strings
   *
@@ -94,7 +95,7 @@ class UnifContextIo : public UnifContext
   */
   void getCurrentStrings(SygusUnifIo* sui,
                          const std::vector<Node>& vals,
-                         std::vector<String>& ex_vals);
+                         std::vector<Node>& ex_vals);
   /** get string increment
   *
   * If this method returns true, then inc and tot are updated such that
@@ -107,13 +108,13 @@ class UnifContextIo : public UnifContext
   */
   bool getStringIncrement(SygusUnifIo* sui,
                           bool isPrefix,
-                          const std::vector<String>& ex_vals,
+                          const std::vector<Node>& ex_vals,
                           const std::vector<Node>& vals,
-                          std::vector<unsigned>& inc,
-                          unsigned& tot);
+                          std::vector<size_t>& inc,
+                          size_t& tot);
   /** returns true if ex_vals[i] = vals[i] for all active indices i. */
   bool isStringSolved(SygusUnifIo* sui,
-                      const std::vector<String>& ex_vals,
+                      const std::vector<Node>& ex_vals,
                       const std::vector<Node>& vals);
   //----------end for CONCAT strategies
 
@@ -123,29 +124,6 @@ class UnifContextIo : public UnifContext
   * visiting. This set is cleared when the context is updated.
   */
   std::map<Node, std::map<NodeRole, bool>> d_visit_role;
-
-  /** unif context enumerator information */
-  class UEnumInfo
-  {
-   public:
-    UEnumInfo() {}
-    /** map from conditions and branch positions to a solved node
-    *
-    * For example, if we have:
-    *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1
-    * Then, valid entries in this map is:
-    *   d_look_ahead_sols[x>0][1] = x+1
-    *   d_look_ahead_sols[x>0][2] = 1
-    * For the first entry, notice that  for all input examples such that x>0
-    * evaluates to true, which are (1) and (3), we have that their output
-    * values for x+1 under the substitution that maps x to the input value,
-    * resulting in 2 and 4, are equal to the output value for the respective
-    * pairs.
-    */
-    std::map<Node, std::map<unsigned, Node>> d_look_ahead_sols;
-  };
-  /** map from enumerators to the above info class */
-  std::map<Node, UEnumInfo> d_uinfo;
 
  private:
   /** true and false nodes */
@@ -206,12 +184,14 @@ class SubsumeTrie
                      bool pol,
                      std::vector<Node>& subsumed_by);
   /**
-  * Get the leaves of the trie, which we store in the map v.
-  * v[-1] stores the children that always evaluate to !pol,
-  * v[1] stores the children that always evaluate to pol,
-  * v[0] stores the children that both evaluate to true and false for at least
-  * one example.
-  */
+   * Get the leaves of the trie, which we store in the map v. We consider their
+   * evaluation on points such that (pol ? vals : !vals) is true.
+   *
+   * v[-1] stores the children that always evaluate to !pol,
+   * v[1] stores the children that always evaluate to pol,
+   * v[0] stores the children that both evaluate to true and false for at least
+   * one example.
+   */
   void getLeaves(const std::vector<Node>& vals,
                  bool pol,
                  std::map<int, std::vector<Node>>& v);
@@ -239,7 +219,24 @@ class SubsumeTrie
                        int status,
                        bool checkExistsOnly,
                        bool checkSubsume);
-  /** helper function for above functions */
+  /** helper function for above functions
+   *
+   * This adds to v[-1], v[0], v[1] the children of the trie that occur
+   * along paths that contain only false (v[-1]), a mix of true/false (v[0]),
+   * and only true (v[1]) values for respectively for relevant points.
+   *
+   * vals/pol is used to determine the relevant points, which impacts which
+   * paths of the trie to traverse on this call.
+   * In particular, all points such that (pol ? vals[index] : !vals[index])
+   * are relevant.
+   *
+   * Paths that contain an unknown value for any relevant point are not
+   * traversed. In the larger picture, this ensures that terms are not used in a
+   * way such that their unknown value is relevant to the overall behavior of
+   * a synthesis solution.
+   *
+   * status holds the current value of v (0,1,-1) that we will be adding to.
+   */
   void getLeavesInternal(const std::vector<Node>& vals,
                          bool pol,
                          std::map<int, std::vector<Node>>& v,
@@ -247,19 +244,19 @@ class SubsumeTrie
                          int status);
 };
 
+class SynthConjecture;
+
 /** Sygus unification I/O utility
  *
  * This class implement synthesis-by-unification, where the specification is
- * I/O examples. With respect to SygusUnif, it's main interface function is
- * addExample, which adds an I/O example to the specification.
+ * I/O examples.
  *
  * Since I/O specifications for multiple functions can be fully separated, we
  * assume that this class is used only for a single function to synthesize.
  *
  * In addition to the base class which maintains a strategy tree, this class
  * maintains:
- * (1) A set of input/output examples that are the specification for f. This
- * can be updated via calls to resetExmaples/addExamples,
+ * (1) A set of input/output examples that are the specification for f.
  * (2) A set of terms that have been enumerated for enumerators (d_ecache). This
  * can be updated via calls to notifyEnumeration.
  */
@@ -268,16 +265,19 @@ class SygusUnifIo : public SygusUnif
   friend class UnifContextIo;
 
  public:
-  SygusUnifIo();
+  SygusUnifIo(Env& env, SynthConjecture* p);
   ~SygusUnifIo();
 
   /** initialize
+   *
+   * This initializes this class for solving PBE conjectures for
+   * function-to-synthesize f.
    *
    * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
    */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;
@@ -287,18 +287,10 @@ class SygusUnifIo : public SygusUnif
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
-
-  /** add example
-   *
-   * This adds input -> output to the specification for f. The arity of
-   * input should be equal to the number of arguments in the sygus variable
-   * list of the grammar of f. That is, if we are searching for solutions for f
-   * of the form (lambda v1...vn. t), then the arity of input should be n.
-   */
-  void addExample(const std::vector<Node>& input, Node output);
-
  protected:
-  /** the candidate */
+  /** The synthesis conjecture */
+  SynthConjecture* d_parent;
+  /** the function-to-synthesize */
   Node d_candidate;
   /**
    * Whether we will try to construct solution on the next call to
@@ -310,6 +302,42 @@ class SygusUnifIo : public SygusUnif
   unsigned d_cond_count;
   /** The solution for the function of this class, if one has been found */
   Node d_solution;
+  /** the term size of the above solution */
+  unsigned d_sol_term_size;
+  /** partial solutions
+   *
+   * Maps indices for I/O points to a list of solutions for that point, for each
+   * type. We may have more than one type for solutions, e.g. for grammar:
+   *   A -> ite( A, B, C ) | ...
+   * where terms of type B and C can both act as solutions.
+   */
+  std::map<size_t, std::map<TypeNode, std::unordered_set<Node>>> d_psolutions;
+  /**
+   * This flag is set to true if the solution construction was
+   * non-deterministic with respect to failure/success.
+   *
+   * The solution construction for the string concatenation strategy is
+   * non-deterministic with respect to success/failure. That is, choosing
+   * a particular string may lead to being unsolvable in the recursive calls,
+   * whereas others may not. For example, if our pool of enumerated strings is:
+   *   { "A", x, "B" }
+   * and our I/O example is:
+   *   f( "AC" ) = "ACB"
+   * then choosing to consider a solution of the form ( "A" ++ _ ) leads
+   * to a recursive call where we are solving for f' in:
+   *   "A" ++ f'("AC") = "ACB"
+   * which is unsolvable since we cannot generate a term starting with "C"
+   * from the pool above. Whereas if we would have chosen ( x ++ _ ), this
+   * leads to a recursive call where we are solving for f' in:
+   *   "AC" ++ f'("AC") = "ACB"
+   * which can be closed with "B", giving us (x ++ "B") as a solution.
+   */
+  bool d_sol_cons_nondet;
+  /**
+   * Whether we are using information gain heuristic during solution
+   * construction.
+   */
+  bool d_solConsUsingInfoGain;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -388,10 +416,11 @@ class SygusUnifIo : public SygusUnif
    * exp : if this function returns true, then exp contains a (possibly
    * generalize) explanation for why v can be excluded.
    */
-  bool getExplanationForEnumeratorExclude(Node e,
-                                          Node v,
-                                          std::vector<Node>& results,
-                                          std::vector<Node>& exp);
+  bool getExplanationForEnumeratorExclude(
+      Node e,
+      Node v,
+      std::vector<Node>& results,
+      std::vector<Node>& exp);
   /** returns true if we can exlude values of e based on negative str.contains
    *
    * Values v for e may be excluded if we realize that the value of v under the
@@ -407,6 +436,12 @@ class SygusUnifIo : public SygusUnif
   bool useStrContainsEnumeratorExclude(Node e);
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
+  /**
+   * cache for the above function, stores whether enumerators e are in
+   * a conditional context, e.g. used for enumerating the return values for
+   * leaves of ITE trees.
+   */
+  std::map<Node, bool> d_use_str_contains_eexc_conditional;
 
   /** the unification context used within constructSolution */
   UnifContextIo d_context;
@@ -420,10 +455,18 @@ class SygusUnifIo : public SygusUnif
                     NodeRole nrole,
                     int ind,
                     std::vector<Node>& lemmas) override;
+  /** construct best conditional
+   *
+   * This returns the condition in conds that maximizes information gain with
+   * respect to the current active points in d_context. For example, see
+   * Alur et al. TACAS 2017 for an example of information gain.
+   */
+  Node constructBestConditional(Node ce,
+                                const std::vector<Node>& conds) override;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */

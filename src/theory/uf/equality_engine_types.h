@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file equality_engine_types.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
-#define __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
 
 #include <string>
 #include <iostream>
@@ -26,7 +27,7 @@
 
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -63,20 +64,18 @@ static const EqualityEdgeId null_edge = (EqualityEdgeId)(-1);
  * or a merge of an equality to false due to both sides being
  * (different) constants.
  */
-enum MergeReasonType {
-  /** Terms were merged due to application of congruence closure */
+enum MergeReasonType
+{
+  /** Terms were merged due to congruence */
   MERGED_THROUGH_CONGRUENCE,
-  /** Terms were merged due to application of pure equality */
+  /** Terms were merged due to an assumption */
   MERGED_THROUGH_EQUALITY,
-  /** Equality was merged to true, due to both sides of equality being in the same class */
+  /** Terms were merged due to reflexivity */
   MERGED_THROUGH_REFLEXIVITY,
-  /** Equality was merged to false, due to both sides of equality being a constant */
+  /** Terms were merged due to theory reasoning */
   MERGED_THROUGH_CONSTANTS,
-  /** (for proofs only) Equality was merged due to transitivity */
+  /** Terms were merged due to transitivity */
   MERGED_THROUGH_TRANS,
-
-  /** Reason types beyond this constant are theory specific reasons */
-  NUMBER_OF_MERGE_REASONS
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -90,13 +89,10 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_REFLEXIVITY:
     out << "reflexivity";
     break;
-  case MERGED_THROUGH_CONSTANTS:
-    out << "constants disequal";
-    break;
+  case MERGED_THROUGH_CONSTANTS: out << "theory constants"; break;
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-
   default:
     out << "[theory]";
     break;
@@ -109,11 +105,14 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
  * additional information.
  */
 struct MergeCandidate {
-  EqualityNodeId t1Id, t2Id;
-  unsigned type;
-  TNode reason;
-  MergeCandidate(EqualityNodeId x, EqualityNodeId y, unsigned type, TNode reason)
-  : t1Id(x), t2Id(y), type(type), reason(reason)
+  EqualityNodeId d_t1Id, d_t2Id;
+  unsigned d_type;
+  TNode d_reason;
+  MergeCandidate(EqualityNodeId x,
+                 EqualityNodeId y,
+                 unsigned type,
+                 TNode reason)
+      : d_t1Id(x), d_t2Id(y), d_type(type), d_reason(reason)
   {}
 };
 
@@ -121,10 +120,13 @@ struct MergeCandidate {
  * Just an index into the reasons array, and the number of merges to consume.
  */
 struct DisequalityReasonRef {
-  DefaultSizeType mergesStart;
-  DefaultSizeType mergesEnd;
-  DisequalityReasonRef(DefaultSizeType mergesStart = 0, DefaultSizeType mergesEnd = 0)
-  : mergesStart(mergesStart), mergesEnd(mergesEnd) {}
+  DefaultSizeType d_mergesStart;
+  DefaultSizeType d_mergesEnd;
+  DisequalityReasonRef(DefaultSizeType mergesStart = 0,
+                       DefaultSizeType mergesEnd = 0)
+      : d_mergesStart(mergesStart), d_mergesEnd(mergesEnd)
+  {
+  }
 };
 
 /**
@@ -261,7 +263,7 @@ public:
    */
   template<typename memory_class>
   void removeTopFromUseList(memory_class& memory) {
-    Assert ((int) d_useList == (int)memory.size() - 1);
+    Assert((int)d_useList == (int)memory.size() - 1);
     d_useList = memory.back().getNext();
     memory.pop_back();
   }
@@ -289,41 +291,38 @@ enum FunctionApplicationType {
  */
 struct FunctionApplication {
   /** Type of application */
-  FunctionApplicationType type;
+  FunctionApplicationType d_type;
   /** The actual application elements */
-  EqualityNodeId a, b;
+  EqualityNodeId d_a, d_b;
 
   /** Construct an application */
-  FunctionApplication(FunctionApplicationType type = APP_EQUALITY, EqualityNodeId a = null_id, EqualityNodeId b = null_id)
-  : type(type), a(a), b(b) {}
+  FunctionApplication(FunctionApplicationType type = APP_EQUALITY,
+                      EqualityNodeId a = null_id,
+                      EqualityNodeId b = null_id)
+      : d_type(type), d_a(a), d_b(b)
+  {
+  }
 
   /** Equality of two applications */
   bool operator == (const FunctionApplication& other) const {
-    return type == other.type && a == other.a && b == other.b;
+    return d_type == other.d_type && d_a == other.d_a && d_b == other.d_b;
   }
 
   /** Is this a null application */
-  bool isNull() const {
-    return a == null_id || b == null_id;
-  }
+  bool isNull() const { return d_a == null_id || d_b == null_id; }
 
   /** Is this an equality */
-  bool isEquality() const {
-    return type == APP_EQUALITY;
-  }
+  bool isEquality() const { return d_type == APP_EQUALITY; }
 
   /** Is this an interpreted application (equality is special, i.e. not interpreted) */
-  bool isInterpreted() const {
-    return type == APP_INTERPRETED;
-  }
-
+  bool isInterpreted() const { return d_type == APP_INTERPRETED; }
 };
 
 struct FunctionApplicationHashFunction {
   size_t operator () (const FunctionApplication& app) const {
     size_t hash = 0;
-    hash = 0x9e3779b9 + app.a;
-    hash ^= 0x9e3779b9 + app.b + (hash << 6) + (hash >> 2);
+    hash = 0x9e3779b9 + app.d_a;
+    hash ^= 0x9e3779b9 + app.d_b + (hash << 6) + (hash >> 2);
     return hash;
   }
 };
@@ -333,14 +332,15 @@ struct FunctionApplicationHashFunction {
  * we keep both the original, and the normalized version.
  */
 struct FunctionApplicationPair {
-  FunctionApplication original;
-  FunctionApplication normalized;
+  FunctionApplication d_original;
+  FunctionApplication d_normalized;
   FunctionApplicationPair() {}
-  FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
-  : original(original), normalized(normalized) {}
-  bool isNull() const {
-    return original.isNull();
+  FunctionApplicationPair(const FunctionApplication& original,
+                          const FunctionApplication& normalized)
+      : d_original(original), d_normalized(normalized)
+  {
   }
+  bool isNull() const { return d_original.isNull(); }
 };
 
 /**
@@ -348,16 +348,18 @@ struct FunctionApplicationPair {
  */
 struct TriggerInfo {
   /** The trigger itself */
-  Node trigger;
+  Node d_trigger;
   /** Polarity of the trigger */
-  bool polarity;
-  TriggerInfo() : polarity(false) {}
+  bool d_polarity;
+  TriggerInfo() : d_polarity(false) {}
   TriggerInfo(Node trigger, bool polarity)
-      : trigger(trigger), polarity(polarity) {}
+      : d_trigger(trigger), d_polarity(polarity)
+  {
+  }
 };
 
 } // namespace eq
 } // namespace theory
-} // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */
+#endif /* CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H */

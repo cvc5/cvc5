@@ -1,35 +1,26 @@
-/*********************                                                        */
-/*! \file gmp_util.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
-
-#include "cvc4_public.h"
-
-#ifndef __CVC4__GMP_UTIL_H
-#define __CVC4__GMP_UTIL_H
-
-/*
- * Older versions of GMP in combination with newer versions of GCC and C++11
- * cause errors: https://gcc.gnu.org/gcc-4.9/porting_to.html
- * Including <cstddef> is a workaround for this issue.
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * GMP utilities.
  */
-#include <cstddef>
+
+#include "cvc5_public.h"
+
+#ifndef CVC5__GMP_UTIL_H
+#define CVC5__GMP_UTIL_H
 
 #include <gmpxx.h>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /** Hashes the gmp integer primitive in a word by word fashion. */
 inline size_t gmpz_hash(const mpz_t toHash) {
@@ -42,6 +33,6 @@ inline size_t gmpz_hash(const mpz_t toHash) {
   return hash;
 }/* gmpz_hash() */
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__GMP_UTIL_H */
+#endif /* CVC5__GMP_UTIL_H */

@@ -1,7 +1,0 @@
-(set-info :smt-lib-version 2.5)
-(set-logic QF_SLIA)
-(set-option :strings-exp true)
-(set-info :status sat)
-(declare-fun x () Int)
-(assert (str.contains "Ducati100" (int.to.str x)))
-(check-sat)

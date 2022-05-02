@@ -1,7 +1,0 @@
-% EXPECT: valid
-
-DATATYPE nat = succ(pred : nat) | zero END;
-
-x : nat;
-
-QUERY (is_succ(x) OR is_zero(x));

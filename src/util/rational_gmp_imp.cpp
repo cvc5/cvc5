@@ -1,33 +1,31 @@
-/*********************                                                        */
-/*! \file rational_gmp_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Christopher L. Conway, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multi-precision rational constant.
- **
- ** A multi-precision rational constant.
- **/
-#include "util/rational.h"
-
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Christopher L. Conway, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multi-precision rational constant.
+ */
 #include <cmath>
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
+#include "util/rational.h"
 
-#ifndef CVC4_GMP_IMP // Make sure this comes after cvc4autoconfig.h
-#  error "This source should only ever be built if CVC4_GMP_IMP is on !"
-#endif /* CVC4_GMP_IMP */
+#ifndef CVC5_GMP_IMP  // Make sure this comes after base/cvc5config.h
+#error "This source should only ever be built if CVC5_GMP_IMP is on !"
+#endif /* CVC5_GMP_IMP */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
@@ -87,7 +85,7 @@ int Rational::absCmp(const Rational& q) const{
 
 
 /** Return an exact rational for a double d. */
-Maybe<Rational> Rational::fromDouble(double d)
+std::optional<Rational> Rational::fromDouble(double d)
 {
   using namespace std;
   if(isfinite(d)){
@@ -95,7 +93,7 @@ Maybe<Rational> Rational::fromDouble(double d)
     mpq_set_d(q.d_value.get_mpq_t(), d);
     return q;
   }
-  return Maybe<Rational>();
+  return std::optional<Rational>();
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5::internal

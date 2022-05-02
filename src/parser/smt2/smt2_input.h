@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file smt2_input.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Aina Niemetz, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add file-specific comments here ]]
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT2_INPUT_H
-#define __CVC4__PARSER__SMT2_INPUT_H
+#ifndef CVC5__PARSER__SMT2_INPUT_H
+#define CVC5__PARSER__SMT2_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
 
-// extern void Smt2ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
+// extern void Smt2ParserSetAntlrParser(cvc5::parser::AntlrParser*
+// newAntlrParser);
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -76,11 +78,11 @@ class Smt2Input : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() override;
+  cvc5::Term parseExpr() override;
 
 };/* class Smt2Input */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* __CVC4__PARSER__SMT2_INPUT_H */
+#endif /* CVC5__PARSER__SMT2_INPUT_H */

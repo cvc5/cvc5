@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+source "$(dirname "$0")/get-script-header.sh"
+
+DRAT2ER_DIR="$DEPS_DIR/drat2er"
+commit=521caf16149df3dfa46f700ec1fab56f8cc12a18
+
+setup_dep \
+  "https://github.com/alex-ozdemir/drat2er/archive/$commit.tar.gz" \
+  "$DRAT2ER_DIR"
+cd "$DRAT2ER_DIR"
+
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"
+make install -j$(nproc)
+
+echo
+echo ===================== Now configure cvc5 with =====================
+echo ./configure.sh --drat2er

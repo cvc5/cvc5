@@ -1,91 +1,118 @@
-/*********************                                                        */
-/*! \file model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__MODEL_H
-#define __CVC4__MODEL_H
+#ifndef CVC5__SMT__MODEL_H
+#define CVC5__SMT__MODEL_H
 
 #include <iosfwd>
 #include <vector>
 
-#include "expr/expr.h"
-#include "util/cardinality.h"
+#include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+namespace smt {
 
-class Command;
-class SmtEngine;
 class Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);
 
+/**
+ * A utility for representing a model for pretty printing.
+ */
 class Model {
-  friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class SmtEngine;
-
-  /** the input name (file name, etc.) this model is associated to */
-  std::string d_inputName;
-
-protected:
-  /** The SmtEngine we're associated with */
-  SmtEngine& d_smt;
-
-  /** construct the base class; users cannot do this, only CVC4 internals */
-  Model();
-
-public:
-  /** virtual destructor */
-  virtual ~Model() { }
-  /** get number of commands to report */
-  size_t getNumCommands() const;
-  /** get command */
-  const Command* getCommand(size_t i) const;
-  /** get the smt engine that this model is hooked up to */
-  SmtEngine* getSmtEngine() { return &d_smt; }
-  /** get the smt engine (as a pointer-to-const) that this model is hooked up to */
-  const SmtEngine* getSmtEngine() const { return &d_smt; }
+ public:
+  /** Constructor
+   * @param isKnownSat True if this model is associated with a "sat" response,
+   * or false if it is associated with an "unknown" response.
+   */
+  Model(bool isKnownSat, const std::string& inputName);
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
-public:
-  /** Check whether this expr is a don't-care in the model */
-  virtual bool isDontCare(Expr expr) const { return false; }
-  /** get value for expression */
-  virtual Expr getValue(Expr expr) const = 0;
-  /** get cardinality for sort */
-  virtual Cardinality getCardinality(Type t) const = 0;
-  /** print comments */
-  virtual void getComments(std::ostream& out) const {}
-  /** get heap model (for separation logic) */
-  virtual bool getHeapModel( Expr& h, Expr& ne ) const { return false; }
-  /** are there any approximations in this model? */
-  virtual bool hasApproximations() const { return false; }
-  /** get the list of approximations
-   *
-   * This is a list of pairs of the form (t,p), where t is a term and p
-   * is a predicate over t that indicates a property that t satisfies.
+  /**
+   * Returns true if this model is guaranteed to be a model of the input
+   * formula. Notice that when cvc5 answers "unknown", it may have a model
+   * available for which this method returns false. In this case, this model is
+   * only a candidate solution.
    */
-  virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
-};/* class Model */
+  bool isKnownSat() const { return d_isKnownSat; }
+  /** Get domain elements */
+  const std::vector<Node>& getDomainElements(TypeNode tn) const;
+  /** Get value */
+  Node getValue(TNode n) const;
+  /** Get separation logic heap and nil, return true if they have been set */
+  bool getHeapModel(Node& h, Node& nilEq) const;
+  //----------------------- model declarations
+  /**
+   * Set that tn is a sort that should be printed in the model, when applicable,
+   * based on the output language.
+   *
+   * @param tn The uninterpreted sort
+   * @param elements The domain elements of tn in the model
+   */
+  void addDeclarationSort(TypeNode tn, const std::vector<Node>& elements);
+  /**
+   * Set that n is a variable that should be printed in the model, when
+   * applicable, based on the output language.
+   *
+   * @param n The variable
+   * @param value The value of the variable in the model
+   */
+  void addDeclarationTerm(Node n, Node value);
+  /**
+   * Set the separation logic model information where h is the heap and nilEq
+   * is the value of sep.nil.
+   *
+   * @param h The value of heap in the heap model
+   * @param nilEq The value of sep.nil in the heap model
+   */
+  void setHeapModel(Node h, Node nilEq);
+  /** get declared sorts */
+  const std::vector<TypeNode>& getDeclaredSorts() const;
+  /** get declared terms */
+  const std::vector<Node>& getDeclaredTerms() const;
+  //----------------------- end model declarations
+ protected:
+  /** the input name (file name, etc.) this model is associated to */
+  std::string d_inputName;
+  /**
+   * Flag set to false if the model is associated with an "unknown" response
+   * from the solver.
+   */
+  bool d_isKnownSat;
+  /**
+   * The list of types to print, generally corresponding to declare-sort
+   * commands.
+   */
+  std::vector<TypeNode> d_declareSorts;
+  /** The interpretation of the above sorts, as a list of domain elements. */
+  std::map<TypeNode, std::vector<Node>> d_domainElements;
+  /**
+   * The list of terms to print, is typically one-to-one with declare-fun
+   * commands.
+   */
+  std::vector<Node> d_declareTerms;
+  /** Mapping terms to values */
+  std::map<Node, Node> d_declareTermValues;
+  /** Separation logic heap and nil */
+  Node d_sepHeap;
+  Node d_sepNilEq;
+};
 
-class ModelBuilder {
-public:
-  ModelBuilder() { }
-  virtual ~ModelBuilder() { }
-  virtual bool buildModel(Model* m) = 0;
-};/* class ModelBuilder */
+}  // namespace smt
+}  // namespace cvc5::internal
 
-}/* CVC4 namespace */
-
-#endif  /* __CVC4__MODEL_H */
+#endif /* CVC5__SMT__MODEL_H */

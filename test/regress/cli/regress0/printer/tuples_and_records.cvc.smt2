@@ -1,0 +1,15 @@
+; EXPECT: sat
+; EXPECT: (((a r) "active"))
+; EXPECT: ((((_ tuple.select 1) y) 9))
+(set-logic ALL)
+(set-option :incremental false)
+(set-option :produce-models true)
+(declare-datatypes ((__cvc5_record_a_String_b_String 0)) (((__cvc5_record_a_String_b_String_ctor (a String) (b String)))))
+
+(declare-fun r () __cvc5_record_a_String_b_String)
+(declare-fun y () (Tuple Real Int Real))
+(assert (= r (__cvc5_record_a_String_b_String_ctor "active" "who knows?")))
+(assert (= y (tuple (/ 4 5) 9 (/ 11 9))))
+(check-sat-assuming ( (not (= (a r) "what?")) ))
+(get-value ( (a r) ))
+(get-value ( ((_ tuple.select 1) y) ))

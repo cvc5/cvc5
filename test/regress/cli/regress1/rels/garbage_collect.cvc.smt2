@@ -1,0 +1,37 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-sort H_TYPE 0)
+
+(declare-sort Obj 0)
+
+
+
+
+(declare-fun h0 () (Relation H_TYPE))
+(declare-fun h1 () (Relation H_TYPE))
+(declare-fun h2 () (Relation H_TYPE))
+(declare-fun h3 () (Relation H_TYPE))
+(declare-fun s0 () H_TYPE)
+(declare-fun s1 () H_TYPE)
+(declare-fun s2 () H_TYPE)
+(declare-fun s3 () H_TYPE)
+(assert (= h0 (set.singleton (tuple s0))))
+(assert (= h1 (set.singleton (tuple s1))))
+(assert (= h2 (set.singleton (tuple s2))))
+(assert (= h3 (set.singleton (tuple s3))))
+(declare-fun ref () (Relation H_TYPE Obj Obj))
+(declare-fun mark () (Relation H_TYPE Obj))
+(declare-fun empty_obj_set () (Relation Obj))
+(assert (= empty_obj_set (as set.empty (Relation Obj))))
+(declare-fun root () Obj)
+(declare-fun live () Obj)
+(assert (= (rel.join h1 mark) empty_obj_set))
+(assert (set.subset (rel.join h0 ref) (rel.join h1 ref)))
+(assert (forall ((n Obj)) (=> (set.member (tuple root n) (rel.tclosure (rel.join h1 ref))) (set.member (tuple n) (rel.join h2 mark)))))
+(assert (set.subset (rel.join h1 ref) (rel.join h2 ref)))
+(assert (forall ((n Obj)) (let ((_let_1 (tuple n))) (=> (not (set.member _let_1 (rel.join h2 mark))) (= (rel.join (set.singleton _let_1) (rel.join h3 ref)) empty_obj_set)))))
+(assert (forall ((n Obj)) (let ((_let_1 (tuple n))) (let ((_let_2 (set.singleton _let_1))) (=> (set.member _let_1 (rel.join h2 mark)) (= (rel.join _let_2 (rel.join h3 ref)) (rel.join _let_2 (rel.join h2 ref))))))))
+(assert (set.member (tuple root live) (rel.tclosure (rel.join h0 ref))))
+(assert (let ((_let_1 (set.singleton (tuple live)))) (not (set.subset (rel.join _let_1 (rel.join h0 ref)) (rel.join _let_1 (rel.join h3 ref))))))
+(check-sat)

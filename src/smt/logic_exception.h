@@ -1,32 +1,31 @@
-/*********************                                                        */
-/*! \file logic_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An exception that is thrown when a feature is used outside
- ** the logic that CVC4 is currently using
- **
- ** \brief An exception that is thrown when a feature is used outside
- ** the logic that CVC4 is currently using (for example, a quantifier
- ** is used while running in a quantifier-free logic).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An exception that is thrown when a feature is used outside
+ * the logic that cvc5 is currently using (for example, a quantifier
+ * is used while running in a quantifier-free logic).
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef __CVC4__SMT__LOGIC_EXCEPTION_H
-#define __CVC4__SMT__LOGIC_EXCEPTION_H
+#ifndef CVC5__SMT__LOGIC_EXCEPTION_H
+#define CVC5__SMT__LOGIC_EXCEPTION_H
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-class CVC4_PUBLIC LogicException : public CVC4::Exception {
+class LogicException : public cvc5::internal::Exception
+{
  public:
   LogicException() :
     Exception("Feature used while operating in "
@@ -40,8 +39,8 @@ class CVC4_PUBLIC LogicException : public CVC4::Exception {
   LogicException(const char* msg) :
     Exception(msg) {
   }
-};/* class LogicException */
+}; /* class LogicException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__SMT__LOGIC_EXCEPTION_H */
+#endif /* CVC5__SMT__LOGIC_EXCEPTION_H */

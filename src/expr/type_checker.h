@@ -1,28 +1,27 @@
-/*********************                                                        */
-/*! \file type_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A type checker
- **
- ** A type checker.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A type checker.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // ordering dependence
 #include "expr/node.h"
 
-#ifndef __CVC4__EXPR__TYPE_CHECKER_H
-#define __CVC4__EXPR__TYPE_CHECKER_H
+#ifndef CVC5__EXPR__TYPE_CHECKER_H
+#define CVC5__EXPR__TYPE_CHECKER_H
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 
 class TypeChecker {
@@ -33,11 +32,9 @@ public:
 
  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 
- static bool neverIsConst(NodeManager* nodeManager, TNode n);
-
 };/* class TypeChecker */
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__EXPR__TYPE_CHECKER_H */
+#endif /* CVC5__EXPR__TYPE_CHECKER_H */

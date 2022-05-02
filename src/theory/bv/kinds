@@ -4,202 +4,249 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
+theory THEORY_BV ::cvc5::internal::theory::bv::TheoryBV "theory/bv/theory_bv.h"
 typechecker "theory/bv/theory_bv_type_rules.h"
 
 properties finite
 properties check propagate presolve ppStaticLearn
 
-rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
+rewriter ::cvc5::internal::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 
 constant BITVECTOR_TYPE \
-	::CVC4::BitVectorSize \
-	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorSize >" \
-	"util/bitvector.h" \
-	"bit-vector type"
+  struct \
+  BitVectorSize \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorSize >" \
+  "util/bitvector.h" \
+  "bit-vector type"
 cardinality BITVECTOR_TYPE \
-	"::CVC4::theory::bv::CardinalityComputer::computeCardinality(%TYPE%)" \
+	"::cvc5::internal::theory::bv::CardinalityComputer::computeCardinality(%TYPE%)" \
 	"theory/bv/theory_bv_type_rules.h"
 
 constant CONST_BITVECTOR \
-    ::CVC4::BitVector \
-    ::CVC4::BitVectorHashFunction \
-    "util/bitvector.h" \
-    "a fixed-width bit-vector constant; payload is an instance of the CVC4::BitVector class"
+  class \
+  BitVector \
+  ::cvc5::internal::BitVectorHashFunction \
+  "util/bitvector.h" \
+  "a fixed-width bit-vector constant; payload is an instance of the cvc5::internal::BitVector class"
 
 enumerator BITVECTOR_TYPE \
-    "::CVC4::theory::bv::BitVectorEnumerator" \
+    "::cvc5::internal::theory::bv::BitVectorEnumerator" \
     "theory/bv/type_enumerator.h"
 
 well-founded BITVECTOR_TYPE \
     true \
-    "(*CVC4::theory::TypeEnumerator(%TYPE%))" \
+    "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))" \
     "theory/type_enumerator.h"
 
+### non-parameterized operator kinds ------------------------------------------
+
+## conversion to bit-vector from vector of Booleans kind
+operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
+
+## concatentation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
+
+## bit-wise kinds
 operator BITVECTOR_AND 2: "bitwise and of two or more bit-vectors"
+operator BITVECTOR_COMP 2 "equality comparison of two bit-vectors (returns one bit)"
 operator BITVECTOR_OR 2: "bitwise or of two or more bit-vectors"
 operator BITVECTOR_XOR 2: "bitwise xor of two or more bit-vectors"
 operator BITVECTOR_NOT 1 "bitwise not of a bit-vector"
 operator BITVECTOR_NAND 2 "bitwise nand of two bit-vectors"
 operator BITVECTOR_NOR 2 "bitwise nor of two bit-vectors"
 operator BITVECTOR_XNOR 2 "bitwise xnor of two bit-vectors"
-operator BITVECTOR_COMP 2 "equality comparison of two bit-vectors (returns one bit)"
+
+## arithmetic kinds
 operator BITVECTOR_MULT 2: "multiplication of two or more bit-vectors"
-operator BITVECTOR_PLUS 2: "addition of two or more bit-vectors"
-operator BITVECTOR_SUB 2 "subtraction of two bit-vectors"
 operator BITVECTOR_NEG 1 "unary negation of a bit-vector"
-operator BITVECTOR_UDIV 2 "unsigned division of two bit-vectors, truncating towards 0 (undefined if divisor is 0)"
-operator BITVECTOR_UREM 2 "unsigned remainder from truncating division of two bit-vectors (undefined if divisor is 0)"
+operator BITVECTOR_ADD 2: "addition of two or more bit-vectors"
+operator BITVECTOR_SUB 2 "subtraction of two bit-vectors"
+operator BITVECTOR_UDIV 2 "unsigned division of two bit-vectors, truncating towards 0 (defined to be the all-ones bit pattern, if divisor is 0)"
+operator BITVECTOR_UREM 2 "unsigned remainder from truncating division of two bit-vectors (defined to be equal to the dividend, if divisor is 0)"
 operator BITVECTOR_SDIV 2 "2's complement signed division"
-operator BITVECTOR_SREM 2 "2's complement signed remainder (sign follows dividend)"
 operator BITVECTOR_SMOD 2 "2's complement signed remainder (sign follows divisor)"
-# total division kinds
-operator BITVECTOR_UDIV_TOTAL 2 "unsigned division of two bit-vectors, truncating towards 0 (defined to be the all-ones bit pattern, if divisor is 0)"
-operator BITVECTOR_UREM_TOTAL 2 "unsigned remainder from truncating division of two bit-vectors (defined to be equal to the dividend, if divisor is 0)"
+operator BITVECTOR_SREM 2 "2's complement signed remainder (sign follows dividend)"
 
-operator BITVECTOR_SHL 2 "bit-vector shift left (the two bit-vector parameters must have same width)"
-operator BITVECTOR_LSHR 2 "bit-vector logical shift right (the two bit-vector parameters must have same width)"
+## shift kinds
 operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right (the two bit-vector parameters must have same width)"
+operator BITVECTOR_LSHR 2 "bit-vector logical shift right (the two bit-vector parameters must have same width)"
+operator BITVECTOR_SHL 2 "bit-vector shift left (the two bit-vector parameters must have same width)"
 
-operator BITVECTOR_ULT 2 "bit-vector unsigned less than (the two bit-vector parameters must have same width)"
+## inequality kinds
 operator BITVECTOR_ULE 2 "bit-vector unsigned less than or equal (the two bit-vector parameters must have same width)"
-operator BITVECTOR_UGT 2 "bit-vector unsigned greater than (the two bit-vector parameters must have same width)"
+operator BITVECTOR_ULT 2 "bit-vector unsigned less than (the two bit-vector parameters must have same width)"
 operator BITVECTOR_UGE 2 "bit-vector unsigned greater than or equal (the two bit-vector parameters must have same width)"
-operator BITVECTOR_SLT 2 "bit-vector signed less than (the two bit-vector parameters must have same width)"
+operator BITVECTOR_UGT 2 "bit-vector unsigned greater than (the two bit-vector parameters must have same width)"
 operator BITVECTOR_SLE 2 "bit-vector signed less than or equal (the two bit-vector parameters must have same width)"
-operator BITVECTOR_SGT 2 "bit-vector signed greater than (the two bit-vector parameters must have same width)"
+operator BITVECTOR_SLT 2 "bit-vector signed less than (the two bit-vector parameters must have same width)"
 operator BITVECTOR_SGE 2 "bit-vector signed greater than or equal (the two bit-vector parameters must have same width)"
-
+operator BITVECTOR_SGT 2 "bit-vector signed greater than (the two bit-vector parameters must have same width)"
+# inequalities with return type bit-vector of size 1
 operator BITVECTOR_ULTBV 2 "bit-vector unsigned less than but returns bv of size 1 instead of boolean"
 operator BITVECTOR_SLTBV 2 "bit-vector signed less than but returns bv of size 1 instead of boolean"
+
+## reduction kinds
+operator BITVECTOR_REDAND 1 "bit-vector redand"
+operator BITVECTOR_REDOR 1 "bit-vector redor"
+
+## if-then-else kind
 operator BITVECTOR_ITE 3 "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
 
-operator BITVECTOR_REDOR 1 "bit-vector redor"
-operator BITVECTOR_REDAND 1 "bit-vector redand"
-
-operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bit-blasting (internal-only symbol)"
-operator BITVECTOR_ACKERMANNIZE_UDIV 1 "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvudiv (internal-only symbol)"
-operator BITVECTOR_ACKERMANNIZE_UREM 1 "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvurem (internal-only symbol)"
-
-constant BITVECTOR_BITOF_OP \
-	::CVC4::BitVectorBitOf \
-	::CVC4::BitVectorBitOfHashFunction \
-	"util/bitvector.h" \
-	"operator for the bit-vector boolean bit extract; payload is an instance of the CVC4::BitVectorBitOf class"
-
-constant BITVECTOR_EXTRACT_OP \
-	::CVC4::BitVectorExtract \
-	::CVC4::BitVectorExtractHashFunction \
-	"util/bitvector.h" \
-	"operator for the bit-vector extract; payload is an instance of the CVC4::BitVectorExtract class"
-
-constant BITVECTOR_REPEAT_OP \
-	::CVC4::BitVectorRepeat \
-	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorRepeat >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector repeat; payload is an instance of the CVC4::BitVectorRepeat class"
-
-constant BITVECTOR_ZERO_EXTEND_OP \
-	::CVC4::BitVectorZeroExtend \
-	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorZeroExtend >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector zero-extend; payload is an instance of the CVC4::BitVectorZeroExtend class"
-
-constant BITVECTOR_SIGN_EXTEND_OP \
-	::CVC4::BitVectorSignExtend \
-	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorSignExtend >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector sign-extend; payload is an instance of the CVC4::BitVectorSignExtend class"
-
-constant BITVECTOR_ROTATE_LEFT_OP \
-	::CVC4::BitVectorRotateLeft \
-	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorRotateLeft >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector rotate left; payload is an instance of the CVC4::BitVectorRotateLeft class"
-
-constant BITVECTOR_ROTATE_RIGHT_OP \
-	::CVC4::BitVectorRotateRight \
-	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorRotateRight >" \
-	"util/bitvector.h" \
-	"operator for the bit-vector rotate right; payload is an instance of the CVC4::BitVectorRotateRight class"
-
-parameterized BITVECTOR_BITOF BITVECTOR_BITOF_OP 1 "bit-vector boolean bit extract; first parameter is a BITVECTOR_BITOF_OP, second is a bit-vector term"
-parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 1 "bit-vector extract; first parameter is a BITVECTOR_EXTRACT_OP, second is a bit-vector term"
-parameterized BITVECTOR_REPEAT BITVECTOR_REPEAT_OP 1 "bit-vector repeat; first parameter is a BITVECTOR_REPEAT_OP, second is a bit-vector term"
-parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend; first parameter is a BITVECTOR_ZERO_EXTEND_OP, second is a bit-vector term"
-parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-extend; first parameter is a BITVECTOR_SIGN_EXTEND_OP, second is a bit-vector term"
-parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left; first parameter is a BITVECTOR_ROTATE_LEFT_OP, second is a bit-vector term"
-parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right; first parameter is a BITVECTOR_ROTATE_RIGHT_OP, second is a bit-vector term"
-
-constant INT_TO_BITVECTOR_OP \
-	::CVC4::IntToBitVector \
-	"::CVC4::UnsignedHashFunction< ::CVC4::IntToBitVector >" \
-	"util/bitvector.h" \
-	"operator for the integer conversion to bit-vector; payload is an instance of the CVC4::IntToBitVector class"
-parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
+## conversion kinds
 operator BITVECTOR_TO_NAT 1 "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
 
-typerule CONST_BITVECTOR ::CVC4::theory::bv::BitVectorConstantTypeRule
+## internal kinds
+operator BITVECTOR_ACKERMANNIZE_UDIV 1 "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvudiv (internal-only symbol)"
+operator BITVECTOR_ACKERMANNIZE_UREM 1 "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvurem (internal-only symbol)"
+operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bit-blasting (internal-only symbol)"
 
-typerule BITVECTOR_AND ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_OR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_XOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_NOT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_NAND ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_NOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_XNOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+### parameterized operator kinds ----------------------------------------------
 
-typerule BITVECTOR_MULT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_PLUS ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_SUB ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_NEG ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+constant BITVECTOR_BITOF_OP \
+  struct \
+  BitVectorBitOf \
+  ::cvc5::internal::BitVectorBitOfHashFunction \
+  "util/bitvector.h" \
+  "operator for the bit-vector boolean bit extract; payload is an instance of the cvc5::internal::BitVectorBitOf class"
+parameterized BITVECTOR_BITOF BITVECTOR_BITOF_OP 1 "bit-vector boolean bit extract; first parameter is a BITVECTOR_BITOF_OP, second is a bit-vector term"
 
-typerule BITVECTOR_UDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_UREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_UDIV_TOTAL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_UREM_TOTAL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_SDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_SREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_SMOD ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_SHL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_LSHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_ASHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_ROTATE_LEFT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_ROTATE_RIGHT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+constant BITVECTOR_EXTRACT_OP \
+  struct \
+  BitVectorExtract \
+  ::cvc5::internal::BitVectorExtractHashFunction \
+  "util/bitvector.h" \
+  "operator for the bit-vector extract; payload is an instance of the cvc5::internal::BitVectorExtract class"
+parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 1 "bit-vector extract; first parameter is a BITVECTOR_EXTRACT_OP, second is a bit-vector term"
 
-typerule BITVECTOR_ULT ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_ULE ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_UGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_UGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_SLT ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_SLE ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
-typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+constant BITVECTOR_REPEAT_OP \
+  struct \
+  BitVectorRepeat \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorRepeat >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector repeat; payload is an instance of the cvc5::internal::BitVectorRepeat class"
+parameterized BITVECTOR_REPEAT BITVECTOR_REPEAT_OP 1 "bit-vector repeat; first parameter is a BITVECTOR_REPEAT_OP, second is a bit-vector term"
 
-typerule BITVECTOR_COMP ::CVC4::theory::bv::BitVectorBVPredTypeRule
-typerule BITVECTOR_ULTBV ::CVC4::theory::bv::BitVectorBVPredTypeRule
-typerule BITVECTOR_SLTBV ::CVC4::theory::bv::BitVectorBVPredTypeRule
-typerule BITVECTOR_ITE ::CVC4::theory::bv::BitVectorITETypeRule
+constant BITVECTOR_ROTATE_LEFT_OP \
+  struct \
+  BitVectorRotateLeft \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorRotateLeft >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector rotate left; payload is an instance of the cvc5::internal::BitVectorRotateLeft class"
+parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left; first parameter is a BITVECTOR_ROTATE_LEFT_OP, second is a bit-vector term"
 
-typerule BITVECTOR_REDOR ::CVC4::theory::bv::BitVectorUnaryPredicateTypeRule
-typerule BITVECTOR_REDAND ::CVC4::theory::bv::BitVectorUnaryPredicateTypeRule
+constant BITVECTOR_ROTATE_RIGHT_OP \
+  struct \
+  BitVectorRotateRight \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorRotateRight >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector rotate right; payload is an instance of the cvc5::internal::BitVectorRotateRight class"
+parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right; first parameter is a BITVECTOR_ROTATE_RIGHT_OP, second is a bit-vector term"
 
+constant BITVECTOR_SIGN_EXTEND_OP \
+  struct \
+  BitVectorSignExtend \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorSignExtend >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector sign-extend; payload is an instance of the cvc5::internal::BitVectorSignExtend class"
+parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-extend; first parameter is a BITVECTOR_SIGN_EXTEND_OP, second is a bit-vector term"
 
-typerule BITVECTOR_EAGER_ATOM ::CVC4::theory::bv::BitVectorEagerAtomTypeRule
-typerule BITVECTOR_ACKERMANNIZE_UDIV ::CVC4::theory::bv::BitVectorAckermanizationUdivTypeRule
-typerule BITVECTOR_ACKERMANNIZE_UREM ::CVC4::theory::bv::BitVectorAckermanizationUremTypeRule
+constant BITVECTOR_ZERO_EXTEND_OP \
+  struct \
+  BitVectorZeroExtend \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorZeroExtend >" \
+  "util/bitvector.h" \
+  "operator for the bit-vector zero-extend; payload is an instance of the cvc5::internal::BitVectorZeroExtend class"
+parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend; first parameter is a BITVECTOR_ZERO_EXTEND_OP, second is a bit-vector term"
 
-typerule BITVECTOR_EXTRACT_OP ::CVC4::theory::bv::BitVectorExtractOpTypeRule
-typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
-typerule BITVECTOR_BITOF   ::CVC4::theory::bv::BitVectorBitOfTypeRule
-typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatTypeRule
-typerule BITVECTOR_REPEAT ::CVC4::theory::bv::BitVectorRepeatTypeRule
-typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
-typerule BITVECTOR_SIGN_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
+constant INT_TO_BITVECTOR_OP \
+  struct \
+  IntToBitVector \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntToBitVector >" \
+  "util/bitvector.h" \
+  "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::internal::IntToBitVector class"
+parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
 
-typerule BITVECTOR_TO_NAT ::CVC4::theory::bv::BitVectorConversionTypeRule
-typerule INT_TO_BITVECTOR_OP ::CVC4::theory::bv::IntToBitVectorOpTypeRule
-typerule INT_TO_BITVECTOR ::CVC4::theory::bv::BitVectorConversionTypeRule
+### type rules for non-parameterized operator kinds ---------------------------
+
+typerule CONST_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConstantTypeRule
+
+## conversion to bit-vector from vector of Booleans kind
+typerule BITVECTOR_BB_TERM ::cvc5::internal::theory::bv::BitVectorToBVTypeRule
+
+## concatentation kind
+typerule BITVECTOR_CONCAT ::cvc5::internal::theory::bv::BitVectorConcatTypeRule
+
+## bit-wise kinds
+typerule BITVECTOR_AND ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_COMP ::cvc5::internal::theory::bv::BitVectorBVPredTypeRule
+typerule BITVECTOR_NAND ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NOR ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NOT ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_OR ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_XNOR ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_XOR ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+
+## arithmetic kinds
+typerule BITVECTOR_MULT ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NEG ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ADD ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SUB ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_UDIV ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_UREM ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SDIV ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SMOD ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SREM ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+
+## shift kinds
+typerule BITVECTOR_ASHR ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_LSHR ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SHL ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+
+## inequality kinds
+typerule BITVECTOR_ULE ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_ULT ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_UGE ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_UGT ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SLE ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SLT ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SGE ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SGT ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+# inequalities with return type bit-vector of size 1
+typerule BITVECTOR_ULTBV ::cvc5::internal::theory::bv::BitVectorBVPredTypeRule
+typerule BITVECTOR_SLTBV ::cvc5::internal::theory::bv::BitVectorBVPredTypeRule
+
+## if-then-else kind
+typerule BITVECTOR_ITE ::cvc5::internal::theory::bv::BitVectorITETypeRule
+
+## reduction kinds
+typerule BITVECTOR_REDAND ::cvc5::internal::theory::bv::BitVectorUnaryPredicateTypeRule
+typerule BITVECTOR_REDOR ::cvc5::internal::theory::bv::BitVectorUnaryPredicateTypeRule
+
+## conversion kinds
+typerule BITVECTOR_TO_NAT ::cvc5::internal::theory::bv::BitVectorConversionTypeRule
+
+## internal kinds
+typerule BITVECTOR_ACKERMANNIZE_UDIV ::cvc5::internal::theory::bv::BitVectorAckermanizationUdivTypeRule
+typerule BITVECTOR_ACKERMANNIZE_UREM ::cvc5::internal::theory::bv::BitVectorAckermanizationUremTypeRule
+typerule BITVECTOR_EAGER_ATOM ::cvc5::internal::theory::bv::BitVectorEagerAtomTypeRule
+
+### type rules for parameterized operator kinds -------------------------------
+
+typerule BITVECTOR_BITOF_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_BITOF ::cvc5::internal::theory::bv::BitVectorBitOfTypeRule
+typerule BITVECTOR_EXTRACT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_EXTRACT ::cvc5::internal::theory::bv::BitVectorExtractTypeRule
+typerule BITVECTOR_REPEAT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_REPEAT ::cvc5::internal::theory::bv::BitVectorRepeatTypeRule
+typerule BITVECTOR_ROTATE_LEFT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_ROTATE_LEFT ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ROTATE_RIGHT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_ROTATE_RIGHT ::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SIGN_EXTEND_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_SIGN_EXTEND ::cvc5::internal::theory::bv::BitVectorExtendTypeRule
+typerule BITVECTOR_ZERO_EXTEND_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_ZERO_EXTEND ::cvc5::internal::theory::bv::BitVectorExtendTypeRule
+typerule INT_TO_BITVECTOR_OP ::cvc5::internal::theory::bv::IntToBitVectorOpTypeRule
+typerule INT_TO_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConversionTypeRule
 
 endtheory

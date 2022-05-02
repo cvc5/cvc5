@@ -1,60 +1,54 @@
-/*********************                                                        */
-/*! \file type_enumerator_template.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for types
- **
- ** Enumerators for types.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for types.
+ */
 
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "theory/type_enumerator.h"
 
-
+// clang-format off
 ${type_enumerator_includes}
-#line 26 "${template}"
+// clang-format on
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
     TypeNode type, TypeEnumeratorProperties* tep)
 {
-  switch(type.getKind()) {
-  case kind::TYPE_CONSTANT:
-    switch(type.getConst<TypeConstant>()) {
-${mk_type_enumerator_type_constant_cases}
-    default:
+  switch (type.getKind())
+  {
+    case kind::TYPE_CONSTANT:
+      switch (type.getConst<TypeConstant>())
       {
-        stringstream ss;
-        ss << "No type enumerator for type `" << type << "'";
-        Unhandled(ss.str());
+        // clang-format off
+        ${mk_type_enumerator_type_constant_cases}
+          // clang-format on
+        default: Unhandled() << "No type enumerator for type `" << type << "'";
       }
-    }
-    Unreachable();
-${mk_type_enumerator_cases}
-#line 49 "${template}"
-  default:
-    {
-      stringstream ss;
-      ss << "No type enumerator for type `" << type << "'";
-      Unhandled(ss.str());
-    }
+      Unreachable();
+      // clang-format off
+      ${mk_type_enumerator_cases}
+      // clang-format on
+    default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5::internal

@@ -1,0 +1,28 @@
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+# Configuration file for the generation of cmake dependency graphs of cmake
+# targets.
+##
+
+set(CTX "@CMAKE_BINARY_DIR@/src/context/CMakeFiles/cvc5base.dir/")
+set(BASE "@CMAKE_BINARY_DIR@/src/base/CMakeFiles/cvc5base.dir/")
+
+# ignore targets that do not actually help the understanding or are (usually)
+# not interesting: tests and object files.
+set(GRAPHVIZ_IGNORE_TARGETS 
+    main-test
+    @APITESTS@
+    ${CTX}context.cpp.o ${CTX}context_mm.cpp.o
+    ${BASE}check.cpp.o ${BASE}configuration.cpp.o ${BASE}exception.cpp.o
+    ${BASE}git_versioninfo.cpp.o ${BASE}listener.cpp.o ${BASE}output.cpp.o
+)
+set(GRAPHVIZ_GENERATE_DEPENDERS FALSE)

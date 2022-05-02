@@ -1,256 +1,156 @@
-/*********************                                                        */
-/*! \file statistics_registry.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Paul Meng, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Matthew Sotoudeh, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Central statistics registry.
+ *
+ * The StatisticsRegistry that issues statistic proxy objects.
+ */
 
 #include "util/statistics_registry.h"
 
-#include <cstdlib>
-#include <iostream>
+#include "options/base_options.h"
+#include "util/statistics_public.h"
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
-#include "lib/clock_gettime.h"
-#include "util/ostream_util.h"
+namespace cvc5::internal {
 
-#ifdef CVC4_STATISTICS_ON
-#  define __CVC4_USE_STATISTICS true
-#else
-#  define __CVC4_USE_STATISTICS false
-#endif
-
-
-/****************************************************************************/
-/* Some utility functions for timespec                                    */
-/****************************************************************************/
-namespace CVC4 {
-
-/** Compute the sum of two timespecs. */
-inline timespec& operator+=(timespec& a, const timespec& b) {
-  using namespace CVC4;
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  const long nsec_per_sec = 1000000000L; // one thousand million
-  CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
-  CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
-  a.tv_sec += b.tv_sec;
-  long nsec = a.tv_nsec + b.tv_nsec;
-  Assert(nsec >= 0);
-  if(nsec < 0) {
-    nsec += nsec_per_sec;
-    --a.tv_sec;
-  }
-  if(nsec >= nsec_per_sec) {
-    nsec -= nsec_per_sec;
-    ++a.tv_sec;
-  }
-  Assert(nsec >= 0 && nsec < nsec_per_sec);
-  a.tv_nsec = nsec;
-  return a;
-}
-
-/** Compute the difference of two timespecs. */
-inline timespec& operator-=(timespec& a, const timespec& b) {
-  using namespace CVC4;
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  const long nsec_per_sec = 1000000000L; // one thousand million
-  CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
-  CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
-  a.tv_sec -= b.tv_sec;
-  long nsec = a.tv_nsec - b.tv_nsec;
-  if(nsec < 0) {
-    nsec += nsec_per_sec;
-    --a.tv_sec;
-  }
-  if(nsec >= nsec_per_sec) {
-    nsec -= nsec_per_sec;
-    ++a.tv_sec;
-  }
-  CVC4_DCHECK(nsec >= 0 && nsec < nsec_per_sec);
-  a.tv_nsec = nsec;
-  return a;
-}
-
-/** Add two timespecs. */
-inline timespec operator+(const timespec& a, const timespec& b) {
-  timespec result = a;
-  return result += b;
-}
-
-/** Subtract two timespecs. */
-inline timespec operator-(const timespec& a, const timespec& b) {
-  timespec result = a;
-  return result -= b;
-}
-
-/**
- * Compare two timespecs for equality.
- * This must be kept in sync with the copy in test/util/stats_black.h
- */
-inline bool operator==(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
-}
-
-/** Compare two timespecs for disequality. */
-inline bool operator!=(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return !(a == b);
-}
-
-/** Compare two timespecs, returning true iff a < b. */
-inline bool operator<(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec < b.tv_sec ||
-    (a.tv_sec == b.tv_sec && a.tv_nsec < b.tv_nsec);
-}
-
-/** Compare two timespecs, returning true iff a > b. */
-inline bool operator>(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec > b.tv_sec ||
-    (a.tv_sec == b.tv_sec && a.tv_nsec > b.tv_nsec);
-}
-
-/** Compare two timespecs, returning true iff a <= b. */
-inline bool operator<=(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return !(a > b);
-}
-
-/** Compare two timespecs, returning true iff a >= b. */
-inline bool operator>=(const timespec& a, const timespec& b) {
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return !(a < b);
-}
-
-/** Output a timespec on an output stream. */
-std::ostream& operator<<(std::ostream& os, const timespec& t) {
-  // assumes t.tv_nsec is in range
-  StreamFormatScope format_scope(os);
-  return os << t.tv_sec << "."
-            << std::setfill('0') << std::setw(9) << std::right << t.tv_nsec;
-}
-
-
-/** Construct a statistics registry */
-StatisticsRegistry::StatisticsRegistry(const std::string& name) : Stat(name)
+StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
+    : EnvObj(env)
 {
-  d_prefix = name;
-  if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
-                        "StatisticsRegistry names cannot contain the string \"%s\"",
-                    s_regDelim.c_str());
+  if (registerPublic)
+  {
+    registerPublicStatistics(*this);
   }
 }
 
-void StatisticsRegistry::registerStat(Stat* s)
+AverageStat StatisticsRegistry::registerAverage(const std::string& name,
+                                                bool internal)
 {
-#ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
-  d_stats.insert(s);
-#endif /* CVC4_STATISTICS_ON */
-}/* StatisticsRegistry::registerStat_() */
-
-void StatisticsRegistry::unregisterStat(Stat* s)
+  return registerStat<AverageStat>(name, internal);
+}
+IntStat StatisticsRegistry::registerInt(const std::string& name, bool internal)
 {
-#ifdef CVC4_STATISTICS_ON
-  CVC4_CHECK(s != nullptr);
-  CVC4_CHECK(d_stats.erase(s) > 0)
-      << "Statistic `" << s->getName()
-      << "' was not registered with this registry.";
-#endif /* CVC4_STATISTICS_ON */
-} /* StatisticsRegistry::unregisterStat() */
-
-void StatisticsRegistry::flushStat(std::ostream &out) const {
-#ifdef CVC4_STATISTICS_ON
-  flushInformation(out);
-#endif /* CVC4_STATISTICS_ON */
+  return registerStat<IntStat>(name, internal);
+}
+TimerStat StatisticsRegistry::registerTimer(const std::string& name,
+                                            bool internal)
+{
+  return registerStat<TimerStat>(name, internal);
 }
 
-void StatisticsRegistry::flushInformation(std::ostream &out) const {
-#ifdef CVC4_STATISTICS_ON
-  this->StatisticsBase::flushInformation(out);
-#endif /* CVC4_STATISTICS_ON */
-}
-
-void StatisticsRegistry::safeFlushInformation(int fd) const {
-#ifdef CVC4_STATISTICS_ON
-  this->StatisticsBase::safeFlushInformation(fd);
-#endif /* CVC4_STATISTICS_ON */
-}
-
-void TimerStat::start() {
-  if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(!d_running, *this, "timer already running");
-    clock_gettime(CLOCK_MONOTONIC, &d_start);
-    d_running = true;
+void StatisticsRegistry::storeSnapshot()
+{
+  if constexpr (configuration::isStatisticsBuild())
+  {
+    d_lastSnapshot = std::make_unique<Snapshot>();
+    for (const auto& s : d_stats)
+    {
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
+      if (!options().base.statisticsAll && s.second->isDefault()) continue;
+      d_lastSnapshot->emplace(
+          s.first,
+          s.second->getViewer());
+    }
   }
-}/* TimerStat::start() */
-
-void TimerStat::stop() {
-  if(__CVC4_USE_STATISTICS) {
-    CVC4_CHECK(d_running) << "timer not running";
-    ::timespec end;
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    d_data += end - d_start;
-    d_running = false;
-  }
-}/* TimerStat::stop() */
-
-bool TimerStat::running() const {
-  return d_running;
-}/* TimerStat::running() */
-
-timespec TimerStat::getData() const {
-  ::timespec data = d_data;
-  if(__CVC4_USE_STATISTICS && d_running) {
-    ::timespec end;
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    data += end - d_start;
-  }
-  return data;
 }
 
-SExpr TimerStat::getValue() const {
-  ::timespec data = d_data;
-  if(__CVC4_USE_STATISTICS && d_running) {
-    ::timespec end;
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    data += end - d_start;
+StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
+{
+  if constexpr (configuration::isStatisticsBuild())
+  {
+    auto it = d_stats.find(name);
+    if (it == d_stats.end()) return nullptr;
+    return it->second.get();
   }
-  std::stringstream ss;
-  ss << std::fixed << std::setprecision(8) << data;
-  return SExpr(Rational::fromDecimal(ss.str()));
-}/* TimerStat::getValue() */
-
-
-RegisterStatistic::RegisterStatistic(StatisticsRegistry* reg, Stat* stat)
-    : d_reg(reg),
-      d_stat(stat) {
-  CheckArgument(reg != NULL, reg,
-                "You need to specify a statistics registry"
-                "on which to set the statistic");
-  d_reg->registerStat(d_stat);
+  return nullptr;
 }
 
-RegisterStatistic::~RegisterStatistic() {
-  d_reg->unregisterStat(d_stat);
+void StatisticsRegistry::print(std::ostream& os) const
+{
+  if constexpr (configuration::isStatisticsBuild())
+  {
+    for (const auto& s : d_stats)
+    {
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
+      if (!options().base.statisticsAll && s.second->isDefault()) continue;
+      os << s.first << " = " << *s.second << std::endl;
+    }
+  }
 }
 
-}/* CVC4 namespace */
+void StatisticsRegistry::printSafe(int fd) const
+{
+  if constexpr (configuration::isStatisticsBuild())
+  {
+    for (const auto& s : d_stats)
+    {
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
+      if (!options().base.statisticsAll && s.second->isDefault()) continue;
 
-#undef __CVC4_USE_STATISTICS
+      safe_print(fd, s.first);
+      safe_print(fd, " = ");
+      s.second->printSafe(fd);
+      safe_print(fd, "\n");
+    }
+  }
+}
+void StatisticsRegistry::printDiff(std::ostream& os) const
+{
+  if constexpr (configuration::isStatisticsBuild())
+  {
+    if (!d_lastSnapshot)
+    {
+      // we have no snapshot, print as usual
+      print(os);
+      return;
+    }
+    for (const auto& s : d_stats)
+    {
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
+      if (!options().base.statisticsAll && s.second->isDefault())
+      {
+        auto oldit = d_lastSnapshot->find(s.first);
+        if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())
+        {
+          // present in the snapshot, now defaulted
+          os << s.first << " = " << *s.second << " (was ";
+          detail::print(os, oldit->second);
+          os << ")" << std::endl;
+        }
+      }
+      else
+      {
+        auto oldit = d_lastSnapshot->find(s.first);
+        if (oldit == d_lastSnapshot->end())
+        {
+          // not present in the snapshot
+          os << s.first << " = " << *s.second << " (was <default>)"
+             << std::endl;
+        }
+        else if (oldit->second != s.second->getViewer())
+        {
+          // present in the snapshot, print old value
+          os << s.first << " = " << *s.second << " (was ";
+          detail::print(os, oldit->second);
+          os << ")" << std::endl;
+        }
+      }
+    }
+  }
+}
+
+std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
+{
+  sr.print(os);
+  return os;
+}
+
+}  // namespace cvc5::internal

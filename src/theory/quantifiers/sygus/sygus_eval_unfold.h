@@ -1,27 +1,30 @@
-/*********************                                                        */
-/*! \file sygus_eval_unfold.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_eval_unfold
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_eval_unfold
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -36,10 +39,10 @@ class TermDbSygus;
  * unfold" applications of eval based on the model values of evaluation heads
  * in refinement lemmas.
  */
-class SygusEvalUnfold
+class SygusEvalUnfold : protected EnvObj
 {
  public:
-  SygusEvalUnfold(TermDbSygus* tds);
+  SygusEvalUnfold(Env& env, TermDbSygus* tds);
   ~SygusEvalUnfold() {}
   /** register evaluation term
    *
@@ -67,7 +70,8 @@ class SygusEvalUnfold
    * function, i.e. op is a builtin operator encoded by constructor C_op.
    *
    * We decide which kind of lemma to send ([A] or [B]) based on the symbol
-   * C_op. If op is an ITE, or if C_op is a Boolean operator, then we add [B].
+   * C_op and the mode of sygus-eval-unfold. By default, if op is an ITE, or if
+   * C_op is a Boolean operator, then we add [B].
    * Otherwise, we add [A]. The intuition of why [B] is better than [A] for the
    * former is that evaluation unfolding can lead to useful conflict analysis.
    *
@@ -83,12 +87,50 @@ class SygusEvalUnfold
                           std::vector<Node>& exps,
                           std::vector<Node>& terms,
                           std::vector<Node>& vals);
+  /** unfold
+   *
+   * This method is called when a sygus term d (typically a variable for a SyGuS
+   * enumerator) has a model value specified by the map vtm. The argument en
+   * is an application of kind DT_SYGUS_EVAL, i.e. eval( d, c1, ..., cm ).
+   * Typically, d is a shared selector chain, although it may also be a
+   * non-constant application of a constructor.
+   *
+   * If doRec is false, this method returns the one-step unfolding of this
+   * evaluation function application. An example of a one step unfolding is:
+   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
+   *
+   * This function does this unfolding for a (possibly symbolic) evaluation
+   * head, where the argument "variable to model" vtm stores the model value of
+   * variables from this head. This allows us to track an explanation of the
+   * unfolding in the vector exp when track_exp is true.
+   *
+   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
+   * this method applied to eval( d, t ) will return
+   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
+   *
+   * If the argument doRec is true, we do a multi-step unfolding instead of
+   * a single-step unfolding. For example, if vtm[d] = C_+( C_x(), C_0() ),
+   * then this method applied to eval(d,5) will return 5+0 = 0.
+   *
+   * Furthermore, notice that any-constant constructors are *never* expanded to
+   * their concrete model values. This means that the multi-step unfolding when
+   * vtm[d] = C_+( C_x(), any_constant(n) ), then this method applied to
+   * eval(d,5) will return 5 + d.2.1, where the latter term is a shared selector
+   * chain. In other words, this unfolding elaborates the connection between
+   * the builtin integer field d.2.1 of d and the builtin interpretation of
+   * this sygus term, for the given argument.
+   */
+  Node unfold(Node en,
+              std::map<Node, Node>& vtm,
+              std::vector<Node>& exp,
+              bool track_exp = true,
+              bool doRec = false);
 
  private:
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** the set of evaluation terms we have already processed */
-  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
+  std::unordered_set<Node> d_eval_processed;
   /** map from evaluation heads to evaluation function applications */
   std::map<Node, std::vector<Node> > d_evals;
   /**
@@ -106,11 +148,11 @@ class SygusEvalUnfold
    * This maps anchor terms to the set of shared selector chains with
    * them as an anchor, for example x may map to { x, x.1, x.2, x.1.1 }.
    */
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_subterms;
+  std::map<Node, std::unordered_set<Node> > d_subterms;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */

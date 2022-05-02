@@ -1,36 +1,36 @@
-/*********************                                                        */
-/*! \file divisible.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Divisibility-by-k predicate.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef __CVC4__DIVISIBLE_H
-#define __CVC4__DIVISIBLE_H
+#ifndef CVC5__DIVISIBLE_H
+#define CVC5__DIVISIBLE_H
 
 #include <iosfwd>
+#include <ostream>
+#include <stddef.h>
 
-#include "base/exception.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * The structure representing the divisibility-by-k predicate.
  */
-struct CVC4_PUBLIC Divisible {
+struct Divisible
+{
   const Integer k;
 
   Divisible(const Integer& n);
@@ -42,22 +42,23 @@ struct CVC4_PUBLIC Divisible {
   bool operator!=(const Divisible& d) const {
     return !(*this == d);
   }
-};/* struct Divisible */
+}; /* struct Divisible */
 
 /**
  * Hash function for the Divisible objects.
  */
-struct CVC4_PUBLIC DivisibleHashFunction {
+struct DivisibleHashFunction
+{
   size_t operator()(const Divisible& d) const {
     return d.k.hash();
   }
-};/* struct DivisibleHashFunction */
+}; /* struct DivisibleHashFunction */
 
-inline std::ostream& operator <<(std::ostream& os, const Divisible& d) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const Divisible& d);
 inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
   return os << "divisible-by-" << d.k;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__DIVISIBLE_H */
+#endif /* CVC5__DIVISIBLE_H */

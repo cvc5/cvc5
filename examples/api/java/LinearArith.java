@@ -1,81 +1,78 @@
-/*********************                                                        */
-/*! \file LinearArith.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the linear arithmetic capabilities of CVC4
- **
- ** A simple demonstration of the linear arithmetic solving capabilities and
- ** the push pop of CVC4. This also gives an example option.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the linear arithmetic solving capabilities and
+ * the push pop of cvc5. This also gives an example option.
+ */
 
-import edu.nyu.acsys.CVC4.*;
+import io.github.cvc5.*;
+public class LinearArith
+{
+  public static void main(String args[]) throws CVC5ApiException
+  {
+    try (Solver slv = new Solver())
+    {
+      slv.setLogic("QF_LIRA"); // Set the logic
 
-public class LinearArith {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+      // Prove that if given x (Integer) and y (Real) then
+      // the maximum value of y - x is 2/3
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
+      // Sorts
+      Sort real = slv.getRealSort();
+      Sort integer = slv.getIntegerSort();
 
-    smt.setLogic("QF_LIRA"); // Set the logic
+      // Variables
+      Term x = slv.mkConst(integer, "x");
+      Term y = slv.mkConst(real, "y");
 
-    // Prove that if given x (Integer) and y (Real) then
-    // the maximum value of y - x is 2/3
+      // Constants
+      Term three = slv.mkInteger(3);
+      Term neg2 = slv.mkInteger(-2);
+      Term two_thirds = slv.mkReal(2, 3);
 
-    // Types
-    Type real = em.realType();
-    Type integer = em.integerType();
+      // Terms
+      Term three_y = slv.mkTerm(Kind.MULT, three, y);
+      Term diff = slv.mkTerm(Kind.SUB, y, x);
 
-    // Variables
-    Expr x = em.mkVar("x", integer);
-    Expr y = em.mkVar("y", real);
+      // Formulas
+      Term x_geq_3y = slv.mkTerm(Kind.GEQ, x, three_y);
+      Term x_leq_y = slv.mkTerm(Kind.LEQ, x, y);
+      Term neg2_lt_x = slv.mkTerm(Kind.LT, neg2, x);
 
-    // Constants
-    Expr three = em.mkConst(new Rational(3));
-    Expr neg2 = em.mkConst(new Rational(-2));
-    Expr two_thirds = em.mkConst(new Rational(2,3));
+      Term assertions = slv.mkTerm(Kind.AND, x_geq_3y, x_leq_y, neg2_lt_x);
 
-    // Terms
-    Expr three_y = em.mkExpr(Kind.MULT, three, y);
-    Expr diff = em.mkExpr(Kind.MINUS, y, x);
+      System.out.println("Given the assertions " + assertions);
+      slv.assertFormula(assertions);
 
-    // Formulas
-    Expr x_geq_3y = em.mkExpr(Kind.GEQ, x, three_y);
-    Expr x_leq_y = em.mkExpr(Kind.LEQ, x, y);
-    Expr neg2_lt_x = em.mkExpr(Kind.LT, neg2, x);
+      slv.push();
+      Term diff_leq_two_thirds = slv.mkTerm(Kind.LEQ, diff, two_thirds);
+      System.out.println("Prove that " + diff_leq_two_thirds + " with cvc5.");
+      System.out.println("cvc5 should report UNSAT.");
+      System.out.println(
+          "Result from cvc5 is: " + slv.checkSatAssuming(diff_leq_two_thirds.notTerm()));
+      slv.pop();
 
-    Expr assumptions =
-      em.mkExpr(Kind.AND, x_geq_3y, x_leq_y, neg2_lt_x);
+      System.out.println();
 
-    System.out.println("Given the assumptions " + assumptions);
-    smt.assertFormula(assumptions);
+      slv.push();
+      Term diff_is_two_thirds = slv.mkTerm(Kind.EQUAL, diff, two_thirds);
+      slv.assertFormula(diff_is_two_thirds);
+      System.out.println("Show that the assertions are consistent with ");
+      System.out.println(diff_is_two_thirds + " with cvc5.");
+      System.out.println("cvc5 should report SAT.");
+      System.out.println("Result from cvc5 is: " + slv.checkSat());
+      slv.pop();
 
-
-    smt.push();
-    Expr diff_leq_two_thirds = em.mkExpr(Kind.LEQ, diff, two_thirds);
-    System.out.println("Prove that " + diff_leq_two_thirds + " with CVC4.");
-    System.out.println("CVC4 should report VALID.");
-    System.out.println("Result from CVC4 is: " + smt.query(diff_leq_two_thirds));
-    smt.pop();
-
-    System.out.println();
-
-    smt.push();
-    Expr diff_is_two_thirds = em.mkExpr(Kind.EQUAL, diff, two_thirds);
-    smt.assertFormula(diff_is_two_thirds);
-    System.out.println("Show that the asserts are consistent with ");
-    System.out.println(diff_is_two_thirds + " with CVC4.");
-    System.out.println("CVC4 should report SAT.");
-    System.out.println("Result from CVC4 is: " + smt.checkSat(em.mkConst(true)));
-    smt.pop();
-
-    System.out.println("Thus the maximum value of (y - x) is 2/3.");
+      System.out.println("Thus the maximum value of (y - x) is 2/3.");
+    }
   }
 }

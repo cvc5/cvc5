@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for rationals and integers
- **
- ** Enumerators for rationals and integers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for rationals and integers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__ARITH__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__ARITH__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -25,7 +24,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -36,11 +35,14 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == REAL_TYPE);
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == REAL_TYPE);
   }
 
-  Node operator*() override { return NodeManager::currentNM()->mkConst(d_rat); }
+  Node operator*() override
+  {
+    return NodeManager::currentNM()->mkConstReal(d_rat);
+  }
   RationalEnumerator& operator++() override
   {
     // sequence is 0, then diagonal with negatives interleaved
@@ -77,13 +79,13 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == INTEGER_TYPE);
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == INTEGER_TYPE);
   }
 
   Node operator*() override
   {
-    return NodeManager::currentNM()->mkConst(Rational(d_int));
+    return NodeManager::currentNM()->mkConstInt(Rational(d_int));
   }
 
   IntegerEnumerator& operator++() override
@@ -100,8 +102,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   bool isFinished() override { return false; }
 };/* class IntegerEnumerator */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__ARITH__TYPE_ENUMERATOR_H */

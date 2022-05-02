@@ -1,30 +1,26 @@
-/*********************                                                        */
-/*! \file cdo.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Francois Bobot
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A context-dependent object.
- **
- ** A context-dependent object.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Clark Barrett, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A context-dependent object.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__CONTEXT__CDO_H
-#define __CVC4__CONTEXT__CDO_H
+#ifndef CVC5__CONTEXT__CDO_H
+#define CVC5__CONTEXT__CDO_H
 
-#include "base/cvc4_assert.h"
 #include "context/context.h"
 
-
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Most basic template for context-dependent objects.  Simply makes a copy
@@ -50,7 +46,7 @@ protected:
   /**
    * operator= for CDO is private to ensure CDO object is not copied.
    */
-  CDO<T>& operator=(const CDO<T>& cdo) CVC4_UNDEFINED;
+  CDO<T>& operator=(const CDO<T>& cdo) = delete;
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies the
@@ -59,10 +55,7 @@ protected:
    */
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
-    Debug("context") << "save cdo " << this;
-    ContextObj* p = new(pCMM) CDO<T>(*this);
-    Debug("context") << " to " << p << std::endl;
-    return p;
+    return new (pCMM) CDO<T>(*this);
   }
 
   /**
@@ -71,10 +64,8 @@ protected:
    */
   void restore(ContextObj* pContextObj) override
   {
-    //Debug("context") << "restore cdo " << this;
     CDO<T>* p = static_cast<CDO<T>*>(pContextObj);
     d_data = p->d_data;
-    //Debug("context") << " to " << get() << std::endl;
     // Explicitly call destructor as it will not otherwise get called.
     p->d_data.~T();
   }
@@ -177,7 +168,6 @@ public:
 
 };/* class CDO */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::context
 
-#endif /* __CVC4__CONTEXT__CDO_H */
+#endif /* CVC5__CONTEXT__CDO_H */

@@ -1,0 +1,11 @@
+; EXPECT: sat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun a () Bool)
+(declare-fun b () Bool)
+(declare-fun c () Bool)
+(assert (or (not a) (not b)))
+(assert (or (or c b) a))
+(assert (or b (not a)))
+(assert (or (or a (not b)) c))
+(check-sat)

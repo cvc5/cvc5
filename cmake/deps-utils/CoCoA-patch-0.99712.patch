@@ -1,0 +1,13 @@
+diff --git a/configuration/cxx14.sh b/configuration/cxx14.sh
+index cdbf338..0436983 100755
+--- a/configuration/cxx14.sh
++++ b/configuration/cxx14.sh
+@@ -40,7 +40,7 @@ int main()
+ {
+   int ReturnCode = 0; // will mean c++14 compliant
+   std::cout << "C++ version: " << __cplusplus << std::endl;
+-#if __cplusplus < 201400L
++#if __cplusplus < 201400L || __cplusplus >= 201703L
+   ReturnCode = 1;  // NOT C++14 compilant
+ #endif
+   return ReturnCode;

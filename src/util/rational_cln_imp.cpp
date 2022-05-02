@@ -1,34 +1,34 @@
-/*********************                                                        */
-/*! \file rational_cln_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Christopher L. Conway, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multi-precision rational constant.
- **
- ** A multi-precision rational constant.
- **/
-#include "util/rational.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multi-precision rational constant.
+ */
+#include <cln/integer_io.h>
 
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
+#include "util/rational.h"
 
-#ifndef CVC4_CLN_IMP
-#  error "This source should only ever be built if CVC4_CLN_IMP is on !"
-#endif /* CVC4_CLN_IMP */
+#ifndef CVC5_CLN_IMP
+#error "This source should only ever be built if CVC5_CLN_IMP is on !"
+#endif /* CVC5_CLN_IMP */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
@@ -48,6 +48,61 @@ Rational Rational::fromDecimal(const std::string& dec) {
   } else {
     /* No decimal point, assume it's just an integer. */
     return Rational( dec );
+  }
+}
+
+Rational::Rational(const char* s, uint32_t base)
+{
+  try
+  {
+    cln::cl_read_flags flags;
+    flags.rational_base = base;
+    flags.lsyntax = cln::lsyntax_standard;
+
+    const char* p = strchr(s, '/');
+    /* read_rational() does not support the case where the denominator is
+     * negative.  In this case we read the numerator and denominator via
+     * read_integer() and build a rational out of two integers. */
+    if (p)
+    {
+      flags.syntax = cln::syntax_integer;
+      auto num = cln::read_integer(flags, s, p, nullptr);
+      auto den = cln::read_integer(flags, p + 1, nullptr, nullptr);
+      d_value = num / den;
+    }
+    else
+    {
+      flags.syntax = cln::syntax_rational;
+      d_value = read_rational(flags, s, NULL, NULL);
+    }
+  }
+  catch (...)
+  {
+    std::stringstream ss;
+    ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
+    throw std::invalid_argument(ss.str());
+  }
+}
+
+Rational::Rational(const std::string& s, uint32_t base)
+    : Rational(s.c_str(), base)
+{
+}
+
+int Rational::sgn() const
+{
+  if (cln::zerop(d_value))
+  {
+    return 0;
+  }
+  else if (cln::minusp(d_value))
+  {
+    return -1;
+  }
+  else
+  {
+    Assert(cln::plusp(d_value));
+    return 1;
   }
 }
 
@@ -84,7 +139,7 @@ int Rational::absCmp(const Rational& q) const{
   }
 }
 
-Maybe<Rational> Rational::fromDouble(double d)
+std::optional<Rational> Rational::fromDouble(double d)
 {
   try{
     cln::cl_DF fromD = d;
@@ -92,12 +147,12 @@ Maybe<Rational> Rational::fromDouble(double d)
     q.d_value = cln::rationalize(fromD);
     return q;
   }catch(cln::floating_point_underflow_exception& fpue){
-    return Maybe<Rational>();
+    return std::optional<Rational>();
   }catch(cln::floating_point_nan_exception& fpne){
-    return Maybe<Rational>();
+    return std::optional<Rational>();
   }catch(cln::floating_point_overflow_exception& fpoe){
-    return Maybe<Rational>();
+    return std::optional<Rational>();
   }
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5::internal

@@ -1,0 +1,4 @@
+Installation
+============
+
+.. include:: ../../INSTALL.rst

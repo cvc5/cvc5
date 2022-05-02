@@ -1,32 +1,30 @@
-/*********************                                                        */
-/*! \file boolean_simplification.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple routines for Boolean simplification
- **
- ** Simple, commonly-used routines for Boolean simplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple, commonly-used routines for Boolean simplification.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__BOOLEAN_SIMPLIFICATION_H
-#define __CVC4__BOOLEAN_SIMPLIFICATION_H
+#ifndef CVC5__BOOLEAN_SIMPLIFICATION_H
+#define CVC5__BOOLEAN_SIMPLIFICATION_H
 
 #include <vector>
 #include <algorithm>
 
-#include "base/cvc4_assert.h"
-#include "expr/expr_manager_scope.h"
+#include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * A class to contain a number of useful functions for simple
@@ -35,12 +33,11 @@ namespace CVC4 {
  */
 class BooleanSimplification {
   // cannot construct one of these
-  BooleanSimplification() CVC4_UNDEFINED;
-  BooleanSimplification(const BooleanSimplification&) CVC4_UNDEFINED;
+  BooleanSimplification() = delete;
+  BooleanSimplification(const BooleanSimplification&) = delete;
 
-  static bool push_back_associative_commute_recursive(
-      Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
-      CVC4_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT static bool push_back_associative_commute_recursive(
+      Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode);
 
  public:
   /**
@@ -83,7 +80,7 @@ class BooleanSimplification {
       return buffer[0];
     }
 
-    NodeBuilder<> nb(kind::AND);
+    NodeBuilder nb(kind::AND);
     nb.append(buffer);
     return nb;
   }
@@ -109,7 +106,7 @@ class BooleanSimplification {
       return buffer[0];
     }
 
-    NodeBuilder<> nb(kind::OR);
+    NodeBuilder nb(kind::OR);
     nb.append(buffer);
     return nb;
   }
@@ -129,7 +126,7 @@ class BooleanSimplification {
     TNode right = implication[1];
 
     Node notLeft = negate(left);
-    Node clause = NodeBuilder<2>(kind::OR) << notLeft << right;
+    Node clause = NodeBuilder(kind::OR) << notLeft << right;
 
     return simplifyClause(clause);
   }
@@ -166,8 +163,8 @@ class BooleanSimplification {
     AssertArgument(n.getKind() == k, n,
                    "expected node to have kind %s", kindToString(k).c_str());
 
-    bool b CVC4_UNUSED =
-      push_back_associative_commute_recursive(n, buffer, k, notK, false);
+    bool b CVC5_UNUSED =
+        push_back_associative_commute_recursive(n, buffer, k, notK, false);
 
     if(buffer.size() == 0) {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
@@ -202,18 +199,6 @@ class BooleanSimplification {
   }
 
   /**
-   * Negates an Expr, doing all the double-negation elimination that's
-   * possible.
-   *
-   * @param e the Expr to negate (cannot be the null Expr)
-   */
-  static Expr negate(Expr e)
-  {
-    ExprManagerScope ems(e);
-    return negate(Node::fromExpr(e)).toExpr();
-  }
-
-  /**
    * Simplify an OR, AND, or IMPLIES.  This function is the identity
    * for all other kinds.
    */
@@ -236,6 +221,6 @@ class BooleanSimplification {
 
 };/* class BooleanSimplification */
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* __CVC4__BOOLEAN_SIMPLIFICATION_H */
+#endif /* CVC5__BOOLEAN_SIMPLIFICATION_H */

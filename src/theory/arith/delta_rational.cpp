@@ -1,26 +1,28 @@
-/*********************                                                        */
-/*! \file delta_rational.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
-
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/delta_rational.h"
 
+#include <sstream>
+
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& dq){
   return os << "(" << dq.getNoninfinitesimalPart()
@@ -105,4 +107,4 @@ Integer DeltaRational::euclidianDivideRemainder(const DeltaRational& y) const
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal

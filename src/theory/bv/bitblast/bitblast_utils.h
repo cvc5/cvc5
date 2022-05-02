@@ -1,29 +1,27 @@
-/*********************                                                        */
-/*! \file bitblast_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Paul Meng, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Various utility functions for bit-blasting.
- **
- ** Various utility functions for bit-blasting.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Various utility functions for bit-blasting.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
-#define __CVC4__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
-
+#ifndef CVC5__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
+#define CVC5__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
 
 #include <ostream>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -81,7 +79,7 @@ Node mkOr<Node>(Node a, Node b) {
 
 template <> inline
 Node mkOr<Node>(const std::vector<Node>& children) {
-  Assert (children.size());
+  Assert(children.size());
   if (children.size() == 1)
     return children[0]; 
   return NodeManager::currentNM()->mkNode(kind::OR, children); 
@@ -95,7 +93,7 @@ Node mkAnd<Node>(Node a, Node b) {
 
 template <> inline
 Node mkAnd<Node>(const std::vector<Node>& children) {
-  Assert (children.size());
+  Assert(children.size());
   if (children.size() == 1)
     return children[0]; 
   return NodeManager::currentNM()->mkNode(kind::AND, children); 
@@ -123,7 +121,7 @@ Node mkIte<Node>(Node cond, Node a, Node b) {
 
 template <class T>
 void inline extractBits(const std::vector<T>& b, std::vector<T>& dest, unsigned lo, unsigned hi) {
-  Assert ( lo < b.size() && hi < b.size() && lo <= hi);
+  Assert(lo < b.size() && hi < b.size() && lo <= hi);
   for (unsigned i = lo; i <= hi; ++i) {
     dest.push_back(b[i]); 
   }
@@ -168,7 +166,7 @@ void inline lshift(std::vector<T>& bits, unsigned amount) {
 
 template <class T>
 void inline makeZero(std::vector<T>& bits, unsigned width) {
-  Assert(bits.size() == 0); 
+  Assert(bits.size() == 0);
   for(unsigned i = 0; i < width; ++i) {
     bits.push_back(mkFalse<T>()); 
   }
@@ -188,7 +186,7 @@ void inline makeZero(std::vector<T>& bits, unsigned width) {
 template <class T>
 T inline rippleCarryAdder(const std::vector<T>&a, const std::vector<T>& b, std::vector<T>& res, T carry) {
   Assert(a.size() == b.size() && res.size() == 0);
-  
+
   for (unsigned i = 0 ; i < a.size(); ++i) {
     T sum = mkXor(mkXor(a[i], b[i]), carry);
     carry = mkOr( mkAnd(a[i], b[i]),
@@ -222,8 +220,8 @@ inline void shiftAddMultiplier(const std::vector<T>&a, const std::vector<T>&b, s
 
 template <class T>
 T inline uLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqual) {
-  Assert (a.size() && b.size());
-  
+  Assert(a.size() && b.size());
+
   T res = mkAnd(mkNot(a[0]), b[0]);
   
   if(orEqual) {
@@ -240,7 +238,7 @@ T inline uLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
 
 template <class T>
 T inline sLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqual) {
-  Assert (a.size() && b.size());
+  Assert(a.size() && b.size());
   if (a.size() == 1) {
     if(orEqual) {
       return  mkOr(mkIff(a[0], b[0]),
@@ -267,6 +265,6 @@ T inline sLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif  // __CVC4__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
+#endif  // CVC5__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
