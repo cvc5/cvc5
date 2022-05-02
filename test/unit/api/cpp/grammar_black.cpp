@@ -23,6 +23,22 @@ class TestApiBlackGrammar : public TestApi
 {
 };
 
+TEST_F(TestApiBlackGrammar, toString)
+{
+  d_solver.setOption("sygus", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g;
+  g = d_solver.mkGrammar({}, {start});
+  g.addRule(start, d_solver.mkBoolean(false));
+
+  {
+    std::stringstream ss;
+    ss << g;
+    ASSERT_EQ(ss.str(), g.toString());
+  }
+}
+
 TEST_F(TestApiBlackGrammar, addRule)
 {
   d_solver.setOption("sygus", "true");
