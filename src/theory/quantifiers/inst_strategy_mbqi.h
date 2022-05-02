@@ -27,7 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * InstStrategyMbqi
  *
  * A basic implementation of Ge/de Moura CAV 2009. This class can be used to
@@ -61,26 +61,26 @@ class InstStrategyMbqi : public QuantifiersModule
   std::string identify() const override { return "InstStrategyMbqi"; }
 
  private:
-  /** 
+  /**
    * Process quantified formula q, which may add q to d_quantChecked, add an
    * instantiation for q, or do nothing if something went wrong (e.g. if the
    * query to the subsolver could not be constructed).
    */
   void process(Node q);
-  /** 
+  /**
    * Convert to and from the subsolver.
-   * 
+   *
    * If toQuery is true, this converts term t whose free variables are in vars
    * into a term that can be sent to the subsolver. Its free constants are
    * replaced by their model values. The map freshVarType maintains fresh
    * variables that were introduced corresponding to values of uninterpreted
    * sort constants.
-   * 
+   *
    * If toQuery is false, this converts a term t that was returned as a model
    * value by a subsolver. We use the mapping mvToFreshVar to convert
    * uninterpreted constants to the fresh variables that were used for
    * that value in the model from the subsolver.
-   * 
+   *
    * In both cases, cmap caches the results of the conversion.
    */
   Node convert(const std::vector<Node>& vars,
