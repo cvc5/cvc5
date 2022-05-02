@@ -245,12 +245,6 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
-      toStreamRational(out, r, true, d_variant);
-      break;
-    }
-    case kind::CONST_INTEGER:
-    {
-      const Rational& r = n.getConst<Rational>();
       toStreamRational(out, r, false, d_variant);
       break;
     }
@@ -517,8 +511,7 @@ void Smt2Printer::toStream(std::ostream& out,
       // the logic is mixed int/real. The former occurs more frequently.
       bool is_int = force_nt.isInteger();
       // If constant rational, print as special case
-      Kind ka = type_asc_arg.getKind();
-      if (ka == kind::CONST_RATIONAL || ka == kind::CONST_INTEGER)
+      if (type_asc_arg.getKind() == kind::CONST_RATIONAL)
       {
         const Rational& r = type_asc_arg.getConst<Rational>();
         toStreamRational(out, r, !is_int, d_variant);

@@ -1304,15 +1304,15 @@ Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
 
 Node NodeManager::mkConstReal(const Rational& r)
 {
-  return mkConst(r.isIntegral() ? kind::CONST_INTEGER : kind::CONST_RATIONAL,
-                 r);
+  // works with (r.isIntegral() ? kind::CONST_INTEGER : kind::CONST_RATIONAL)
+  return mkConst(kind::CONST_RATIONAL, r);
 }
 
 Node NodeManager::mkConstInt(const Rational& r)
 {
   // !!!! Note will update to CONST_INTEGER.
   Assert(r.isIntegral());
-  return mkConst(kind::CONST_INTEGER, r);
+  return mkConst(kind::CONST_RATIONAL, r);
 }
 
 Node NodeManager::mkConstRealOrInt(const Rational& r)
