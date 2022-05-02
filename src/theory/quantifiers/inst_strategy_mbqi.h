@@ -56,11 +56,14 @@ class InstStrategyMbqi : public QuantifiersModule
   /** process quantified formula q */
   void process(Node q);
   /** convert to query */
-  Node convert(Node t, bool toQuery, std::unordered_map<Node, Node>& cmap, std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
-  const std::map<Node, Node>& mvToFreshVar);
+  Node convert(Node t,
+               bool toQuery,
+               std::unordered_map<Node, Node>& cmap,
+               std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
+               const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
-  /** 
+  /**
    * converting quantified formula bodies to queries
    * converting model values from queries to instantiations
    */

@@ -15,13 +15,13 @@
 
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -90,25 +90,25 @@ void InstStrategyMbqi::process(Node q)
   std::map<TypeNode, std::unordered_set<Node> > freshVarType;
   // model values to the fresh variables
   std::map<Node, Node> mvToFreshVar;
-  
+
   NodeManager* nm = NodeManager::currentNM();
-  
-  Skolemize * skm = d_qim.getSkolemize();
+
+  Skolemize* skm = d_qim.getSkolemize();
   Node body = skm->getSkolemizedBody(q);
   Node cbody = convert(body, true, d_convertMap, freshVarType, mvToFreshVar);
-  
+
   // check if there are any bad kinds
   if (expr::hasSubtermKinds(d_nonClosedKinds, cbody))
   {
     return;
   }
-  Assert (mvToFreshVar.empty());
-  
+  Assert(mvToFreshVar.empty());
+
   std::vector<Node> constraints;
-  
+
   // include the negation of the skolemized body
   constraints.push_back(cbody.negate());
-  
+
   // also include distinctness of variables introduced as constants
   for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
        freshVarType)
@@ -120,10 +120,10 @@ void InstStrategyMbqi::process(Node q)
       constraints.push_back(nm->mkNode(DISTINCT, vars));
     }
   }
-  
+
   // make the query
   Node query = nm->mkAnd(constraints);
-  
+
   std::unique_ptr<SolverEngine> mbqiChecker;
   initializeSubsolver(mbqiChecker, d_env);
   mbqiChecker->assertFormula(query);
@@ -141,7 +141,7 @@ void InstStrategyMbqi::process(Node q)
   {
     return;
   }
-  
+
   // get the model values for all fresh variables
   for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
        freshVarType)
@@ -151,16 +151,16 @@ void InstStrategyMbqi::process(Node q)
       for (const Node& v : fv.second)
       {
         Node mv = mbqiChecker->getValue(v);
-        Assert (d_mvToFreshVar.find(mv)!=d_mvToFreshVar.end());
+        Assert(d_mvToFreshVar.find(mv) != d_mvToFreshVar.end());
         mvToFreshVar[mv] = v;
       }
     }
   }
-  
+
   // get the model values for skolems
   std::vector<Node> mvs;
   getModelFromSubsolver(*mbqiChecker.get(), skolems, mvs);
-  
+
   // try to convert those terms to an instantiation
   std::unordered_map<Node, Node> tmpConvertMap;
   for (Node& v : mvs)
@@ -174,11 +174,15 @@ void InstStrategyMbqi::process(Node q)
   // add instantiation?
 }
 
-Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, Node>& cmap, std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
-  const std::map<Node, Node>& mvToFreshVar)
+Node InstStrategyMbqi::convert(
+    Node t,
+    bool toQuery,
+    std::unordered_map<Node, Node>& cmap,
+    std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
+    const std::map<Node, Node>& mvToFreshVar)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   FirstOrderModel* fm = d_treg.getModel();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> modelValue;
@@ -196,10 +200,10 @@ Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, No
       // already computed
       continue;
     }
-    if (processingChildren.find(cur)==processingChildren.end())
+    if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      if (ck==BOUND_VARIABLE)
+      if (ck == BOUND_VARIABLE)
       {
         cmap[cur] = cur;
       }
@@ -216,7 +220,7 @@ Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, No
         }
         // converting from query, find the variable that it is equal to
         std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
-        if (itmv!=mvToFreshVar.end())
+        if (itmv != mvToFreshVar.end())
         {
           cmap[cur] = itmv->second;
         }
@@ -229,7 +233,7 @@ Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, No
       else if (cur.isVar())
       {
         std::map<Node, Node>::iterator itm = modelValue.find(cur);
-        if (itm==modelValue.end())
+        if (itm == modelValue.end())
         {
           Node mval = fm->getValue(cur);
           Trace("mb-oracle-model") << "  M[" << cur << "] = " << mval << "\n";
@@ -239,11 +243,11 @@ Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, No
         }
         else
         {
-          Assert (cmap.find(itm->second)!=cmap.end());
+          Assert(cmap.find(itm->second) != cmap.end());
           cmap[cur] = cmap[itm->second];
         }
       }
-      else if (cur.getNumChildren()==0)
+      else if (cur.getNumChildren() == 0)
       {
         cmap[cur] = cur;
       }
@@ -267,23 +271,23 @@ Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, No
       children.push_back(cur.getOperator());
     }
     children.insert(children.end(), cur.begin(), cur.end());
-    for (Node& cn : children) 
+    for (Node& cn : children)
     {
       it = cmap.find(cn);
-      Assert (it != cmap.end());
-      Assert (!it->second.isNull());
+      Assert(it != cmap.end());
+      Assert(!it->second.isNull());
       childChanged = childChanged || cn != it->second;
       cn = it->second;
     }
     Node ret = cur;
-    if (childChanged) 
+    if (childChanged)
     {
       ret = rewrite(nm->mkNode(cur.getKind(), children));
     }
     cmap[cur] = ret;
   } while (!visit.empty());
-  
-  Assert (cmap.find(cur)!=cmap.end());
+
+  Assert(cmap.find(cur) != cmap.end());
   return cmap[cur];
 }
 
