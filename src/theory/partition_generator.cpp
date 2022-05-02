@@ -203,7 +203,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions()
     // For the first column, numConsecutiveTF = 4, then 2 for the second column, 
     // and 1 for the third column.
     size_t numConsecutiveTF = total/2;
-    for (const Node& n : literals)
+    for (Node n : literals)
     {
       Node not_n = n.notNode();
 
