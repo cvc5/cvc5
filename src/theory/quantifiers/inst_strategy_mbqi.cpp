@@ -19,6 +19,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/subs.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -97,8 +98,7 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   std::vector<Node> new_asserts;
   Trace("mb-oracle") << "  construct the model substitution...\n";
   std::unordered_set<TNode> op_proc;
-  std::vector<Node> vars;
-  std::vector<Node> subs;
+  Subs subs;
   std::unordered_set<TNode> visited;
   std::unordered_map<TNode, Node> mval_visited;
   TNode cur;
@@ -126,7 +126,6 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
       }
       if (!var.isNull())
       {
-        vars.push_back(var);
         Node mvar = fm->getValue(var);
         Trace("mb-oracle-model") << "  M[" << var << "] = " << mvar << "\n";
         // must remove unhandled terms from model value
@@ -138,7 +137,7 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
               << "...unhandled model value " << mvar << std::endl;
           return;
         }
-        subs.push_back(cleanMVar);
+        subs.add(var, cleanMVar);
       }
       for (const Node& cn : cur)
       {
@@ -147,10 +146,9 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
     }
   } while (!visit.empty());
 
-  if (!vars.empty())
+  if (!subs.empty())
   {
-    query =
-        query.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    query = subs.apply(query);
   }
   query = rewrite(query);
   if (query.isConst())
@@ -215,11 +213,7 @@ Node InstStrategyMbqi::cleanModelValue(Node n,
       Kind ck = cur.getKind();
       if (ck == UNINTERPRETED_SORT_VALUE)
       {
-        TypeNode ctn = cur.getType();
-        if (!ctn.isUninterpretedSort())
-        {
-          return Node::null();
-        }
+        Assert(cur.getType().isUninterpretedSort());
         // return the fresh variable for this term
         visited[cur] = getOrMkFreshVariableFor(cur);
       }
