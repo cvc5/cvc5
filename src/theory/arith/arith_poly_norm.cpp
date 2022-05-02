@@ -188,7 +188,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
     Kind k = cur.getKind();
     if (it == visited.end())
     {
-      if (k == CONST_RATIONAL)
+      if (k == CONST_RATIONAL || k == CONST_INTEGER)
       {
         Rational r = cur.getConst<Rational>();
         if (r.sgn() == 0)
