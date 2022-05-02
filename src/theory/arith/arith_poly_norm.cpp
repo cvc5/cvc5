@@ -158,7 +158,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
-    Assert(k != CONST_RATIONAL);
+    Assert(k != CONST_RATIONAL && k != CONST_INTEGER);
     if (k == MULT || k == NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
@@ -247,7 +247,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
-        case CONST_RATIONAL: break;
+        case CONST_RATIONAL:
+        case CONST_INTEGER: break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }
