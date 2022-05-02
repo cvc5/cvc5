@@ -115,7 +115,7 @@ class PortfolioDriver
 			uint64_t total_timeout = ctx.solver().getOptionInfo("tlimit").uintValue();
 			if (total_timeout == 0)
 			{
-				total_timeout == 1200;
+				total_timeout = 1200;
 			}
 
 			auto cmds = parseIntoVector(ctx);
