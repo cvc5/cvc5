@@ -439,7 +439,8 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 
   Kind k = n.getKind();
-  if(k == kind::SORT_TYPE) {
+  if (k == kind::SORT_TYPE)
+  {
     string name;
     if(n.getNumChildren() != 0) {
       out << '(';
@@ -456,7 +457,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-  else if (k== kind::DATATYPE_TYPE)
+  else if (k == kind::DATATYPE_TYPE)
   {
     const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
     if (dt.isTuple())
