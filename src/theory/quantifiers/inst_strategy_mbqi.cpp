@@ -19,9 +19,9 @@
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -43,10 +43,7 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(CODATATYPE_BOUND_VARIABLE);
 }
 
-void InstStrategyMbqi::reset_round(Theory::Effort e)
-{
-  d_quantChecked.clear();
-}
+void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
 {
@@ -82,7 +79,7 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 
 void InstStrategyMbqi::process(Node q)
 {
-  Assert (q.getKind()==FORALL);
+  Assert(q.getKind() == FORALL);
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // Cache mapping terms in the skolemized body of q to the form passed to
   // the subsolver. This is local to this call.
@@ -96,7 +93,8 @@ void InstStrategyMbqi::process(Node q)
   SkolemManager* sm = nm->getSkolemManager();
 
   std::vector<Node> vars(q[0].begin(), q[0].end());
-  Node cbody = convert(vars, q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
+  Node cbody =
+      convert(vars, q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
   Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
@@ -111,7 +109,7 @@ void InstStrategyMbqi::process(Node q)
   std::vector<Node> skolems;
   for (const Node& v : vars)
   {
-    Assert (tmpConvertMap.find(v)!=tmpConvertMap.end());
+    Assert(tmpConvertMap.find(v) != tmpConvertMap.end());
     skolems.push_back(tmpConvertMap[v]);
   }
 
@@ -143,7 +141,8 @@ void InstStrategyMbqi::process(Node q)
       constraints.push_back(nm->mkNode(DISTINCT, fvars));
     }
   }
-  // get a term that has the same model value as the value each fresh variable represents
+  // get a term that has the same model value as the value each fresh variable
+  // represents
   Subs fvToInst;
   const RepSet* rs = d_treg.getModel()->getRepSet();
   for (const Node& v : allVars)
@@ -156,7 +155,7 @@ void InstStrategyMbqi::process(Node q)
       Trace("mbqi") << "...failed to get term for value " << ov << std::endl;
       return;
     }
-    Assert (v.getType()==mvt.getType());
+    Assert(v.getType() == mvt.getType());
     fvToInst.add(v, mvt);
   }
   // ensure the skolems of the given type are equal to one of the variables
@@ -165,14 +164,14 @@ void InstStrategyMbqi::process(Node q)
   {
     TypeNode tn = k.getType();
     itk = freshVarType.find(tn);
-    if (itk==freshVarType.end())
+    if (itk == freshVarType.end())
     {
       continue;
     }
     // this is critical to model soundness; we return if empty
     if (itk->second.empty())
     {
-      Assert (false);
+      Assert(false);
       Trace("mbqi") << "...failed to get vars for type " << tn << std::endl;
       return;
     }
@@ -214,11 +213,11 @@ void InstStrategyMbqi::process(Node q)
   // get the model values for skolems
   std::vector<Node> terms;
   getModelFromSubsolver(*mbqiChecker.get(), skolems, terms);
-  Assert (skolems.size()==terms.size());
+  Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
     Trace("mbqi") << "...model from subsolver is: " << std::endl;
-    for (size_t i=0, nterms = skolems.size(); i<nterms; i++)
+    for (size_t i = 0, nterms = skolems.size(); i < nterms; i++)
     {
       Trace("mbqi") << "  " << skolems[i] << " -> " << terms[i] << std::endl;
     }
@@ -227,11 +226,13 @@ void InstStrategyMbqi::process(Node q)
   tmpConvertMap.clear();
   for (Node& v : terms)
   {
-    Node vc = convert(vars, v, false, tmpConvertMap, freshVarType, mvToFreshVar);
-    Assert (!vc.isNull());
+    Node vc =
+        convert(vars, v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+    Assert(!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
-      Trace("mbqi") << "...failed to process model value " << vc << ", from " << v << std::endl;
+      Trace("mbqi") << "...failed to process model value " << vc << ", from "
+                    << v << std::endl;
       return;
     }
     v = vc;
@@ -285,7 +286,7 @@ Node InstStrategyMbqi::convert(
       Kind ck = cur.getKind();
       if (ck == BOUND_VARIABLE)
       {
-        if (toQuery && std::find(vars.begin(), vars.end(), cur)!=vars.end())
+        if (toQuery && std::find(vars.begin(), vars.end(), cur) != vars.end())
         {
           Node k = sm->mkPurifySkolem(cur, "mbk");
           cmap[cur] = k;
