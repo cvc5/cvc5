@@ -2377,21 +2377,26 @@ cdef class Solver:
             diffi[termk] = termv
         return diffi
 
-    def getValue(self, Term t):
+    def getValue(self, term_or_list):
         """
-            Get the value of the given term in the current model.
+            Get the value of the given term or list of terms in the current
+            model.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-                ( get-value ( <term> ) )
+                ( get-value ( <term>* ) )
 
-            :param term: The term for which the value is queried.
-            :return: The value of the given term.
+            :param term_or_list: The term or list of terms for which the value
+                                 is queried.
+            :return: The value or list of values of the given term or list of
+                     terms.
         """
+        if isinstance(term_or_list, list):
+            return [self.getValue(t) for t in term_or_list]
         cdef Term term = Term(self)
-        term.cterm = self.csolver.getValue(t.cterm)
+        term.cterm = self.csolver.getValue((<Term> term_or_list).cterm)
         return term
 
     def getModelDomainElements(self, Sort s):

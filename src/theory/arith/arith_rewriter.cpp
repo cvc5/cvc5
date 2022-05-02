@@ -982,7 +982,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             msum.erase(pi);
             if (!msum.empty())
             {
-              rem = ArithMSum::mkNode(t[0].getType(), msum);
+              rem = ArithMSum::mkNode(msum);
             }
           }
         }
