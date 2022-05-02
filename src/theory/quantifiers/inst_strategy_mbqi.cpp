@@ -21,6 +21,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -36,12 +37,15 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
                                    TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr)
 {
+  // some kinds may appear in model values that cannot be asserted
+  d_nonClosedKinds.insert(STORE_ALL);
+  d_nonClosedKinds.insert(CODATATYPE_BOUND_VARIABLE);
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e)
 {
-  d_freshVarType.clear();
   d_quantChecked.clear();
+  d_convertMap.clear();
 }
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
@@ -66,124 +70,12 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   // see if the negation of each quantified formula is satisfiable in the model
   std::vector<Node> disj;
   FirstOrderModel* fm = d_treg.getModel();
-  Skolemize* skm = d_qim.getSkolemize();
   std::vector<TNode> visit;
   for (size_t i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant; i++)
   {
     Node q = fm->getAssertedQuantifier(i);
     Trace("mb-oracle-assert") << "  * " << q << std::endl;
-    Node skb = skm->getSkolemizedBody(q);
-    // cannot contain (nested) quantifiers
-    /*
-    if( QuantifiersRewriter::containsQuantifiers( skb ) )
-    {
-      Trace("mb-oracle") << "...fail due to nested quantification in " << q <<
-    std::endl; return;
-    }
-    */
-    // will collect free variables for q
-    visit.push_back(q[1]);
-    disj.push_back(skb.negate());
-  }
-
-  if (disj.empty())
-  {
-    // trivially succeeds
-    Trace("mb-oracle") << "...no asserted quantified formulas." << std::endl;
-    return;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node query = nm->mkOr(disj);
-
-  // now collect free variables and substitute the model
-  std::vector<Node> new_asserts;
-  Trace("mb-oracle") << "  construct the model substitution...\n";
-  Subs subs;
-  std::unordered_set<TNode> visited;
-  std::unordered_map<TNode, Node> mval_visited;
-  TNode cur;
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      Kind ck = cur.getKind();
-      TNode var;
-      if (cur.isVar() && ck != BOUND_VARIABLE)
-      {
-        var = cur;
-      }
-      if (!var.isNull())
-      {
-        Node mvar = fm->getValue(var);
-        Trace("mb-oracle-model") << "  M[" << var << "] = " << mvar << "\n";
-        // must remove unhandled terms from model value
-        // this includes uninterpreted constants and array constants
-        Node cleanMVar = cleanModelValue(mvar, mval_visited);
-        if (cleanMVar.isNull())
-        {
-          Trace("mb-oracle")
-              << "...unhandled model value " << mvar << std::endl;
-          return;
-        }
-        subs.add(var, cleanMVar);
-      }
-      if (cur.getKind() == APPLY_UF)
-      {
-        visit.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-  } while (!visit.empty());
-
-  if (!subs.empty())
-  {
-    query = subs.apply(query);
-  }
-  query = rewrite(query);
-  if (query.isConst())
-  {
-    Trace("mb-oracle") << "  ...query simplifies to constant " << query
-                       << std::endl;
-    return;
-  }
-  // also include distinctness of variables introduced as constants
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
-       d_freshVarType)
-  {
-    Assert(!fv.second.empty());
-    if (fv.second.size() > 1)
-    {
-      std::vector<Node> vars(fv.second.begin(), fv.second.end());
-      new_asserts.push_back(nm->mkNode(DISTINCT, vars));
-    }
-  }
-
-  // finalize the query with the new assertions
-  if (!new_asserts.empty())
-  {
-    new_asserts.push_back(query);
-    query = nm->mkNode(AND, new_asserts);
-  }
-
-  // make a separate smt call
-  Trace("mb-oracle") << "  make the satisfiability call...\n";
-  Trace("mb-oracle-debug") << "  ...query is : " << query << std::endl;
-  std::unique_ptr<SolverEngine> mbqiChecker;
-  initializeSubsolver(mbqiChecker, d_env);
-  mbqiChecker->assertFormula(query);
-  Trace("mb-oracle") << "*** Check sat..." << std::endl;
-  Result r = mbqiChecker->checkSat();
-  Trace("mb-oracle") << "  ...got : " << r << std::endl;
-  if (r.getStatus() != Result::UNSAT)
-  {
-    return;
+    process(q);
   }
 }
 
@@ -192,81 +84,207 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
   return d_quantChecked.find(q) != d_quantChecked.end();
 }
 
-Node InstStrategyMbqi::cleanModelValue(Node n,
-                                       std::unordered_map<TNode, Node> visited)
+void InstStrategyMbqi::process(Node q)
 {
-  std::unordered_map<TNode, Node>::iterator it;
+  // list of fresh variables per type
+  std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+  // model values to the fresh variables
+  std::map<Node, Node> mvToFreshVar;
+  
+  NodeManager* nm = NodeManager::currentNM();
+  
+  Skolemize * skm = d_qim.getSkolemize();
+  Node body = skm->getSkolemizedBody(q);
+  Node cbody = convert(body, true, d_convertMap, freshVarType, mvToFreshVar);
+  
+  // check if there are any bad kinds
+  if (expr::hasSubtermKinds(d_nonClosedKinds, cbody))
+  {
+    return;
+  }
+  Assert (mvToFreshVar.empty());
+  
+  std::vector<Node> constraints;
+  
+  // include the negation of the skolemized body
+  constraints.push_back(cbody.negate());
+  
+  // also include distinctness of variables introduced as constants
+  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
+       freshVarType)
+  {
+    Assert(!fv.second.empty());
+    if (fv.second.size() > 1)
+    {
+      std::vector<Node> vars(fv.second.begin(), fv.second.end());
+      constraints.push_back(nm->mkNode(DISTINCT, vars));
+    }
+  }
+  
+  // make the query
+  Node query = nm->mkAnd(constraints);
+  
+  std::unique_ptr<SolverEngine> mbqiChecker;
+  initializeSubsolver(mbqiChecker, d_env);
+  mbqiChecker->assertFormula(query);
+  Trace("mb-oracle") << "*** Check sat..." << std::endl;
+  Result r = mbqiChecker->checkSat();
+  Trace("mb-oracle") << "  ...got : " << r << std::endl;
+  if (r.getStatus() == Result::UNSAT)
+  {
+    d_quantChecked.insert(q);
+    return;
+  }
+  // otherwise, construct an instantiation from the model
+  std::vector<Node> skolems;
+  if (!skm->getSkolemConstants(q, skolems))
+  {
+    return;
+  }
+  
+  // get the model values for all fresh variables
+  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
+       freshVarType)
+  {
+    if (fv.second.size() > 1)
+    {
+      for (const Node& v : fv.second)
+      {
+        Node mv = mbqiChecker->getValue(v);
+        Assert (d_mvToFreshVar.find(mv)!=d_mvToFreshVar.end());
+        mvToFreshVar[mv] = v;
+      }
+    }
+  }
+  
+  // get the model values for skolems
+  std::vector<Node> mvs;
+  getModelFromSubsolver(*mbqiChecker.get(), skolems, mvs);
+  
+  // try to convert those terms to an instantiation
+  std::unordered_map<Node, Node> tmpConvertMap;
+  for (Node& v : mvs)
+  {
+    v = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+    if (expr::hasSubtermKinds(d_nonClosedKinds, v))
+    {
+      return;
+    }
+  }
+  // add instantiation?
+}
+
+Node InstStrategyMbqi::convert(Node t, bool toQuery, std::unordered_map<Node, Node>& cmap, std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
+  const std::map<Node, Node>& mvToFreshVar)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
+  FirstOrderModel* fm = d_treg.getModel();
+  std::unordered_map<Node, Node>::iterator it;
+  std::map<Node, Node> modelValue;
+  std::unordered_set<Node> processingChildren;
   std::vector<TNode> visit;
+  visit.push_back(t);
   TNode cur;
-  visit.push_back(n);
   do
   {
     cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
+    it = cmap.find(cur);
+    if (it != cmap.end())
+    {
+      // already computed
+      continue;
+    }
+    if (processingChildren.find(cur)==processingChildren.end())
     {
       Kind ck = cur.getKind();
-      if (ck == UNINTERPRETED_SORT_VALUE)
+      if (ck==BOUND_VARIABLE)
+      {
+        cmap[cur] = cur;
+      }
+      else if (ck == UNINTERPRETED_SORT_VALUE)
       {
         Assert(cur.getType().isUninterpretedSort());
-        // return the fresh variable for this term
-        visited[cur] = getOrMkFreshVariableFor(cur);
+        if (toQuery)
+        {
+          // return the fresh variable for this term
+          Node k = sm->mkPurifySkolem(cur, "mbk");
+          freshVarType[cur.getType()].insert(k);
+          cmap[cur] = k;
+          continue;
+        }
+        // converting from query, find the variable that it is equal to
+        std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
+        if (itmv!=mvToFreshVar.end())
+        {
+          cmap[cur] = itmv->second;
+        }
+        else
+        {
+          // failed to find equal, keep the value
+          cmap[cur] = cur;
+        }
       }
-      else if (ck == CODATATYPE_BOUND_VARIABLE || ck == STORE_ALL)
+      else if (cur.isVar())
       {
-        // do not support array or recursive codatatype constants
-        return Node::null();
+        std::map<Node, Node>::iterator itm = modelValue.find(cur);
+        if (itm==modelValue.end())
+        {
+          Node mval = fm->getValue(cur);
+          Trace("mb-oracle-model") << "  M[" << cur << "] = " << mval << "\n";
+          modelValue[cur] = mval;
+          visit.push_back(cur);
+          visit.push_back(mval);
+        }
+        else
+        {
+          Assert (cmap.find(itm->second)!=cmap.end());
+          cmap[cur] = cmap[itm->second];
+        }
+      }
+      else if (cur.getNumChildren()==0)
+      {
+        cmap[cur] = cur;
       }
       else
       {
-        visited[cur] = Node::null();
+        processingChildren.insert(cur);
         visit.push_back(cur);
-        for (const Node& cn : cur)
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
-          visit.push_back(cn);
+          visit.push_back(cur.getOperator());
         }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
+      continue;
     }
-    else if (it->second.isNull())
+    processingChildren.erase(cur);
+    bool childChanged = false;
+    std::vector<Node> children;
+    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
-      }
-      visited[cur] = ret;
+      children.push_back(cur.getOperator());
     }
+    children.insert(children.end(), cur.begin(), cur.end());
+    for (Node& cn : children) 
+    {
+      it = cmap.find(cn);
+      Assert (it != cmap.end());
+      Assert (!it->second.isNull());
+      childChanged = childChanged || cn != it->second;
+      cn = it->second;
+    }
+    Node ret = cur;
+    if (childChanged) 
+    {
+      ret = rewrite(nm->mkNode(cur.getKind(), children));
+    }
+    cmap[cur] = ret;
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
-Node InstStrategyMbqi::getOrMkFreshVariableFor(Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  TypeNode tn = n.getType();
-  Assert(tn.isUninterpretedSort());
-  Node k = sm->mkPurifySkolem(n, "mbk");
-  d_freshVarType[tn].insert(k);
-  return k;
+  
+  Assert (cmap.find(cur)!=cmap.end());
+  return cmap[cur];
 }
 
 }  // namespace quantifiers

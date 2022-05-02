@@ -53,17 +53,20 @@ class InstStrategyMbqi : public QuantifiersModule
   std::string identify() const override { return "InstStrategyMbqi"; }
 
  private:
-  /** clean model value
-   *
-   *
-   */
-  Node cleanModelValue(Node n, std::unordered_map<TNode, Node> visited);
-  /** get or make fresh variable for */
-  Node getOrMkFreshVariableFor(Node c);
+  /** process quantified formula q */
+  void process(Node q);
+  /** convert to query */
+  Node convert(Node t, bool toQuery, std::unordered_map<Node, Node>& cmap, std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
+  const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
-  /** list of fresh variables per type */
-  std::map<TypeNode, std::unordered_set<Node> > d_freshVarType;
+  /** 
+   * converting quantified formula bodies to queries
+   * converting model values from queries to instantiations
+   */
+  std::unordered_map<Node, Node> d_convertMap;
+  /** Kinds that cannot appear in queries */
+  std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
 };
 
 }  // namespace quantifiers
