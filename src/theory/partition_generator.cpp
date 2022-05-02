@@ -133,7 +133,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict)
     if (strict)
     {
       vector<Node> toEmit;
-      for (const auto& c : d_cubes) 
+      for (const Node& c : d_cubes) 
       {
         toEmit.push_back(c.notNode());
       }
@@ -153,7 +153,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict)
   else
   {
     vector<Node> nots;
-    for (auto c : d_cubes) nots.push_back(c.notNode());
+    for (const Node& c : d_cubes) nots.push_back(c.notNode());
     Node lemma = NodeManager::currentNM()->mkAnd(nots);
     // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
     emitCube(lemma);
@@ -203,7 +203,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions()
     // For the first column, numConsecutiveTF = 4, then 2 for the second column, 
     // and 1 for the third column.
     size_t numConsecutiveTF = total/2;
-    for (Node n : literals)
+    for (const Node& n : literals)
     {
       Node not_n = n.notNode();
 
