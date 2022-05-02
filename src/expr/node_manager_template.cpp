@@ -320,6 +320,11 @@ const DType& NodeManager::getDTypeFor(TypeNode tn) const
   return getDTypeFor(tn[0]);
 }
 
+const DType& NodeManager::getDTypeFor(Node n) const
+{
+  return getDTypeFor(TypeNode(n));
+}
+
 const DType& NodeManager::getDTypeForIndex(size_t index) const
 {
   // if this assertion fails, it is likely due to not managing datatypes

@@ -139,6 +139,8 @@ class NodeManager
    * this method on it.
    */
   const DType& getDTypeFor(TypeNode tn) const;
+  /** Same as above, for node */
+  const DType& getDTypeFor(Node n) const;
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType(TypeNode tn);
