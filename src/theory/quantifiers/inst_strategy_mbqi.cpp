@@ -103,14 +103,14 @@ void InstStrategyMbqi::process(Node q)
     return;
   }
   Assert(mvToFreshVar.empty());
-  
+
   // get the skolem variables
   std::vector<Node> skolems;
   if (!skm->getSkolemConstants(q, skolems))
   {
     return;
   }
-  
+
   std::vector<Node> constraints;
 
   // include the negation of the skolemized body
@@ -173,13 +173,13 @@ void InstStrategyMbqi::process(Node q)
     //
     v = fvToInst.apply(v);
   }
-  
+
   // now convert fresh variables into terms
   for (Node& v : mvs)
   {
     v = fvToInst.apply(v);
   }
-  
+
   // add instantiation?
 }
 
