@@ -15,11 +15,11 @@
 
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 
+#include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
-#include "expr/skolem_manager.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -131,7 +131,7 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
         }
         subs.add(var, cleanMVar);
       }
-      if (cur.getKind()==APPLY_UF)
+      if (cur.getKind() == APPLY_UF)
       {
         visit.push_back(cur.getOperator());
       }
@@ -187,7 +187,10 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool InstStrategyMbqi::checkCompleteFor(Node q) { return d_quantChecked.find(q)!=d_quantChecked.end(); }
+bool InstStrategyMbqi::checkCompleteFor(Node q)
+{
+  return d_quantChecked.find(q) != d_quantChecked.end();
+}
 
 Node InstStrategyMbqi::cleanModelValue(Node n,
                                        std::unordered_map<TNode, Node> visited)
@@ -257,10 +260,10 @@ Node InstStrategyMbqi::cleanModelValue(Node n,
 
 Node InstStrategyMbqi::getOrMkFreshVariableFor(Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode tn = n.getType();
-  Assert (tn.isUninterpretedSort());
+  Assert(tn.isUninterpretedSort());
   Node k = sm->mkPurifySkolem(n, "mbk");
   d_freshVarType[tn].insert(k);
   return k;
