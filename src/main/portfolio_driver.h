@@ -81,35 +81,32 @@ struct PortfolioStrategy
 class PortfolioDriver
 {
 	public:
-		void execute(ExecutionContext& ctx)
+		std::pair<Result, int> execute(std::unique_ptr<CommandExecutor>& executor, std::unique_ptr<parser::Parser>& parser)
 		{
+			ExecutionContext ctx {executor.get(), parser.get()};
 			Solver& solver = ctx.solver();
 			bool use_portfolio = solver.getOption("use-portfolio") == "true";
 			if (!use_portfolio)
 			{
-				executeContinuous(ctx, false);
-				return;
+				return executeContinuous(ctx, false);
 			}
 			
 			executeContinuous(ctx, true);
 
 			if (!d_logic)
 			{
-				executeContinuous(ctx, false);
-				return;
+				return executeContinuous(ctx, false);
 			}
 			
 			PortfolioStrategy strategy = getStrategy(*d_logic);
 			if (strategy.d_strategies.size() == 0)
 			{
-				executeContinuous(ctx, false);
-				return;
+				return executeContinuous(ctx, false);
 			}
 			if (strategy.d_strategies.size() == 1)
 			{
 				strategy.d_strategies.front().applyOptions(solver);
-				executeContinuous(ctx, false);
-				return;
+				return executeContinuous(ctx, false);
 			}
 
 			uint64_t total_timeout = ctx.solver().getOptionInfo("tlimit").uintValue();
@@ -126,15 +123,16 @@ class PortfolioDriver
 				s.applyOptions(solver);
 				execute(ctx, cmds);
 			}
+			return {Result(), 0};
 		}
 	private:
 		PortfolioStrategy getStrategy(const std::string& logic);
 
-		void executeContinuous(ExecutionContext& ctx, bool stopAtSetLogic = false)
+		std::pair<Result, int> executeContinuous(ExecutionContext& ctx, bool stopAtSetLogic = false)
 		{
     		std::unique_ptr<cvc5::Command> cmd;
 			bool interrupted = false;
-			bool status = false;
+			bool status = true;
 			while (status)
 			{
 				if (interrupted) {
@@ -165,6 +163,11 @@ class PortfolioDriver
 					}
 				}
 			}
+			if(status) {
+				return { ctx.d_executor->getResult(), 0 };
+			} else {
+				return { Result(), 1 };
+			}
 		}
 
 		std::vector<std::unique_ptr<cvc5::Command>> parseIntoVector(ExecutionContext& ctx)
@@ -182,10 +185,10 @@ class PortfolioDriver
 			return res;
 		}
 
-		void execute(ExecutionContext& ctx, std::vector<std::unique_ptr<cvc5::Command>>& cmds)
+		std::pair<Result, int> execute(ExecutionContext& ctx, std::vector<std::unique_ptr<cvc5::Command>>& cmds)
 		{
     		bool interrupted = false;
-			bool status = false;
+			bool status = true;
 			auto it = cmds.begin();
 			while (status && it != cmds.end())
 			{
@@ -207,6 +210,11 @@ class PortfolioDriver
 				{
 					break;
 				}
+			}
+			if(status) {
+				return { ctx.d_executor->getResult(), 0 };
+			} else {
+				return { Result(), 1 };
 			}
 		}
 
