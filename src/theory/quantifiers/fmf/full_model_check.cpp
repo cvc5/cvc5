@@ -958,6 +958,11 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     doCheck( fm, f, d, n[0] );
     doNegate( d );
   }
+  else if (n.getKind() == kind::TO_REAL)
+  {
+    // no-op
+    doCheck(fm, f, d, n[0]);
+  }
   else if( n.getKind() == kind::FORALL ){
     d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }

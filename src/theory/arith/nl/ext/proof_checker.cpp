@@ -123,8 +123,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
     Assert(args[2].getType().isRealOrInt());
     Assert(args[3].getType().isRealOrInt());
     Assert(args[4].getType().isRealOrInt());
-    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL
-           && args[5].getConst<Rational>().isIntegral());
+    Assert(args[5].isConst() && args[5].getConst<Rational>().isIntegral());
     Node t = args[0];
     Node x = args[1];
     Node y = args[2];
