@@ -95,6 +95,8 @@ class DotPrinter
    * @param pfLetOpen the map, local to the current scope, of proof node hashs
    * to their printed ids
    * @param cfaMap the map from proof nodes to whether they contain assumptions
+   * @param ancestors a vector containing all the current proof node ancestors
+   * hashs
    * @param parentType the type of the parent node
    * @return the id of the proof node printed
    */
@@ -103,6 +105,7 @@ class DotPrinter
                          std::map<size_t, uint64_t>& pfLetClosed,
                          std::map<size_t, uint64_t>& pfLetOpen,
                          std::unordered_map<const ProofNode*, bool>& cfaMap,
+                         std::vector<size_t>& ancestors,
                          ProofNodeClusterType parentType);
 
   /**
