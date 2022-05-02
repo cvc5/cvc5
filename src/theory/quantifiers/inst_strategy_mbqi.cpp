@@ -19,6 +19,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "expr/skolem_manager.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -33,13 +34,14 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_check_success(false)
+    : QuantifiersModule(env, qs, qim, qr, tr)
 {
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e)
 {
-  d_check_success = false;
+  d_freshVarType.clear();
+  d_quantChecked.clear();
 }
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
@@ -97,7 +99,6 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   // now collect free variables and substitute the model
   std::vector<Node> new_asserts;
   Trace("mb-oracle") << "  construct the model substitution...\n";
-  std::unordered_set<TNode> op_proc;
   Subs subs;
   std::unordered_set<TNode> visited;
   std::unordered_map<TNode, Node> mval_visited;
@@ -115,15 +116,6 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
       {
         var = cur;
       }
-      else if (ck == APPLY_UF)
-      {
-        TNode op = cur.getOperator();
-        if (op_proc.find(op) == op_proc.end())
-        {
-          op_proc.insert(op);
-          var = op;
-        }
-      }
       if (!var.isNull())
       {
         Node mvar = fm->getValue(var);
@@ -138,6 +130,10 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
           return;
         }
         subs.add(var, cleanMVar);
+      }
+      if (cur.getKind()==APPLY_UF)
+      {
+        visit.push_back(cur.getOperator());
       }
       for (const Node& cn : cur)
       {
@@ -155,17 +151,17 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   {
     Trace("mb-oracle") << "  ...query simplifies to constant " << query
                        << std::endl;
-    d_check_success = !query.getConst<bool>();
     return;
   }
   // also include distinctness of variables introduced as constants
-  for (const std::pair<const TypeNode, std::vector<Node> >& fv :
-       d_fresh_var_type)
+  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
+       d_freshVarType)
   {
     Assert(!fv.second.empty());
     if (fv.second.size() > 1)
     {
-      new_asserts.push_back(nm->mkNode(DISTINCT, fv.second));
+      std::vector<Node> vars(fv.second.begin(), fv.second.end());
+      new_asserts.push_back(nm->mkNode(DISTINCT, vars));
     }
   }
 
@@ -189,11 +185,9 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  // the model satisfies all asserted quantified formulas
-  d_check_success = true;
 }
 
-bool InstStrategyMbqi::checkCompleteFor(Node q) { return d_check_success; }
+bool InstStrategyMbqi::checkCompleteFor(Node q) { return d_quantChecked.find(q)!=d_quantChecked.end(); }
 
 Node InstStrategyMbqi::cleanModelValue(Node n,
                                        std::unordered_map<TNode, Node> visited)
@@ -263,16 +257,12 @@ Node InstStrategyMbqi::cleanModelValue(Node n,
 
 Node InstStrategyMbqi::getOrMkFreshVariableFor(Node n)
 {
-  std::unordered_map<Node, Node>::iterator it = d_fresh_var.find(n);
-  if (it != d_fresh_var.end())
-  {
-    return it->second;
-  }
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   TypeNode tn = n.getType();
-  // FIXME
-  Node k;  // = NodeManager::currentNM()->mkSkolem("mbk",tn);
-  d_fresh_var_type[tn].push_back(k);
-  d_fresh_var[n] = k;
+  Assert (tn.isUninterpretedSort());
+  Node k = sm->mkPurifySkolem(n, "mbk");
+  d_freshVarType[tn].insert(k);
   return k;
 }
 
