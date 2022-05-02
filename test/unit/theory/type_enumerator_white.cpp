@@ -265,18 +265,18 @@ TEST_F(TestTheoryWhiteTypeEnumerator, arrays_infinite)
   // ensure that certain items were found
   TypeNode arrayType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                   d_nodeManager->integerType());
-  Node zeroes = d_nodeManager->mkConst(ArrayStoreAll(
-      arrayType, d_nodeManager->mkConstInt(Rational(0))));
-  Node ones = d_nodeManager->mkConst(ArrayStoreAll(
-      arrayType, d_nodeManager->mkConstInt(Rational(1))));
-  Node twos = d_nodeManager->mkConst(ArrayStoreAll(
-      arrayType, d_nodeManager->mkConstInt(Rational(2))));
-  Node threes = d_nodeManager->mkConst(ArrayStoreAll(
-      arrayType, d_nodeManager->mkConstInt(Rational(3))));
-  Node fours = d_nodeManager->mkConst(ArrayStoreAll(
-      arrayType, d_nodeManager->mkConstInt(Rational(4))));
-  Node tens = d_nodeManager->mkConst(ArrayStoreAll(
-      arrayType, d_nodeManager->mkConstInt(Rational(10))));
+  Node zeroes = d_nodeManager->mkConst(
+      ArrayStoreAll(arrayType, d_nodeManager->mkConstInt(Rational(0))));
+  Node ones = d_nodeManager->mkConst(
+      ArrayStoreAll(arrayType, d_nodeManager->mkConstInt(Rational(1))));
+  Node twos = d_nodeManager->mkConst(
+      ArrayStoreAll(arrayType, d_nodeManager->mkConstInt(Rational(2))));
+  Node threes = d_nodeManager->mkConst(
+      ArrayStoreAll(arrayType, d_nodeManager->mkConstInt(Rational(3))));
+  Node fours = d_nodeManager->mkConst(
+      ArrayStoreAll(arrayType, d_nodeManager->mkConstInt(Rational(4))));
+  Node tens = d_nodeManager->mkConst(
+      ArrayStoreAll(arrayType, d_nodeManager->mkConstInt(Rational(10))));
 
   Node zero = d_nodeManager->mkConstInt(Rational(0));
   Node one = d_nodeManager->mkConstInt(Rational(1));

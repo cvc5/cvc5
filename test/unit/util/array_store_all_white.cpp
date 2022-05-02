@@ -49,10 +49,9 @@ TEST_F(TestUtilWhiteArrayStoreAll, type_errors)
                              d_nodeManager->mkConst(UninterpretedSortValue(
                                  d_nodeManager->mkSort("U"), 0))),
                IllegalArgumentException);
-  ASSERT_THROW(
-      ArrayStoreAll(d_nodeManager->integerType(),
-                    d_nodeManager->mkConstInt(Rational(9, 2))),
-      IllegalArgumentException);
+  ASSERT_THROW(ArrayStoreAll(d_nodeManager->integerType(),
+                             d_nodeManager->mkConstInt(Rational(9, 2))),
+               IllegalArgumentException);
   ASSERT_THROW(
       ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                d_nodeManager->mkSort("U")),
@@ -71,13 +70,12 @@ TEST_F(TestUtilWhiteArrayStoreAll, const_error)
       ArrayStoreAll(d_nodeManager->integerType(),
                     d_nodeManager->mkVar("x", d_nodeManager->integerType())),
       IllegalArgumentException);
-  ASSERT_THROW(
-      ArrayStoreAll(d_nodeManager->integerType(),
-                    d_nodeManager->mkNode(
-                        kind::ADD,
-                        d_nodeManager->mkConstInt(Rational(1)),
-                        d_nodeManager->mkConstInt(Rational(0)))),
-      IllegalArgumentException);
+  ASSERT_THROW(ArrayStoreAll(d_nodeManager->integerType(),
+                             d_nodeManager->mkNode(
+                                 kind::ADD,
+                                 d_nodeManager->mkConstInt(Rational(1)),
+                                 d_nodeManager->mkConstInt(Rational(0)))),
+               IllegalArgumentException);
 }
 }  // namespace test
 }  // namespace cvc5::internal

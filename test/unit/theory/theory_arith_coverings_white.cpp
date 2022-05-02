@@ -205,8 +205,7 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
-      d_nodeManager->mkNode(
-          Kind::EQUAL, a, d_nodeManager->mkConstReal(d_zero)),
+      d_nodeManager->mkNode(Kind::EQUAL, a, d_nodeManager->mkConstReal(d_zero)),
       d_nodeManager->mkNode(
           Kind::EQUAL,
           d_nodeManager->mkNode(

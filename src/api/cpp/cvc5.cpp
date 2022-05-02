@@ -2638,7 +2638,8 @@ bool checkReal64Bounds(const internal::Rational& r)
 
 bool isReal(const internal::Node& node)
 {
-  return node.getKind() == internal::Kind::CONST_RATIONAL || node.getKind() == internal::Kind::CONST_INTEGER
+  return node.getKind() == internal::Kind::CONST_RATIONAL
+         || node.getKind() == internal::Kind::CONST_INTEGER
          || node.getKind() == internal::Kind::CAST_TO_REAL;
 }
 bool isReal32(const internal::Node& node)
@@ -5236,11 +5237,10 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
     // constructors. We do this cast using division with 1. This has the
     // advantage wrt using TO_REAL since (constant) division is always included
     // in the theory.
-    res = Term(
-        this,
-        d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                          *res.d_node,
-                          d_nodeMgr->mkConstInt(internal::Rational(1))));
+    res = Term(this,
+               d_nodeMgr->mkNode(extToIntKind(DIVISION),
+                                 *res.d_node,
+                                 d_nodeMgr->mkConstInt(internal::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
