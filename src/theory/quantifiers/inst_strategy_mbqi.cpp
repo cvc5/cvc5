@@ -21,6 +21,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -64,9 +65,6 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  Trace("mb-oracle") << "Run model-based oracle..." << std::endl;
-
-  Trace("mb-oracle") << "  get the asserted quantified formulas...\n";
   // see if the negation of each quantified formula is satisfiable in the model
   std::vector<Node> disj;
   FirstOrderModel* fm = d_treg.getModel();
@@ -74,7 +72,6 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   for (size_t i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant; i++)
   {
     Node q = fm->getAssertedQuantifier(i);
-    Trace("mb-oracle-assert") << "  * " << q << std::endl;
     process(q);
   }
 }
@@ -86,12 +83,14 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 
 void InstStrategyMbqi::process(Node q)
 {
+  Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // list of fresh variables per type
   std::map<TypeNode, std::unordered_set<Node> > freshVarType;
   // model values to the fresh variables
   std::map<Node, Node> mvToFreshVar;
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   Skolemize* skm = d_qim.getSkolemize();
   Node body = skm->getSkolemizedBody(q);
@@ -100,6 +99,7 @@ void InstStrategyMbqi::process(Node q)
   // check if there are any bad kinds
   if (expr::hasSubtermKinds(d_nonClosedKinds, cbody))
   {
+    Trace("mbqi") << "...failed to convert to query" << std::endl;
     return;
   }
   Assert(mvToFreshVar.empty());
@@ -108,6 +108,9 @@ void InstStrategyMbqi::process(Node q)
   std::vector<Node> skolems;
   if (!skm->getSkolemConstants(q, skolems))
   {
+    // should never happen
+    Assert (false);
+    Trace("mbqi") << "...failed to get skolem constants" << std::endl;
     return;
   }
 
@@ -129,8 +132,47 @@ void InstStrategyMbqi::process(Node q)
       constraints.push_back(nm->mkNode(DISTINCT, vars));
     }
   }
-  // TODO: ensure the skolems of the given type are equal to one of the
-  // variables
+  // get a term that has the same model value as the value each fresh variable represents
+  Subs fvToInst;
+  const RepSet* rs = d_treg.getModel()->getRepSet();
+  for (const Node& v : allVars)
+  {
+    // get a term that witnesses this variable
+    Node ov = sm->getOriginalForm(v);
+    Node mvt = rs->getTermForRepresentative(ov);
+    if (mvt.isNull())
+    {
+      Trace("mbqi") << "...failed to get term for value " << ov << std::endl;
+      return;
+    }
+    Assert (v.getType()==mvt.getType());
+    fvToInst.add(v, mvt);
+  }
+  // ensure the skolems of the given type are equal to one of the variables
+  std::map<TypeNode, std::unordered_set<Node> >::iterator itk;
+  for (const Node& k : skolems)
+  {
+    TypeNode tn = k.getType();
+    itk = freshVarType.find(tn);
+    if (itk==freshVarType.end())
+    {
+      continue;
+    }
+    // this is critical to model soundness; we return if empty
+    if (itk->second.empty())
+    {
+      Assert (false);
+      Trace("mbqi") << "...failed to get vars for type " << tn << std::endl;
+      return;
+    }
+    std::vector<Node> disj;
+    for (const Node& fv : itk->second)
+    {
+      disj.push_back(k.eqNode(fv));
+    }
+    Node instCardCons = nm->mkOr(disj);
+    constraints.push_back(instCardCons);
+  }
 
   // make the query
   Node query = nm->mkAnd(constraints);
@@ -138,49 +180,64 @@ void InstStrategyMbqi::process(Node q)
   std::unique_ptr<SolverEngine> mbqiChecker;
   initializeSubsolver(mbqiChecker, d_env);
   mbqiChecker->assertFormula(query);
-  Trace("mb-oracle") << "*** Check sat..." << std::endl;
+  Trace("mbqi") << "*** Check sat..." << std::endl;
   Result r = mbqiChecker->checkSat();
-  Trace("mb-oracle") << "  ...got : " << r << std::endl;
+  Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
     d_quantChecked.insert(q);
+    Trace("mbqi") << "...success, SAT" << std::endl;
     return;
   }
 
   // get the model values for all fresh variables
-  Subs fvToInst;
   for (const Node& v : allVars)
   {
     Node mv = mbqiChecker->getValue(v);
     Assert(mvToFreshVar.find(mv) == mvToFreshVar.end());
     mvToFreshVar[mv] = v;
-    // get a term that witnesses this variable
   }
 
   // get the model values for skolems
-  std::vector<Node> mvs;
-  getModelFromSubsolver(*mbqiChecker.get(), skolems, mvs);
-
+  std::vector<Node> terms;
+  getModelFromSubsolver(*mbqiChecker.get(), skolems, terms);
+  Assert (skolems.size()==terms.size());
+  if (TraceIsOn("mbqi"))
+  {
+    Trace("mbqi") << "...model from subsolver is: " << std::endl;
+    for (size_t i=0, nterms = skolems.size(); i<nterms; i++)
+    {
+      Trace("mbqi") << "  " << skolems[i] << " -> " << terms[i] << std::endl;
+    }
+  }
   // try to convert those terms to an instantiation
   std::unordered_map<Node, Node> tmpConvertMap;
-  for (Node& v : mvs)
+  for (Node& v : terms)
   {
-    v = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
-    if (expr::hasSubtermKinds(d_nonClosedKinds, v))
+    Node vc = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+    Assert (!vc.isNull());
+    if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
+      Trace("mbqi") << "...failed to process model value " << vc << ", from " << v << std::endl;
       return;
     }
-    //
-    v = fvToInst.apply(v);
+    v = vc;
   }
 
   // now convert fresh variables into terms
-  for (Node& v : mvs)
+  for (Node& v : terms)
   {
     v = fvToInst.apply(v);
   }
 
   // add instantiation?
+  Instantiate* qinst = d_qim.getInstantiate();
+  if (!qinst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_MBQI))
+  {
+    Trace("mbqi") << "...failed to add instantiation" << std::endl;
+    return;
+  }
+  Trace("mbqi") << "...success, instantiated" << std::endl;
 }
 
 Node InstStrategyMbqi::convert(
@@ -245,7 +302,7 @@ Node InstStrategyMbqi::convert(
         if (itm == modelValue.end())
         {
           Node mval = fm->getValue(cur);
-          Trace("mb-oracle-model") << "  M[" << cur << "] = " << mval << "\n";
+          Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
           modelValue[cur] = mval;
           visit.push_back(cur);
           visit.push_back(mval);
