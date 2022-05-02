@@ -467,7 +467,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   if (auto res = rewriter::getZeroChild(children); res)
   {
-    return RewriteResponse(REWRITE_DONE, rewriter::maybeEnsureReal(t.getType(), *res));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::maybeEnsureReal(t.getType(), *res));
   }
 
   Node ret;
