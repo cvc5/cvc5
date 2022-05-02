@@ -142,7 +142,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict)
 
       emitCube(cube);
     }
-    else {
+    else
+    {
       emitCube(conj);
     }
     // Add to the list of cubes.
@@ -221,7 +222,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions()
 
       numConsecutiveTF = numConsecutiveTF/2;
     }
-    for (std::vector<TNode> row : resultNodeLists)
+    for (const std::vector<TNode>& row : resultNodeLists)
     {
       Node conj = NodeManager::currentNM()->mkAnd(row);
       emitCube(conj);
