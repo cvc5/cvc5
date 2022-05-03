@@ -122,7 +122,6 @@ bool ExecutionContext::solveCommands(
 
 namespace {
 
-
 /**
  * Provides a convenient wrapper for POSIX pipes in the context of forking.
  * The implemented mechanism is using a pipe to buffer the (standard or error)
@@ -287,16 +286,16 @@ class PortfolioProcessPool
       job.d_config.applyOptions(d_ctx.solver());
       std::cerr << "applied options " << std::endl;
       // 0 = solved, 1 = not solved
-	  int rc = 1;
+      int rc = 1;
       if (d_ctx.solveCommands(d_commands))
-	  {
-		  Result res = d_ctx.d_executor->getResult();
-			std::cerr << "result is " << res << std::endl;
-		  if (res.isSat() || res.isUnsat())
-		  {
-			  rc = 0;
-		  }
-	  }
+      {
+        Result res = d_ctx.d_executor->getResult();
+        std::cerr << "result is " << res << std::endl;
+        if (res.isSat() || res.isUnsat())
+        {
+          rc = 0;
+        }
+      }
       std::cerr << "worker returns " << rc << std::endl;
       std::quick_exit(rc);
     }
@@ -349,9 +348,16 @@ class PortfolioProcessPool
       pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
       // has not terminated yet
       if (res == 0) continue;
-      Trace("portfolio") << "Job has terminated" << std::endl;
+      Trace("portfolio") << "Job " << job.d_worker << " has terminated"
+                         << std::endl;
       --d_running;
       // check if exited normally
+      if (WIFSIGNALED(wstatus))
+      {
+        Trace("portfolio") << "Job has stopped by a signal" << std::endl;
+        job.d_timeout = -1;
+        continue;
+      }
       if (WIFEXITED(wstatus))
       {
         // mark as analyzed
