@@ -2,6 +2,7 @@
 ; COMMAND-LINE: --sygus-inference --sygus-qe-preproc -q
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
+; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (declare-fun a () Real)
 (declare-fun b () Real)

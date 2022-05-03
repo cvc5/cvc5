@@ -2,6 +2,7 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
+; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (set-option :miniscope-quant conj-and-fv)
 (set-option :sygus-inference true)

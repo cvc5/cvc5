@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
 #include "theory/output_channel.h"
@@ -312,6 +313,9 @@ class PropEngine : protected EnvObj
   /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;
+
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

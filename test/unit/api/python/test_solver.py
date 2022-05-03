@@ -308,8 +308,7 @@ def test_mk_tuple_sort(solver):
     solver.mkTupleSort(solver.getIntegerSort())
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
                                     solver.getIntegerSort())
-    with pytest.raises(RuntimeError):
-        solver.mkTupleSort(solver.getIntegerSort(), funSort)
+    solver.mkTupleSort(solver.getIntegerSort(), funSort)
 
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
@@ -704,6 +703,8 @@ def test_mk_string(solver):
     str(solver.mkString("asdf\\nasdf")) == "\"asdf\\u{5c}nasdf\""
     str(solver.mkString("asdf\\u{005c}nasdf", True)) ==\
             "\"asdf\\u{5c}nasdf\""
+    s = ""
+    assert solver.mkString(s).getStringValue() == s
 
 
 def test_mk_term(solver):
@@ -1128,6 +1129,15 @@ def test_uf_iteration(solver):
         idx = idx + 1
 
 
+def test_get_assertions(solver):
+    a = solver.mkConst(solver.getBooleanSort(), 'a')
+    b = solver.mkConst(solver.getBooleanSort(), 'b')
+    solver.assertFormula(a)
+    solver.assertFormula(b)
+    asserts = [a,b]
+    assert solver.getAssertions() == asserts
+
+
 def test_get_info(solver):
     solver.getInfo("name")
     with pytest.raises(RuntimeError):
@@ -1403,6 +1413,10 @@ def test_get_value3(solver):
     solver.getValue(z)
     solver.getValue(summ)
     solver.getValue(p_f_y)
+
+    a = [solver.getValue(x), solver.getValue(y), solver.getValue(z)]
+    b = solver.getValue([x,y,z])
+    assert a == b
 
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):

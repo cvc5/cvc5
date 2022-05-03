@@ -26,6 +26,14 @@ name   = "SMT Layer"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
 [[option]]
+  name       = "simplificationBoolConstProp"
+  category   = "expert"
+  long       = "simplification-bcp"
+  type       = "bool"
+  default    = "false"
+  help       = "apply Boolean constant propagation as a substituion during simplification"
+
+[[option]]
   name       = "doStaticLearning"
   category   = "regular"
   long       = "static-learning"
@@ -461,3 +469,37 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "checks whether produced solutions to get-abduct are correct"
+
+[[option]]
+  name       = "deepRestartMode"
+  category   = "expert"
+  long       = "deep-restart=MODE"
+  type       = "DeepRestartMode"
+  default    = "NONE"
+  help       = "mode for deep restarts"
+  help_mode  = "Mode for deep restarts"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use deep restart"
+[[option.mode.INPUT]]
+  name = "input"
+  help = "learn literals that appear in the input"
+[[option.mode.INPUT_AND_SOLVABLE]]
+  name = "input-and-solvable"
+  help = "learn literals that appear in the input and those that can be solved for variables that appear in the input"
+[[option.mode.INPUT_AND_PROP]]
+  name = "input-and-prop"
+  help = "learn literals that appear in the input and those that can be solved for variables, or correspond to constant propagations for terms that appear in the input"
+[[option.mode.ALL]]
+  name = "all"
+  help = "learn all literals"
+
+[[option]]
+  name       = "deepRestartFactor"
+  category   = "expert"
+  long       = "deep-restart-factor=F"
+  type       = "double"
+  default    = "3.0"
+  minimum    = "0.0"
+  maximum    = "1000.0"
+  help       = "sets the threshold for average assertions per literal before a deep restart"

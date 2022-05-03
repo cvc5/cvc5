@@ -82,30 +82,5 @@ ${post_rewrite_set_cache}
 
 Rewriter::Rewriter() : d_resourceManager(nullptr), d_tpg(nullptr) {}
 
-void Rewriter::clearCachesInternal()
-{
-  typedef cvc5::internal::expr::attr::AttributeUniqueId AttributeUniqueId;
-  std::vector<AttributeUniqueId> preids;
-  // clang-format off
-  ${pre_rewrite_attribute_ids}  // clang-format on
-
-  std::vector<AttributeUniqueId>
-      postids;
-  // clang-format off
-  ${post_rewrite_attribute_ids}  // clang-format on
-
-  std::vector<const AttributeUniqueId*>
-      allids;
-  for (size_t i = 0, size = preids.size(); i < size; ++i)
-  {
-    allids.push_back(&preids[i]);
-  }
-  for (size_t i = 0, size = postids.size(); i < size; ++i)
-  {
-    allids.push_back(&postids[i]);
-  }
-  NodeManager::currentNM()->deleteAttributes(allids);
-}
-
 }  // namespace theory
 }  // namespace cvc5::internal

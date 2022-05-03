@@ -229,7 +229,6 @@ enum class Rewrite : uint32_t
   CHARAT_ELIM,
   SEQ_UNIT_EVAL,
   SEQ_NTH_EVAL,
-  SEQ_NTH_TOTAL_OOB,
   SEQ_NTH_EVAL_SYM
 };
 

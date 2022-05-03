@@ -50,8 +50,6 @@ enum class SkolemFunId
   SELECTOR_WRONG,
   /** a shared selector */
   SHARED_SELECTOR,
-  /** an application of seq.nth that is out of bounds */
-  SEQ_NTH_OOB,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,

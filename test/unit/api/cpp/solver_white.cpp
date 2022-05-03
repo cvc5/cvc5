@@ -50,5 +50,12 @@ TEST_F(TestApiWhiteSolver, getOp)
   ASSERT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 
+TEST_F(TestApiWhiteSolver, printStatisticsSafe)
+{
+  testing::internal::CaptureStdout();
+  d_solver.printStatisticsSafe(STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
