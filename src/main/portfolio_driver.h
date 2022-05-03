@@ -16,10 +16,17 @@
 #ifndef CVC5__MAIN__PORTFOLIO_DRIVER_H
 #define CVC5__MAIN__PORTFOLIO_DRIVER_H
 
+#include <chrono>
 #include <optional>
+#include <thread>
+
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
+#include "base/exception.h"
 #include "main/command_executor.h"
 #include "parser/parser.h"
 #include "smt/command.h"
@@ -35,6 +42,88 @@ struct ExecutionContext
 	Solver& solver() {
 		return *d_executor->getSolver();
 	}
+
+
+
+	bool runCommands(std::vector<std::unique_ptr<cvc5::Command>>& cmds)
+	{
+		bool interrupted = false;
+		bool status = true;
+		auto it = cmds.begin();
+		while (status && it != cmds.end())
+		{
+			if (interrupted) {
+				solver().getDriverOptions().out() << cvc5::CommandInterrupted();
+				d_executor->reset();
+				break;
+			}
+
+			Command* cmd = it->get();
+
+			status = d_executor->doCommand(cmd);
+			if (cmd->interrupted() && status == 0) {
+				interrupted = true;
+				break;
+			}
+
+			if (dynamic_cast<cvc5::QuitCommand*>(cmd) != nullptr)
+			{
+				break;
+			}
+		}
+		if(status) {
+			Result res = d_executor->getResult();
+			return res.isSat() || res.isUnsat();
+		} else {
+			return false;
+		}
+	}
+};
+
+class Pipe
+{
+	public:
+		void open() {
+			if (pipe(d_pipe) == -1)
+			{
+				throw internal::Exception("Unable to open pipe for child process");
+			}
+		}
+		void dup(int fd)
+		{
+			while ((dup2(d_pipe[1], fd) == -1) && (errno == EINTR)) {}
+			close(d_pipe[0]);
+			close(d_pipe[1]);
+		}
+		void closeIn()
+		{
+			close(d_pipe[1]);
+		}
+		void flushTo(std::ostream& os)
+		{
+			char buf[4096];
+			while (true)
+			{
+				ssize_t cnt = read(d_pipe[0], buf, sizeof(buf));
+				if (cnt == -1)
+				{
+					if (errno == EINTR)
+					{
+						continue;
+					}
+					else {
+						throw internal::Exception("Unable to read from pipe");
+					}
+				}
+				else if (cnt == 0)
+				{
+					break;
+				}
+				os.write(buf, cnt);
+			}
+		}
+	private:
+		int d_pipe[2];
 };
 
 struct PortfolioConfig
@@ -63,7 +152,7 @@ struct PortfolioConfig
 	}
 	
 	std::vector<std::pair<std::string,std::string>> d_options;
-	uint64_t d_timeout;
+	double d_timeout;
 };
 
 struct PortfolioStrategy
@@ -77,11 +166,149 @@ struct PortfolioStrategy
 	std::vector<PortfolioConfig> d_strategies;
 };
 
+class PortfolioProcessPool
+{
+	struct Job {
+		PortfolioConfig d_config;
+		pid_t d_worker = -1;
+		pid_t d_timeout = -1;
+		Pipe d_errPipe;
+		Pipe d_outPipe;
+	};
+	public:
+		PortfolioProcessPool(ExecutionContext& ctx, std::vector<std::unique_ptr<cvc5::Command>>&& cmds): d_ctx(ctx),
+		d_commands(std::move(cmds)),
+		d_numJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
+		d_timeout(ctx.solver().getOptionInfo("tlimit").uintValue()) {}
+
+		int run(PortfolioStrategy& strategy)
+		{
+			for (const auto& s: strategy.d_strategies)
+			{
+				d_jobs.emplace_back(Job{s});
+			}
+
+			// While there are jobs to be run or jobs still running
+			while (d_nextJob < d_jobs.size() || d_running > 0)
+			{
+				// Check if any job was successful
+				if (checkResults())
+				{
+					return 0;
+				}
+
+				// While we can start jobs right now
+				while (d_nextJob < d_jobs.size() && d_running < d_numJobs)
+				{
+					startNextJob();
+				}
+
+				if (d_running > 0)
+				{
+					wait(nullptr);
+					if (checkResults()) return 0;
+				}
+			}
+
+			return 1;
+		}
+
+	private:
+		void startNextJob()
+		{
+			Assert(d_nextJob < d_jobs.size());
+			Job& job = d_jobs[d_nextJob];
+
+			// Set up pipes to capture output of worker
+			job.d_errPipe.open();
+			job.d_outPipe.open();
+			// Start the worker process
+			job.d_worker = fork();
+			if (job.d_worker == -1)
+			{
+				throw internal::Exception("Unable to fork");
+			}
+			if (job.d_worker == 0)
+			{
+				job.d_errPipe.dup(STDERR_FILENO);
+				job.d_outPipe.dup(STDOUT_FILENO);
+				// Todo: forwards stdout and stderr to pipes that can be recovered by checkResults
+				job.d_config.applyOptions(d_ctx.solver());
+				// 0 = solved, 1 = not solved
+				std::exit(d_ctx.runCommands(d_commands) ? 0 : 1);
+			}
+			job.d_errPipe.closeIn();
+			job.d_outPipe.closeIn();
+
+			// Start the timeout process
+			job.d_timeout = fork();
+			if (job.d_timeout == 0)
+			{
+				std::this_thread::sleep_for(std::chrono::duration<double>(job.d_config.d_timeout * d_timeout));
+				kill(job.d_worker, SIGKILL);
+				std::exit(0);
+			}
+
+			++d_nextJob;
+			++d_running;
+		}
+
+		/**
+		 * Check whether some process terminated and solved the input. If so,
+		 * forward the child process output to the main out and return true.
+		 * Otherwise return false.
+		 */
+		bool checkResults()
+		{
+			// check d_jobs for items there worker has terminated and timeout != -1
+			for (auto& job: d_jobs)
+			{
+				// has not been started yet
+				if (job.d_worker == -1) continue;
+				// has already been analyzed
+				if (job.d_timeout == -1) continue;
+
+				int wstatus = 0;
+				pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
+				// has not terminated yet
+				if (res == 0) continue;
+				// check if exited normally
+				if (WIFEXITED(wstatus))
+				{
+					// mark as analyzed
+					job.d_timeout = -1;
+					int returncode = WEXITSTATUS(wstatus);
+					if (returncode == 0)
+					{
+						job.d_errPipe.flushTo(std::cerr);
+						job.d_outPipe.flushTo(std::cout);
+					}
+				}
+			}
+			return false;
+		}
+
+		ExecutionContext& d_ctx;
+		std::vector<std::unique_ptr<cvc5::Command>> d_commands;
+		/**
+		 * All jobs, consisting of the config the pid of the worker process, and
+		 * the pid is the timeout process. If the job has not been started yet,
+		 * both pids are -1. If the job has finished and the result has been
+		 * inspected, the pid of the timeout process is -1.
+		 */
+		std::vector<Job> d_jobs;
+		/** The id of the next job to be started within d_jobs */
+		size_t d_nextJob = 0;
+		/** The number of currently running jobs */
+		size_t d_running = 0;
+		const uint64_t d_numJobs;
+		const uint64_t d_timeout;
+};
 
 class PortfolioDriver
 {
 	public:
-		std::pair<Result, int> execute(std::unique_ptr<CommandExecutor>& executor, std::unique_ptr<parser::Parser>& parser)
+		int execute(std::unique_ptr<CommandExecutor>& executor, std::unique_ptr<parser::Parser>& parser)
 		{
 			ExecutionContext ctx {executor.get(), parser.get()};
 			Solver& solver = ctx.solver();
@@ -115,20 +342,14 @@ class PortfolioDriver
 				total_timeout = 1200;
 			}
 
-			auto cmds = parseIntoVector(ctx);
-			for (const auto& s: strategy.d_strategies)
-			{
-				// fork
-				// set timeout: s.d_timeout * total_timeout
-				s.applyOptions(solver);
-				execute(ctx, cmds);
-			}
-			return {Result(), 0};
+			PortfolioProcessPool pool(ctx, parseIntoVector(ctx));
+
+			return pool.run(strategy);
 		}
 	private:
 		PortfolioStrategy getStrategy(const std::string& logic);
 
-		std::pair<Result, int> executeContinuous(ExecutionContext& ctx, bool stopAtSetLogic = false)
+		int executeContinuous(ExecutionContext& ctx, bool stopAtSetLogic = false)
 		{
     		std::unique_ptr<cvc5::Command> cmd;
 			bool interrupted = false;
@@ -163,11 +384,7 @@ class PortfolioDriver
 					}
 				}
 			}
-			if(status) {
-				return { ctx.d_executor->getResult(), 0 };
-			} else {
-				return { Result(), 1 };
-			}
+			return status ? 0 : 1;
 		}
 
 		std::vector<std::unique_ptr<cvc5::Command>> parseIntoVector(ExecutionContext& ctx)
@@ -183,39 +400,6 @@ class PortfolioDriver
 				}
 			}
 			return res;
-		}
-
-		std::pair<Result, int> execute(ExecutionContext& ctx, std::vector<std::unique_ptr<cvc5::Command>>& cmds)
-		{
-    		bool interrupted = false;
-			bool status = true;
-			auto it = cmds.begin();
-			while (status && it != cmds.end())
-			{
-				if (interrupted) {
-					ctx.solver().getDriverOptions().out() << cvc5::CommandInterrupted();
-					ctx.d_executor->reset();
-					break;
-				}
-
-				Command* cmd = it->get();
-
-				status = ctx.d_executor->doCommand(cmd);
-				if (cmd->interrupted() && status == 0) {
-					interrupted = true;
-					break;
-				}
-
-				if (dynamic_cast<cvc5::QuitCommand*>(cmd) != nullptr)
-				{
-					break;
-				}
-			}
-			if(status) {
-				return { ctx.d_executor->getResult(), 0 };
-			} else {
-				return { Result(), 1 };
-			}
 		}
 
 		std::optional<std::string> d_logic;
