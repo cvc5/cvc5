@@ -451,7 +451,7 @@ class SkolemManager
   static Node getOriginalForm(Node n);
   /**
    * Convert to unpurified form, which returns the term that k purifies. In
-   * contrast to getOriginalForm, this is not recursive, so that the term
+   * contrast to getOriginalForm, this is not recursive w.r.t. skolems, so that the term
    * purified by k may itself contain purification skolems that are not
    * expanded.
    *

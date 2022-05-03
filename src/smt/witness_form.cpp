@@ -93,7 +93,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
         {
           curw = SkolemManager::getUnpurifiedForm(cur);
           Node eq = cur.eqNode(curw);
-          // equality between a variable and its original form
+          // equality between a variable and its unpurified form
           d_eqs.insert(eq);
           // ------- SKOLEM_INTRO
           // k = t
