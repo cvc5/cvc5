@@ -27,6 +27,7 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/exception.h"
+#include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/parser.h"
 #include "smt/command.h"
@@ -42,8 +43,6 @@ struct ExecutionContext
 	Solver& solver() {
 		return *d_executor->getSolver();
 	}
-
-
 
 	bool runCommands(std::vector<std::unique_ptr<cvc5::Command>>& cmds)
 	{
@@ -183,6 +182,7 @@ class PortfolioProcessPool
 
 		int run(PortfolioStrategy& strategy)
 		{
+			Trace("portfolio") << "Initializing strategies" << std::endl;
 			for (const auto& s: strategy.d_strategies)
 			{
 				d_jobs.emplace_back(Job{s});
@@ -191,24 +191,36 @@ class PortfolioProcessPool
 			// While there are jobs to be run or jobs still running
 			while (d_nextJob < d_jobs.size() || d_running > 0)
 			{
+				Trace("portfolio") << "Looping" << std::endl;
+				Trace("portfolio") << "running: " << d_running << ", next " << d_nextJob << " / " << d_jobs.size() << std::endl;
 				// Check if any job was successful
 				if (checkResults())
 				{
+					Trace("portfolio") << "Got successful result" << std::endl;
 					return 0;
 				}
 
 				// While we can start jobs right now
 				while (d_nextJob < d_jobs.size() && d_running < d_numJobs)
 				{
+					Trace("portfolio") << "Start a job" << std::endl;
 					startNextJob();
 				}
 
 				if (d_running > 0)
 				{
+					Trace("portfolio") << "Wait for something to happen" << std::endl;
+					std::this_thread::sleep_for(std::chrono::duration<int>(1));
 					wait(nullptr);
-					if (checkResults()) return 0;
+					Trace("portfolio") << "Something has happened" << std::endl;
+					if (checkResults())
+					{
+						Trace("portfolio") << "Got successful result" << std::endl;
+						return 0;
+					}
 				}
 			}
+			if (checkResults()) return 0;
 
 			return 1;
 		}
@@ -216,6 +228,7 @@ class PortfolioProcessPool
 	private:
 		void startNextJob()
 		{
+			std::cerr << "Starting new process from " << getpid() << std::endl;
 			Assert(d_nextJob < d_jobs.size());
 			Job& job = d_jobs[d_nextJob];
 
@@ -230,23 +243,36 @@ class PortfolioProcessPool
 			}
 			if (job.d_worker == 0)
 			{
-				job.d_errPipe.dup(STDERR_FILENO);
-				job.d_outPipe.dup(STDOUT_FILENO);
-				// Todo: forwards stdout and stderr to pipes that can be recovered by checkResults
+				std::cerr << "Starting worker " << getpid() << std::endl;
+				//job.d_errPipe.dup(STDERR_FILENO);
+				//job.d_outPipe.dup(STDOUT_FILENO);
 				job.d_config.applyOptions(d_ctx.solver());
+				std::cerr << "applied options " << std::endl;
 				// 0 = solved, 1 = not solved
-				std::exit(d_ctx.runCommands(d_commands) ? 0 : 1);
+				int rc = d_ctx.runCommands(d_commands) ? 0 : 1;
+				std::cerr << "worker returns " << rc << std::endl;
+				std::quick_exit(rc);
 			}
 			job.d_errPipe.closeIn();
 			job.d_outPipe.closeIn();
 
 			// Start the timeout process
-			job.d_timeout = fork();
-			if (job.d_timeout == 0)
+			if (d_timeout > 0)
 			{
-				std::this_thread::sleep_for(std::chrono::duration<double>(job.d_config.d_timeout * d_timeout));
-				kill(job.d_worker, SIGKILL);
-				std::exit(0);
+				job.d_timeout = fork();
+				if (job.d_timeout == 0)
+				{
+					std::cerr << "Starting timeout " << getpid() << ", waiting for " << job.d_config.d_timeout * d_timeout << std::endl;
+					auto duration = std::chrono::duration<double, std::milli>(job.d_config.d_timeout * d_timeout);
+					//std::cerr << "sleeping for " << duration << std::endl;
+					std::this_thread::sleep_for(duration);
+					std::cerr << "killing worker " << job.d_worker << std::endl;
+					kill(job.d_worker, SIGKILL);
+					std::cerr << "timeout returns 0" << std::endl;
+					std::quick_exit(0);
+				}
+			} else {
+				job.d_timeout = 0;
 			}
 
 			++d_nextJob;
@@ -272,16 +298,20 @@ class PortfolioProcessPool
 				pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
 				// has not terminated yet
 				if (res == 0) continue;
+				Trace("portfolio") << "Job has terminated" << std::endl;
+				--d_running;
 				// check if exited normally
 				if (WIFEXITED(wstatus))
 				{
 					// mark as analyzed
 					job.d_timeout = -1;
 					int returncode = WEXITSTATUS(wstatus);
+					Trace("portfolio") << "Job has terminated with " << returncode << std::endl;
 					if (returncode == 0)
 					{
 						job.d_errPipe.flushTo(std::cerr);
 						job.d_outPipe.flushTo(std::cout);
+						return true;
 					}
 				}
 			}
@@ -292,9 +322,10 @@ class PortfolioProcessPool
 		std::vector<std::unique_ptr<cvc5::Command>> d_commands;
 		/**
 		 * All jobs, consisting of the config the pid of the worker process, and
-		 * the pid is the timeout process. If the job has not been started yet,
-		 * both pids are -1. If the job has finished and the result has been
-		 * inspected, the pid of the timeout process is -1.
+		 * the pid is the timeout process (or zero if no timeout was necessary).
+		 * If the job has not been started yet, both pids are -1. If the job has
+		 * finished and the result has been inspected, the pid of the timeout
+		 * process is -1.
 		 */
 		std::vector<Job> d_jobs;
 		/** The id of the next job to be started within d_jobs */
