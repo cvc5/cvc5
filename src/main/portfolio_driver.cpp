@@ -218,7 +218,6 @@ class PortfolioProcessPool
 
   bool run(PortfolioStrategy& strategy)
   {
-    Trace("portfolio") << "Initializing strategies" << std::endl;
     for (const auto& s : strategy.d_strategies)
     {
       d_jobs.emplace_back(Job{s});
@@ -227,32 +226,24 @@ class PortfolioProcessPool
     // While there are jobs to be run or jobs still running
     while (d_nextJob < d_jobs.size() || d_running > 0)
     {
-      Trace("portfolio") << "Looping" << std::endl;
-      Trace("portfolio") << "running: " << d_running << ", next " << d_nextJob
-                         << " / " << d_jobs.size() << std::endl;
       // Check if any job was successful
       if (checkResults())
       {
-        Trace("portfolio") << "Got successful result" << std::endl;
         return true;
       }
 
       // While we can start jobs right now
       while (d_nextJob < d_jobs.size() && d_running < d_numJobs)
       {
-        Trace("portfolio") << "Start a job" << std::endl;
         startNextJob();
       }
 
       if (d_running > 0)
       {
-        Trace("portfolio") << "Wait for something to happen" << std::endl;
-        std::this_thread::sleep_for(std::chrono::duration<int>(1));
-        wait(nullptr);
-        Trace("portfolio") << "Something has happened" << std::endl;
-        if (checkResults())
+        int wstatus = 0;
+        pid_t child = wait(&wstatus);
+        if (checkResults(child, wstatus))
         {
-          Trace("portfolio") << "Got successful result" << std::endl;
           return true;
         }
       }
@@ -265,9 +256,9 @@ class PortfolioProcessPool
  private:
   void startNextJob()
   {
-    std::cerr << "Starting new process from " << getpid() << std::endl;
     Assert(d_nextJob < d_jobs.size());
     Job& job = d_jobs[d_nextJob];
+    Trace("portfolio") << "Starting " << job.d_config << std::endl;
 
     // Set up pipes to capture output of worker
     job.d_errPipe.open();
@@ -280,23 +271,19 @@ class PortfolioProcessPool
     }
     if (job.d_worker == 0)
     {
-      std::cerr << "Starting worker " << getpid() << std::endl;
-      // job.d_errPipe.dup(STDERR_FILENO);
-      // job.d_outPipe.dup(STDOUT_FILENO);
+      job.d_errPipe.dup(STDERR_FILENO);
+      job.d_outPipe.dup(STDOUT_FILENO);
       job.d_config.applyOptions(d_ctx.solver());
-      std::cerr << "applied options " << std::endl;
       // 0 = solved, 1 = not solved
       int rc = 1;
       if (d_ctx.solveCommands(d_commands))
       {
         Result res = d_ctx.d_executor->getResult();
-        std::cerr << "result is " << res << std::endl;
         if (res.isSat() || res.isUnsat())
         {
           rc = 0;
         }
       }
-      std::cerr << "worker returns " << rc << std::endl;
       std::quick_exit(rc);
     }
     job.d_errPipe.closeIn();
@@ -308,15 +295,10 @@ class PortfolioProcessPool
       job.d_timeout = fork();
       if (job.d_timeout == 0)
       {
-        std::cerr << "Starting timeout " << getpid() << ", waiting for "
-                  << job.d_config.d_timeout * d_timeout << std::endl;
         auto duration = std::chrono::duration<double, std::milli>(
             job.d_config.d_timeout * d_timeout);
-        // std::cerr << "sleeping for " << duration << std::endl;
         std::this_thread::sleep_for(duration);
-        std::cerr << "killing worker " << job.d_worker << std::endl;
         kill(job.d_worker, SIGKILL);
-        std::cerr << "timeout returns 0" << std::endl;
         std::quick_exit(0);
       }
     }
@@ -333,8 +315,10 @@ class PortfolioProcessPool
    * Check whether some process terminated and solved the input. If so,
    * forward the child process output to the main out and return true.
    * Otherwise return false.
+   * If child and status are given, only the job with this particular worker is
+   * considered and status is assumed to be the wstatus reported by waitpid.
    */
-  bool checkResults()
+  bool checkResults(pid_t child = -1, int status = 0)
   {
     // check d_jobs for items there worker has terminated and timeout != -1
     for (auto& job : d_jobs)
@@ -343,30 +327,36 @@ class PortfolioProcessPool
       if (job.d_worker == -1) continue;
       // has already been analyzed
       if (job.d_timeout == -1) continue;
+      if (child != -1 && job.d_worker != child) continue;
 
       int wstatus = 0;
-      pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
-      // has not terminated yet
-      if (res == 0) continue;
-      Trace("portfolio") << "Job " << job.d_worker << " has terminated"
-                         << std::endl;
+      pid_t res = 0;
+      if (child == -1)
+      {
+        res = waitpid(job.d_worker, &wstatus, WNOHANG);
+        // has not terminated yet
+        if (res == 0) continue;
+        if (res == -1) continue;
+      }
+      else
+      {
+        res = child;
+        wstatus = status;
+      }
+      // mark as analyzed
+      Trace("portfolio") << "Finished " << job.d_config << std::endl;
+      job.d_timeout = -1;
       --d_running;
       // check if exited normally
       if (WIFSIGNALED(wstatus))
       {
-        Trace("portfolio") << "Job has stopped by a signal" << std::endl;
-        job.d_timeout = -1;
         continue;
       }
       if (WIFEXITED(wstatus))
       {
-        // mark as analyzed
-        job.d_timeout = -1;
-        int returncode = WEXITSTATUS(wstatus);
-        Trace("portfolio") << "Job has terminated with " << returncode
-                           << std::endl;
-        if (returncode == 0)
+        if (WEXITSTATUS(wstatus) == 0)
         {
+          Trace("portfolio") << "Successful!" << std::endl;
           job.d_errPipe.flushTo(std::cerr);
           job.d_outPipe.flushTo(std::cout);
           return true;
@@ -435,6 +425,16 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   return pool.run(strategy);
 }
 
+std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)
+{
+  for (const auto& o : config.d_options)
+  {
+    os << o.first << "=" << o.second << " ";
+  }
+  os << "timeout=" << config.d_timeout;
+  return os;
+}
+
 PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
 {
   PortfolioStrategy s;
@@ -443,7 +443,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add().set("decision", "justification").timeout(0.5);
     s.add()
         .set("decision", "internal")
-        .set("nl-cad", "false")
+        .set("nl-cov", "false")
         .set("nl-ext", "full")
         .set("nl-ext-tplanes", "true")
         .timeout(0.25);

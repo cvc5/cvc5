@@ -105,6 +105,7 @@ struct PortfolioConfig
   /** Timeout as part of the total timeout */
   double d_timeout;
 };
+std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config);
 
 /**
  * Represents a portfolio strategy, consisting of a list of configurations.
