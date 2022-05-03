@@ -19,8 +19,8 @@ Also, options can be set and inspected using the respective commands of the inpu
   :py:func:`getOptionNames() <cvc5.pythonic.Solver.getOptionNames()>`,
   :py:func:`getOptionInfo() <cvc5.pythonic.Solver.getOptionInfo()>`
 
-Generally, all options are identified by a name ``<name>``, and a short name
-``<short>`` (a single letter).
+Generally, all options are identified by a name ``<name>``, and (optionally)
+by a short name ``<short>`` (a single letter).
 Additionally, they can have one or more aliases, which can be used instead of
 ``<name>``.
 
