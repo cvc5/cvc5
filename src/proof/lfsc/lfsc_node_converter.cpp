@@ -594,8 +594,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     {
       std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
       tnn = getSymbolInternal(k, d_sortType, s, false);
-      cur =
-          nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+      cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
     }
     else if (tn.isUninterpretedSort() || tn.isDatatype())
     {
