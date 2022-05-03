@@ -33,7 +33,7 @@ class TestTheoryBlackStringsSkolemCache : public TestSmt
 
 TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
 {
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
   Node n = d_skolemManager->mkDummySkolem("n", d_nodeManager->integerType());
   Node a = d_skolemManager->mkDummySkolem("a", d_nodeManager->stringType());
   Node b = d_skolemManager->mkDummySkolem("b", d_nodeManager->stringType());
