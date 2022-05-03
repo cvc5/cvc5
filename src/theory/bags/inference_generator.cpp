@@ -23,6 +23,7 @@
 #include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/uf/equality_engine.h"
@@ -628,6 +629,83 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
 
   Node multiply = d_nm->mkNode(MULT, countA, countB);
   inferInfo.d_conclusion = count.eqNode(multiply);
+
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::joinUp(Node n, Node e1, Node e2)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+  Node A = n[0];
+  Node B = n[1];
+  Node tuple = BagsUtils::constructProductTuple(n, e1, e2);
+
+  std::vector<Node> aElements = TupleUtils::getTupleElements(e1);
+  std::vector<Node> bElements = TupleUtils::getTupleElements(e2);
+  const std::vector<uint32_t>& indices =
+      n.getOperator().getConst<TableJoinOp>().getIndices();
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_UP);
+
+  for (size_t i = 0; i < indices.size(); i += 2)
+  {
+    Node x = aElements[indices[i]];
+    Node y = bElements[indices[i + 1]];
+    Node equal = x.eqNode(y);
+    inferInfo.d_premises.push_back(equal);
+  }
+
+  Node countA = getMultiplicityTerm(e1, A);
+  Node countB = getMultiplicityTerm(e2, B);
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
+  Node count = getMultiplicityTerm(tuple, skolem);
+
+  Node multiply = d_nm->mkNode(MULT, countA, countB);
+  inferInfo.d_conclusion = count.eqNode(multiply);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::joinDown(Node n, Node e)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+
+  Node A = n[0];
+  Node B = n[1];
+
+  TypeNode tupleBType = B.getType().getBagElementType();
+  TypeNode tupleAType = A.getType().getBagElementType();
+  size_t tupleALength = tupleAType.getTupleLength();
+  size_t productTupleLength = n.getType().getBagElementType().getTupleLength();
+
+  std::vector<Node> elements = TupleUtils::getTupleElements(e);
+  Node a = TupleUtils::constructTupleFromElements(
+      tupleAType, elements, 0, tupleALength - 1);
+  Node b = TupleUtils::constructTupleFromElements(
+      tupleBType, elements, tupleALength, productTupleLength - 1);
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_JOIN_DOWN);
+
+  Node countA = getMultiplicityTerm(a, A);
+  Node countB = getMultiplicityTerm(b, B);
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node multiply = d_nm->mkNode(MULT, countA, countB);
+  Node multiplicityConstraint = count.eqNode(multiply);
+  const std::vector<uint32_t>& indices =
+      n.getOperator().getConst<TableJoinOp>().getIndices();
+  Node joinConstraints = d_true;
+  for (size_t i = 0; i < indices.size(); i += 2)
+  {
+    Node x = elements[indices[i]];
+    Node y = elements[tupleALength + indices[i + 1]];
+    Node equal = x.eqNode(y);
+    joinConstraints = joinConstraints.andNode(equal);
+  }
+  inferInfo.d_conclusion = joinConstraints.andNode(multiplicityConstraint);
 
   return inferInfo;
 }

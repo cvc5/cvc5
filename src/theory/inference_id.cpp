@@ -140,6 +140,8 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_CARD_EMPTY: return "BAGS_CARD_EMPTY";
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
+    case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
+    case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:

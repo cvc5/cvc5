@@ -328,6 +328,9 @@ class InferenceGenerator
    */
   InferInfo productDown(Node n, Node e);
 
+  InferInfo joinUp(Node n, Node e1, Node e2);
+  InferInfo joinDown(Node n, Node e);
+
   /**
    * @param element of type T
    * @param bag of type (bag T)

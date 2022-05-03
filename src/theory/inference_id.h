@@ -206,6 +206,8 @@ enum class InferenceId
   BAGS_CARD_EMPTY,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
+  TABLES_JOIN_UP,
+  TABLES_JOIN_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
