@@ -68,6 +68,10 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   for (size_t i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant; i++)
   {
     Node q = fm->getAssertedQuantifier(i);
+    if (!d_qreg.hasOwnership(q, this))
+    {
+      continue;
+    }
     process(q);
   }
 }
@@ -189,7 +193,7 @@ void InstStrategyMbqi::process(Node q)
 
   std::unique_ptr<SolverEngine> mbqiChecker;
   initializeSubsolver(mbqiChecker, d_env);
-  mbqiChecker->setOption("incremental", "false");
+  mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
   Trace("mbqi") << "  query is : " << query << std::endl;
