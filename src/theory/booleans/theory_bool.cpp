@@ -42,7 +42,7 @@ TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
 Theory::PPAssertStatus TheoryBool::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  Assert (tin.getKind()==TrustNodeKind::LEMMA);
+  Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
     // If we get a false literal, we're in conflict
@@ -78,7 +78,6 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
         in, NodeManager::currentNM()->mkConst<bool>(true), tin);
     return PP_ASSERT_STATUS_SOLVED;
   }
-  
 
   return Theory::ppAssert(tin, outSubstitutions);
 }
