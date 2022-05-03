@@ -575,35 +575,38 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       cur = nm->mkSortConstructor(ss.str(), nargs);
       cur = nm->mkSort(cur, convTypes);
     }
+    else
+    {
+      // no need to convert type for tuples of size 0,
+      // type as node is simple
+      tnn = getSymbolInternal(k, d_sortType, "Tuple");
+    }
   }
   else if (tn.getNumChildren() == 0)
   {
     Assert(!tn.isTuple());
     // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
-    if (tnn.isNull())
+    std::stringstream ss;
+    options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+    tn.toStream(ss);
+    if (tn.isUninterpretedSortConstructor())
     {
-      std::stringstream ss;
-      options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
-      tn.toStream(ss);
-      if (tn.isUninterpretedSortConstructor())
-      {
-        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
-        tnn = getSymbolInternal(k, d_sortType, s, false);
-        cur =
-            nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
-      }
-      else if (tn.isUninterpretedSort() || tn.isDatatype())
-      {
-        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
-        tnn = getSymbolInternal(k, d_sortType, s, false);
-        cur = nm->mkSort(s);
-      }
-      else
-      {
-        // all other builtin type constants, e.g. Int
-        tnn = getSymbolInternal(k, d_sortType, ss.str());
-      }
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur =
+          nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+    }
+    else if (tn.isUninterpretedSort() || tn.isDatatype())
+    {
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSort(s);
+    }
+    else
+    {
+      // all other builtin type constants, e.g. Int
+      tnn = getSymbolInternal(k, d_sortType, ss.str());
     }
   }
   else
