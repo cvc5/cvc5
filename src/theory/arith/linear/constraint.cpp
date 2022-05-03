@@ -1760,9 +1760,9 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
     Node lit = getLiteral();
     if (d_database->isProofEnabled())
     {
-      pf = pnm->mkNode(PfRule::ASSUME, {}, {getLiteral()});
+      std::shared_ptr<ProofNode> a = pnm->mkAssume(getLiteral());
       pf = pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
+          PfRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
     }
     Assert (lit.getKind()!=kind::AND);
     nb << lit;
