@@ -69,13 +69,6 @@
     (default t)
   ))
 
-; Make a skolem, which ensures that the given term is in original form. For
-; consistency, we require that the witness term for all Skolems are in
-; original form. Failure to use this side condition when introducing fresh
-; Skolems will result in proofs failing to check due to mismatched uses of
-; Skolem variables in conclusions.
-(program sc_mk_skolem ((t term)) term (skolem (sc_to_original t)))
-
 ;; ---- Proof rules
 
 ; "proof-let", which is used to introduce a variable corresponding to the
