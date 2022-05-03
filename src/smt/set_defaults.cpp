@@ -686,15 +686,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       opts.arith.arithEqSolver = true;
     }
   }
-  if (opts.arith.arithEqSolver)
-  {
-    if (!opts.arith.arithCongManWasSetByUser)
-    {
-      // if we are using the arithmetic equality solver, do not use the
-      // arithmetic congruence manager by default
-      opts.arith.arithCongMan = false;
-    }
-  }
 
   if (logic.isHigherOrder())
   {

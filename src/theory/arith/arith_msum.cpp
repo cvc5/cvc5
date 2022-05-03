@@ -97,7 +97,6 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
         NodeManager* nm = NodeManager::currentNM();
         if (getMonomialSum(lit[1], msum2))
         {
-          TypeNode tn = lit[0].getType();
           for (std::map<Node, Node>::iterator it = msum2.begin();
                it != msum2.end();
                ++it)
@@ -111,14 +110,14 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
               Rational r2 = it->second.isNull()
                                 ? Rational(1)
                                 : it->second.getConst<Rational>();
-              msum[it->first] = nm->mkConstRealOrInt(tn, r1 - r2);
+              msum[it->first] = nm->mkConstRealOrInt(r1 - r2);
             }
             else
             {
               msum[it->first] = it->second.isNull()
-                                    ? nm->mkConstRealOrInt(tn, Rational(-1))
+                                    ? nm->mkConstInt(Rational(-1))
                                     : nm->mkConstRealOrInt(
-                                          tn, -it->second.getConst<Rational>());
+                                          -it->second.getConst<Rational>());
             }
           }
           return true;
@@ -129,7 +128,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
   return false;
 }
 
-Node ArithMSum::mkNode(TypeNode tn, const std::map<Node, Node>& msum)
+Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
@@ -151,7 +150,7 @@ Node ArithMSum::mkNode(TypeNode tn, const std::map<Node, Node>& msum)
   return children.size() > 1
              ? nm->mkNode(ADD, children)
              : (children.size() == 1 ? children[0]
-                                     : nm->mkConstRealOrInt(tn, Rational(0)));
+                                     : nm->mkConstInt(Rational(0)));
 }
 
 int ArithMSum::isolate(
@@ -286,7 +285,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(n.getType(), msum);
+      rem = mkNode(msum);
       return true;
     }
   }

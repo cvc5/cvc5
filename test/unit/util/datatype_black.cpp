@@ -255,7 +255,7 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   const DType& ldt = listType.getDType();
   Node updater = ldt[0][0].getUpdater();
   Node gt = d_nodeManager->mkGroundTerm(listType);
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
   Node truen = d_nodeManager->mkConst(true);
   // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);

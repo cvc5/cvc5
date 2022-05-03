@@ -32,9 +32,15 @@ namespace arith {
 
 class InferenceManager;
 
+namespace linear {
+class ArithCongruenceManager;
+}
+
 /**
  * The arithmetic equality solver. This class manages arithmetic equalities
- * in the default way via an equality engine.
+ * in the default way via an equality engine, or defers to the congruence
+ * manager of linear arithmetic if setCongruenceManager is called on a
+ * non-null congruence manager.
  *
  * Since arithmetic has multiple ways of propagating literals, it tracks
  * the literals that it propagates and only explains the literals that
@@ -69,6 +75,9 @@ class EqualitySolver : protected EnvObj
    * by this solver).
    */
   TrustNode explain(TNode lit);
+
+  /** Set the congruence manager, which will be notified of propagations */
+  void setCongruenceManager(linear::ArithCongruenceManager* acm);
 
  private:
   /** Notification class from the equality engine */
@@ -107,6 +116,8 @@ class EqualitySolver : protected EnvObj
   eq::EqualityEngine* d_ee;
   /** The literals we have propagated */
   NodeSet d_propLits;
+  /** Pointer to the congruence manager, for notifications of propagations */
+  linear::ArithCongruenceManager* d_acm;
 };
 
 }  // namespace arith
