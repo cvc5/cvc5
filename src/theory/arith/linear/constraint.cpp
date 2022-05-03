@@ -1764,7 +1764,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       pf = pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
     }
-    Assert (lit.getKind()!=kind::AND);
+    Assert(lit.getKind() != kind::AND);
     nb << lit;
   }
   else

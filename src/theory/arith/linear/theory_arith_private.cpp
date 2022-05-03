@@ -3591,11 +3591,15 @@ TrustNode TheoryArithPrivate::explain(TNode n)
     Trace("arith::explain") << "dm explanation" << n << endl;
     exp = d_congruenceManager.explain(n);
   }
-  else if(c != NullConstraint){
+  else if (c != NullConstraint)
+  {
     Assert(!c->isAssumption());
     exp = c->externalExplainForPropagation(n);
     Trace("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-  }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
+  }
+  else if (d_assertionsThatDoNotMatchTheirLiterals.find(n)
+           != d_assertionsThatDoNotMatchTheirLiterals.end())
+  {
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
       exp = c->externalExplainForPropagation(n);
