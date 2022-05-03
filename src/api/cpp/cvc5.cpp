@@ -2655,7 +2655,7 @@ bool isReal64(const internal::Node& node)
 bool isInteger(const internal::Node& node)
 {
   return (node.getKind() == internal::Kind::CONST_RATIONAL
-         || node.getKind() == internal::Kind::CONST_INTEGER)
+          || node.getKind() == internal::Kind::CONST_INTEGER)
          && node.getConst<internal::Rational>().isIntegral();
 }
 bool isInt32(const internal::Node& node)
