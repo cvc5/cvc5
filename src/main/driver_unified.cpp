@@ -158,7 +158,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   }
 
   int returnValue = 0;
-  cvc5::Result result;
   {
     solver->setInfo("filename", filenameStr);
 
@@ -225,7 +224,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       }
 
       PortfolioDriver driver;
-      std::tie(result, returnValue) = driver.execute(pExecutor, parser);
+      returnValue = driver.execute(pExecutor, parser);
     }
 
 #ifdef CVC5_COMPETITION_MODE
