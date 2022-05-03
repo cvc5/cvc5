@@ -224,7 +224,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       }
 
       PortfolioDriver driver(parser);
-      returnValue = driver.execute(pExecutor);
+      returnValue = driver.solve(pExecutor) ? 0 : 1;
     }
 
 #ifdef CVC5_COMPETITION_MODE
