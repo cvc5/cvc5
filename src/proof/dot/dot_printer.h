@@ -95,8 +95,8 @@ class DotPrinter
    * @param pfLetOpen the map, local to the current scope, of proof node hashs
    * to their printed ids
    * @param cfaMap the map from proof nodes to whether they contain assumptions
-   * @param ancestors a vector containing all the current proof node ancestors
-   * hashs
+   * @param ancestors a vector containing the hashs of all the current proof
+   * node ancestors
    * @param parentType the type of the parent node
    * @return the id of the proof node printed
    */
