@@ -98,8 +98,17 @@ void InstStrategyMbqi::process(Node q)
   SkolemManager* sm = nm->getSkolemManager();
 
   std::vector<Node> vars(q[0].begin(), q[0].end());
+  // allocate the skolem variables
+  std::vector<Node> skolems;
+  for (const Node& v : vars)
+  {
+    Node k = sm->mkPurifySkolem(v, "mbk");
+    skolems.push_back(k);
+    tmpConvertMap[v] = k;
+  }
+  
   Node cbody =
-      convert(vars, q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
+      convert(q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
   Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
@@ -109,14 +118,6 @@ void InstStrategyMbqi::process(Node q)
     return;
   }
   Assert(mvToFreshVar.empty());
-
-  // get the skolem variables
-  std::vector<Node> skolems;
-  for (const Node& v : vars)
-  {
-    Assert(tmpConvertMap.find(v) != tmpConvertMap.end());
-    skolems.push_back(tmpConvertMap[v]);
-  }
 
   std::vector<Node> constraints;
 
@@ -232,7 +233,7 @@ void InstStrategyMbqi::process(Node q)
   for (Node& v : terms)
   {
     Node vc =
-        convert(vars, v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+        convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
     Assert(!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
@@ -260,7 +261,6 @@ void InstStrategyMbqi::process(Node q)
 }
 
 Node InstStrategyMbqi::convert(
-    const std::vector<Node>& vars,
     Node t,
     bool toQuery,
     std::unordered_map<Node, Node>& cmap,
@@ -293,15 +293,7 @@ Node InstStrategyMbqi::convert(
       Kind ck = cur.getKind();
       if (ck == BOUND_VARIABLE)
       {
-        if (toQuery && std::find(vars.begin(), vars.end(), cur) != vars.end())
-        {
-          Node k = sm->mkPurifySkolem(cur, "mbk");
-          cmap[cur] = k;
-        }
-        else
-        {
-          cmap[cur] = cur;
-        }
+        cmap[cur] = cur;
       }
       else if (ck == UNINTERPRETED_SORT_VALUE)
       {

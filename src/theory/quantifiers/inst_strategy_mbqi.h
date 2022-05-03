@@ -70,9 +70,9 @@ class InstStrategyMbqi : public QuantifiersModule
   /**
    * Convert to and from the subsolver.
    *
-   * If toQuery is true, this converts term t whose free variables are in vars
-   * into a term that can be sent to the subsolver. Its free constants are
-   * replaced by their model values. The map freshVarType maintains fresh
+   * If toQuery is true, this converts term t that is the body of a quantified
+   * formula into a term that can be sent to the subsolver. Its free constants
+   * are replaced by their model values. The map freshVarType maintains fresh
    * variables that were introduced corresponding to values of uninterpreted
    * sort constants.
    *
@@ -83,8 +83,7 @@ class InstStrategyMbqi : public QuantifiersModule
    *
    * In both cases, cmap caches the results of the conversion.
    */
-  Node convert(const std::vector<Node>& vars,
-               Node t,
+  Node convert(Node t,
                bool toQuery,
                std::unordered_map<Node, Node>& cmap,
                std::map<TypeNode, std::unordered_set<Node> >& freshVarType,

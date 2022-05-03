@@ -1397,11 +1397,14 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // must have finite model finding on
     opts.quantifiers.finiteModelFind = true;
   }
-
   if (opts.quantifiers.instMaxLevel != -1)
   {
-    verbose(1) << "SolverEngine: turning off cbqi to support instMaxLevel"
-               << std::endl;
+    notifyModifyOption("cegqi", "false", "instMaxLevel");
+    opts.quantifiers.cegqi = false;
+  }
+  if (opts.quantifiers.mbqi)
+  {
+    notifyModifyOption("cegqi", "false", "mbqi");
     opts.quantifiers.cegqi = false;
   }
 
