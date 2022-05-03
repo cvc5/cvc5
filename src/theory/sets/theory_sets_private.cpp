@@ -710,7 +710,7 @@ void TheorySetsPrivate::checkDisequalities()
 void TheorySetsPrivate::checkReduceComprehensions()
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& comps = d_state.getComprehensionSets();
   for (const Node& n : comps)
   {
@@ -736,8 +736,9 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = nm->mkNode(EXISTS, bvl, body);
     Node k = sm->mkPurifySkolem(n, "kcomp");
     Node mem = nm->mkNode(SET_MEMBER, v, k);
-    Node lem = nm->mkNode(AND,
-                          k.eqNode(n),
+    Node lem = nm->mkNode(
+        AND,
+        k.eqNode(n),
         nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem)));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
