@@ -41,6 +41,7 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   // some kinds may appear in model values that cannot be asserted
   d_nonClosedKinds.insert(STORE_ALL);
   d_nonClosedKinds.insert(CODATATYPE_BOUND_VARIABLE);
+  d_nonClosedKinds.insert(UNINTERPRETED_SORT_VALUE);
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
@@ -280,6 +281,7 @@ Node InstStrategyMbqi::convert(
     cur = visit.back();
     visit.pop_back();
     it = cmap.find(cur);
+    Trace("mbqi-debug") << "Convert: " << cur << " " << cur.getKind() << " " << cur.getType() << std::endl;
     if (it != cmap.end())
     {
       // already computed
@@ -325,19 +327,27 @@ Node InstStrategyMbqi::convert(
       }
       else if (cur.isVar())
       {
-        std::map<Node, Node>::iterator itm = modelValue.find(cur);
-        if (itm == modelValue.end())
+        if (!cur.getType().isFirstClass())
         {
-          Node mval = fm->getValue(cur);
-          Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
-          modelValue[cur] = mval;
-          visit.push_back(cur);
-          visit.push_back(mval);
+          // can be e.g. tester/constructor/selector
+          cmap[cur] = cur;
         }
         else
         {
-          Assert(cmap.find(itm->second) != cmap.end());
-          cmap[cur] = cmap[itm->second];
+          std::map<Node, Node>::iterator itm = modelValue.find(cur);
+          if (itm == modelValue.end())
+          {
+            Node mval = fm->getValue(cur);
+            Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
+            modelValue[cur] = mval;
+            visit.push_back(cur);
+            visit.push_back(mval);
+          }
+          else
+          {
+            Assert(cmap.find(itm->second) != cmap.end()) << "Missing " << itm->second;
+            cmap[cur] = cmap[itm->second];
+          }
         }
       }
       else if (cur.getNumChildren() == 0)
