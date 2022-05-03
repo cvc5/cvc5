@@ -120,6 +120,8 @@ bool ExecutionContext::solveCommands(
   return status;
 }
 
+#if HAVE_SYS_WAIT_H
+
 namespace {
 
 /**
@@ -386,6 +388,8 @@ class PortfolioProcessPool
 
 }  // namespace
 
+#endif
+
 bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
 {
   ExecutionContext ctx{executor.get()};
@@ -395,7 +399,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   {
     return ctx.solveContinuous(d_parser, false);
   }
-
+#ifdef HAVE_SYS_WAIT_H
   ctx.solveContinuous(d_parser, true);
 
   if (!ctx.d_logic)
@@ -423,6 +427,10 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   PortfolioProcessPool pool(ctx, ctx.parseCommands(d_parser));
 
   return pool.run(strategy);
+#else
+  Warning("Can't run portfolio without <sys/wait.h>.");
+  return ctx.solveContinuous(d_parser, false);
+#endif
 }
 
 std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)
