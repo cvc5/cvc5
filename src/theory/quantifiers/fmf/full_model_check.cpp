@@ -646,7 +646,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
-    if (options().quantifiers.mbqiMode == options::MbqiMode::NONE)
+    if (options().quantifiers.fmfMbqiMode == options::FmfMbqiMode::NONE)
     {
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);

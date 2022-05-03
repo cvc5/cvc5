@@ -590,11 +590,3 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "false"
   help       = "whether to use the equality solver in the theory of arithmetic"
-
-[[option]]
-  name       = "arithCongMan"
-  category   = "expert"
-  long       = "arith-cong-man"
-  type       = "bool"
-  default    = "true"
-  help       = "(experimental) whether to use the congruence manager when the equality solver is enabled"
