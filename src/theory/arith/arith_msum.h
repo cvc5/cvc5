@@ -104,12 +104,13 @@ class ArithMSum
    * Make the Node corresponding to the interpretation of msum, [msum], where:
    *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
    *
-   * @param tn The type of the node to return, which is used only if msum is
-   * empty
    * @param msum The monomial sum
    * @return The node corresponding to the monomial sum
+   *
+   * Note this utility is agnostic to types, it will return the integer 0 if
+   * msum is empty.
    */
-  static Node mkNode(TypeNode tn, const std::map<Node, Node>& msum);
+  static Node mkNode(const std::map<Node, Node>& msum);
 
   /** make coefficent term
    *
@@ -164,6 +165,9 @@ class ArithMSum
    * This function may return false if lit does not contain v,
    * or if lit is an integer equality with a coefficent on v,
    * e.g. 3*v = 7.
+   *
+   * Note this utility is agnostic to types, the returned term may be Int when
+   * v is Real.
    */
   static Node solveEqualityFor(Node lit, Node v);
 

@@ -58,9 +58,6 @@ TermRegistry::TermRegistry(Env& env,
     d_sygusTdb.reset(new TermDbSygus(env, qs, d_ochecker.get()));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
-  Trace("quant-engine-debug")
-      << "Initialize model, mbqi : " << options().quantifiers.mbqiMode
-      << std::endl;
 }
 
 void TermRegistry::finishInit(FirstOrderModel* fm,
