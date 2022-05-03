@@ -106,9 +106,8 @@ void InstStrategyMbqi::process(Node q)
     skolems.push_back(k);
     tmpConvertMap[v] = k;
   }
-  
-  Node cbody =
-      convert(q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
+
+  Node cbody = convert(q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
   Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
@@ -232,8 +231,7 @@ void InstStrategyMbqi::process(Node q)
   tmpConvertMap.clear();
   for (Node& v : terms)
   {
-    Node vc =
-        convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+    Node vc = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
     Assert(!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
