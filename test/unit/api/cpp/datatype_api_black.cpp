@@ -61,6 +61,8 @@ TEST_F(TestApiBlackDatatype, isNull)
   cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
+  ASSERT_EQ(dtypeSpec.getNumConstructors(), 1);
+  ASSERT_FALSE(dtypeSpec.isParametric());
   Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
   d = listSort.getDatatype();
   consConstr = d[0];
@@ -72,6 +74,55 @@ TEST_F(TestApiBlackDatatype, isNull)
   ASSERT_FALSE(d.isNull());
   ASSERT_FALSE(consConstr.isNull());
   ASSERT_FALSE(sel.isNull());
+
+  {
+    std::stringstream ss;
+    ss << cons;
+    ASSERT_EQ(ss.str(), cons.toString());
+  }
+  {
+    std::stringstream ss;
+    ss << sel;
+    ASSERT_EQ(ss.str(), sel.toString());
+  }
+  {
+    std::stringstream ss;
+    ss << consConstr;
+    ASSERT_EQ(ss.str(), consConstr.toString());
+  }
+  {
+    std::stringstream ss;
+    ss << d;
+    ASSERT_EQ(ss.str(), d.toString());
+  }
+
+  {
+    Datatype::const_iterator it;
+    it = d.begin();
+    ASSERT_TRUE(it != d.end());
+    ASSERT_FALSE(it->isNull());
+    ASSERT_FALSE((*it).isNull());
+    auto tmp = it;
+    tmp++;
+    ASSERT_EQ(tmp, d.end());
+    tmp = it;
+    ++tmp;
+    ASSERT_EQ(tmp, d.end());
+  }
+
+  {
+    DatatypeConstructor::const_iterator it;
+    it = consConstr.begin();
+    ASSERT_TRUE(it != consConstr.end());
+    ASSERT_FALSE(it->isNull());
+    ASSERT_FALSE((*it).isNull());
+    auto tmp = it;
+    tmp++;
+    ASSERT_EQ(tmp, consConstr.end());
+    tmp = it;
+    ++tmp;
+    ASSERT_EQ(tmp, consConstr.end());
+  }
 }
 
 TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
