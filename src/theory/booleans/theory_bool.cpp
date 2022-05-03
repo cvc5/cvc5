@@ -60,6 +60,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     else if (in[0].getKind() == kind::EQUAL)
     {
       TNode eq = in[0];
+      Assert (eq[0].getType().isBoolean());
       if (eq[0].isVar())
       {
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1].notNode(), tin);
@@ -79,6 +80,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     return PP_ASSERT_STATUS_SOLVED;
   }
 
+  // the positive Boolean equality case is handled in the default way
   return Theory::ppAssert(tin, outSubstitutions);
 }
 

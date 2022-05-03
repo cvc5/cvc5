@@ -737,7 +737,7 @@ bool TheoryEngine::isRelevant(Node lit) const
 theory::Theory::PPAssertStatus TheoryEngine::solve(
     TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
-  Assert(tin.getKind() == TrustNodeKind::LEMMA);
+  Assert(tliteral.getKind() == TrustNodeKind::LEMMA);
   // Reset the interrupt flag
   d_interrupted = false;
 
