@@ -72,27 +72,6 @@ class ArithCongruenceManager : protected EnvObj
   /** d_watchedVariables |-> (= x y) */
   ArithVarToNodeMap d_watchedEqualities;
 
-
-  class ArithCongruenceNotify : public eq::EqualityEngineNotify {
-  private:
-    ArithCongruenceManager& d_acm;
-  public:
-    ArithCongruenceNotify(ArithCongruenceManager& acm);
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-  };
-  ArithCongruenceNotify d_notify;
-
   context::CDList<Node> d_keepAlive;
 
   /** Store the propagations. */
@@ -113,8 +92,6 @@ class ArithCongruenceManager : protected EnvObj
 
   /** The equality engine being used by this class */
   eq::EqualityEngine* d_ee;
-  /** The equality engine we allocated */
-  std::unique_ptr<eq::EqualityEngine> d_allocEe;
   /** proof manager */
   ProofNodeManager* d_pnm;
   /** A proof generator for storing proofs of facts that are asserted to the EQ
@@ -167,7 +144,12 @@ class ArithCongruenceManager : protected EnvObj
 
   bool canExplain(TNode n) const;
 
-private:
+  /**
+   * Propagate. Called when the equality engine has inferred literal x.
+   */
+  bool propagate(TNode x);
+
+ private:
   Node externalToInternal(TNode n) const;
 
   void pushBack(TNode n);
@@ -176,7 +158,6 @@ private:
 
   void pushBack(TNode n, TNode r, TNode w);
 
-  bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
   /** Assert this literal to the eq engine. Common functionality for
@@ -233,11 +214,6 @@ private:
   ~ArithCongruenceManager();
 
   //--------------------------------- initialization
-  /**
-   * Returns true if we need an equality engine, see
-   * Theory::needsEqualityEngine.
-   */
-  bool needsEqualityEngine(EeSetupInfo& esi);
   /**
    * Finish initialize. This class is instructed by TheoryArithPrivate to use
    * the equality engine ee.
