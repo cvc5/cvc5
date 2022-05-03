@@ -3586,6 +3586,8 @@ TrustNode TheoryArithPrivate::explain(TNode n)
 
   ConstraintP c = d_constraintDatabase.lookup(n);
   TrustNode exp;
+  // explanations that involve the congruence manager are handled in the
+  // main theory class.
   Assert(!d_congruenceManager.canExplain(n));
   if (c != NullConstraint)
   {
