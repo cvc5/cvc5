@@ -134,7 +134,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this)),
-      d_cmEnabled(context(), options().arith.arithCongMan),
+      d_cmEnabled(context(), !options().arith.arithEqSolver),
 
       d_dualSimplex(
           env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -176,14 +176,6 @@ TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_approxStats != NULL) { delete d_approxStats; }
 }
 
-bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
-{
-  if (!d_cmEnabled)
-  {
-    return false;
-  }
-  return d_congruenceManager.needsEqualityEngine(esi);
-}
 void TheoryArithPrivate::finishInit()
 {
   if (d_cmEnabled)
@@ -5003,6 +4995,11 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
 ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
 {
   return &d_checker;
+}
+
+ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()
+{
+  return d_cmEnabled.get() ? &d_congruenceManager : nullptr;
 }
 
 }  // namespace arith
