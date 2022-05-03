@@ -3586,12 +3586,8 @@ TrustNode TheoryArithPrivate::explain(TNode n)
 
   ConstraintP c = d_constraintDatabase.lookup(n);
   TrustNode exp;
-  if (d_congruenceManager.canExplain(n))
-  {
-    Trace("arith::explain") << "dm explanation" << n << endl;
-    exp = d_congruenceManager.explain(n);
-  }
-  else if (c != NullConstraint)
+  Assert (!d_congruenceManager.canExplain(n));
+  if (c != NullConstraint)
   {
     Assert(!c->isAssumption());
     exp = c->externalExplainForPropagation(n);
