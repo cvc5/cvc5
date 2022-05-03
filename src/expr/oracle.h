@@ -25,8 +25,8 @@
 namespace cvc5::internal {
 
 /**
- * An oracle, which stores a function whose interface is from vectors of nodes
- * to vectors of nodes. It is expected to serve as an oracle interface as
+ * An oracle, which stores a function whose interface is from a vector of nodes
+ * to a vector of nodes. It is expected to serve as an oracle interface as
  * described in Polgreen et al VMCAI 2022 and the SyGuS version 2.1 standard.
  */
 class Oracle
