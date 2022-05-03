@@ -81,18 +81,6 @@ class NodeManager
    */
   static bool isNAryKind(Kind k);
 
-  /**
-   * Returns a node representing the operator of this `TypeNode`.
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these) have an
-   * operator. "Little-p parameterized" types (like Array), are OPERATORs, not
-   * PARAMETERIZEDs.
-   */
-  static Node operatorFromType(const TypeNode& tn)
-  {
-    Assert(tn.getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(tn.d_nv->getOperator());
-  }
-
   /** The node manager in the current public-facing cvc5 library context */
   static NodeManager* currentNM();
 
@@ -134,15 +122,25 @@ class NodeManager
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
-   * associated with datatypes through the DatatypeIndexConstant class. The
+   * associated with datatypes through the DatatypeIndexAttr attribute. The
    * argument index is intended to be a value taken from that class.
    *
    * Type nodes must access their DTypes through a level of indirection to
    * prevent cycles in the Node AST (as DTypes themselves contain Nodes), which
-   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
-   * which is used as an index to retrieve the DType via this call.
+   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexAttr
+   * attribute which is used as an index to retrieve the DType via this call.
    */
   const DType& getDTypeForIndex(size_t index) const;
+  /**
+   * Get the DType for a type. If tn is a datatype type, then we retrieve its
+   * internal index and use the above method to lookup its datatype.
+   *
+   * If it is a tuple, then we lookup its datatype representation and call
+   * this method on it.
+   */
+  const DType& getDTypeFor(TypeNode tn) const;
+  /** Same as above, for node */
+  const DType& getDTypeFor(Node n) const;
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType(TypeNode tn);
@@ -692,6 +690,12 @@ class NodeManager
 
   /**
    * Make constant real or int, which calls one of the above methods based
+   * on whether r is integral.
+   */
+  Node mkConstRealOrInt(const Rational& r);
+
+  /**
+   * Make constant real or int, which calls one of the above methods based
    * on the type tn.
    */
   Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
@@ -805,7 +809,8 @@ class NodeManager
   };
 
   /**
-   * A map of tuple and record types to their corresponding datatype.
+   * A map of tuple types to their corresponding datatype type, which are
+   * TypeNode of kind TUPLE_TYPE.
    */
   class TupleTypeCache
   {
@@ -813,9 +818,10 @@ class NodeManager
     std::map<TypeNode, TupleTypeCache> d_children;
     TypeNode d_data;
     TypeNode getTupleType(NodeManager* nm,
-                          std::vector<TypeNode>& types,
+                          const std::vector<TypeNode>& types,
                           unsigned index = 0);
   };
+  /** Same as above, for records */
   class RecTypeCache
   {
    public:

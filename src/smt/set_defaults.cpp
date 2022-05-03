@@ -380,6 +380,18 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(ss.str());
     }
   }
+  // check if we have separation logic heap types
+  if (d_env.hasSepHeap())
+  {
+    std::stringstream reasonNoSepLogic;
+    if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
+    {
+      std::stringstream ss;
+      ss << reasonNoSepLogic.str()
+         << " not supported when using separation logic.";
+      throw OptionException(ss.str());
+    }
+  }
 }
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
@@ -672,15 +684,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       // use the arithmetic equality solver by default
       opts.arith.arithEqSolver = true;
-    }
-  }
-  if (opts.arith.arithEqSolver)
-  {
-    if (!opts.arith.arithCongManWasSetByUser)
-    {
-      // if we are using the arithmetic equality solver, do not use the
-      // arithmetic congruence manager by default
-      opts.arith.arithCongMan = false;
     }
   }
 
@@ -1270,6 +1273,22 @@ bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
     // guard). Hence, we throw an option exception if quantifiers are enabled.
     reason << "--nl-ext-rlv";
     return true;
+  }
+  return false;
+}
+
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
+                                                  std::ostream& reason) const
+{
+  if (options().smt.simplificationBoolConstProp)
+  {
+    // Spatial formulas in separation logic have a semantics that depends on
+    // their position in the AST (e.g. their nesting beneath separation
+    // conjunctions). Thus, we cannot apply BCP as a substitution for spatial
+    // predicates to the input formula. We disable this option altogether to
+    // ensure this is the case
+    notifyModifyOption("simplification-bcp", "false", "separation logic");
+    options().smt.simplificationBoolConstProp = false;
   }
   return false;
 }

@@ -93,7 +93,7 @@ class QuantifiersBoundInference
    *
    * For details, see BoundedIntegers::getBoundVarIndices.
    */
-  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
+  void getBoundVarIndices(Node q, std::vector<size_t>& indices) const;
   /**
    * Get bound elements
    *

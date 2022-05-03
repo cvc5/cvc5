@@ -267,7 +267,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
     {
       m.addTypesFromDatatype(childType.getDatatypeConstructorRangeType());
     }
-    else if (childType.getKind() == kind::DATATYPE_TYPE)
+    else if (childType.isDatatype())
     {
       m.addTypesFromDatatype(childType);
     }
