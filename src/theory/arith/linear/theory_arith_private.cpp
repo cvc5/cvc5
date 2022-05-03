@@ -2041,7 +2041,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     if(!vars.hasNode(x)){ return Node::null(); }
     Node xNode = vars.asNode(x);
     const Rational& q = sum[x];
-    Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Node mult = nm->mkNode(kind::MULT, nm->mkConstReal(q), xNode);
     Trace("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
     children.push_back(mult);
   }
@@ -4789,7 +4789,7 @@ bool TheoryArithPrivate::decomposeTerm(Node t,
   Polynomial poly = Polynomial::parsePolynomial(t);
   if(poly.isConstant()){
     c = poly.getHead().getConstant().getValue();
-    p = mkRationalNode(Rational(0));
+    p = NodeManager::currentNM()->mkConstReal(Rational(0));
     m = Rational(1);
     return true;
   }else if(poly.containsConstant()){
@@ -4837,22 +4837,6 @@ void TheoryArithPrivate::setToMin(int sgn, std::pair<Node, DeltaRational>& min, 
     }
   }
 }
-
-// std::pair<bool, Node> TheoryArithPrivate::entailmentUpperCheck(const Rational& lm, Node lp, const Rational& rm, Node rp, const DeltaRational& sep, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
-
-//   Rational negRM = -rm;
-//   Node diff = NodeManager::currentNM()->mkNode(MULT, mkRationalConstan(lm), lp) + (negRM * rp);
-
-//   Rational diffm;
-//   Node diffp;
-//   decompose(diff, diffm, diffNode);
-
-
-//   std::pair<Node, DeltaRational> bestUbLeft, bestLbRight, bestUbDiff, tmp;
-//   bestUbLeft = bestLbRight = bestUbDiff = make_pair(Node::Null(), DeltaRational());
-
-//   return make_pair(false, Node::null());
-// }
 
 /**
  * Decomposes a literal into the form:
