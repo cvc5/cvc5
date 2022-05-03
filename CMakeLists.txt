@@ -462,7 +462,7 @@ endif()
 add_subdirectory(src)
 
 if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
-  message(STATUS "Python bindings can only be built in a shared build.")
+  message(FATAL_ERROR "Python bindings can only be built in a shared build.")
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
