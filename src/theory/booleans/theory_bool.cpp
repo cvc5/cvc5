@@ -61,12 +61,12 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     {
       TNode eq = in[0];
       Assert(eq[0].getType().isBoolean());
-      if (eq[0].isVar())
+      if (eq[0].isVar() && isLegalElimination(eq[0], eq[1]))
       {
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1].notNode(), tin);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      else if (eq[1].isVar())
+      else if (eq[1].isVar() && isLegalElimination(eq[1], eq[0]))
       {
         outSubstitutions.addSubstitutionSolved(eq[1], eq[0].notNode(), tin);
         return PP_ASSERT_STATUS_SOLVED;
