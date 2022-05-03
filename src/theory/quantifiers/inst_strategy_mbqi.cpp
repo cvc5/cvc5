@@ -97,17 +97,21 @@ void InstStrategyMbqi::process(Node q)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
-  std::vector<Node> vars(q[0].begin(), q[0].end());
   // allocate the skolem variables
-  std::vector<Node> skolems;
-  for (const Node& v : vars)
+  Subs skolems;
+  for (const Node& v : q[0])
   {
     Node k = sm->mkPurifySkolem(v, "mbk");
-    skolems.push_back(k);
-    tmpConvertMap[v] = k;
+    skolems.add(v, k);
+    // do not take its model value (which does not exist) in conversion below
+    tmpConvertMap[k] = k;
   }
-
-  Node cbody = convert(q[1], true, tmpConvertMap, freshVarType, mvToFreshVar);
+  // compute the skolemization in a separate traversal instead of mapping
+  // bound variables to skolems. This is to ensure we avoid variable shadowing
+  // for model values for functions
+  Node skq = skolems.apply(q[1]);
+  // convert to query
+  Node cbody = convert(skq, true, tmpConvertMap, freshVarType, mvToFreshVar);
   Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
@@ -165,7 +169,7 @@ void InstStrategyMbqi::process(Node q)
   }
   // ensure the skolems of the given type are equal to one of the variables
   std::map<TypeNode, std::unordered_set<Node> >::iterator itk;
-  for (const Node& k : skolems)
+  for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
     itk = freshVarType.find(tn);
@@ -217,14 +221,14 @@ void InstStrategyMbqi::process(Node q)
 
   // get the model values for skolems
   std::vector<Node> terms;
-  getModelFromSubsolver(*mbqiChecker.get(), skolems, terms);
+  getModelFromSubsolver(*mbqiChecker.get(), skolems.d_subs, terms);
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
     Trace("mbqi") << "...model from subsolver is: " << std::endl;
     for (size_t i = 0, nterms = skolems.size(); i < nterms; i++)
     {
-      Trace("mbqi") << "  " << skolems[i] << " -> " << terms[i] << std::endl;
+      Trace("mbqi") << "  " << skolems.d_subs[i] << " -> " << terms[i] << std::endl;
     }
   }
   // try to convert those terms to an instantiation
