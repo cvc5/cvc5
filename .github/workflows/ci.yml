@@ -21,7 +21,7 @@ jobs:
           - name: macos:production
             os: macos-11
             config: production --auto-download --python-bindings --editline
-            #ache-key: production
+            cache-key: production
             strip-bin: strip
             python-bindings: true
             check-examples: true
