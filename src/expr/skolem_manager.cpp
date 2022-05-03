@@ -355,7 +355,8 @@ Node SkolemManager::getOriginalForm(Node n)
         Node ucur = cur.getAttribute(ufa);
         if (ucur.hasAttribute(ofa))
         {
-          // already computed, set
+          // Already computed, set. This always happens after cur is visited
+          // again after computing the original form of its unpurified form.
           Node ucuro = ucur.getAttribute(ofa);
           cur.setAttribute(ofa, ucuro);
           visited[cur] = ucuro;

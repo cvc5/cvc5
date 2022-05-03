@@ -450,10 +450,11 @@ class SkolemManager
    */
   static Node getOriginalForm(Node n);
   /**
-   * Convert to unpurified form, which returns the term that k purifies. In
-   * contrast to getOriginalForm, this is not recursive w.r.t. skolems, so that the term
-   * purified by k may itself contain purification skolems that are not
-   * expanded.
+   * Convert to unpurified form, which returns the term that k purifies. This
+   * is literally the term that was passed as an argument to mkPurify on the
+   * call that created k. In contrast to getOriginalForm, this is not recursive
+   * w.r.t. skolems, so that the term purified by k may itself contain
+   * purification skolems that are not expanded.
    *
    * @param k The skolem to convert to unpurified form
    * @return the unpurified form of k.
