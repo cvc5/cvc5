@@ -1721,6 +1721,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
   }
   else if (hasEqualityEngineProof())
   {
+#if 0
     Trace("pf::arith::explain") << "  going to ee:" << std::endl;
     TrustNode exp = d_database->eeExplain(this);
     if (d_database->isProofEnabled())
@@ -1754,6 +1755,17 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
     {
       nb << exp.getNode();
     }
+#endif
+    // just assume, it will be explained again
+    Node lit = getLiteral();
+    if (d_database->isProofEnabled())
+    {
+      pf = pnm->mkNode(PfRule::ASSUME, {}, {getLiteral()});
+      pf = pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
+    }
+    Assert (lit.getKind()!=kind::AND);
+    nb << lit;
   }
   else
   {
