@@ -37,7 +37,7 @@ class VarMatchGeneratorTermSubs : public InstMatchGenerator
   /** Reset */
   bool reset(Node eqc) override;
   /** Get the next match. */
-  int getNextMatch(Node q, InstMatch& m) override;
+  int getNextMatch(InstMatch& m) override;
 
  private:
   /** variable we are matching (x in the example x+1). */

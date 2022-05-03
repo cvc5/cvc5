@@ -55,8 +55,9 @@ class OpTest
   {
     Op x = d_solver.getNullOp();
     assertTrue(x.isNull());
-    x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-    assertFalse(x.isNull());
+    Op y = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
+    assertFalse(y.isNull());
+    assertTrue(x != y);
   }
 
   @Test
@@ -139,6 +140,7 @@ class OpTest
     Op iand = d_solver.mkOp(IAND, 11);
     Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 12);
     Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
+    Op regexpRepeat = d_solver.mkOp(REGEXP_REPEAT, 14);
 
     assertEquals(4, divisible.get(0).getIntegerValue().intValue());
     assertEquals(5, bvRepeat.get(0).getIntegerValue().intValue());
@@ -150,6 +152,7 @@ class OpTest
     assertEquals(11, iand.get(0).getIntegerValue().intValue());
     assertEquals(12, fpToUbv.get(0).getIntegerValue().intValue());
     assertEquals(13, fpToSbv.get(0).getIntegerValue().intValue());
+    assertEquals(14, regexpRepeat.get(0).getIntegerValue().intValue());
 
     // Operators with 2 indices
     Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, 1, 0);

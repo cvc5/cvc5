@@ -43,6 +43,12 @@ TEST_F(TestApiBlackSynthResult, hasSolution)
   ASSERT_TRUE(res.hasSolution());
   ASSERT_FALSE(res.hasNoSolution());
   ASSERT_FALSE(res.isUnknown());
+  ASSERT_EQ(res.toString(), "(SOLUTION)");
+  {
+    std::stringstream ss;
+    ss << res;
+    ASSERT_EQ(res.toString(), ss.str());
+  }
 }
 
 TEST_F(TestApiBlackSynthResult, hasNoSolution)

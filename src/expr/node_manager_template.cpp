@@ -302,6 +302,25 @@ NodeManager::~NodeManager()
   d_attrManager = NULL;
 }
 
+const DType& NodeManager::getDTypeFor(TypeNode tn) const
+{
+  Kind k = tn.getKind();
+  if (k == kind::DATATYPE_TYPE)
+  {
+    DatatypeIndexConstant dic = tn.getConst<DatatypeIndexConstant>();
+    return getDTypeForIndex(dic.getIndex());
+  }
+  else if (k == kind::TUPLE_TYPE)
+  {
+    // lookup its datatype encoding
+    TypeNode dtt = getAttribute(tn, expr::TupleDatatypeAttr());
+    Assert(!dtt.isNull());
+    return getDTypeFor(dtt);
+  }
+  Assert(k == kind::PARAMETRIC_DATATYPE);
+  return getDTypeFor(tn[0]);
+}
+
 const DType& NodeManager::getDTypeForIndex(size_t index) const
 {
   // if this assertion fails, it is likely due to not managing datatypes
@@ -599,6 +618,22 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     if (dtp->getNumParameters() == 0)
     {
       typeNode = mkTypeConst(DatatypeIndexConstant(index));
+      // if the datatype is a tuple, the type will be (TUPLE_TYPE ...)
+      if (dt.isTuple())
+      {
+        TypeNode dtt = typeNode;
+        const DTypeConstructor& dc = dt[0];
+        std::vector<TypeNode> tupleTypes;
+        for (size_t i = 0, nargs = dc.getNumArgs(); i < nargs; i++)
+        {
+          // selector should be initialized to the range type, it is not null
+          // or unresolved since tuples are not recursive
+          tupleTypes.push_back(dc[i].getType());
+        }
+        // Set its datatype representation
+        typeNode = mkTypeNode(kind::TUPLE_TYPE, tupleTypes);
+        typeNode.setAttribute(expr::TupleDatatypeAttr(), dtt);
+      }
     }
     else
     {
@@ -740,9 +775,8 @@ TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);
 }
 
-TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
-                                                   std::vector<TypeNode>& types,
-                                                   unsigned index)
+TypeNode NodeManager::TupleTypeCache::getTupleType(
+    NodeManager* nm, const std::vector<TypeNode>& types, unsigned index)
 {
   if (index == types.size())
   {
@@ -750,7 +784,8 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
     {
       std::stringstream sst;
       sst << "__cvc5_tuple";
-      for (unsigned i = 0; i < types.size(); ++i)
+      size_t ntypes = types.size();
+      for (size_t i = 0; i < ntypes; ++i)
       {
         sst << "_" << types[i];
       }
@@ -760,7 +795,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
       ssc << sst.str() << "_ctor";
       std::shared_ptr<DTypeConstructor> c =
           std::make_shared<DTypeConstructor>(ssc.str());
-      for (unsigned i = 0; i < types.size(); ++i)
+      for (size_t i = 0; i < ntypes; ++i)
       {
         std::stringstream ss;
         ss << sst.str() << "_stor_" << i;
@@ -768,6 +803,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
+      Assert(d_data.isTuple());
       Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
@@ -804,6 +840,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
+      Assert(d_data.isRecord());
       Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
@@ -847,18 +884,7 @@ TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
 {
-  std::vector<TypeNode> ts;
-  Trace("tuprec-debug") << "Make tuple type : ";
-  for (unsigned i = 0; i < types.size(); ++i)
-  {
-    CheckArgument(!types[i].isFunctionLike(),
-                  types,
-                  "cannot put function-like types in tuples");
-    ts.push_back(types[i]);
-    Trace("tuprec-debug") << types[i] << " ";
-  }
-  Trace("tuprec-debug") << std::endl;
-  return d_tt_cache.getTupleType(this, ts);
+  return d_tt_cache.getTupleType(this, types);
 }
 
 TypeNode NodeManager::mkRecordType(const Record& rec)
@@ -1278,31 +1304,43 @@ Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
 
 Node NodeManager::mkConstReal(const Rational& r)
 {
+  // works with (r.isIntegral() ? kind::CONST_INTEGER : kind::CONST_RATIONAL)
   return mkConst(kind::CONST_RATIONAL, r);
 }
 
 Node NodeManager::mkConstInt(const Rational& r)
 {
   // !!!! Note will update to CONST_INTEGER.
+  Assert(r.isIntegral());
   return mkConst(kind::CONST_RATIONAL, r);
+}
+
+Node NodeManager::mkConstRealOrInt(const Rational& r)
+{
+  if (r.isIntegral())
+  {
+    return mkConstInt(r);
+  }
+  return mkConstReal(r);
 }
 
 Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
                            << tn;
-  if (tn.isReal())
+  if (tn.isInteger())
   {
-    return mkConstReal(r);
+    return mkConstInt(r);
   }
-  return mkConstInt(r);
+  return mkConstReal(r);
 }
 
 Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
 {
   if (ran.isRational())
   {
-    return mkConstReal(ran.toRational());
+    // may generate an integer it is it integral
+    return mkConstRealOrInt(ran.toRational());
   }
   // Creating this node may refine the ran to the point where isRational returns
   // true
@@ -1314,7 +1352,8 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
     const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
     if (cur.isRational())
     {
-      return mkConstReal(cur.toRational());
+      // may generate an integer it is it integral
+      return mkConstRealOrInt(cur.toRational());
     }
     if (cur == ran) break;
     inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);

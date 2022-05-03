@@ -181,7 +181,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     if (strict)
     {
       vector<Node> toEmit;
-      for (const auto& c : d_cubes) 
+      for (const Node& c : d_cubes) 
       {
         toEmit.push_back(c.notNode());
       }
@@ -235,7 +235,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     }
 
     vector<Node> nots;
-    for (const auto& c : d_cubes) {
+    for (const Node& c : d_cubes)
+    {
       nots.push_back(c.notNode());
     }
     Node lemma = NodeManager::currentNM()->mkAnd(nots);
@@ -294,7 +295,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, b
     // F F F
     // For the first column, numConsecutiveTF = 4, then 2 for the second column, 
     // and 1 for the third column.
-    size_t numConsecutiveTF = total/2;
+    size_t numConsecutiveTF = total / 2;
     for (Node n : literals)
     {
       Node not_n = n.notNode();
@@ -306,14 +307,14 @@ TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, b
         t = !t;
         for (size_t j = 0; j < numConsecutiveTF; ++j)
         {
-          resultNodeLists[loc].push_back((t ? n : not_n));
+          resultNodeLists[loc].push_back(t ? n : not_n);
           ++loc;
         }
       }
 
-      numConsecutiveTF = numConsecutiveTF/2;
+      numConsecutiveTF = numConsecutiveTF / 2;
     }
-    for (std::vector<TNode> row : resultNodeLists)
+    for (const std::vector<TNode>& row : resultNodeLists)
     {
       Node conj = NodeManager::currentNM()->mkAnd(row);
       if (emitZLL)

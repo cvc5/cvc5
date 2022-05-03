@@ -91,15 +91,7 @@ inline Node mkConst(const Integer& value)
 {
   return NodeManager::currentNM()->mkConstInt(value);
 }
-/** Create an integer or rational constant node */
-inline Node mkConst(const Rational& value)
-{
-  if (value.isIntegral())
-  {
-    return NodeManager::currentNM()->mkConstInt(value);
-  }
-  return NodeManager::currentNM()->mkConstReal(value);
-}
+
 /** Create a real algebraic number node */
 inline Node mkConst(const RealAlgebraicNumber& value)
 {
@@ -151,6 +143,18 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
  */
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial);
+
+/**
+ * Remove TO_REAL from t, returns t[0] if t has kind TO_REAL.
+ */
+TNode removeToReal(TNode t);
+/**
+ * Ensure that t has real type if tn is the real type. Do so by applying
+ * TO_REAL to t.
+ */
+Node maybeEnsureReal(TypeNode tn, TNode t);
+/** Same as above, without a check for the type of tn. */
+Node ensureReal(TNode t);
 
 }  // namespace rewriter
 }  // namespace arith

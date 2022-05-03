@@ -270,6 +270,7 @@ set(regress_0_tests
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_415.smt2
   regress0/bv/bv_to_int_5230_binary.smt2
   regress0/bv/bv_to_int_5230_missing_op.smt2
   regress0/bv/bv_to_int_5230_shift_const.smt2
@@ -777,6 +778,7 @@ set(regress_0_tests
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/combined-uf.smt2
+  regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -807,6 +809,9 @@ set(regress_0_tests
   regress0/nl/issue8515-cov-iand.smt2
   regress0/nl/issue8516-cov-sin.smt2
   regress0/nl/issue8638-cov-resultants.smt2
+  regress0/nl/issue8691-msum-subtypes.smt2
+  regress0/nl/issue8691-3-msum-subtypes.smt2
+  regress0/nl/issue8692-idem-flatten.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -2911,6 +2916,7 @@ set(regress_2_tests
   regress2/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
+  regress2/nl/issue8693-flatten-to-real.smt2
   regress2/nl/ufnia-factor-open-proof.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
@@ -3205,6 +3211,7 @@ add_custom_target(regress
   DEPENDS build-regress)
 
 set(testers
+  all
   base
   unsat-core
   proof

@@ -50,10 +50,10 @@ name   = "Parallel"
   help = "For 4 partitions, creates cubes C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3"
 [[option.mode.DECISION_TRAIL]]
   name = "decision-trail"
-  help = "Creates mutually exclusive cubes from the decisions in the sat solver."
+  help = "Creates mutually exclusive cubes from the decisions in the SAT solver."
 [[option.mode.HEAP_TRAIL]]
   name = "heap-trail"
-  help = "Creates mutually exclusive cubes from the order_heap in the sat solver."
+  help = "Creates mutually exclusive cubes from the order heap in the SAT solver."
 
 [[option]]
   name       = "partitionCheck"

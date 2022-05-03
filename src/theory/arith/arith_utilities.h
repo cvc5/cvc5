@@ -38,10 +38,6 @@ typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
 
-inline Node mkRationalNode(const Rational& q){
-  return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
-}
-
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
 }
