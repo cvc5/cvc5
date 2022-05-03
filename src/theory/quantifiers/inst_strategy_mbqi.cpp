@@ -331,8 +331,17 @@ Node InstStrategyMbqi::convert(
             Node mval = fm->getValue(cur);
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
-            visit.push_back(cur);
-            visit.push_back(mval);
+            if (mval.isConst())
+            {
+              visit.push_back(cur);
+              visit.push_back(mval);
+            }
+            else
+            {
+              // If not constant, keep its value. This avoids possible loops
+              // in this conversion.
+              cmap[cur] = cur;
+            }
           }
           else
           {
