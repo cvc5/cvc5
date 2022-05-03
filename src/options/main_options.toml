@@ -166,3 +166,11 @@ name   = "Driver"
   type       = "bool"
   default    = "false"
   help       = "Use internal portfolio mode based on the logic"
+
+[[option]]
+  name       = "portfolioJobs"
+  category   = "expert"
+  long       = "portfolio-jobs=n"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "Number of parallel jobs the portfolio engine can run"
