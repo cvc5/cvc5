@@ -281,7 +281,8 @@ Node InstStrategyMbqi::convert(
     cur = visit.back();
     visit.pop_back();
     it = cmap.find(cur);
-    Trace("mbqi-debug") << "Convert: " << cur << " " << cur.getKind() << " " << cur.getType() << std::endl;
+    Trace("mbqi-debug") << "Convert: " << cur << " " << cur.getKind() << " "
+                        << cur.getType() << std::endl;
     if (it != cmap.end())
     {
       // already computed
@@ -345,7 +346,8 @@ Node InstStrategyMbqi::convert(
           }
           else
           {
-            Assert(cmap.find(itm->second) != cmap.end()) << "Missing " << itm->second;
+            Assert(cmap.find(itm->second) != cmap.end())
+                << "Missing " << itm->second;
             cmap[cur] = cmap[itm->second];
           }
         }
