@@ -747,7 +747,7 @@ class NodeManager
    * the given method in an Oracle object. This Oracle can later be obtained by
    * getOracleFor below.
    */
-  Node mkOracle(std::function<std::vector<Node>(Oracle& o);
+  Node mkOracle(Oracle& o);
 
   /**
    * Get the oracle for an oracle node n, which should have kind ORACLE.
