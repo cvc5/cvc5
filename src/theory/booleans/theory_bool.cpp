@@ -60,7 +60,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     else if (in[0].getKind() == kind::EQUAL)
     {
       TNode eq = in[0];
-      Assert (eq[0].getType().isBoolean());
+      Assert(eq[0].getType().isBoolean());
       if (eq[0].isVar())
       {
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1].notNode(), tin);
