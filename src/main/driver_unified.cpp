@@ -223,8 +223,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
             Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
-      PortfolioDriver driver;
-      returnValue = driver.execute(pExecutor, parser);
+      PortfolioDriver driver(parser);
+      returnValue = driver.execute(pExecutor);
     }
 
 #ifdef CVC5_COMPETITION_MODE

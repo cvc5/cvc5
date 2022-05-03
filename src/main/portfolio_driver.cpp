@@ -17,14 +17,34 @@ namespace cvc5::main {
 
 PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
 {
-	PortfolioStrategy s;
-	if (logic == "QF_NRA")
-	{
-		s.add().set("decision", "justification").timeout(0.5);
-		s.add().set("decision", "internal").set("nl-cad", "false").set("nl-ext", "full").set("nl-ext-tplanes", "true").timeout(0.25);
-		s.add().set("decision", "internal").set("nl-ext", "none");
-	}
-	return s;
+  PortfolioStrategy s;
+  if (logic == "QF_NRA")
+  {
+    s.add().set("decision", "justification").timeout(0.5);
+    s.add()
+        .set("decision", "internal")
+        .set("nl-cad", "false")
+        .set("nl-ext", "full")
+        .set("nl-ext-tplanes", "true")
+        .timeout(0.25);
+    s.add().set("decision", "internal").set("nl-ext", "none");
+  }
+  return s;
 }
 
-}  // namespace cvc5::internal
+std::vector<std::unique_ptr<cvc5::Command>> PortfolioDriver::parseIntoVector()
+{
+  std::vector<std::unique_ptr<cvc5::Command>> res;
+  while (true)
+  {
+    res.emplace_back(d_parser->nextCommand());
+    if (!res.back()) break;
+    if (dynamic_cast<cvc5::QuitCommand*>(res.back().get()) != nullptr)
+    {
+      break;
+    }
+  }
+  return res;
+}
+
+}  // namespace cvc5::main
