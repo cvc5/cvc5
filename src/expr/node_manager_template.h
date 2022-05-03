@@ -744,10 +744,10 @@ class NodeManager
 
   /**
    * Make an oracle node. This returns a constant of kind ORACLE that stores
-   * the given method in an Oracle object. This Oracle can be obtained by
+   * the given method in an Oracle object. This Oracle can later be obtained by
    * getOracleFor below.
    */
-  Node mkOracle(std::function<std::vector<Node>(const std::vector<Node>&)> fn);
+  Node mkOracle(std::function<std::vector<Node>(Oracle& o);
 
   /**
    * Get the oracle for an oracle node n, which should have kind ORACLE.

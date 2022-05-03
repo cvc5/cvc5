@@ -952,14 +952,14 @@ TypeNode NodeManager::mkUnresolvedDatatypeSort(const std::string& name,
   return usort;
 }
 
-Node NodeManager::mkOracle(
-    std::function<std::vector<Node>(const std::vector<Node>&)> fn)
+Node NodeManager::mkOracle(Oracle& o)
 {
   Node n = NodeBuilder(this, kind::ORACLE);
   n.setAttribute(TypeAttr(), builtinOperatorType());
   n.setAttribute(TypeCheckedAttr(), true);
   n.setAttribute(OracleIndexAttr(), d_oracles.size());
-  d_oracles.push_back(std::unique_ptr<Oracle>(new Oracle(fn)));
+  // we allocate a new oracle, to take ownership
+  d_oracles.push_back(std::unique_ptr<Oracle>(new Oracle(o.getFunction())));
   return n;
 }
 
