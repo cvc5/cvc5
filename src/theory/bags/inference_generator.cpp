@@ -591,6 +591,9 @@ InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
   Node countA = getMultiplicityTerm(e1, A);
   Node countB = getMultiplicityTerm(e2, B);
 
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, countA, d_one));
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, countB, d_one));
+
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count = getMultiplicityTerm(tuple, skolem);
 
@@ -626,6 +629,7 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
 
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count = getMultiplicityTerm(e, skolem);
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count, d_one));
 
   Node multiply = d_nm->mkNode(MULT, countA, countB);
   inferInfo.d_conclusion = count.eqNode(multiply);
@@ -657,6 +661,9 @@ InferInfo InferenceGenerator::joinUp(Node n, Node e1, Node e2)
 
   Node countA = getMultiplicityTerm(e1, A);
   Node countB = getMultiplicityTerm(e2, B);
+
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, countA, d_one));
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, countB, d_one));
 
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count = getMultiplicityTerm(tuple, skolem);
@@ -692,6 +699,7 @@ InferInfo InferenceGenerator::joinDown(Node n, Node e)
 
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count = getMultiplicityTerm(e, skolem);
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count, d_one));
 
   Node multiply = d_nm->mkNode(MULT, countA, countB);
   Node multiplicityConstraint = count.eqNode(multiply);
