@@ -39,11 +39,7 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->setOption("produce-models", "true");
     d_slvEngine->finishInit();
-    d_true = d_nodeManager->mkConst<bool>(true);
-    d_one = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational(1));
   }
-  Node d_true;
-  Node d_one;
 };
 
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
@@ -63,7 +59,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
-  Node seven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(7));
+  Node seven = d_nodeManager->mkConstInt(Rational(7));
   ASSERT_EQ(seven, result);
 
   // translating integer constants should not change them

@@ -102,6 +102,9 @@ TEST_F(TestApiBlackOp, getNumIndices)
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
   Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
   ASSERT_EQ(indices.size(), tupleProject.getNumIndices());
+
+  Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
+  ASSERT_EQ(indices.size(), tableProject.getNumIndices());
 }
 
 TEST_F(TestApiBlackOp, subscriptOperator)
@@ -122,6 +125,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   Op iand = d_solver.mkOp(IAND, {11});
   Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, {12});
   Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, {13});
+  Op regexpRepeat = d_solver.mkOp(REGEXP_REPEAT, {14});
 
   ASSERT_EQ(4, divisible[0].getUInt32Value());
   ASSERT_EQ(5, bvRepeat[0].getUInt32Value());
@@ -133,6 +137,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_EQ(11, iand[0].getUInt32Value());
   ASSERT_EQ(12, fpToUbv[0].getUInt32Value());
   ASSERT_EQ(13, fpToSbv[0].getUInt32Value());
+  ASSERT_EQ(14, regexpRepeat[0].getUInt32Value());
 
   // Operators with 2 indices
   Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, {1, 0});
