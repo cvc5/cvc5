@@ -44,9 +44,11 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
 {
   std::stringstream ss;
   ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
+  ss << cvc5::Grammar();
 
   Sort intsort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intsort, "x");
@@ -54,6 +56,47 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << std::vector<Term>{x, x};
   ss << std::set<Term>{x, x};
   ss << std::unordered_set<Term>{x, x};
+}
+
+TEST_F(TestApiBlackUncovered, datatype_api)
+{
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("head", d_solver.getIntegerSort());
+  dtypeSpec.addConstructor(cons);
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+  dtypeSpec.addConstructor(nil);
+  Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
+  Datatype d = listSort.getDatatype();
+
+  std::stringstream ss;
+  ss << cons;
+  ss << d.getConstructor("cons");
+  ss << d.getSelector("head");
+  ss << std::vector<DatatypeConstructorDecl>{cons, nil};
+  ss << d;
+
+  {
+    DatatypeConstructor c = d.getConstructor("cons");
+    DatatypeConstructor::const_iterator it;
+    it = c.begin();
+    ASSERT_NE(it, c.end());
+    ASSERT_EQ(it, c.begin());
+    *it;
+    ASSERT_NO_THROW(it->getName());
+    ++it;
+    it++;
+  }
+  {
+    Datatype::const_iterator it;
+    it = d.begin();
+    ASSERT_NE(it, d.end());
+    ASSERT_EQ(it, d.begin());
+    it->getName();
+    *it;
+    ++it;
+    it++;
+  }
 }
 
 TEST_F(TestApiBlackUncovered, term_native_types)
@@ -73,6 +116,23 @@ TEST_F(TestApiBlackUncovered, term_native_types)
   t.getReal32Value();
   t.isReal64Value();
   t.getReal64Value();
+}
+
+TEST_F(TestApiBlackUncovered, checkSatAssumingSingle)
+{
+  Sort boolsort = d_solver.getBooleanSort();
+  Term b = d_solver.mkConst(boolsort, "b");
+  d_solver.checkSatAssuming(b);
+}
+
+TEST_F(TestApiBlackUncovered, mkOpInitializerList)
+{
+  d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1, 1});
+}
+TEST_F(TestApiBlackUncovered, mkTermKind)
+{
+  Term b = d_solver.mkConst(d_solver.getRealSort(), "b");
+  d_solver.mkTerm(Kind::GT, {b, b});
 }
 
 TEST_F(TestApiBlackUncovered, getValue)
