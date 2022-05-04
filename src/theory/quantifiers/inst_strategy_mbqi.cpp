@@ -96,6 +96,7 @@ void InstStrategyMbqi::process(Node q)
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  const RepSet* rs = d_treg.getModel()->getRepSet();
 
   // allocate the skolem variables
   Subs skolems;
@@ -124,7 +125,7 @@ void InstStrategyMbqi::process(Node q)
 
   std::vector<Node> constraints;
 
-  // include the negation of the skolemized body
+  // constraint: the negation of the skolemized body
   Node bquery = rewrite(cbody.negate());
   if (!bquery.isConst())
   {
@@ -136,8 +137,56 @@ void InstStrategyMbqi::process(Node q)
     Trace("mbqi") << "...success, by rewriting" << std::endl;
     return;
   }
+  // ensure the entire domain of uninterpreted sorts are converted
+  std::unordered_set<TypeNode> processedUsort;
+  for (const Node& k : skolems.d_subs)
+  {
+    TypeNode tn = k.getType();
+    if (!tn.isUninterpretedSort() || processedUsort.find(tn)!=processedUsort.end())
+    {
+      continue;
+    }
+    processedUsort.insert(tn);
+    const std::vector<Node>* treps = rs->getTypeRepsOrNull(tn);
+    if (treps!=nullptr)
+    {
+      for (const Node& r : *treps)
+      {
+        Assert (r.getKind()==kind::UNINTERPRETED_SORT_VALUE);
+        convert(r, true, tmpConvertMap, freshVarType, mvToFreshVar);
+      }
+    }
+  }
+  // constraint: the skolems of the given type are equal to one of the variables
+  // introduced for uninterpreted sorts
+  std::map<TypeNode, std::unordered_set<Node> >::iterator itk;
+  for (const Node& k : skolems.d_subs)
+  {
+    TypeNode tn = k.getType();
+    itk = freshVarType.find(tn);
+    if (itk == freshVarType.end())
+    {
+      // not an uninterpreted sort, continue
+      continue;
+    }
+    if (itk->second.empty())
+    {
+      Trace("mbqi") << "warning: failed to get vars for type " << tn << std::endl;
+      // this should never happen but we explicitly guard for it, since
+      // otherwise we would be model unsound below
+      Assert (false);
+      continue;
+    }
+    std::vector<Node> disj;
+    for (const Node& fv : itk->second)
+    {
+      disj.push_back(k.eqNode(fv));
+    }
+    Node instCardCons = nm->mkOr(disj);
+    constraints.push_back(instCardCons);
+  }
 
-  // also include distinctness of variables introduced as constants
+  // constraint: distinctness of variables introduced for uninterpreted constants
   std::vector<Node> allVars;
   for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
        freshVarType)
@@ -149,49 +198,6 @@ void InstStrategyMbqi::process(Node q)
       std::vector<Node> fvars(fv.second.begin(), fv.second.end());
       constraints.push_back(nm->mkNode(DISTINCT, fvars));
     }
-  }
-  // get a term that has the same model value as the value each fresh variable
-  // represents
-  Subs fvToInst;
-  const RepSet* rs = d_treg.getModel()->getRepSet();
-  for (const Node& v : allVars)
-  {
-    // get a term that witnesses this variable
-    Node ov = sm->getOriginalForm(v);
-    Node mvt = rs->getTermForRepresentative(ov);
-    if (mvt.isNull())
-    {
-      Trace("mbqi") << "warning: failed to get term from value " << ov
-                    << ", use arbitrary term in query" << std::endl;
-      mvt = nm->mkGroundTerm(ov.getType());
-    }
-    Assert(v.getType() == mvt.getType());
-    fvToInst.add(v, mvt);
-  }
-  // ensure the skolems of the given type are equal to one of the variables
-  std::map<TypeNode, std::unordered_set<Node> >::iterator itk;
-  for (const Node& k : skolems.d_subs)
-  {
-    TypeNode tn = k.getType();
-    itk = freshVarType.find(tn);
-    if (itk == freshVarType.end())
-    {
-      continue;
-    }
-    // this is critical to model soundness; we return if empty
-    if (itk->second.empty())
-    {
-      Assert(false);
-      Trace("mbqi") << "...failed to get vars for type " << tn << std::endl;
-      return;
-    }
-    std::vector<Node> disj;
-    for (const Node& fv : itk->second)
-    {
-      disj.push_back(k.eqNode(fv));
-    }
-    Node instCardCons = nm->mkOr(disj);
-    constraints.push_back(instCardCons);
   }
 
   // make the query
@@ -249,13 +255,31 @@ void InstStrategyMbqi::process(Node q)
     v = vc;
   }
 
+  // get a term that has the same model value as the value each fresh variable
+  // represents
+  Subs fvToInst;
+  for (const Node& v : allVars)
+  {
+    // get a term that witnesses this variable
+    Node ov = sm->getOriginalForm(v);
+    Node mvt = rs->getTermForRepresentative(ov);
+    if (mvt.isNull())
+    {
+      Trace("mbqi") << "warning: failed to get term from value " << ov
+                    << ", use arbitrary term in query" << std::endl;
+      mvt = nm->mkGroundTerm(ov.getType());
+    }
+    Assert(v.getType() == mvt.getType());
+    fvToInst.add(v, mvt);
+  }
+
   // now convert fresh variables into terms
   for (Node& v : terms)
   {
     v = fvToInst.apply(v);
   }
 
-  // add instantiation?
+  // try to add instantiation
   Instantiate* qinst = d_qim.getInstantiate();
   if (!qinst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_MBQI))
   {
