@@ -161,8 +161,8 @@ void InstStrategyMbqi::process(Node q)
     Node mvt = rs->getTermForRepresentative(ov);
     if (mvt.isNull())
     {
-      Trace("mbqi") << "...failed to get term for value " << ov << std::endl;
-      return;
+      Trace("mbqi") << "warning: failed to get term from value " << ov << ", use arbitrary term in query" << std::endl;
+      mvt = nm->mkGroundTerm(ov.getType());
     }
     Assert(v.getType() == mvt.getType());
     fvToInst.add(v, mvt);
@@ -239,9 +239,9 @@ void InstStrategyMbqi::process(Node q)
     Assert(!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
-      Trace("mbqi") << "...failed to process model value " << vc << ", from "
-                    << v << std::endl;
-      return;
+      Trace("mbqi") << "warning: failed to process model value " << vc << ", from "
+                    << v  << ", use arbitrary term for instantiation" << std::endl;
+      vc = nm->mkGroundTerm(v.getType());
     }
     v = vc;
   }
@@ -335,16 +335,15 @@ Node InstStrategyMbqi::convert(
             Node mval = fm->getValue(cur);
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
-            if (mval.isConst())
+            if (cur==mval)
             {
-              visit.push_back(cur);
-              visit.push_back(mval);
+              // failed to evaluate in model, keep itself
+              cmap[cur] = cur;
             }
             else
             {
-              // If not constant, keep its value. This avoids possible loops
-              // in this conversion.
-              cmap[cur] = cur;
+              visit.push_back(cur);
+              visit.push_back(mval);
             }
           }
           else
