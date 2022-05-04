@@ -79,7 +79,7 @@ struct PortfolioConfig
         << "The given timeout should be given as part of the total timeout";
   }
   /**
-   * Set a command line option. While no formal restriction is imposed, the
+   * Set a command line option. While no formal restriction is imposed, they
    * are only set after parsing has already started. Thus, options that affect
    * how the parser behaves should not be specified here.
    * The value is optional and defaults to "true".
