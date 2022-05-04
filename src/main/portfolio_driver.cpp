@@ -20,6 +20,7 @@
 #endif
 
 #include <chrono>
+#include <cstdlib>
 #include <optional>
 #include <thread>
 
