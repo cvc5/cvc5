@@ -289,7 +289,7 @@ class PortfolioProcessPool
           rc = 0;
         }
       }
-      std::abort(rc);
+      _exit(rc);
     }
     job.d_errPipe.closeIn();
     job.d_outPipe.closeIn();
@@ -304,7 +304,7 @@ class PortfolioProcessPool
             job.d_config.d_timeout * d_timeout);
         std::this_thread::sleep_for(duration);
         kill(job.d_worker, SIGKILL);
-        std::abort(0);
+        _exit(0);
       }
     }
     else
