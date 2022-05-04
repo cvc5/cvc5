@@ -56,9 +56,11 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << std::unordered_set<Term>{x, x};
 }
 
-TEST_F(TestApiBlackUncovered, term_native_type_testers)
+TEST_F(TestApiBlackUncovered, term_native_types)
 {
-  Term t = d_solver.mkInteger("0");
+  Term t = d_solver.mkInteger(0);
+  d_solver.mkReal(0);
+  d_solver.mkReal(0, 1);
   t.isInt32Value();
   t.getInt32Value();
   t.isInt64Value();
