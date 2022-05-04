@@ -137,6 +137,9 @@ TEST_F(TestApiBlackUncovered, Statistics)
     it--;
     ++it;
     --it;
+    testing::internal::CaptureStdout();
+    d_solver.printStatisticsSafe(STDOUT_FILENO);
+    testing::internal::GetCapturedStdout();
 }
 
 TEST_F(TestApiBlackUncovered, Datatypes)
