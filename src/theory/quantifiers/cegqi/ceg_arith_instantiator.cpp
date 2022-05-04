@@ -32,12 +32,13 @@ using namespace cvc5::context;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-  
+
 Node mkEquality(Node a, Node b)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node diff = nm->mkNode(SUB, a, b);
-  return nm->mkNode(EQUAL, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
+  return nm->mkNode(
+      EQUAL, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
 }
 
 ArithInstantiator::ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc)

@@ -185,11 +185,10 @@ int ArithMSum::isolate(
           children.push_back(m);
         }
       }
-      val =
-          children.size() > 1
-              ? nm->mkNode(ADD, children)
-              : (children.size() == 1 ? children[0]
-                                      : nm->mkConstInt(Rational(0)));
+      val = children.size() > 1
+                ? nm->mkNode(ADD, children)
+                : (children.size() == 1 ? children[0]
+                                        : nm->mkConstInt(Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())
@@ -198,7 +197,8 @@ int ArithMSum::isolate(
         }
         else
         {
-          val = nm->mkNode(MULT, val, nm->mkConstRealOrInt(Rational(1) / r.abs()));
+          val = nm->mkNode(
+              MULT, val, nm->mkConstRealOrInt(Rational(1) / r.abs()));
         }
       }
       val = r.sgn() == 1

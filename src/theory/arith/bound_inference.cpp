@@ -161,7 +161,7 @@ void BoundInference::update_lower_bound(const Node& origin,
                                         const Node& value,
                                         bool strict)
 {
-  Assert (value.isConst());
+  Assert(value.isConst());
   // lhs > or >= value because of origin
   Trace("bound-inf") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
                      << " due to " << origin << std::endl;
@@ -178,8 +178,7 @@ void BoundInference::update_lower_bound(const Node& origin,
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
       Node vt = nm->mkConstRealOrInt(lhs.getType(), value.getConst<Rational>());
-      b.lower_bound = b.upper_bound =
-          rewrite(nm->mkNode(Kind::EQUAL, lhs, vt));
+      b.lower_bound = b.upper_bound = rewrite(nm->mkNode(Kind::EQUAL, lhs, vt));
     }
     else
     {
@@ -214,8 +213,7 @@ void BoundInference::update_upper_bound(const Node& origin,
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
       Node vt = nm->mkConstRealOrInt(lhs.getType(), value.getConst<Rational>());
-      b.lower_bound = b.upper_bound =
-          rewrite(nm->mkNode(Kind::EQUAL, lhs, vt));
+      b.lower_bound = b.upper_bound = rewrite(nm->mkNode(Kind::EQUAL, lhs, vt));
     }
     else
     {
