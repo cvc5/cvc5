@@ -34,6 +34,12 @@
 
 namespace cvc5::main {
 
+enum SolveStatus : int
+{
+  STATUS_SOLVED = 0,
+  STATUS_UNSOLVED = 1,
+};
+
 bool ExecutionContext::solveContinuous(parser::Parser* parser,
                                        bool stopAtSetLogic)
 {
@@ -280,13 +286,13 @@ class PortfolioProcessPool
       job.d_outPipe.dup(STDOUT_FILENO);
       job.d_config.applyOptions(d_ctx.solver());
       // 0 = solved, 1 = not solved
-      int rc = 1;
+      SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
       if (d_ctx.solveCommands(d_commands))
       {
         Result res = d_ctx.d_executor->getResult();
         if (res.isSat() || res.isUnsat())
         {
-          rc = 0;
+          rc = SolveStatus::STATUS_SOLVED;
         }
       }
       _exit(rc);
@@ -359,7 +365,7 @@ class PortfolioProcessPool
       }
       if (WIFEXITED(wstatus))
       {
-        if (WEXITSTATUS(wstatus) == 0)
+        if (WEXITSTATUS(wstatus) == SolveStatus::STATUS_SOLVED)
         {
           Trace("portfolio") << "Successful!" << std::endl;
           job.d_errPipe.flushTo(std::cerr);
