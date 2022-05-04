@@ -294,7 +294,7 @@ class PortfolioProcessPool
     job.d_outPipe.closeIn();
 
     // Start the timeout process
-    if (d_timeout > 0)
+    if (d_timeout > 0 && job.d_config.d_timeout > 0)
     {
       job.d_timeout = fork();
       if (job.d_timeout == 0)

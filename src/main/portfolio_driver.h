@@ -70,24 +70,23 @@ struct ExecutionContext
 struct PortfolioConfig
 {
   /**
-   * Set a command line option. While no formal restriction is imposed, the
-   * are only set after parsing has already started. Thus, options that affect
-   * how the parser behaves should not be specified here.
-   */
-  PortfolioConfig& set(const std::string& option, const std::string& value)
-  {
-    d_options.emplace_back(option, value);
-    return *this;
-  }
-  /**
    * Set timeout as part of the total timeout. The given number should be at
    * most 1.
    */
-  PortfolioConfig& timeout(double timeout)
-  {
+	PortfolioConfig(double timeout = 0.0): d_timeout(timeout) {
     Assert(timeout <= 1)
         << "The given timeout should be given as part of the total timeout";
-    d_timeout = timeout;
+
+	}
+  /**
+   * Set a command line option. While no formal restriction is imposed, the
+   * are only set after parsing has already started. Thus, options that affect
+   * how the parser behaves should not be specified here.
+   * The value is optional and defaults to "true".
+   */
+  PortfolioConfig& set(const std::string& option, const std::string& value = "true")
+  {
+    d_options.emplace_back(option, value);
     return *this;
   }
 
@@ -103,7 +102,7 @@ struct PortfolioConfig
   /** List of options as pair of name and value */
   std::vector<std::pair<std::string, std::string>> d_options;
   /** Timeout as part of the total timeout */
-  double d_timeout;
+  double d_timeout = 0;
 };
 std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config);
 
@@ -113,9 +112,9 @@ std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config);
 struct PortfolioStrategy
 {
   /** Add a new configurations */
-  PortfolioConfig& add()
+  PortfolioConfig& add(double timeout = 0)
   {
-    d_strategies.emplace_back();
+    d_strategies.emplace_back(timeout);
     return d_strategies.back();
   }
 
