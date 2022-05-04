@@ -812,6 +812,7 @@ set(regress_0_tests
   regress0/nl/issue8691-msum-subtypes.smt2
   regress0/nl/issue8691-3-msum-subtypes.smt2
   regress0/nl/issue8692-idem-flatten.smt2
+  regress0/nl/issue8712-div-toreal-rew.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2

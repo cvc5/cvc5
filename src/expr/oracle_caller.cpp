@@ -15,21 +15,20 @@
 
 #include "expr/oracle_caller.h"
 
-#include <sstream>
-
-#include "options/base_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 
 namespace cvc5::internal {
 
-OracleCaller::OracleCaller(const Node& oracleInterfaceNode)
-    : d_binaryName(getBinaryNameFor(oracleInterfaceNode))
+OracleCaller::OracleCaller(const Node& n)
+    : d_oracleNode(getOracleFor(n)),
+      d_oracle(NodeManager::currentNM()->getOracleFor(d_oracleNode))
 {
+  Assert(!d_oracleNode.isNull());
 }
 
-bool OracleCaller::callOracle(const Node& fapp, Node& res, int& runResult)
+bool OracleCaller::callOracle(const Node& fapp, std::vector<Node>& res)
 {
-  std::map<Node, Node>::iterator it = d_cachedResults.find(fapp);
+  std::map<Node, std::vector<Node>>::iterator it = d_cachedResults.find(fapp);
   if (it != d_cachedResults.end())
   {
     Trace("oracle-calls") << "Using cached oracle result for " << fapp
@@ -39,26 +38,15 @@ bool OracleCaller::callOracle(const Node& fapp, Node& res, int& runResult)
     return false;
   }
   Assert(fapp.getKind() == kind::APPLY_UF);
-  Assert(getBinaryNameFor(fapp.getOperator()) == d_binaryName);
-  std::vector<std::string> sargs;
-  sargs.push_back(d_binaryName);
+  Assert(getOracleFor(fapp.getOperator()) == d_oracleNode);
 
   Trace("oracle-calls") << "Call oracle " << fapp << std::endl;
-  for (const Node& arg : fapp)
-  {
-    std::ostringstream oss;
-    oss << arg;
-    sargs.push_back(oss.str());
-  }
-
-  // Run the oracle binary for `sargs`, which indicates a list of
-  // smt2 terms as strings.
-
-  // Parse response from the binary into a Node. The response from the binary
-  // should be a string that can be parsed as a (tuple of) terms in the smt2
-  // format.
-  Node response = Node::null();
+  // get the input arguments from the application
+  std::vector<Node> args(fapp.begin(), fapp.end());
+  // run the oracle method
+  std::vector<Node> response = d_oracle.run(args);
   Trace("oracle-calls") << "response node " << response << std::endl;
+  // cache the response
   d_cachedResults[fapp] = response;
   res = response;
   return true;
@@ -79,32 +67,32 @@ bool OracleCaller::isOracleFunctionApp(Node n)
   return isOracleFunction(n);
 }
 
-std::string OracleCaller::getBinaryName() const { return d_binaryName; }
-
-std::string OracleCaller::getBinaryNameFor(const Node& n)
+Node OracleCaller::getOracleFor(const Node& n)
 {
   // oracle functions have no children
   if (n.isVar())
   {
     Assert(isOracleFunction(n));
-    return n.getAttribute(theory::OracleInterfaceAttribute());
+    Node o = n.getAttribute(theory::OracleInterfaceAttribute());
+    Assert(o.getKind() == kind::ORACLE);
+    return o;
   }
   else if (n.getKind() == kind::FORALL)
   {
     // oracle interfaces have children, and the attribute is stored in 2nd child
     for (const Node& v : n[2][0])
     {
-      if (v.getAttribute(theory::OracleInterfaceAttribute()) != "")
+      if (v.getKind() == kind::ORACLE)
       {
-        return v.getAttribute(theory::OracleInterfaceAttribute());
+        return v;
       }
     }
   }
-  Assert(false) << "Unexpected node for binary name " << n;
-  return "";
+  Assert(false) << "Unexpected node for oracle " << n;
+  return Node::null();
 }
 
-const std::map<Node, Node>& OracleCaller::getCachedResults() const
+const std::map<Node, std::vector<Node>>& OracleCaller::getCachedResults() const
 {
   return d_cachedResults;
 }
