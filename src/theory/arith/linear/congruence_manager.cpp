@@ -394,16 +394,6 @@ bool ArithCongruenceManager::propagate(TNode x){
   return true;
 }
 
-void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
-                                           NodeBuilder& nb)
-{
-  std::set<TNode>::const_iterator it = s.begin();
-  std::set<TNode>::const_iterator it_end = s.end();
-  for(; it != it_end; ++it) {
-    nb << *it;
-  }
-}
-
 TrustNode ArithCongruenceManager::explainInternal(TNode internal)
 {
   if (isProofEnabled())
