@@ -126,7 +126,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   }
   Trace("nl-ext-mv-debug") << "computed " << (isConcrete ? "M" : "M_A") << "["
                            << n << "] = " << ret << std::endl;
-  Assert (n.getType()==ret.getType());
+  Assert(n.getType() == ret.getType());
   cache[n] = ret;
   return ret;
 }

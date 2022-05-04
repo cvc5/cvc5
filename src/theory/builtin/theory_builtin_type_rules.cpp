@@ -36,7 +36,7 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
 
     if (lhsType != rhsType)
     {
-      Assert (false) << "Bad equality " << n;
+      Assert(false) << "Bad equality " << n;
       std::stringstream ss;
       ss << "Subexpressions must have the same type:" << std::endl;
       ss << "Equation: " << n << std::endl;
@@ -63,7 +63,7 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
       TypeNode currentType = (*child_it).getType();
       if (joinType != currentType)
       {
-        Assert (false) << "Bad distinct " << n;
+        Assert(false) << "Bad distinct " << n;
         throw TypeCheckingExceptionPrivate(
             n, "Not all arguments are of the same type");
       }
