@@ -19,7 +19,6 @@
 #define CVC5__EXPR__ORACLE_CALLER_H
 
 #include "expr/node.h"
-#include "expr/node_trie.h"
 #include "expr/oracle.h"
 
 namespace cvc5::internal {
@@ -43,9 +42,6 @@ class OracleCaller
    * fapp. Store in result res.
    *
    * Return true if the call was made, and false if it was already cached.
-   *
-   * If this method returns true, then runResult is set to the result returned
-   * from executing the oracle.
    */
   bool callOracle(const Node& fapp, std::vector<Node>& res);
 
