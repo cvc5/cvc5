@@ -97,6 +97,7 @@ void InstStrategyMbqi::process(Node q)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   const RepSet* rs = d_treg.getModel()->getRepSet();
+  FirstOrderModel* fm = d_treg.getModel();
 
   // allocate the skolem variables
   Subs skolems;
@@ -153,8 +154,9 @@ void InstStrategyMbqi::process(Node q)
     {
       for (const Node& r : *treps)
       {
-        Assert(r.getKind() == kind::UNINTERPRETED_SORT_VALUE);
-        convert(r, true, tmpConvertMap, freshVarType, mvToFreshVar);
+        Node rv = fm->getValue(r);
+        Assert(rv.getKind() == kind::UNINTERPRETED_SORT_VALUE);
+        convert(rv, true, tmpConvertMap, freshVarType, mvToFreshVar);
       }
     }
   }
