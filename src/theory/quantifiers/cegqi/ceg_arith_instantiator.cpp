@@ -32,6 +32,13 @@ using namespace cvc5::context;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+  
+Node mkEquality(Node a, Node b)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node diff = nm->mkNode(SUB, a, b);
+  return nm->mkNode(EQUAL, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
+}
 
 ArithInstantiator::ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc)
     : Instantiator(env, tn), d_vtc(vtc)
@@ -93,7 +100,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
       eq_rhs = nm->mkNode(MULT, lhs_coeff, eq_rhs);
     }
   }
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Node val;
   TermProperties pv_prop;
@@ -689,7 +696,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   // solve updated rewritten equality for vars[index], if coefficient is one,
   // then we are successful
   Node eq_rhs = sf.d_subs[index];
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map<Node, Node> msum;

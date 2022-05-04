@@ -454,7 +454,7 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   ++(d_statistics.d_watchedVariables);
 
   d_watchedVariables.add(s);
-
+  Assert (x.getType()==y.getType());
   Node eq = x.eqNode(y);
   d_watchedEqualities.set(s, eq);
 }

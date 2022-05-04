@@ -189,20 +189,20 @@ int ArithMSum::isolate(
           children.size() > 1
               ? nm->mkNode(ADD, children)
               : (children.size() == 1 ? children[0]
-                                      : nm->mkConstRealOrInt(vtn, Rational(0)));
+                                      : nm->mkConstInt(Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())
         {
-          veq_c = nm->mkConstReal(r.abs());
+          veq_c = nm->mkConstRealOrInt(r.abs());
         }
         else
         {
-          val = nm->mkNode(MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
+          val = nm->mkNode(MULT, val, nm->mkConstRealOrInt(Rational(1) / r.abs()));
         }
       }
       val = r.sgn() == 1
-                ? nm->mkNode(MULT, nm->mkConstRealOrInt(vtn, Rational(-1)), val)
+                ? nm->mkNode(MULT, nm->mkConstRealOrInt(Rational(-1)), val)
                 : val;
       return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
     }

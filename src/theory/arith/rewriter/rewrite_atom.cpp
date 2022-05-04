@@ -298,6 +298,7 @@ Node buildIntegerEquality(Sum&& sum)
       << "\tbuilding " << left << " = " << sum << std::endl;
 
   Node rhs = collectSum(sum);
+  Assert(left.getType().isInteger());
   Assert(rhs.getType().isInteger());
   return buildRelation(Kind::EQUAL, left, rhs);
 }
@@ -317,6 +318,8 @@ Node buildRealEquality(Sum&& sum)
   }
   Node rhs = collectSum(sum);
   rhs = ensureReal(rhs);
+  Assert(lterm.first.getType().isReal() && !lterm.first.getType().isInteger());
+  Assert(rhs.getType().isReal() && !rhs.getType().isInteger());
   return buildRelation(Kind::EQUAL, lterm.first, rhs);
 }
 

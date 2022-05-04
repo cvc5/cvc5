@@ -526,6 +526,11 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
   cvc5::Term ret = d_solver->mkTerm(cvc5::APPLY_UF, {d_rtu_op, expr});
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
+    if (expr.getSort().isInteger())
+    {
+      // ensure the equality below is between reals
+      expr = d_solver->mkTerm(TO_REAL, {expr});
+    }
     cvc5::Term eq = d_solver->mkTerm(
         cvc5::EQUAL, {expr, d_solver->mkTerm(cvc5::APPLY_UF, {d_utr_op, ret})});
     preemptCommand(new AssertCommand(eq));
