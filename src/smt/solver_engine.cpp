@@ -944,55 +944,50 @@ void SolverEngine::declarePool(const Node& p,
   qe->declarePool(p, initValue);
 }
 
-void SolverEngine::declareOracleFun(Node var, const std::string& binName)
+void SolverEngine::declareOracleFun(
+    Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn)
 {
   finishInit();
   d_state->doPendingPops();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
-  qe->declareOracleFun(var, binName);
-  if (binName != "")
+  qe->declareOracleFun(var);
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> inputs;
+  std::vector<Node> outputs;
+  TypeNode tn = var.getType();
+  Node app;
+  if (tn.isFunction())
   {
-    NodeManager* nm = d_env->getNodeManager();
-    std::vector<Node> inputs;
-    std::vector<Node> outputs;
-    TypeNode tn = var.getType();
-    Node app;
-    if (tn.isFunction())
+    const std::vector<TypeNode>& argTypes = tn.getArgTypes();
+    for (const TypeNode& t : argTypes)
     {
-      const std::vector<TypeNode>& argTypes = tn.getArgTypes();
-      for (const TypeNode& t : argTypes)
-      {
-        inputs.push_back(nm->mkBoundVar(t));
-      }
-      outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
-      std::vector<Node> appc;
-      appc.push_back(var);
-      appc.insert(appc.end(), inputs.begin(), inputs.end());
-      app = nm->mkNode(kind::APPLY_UF, appc);
+      inputs.push_back(nm->mkBoundVar(t));
     }
-    else
-    {
-      outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
-      app = var;
-    }
-    // makes equality assumption
-    Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
-    Node constraint = nm->mkConst(true);
-    defineOracleInterface(inputs, outputs, assume, constraint, binName);
+    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    std::vector<Node> appc;
+    appc.push_back(var);
+    appc.insert(appc.end(), inputs.begin(), inputs.end());
+    app = nm->mkNode(kind::APPLY_UF, appc);
   }
-}
-
-void SolverEngine::defineOracleInterface(const std::vector<Node>& inputs,
-                                         const std::vector<Node>& outputs,
-                                         Node assume,
-                                         Node constraint,
-                                         const std::string& binName)
-{
-  finishInit();
-  d_state->doPendingPops();
-  // make the quantified formula corresponding to the oracle interface
+  else
+  {
+    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    app = var;
+  }
+  // makes equality assumption
+  Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
+  // no constraints
+  Node constraint = nm->mkConst(true);
+  // make the oracle constant which carries the method implementation
+  Oracle oracle(fn);
+  Node o = NodeManager::currentNM()->mkOracle(oracle);
+  // set the attribute, which ensures we remember the method implementation for
+  // the oracle function
+  var.setAttribute(theory::OracleInterfaceAttribute(), o);
+  // define the oracle interface
   Node q = quantifiers::OracleEngine::mkOracleInterface(
-      inputs, outputs, assume, constraint, binName);
+      inputs, outputs, assume, constraint, o);
+  // assert it
   assertFormula(q);
 }
 
