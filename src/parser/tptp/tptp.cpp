@@ -355,7 +355,7 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
           if (sorts[i].isReal())
           {
             // cast all Integer arguments to Real
-            for (size_t j=0; j<nargs; j++)
+            for (size_t j = 0; j < nargs; j++)
             {
               if (j != i && sorts[j].isInteger())
               {
