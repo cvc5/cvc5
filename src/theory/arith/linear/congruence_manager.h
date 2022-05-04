@@ -193,8 +193,6 @@ class ArithCongruenceManager : protected EnvObj
   void enableSharedTerms();
   void dequeueLiterals();
 
-  void enqueueIntoNB(const std::set<TNode> all, NodeBuilder& nb);
-
   /**
    * Determine an explaination for `internal`. That is a conjunction of theory
    * literals which imply `internal`.
