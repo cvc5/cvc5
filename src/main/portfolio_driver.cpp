@@ -212,6 +212,16 @@ class PortfolioProcessPool
   {
     PENDING, RUNNING, DONE
   };
+  /**
+   * A job, consisting of the configuration, the pids of the worker and timeout
+   * process, the stderr and stdout pipes and the job state.
+   * Initially, a job is created but not started and all properties except for
+   * the configuration have their default value. Then starting a job, the state
+   * ich changed to RUNNING and the pids and pipes have their proper values. If
+   * no timeout is enforced, the timeout pid remains unchanged. After the job
+   * has finished, checkResults() eventually analyzes the jobs result and
+   * changes the state to DONE.
+   */
   struct Job
   {
     PortfolioConfig d_config;
@@ -383,11 +393,7 @@ class PortfolioProcessPool
   ExecutionContext& d_ctx;
   std::vector<std::unique_ptr<cvc5::Command>> d_commands;
   /**
-   * All jobs, consisting of the config the pid of the worker process, and
-   * the pid is the timeout process (or zero if no timeout was necessary).
-   * If the job has not been started yet, both pids are -1. If the job has
-   * finished and the result has been inspected, the pid of the timeout
-   * process is -1.
+   * All jobs.
    */
   std::vector<Job> d_jobs;
   /** The id of the next job to be started within d_jobs */
