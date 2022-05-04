@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --enum-inst
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

@@ -113,9 +113,9 @@ class InstMatchGenerator : public IMGenerator {
   /** Reset. */
   bool reset(Node eqc) override;
   /** Get the next match. */
-  int getNextMatch(Node q, InstMatch& m) override;
+  int getNextMatch(InstMatch& m) override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q) override;
+  uint64_t addInstantiations(InstMatch& m) override;
 
   /** set active add flag (true by default)
    *
@@ -290,7 +290,7 @@ class InstMatchGenerator : public IMGenerator {
    * their match operator (see TermDatabase::getMatchOperator) is the same.
    * only valid for use where !d_match_pattern.isNull().
    */
-  int getMatch(Node q, Node t, InstMatch& m);
+  int getMatch(Node t, InstMatch& m);
   /** Initialize this generator.
    *
    * q is the quantified formula associated with this generator.
@@ -313,9 +313,7 @@ class InstMatchGenerator : public IMGenerator {
   * value >0 if active add is false).  Its return value has the same semantics
   * as getNextMatch.
   */
-  int continueNextMatch(Node q,
-                        InstMatch& m,
-                        InferenceId id);
+  int continueNextMatch(InstMatch& m, InferenceId id);
   /** Get inst match generator
    *
    * Gets the InstMatchGenerator that implements the

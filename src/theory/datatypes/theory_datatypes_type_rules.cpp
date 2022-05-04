@@ -69,7 +69,8 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> instTypes;
     m.getMatches(instTypes);
     TypeNode range = t.instantiate(instTypes);
-    Trace("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return (constructor) " << range << " for " << n
+                           << std::endl;
     return range;
   }
   else
@@ -149,7 +150,8 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
     TypeNode range = selType[1];
     range = range.substitute(
         types.begin(), types.end(), matches.begin(), matches.end());
-    Trace("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return (selector) " << range << " for " << n
+                           << " from " << selType[1] << std::endl;
     return range;
   }
   else
@@ -265,7 +267,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
     {
       m.addTypesFromDatatype(childType.getDatatypeConstructorRangeType());
     }
-    else if (childType.getKind() == kind::DATATYPE_TYPE)
+    else if (childType.isDatatype())
     {
       m.addTypesFromDatatype(childType);
     }
