@@ -141,6 +141,7 @@ TEST_F(TestApiBlackUncovered, Statistics)
 
 TEST_F(TestApiBlackUncovered, Datatypes)
 {
+  // default constructors
   DatatypeConstructorDecl dtcd;
   DatatypeSelector dts;
   DatatypeConstructor dc;
@@ -163,6 +164,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
     it->getName();
     ++it;
     it == d.end();
+    it++;
   }
   {
     DatatypeConstructor::const_iterator it;
@@ -181,8 +183,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
     ss << d;
     ss << dtcd;
     ss << dc;
-    ss << dc.getSelector("head");
-    //ss << cvc5::DatatypeSelector();
+    ss << d.getSelector("head");
   }
 }
 
