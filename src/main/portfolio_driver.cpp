@@ -430,7 +430,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
 
   return pool.run(strategy);
 #else
-  Warning("Can't run portfolio without <sys/wait.h>.");
+  Warning() << "Can't run portfolio without <sys/wait.h>.";
   return ctx.solveContinuous(d_parser, false);
 #endif
 }
