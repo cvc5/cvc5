@@ -23,6 +23,24 @@ class TestApiBlackUncovered : public TestApi
 {
 };
 
+TEST_F(TestApiBlackUncovered, comparison_operators)
+{
+  cvc5::Result res;
+  res != res;
+  cvc5::Sort sort;
+  sort != sort;
+  sort <= sort;
+  sort >= sort;
+  sort > sort;
+  cvc5::Op op;
+  op != op;
+  cvc5::Term term;
+  term != term;
+  term <= term;
+  term >= term;
+  term > term;
+}
+
 TEST_F(TestApiBlackUncovered, exception_getmessage)
 {
   d_solver.setOption("produce-models", "true");
@@ -38,6 +56,23 @@ TEST_F(TestApiBlackUncovered, exception_getmessage)
   {
     ASSERT_NO_THROW(e.getMessage());
   }
+}
+
+TEST_F(TestApiBlackUncovered, term_native_types)
+{
+  Term t = d_solver.mkInteger(0);
+  t.isInt32Value();
+  t.getInt32Value();
+  t.isInt64Value();
+  t.getInt64Value();
+  t.isUInt32Value();
+  t.getUInt32Value();
+  t.isUInt64Value();
+  t.getUInt64Value();
+  t.isReal32Value();
+  t.getReal32Value();
+  t.isReal64Value();
+  t.getReal64Value();
 }
 
 TEST_F(TestApiBlackUncovered, streaming_operators)
