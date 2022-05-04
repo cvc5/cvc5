@@ -448,15 +448,65 @@ std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)
 PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
 {
   PortfolioStrategy s;
-  if (logic == "QF_NRA")
+  if (logic == "QF_LRA")
   {
-    s.add().set("decision", "justification").timeout(0.5);
+    s.add(0.2)
+        .set("miplib-trick")
+        .set("miplib-trick-subs", "4")
+        .set("use-approx")
+        .set("lemmas-on-replay-failure")
+        .set("replay-early-close-depth", "4")
+        .set("replay-lemma-reject-cut", "128")
+        .set("replay-reject-cut", "512")
+        .set("unconstrained-simp")
+        .set("use-soi");
     s.add()
+        .set("restrict-pivots", "false")
+        .set("use-soi")
+        .set("new-prop")
+        .set("unconstrained-simp");
+  }
+  else if (logic == "QF_LIA")
+  {
+    s.add()
+        .set("miplib-trick")
+        .set("miplib-trick-subs", "4")
+        .set("use-approx")
+        .set("lemmas-on-replay-failure")
+        .set("replay-early-close-depth", "4")
+        .set("replay-lemma-reject-cut", "128")
+        .set("replay-reject-cut", "512")
+        .set("unconstrained-simp")
+        .set("use-soi")
+        .set("pb-rewrites")
+        .set("ite-simp")
+        .set("simp-ite-compress");
+  }
+  else if (logic == "QF_NIA")
+  {
+    s.add(0.35).set("nl-ext-tplanes").set("decision", "justification");
+    s.add(0.05).set("nl-ext-tplanes").set("decision", "internal");
+    s.add(0.05).set("nl-ext-tplanes").set("decision", "justification-old");
+    s.add(0.05).set("nl-ext-tplanes", "false").set("decision", "internal");
+    s.add(0.05)
+        .set("arith-brab", "false")
+        .set("nl-ext-tplanes")
+        .set("decision", "internal");
+    s.add(0.25).set("solve-int-as-bv", "2").set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "4").set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "8").set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "16").set("bitblast", "eager");
+    s.add(0.5).set("solve-int-as-bv", "32").set("bitblast", "eager");
+    s.add().set("nl-ext-tplanes").set("decision", "internal");
+  }
+  else if (logic == "QF_NRA")
+  {
+    s.add(0.5).set("decision", "justification");
+    s.add(0.25)
         .set("decision", "internal")
         .set("nl-cov", "false")
         .set("nl-ext", "full")
-        .set("nl-ext-tplanes", "true")
-        .timeout(0.25);
+        .set("nl-ext-tplanes");
     s.add().set("decision", "internal").set("nl-ext", "none");
   }
   return s;
