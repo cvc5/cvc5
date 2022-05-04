@@ -325,7 +325,7 @@ class PortfolioProcessPool
    */
   bool checkResults(pid_t child = -1, int status = 0)
   {
-    // check d_jobs for items there worker has terminated and timeout != -1
+    // check d_jobs for items where worker has terminated and timeout != -1
     for (auto& job : d_jobs)
     {
       // has not been started yet
