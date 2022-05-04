@@ -72,6 +72,16 @@ bool EqualitySolver::preNotifyFact(
 TrustNode EqualitySolver::explain(TNode lit)
 {
   Trace("arith-eq-solver-debug") << "explain " << lit << "?" << std::endl;
+  if (d_acm != nullptr)
+  {
+    // if we are using the congruence manager, consult whether it can explain
+    if (d_acm->canExplain(lit))
+    {
+      return d_acm->explain(lit);
+    }
+    // otherwise, don't explain
+    return TrustNode::null();
+  }
   // check if we propagated it?
   if (d_propLits.find(lit) == d_propLits.end())
   {

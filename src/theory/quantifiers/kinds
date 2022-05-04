@@ -17,6 +17,8 @@ operator EXISTS 2:3 "existentially quantified formula; first parameter is an BOU
 
 variable INST_CONSTANT "instantiation constant"
 
+variable ORACLE "oracle"
+
 sort BOUND_VAR_LIST_TYPE \
     Cardinality::INTEGERS \
     not-well-founded \

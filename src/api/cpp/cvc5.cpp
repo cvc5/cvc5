@@ -1069,17 +1069,6 @@ Sort::~Sort()
   }
 }
 
-std::set<internal::TypeNode> Sort::sortSetToTypeNodes(
-    const std::set<Sort>& sorts)
-{
-  std::set<internal::TypeNode> types;
-  for (const Sort& s : sorts)
-  {
-    types.insert(s.getTypeNode());
-  }
-  return types;
-}
-
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
     const std::vector<Sort>& sorts)
 {
@@ -3477,16 +3466,6 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
     : d_solver(slv), d_dtype(new internal::DType(name, isCoDatatype))
-{
-}
-
-DatatypeDecl::DatatypeDecl(const Solver* slv,
-                           const std::string& name,
-                           const Sort& param,
-                           bool isCoDatatype)
-    : d_solver(slv),
-      d_dtype(new internal::DType(
-          name, std::vector<internal::TypeNode>{*param.d_type}, isCoDatatype))
 {
 }
 
