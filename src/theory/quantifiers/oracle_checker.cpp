@@ -50,9 +50,23 @@ Node OracleChecker::evaluateApp(Node app)
   OracleCaller& caller = d_callers.at(f);
 
   // get oracle result
-  Node ret;
-  int runResult;
-  caller.callOracle(app, ret, runResult);
+  std::vector<Node> retv;
+  bool ranOracle = caller.callOracle(app, retv);
+  if (retv.size() != 1)
+  {
+    Assert(false) << "Failed to evaluate " << app
+                  << " to a single return value, got: " << retv << std::endl;
+    return app;
+  }
+  Node ret = retv[0];
+  if (ranOracle)
+  {
+    // prints the result of the oracle, if it was computed in the call above.
+    // this prints the original application, its result, and the exit code
+    // of the binary.
+    d_env.output(options::OutputTag::ORACLES)
+        << "(oracle-call " << app << " " << ret << ")" << std::endl;
+  }
   Assert(!ret.isNull());
   return ret;
 }
@@ -111,7 +125,8 @@ bool OracleChecker::hasOracleCalls(Node f) const
   std::map<Node, OracleCaller>::const_iterator it = d_callers.find(f);
   return it != d_callers.end();
 }
-const std::map<Node, Node>& OracleChecker::getOracleCalls(Node f) const
+const std::map<Node, std::vector<Node>>& OracleChecker::getOracleCalls(
+    Node f) const
 {
   Assert(hasOracleCalls(f));
   std::map<Node, OracleCaller>::const_iterator it = d_callers.find(f);
