@@ -73,18 +73,19 @@ struct PortfolioConfig
    * Set timeout as part of the total timeout. The given number should be at
    * most 1.
    */
-	PortfolioConfig(double timeout = 0.0): d_timeout(timeout) {
+  PortfolioConfig(double timeout = 0.0) : d_timeout(timeout)
+  {
     Assert(timeout <= 1)
         << "The given timeout should be given as part of the total timeout";
-
-	}
+  }
   /**
    * Set a command line option. While no formal restriction is imposed, the
    * are only set after parsing has already started. Thus, options that affect
    * how the parser behaves should not be specified here.
    * The value is optional and defaults to "true".
    */
-  PortfolioConfig& set(const std::string& option, const std::string& value = "true")
+  PortfolioConfig& set(const std::string& option,
+                       const std::string& value = "true")
   {
     d_options.emplace_back(option, value);
     return *this;
