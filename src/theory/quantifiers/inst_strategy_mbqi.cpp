@@ -161,7 +161,8 @@ void InstStrategyMbqi::process(Node q)
     Node mvt = rs->getTermForRepresentative(ov);
     if (mvt.isNull())
     {
-      Trace("mbqi") << "warning: failed to get term from value " << ov << ", use arbitrary term in query" << std::endl;
+      Trace("mbqi") << "warning: failed to get term from value " << ov
+                    << ", use arbitrary term in query" << std::endl;
       mvt = nm->mkGroundTerm(ov.getType());
     }
     Assert(v.getType() == mvt.getType());
@@ -228,7 +229,8 @@ void InstStrategyMbqi::process(Node q)
     Trace("mbqi") << "...model from subsolver is: " << std::endl;
     for (size_t i = 0, nterms = skolems.size(); i < nterms; i++)
     {
-      Trace("mbqi") << "  " << skolems.d_subs[i] << " -> " << terms[i] << std::endl;
+      Trace("mbqi") << "  " << skolems.d_subs[i] << " -> " << terms[i]
+                    << std::endl;
     }
   }
   // try to convert those terms to an instantiation
@@ -239,8 +241,9 @@ void InstStrategyMbqi::process(Node q)
     Assert(!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
-      Trace("mbqi") << "warning: failed to process model value " << vc << ", from "
-                    << v  << ", use arbitrary term for instantiation" << std::endl;
+      Trace("mbqi") << "warning: failed to process model value " << vc
+                    << ", from " << v
+                    << ", use arbitrary term for instantiation" << std::endl;
       vc = nm->mkGroundTerm(v.getType());
     }
     v = vc;
@@ -335,7 +338,7 @@ Node InstStrategyMbqi::convert(
             Node mval = fm->getValue(cur);
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
-            if (cur==mval)
+            if (cur == mval)
             {
               // failed to evaluate in model, keep itself
               cmap[cur] = cur;
