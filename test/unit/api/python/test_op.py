@@ -27,6 +27,9 @@ def solver():
     return cvc5.Solver()
 
 
+def test_hash(solver):
+    hash(solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1))
+
 def test_get_kind(solver):
     x = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
     x.getKind()
@@ -35,8 +38,9 @@ def test_get_kind(solver):
 def test_is_null(solver):
     x = Op(solver)
     assert x.isNull()
-    x = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
-    assert not x.isNull()
+    y = solver.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
+    assert not y.isNull()
+    assert x != y
 
 
 def test_op_from_kind(solver):
@@ -101,6 +105,9 @@ def test_get_num_indices(solver):
     tuple_project_op = solver.mkOp(Kind.TUPLE_PROJECT, *indices)
     assert len(indices) == tuple_project_op.getNumIndices()
 
+    table_project_op = solver.mkOp(Kind.TABLE_PROJECT, *indices)
+    assert len(indices) == table_project_op.getNumIndices()
+
 
 def test_subscript_operator(solver):
     # Operators with 0 indices
@@ -120,6 +127,7 @@ def test_subscript_operator(solver):
     iand = solver.mkOp(Kind.IAND, 11)
     floatingpoint_to_ubv = solver.mkOp(Kind.FLOATINGPOINT_TO_UBV, 12)
     floatingopint_to_sbv = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 13)
+    regexp_repeat = solver.mkOp(Kind.REGEXP_REPEAT, 14)
 
     assert 4 == divisible[0].getIntegerValue()
     assert 5 == bitvector_repeat[0].getIntegerValue()
@@ -131,6 +139,7 @@ def test_subscript_operator(solver):
     assert 11 == iand[0].getIntegerValue()
     assert 12 == floatingpoint_to_ubv[0].getIntegerValue()
     assert 13 == floatingopint_to_sbv[0].getIntegerValue()
+    assert 14 == regexp_repeat[0].getIntegerValue()
 
     # Operators with 2 indices
     bitvector_extract = solver.mkOp(Kind.BITVECTOR_EXTRACT, 1, 0)

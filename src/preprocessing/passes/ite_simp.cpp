@@ -203,24 +203,6 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
     {
       result = d_iteUtilities.compress(assertionsToPreprocess);
     }
-
-    if (result)
-    {
-      // if false, don't bother to reclaim memory here.
-      NodeManager* nm = NodeManager::currentNM();
-      if (nm->poolSize() >= zombieHuntThreshold)
-      {
-        verbose(2) << "..ite simplifier did quite a bit of work.. "
-               << nm->poolSize() << endl;
-        verbose(2) << "....node manager contains " << nm->poolSize()
-               << " nodes before cleanup" << endl;
-        d_iteUtilities.clear();
-        d_env.getRewriter()->clearCaches();
-        nm->reclaimZombiesUntil(zombieHuntThreshold);
-        verbose(2) << "....node manager contains " << nm->poolSize()
-               << " nodes after cleanup" << endl;
-      }
-    }
   }
 
   // Do theory specific preprocessing passes

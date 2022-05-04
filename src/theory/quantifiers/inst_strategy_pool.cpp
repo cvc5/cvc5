@@ -127,13 +127,13 @@ std::string InstStrategyPool::identify() const
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
+  Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = true;
   ttec.d_increaseSum = options().quantifiers.enumInstSum;
-  TermPools* tp = d_treg.getTermPools();
+  ttec.d_tr = &d_treg;
   std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
-      mkTermTupleEnumeratorPool(q, &ttec, tp, p));
-  Instantiate* ie = d_qim.getInstantiate();
+      mkTermTupleEnumeratorPool(q, &ttec, p));
   std::vector<Node> terms;
   std::vector<bool> failMask;
   // we instantiate exhaustively

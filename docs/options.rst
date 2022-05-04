@@ -19,15 +19,29 @@ Also, options can be set and inspected using the respective commands of the inpu
   :py:func:`getOptionNames() <cvc5.pythonic.Solver.getOptionNames()>`,
   :py:func:`getOptionInfo() <cvc5.pythonic.Solver.getOptionInfo()>`
 
-Generally, all options are identified by a name, and they can additionally have one or more aliases (that can be used instead of their name anywhere) and a short name (a single letter).
-Internally, options are strongly typed and must be either Boolean, (signed or unsigned) integers, floating-point numbers, strings, or an enumeration type. Values for options with a numeric type may be restricted to an interval. A few options have custom types (for example :ref:`err <lbl-option-err>`) that require special treatment internally.
+Generally, all options are identified by a name ``<name>``, and (optionally)
+by a short name ``<short>`` (a single letter).
+Additionally, they can have one or more aliases, which can be used instead of
+``<name>``.
+
+**Internally**, options are strongly typed and must be either Boolean, (signed
+or unsigned) integers, floating-point numbers, strings, or an enumeration type.
+Values for options with a numeric type may be restricted to an interval.
+
+Some options have **custom types** (e.g., :ref:`err <lbl-option-err>`) which
+require special treatment internally.
 The usage of such options is documented as part of the documentation for the corresponding options.
 
-On the command line, a Boolean option can be set to true by ``--<name>`` or ``-<short>``.
-Most Boolean options can also be set to false by ``--no-<name>``.
-In the different APIs, this is done via ``setOption("<name>", "true" | "false")``.
-For all other types, values can be given on the command line using ``--<name>=<value>`` or ``--<name> <value>`` and ``setOption("<name>", "<value>")`` in the different APIs.
-The given value must be convertible to the appropriate type, in particular for numeric and enumeration types.
+On the command line, a **Boolean** option can be set to ``true`` via
+``--<name>`` or ``-<short>``.
+Most Boolean options can also be set to ``false`` via ``--no-<name>``.
+In cvc5's APIs, this is done via ``setOption("<name>", "true" | "false")``.
+
+For **all other types**, values are given on the command line using
+``--<name>=<value>`` or ``--<name> <value>``,
+and ``setOption("<name>", "<value>")`` in the APIs.
+The given value must be convertible to the appropriate type, in particular for
+numeric and enumeration types.
 
 Below is an exhaustive list of options supported by cvc5.
 

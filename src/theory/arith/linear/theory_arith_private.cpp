@@ -134,7 +134,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this)),
-      d_cmEnabled(context(), options().arith.arithCongMan),
+      d_cmEnabled(context(), !options().arith.arithEqSolver),
 
       d_dualSimplex(
           env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -176,14 +176,6 @@ TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_approxStats != NULL) { delete d_approxStats; }
 }
 
-bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
-{
-  if (!d_cmEnabled)
-  {
-    return false;
-  }
-  return d_congruenceManager.needsEqualityEngine(esi);
-}
 void TheoryArithPrivate::finishInit()
 {
   if (d_cmEnabled)
@@ -1407,10 +1399,9 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
-      Pf pfSum = d_pnm->mkNode(
-          PfRule::MACRO_ARITH_SCALE_SUM_UB,
-          {pfGt, pfLt},
-          {nm->mkConstRealOrInt(type, -1), nm->mkConstRealOrInt(type, 1)});
+      Pf pfSum = d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                               {pfGt, pfLt},
+                               {nm->mkConstReal(-1), nm->mkConstReal(1)});
       Pf pfBot = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
       std::vector<Node> assumptions = {leq.getNode().negate(),
@@ -2050,7 +2041,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     if(!vars.hasNode(x)){ return Node::null(); }
     Node xNode = vars.asNode(x);
     const Rational& q = sum[x];
-    Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Node mult = nm->mkNode(kind::MULT, nm->mkConstReal(q), xNode);
     Trace("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
     children.push_back(mult);
   }
@@ -3595,24 +3586,23 @@ TrustNode TheoryArithPrivate::explain(TNode n)
 
   ConstraintP c = d_constraintDatabase.lookup(n);
   TrustNode exp;
-  if(c != NullConstraint){
+  // explanations that involve the congruence manager are handled in the
+  // main theory class.
+  Assert(!d_congruenceManager.canExplain(n));
+  if (c != NullConstraint)
+  {
     Assert(!c->isAssumption());
     exp = c->externalExplainForPropagation(n);
     Trace("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-  }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
+  }
+  else if (d_assertionsThatDoNotMatchTheirLiterals.find(n)
+           != d_assertionsThatDoNotMatchTheirLiterals.end())
+  {
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
       exp = c->externalExplainForPropagation(n);
       Trace("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-    }else{
-      Trace("arith::explain") << "this is a strange mismatch" << n << endl;
-      Assert(d_congruenceManager.canExplain(n));
-      exp = d_congruenceManager.explain(n);
     }
-  }else{
-    Assert(d_congruenceManager.canExplain(n));
-    Trace("arith::explain") << "dm explanation" << n << endl;
-    exp = d_congruenceManager.explain(n);
   }
   return exp;
 }
@@ -3824,6 +3814,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   Theory::shared_terms_iterator shared_end = d_containing.shared_terms_end();
   for(; shared_iter != shared_end; ++shared_iter){
     Node sharedCurr = *shared_iter;
+    sharedCurr =
+        sharedCurr.getKind() == kind::TO_REAL ? sharedCurr[0] : sharedCurr;
 
     // ModelException is fatal as this point. Don't catch!
     // DeltaRationalException is fatal as this point. Don't catch!
@@ -3896,8 +3888,20 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
 
-        Node qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
-        Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
+        Node qNode;
+        if (!qmodel.isIntegral())
+        {
+          // Note that the linear solver may generate non-integer values for
+          // integer variables in rare cases. We construct real in this case;
+          // this will be corrected in TheoryArith::sanityCheckIntegerModel.
+          qNode = nm->mkConstReal(qmodel);
+        }
+        else
+        {
+          qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
+        }
+        Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", "
+                                         << qNode << ", true)" << endl;
         // Add to the map
         arithModel[term] = qNode;
       }else{
@@ -4461,9 +4465,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::transform(coeffs->begin(),
                        coeffs->end(),
                        std::back_inserter(farkasCoefficients),
-                       [nm, type](const Rational& r) {
-                         return nm->mkConstRealOrInt(type, r);
-                       });
+                       [nm](const Rational& r) { return nm->mkConstReal(r); });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(
@@ -4786,7 +4788,7 @@ bool TheoryArithPrivate::decomposeTerm(Node t,
   Polynomial poly = Polynomial::parsePolynomial(t);
   if(poly.isConstant()){
     c = poly.getHead().getConstant().getValue();
-    p = mkRationalNode(Rational(0));
+    p = NodeManager::currentNM()->mkConstReal(Rational(0));
     m = Rational(1);
     return true;
   }else if(poly.containsConstant()){
@@ -4834,22 +4836,6 @@ void TheoryArithPrivate::setToMin(int sgn, std::pair<Node, DeltaRational>& min, 
     }
   }
 }
-
-// std::pair<bool, Node> TheoryArithPrivate::entailmentUpperCheck(const Rational& lm, Node lp, const Rational& rm, Node rp, const DeltaRational& sep, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
-
-//   Rational negRM = -rm;
-//   Node diff = NodeManager::currentNM()->mkNode(MULT, mkRationalConstan(lm), lp) + (negRM * rp);
-
-//   Rational diffm;
-//   Node diffp;
-//   decompose(diff, diffm, diffNode);
-
-
-//   std::pair<Node, DeltaRational> bestUbLeft, bestLbRight, bestUbDiff, tmp;
-//   bestUbLeft = bestLbRight = bestUbDiff = make_pair(Node::Null(), DeltaRational());
-
-//   return make_pair(false, Node::null());
-// }
 
 /**
  * Decomposes a literal into the form:
@@ -4992,6 +4978,11 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
 ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
 {
   return &d_checker;
+}
+
+ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()
+{
+  return d_cmEnabled.get() ? &d_congruenceManager : nullptr;
 }
 
 }  // namespace arith

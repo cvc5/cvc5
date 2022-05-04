@@ -50,8 +50,6 @@ enum class SkolemFunId
   SELECTOR_WRONG,
   /** a shared selector */
   SHARED_SELECTOR,
-  /** an application of seq.nth that is out of bounds */
-  SEQ_NTH_OOB,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
@@ -342,22 +340,19 @@ class SkolemManager
                    int flags = SKOLEM_DEFAULT,
                    ProofGenerator* pg = nullptr);
   /**
-   * Same as above, but for special case of (witness ((x T)) (= x t))
-   * where T is the type of t. This skolem is unique for each t, which we
+   * Make purification skolem. This skolem is unique for each t, which we
    * implement via an attribute on t. This attribute is used to ensure to
    * associate a unique skolem for each t.
    *
-   * Notice that a purification skolem is trivial to justify, and hence it
-   * does not require a proof generator.
+   * Notice that a purification skolem is trivial to justify (via SKOLEM_INTRO),
+   * and hence it does not require a proof generator.
    *
-   * Notice that in very rare cases, two different terms may have the
-   * same purification skolem. For example, let k be the skolem introduced to
-   * eliminate (ite A B C). Then, the pair of terms:
+   * Notice that we do not convert t to original form in this call. Thus,
+   * in very rare cases, two Skolems may be introduced that have the same
+   * original form. For example, let k be the skolem introduced to eliminate
+   * (ite A B C). Then, asking for the purify skolem for:
    *  (ite (ite A B C) D E) and (ite k D E)
-   * have the same purification skolem. In the implementation, this is a result
-   * of the fact that the above terms have the same original form. It is sound
-   * to use the same skolem to purify these two terms, since they are
-   * definitionally equivalent.
+   * will return two different Skolems.
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
@@ -454,6 +449,17 @@ class SkolemManager
    * @return n in original form.
    */
   static Node getOriginalForm(Node n);
+  /**
+   * Convert to unpurified form, which returns the term that k purifies. This
+   * is literally the term that was passed as an argument to mkPurify on the
+   * call that created k. In contrast to getOriginalForm, this is not recursive
+   * w.r.t. skolems, so that the term purified by k may itself contain
+   * purification skolems that are not expanded.
+   *
+   * @param k The skolem to convert to unpurified form
+   * @return the unpurified form of k.
+   */
+  static Node getUnpurifiedForm(Node k);
 
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */

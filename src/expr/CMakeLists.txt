@@ -60,6 +60,7 @@ libcvc5_add_sources(
   node_traversal.h
   node_value.cpp
   node_value.h
+  oracle.h
   oracle_caller.cpp
   oracle_caller.h
   sequence.cpp
@@ -86,8 +87,6 @@ libcvc5_add_sources(
   type_matcher.h
   type_node.cpp
   type_node.h
-  datatype_index.h
-  datatype_index.cpp
   dtype.h
   dtype.cpp
   dtype_cons.h

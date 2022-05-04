@@ -64,6 +64,8 @@ class ZeroLevelLearner : protected EnvObj
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   static void getAtoms(TNode a,
@@ -77,6 +79,8 @@ class ZeroLevelLearner : protected EnvObj
   bool isLearnable(modes::LearnedLitType ltype) const;
   /** get solved */
   bool getSolved(const Node& lit, Subs& subs);
+  /** has learned literal */
+  bool hasLearnedLiteralForRestart() const;
 
   /** The theory engine we are using */
   TheoryEngine* d_theoryEngine;
@@ -101,6 +105,8 @@ class ZeroLevelLearner : protected EnvObj
   NodeSet d_ppnSyms;
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
+  /** The threshold */
+  size_t d_deepRestartThreshold;
   /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
 }; /* class ZeroLevelLearner */

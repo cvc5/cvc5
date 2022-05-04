@@ -50,7 +50,13 @@ Trigger::Trigger(Env& env,
                  TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : EnvObj(env), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
+    : EnvObj(env),
+      d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
+      d_treg(tr),
+      d_quant(q),
+      d_instMatch(env, qs, tr, q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
@@ -159,7 +165,7 @@ uint64_t Trigger::addInstantiations()
       }
     }
   }
-  uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
+  uint64_t addedLemmas = d_mg->addInstantiations(d_instMatch);
   if (TraceIsOn("inst-trigger"))
   {
     if (addedLemmas > 0)
@@ -174,11 +180,6 @@ uint64_t Trigger::addInstantiations()
 bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
   return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
-}
-
-bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
-{
-  return sendInstantiation(m.d_vals, id);
 }
 
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }

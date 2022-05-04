@@ -94,7 +94,7 @@ BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v)
 }
 
 void QuantifiersBoundInference::getBoundVarIndices(
-    Node q, std::vector<unsigned>& indices) const
+    Node q, std::vector<size_t>& indices) const
 {
   Assert(indices.empty());
   // we take the bounded variables first

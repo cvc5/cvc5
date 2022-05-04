@@ -208,9 +208,8 @@ void OracleEngine::checkOwnership(Node q)
   if (Configuration::isAssertionBuild())
   {
     std::vector<Node> inputs, outputs;
-    Node assume, constraint;
-    std::string binName;
-    getOracleInterface(q, inputs, outputs, assume, constraint, binName);
+    Node assume, constraint, oracle;
+    getOracleInterface(q, inputs, outputs, assume, constraint, oracle);
     Assert(constraint.isConst() && constraint.getConst<bool>())
         << "Unhandled oracle constraint " << q;
     CVC5_UNUSED bool isOracleFun = false;
@@ -240,12 +239,7 @@ std::string OracleEngine::identify() const
   return std::string("OracleEngine");
 }
 
-void OracleEngine::declareOracleFun(Node f, const std::string& binName)
-{
-  OracleInterfaceAttribute oia;
-  f.setAttribute(oia, binName);
-  d_oracleFuns.push_back(f);
-}
+void OracleEngine::declareOracleFun(Node f) { d_oracleFuns.push_back(f); }
 
 std::vector<Node> OracleEngine::getOracleFuns() const
 {
@@ -261,16 +255,14 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
                                      const std::vector<Node>& outputs,
                                      Node assume,
                                      Node constraint,
-                                     const std::string& binName)
+                                     Node oracleNode)
 {
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
+  Assert(oracleNode.getKind() == ORACLE);
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  OracleInterfaceAttribute oia;
-  Node oiVar = sm->mkDummySkolem("oracle-interface", nm->booleanType());
-  oiVar.setAttribute(oia, binName);
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oiVar));
+  Node ipl =
+      nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;
   OracleInputVarAttribute oiva;
   for (Node v : inputs)
@@ -294,7 +286,7 @@ bool OracleEngine::getOracleInterface(Node q,
                                       std::vector<Node>& outputs,
                                       Node& assume,
                                       Node& constraint,
-                                      std::string& binName) const
+                                      Node& oracleNode) const
 {
   QuantAttributes& qa = d_qreg.getQuantAttributes();
   if (qa.isOracleInterface(q))
@@ -318,9 +310,8 @@ bool OracleEngine::getOracleInterface(Node q,
     constraint = q[1][0];
     Assert(q.getNumChildren() == 3);
     Assert(q[2].getNumChildren() == 1);
-    OracleInterfaceAttribute oia;
-    Assert(q[2][0].hasAttribute(oia));
-    binName = q[2][0].getAttribute(oia);
+    Assert(q[2][0].getKind() == ORACLE);
+    oracleNode = q[2][0];
     return true;
   }
   return false;

@@ -432,11 +432,6 @@ private:
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
-  /**
-   * Returns true if we need an equality engine, see
-   * Theory::needsEqualityEngine.
-   */
-  bool needsEqualityEngine(EeSetupInfo& esi);
   /** finish initialize */
   void finishInit();
   //--------------------------------- end initialization
@@ -507,6 +502,8 @@ private:
 
   /** get the proof checker of this theory */
   ArithProofRuleChecker* getProofChecker();
+  /** get the congruence manager, if we are using one */
+  ArithCongruenceManager* getCongruenceManager();
 
  private:
   /** The constant zero. */

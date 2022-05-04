@@ -526,8 +526,8 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     Trace("sygus-grammar-normalize-build") << "\n";
   }
   Assert(d_dt_all.size() == d_unres_t_all.size());
-  std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
-      d_dt_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types =
+      NodeManager::currentNM()->mkMutualDatatypeTypes(d_dt_all);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

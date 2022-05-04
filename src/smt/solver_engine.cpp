@@ -58,6 +58,7 @@
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
+#include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -762,7 +763,19 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   Assert(d_state->isFullyReady());
 
   // check the satisfiability with the solver object
-  Result r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions);
+  Assertions& as = *d_asserts.get();
+  Result r = d_smtSolver->checkSatisfiability(as, assumptions);
+
+  // If the result is unknown, we may optionally do a "deep restart" where
+  // the members of the SMT solver are reconstructed and given the
+  // preprocessed input formulas (plus additional learned formulas). Notice
+  // that assumptions are pushed to the preprocessed input in the above call, so
+  // any additional satisfiability checks use an empty set of assumptions.
+  while (r.getStatus() == Result::UNKNOWN && deepRestart())
+  {
+    Trace("smt") << "SolverEngine::checkSat after deep restart" << std::endl;
+    r = d_smtSolver->checkSatisfiability(as, {});
+  }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;
@@ -929,6 +942,53 @@ void SolverEngine::declarePool(const Node& p,
   finishInit();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
   qe->declarePool(p, initValue);
+}
+
+void SolverEngine::declareOracleFun(
+    Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn)
+{
+  finishInit();
+  d_state->doPendingPops();
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
+  qe->declareOracleFun(var);
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> inputs;
+  std::vector<Node> outputs;
+  TypeNode tn = var.getType();
+  Node app;
+  if (tn.isFunction())
+  {
+    const std::vector<TypeNode>& argTypes = tn.getArgTypes();
+    for (const TypeNode& t : argTypes)
+    {
+      inputs.push_back(nm->mkBoundVar(t));
+    }
+    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    std::vector<Node> appc;
+    appc.push_back(var);
+    appc.insert(appc.end(), inputs.begin(), inputs.end());
+    app = nm->mkNode(kind::APPLY_UF, appc);
+  }
+  else
+  {
+    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    app = var;
+  }
+  // makes equality assumption
+  Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
+  // no constraints
+  Node constraint = nm->mkConst(true);
+  // make the oracle constant which carries the method implementation
+  Oracle oracle(fn);
+  Node o = NodeManager::currentNM()->mkOracle(oracle);
+  // set the attribute, which ensures we remember the method implementation for
+  // the oracle function
+  var.setAttribute(theory::OracleInterfaceAttribute(), o);
+  // define the oracle interface
+  Node q = quantifiers::OracleEngine::mkOracleInterface(
+      inputs, outputs, assume, constraint, o);
+  // assert it
+  assertFormula(q);
 }
 
 Node SolverEngine::simplify(const Node& ex)
@@ -1802,6 +1862,39 @@ void SolverEngine::resetAssertions()
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();
+}
+
+bool SolverEngine::deepRestart()
+{
+  SolverEngineScope smts(this);
+  if (options().smt.deepRestartMode == options::DeepRestartMode::NONE)
+  {
+    // deep restarts not enabled
+    return false;
+  }
+  Trace("smt") << "SMT deepRestart()" << endl;
+
+  Assert(d_state->isFullyInited());
+
+  // get the zero-level learned literals now, before resetting the context
+  std::vector<Node> zll =
+      getPropEngine()->getLearnedZeroLevelLiteralsForRestart();
+
+  if (zll.empty())
+  {
+    // not worthwhile to restart if we didn't learn anything
+    Trace("deep-restart") << "No learned literals" << std::endl;
+    return false;
+  }
+
+  d_asserts->clearCurrent();
+  d_state->notifyResetAssertions();
+  // deep restart the SMT solver, which reconstructs the theory engine and
+  // prop engine.
+  d_smtSolver->deepRestart(*d_asserts.get(), zll);
+  // push the state to maintain global context around everything
+  d_state->setup();
+  return true;
 }
 
 void SolverEngine::interrupt()
