@@ -4962,6 +4962,12 @@ class CVC5_EXPORT Solver
   Statistics getStatistics() const;
 
   /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
+
+  /**
    * Determione the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
    * Raises an exception when an invalid tag is given.
@@ -4982,12 +4988,6 @@ class CVC5_EXPORT Solver
   internal::NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
-
-  /**
-   * Print the statistics to the given file descriptor, suitable for usage in
-   * signal handlers.
-   */
-  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
