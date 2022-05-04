@@ -103,8 +103,7 @@ void segv_handler(int sig, siginfo_t* info, void* c)
   uintptr_t extent = reinterpret_cast<uintptr_t>(stackBase) - stackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
 #ifdef CVC5_DEBUG
-  safe_print(STDERR_FILENO, getpid());
-  safe_print(STDERR_FILENO, " cvc5 suffered a segfault in DEBUG mode.\n");
+  safe_print(STDERR_FILENO, "cvc5 suffered a segfault in DEBUG mode.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
   safe_print(STDERR_FILENO, "\n");
