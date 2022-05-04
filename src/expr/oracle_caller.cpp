@@ -88,7 +88,7 @@ Node OracleCaller::getOracleFor(const Node& n)
       }
     }
   }
-  Assert(false) << "Unexpected node for binary name " << n;
+  Assert(false) << "Unexpected node for oracle " << n;
   return Node::null();
 }
 
