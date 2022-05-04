@@ -464,7 +464,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Add an oracle function to the state, also adds an oracle interface
-   * defining it, when binName is not "".
+   * defining it.
    *
    * @param var The oracle function symbol
    * @param fn The method for the oracle
