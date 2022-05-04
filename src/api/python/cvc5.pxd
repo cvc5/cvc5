@@ -360,6 +360,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         void addAnyConstant(Term ntSymbol) except +
         void addAnyVariable(Term ntSymbol) except +
         void addRules(Term ntSymbol, vector[Term] rules) except +
+        string toString() except +
 
     cdef cppclass Sort:
         Sort() except +

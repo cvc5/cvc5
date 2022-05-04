@@ -653,6 +653,9 @@ cdef class Grammar:
         self.solver = solver
         self.cgrammar = c_Grammar()
 
+    def __str__(self):
+        return self.cgrammar.toString().decode()
+
     def addRule(self, Term ntSymbol, Term rule):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.

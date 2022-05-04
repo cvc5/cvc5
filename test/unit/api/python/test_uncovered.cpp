@@ -118,6 +118,14 @@ TEST_F(TestApiBlackUncovered, term_native_types)
   t.getReal64Value();
 }
 
+TEST_F(TestApiBlackUncovered, term_iterators)
+{
+  Term t = d_solver.mkInteger(0);
+  auto it = t.begin();
+  auto it2(it);
+  it++;
+}
+
 TEST_F(TestApiBlackUncovered, checkSatAssumingSingle)
 {
   Sort boolsort = d_solver.getBooleanSort();

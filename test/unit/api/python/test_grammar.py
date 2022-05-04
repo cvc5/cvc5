@@ -28,7 +28,8 @@ def test_to_string(solver):
     solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     start = solver.mkVar(boolean)
-    g = solver.mkGrammar([], [start])
+    nts = solver.mkVar(boolean)
+    g = solver.mkGrammar([nts], [start])
     g.addRule(start, solver.mkBoolean(False))
     str(g)
 
