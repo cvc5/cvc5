@@ -75,6 +75,20 @@ TEST_F(TestApiBlackUncovered, term_native_types)
   t.getReal64Value();
 }
 
+TEST_F(TestApiBlackUncovered, term_iterators)
+{
+  Term t = d_solver.mkInteger(0);
+  t = d_solver.mkTerm(Kind::GT, {t, t});
+  Term::const_iterator it;
+  it = t.begin();
+  auto it2(it);
+  it == t.end();
+  it != it2;
+  *it2;
+  ++it;
+  it++;
+}
+
 TEST_F(TestApiBlackUncovered, streaming_operators)
 {
   std::stringstream ss;
