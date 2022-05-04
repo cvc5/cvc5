@@ -155,6 +155,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
   Sort s = d_solver.mkDatatypeSort(dtd);
   d = s.getDatatype();
   dc = d.getConstructor("cons");
+  dc.getSelector("head");
 
   {
     Datatype::const_iterator it;
