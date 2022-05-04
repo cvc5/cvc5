@@ -51,7 +51,7 @@ Node OracleChecker::evaluateApp(Node app)
 
   // get oracle result
   std::vector<Node> retv;
-  bool ranOracle = caller.callOracle(app, retv);
+  caller.callOracle(app, retv);
   if (retv.size() != 1)
   {
     Assert(false) << "Failed to evaluate " << app
@@ -59,14 +59,6 @@ Node OracleChecker::evaluateApp(Node app)
     return app;
   }
   Node ret = retv[0];
-  if (ranOracle)
-  {
-    // prints the result of the oracle, if it was computed in the call above.
-    // this prints the original application, its result, and the exit code
-    // of the binary.
-    d_env.output(options::OutputTag::ORACLES)
-        << "(oracle-call " << app << " " << ret << ")" << std::endl;
-  }
   Assert(!ret.isNull());
   return ret;
 }
