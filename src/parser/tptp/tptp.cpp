@@ -330,15 +330,40 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!hol() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
+    if (kind == cvc5::EQUAL || kind == cvc5::DISTINCT)
     {
-      // need hol if these operators are applied over function args
-      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
-           ++i)
+      std::vector<Sort> sorts;
+      size_t nargs = args.size();
+      for (size_t i = 0; i < nargs; i++)
       {
-        if ((*i).getSort().isFunction())
+        Sort s = args[i].getSort();
+        if (s.isFunction())
         {
-          parseError("Cannot apply equalty to functions unless THF.");
+          // need hol if these operators are applied over function args
+          if (!hol())
+          {
+            parseError("Cannot apply equalty to functions unless THF.");
+          }
+        }
+        sorts.push_back(s);
+      }
+      if (sorts[0] != sorts[1])
+      {
+        // TPTP assumes Int/Real subtyping, but the cvc5 API does not
+        for (size_t i = 0; i < nargs; i++)
+        {
+          if (sorts[i].isReal())
+          {
+            // cast all Integer arguments to Real
+            for (size_t j = 0; j < nargs; j++)
+            {
+              if (j != i && sorts[j].isInteger())
+              {
+                args[j] = d_solver->mkTerm(TO_REAL, {args[j]});
+              }
+            }
+            break;
+          }
         }
       }
     }
@@ -501,6 +526,11 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
   cvc5::Term ret = d_solver->mkTerm(cvc5::APPLY_UF, {d_rtu_op, expr});
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
+    if (expr.getSort().isInteger())
+    {
+      // ensure the equality below is between reals
+      expr = d_solver->mkTerm(TO_REAL, {expr});
+    }
     cvc5::Term eq = d_solver->mkTerm(
         cvc5::EQUAL, {expr, d_solver->mkTerm(cvc5::APPLY_UF, {d_utr_op, ret})});
     preemptCommand(new AssertCommand(eq));
