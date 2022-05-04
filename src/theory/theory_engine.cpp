@@ -1076,8 +1076,9 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
-theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
-  Assert(a.getType().isComparableTo(b.getType()));
+theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) 
+{
+  Assert(a.getType()==b.getType());
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 

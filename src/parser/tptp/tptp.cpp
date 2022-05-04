@@ -330,15 +330,30 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!hol() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
+    if (kind == cvc5::EQUAL || kind == cvc5::DISTINCT)
     {
-      // need hol if these operators are applied over function args
-      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
-           ++i)
+      std::vector<Sort> sorts;
+      for (size_t i=0; i<2; i++)
       {
-        if ((*i).getSort().isFunction())
+        Sort s = args[i].getSort();
+        if (s.isFunction())
         {
-          parseError("Cannot apply equalty to functions unless THF.");
+          // need hol if these operators are applied over function args
+          if (!hol())
+          {
+            parseError("Cannot apply equalty to functions unless THF.");
+          }
+        }
+        sorts.push_back(s);
+      }
+      if (sorts[0]!=sorts[1])
+      {
+        for (size_t i=0; i<2; i++)
+        {
+          if (sorts[i].isInteger() && sorts[1-i].isReal())
+          {
+            args[i] = d_solver->mkTerm(TO_REAL, {args[i]});
+          }
         }
       }
     }

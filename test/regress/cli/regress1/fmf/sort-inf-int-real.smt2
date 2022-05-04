@@ -8,7 +8,7 @@
 (assert (forall ((x Int)) (or (= (f x) (h (to_real x))) (= (f x) (to_int (g x))))))
 (assert (not (= (f 3) (h 3.0))))
 (assert (not (= (f 5) (to_int (g 5)))))
-(assert (= (f 4) (g 8)))
+(assert (= (to_real (f 4)) (g 8)))
 (assert (= (h 5.0) 0.0))
 ; Sort inference fails to infer that x can be uninterpreted in this example,
 ; however, fmf is able to reason that all instances are sat.
