@@ -84,9 +84,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConstReal(Rational(0));
-  Node one = nm->mkConstReal(Rational(1));
-  Node mone = nm->mkConstReal(Rational(-1));
+  Node zero = nm->mkConstInt(Rational(0));
+  Node one = nm->mkConstInt(Rational(1));
+  Node mone = nm->mkConstInt(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   Node mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-trans-checker") << "Checking " << id << std::endl;

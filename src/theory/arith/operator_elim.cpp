@@ -105,7 +105,7 @@ Node OperatorElim::eliminateOperators(Node node,
       lems.push_back(mkSkolemLemma(lem, v));
       if (k == IS_INTEGER)
       {
-        return nm->mkNode(EQUAL, node[0], v);
+        return nm->mkNode(EQUAL, node[0], nm->mkNode(TO_REAL, v));
       }
       Assert(k == TO_INTEGER);
       return v;
