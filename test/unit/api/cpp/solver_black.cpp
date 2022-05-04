@@ -1759,7 +1759,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
   }
 }
 
-TEST_F(TestApiWhiteSolver, printStatisticsSafe)
+TEST_F(TestApiBlackSolver, printStatisticsSafe)
 {
   testing::internal::CaptureStdout();
   d_solver.printStatisticsSafe(STDOUT_FILENO);
