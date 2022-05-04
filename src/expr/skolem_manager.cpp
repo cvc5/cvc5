@@ -43,6 +43,11 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+struct UnpurifiedFormAttributeId
+{
+};
+typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
+
 struct AbstractValueId
 {
 };
@@ -61,7 +66,6 @@ const char* toString(SkolemFunId id)
       return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
@@ -221,16 +225,16 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& comment,
                                    int flags)
 {
-  Node to = getOriginalForm(t);
-  // We do not currently insist that to does not contain witness terms
-
-  Node k = mkSkolemInternal(to, prefix, comment, flags);
-  // set original form attribute for k
-  OriginalFormAttribute ofa;
-  k.setAttribute(ofa, to);
+  // We do not recursively compute the original form of t here
+  Node k = mkSkolemInternal(t, prefix, comment, flags);
+  // set unpurified form attribute for k
+  UnpurifiedFormAttribute ufa;
+  k.setAttribute(ufa, t);
+  // the original form of k can be computed by calling getOriginalForm, but
+  // it is not computed here
 
   Trace("sk-manager-skolem")
-      << "skolem: " << k << " purify " << to << std::endl;
+      << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 
@@ -326,6 +330,7 @@ Node SkolemManager::getOriginalForm(Node n)
   Trace("sk-manager-debug")
       << "SkolemManager::getOriginalForm " << n << std::endl;
   OriginalFormAttribute ofa;
+  UnpurifiedFormAttribute ufa;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -343,6 +348,25 @@ Node SkolemManager::getOriginalForm(Node n)
       if (cur.hasAttribute(ofa))
       {
         visited[cur] = cur.getAttribute(ofa);
+      }
+      else if (cur.hasAttribute(ufa))
+      {
+        // if it has an unpurified form, compute the original form of it
+        Node ucur = cur.getAttribute(ufa);
+        if (ucur.hasAttribute(ofa))
+        {
+          // Already computed, set. This always happens after cur is visited
+          // again after computing the original form of its unpurified form.
+          Node ucuro = ucur.getAttribute(ofa);
+          cur.setAttribute(ofa, ucuro);
+          visited[cur] = ucuro;
+        }
+        else
+        {
+          // visit ucur then visit cur again
+          visit.push_back(cur);
+          visit.push_back(ucur);
+        }
       }
       else
       {
@@ -391,6 +415,16 @@ Node SkolemManager::getOriginalForm(Node n)
   Assert(!visited.find(n)->second.isNull());
   Trace("sk-manager-debug") << "..return " << visited[n] << std::endl;
   return visited[n];
+}
+
+Node SkolemManager::getUnpurifiedForm(Node k)
+{
+  UnpurifiedFormAttribute ufa;
+  if (k.hasAttribute(ufa))
+  {
+    return k.getAttribute(ufa);
+  }
+  return k;
 }
 
 Node SkolemManager::mkSkolemInternal(Node w,

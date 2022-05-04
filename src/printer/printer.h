@@ -81,10 +81,10 @@ class Printer
   virtual void toStreamCmdAssert(std::ostream& out, Node n) const;
 
   /** Print push command */
-  virtual void toStreamCmdPush(std::ostream& out) const;
+  virtual void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const;
 
   /** Print pop command */
-  virtual void toStreamCmdPop(std::ostream& out) const;
+  virtual void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const;
 
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
@@ -97,6 +97,10 @@ class Printer
                                       const std::string& id,
                                       TypeNode type,
                                       const std::vector<Node>& initValue) const;
+  /** Print declare-oracle-fun command */
+  virtual void toStreamCmdDeclareOracleFun(std::ostream& out,
+                                           Node fun,
+                                           const std::string& binName) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,

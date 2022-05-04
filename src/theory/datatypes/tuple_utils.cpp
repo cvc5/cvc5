@@ -36,6 +36,48 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
       APPLY_SELECTOR, dt[0].getSelectorInternal(tn, n_th), tuple);
 }
 
+Node TupleUtils::getTupleProjection(const std::vector<uint32_t>& indices,
+                                    Node tuple)
+{
+  std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
+  std::vector<TypeNode> types;
+  std::vector<Node> elements;
+  for (uint32_t index : indices)
+  {
+    TypeNode type = tupleTypes[index];
+    types.push_back(type);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode projectType = nm->mkTupleType(types);
+  const DType& dt = projectType.getDType();
+  elements.push_back(dt[0].getConstructor());
+  const DType& tupleDType = tuple.getType().getDType();
+  const DTypeConstructor& constructor = tupleDType[0];
+  for (uint32_t index : indices)
+  {
+    Node selector = constructor[index].getSelector();
+    Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
+    elements.push_back(element);
+  }
+  Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+  return ret;
+}
+
+TypeNode TupleUtils::getTupleProjectionType(
+    const std::vector<uint32_t>& indices, TypeNode tupleType)
+{
+  std::vector<TypeNode> types;
+  DType dType = tupleType.getDType();
+  DTypeConstructor constructor = dType[0];
+  for (uint32_t index : indices)
+  {
+    types.push_back(constructor.getArgType(index));
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode retTupleType = nm->mkTupleType(types);
+  return retTupleType;
+}
+
 std::vector<Node> TupleUtils::getTupleElements(Node tuple)
 {
   Assert(tuple.getType().isTuple());

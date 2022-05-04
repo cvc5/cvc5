@@ -132,7 +132,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
-    Node wi = SkolemManager::getOriginalForm(n);
+    Node wi = SkolemManager::getUnpurifiedForm(n);
     if (wi == n)
     {
       // if it is not a purification skolem, maybe it is a witness skolem
@@ -495,6 +495,18 @@ Node LfscNodeConverter::postConvert(Node n)
   return n;
 }
 
+TypeNode LfscNodeConverter::preConvertType(TypeNode tn)
+{
+  if (tn.getKind() == TUPLE_TYPE)
+  {
+    // Must collect the tuple type here, since at post-order traversal, the
+    // type has been modified and no longer maintains the mapping to its
+    // datatype encoding.
+    d_declTypes.insert(tn);
+  }
+  return tn;
+}
+
 TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -537,55 +549,63 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     Node s = nm->mkConstInt(Rational(tn.getFloatingPointSignificandSize()));
     tnn = nm->mkNode(APPLY_UF, tnn, e, s);
   }
+  else if (k == TUPLE_TYPE)
+  {
+    // special case: tuples must be distinguished by their arity
+    size_t nargs = tn.getNumChildren();
+    if (nargs > 0)
+    {
+      std::vector<TypeNode> types;
+      std::vector<TypeNode> convTypes;
+      std::vector<Node> targs;
+      for (size_t i = 0; i < nargs; i++)
+      {
+        TypeNode tnc = tn[i];
+        types.push_back(d_sortType);
+        convTypes.push_back(tnc);
+        targs.push_back(typeAsNode(tnc));
+      }
+      TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+      // must distinguish by arity
+      std::stringstream ss;
+      ss << "Tuple_" << nargs;
+      targs.insert(targs.begin(), getSymbolInternal(k, ftype, ss.str()));
+      tnn = nm->mkNode(APPLY_UF, targs);
+      // we are changing its name, we must make a sort constructor
+      cur = nm->mkSortConstructor(ss.str(), nargs);
+      cur = nm->mkSort(cur, convTypes);
+    }
+    else
+    {
+      // no need to convert type for tuples of size 0,
+      // type as node is simple
+      tnn = getSymbolInternal(k, d_sortType, "Tuple");
+    }
+  }
   else if (tn.getNumChildren() == 0)
   {
+    Assert(!tn.isTuple());
     // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
-    // special case: tuples must be distinguished by their arity
-    if (tn.isTuple())
+    std::stringstream ss;
+    options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+    tn.toStream(ss);
+    if (tn.isUninterpretedSortConstructor())
     {
-      const DType& dt = tn.getDType();
-      unsigned int nargs = dt[0].getNumArgs();
-      if (nargs > 0)
-      {
-        std::vector<TypeNode> types;
-        std::vector<TypeNode> convTypes;
-        std::vector<Node> targs;
-        for (unsigned int i = 0; i < nargs; i++)
-        {
-          // it is not converted yet, convert here
-          TypeNode tnc = convertType(dt[0][i].getRangeType());
-          types.push_back(d_sortType);
-          convTypes.push_back(tnc);
-          targs.push_back(typeAsNode(tnc));
-        }
-        TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-        // must distinguish by arity
-        std::stringstream ss;
-        ss << "Tuple_" << nargs;
-        targs.insert(targs.begin(), getSymbolInternal(k, ftype, ss.str()));
-        tnn = nm->mkNode(APPLY_UF, targs);
-        // we are changing its name, we must make a sort constructor
-        cur = nm->mkSortConstructor(ss.str(), nargs);
-        cur = nm->mkSort(cur, convTypes);
-      }
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
     }
-    if (tnn.isNull())
+    else if (tn.isUninterpretedSort() || tn.isDatatype())
     {
-      std::stringstream ss;
-      options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
-      tn.toStream(ss);
-      if (tn.isUninterpretedSort() || (tn.isDatatype() && !tn.isTuple()))
-      {
-        std::stringstream sss;
-        sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str(), false);
-        cur = nm->mkSort(sss.str());
-      }
-      else
-      {
-        tnn = getSymbolInternal(k, d_sortType, ss.str());
-      }
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSort(s);
+    }
+    else
+    {
+      // all other builtin type constants, e.g. Int
+      tnn = getSymbolInternal(k, d_sortType, ss.str());
     }
   }
   else
@@ -621,7 +641,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
-      tn.getAttribute(expr::VarNameAttr(), name);
+      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
+                                                        name);
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -699,9 +720,16 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
   std::string name;
   v.getAttribute(expr::VarNameAttr(), name);
-  std::vector<Node>& syms = d_userSymbolList[name];
+  return getNameForUserNameOfInternal(v.getId(), name);
+}
+
+std::string LfscNodeConverter::getNameForUserNameOfInternal(
+    uint64_t id, const std::string& name)
+{
+  std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
+  std::vector<uint64_t>::iterator itr =
+      std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -709,7 +737,7 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   else
   {
     variant = syms.size();
-    syms.push_back(v);
+    syms.push_back(id);
   }
   return getNameForUserName(name, variant);
 }
@@ -869,7 +897,9 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
+         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
+         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -949,6 +979,32 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV:
+    {
+      const FloatingPointToSBV& fsbv = n.getConst<FloatingPointToSBV>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV:
+    {
+      const FloatingPointToUBV& fubv = n.getConst<FloatingPointToUBV>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV_TOTAL:
+    {
+      const FloatingPointToSBVTotal& fsbv =
+          n.getConst<FloatingPointToSBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV_TOTAL:
+    {
+      const FloatingPointToUBVTotal& fubv =
+          n.getConst<FloatingPointToUBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;
     case APPLY_TESTER:

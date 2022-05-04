@@ -24,6 +24,7 @@
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -68,7 +69,8 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> instTypes;
     m.getMatches(instTypes);
     TypeNode range = t.instantiate(instTypes);
-    Trace("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return (constructor) " << range << " for " << n
+                           << std::endl;
     return range;
   }
   else
@@ -148,7 +150,8 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
     TypeNode range = selType[1];
     range = range.substitute(
         types.begin(), types.end(), matches.begin(), matches.end());
-    Trace("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return (selector) " << range << " for " << n
+                           << " from " << selType[1] << std::endl;
     return range;
   }
   else
@@ -264,7 +267,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
     {
       m.addTypesFromDatatype(childType.getDatatypeConstructorRangeType());
     }
-    else if (childType.getKind() == kind::DATATYPE_TYPE)
+    else if (childType.isDatatype())
     {
       m.addTypesFromDatatype(childType);
     }
@@ -560,14 +563,7 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     }
   }
   TypeNode tupleType = n[0].getType(check);
-  std::vector<TypeNode> types;
-  DType dType = tupleType.getDType();
-  DTypeConstructor constructor = dType[0];
-  for (uint32_t index : indices)
-  {
-    types.push_back(constructor.getArgType(index));
-  }
-  return nm->mkTupleType(types);
+  return TupleUtils::getTupleProjectionType(indices, tupleType);
 }
 
 TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,

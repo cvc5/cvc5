@@ -667,6 +667,14 @@ TEST_F(TestApiBlackTerm, termChildren)
   Term tnull;
   ASSERT_THROW(tnull.getNumChildren(), CVC5ApiException);
 
+  Term::const_iterator it;
+  it = t1.begin();
+  ASSERT_TRUE((*it).isIntegerValue());
+  it++;
+  ASSERT_TRUE((*it).isIntegerValue());
+  ++it;
+  ASSERT_EQ(it, t1.end());
+
   // apply term f(2)
   Sort intSort = d_solver.getIntegerSort();
   Sort fsort = d_solver.mkFunctionSort({intSort}, intSort);
@@ -1159,6 +1167,16 @@ TEST_F(TestApiBlackTerm, termScopedToString)
   ASSERT_EQ(x.toString(), "x");
 }
 
-TEST_F(TestApiBlackTerm, toString) { ASSERT_NO_THROW(Term().toString()); }
+TEST_F(TestApiBlackTerm, toString) {
+  ASSERT_NO_THROW(Term().toString());
+
+  Sort intsort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intsort, "x");
+  std::stringstream ss;
+
+  ss << std::vector<Term>{x, x};
+  ss << std::set<Term>{x, x};
+  ss << std::unordered_set<Term>{x, x};
+}
 }  // namespace test
 }  // namespace cvc5::internal

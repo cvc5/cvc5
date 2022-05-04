@@ -6,8 +6,10 @@ and two constants ``a`` and ``b`` of sort ``Integer``.
 Notice that these are *symbolic* constants, but not actual values.
 
 .. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
-     :language: python
-     :lines: 6-7
+   :language: python
+   :dedent: 4
+   :start-after: docs-pythonic-quickstart-1 start
+   :end-before: docs-pythonic-quickstart-1 end
 
 We define the following constraints regarding ``x`` and ``y``:
 
@@ -18,8 +20,10 @@ We define the following constraints regarding ``x`` and ``y``:
 We check whether there is a solution to these constraints:
 
 .. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
-     :language: python
-     :lines: 15
+   :language: python
+   :dedent: 4
+   :start-after: docs-pythonic-quickstart-2 start
+   :end-before: docs-pythonic-quickstart-2 end
 
 In this case, there is, so we get output:
 
@@ -30,14 +34,18 @@ In this case, there is, so we get output:
 We can also get an explicit model (assignment) for the constraints.
 
 .. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
-     :language: python
-     :lines: 19-22
+   :language: python
+   :dedent: 4
+   :start-after: docs-pythonic-quickstart-3 start
+   :end-before: docs-pythonic-quickstart-3 end
 
 With the model, we can evaluate variables and terms:
 
 .. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
-     :language: python
-     :lines: 24-26
+   :language: python
+   :dedent: 4
+   :start-after: docs-pythonic-quickstart-4 start
+   :end-before: docs-pythonic-quickstart-4 end
 
 This will print:
 
@@ -51,16 +59,20 @@ This will print:
 We can also get these values in other forms:
 
 .. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
-     :language: python
-     :lines: 29-32
+   :language: python
+   :dedent: 4
+   :start-after: docs-pythonic-quickstart-5 start
+   :end-before: docs-pythonic-quickstart-5 end
 
 
 Next, we assert the same assertions as above, but with integers.
 This time, there is no solution, so "no solution" is printed.
 
 .. literalinclude:: ../../../../examples/api/python/pythonic/quickstart.py
-     :language: python
-     :lines: 36
+   :language: python
+   :dedent: 4
+   :start-after: docs-pythonic-quickstart-6 start
+   :end-before: docs-pythonic-quickstart-6 end
 
 
 Example

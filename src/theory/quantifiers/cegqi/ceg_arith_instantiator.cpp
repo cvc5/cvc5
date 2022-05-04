@@ -18,9 +18,9 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/linear/partial_model.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
@@ -904,10 +904,13 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       int ires_use =
           (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
                                                                           : -1;
-      val = rewrite(
-          nm->mkNode(ires_use == -1 ? ADD : SUB,
-                     nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
-                     nm->mkNode(TO_INTEGER, realPart)));
+      val = nm->mkNode(ires_use == -1 ? ADD : SUB,
+                       nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
+                       nm->mkNode(TO_INTEGER, realPart));
+      Trace("cegqi-arith-debug")
+          << "result (pre-rewrite) : " << val << std::endl;
+      val = rewrite(val);
+      val = val.getKind() == TO_REAL ? val[0] : val;
       // could round up for upper bounds here
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
       Assert(val.getType().isInteger());
@@ -1010,7 +1013,9 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
   {
     // create delta here if necessary
     vval = nm->mkNode(
-        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
+        ADD,
+        vval,
+        nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
   }
   vval = rewrite(vval);
   return vval;

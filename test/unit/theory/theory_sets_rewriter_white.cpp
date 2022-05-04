@@ -43,7 +43,7 @@ class TestTheoryWhiteSetsRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsRewriter, map)
 {
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   TypeNode stringType = d_nodeManager->stringType();
   TypeNode integerType = d_nodeManager->integerType();
   Node emptysetInteger =

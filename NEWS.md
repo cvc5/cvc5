@@ -1,5 +1,14 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.0.1
+==========
+
+**Changes**
+
+- Removed support for non-standard `declare-funs`, `declare-consts`, and
+  `declare-sorts` commands.
+
+
 cvc5 1.0
 =========
 
