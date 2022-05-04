@@ -13,9 +13,11 @@
  */
 #include "main/portfolio_driver.h"
 
+#if HAVE_SYS_WAIT_H
 #include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 #include <chrono>
 #include <optional>
