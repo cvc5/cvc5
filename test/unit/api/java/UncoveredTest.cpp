@@ -93,9 +93,11 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
 {
   std::stringstream ss;
   ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
+  ss << cvc5::Grammar();
 
   Sort intsort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intsort, "x");
@@ -135,6 +137,53 @@ TEST_F(TestApiBlackUncovered, Statistics)
     it--;
     ++it;
     --it;
+}
+
+TEST_F(TestApiBlackUncovered, Datatypes)
+{
+  DatatypeConstructorDecl dtcd;
+  DatatypeSelector dts;
+  DatatypeConstructor dc;
+  DatatypeDecl dtd;
+  Datatype d;
+
+  dtd = d_solver.mkDatatypeDecl("list");
+  dtcd = d_solver.mkDatatypeConstructorDecl("cons");
+  dtcd.addSelector("head", d_solver.getIntegerSort());
+  dtd.addConstructor(dtcd);
+  Sort s = d_solver.mkDatatypeSort(dtd);
+  d = s.getDatatype();
+  dc = d.getConstructor("cons");
+
+  {
+    Datatype::const_iterator it;
+    it = d.begin();
+    it != d.end();
+    *it;
+    it->getName();
+    ++it;
+    it == d.end();
+  }
+  {
+    DatatypeConstructor::const_iterator it;
+    it = dc.begin();
+    it != dc.end();
+    *it;
+    it->getName();
+    ++it;
+    it = dc.begin();
+    it++;
+    it == dc.end();
+  }
+
+  {
+    std::stringstream ss;
+    ss << d;
+    ss << dtcd;
+    ss << dc;
+    ss << dc.getSelector("head");
+    //ss << cvc5::DatatypeSelector();
+  }
 }
 
 }  // namespace test

@@ -93,6 +93,11 @@ class DatatypeTest
     assertFalse(d.isNull());
     assertFalse(consConstr.isNull());
     assertFalse(sel.isNull());
+
+    cons.toString();
+    sel.toString();
+    consConstr.toString();
+    d.toString();
   }
 
   @Test
