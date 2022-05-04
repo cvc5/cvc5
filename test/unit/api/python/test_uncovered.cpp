@@ -56,6 +56,23 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << std::unordered_set<Term>{x, x};
 }
 
+TEST_F(TestApiBlackUncovered, term_native_type_testers)
+{
+  Term t = d_solver.mkInteger("0");
+  t.isInt32Value();
+  t.getInt32Value();
+  t.isInt64Value();
+  t.getInt64Value();
+  t.isUInt32Value();
+  t.getUInt32Value();
+  t.isUInt64Value();
+  t.getUInt64Value();
+  t.isReal32Value();
+  t.getReal32Value();
+  t.isReal64Value();
+  t.getReal64Value();
+}
+
 TEST_F(TestApiBlackUncovered, getValue)
 {
   d_solver.setOption("produce-models", "true");
