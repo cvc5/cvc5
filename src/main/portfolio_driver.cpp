@@ -401,7 +401,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   {
     return ctx.solveContinuous(d_parser, false);
   }
-#ifdef HAVE_SYS_WAIT_H
+#if HAVE_SYS_WAIT_H
   ctx.solveContinuous(d_parser, true);
 
   if (!ctx.d_logic)
