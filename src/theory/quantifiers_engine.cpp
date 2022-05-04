@@ -703,7 +703,7 @@ void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
   d_treg.declarePool(p, initValue);
 }
 
-void QuantifiersEngine::declareOracleFun(Node f, const std::string& binName)
+void QuantifiersEngine::declareOracleFun(Node f)
 {
   if (d_qmodules->d_oracleEngine.get() == nullptr)
   {
@@ -711,7 +711,7 @@ void QuantifiersEngine::declareOracleFun(Node f, const std::string& binName)
               << std::endl;
     return;
   }
-  d_qmodules->d_oracleEngine->declareOracleFun(f, binName);
+  d_qmodules->d_oracleEngine->declareOracleFun(f);
 }
 std::vector<Node> QuantifiersEngine::getOracleFuns() const
 {
