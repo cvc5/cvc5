@@ -134,7 +134,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this)),
-      d_cmEnabled(context(), options().arith.arithCongMan),
+      d_cmEnabled(context(), !options().arith.arithEqSolver),
 
       d_dualSimplex(
           env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
@@ -176,14 +176,6 @@ TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_approxStats != NULL) { delete d_approxStats; }
 }
 
-bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
-{
-  if (!d_cmEnabled)
-  {
-    return false;
-  }
-  return d_congruenceManager.needsEqualityEngine(esi);
-}
 void TheoryArithPrivate::finishInit()
 {
   if (d_cmEnabled)
@@ -2049,7 +2041,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     if(!vars.hasNode(x)){ return Node::null(); }
     Node xNode = vars.asNode(x);
     const Rational& q = sum[x];
-    Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
+    Node mult = nm->mkNode(kind::MULT, nm->mkConstReal(q), xNode);
     Trace("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
     children.push_back(mult);
   }
@@ -4797,7 +4789,7 @@ bool TheoryArithPrivate::decomposeTerm(Node t,
   Polynomial poly = Polynomial::parsePolynomial(t);
   if(poly.isConstant()){
     c = poly.getHead().getConstant().getValue();
-    p = mkRationalNode(Rational(0));
+    p = NodeManager::currentNM()->mkConstReal(Rational(0));
     m = Rational(1);
     return true;
   }else if(poly.containsConstant()){
@@ -4845,22 +4837,6 @@ void TheoryArithPrivate::setToMin(int sgn, std::pair<Node, DeltaRational>& min, 
     }
   }
 }
-
-// std::pair<bool, Node> TheoryArithPrivate::entailmentUpperCheck(const Rational& lm, Node lp, const Rational& rm, Node rp, const DeltaRational& sep, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
-
-//   Rational negRM = -rm;
-//   Node diff = NodeManager::currentNM()->mkNode(MULT, mkRationalConstan(lm), lp) + (negRM * rp);
-
-//   Rational diffm;
-//   Node diffp;
-//   decompose(diff, diffm, diffNode);
-
-
-//   std::pair<Node, DeltaRational> bestUbLeft, bestLbRight, bestUbDiff, tmp;
-//   bestUbLeft = bestLbRight = bestUbDiff = make_pair(Node::Null(), DeltaRational());
-
-//   return make_pair(false, Node::null());
-// }
 
 /**
  * Decomposes a literal into the form:
@@ -5003,6 +4979,11 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
 ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
 {
   return &d_checker;
+}
+
+ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()
+{
+  return d_cmEnabled.get() ? &d_congruenceManager : nullptr;
 }
 
 }  // namespace arith

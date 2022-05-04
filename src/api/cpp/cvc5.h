@@ -826,9 +826,6 @@ class CVC5_EXPORT Sort
   /** @return The internal wrapped TypeNode of this sort. */
   const internal::TypeNode& getTypeNode(void) const;
 
-  /** Helper to convert a set of Sorts to internal TypeNodes. */
-  std::set<internal::TypeNode> static sortSetToTypeNodes(
-      const std::set<Sort>& sorts);
   /** Helper to convert a vector of Sorts to internal TypeNodes. */
   std::vector<internal::TypeNode> static sortVectorToTypeNodes(
       const std::vector<Sort>& sorts);
@@ -1971,19 +1968,6 @@ class CVC5_EXPORT DatatypeDecl
    */
   DatatypeDecl(const Solver* slv,
                const std::string& name,
-               bool isCoDatatype = false);
-
-  /**
-   * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param slv The associated solver object.
-   * @param name The name of the datatype.
-   * @param param The sort parameter.
-   * @param isCoDatatype True if a codatatype is to be constructed.
-   */
-  DatatypeDecl(const Solver* slv,
-               const std::string& name,
-               const Sort& param,
                bool isCoDatatype = false);
 
   /**

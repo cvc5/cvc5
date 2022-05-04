@@ -27,16 +27,6 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() == kind::CONST_RATIONAL)
   {
-    // this check will be removed
-    if (check)
-    {
-      if (n.getConst<Rational>().isIntegral())
-      {
-        Assert(false) << "Bad real: " << n;
-        throw TypeCheckingExceptionPrivate(
-            n, "making an real constant from a integral rational");
-      }
-    }
     return nodeManager->realType();
   }
   Assert(n.getKind() == kind::CONST_INTEGER);

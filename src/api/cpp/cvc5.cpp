@@ -1065,17 +1065,6 @@ Sort::~Sort()
   }
 }
 
-std::set<internal::TypeNode> Sort::sortSetToTypeNodes(
-    const std::set<Sort>& sorts)
-{
-  std::set<internal::TypeNode> types;
-  for (const Sort& s : sorts)
-  {
-    types.insert(s.getTypeNode());
-  }
-  return types;
-}
-
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
     const std::vector<Sort>& sorts)
 {
@@ -1916,6 +1905,9 @@ size_t Op::getNumIndicesHelper() const
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
       size = d_node->getConst<internal::TupleProjectOp>().getIndices().size();
+      break;
+    case TABLE_PROJECT:
+      size = d_node->getConst<internal::TableProjectOp>().getIndices().size();
       break;
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
@@ -3473,16 +3465,6 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
 
 DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
-                           const Sort& param,
-                           bool isCoDatatype)
-    : d_solver(slv),
-      d_dtype(new internal::DType(
-          name, std::vector<internal::TypeNode>{*param.d_type}, isCoDatatype))
-{
-}
-
-DatatypeDecl::DatatypeDecl(const Solver* slv,
-                           const std::string& name,
                            const std::vector<Sort>& params,
                            bool isCoDatatype)
     : d_solver(slv)
@@ -4210,6 +4192,11 @@ bool Datatype::const_iterator::operator!=(
 }
 
 bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
+
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
+{
+  return out << dtype.toString();
+}
 
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
