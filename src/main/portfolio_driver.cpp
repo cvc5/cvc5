@@ -208,6 +208,10 @@ class Pipe
  */
 class PortfolioProcessPool
 {
+  enum class JobState
+  {
+    PENDING, RUNNING, DONE
+  };
   struct Job
   {
     PortfolioConfig d_config;
@@ -215,6 +219,7 @@ class PortfolioProcessPool
     pid_t d_timeout = -1;
     Pipe d_errPipe;
     Pipe d_outPipe;
+    JobState d_state = JobState::PENDING;
   };
 
  public:
@@ -313,13 +318,10 @@ class PortfolioProcessPool
         _exit(0);
       }
     }
-    else
-    {
-      job.d_timeout = 0;
-    }
 
     ++d_nextJob;
     ++d_running;
+    job.d_state = JobState::RUNNING;
   }
 
   /**
@@ -335,9 +337,10 @@ class PortfolioProcessPool
     for (auto& job : d_jobs)
     {
       // has not been started yet
-      if (job.d_worker == -1) continue;
+      if (job.d_state == JobState::PENDING) continue;
       // has already been analyzed
-      if (job.d_timeout == -1) continue;
+      if (job.d_state == JobState::DONE) continue;
+      // was given an explicit child, but this is not it.
       if (child != -1 && job.d_worker != child) continue;
 
       int wstatus = 0;
@@ -356,7 +359,7 @@ class PortfolioProcessPool
       }
       // mark as analyzed
       Trace("portfolio") << "Finished " << job.d_config << std::endl;
-      job.d_timeout = -1;
+      job.d_state = JobState::DONE;
       --d_running;
       // check if exited normally
       if (WIFSIGNALED(wstatus))
