@@ -41,8 +41,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
-      d_cardSolver(env, d_state, d_im),
-      d_bagReduction(env)
+      d_cardSolver(env, d_state, d_im)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -97,7 +96,7 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     case kind::BAG_FOLD:
     {
       std::vector<Node> asserts;
-      Node ret = d_bagReduction.reduceFoldOperator(atom, asserts);
+      Node ret = BagReduction::reduceFoldOperator(atom, asserts);
       NodeManager* nm = NodeManager::currentNM();
       Node andNode = nm->mkNode(AND, asserts);
       d_im.lemma(andNode, InferenceId::BAGS_FOLD);
@@ -108,10 +107,8 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     }
     case kind::TABLE_AGGREGATE:
     {
-      std::vector<Node> asserts;
-      Node ret = d_bagReduction.reduceAggregateOperator(atom, asserts);
+      Node ret = BagReduction::reduceAggregateOperator(atom);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
-
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
     default: return TrustNode::null();

@@ -19,6 +19,7 @@
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
 #include "table_project_op.h"
+#include "theory/bags/bag_reduction.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
@@ -878,6 +879,19 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
   Node ret = constructConstantBagFromElements(partitionType, parts);
   Trace("bags-partition") << "ret: " << ret << std::endl;
   return ret;
+}
+
+Node BagsUtils::evaluateTableAggregate(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_AGGREGATE);
+  if (!(n[1].isConst() && n[2].isConst()))
+  {
+    // we can't proceed further.
+    return n;
+  }
+
+  Node reduction = BagReduction::reduceAggregateOperator(n);
+  return reduction;
 }
 
 Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)

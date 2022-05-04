@@ -29,10 +29,10 @@ namespace bags {
 /**
  * class for bag reductions
  */
-class BagReduction : EnvObj
+class BagReduction
 {
  public:
-  BagReduction(Env& env);
+  BagReduction();
   ~BagReduction();
 
   /**
@@ -64,7 +64,7 @@ class BagReduction : EnvObj
    * combine: Int -> T2 is an uninterpreted function
    * unionDisjoint: Int -> (Bag T1) is an uninterpreted function
    */
-  Node reduceFoldOperator(Node node, std::vector<Node>& asserts);
+  static Node reduceFoldOperator(Node node, std::vector<Node>& asserts);
 
   /**
    * @param node a term of the form (bag.card A) where A: (Bag T) is a bag
@@ -95,11 +95,9 @@ class BagReduction : EnvObj
    *   cardinality: Int -> Int is an uninterpreted function
    *   unionDisjoint: Int -> (Bag T1) is an uninterpreted function
    */
-  Node reduceCardOperator(Node node, std::vector<Node>& asserts);
+  static Node reduceCardOperator(Node node, std::vector<Node>& asserts);
 
-  Node reduceAggregateOperator(Node node, std::vector<Node>& asserts);
-
- private:
+  static Node reduceAggregateOperator(Node node);
 };
 
 }  // namespace bags

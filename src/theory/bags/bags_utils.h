@@ -97,6 +97,13 @@ class BagsUtils
   static Node evaluateBagPartition(Rewriter* rewriter, TNode n);
 
   /**
+   * @param n has the form ((_ table.aggr n1 ... n_k) f initial A)
+   * where initial and A are constants
+   * @return the aggregation result.
+   */
+  static Node evaluateTableAggregate(Rewriter* rewriter, TNode n);
+
+  /**
    * @param n has the form (bag.filter p A) where A is a constant bag
    * @return A filtered with predicate p
    */
