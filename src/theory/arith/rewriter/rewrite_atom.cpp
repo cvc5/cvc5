@@ -298,7 +298,7 @@ Node buildIntegerEquality(Sum&& sum)
       << "\tbuilding " << left << " = " << sum << std::endl;
 
   Node rhs = collectSum(sum);
-  Assert (rhs.getType().isInteger());
+  Assert(rhs.getType().isInteger());
   return buildRelation(Kind::EQUAL, left, rhs);
 }
 
