@@ -347,23 +347,20 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
         }
         sorts.push_back(s);
       }
-      if (sorts[0] != sorts[1])
+      // TPTP assumes Int/Real subtyping, but the cvc5 API does not
+      for (size_t i = 0; i < nargs; i++)
       {
-        // TPTP assumes Int/Real subtyping, but the cvc5 API does not
-        for (size_t i = 0; i < nargs; i++)
+        if (sorts[i].isReal())
         {
-          if (sorts[i].isReal())
+          // cast all Integer arguments to Real
+          for (size_t j = 0; j < nargs; j++)
           {
-            // cast all Integer arguments to Real
-            for (size_t j = 0; j < nargs; j++)
+            if (j != i && sorts[j].isInteger())
             {
-              if (j != i && sorts[j].isInteger())
-              {
-                args[j] = d_solver->mkTerm(TO_REAL, {args[j]});
-              }
+              args[j] = d_solver->mkTerm(TO_REAL, {args[j]});
             }
-            break;
           }
+          break;
         }
       }
     }
