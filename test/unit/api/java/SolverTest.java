@@ -1384,6 +1384,18 @@ class SolverTest
   }
 
   @Test
+  void getAssertions()
+  {
+    Term a = d_solver.mkConst(d_solver.getBooleanSort(), "a");
+    Term b = d_solver.mkConst(d_solver.getBooleanSort(), "b");
+    d_solver.assertFormula(a);
+    d_solver.assertFormula(b);
+    Term[] asserts = d_solver.getAssertions();
+    assertEquals(asserts[0], a);
+    assertEquals(asserts[1], b);
+  }
+
+  @Test
   void getInfo()
   {
     assertDoesNotThrow(() -> d_solver.getInfo("name"));
@@ -1515,6 +1527,20 @@ class SolverTest
 
     // We expect the next output to be distinct
     assertNotEquals(output, output2);
+  }
+
+  @Test
+  void declarePool() throws CVC5ApiException
+  {
+    Sort intSort = d_solver.getIntegerSort();
+    Sort setSort = d_solver.mkSetSort(intSort);
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    // declare a pool with initial value { 0, x, y }
+    Term p = d_solver.declarePool("p", intSort, new Term[]{zero, x, y});
+    // pool should have the same sort
+    assertEquals(p.getSort(), setSort);
   }
 
   @Test
