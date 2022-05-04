@@ -297,7 +297,9 @@ Node buildIntegerEquality(Sum&& sum)
   Trace("arith-rewriter::debug")
       << "\tbuilding " << left << " = " << sum << std::endl;
 
-  return buildRelation(Kind::EQUAL, left, collectSum(sum));
+  Node rhs = collectSum(sum);
+  Assert (rhs.getType().isInteger());
+  return buildRelation(Kind::EQUAL, left, rhs);
 }
 
 Node buildRealEquality(Sum&& sum)
@@ -313,7 +315,9 @@ Node buildRealEquality(Sum&& sum)
   {
     s.second = s.second / lcoeff;
   }
-  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
+  Node rhs = collectSum(sum);
+  rhs = ensureReal(rhs);
+  return buildRelation(Kind::EQUAL, lterm.first, rhs);
 }
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
