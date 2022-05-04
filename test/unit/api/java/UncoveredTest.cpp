@@ -107,6 +107,12 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << std::unordered_set<Term>{x, x};
 }
 
+TEST_F(TestApiBlackUncovered, mkString)
+{
+  std::wstring s;
+  ASSERT_EQ(d_solver.mkString(s).getStringValue(), s);
+}
+
 TEST_F(TestApiBlackUncovered, hash)
 {
     std::hash<Op>()(Op());

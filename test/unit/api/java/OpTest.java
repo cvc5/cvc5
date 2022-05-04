@@ -119,6 +119,9 @@ class OpTest
     int[] indices = {0, 3, 2, 0, 1, 2};
     Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
     assertEquals(6, tupleProject.getNumIndices());
+
+    Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
+    assertEquals(6, tableProject.getNumIndices());
   }
 
   @Test

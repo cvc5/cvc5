@@ -1946,6 +1946,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.getValue(sum));
     assertDoesNotThrow(() -> d_solver.getValue(p_f_y));
 
+    Term[] b = d_solver.getValue(new Term[]{x, y, z});
+
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getValue(x));
     slv.close();
