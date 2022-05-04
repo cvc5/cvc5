@@ -95,6 +95,9 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
           atomu = l;
           originLit[l] = l;
         }
+        atomu = rewrite(atomu);
+        Trace("learned-rewrite-ll")
+            << "Add atom (rewritten): " << atomu << std::endl;
         binfer.add(atomu);
       }
       Trace("learned-rewrite-ll") << "- " << l << std::endl;
