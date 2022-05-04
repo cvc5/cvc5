@@ -142,17 +142,18 @@ void InstStrategyMbqi::process(Node q)
   for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
-    if (!tn.isUninterpretedSort() || processedUsort.find(tn)!=processedUsort.end())
+    if (!tn.isUninterpretedSort()
+        || processedUsort.find(tn) != processedUsort.end())
     {
       continue;
     }
     processedUsort.insert(tn);
     const std::vector<Node>* treps = rs->getTypeRepsOrNull(tn);
-    if (treps!=nullptr)
+    if (treps != nullptr)
     {
       for (const Node& r : *treps)
       {
-        Assert (r.getKind()==kind::UNINTERPRETED_SORT_VALUE);
+        Assert(r.getKind() == kind::UNINTERPRETED_SORT_VALUE);
         convert(r, true, tmpConvertMap, freshVarType, mvToFreshVar);
       }
     }
@@ -171,10 +172,11 @@ void InstStrategyMbqi::process(Node q)
     }
     if (itk->second.empty())
     {
-      Trace("mbqi") << "warning: failed to get vars for type " << tn << std::endl;
+      Trace("mbqi") << "warning: failed to get vars for type " << tn
+                    << std::endl;
       // this should never happen but we explicitly guard for it, since
       // otherwise we would be model unsound below
-      Assert (false);
+      Assert(false);
       continue;
     }
     std::vector<Node> disj;
@@ -186,7 +188,8 @@ void InstStrategyMbqi::process(Node q)
     constraints.push_back(instCardCons);
   }
 
-  // constraint: distinctness of variables introduced for uninterpreted constants
+  // constraint: distinctness of variables introduced for uninterpreted
+  // constants
   std::vector<Node> allVars;
   for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
        freshVarType)
