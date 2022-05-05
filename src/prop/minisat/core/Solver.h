@@ -288,8 +288,10 @@ public:
                      bool b);  // Declare if a variable should be eligible for
                                // selection in the decision heuristic.
 
+ // Return the decision trail
  const vec<Lit>& getMiniSatDecisions() { return trail; }
 
+ // Return the order_heap
  const std::vector<Node> getMiniSatOrderHeap();
 
  // Read state:

@@ -220,11 +220,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     if (emitZLL) 
     {
       std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT);
-      std::vector<Node>* cubes = &d_cubes;
-      if (strict)
-      {
-        cubes = &d_strict_cubes;
-      }
+      std::vector<Node>* cubes = strict ? &d_strict_cubes : &d_cubes;
+      
       for (const auto& c : *cubes)
       {
         zllLiterals.push_back(c);
