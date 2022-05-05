@@ -977,22 +977,24 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             Node eqo = curr.eqNode(next);
             transChildren.push_back(eqo);
             // ensure the proof for the substitution exists
-            addProofForSubsStep(var, subs, fromList[i], cdp);
+            addProofForSubsStep(var, subs, fromList[ii], cdp);
             // do the single step SUBS, with the same arguments
-            cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, args);
+            cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, {curr});
             curr = next;
           }
         }
         Assert(curr == ts);
         cdp->addStep(eqq, PfRule::TRANS, transChildren, {});
-        return eqq;
       }
-      Trace("smt-proof-pp-debug")
-          << "resort to TRUST_SUBS" << std::endl
-          << eq << std::endl
-          << eqq << std::endl
-          << "from " << children << " applied to " << t << std::endl;
-      cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      else
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to TRUST_SUBS" << std::endl
+            << eq << std::endl
+            << eqq << std::endl
+            << "from " << children << " applied to " << t << std::endl;
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      }
     }
     else
     {
