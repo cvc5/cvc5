@@ -226,7 +226,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node v = sm->mkPurifySkolem(
           rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
-                            den.eqNode(nm->mkConstReal(Rational(0))).negate(),
+                            den.eqNode(nm->mkConstRealOrInt(den.getType(), Rational(0))).negate(),
                             nm->mkNode(MULT, den, v).eqNode(num));
       lems.push_back(mkSkolemLemma(lem, v));
       return v;
@@ -241,7 +241,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConstReal(Rational(0)));
+        Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConstRealOrInt(den.getType(), Rational(0)));
         ret = nm->mkNode(ITE, denEq0, divByZeroNum, ret);
       }
       return ret;

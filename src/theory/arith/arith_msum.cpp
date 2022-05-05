@@ -232,6 +232,7 @@ int ArithMSum::isolate(
       }
     }
     bool inOrder = ires == 1;
+    // not safe
     veq = NodeManager::currentNM()->mkNode(
         k, inOrder ? vc : val, inOrder ? val : vc);
   }

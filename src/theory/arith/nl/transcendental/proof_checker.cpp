@@ -136,7 +136,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
-    return nm->mkNode(EQUAL, args[0].eqNode(zero), e.eqNode(one));
+    Node rzero = nm->mkConstReal(Rational(0));
+    Node rone = nm->mkConstReal(Rational(1));
+    return nm->mkNode(EQUAL, args[0].eqNode(rzero), e.eqNode(rone));
   }
   else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS)
   {
