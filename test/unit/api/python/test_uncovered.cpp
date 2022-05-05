@@ -118,7 +118,7 @@ TEST_F(TestApiBlackUncovered, termNativeTypes)
   t.getReal64Value();
 }
 
-TEST_F(TestApiBlackUncovered, term_iterators)
+TEST_F(TestApiBlackUncovered, termIterators)
 {
   Term t = d_solver.mkInteger(0);
   auto it = t.begin();
