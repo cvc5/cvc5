@@ -143,7 +143,6 @@ class PortfolioDriver
   parser::Parser* d_parser;
 };
 
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main
 
 #endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */
