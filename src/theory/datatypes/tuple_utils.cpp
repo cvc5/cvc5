@@ -145,6 +145,21 @@ std::vector<Node> TupleUtils::getTupleElements(Node tuple1, Node tuple2)
   return elements;
 }
 
+bool TupleUtils::sameProjection(const std::vector<uint32_t>& indices, Node tuple1, Node tuple2)
+{
+  Assert(tuple1.isConst() && tuple2.isConst())
+      << "Both " << tuple1 << " and " << tuple2 << " are not constants"
+      << std::endl;
+  for (uint32_t index : indices)
+  {
+    if (tuple1[index] != tuple2[index])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 Node TupleUtils::constructTupleFromElements(TypeNode tupleType,
                                             const std::vector<Node>& elements,
                                             size_t start,

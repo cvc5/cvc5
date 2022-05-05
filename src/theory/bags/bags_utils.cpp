@@ -978,36 +978,73 @@ Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
 
 Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
 {
-  Assert(n.getKind() == TABLE_JOIN);
+  Assert(n.getKind() == TABLE_GROUP);
+
+  NodeManager* nm = NodeManager::currentNM();
 
   Node A = n[0];
-  Node B = n[1];
-  auto [aIndices, bIndices] = splitTableJoinIndices(n);
+  TypeNode bagType = A.getType();
+  TypeNode partitionType = n.getType();
+  std::vector<uint32_t> indices =
+      n.getOperator().getConst<TableGroupOp>().getIndices();
 
-  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
-  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
-
-  std::map<Node, Rational> elements;
-
-  for (const auto& [a, countA] : elementsA)
+  std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
+  Trace("bags-group") << "elements: " << elements << std::endl;
+  // a simple map from elements to equivalent classes with this invariant:
+  // each key element must appear exactly once in one of the values.
+  std::map<Node, std::set<Node>> sets;
+  std::set<Node> emptyClass;
+  for (const auto& pair : elements)
   {
-    Node aProjection = TupleUtils::getTupleProjection(aIndices, a);
-    aProjection = rewriter->rewrite(aProjection);
-    Assert(aProjection.isConst());
-    for (const auto& [b, countB] : elementsB)
+    // initially each singleton element is an equivalence class
+    sets[pair.first] = {pair.first};
+  }
+  for (std::map<Node, Rational>::iterator i = elements.begin();
+       i != elements.end();
+       ++i)
+  {
+    if (sets[i->first].empty())
     {
-      Node bProjection = TupleUtils::getTupleProjection(bIndices, b);
-      bProjection = rewriter->rewrite(bProjection);
-      Assert(bProjection.isConst());
-      if (aProjection == bProjection)
+      // skip this element since its equivalent class has already been processed
+      continue;
+    }
+    std::map<Node, Rational>::iterator j = i;
+    ++j;
+    while (j != elements.end())
+    {
+      if (TupleUtils::sameProjection(indices, i->first, j->first))
       {
-        Node element = constructProductTuple(n, a, b);
-        elements[element] = countA * countB;
+        // add element j to the equivalent class
+        sets[i->first].insert(j->first);
+        // mark the equivalent class of j as processed
+        sets[j->first] = emptyClass;
       }
+      ++j;
     }
   }
 
-  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  // construct the partition parts
+  std::map<Node, Rational> parts;
+  for (std::pair<Node, std::set<Node>> pair : sets)
+  {
+    const std::set<Node>& eqc = pair.second;
+    if (eqc.empty())
+    {
+      continue;
+    }
+    std::vector<Node> bags;
+    for (const Node& node : eqc)
+    {
+      Node bag = nm->mkBag(
+          bagType.getBagElementType(), node, nm->mkConstInt(elements[node]));
+      bags.push_back(bag);
+    }
+    Node part = computeDisjointUnion(bagType, bags);
+    // each part in the partitions has multiplicity one
+    parts[part] = Rational(1);
+  }
+  Node ret = constructConstantBagFromElements(partitionType, parts);
+  Trace("bags-partition") << "ret: " << ret << std::endl;
   return ret;
 }
 
