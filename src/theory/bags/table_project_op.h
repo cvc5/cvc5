@@ -34,11 +34,41 @@ class TableProjectOp : public ProjectOp
 }; /* class TableProjectOp */
 
 /**
- * Hash function for the TupleProjectOpHashFunction objects.
+ * Hash function for the TableProjectOpHashFunction objects.
  */
 struct TableProjectOpHashFunction : public ProjectOpHashFunction
 {
-}; /* struct TupleProjectOpHashFunction */
+}; /* struct TableProjectOpHashFunction */
+
+class TableAggregateOp : public ProjectOp
+{
+ public:
+  explicit TableAggregateOp(std::vector<uint32_t> indices);
+  TableAggregateOp(const TableAggregateOp& op) = default;
+}; /* class TableAggregateOp */
+
+/**
+ * Hash function for the TableAggregateOpHashFunction objects.
+ */
+struct TableAggregateOpHashFunction : public ProjectOpHashFunction
+{
+}; /* struct TableAggregateOpHashFunction */
+
+
+class TableJoinOp : public ProjectOp
+{
+ public:
+  explicit TableJoinOp(std::vector<uint32_t> indices);
+  TableJoinOp(const TableJoinOp& op) = default;
+}; /* class TableJoinOp */
+
+/**
+ * Hash function for the TableJoinOpHashFunction objects.
+ */
+struct TableJoinOpHashFunction : public ProjectOpHashFunction
+{
+}; /* struct TableJoinOpHashFunction */
+
 
 }  // namespace cvc5::internal
 

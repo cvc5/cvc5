@@ -54,7 +54,7 @@ class BagsUtils
    * evaluate the node n to a constant value.
    * As a precondition, children of n should be constants.
    */
-  static Node evaluate(TNode n);
+  static Node evaluate(Rewriter* rewriter, TNode n);
 
   /**
    * get the elements along with their multiplicities in a given bag
@@ -94,7 +94,14 @@ class BagsUtils
    * @param n has the form (bag.partition r A) where A is a constant bag
    * @return a partition of A based on the equivalence relation r
    */
-  static Node evaluateBagPartition(Rewriter *rewriter, TNode n);
+  static Node evaluateBagPartition(Rewriter* rewriter, TNode n);
+
+  /**
+   * @param n has the form ((_ table.aggr n1 ... n_k) f initial A)
+   * where initial and A are constants
+   * @return the aggregation result.
+   */
+  static Node evaluateTableAggregate(Rewriter* rewriter, TNode n);
 
   /**
    * @param n has the form (bag.filter p A) where A is a constant bag
@@ -118,11 +125,27 @@ class BagsUtils
   static Node evaluateProduct(TNode n);
 
   /**
+   * @param n of the form ((_ table.join (m_1 n_1 ... m_k n_k) ) A B) where
+   * A, B are constants
+   * @return the evaluation of inner joining tables A B on columns (m_1, n_1,
+   * ..., m_k, n_k)
+   */
+  static Node evaluateJoin(Rewriter* rewriter, TNode n);
+
+  /**
    * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a
    * constant
    * @return the evaluation of the projection
    */
   static Node evaluateTableProject(TNode n);
+
+  /**
+   * @param n has the form ((_ table.join m1 n1 ... mk nk) A B)) where A, B are
+   * tables and m1 n1 ... mk nk are indices
+   * @return the pair <[m1 ... mk], [n1 ... nk]>
+   */
+  static std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+  splitTableJoinIndices(Node n);
 
  private:
   /**
