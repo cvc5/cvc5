@@ -137,7 +137,8 @@ namespace {
  * Provides a convenient wrapper for POSIX pipes in the context of forking.
  * The implemented mechanism is using a pipe to buffer the (standard or error)
  * output of a child process and optionally copy it to the respective output of
- * the parent process.
+ * the parent process. This wrapper closely follows
+ * http://www.microhowto.info/howto/capture_the_output_of_a_child_process_in_c.html
  */
 class Pipe
 {
@@ -157,6 +158,8 @@ class Pipe
    */
   void dup(int fd)
   {
+    // dup2 may get interrupted by a signal. If this happens the error is EINTR
+    // and we can simply try again.
     while ((dup2(d_pipe[1], fd) == -1) && (errno == EINTR))
     {
     }
