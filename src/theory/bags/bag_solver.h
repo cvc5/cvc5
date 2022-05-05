@@ -100,6 +100,8 @@ class BagSolver : protected EnvObj
   void checkFilter(Node n);
   /** apply inference rules for product operator */
   void checkProduct(Node n);
+  /** apply inference rules for join operator */
+  void checkJoin(Node n);
 
   /** The solver state object */
   SolverState& d_state;
