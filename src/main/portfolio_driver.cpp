@@ -213,7 +213,9 @@ class PortfolioProcessPool
 {
   enum class JobState
   {
-    PENDING, RUNNING, DONE
+    PENDING,
+    RUNNING,
+    DONE
   };
   /**
    * A job, consisting of the configuration, the pids of the worker and timeout
@@ -464,7 +466,7 @@ std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)
  * Used to have a reasonably concise syntax to check the current logic agains a
  * lengthy list.
  */
-template<typename... T>
+template <typename... T>
 bool isOneOf(const std::string& logic, T&&... list)
 {
   return ((logic == list) || ...);
@@ -536,7 +538,26 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
         .set("nl-ext-tplanes");
     s.add().set("decision", "internal").set("nl-ext", "none");
   }
-  else if (isOneOf(logic, "ALIA", "AUFLIA", "AUFLIRA", "AUFNIRA", "UF", "UFBVLIA", "UFIDL", "UFLIA", "UFLRA", "UFNIA", "UFDT", "UFDTLIA", "AUFDTLIA", "AUFBV", "AUFBVDTLIA", "AUFBVFP", "AUFNIA", "UFFPDTLIRA", "UFFPDTNIRA"))
+  else if (isOneOf(logic,
+                   "ALIA",
+                   "AUFLIA",
+                   "AUFLIRA",
+                   "AUFNIRA",
+                   "UF",
+                   "UFBVLIA",
+                   "UFIDL",
+                   "UFLIA",
+                   "UFLRA",
+                   "UFNIA",
+                   "UFDT",
+                   "UFDTLIA",
+                   "AUFDTLIA",
+                   "AUFBV",
+                   "AUFBVDTLIA",
+                   "AUFBVFP",
+                   "AUFNIA",
+                   "UFFPDTLIRA",
+                   "UFFPDTNIRA"))
   {
     // initial runs
     s.add(0.025).set("simplifications", "none").set("enum-inst");
@@ -546,7 +567,10 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.025).set("relevant-triggers").set("enum-inst");
     s.add(0.025).set("trigger-sel", "max").set("enum-inst");
     s.add(0.025).set("multi-trigger-when-single").set("enum-inst");
-    s.add(0.025).set("multi-trigger-when-single").set("multi-trigger-priority").set("enum-inst");
+    s.add(0.025)
+        .set("multi-trigger-when-single")
+        .set("multi-trigger-priority")
+        .set("enum-inst");
     s.add(0.025).set("multi-trigger-cache").set("enum-inst");
     s.add(0.025).unset("multi-trigger-linear").set("enum-inst");
     // other
@@ -554,14 +578,25 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.025).set("inst-when", "full").set("enum-inst");
     s.add(0.025).unset("e-matching").unset("cbqi").set("enum-inst");
     s.add(0.025).set("enum-inst").set("quant-ind");
-    s.add(0.025).set("decision", "internal").set("simplification", "none").unset("inst-no-entail").unset("cbqi").set("enum-inst");
-    s.add(0.025).set("decision", "internal").set("enum-inst").set("enum-inst-sum");
+    s.add(0.025)
+        .set("decision", "internal")
+        .set("simplification", "none")
+        .unset("inst-no-entail")
+        .unset("cbqi")
+        .set("enum-inst");
+    s.add(0.025)
+        .set("decision", "internal")
+        .set("enum-inst")
+        .set("enum-inst-sum");
     s.add(0.025).set("term-db-mode", "relevant").set("enum-inst");
     s.add(0.025).set("enum-inst-interleave").set("enum-inst");
     // finite model find
     s.add(0.025).set("finite-model-find").set("mbqi", "none");
     s.add(0.025).set("finite-model-find").set("decision", "internal");
-    s.add(0.025).set("finite-model-find").set("macros-quant").set("macros-quant-mode", "all");
+    s.add(0.025)
+        .set("finite-model-find")
+        .set("macros-quant")
+        .set("macros-quant-mode", "all");
     s.add(0.05).set("finite-model-find").set("e-matching");
     // long runs
     s.add(0.2).set("finite-model-find").set("decision", "internal");
@@ -571,15 +606,22 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   {
     // most problems in UFBV are essentially BV
     s.add(0.25).set("sygus-inst");
-    s.add(0.25).set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
-    s.add(0.025).set("enum-inst").unset("cegqi-innermost").set("global-negate");;
+    s.add(0.25)
+        .set("enum-inst")
+        .set("cegqi-nested-qe")
+        .set("decision", "internal");
+    s.add(0.025).set("enum-inst").unset("cegqi-innermost").set("global-negate");
+    ;
     s.add().set("finite-model-find");
   }
   else if (isOneOf(logic, "ABV", "BV"))
   {
     s.add(0.1).set("enum-inst");
     s.add(0.1).set("sygus-inst");
-    s.add(0.25).set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
+    s.add(0.25)
+        .set("enum-inst")
+        .set("cegqi-nested-qe")
+        .set("decision", "internal");
     s.add(0.025).set("enum-inst").unset("cegqi-bv");
     s.add(0.025).set("enum-inst").set("cegqi-bv-ineq", "eq-slack");
     s.add().set("enum-inst").unset("cegqi-innermost").set("global-negate");
@@ -602,9 +644,17 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_ABV"))
   {
-    s.add(0.05).set("ite-simp").set("simp-with-care").set("repeat-simp").set("arrays-weak-equiv");
+    s.add(0.05)
+        .set("ite-simp")
+        .set("simp-with-care")
+        .set("repeat-simp")
+        .set("arrays-weak-equiv");
     s.add(0.5).set("arrays-weak-equiv");
-    s.add().set("ite-simp").set("simp-with-care").set("repeat-simp").set("arrays-weak-equiv");
+    s.add()
+        .set("ite-simp")
+        .set("simp-with-care")
+        .set("repeat-simp")
+        .set("arrays-weak-equiv");
   }
   else if (isOneOf(logic, "QF_BV", "QF_UFBV"))
   {
@@ -612,31 +662,50 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_AUFLIA"))
   {
-    s.add().unset("arrays-eager-index").set("arrays-eager-lemmas").set("decision", "justification");
+    s.add()
+        .unset("arrays-eager-index")
+        .set("arrays-eager-lemmas")
+        .set("decision", "justification");
   }
   else if (isOneOf(logic, "QF_AX"))
   {
-    s.add().unset("arrays-eager-index").set("arrays-eager-lemmas").set("decision", "internal");
+    s.add()
+        .unset("arrays-eager-index")
+        .set("arrays-eager-lemmas")
+        .set("decision", "internal");
   }
   else if (isOneOf(logic, "QF_AUFNIA"))
   {
-    s.add().set("decision", "justification").unset("arrays-eager-index").set("arrays-eager-lemmas");
+    s.add()
+        .set("decision", "justification")
+        .unset("arrays-eager-index")
+        .set("arrays-eager-lemmas");
   }
   else if (isOneOf(logic, "QF_ALIA"))
   {
     s.add(0.15).set("decision", "justification").set("arrays-weak-equiv");
-    s.add().set("decision", "justification-stoponly").unset("arrays-eager-index").set("arrays-eager-lemmas");
+    s.add()
+        .set("decision", "justification-stoponly")
+        .unset("arrays-eager-index")
+        .set("arrays-eager-lemmas");
   }
   else if (isOneOf(logic, "QF_S", "QF_SLIA"))
   {
     s.add(0.25).set("strings-exp").set("strings-fmf").unset("jh-rlv-order");
     s.add().set("strings-exp").unset("jh-rlv-order");
   }
-  else if (isOneOf(logic, "QF_ABVFP", "QF_ABVFPLRA", "QF_BVFP", "QF_BVFPLRA", "QF_FP", "QF_FPLRA"))
+  else if (isOneOf(logic,
+                   "QF_ABVFP",
+                   "QF_ABVFPLRA",
+                   "QF_BVFP",
+                   "QF_BVFPLRA",
+                   "QF_FP",
+                   "QF_FPLRA"))
   {
     s.add().set("fp-exp");
   }
-  else{
+  else
+  {
     s.add();
   }
   return s;
