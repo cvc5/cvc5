@@ -912,6 +912,7 @@ public:
   }
 
   static Polynomial parsePolynomial(Node n) {
+    n = n.getKind()==kind::TO_REAL ? n[0] : n;
     return Polynomial(n);
   }
 

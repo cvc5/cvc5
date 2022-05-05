@@ -30,6 +30,14 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+Node mkEquality(Node a, Node b)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node diff = nm->mkNode(kind::SUB, a, b);
+  return nm->mkNode(
+      kind::EQUAL, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
+}
+
 MonomialCheck::MonomialCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
@@ -724,13 +732,13 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
   Assert(a.getType().isComparableTo(b.getType()));
   if (status == 0)
   {
-    Node a_eq_b = a.eqNode(b);
+    Node a_eq_b = mkEquality(a, b);
     if (!isAbsolute)
     {
       return a_eq_b;
     }
     Node negate_b = nm->mkNode(Kind::NEG, b);
-    return a_eq_b.orNode(a.eqNode(negate_b));
+    return a_eq_b.orNode(mkEquality(a, negate_b));
   }
   else if (status < 0)
   {
