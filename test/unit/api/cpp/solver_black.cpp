@@ -1759,6 +1759,13 @@ TEST_F(TestApiBlackSolver, getStatistics)
   }
 }
 
+TEST_F(TestApiBlackSolver, printStatisticsSafe)
+{
+  testing::internal::CaptureStdout();
+  d_solver.printStatisticsSafe(STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
+}
+
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
   d_solver.setOption("incremental", "false");

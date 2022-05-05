@@ -19,6 +19,7 @@
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
 #include "table_project_op.h"
+#include "theory/bags/bag_reduction.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
@@ -118,7 +119,7 @@ bool BagsUtils::areChildrenConstants(TNode n)
   return std::all_of(n.begin(), n.end(), [](Node c) { return c.isConst(); });
 }
 
-Node BagsUtils::evaluate(TNode n)
+Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
 {
   Assert(areChildrenConstants(n));
   if (n.isConst())
@@ -144,6 +145,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
+    case TABLE_JOIN: return evaluateJoin(rewriter, n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
@@ -879,9 +881,22 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
   return ret;
 }
 
+Node BagsUtils::evaluateTableAggregate(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_AGGREGATE);
+  if (!(n[1].isConst() && n[2].isConst()))
+  {
+    // we can't proceed further.
+    return n;
+  }
+
+  Node reduction = BagReduction::reduceAggregateOperator(n);
+  return reduction;
+}
+
 Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
 {
-  Assert(n.getKind() == TABLE_PRODUCT);
+  Assert(n.getKind() == TABLE_PRODUCT || n.getKind() == TABLE_JOIN);
   Node A = n[0];
   Node B = n[1];
   TypeNode typeA = A.getType().getBagElementType();
@@ -925,6 +940,41 @@ Node BagsUtils::evaluateProduct(TNode n)
   return ret;
 }
 
+Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+
+  Node A = n[0];
+  Node B = n[1];
+  auto [aIndices, bIndices] = splitTableJoinIndices(n);
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
+
+  std::map<Node, Rational> elements;
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    Node aProjection = TupleUtils::getTupleProjection(aIndices, a);
+    aProjection = rewriter->rewrite(aProjection);
+    Assert(aProjection.isConst());
+    for (const auto& [b, countB] : elementsB)
+    {
+      Node bProjection = TupleUtils::getTupleProjection(bIndices, b);
+      bProjection = rewriter->rewrite(bProjection);
+      Assert(bProjection.isConst());
+      if (aProjection == bProjection)
+      {
+        Node element = constructProductTuple(n, a, b);
+        elements[element] = countA * countB;
+      }
+    }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
 Node BagsUtils::evaluateTableProject(TNode n)
 {
   Assert(n.getKind() == TABLE_PROJECT);
@@ -953,6 +1003,24 @@ Node BagsUtils::evaluateTableProject(TNode n)
 
   Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
   return ret;
+}
+
+std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+BagsUtils::splitTableJoinIndices(Node n)
+{
+  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
+  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  size_t joinSize = indices.size() / 2;
+  std::vector<uint32_t> indices1(joinSize), indices2(joinSize);
+
+  for (size_t i = 0, index = 0; i < joinSize; i += 2, ++index)
+  {
+    indices1[index] = indices[i];
+    indices2[index] = indices[i + 1];
+  }
+  return std::make_pair(indices1, indices2);
 }
 
 }  // namespace bags

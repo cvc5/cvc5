@@ -251,14 +251,11 @@ bool TheoryArith::needsCheckLastEffort() {
 
 TrustNode TheoryArith::explain(TNode n)
 {
-  if (options().arith.arithEqSolver)
+  // if the equality solver has an explanation for it, use it
+  TrustNode texp = d_eqSolver->explain(n);
+  if (!texp.isNull())
   {
-    // if the equality solver has an explanation for it, use it
-    TrustNode texp = d_eqSolver->explain(n);
-    if (!texp.isNull())
-    {
-      return texp;
-    }
+    return texp;
   }
   return d_internal->explain(n);
 }
