@@ -462,6 +462,17 @@ std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)
   return os;
 }
 
+/**
+ * Check if the first string (the logic) is one of the remaining strings.
+ * Used to have a reasonably concise syntax to check the current logic agains a
+ * lengthy list.
+ */
+template<typename... T>
+bool isOneOf(const std::string& logic, T&&... list)
+{
+  return ((logic == list) || ...);
+}
+
 PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
 {
   PortfolioStrategy s;
