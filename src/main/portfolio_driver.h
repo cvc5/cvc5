@@ -145,4 +145,4 @@ class PortfolioDriver
 
 }  // namespace cvc5::main
 
-#endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */
+#endif /* CVC5__MAIN__PORTFOLIO_DRIVER_H */
