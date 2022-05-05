@@ -3811,6 +3811,37 @@ enum Kind : int32_t
    * \endrst
    */
   TABLE_JOIN,
+  /**
+   * Table group
+   *
+   * \rst
+   * :math:`((\_ \; table.group \; n_1 \; \dots \; n_k) \; A)` partitions tuples
+   * of table :math:`A` such that tuples that have the same projection
+   * with indices :math:`n_1 \; \dots \; n_k` are in the same part.
+   * It returns a bag of tables of type :math:`(Bag \; T)` where
+   * :math:`T` is the type of :math:`A`.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of table sort
+   *
+   * - Indices: ``n``
+   *
+   *   - ``1..n:``  Indices of the projection
+   *
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  TABLE_GROUP,
   /* Strings --------------------------------------------------------------- */
 
   /**

@@ -726,6 +726,39 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm, TNode n, bool check)
   return nm->mkBagType(retTupleType);
 }
 
+TypeNode TableGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+{
+  Assert(n.getKind() == kind::TABLE_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == kind::TABLE_GROUP_OP);
+  TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode bagType = n[0].getType(check);
+
+  if (check)
+  {
+    if (!bagType.isBag())
+    {
+      std::stringstream ss;
+      ss << "TABLE_GROUP operator expects a table. Found '" << n[2]
+         << "' of type '" << bagType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = bagType.getBagElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "TABLE_GROUP operator expects a table. Found '" << n[2]
+         << "' of type '" << bagType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TupleUtils::checkTypeIndices(n, tupleType, indices);
+  }
+  return nm->mkBagType(bagType);
+}
+
 Cardinality BagsProperties::computeCardinality(TypeNode type)
 {
   return Cardinality::INTEGERS;

@@ -80,6 +80,7 @@ void BagSolver::checkBasicOperations()
         case kind::BAG_MAP: checkMap(n); break;
         case kind::TABLE_PRODUCT: checkProduct(n); break;
         case kind::TABLE_JOIN: checkJoin(n); break;
+        case kind::TABLE_GROUP: checkGroup(n); break;
         default: break;
       }
       it++;
@@ -337,6 +338,30 @@ void BagSolver::checkProduct(Node n)
 }
 
 void BagSolver::checkJoin(Node n)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+  const set<Node>& elementsA = d_state.getElements(n[0]);
+  const set<Node>& elementsB = d_state.getElements(n[1]);
+
+  for (const Node& e1 : elementsA)
+  {
+    for (const Node& e2 : elementsB)
+    {
+      InferInfo i = d_ig.joinUp(
+          n, d_state.getRepresentative(e1), d_state.getRepresentative(e2));
+      d_im.lemmaTheoryInference(&i);
+    }
+  }
+
+  std::set<Node> elements = d_state.getElements(n);
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.joinDown(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+}
+
+void BagSolver::checkGroup(Node n)
 {
   Assert(n.getKind() == TABLE_JOIN);
   const set<Node>& elementsA = d_state.getElements(n[0]);

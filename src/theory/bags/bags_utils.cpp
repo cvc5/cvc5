@@ -146,6 +146,7 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
     case TABLE_JOIN: return evaluateJoin(rewriter, n);
+    case TABLE_GROUP: return evaluateGroup(rewriter, n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
@@ -941,6 +942,41 @@ Node BagsUtils::evaluateProduct(TNode n)
 }
 
 Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+
+  Node A = n[0];
+  Node B = n[1];
+  auto [aIndices, bIndices] = splitTableJoinIndices(n);
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
+
+  std::map<Node, Rational> elements;
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    Node aProjection = TupleUtils::getTupleProjection(aIndices, a);
+    aProjection = rewriter->rewrite(aProjection);
+    Assert(aProjection.isConst());
+    for (const auto& [b, countB] : elementsB)
+    {
+      Node bProjection = TupleUtils::getTupleProjection(bIndices, b);
+      bProjection = rewriter->rewrite(bProjection);
+      Assert(bProjection.isConst());
+      if (aProjection == bProjection)
+      {
+        Node element = constructProductTuple(n, a, b);
+        elements[element] = countA * countB;
+      }
+    }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
+Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
 {
   Assert(n.getKind() == TABLE_JOIN);
 

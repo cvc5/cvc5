@@ -152,6 +152,16 @@ constant TABLE_JOIN_OP \
 
 parameterized TABLE_JOIN TABLE_JOIN_OP 2 "table join"
 
+# table.group operator
+constant TABLE_GROUP_OP \
+  class \
+  TableGroupOp \
+  ::cvc5::internal::TableGroupOpHashFunction \
+  "theory/bags/table_project_op.h" \
+  "operator for TABLE_GROUP; payload is an instance of the cvc5::internal::TableGroupOp class"
+
+parameterized TABLE_GROUP TABLE_GROUP_OP 1 "table group"
+
 typerule TABLE_PRODUCT              ::cvc5::internal::theory::bags::TableProductTypeRule
 typerule TABLE_PROJECT_OP           "SimpleTypeRule<RBuiltinOperator>"
 typerule TABLE_PROJECT              ::cvc5::internal::theory::bags::TableProjectTypeRule
@@ -159,5 +169,7 @@ typerule TABLE_AGGREGATE_OP         "SimpleTypeRule<RBuiltinOperator>"
 typerule TABLE_AGGREGATE            ::cvc5::internal::theory::bags::TableAggregateTypeRule
 typerule TABLE_JOIN_OP              "SimpleTypeRule<RBuiltinOperator>"
 typerule TABLE_JOIN                 ::cvc5::internal::theory::bags::TableJoinTypeRule
+typerule TABLE_GROUP_OP             "SimpleTypeRule<RBuiltinOperator>"
+typerule TABLE_GROUP                ::cvc5::internal::theory::bags::TableGroupTypeRule
 
 endtheory

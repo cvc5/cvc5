@@ -216,6 +216,11 @@ struct TableJoinTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct TableJoinTypeRule */
 
+struct TableGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableGroupTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type);

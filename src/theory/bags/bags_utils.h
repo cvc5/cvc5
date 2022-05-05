@@ -132,6 +132,8 @@ class BagsUtils
    */
   static Node evaluateJoin(Rewriter* rewriter, TNode n);
 
+  static Node evaluateGroup(Rewriter* rewriter, TNode n);
+
   /**
    * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a
    * constant

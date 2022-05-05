@@ -837,6 +837,21 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  case kind::TABLE_GROUP:
+  {
+    TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.group A)
+      out << "table.group " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.group 0 1 2 3) A)
+      out << "(_ table.group" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];
@@ -1219,6 +1234,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::TABLE_PROJECT: return "table.project";
   case kind::TABLE_AGGREGATE: return "table.aggr";
   case kind::TABLE_JOIN: return "table.join";
+  case kind::TABLE_GROUP: return "table.group";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
