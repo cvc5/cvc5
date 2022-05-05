@@ -978,7 +978,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             transChildren.push_back(eqo);
             // ensure the proof for the substitution exists
             addProofForSubsStep(var, subs, fromList[ii], cdp);
-            // do the single step SUBS, with the same arguments
+            // do the single step SUBS on curr
             cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, {curr});
             curr = next;
           }
