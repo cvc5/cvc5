@@ -227,7 +227,7 @@ Node OperatorElim::eliminateOperators(Node node,
           rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(mkZero(den.getType())).negate(),
-                            nm->mkNode(MULT, den, v).eqNode(num));
+                            mkEquality(nm->mkNode(MULT, den, v), num));
       lems.push_back(mkSkolemLemma(lem, v));
       return v;
       break;

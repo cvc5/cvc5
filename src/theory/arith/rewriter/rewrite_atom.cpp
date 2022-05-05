@@ -316,11 +316,13 @@ Node buildRealEquality(Sum&& sum)
   {
     s.second = s.second / lcoeff;
   }
+  Node lhs = lterm.first;
+  lhs = ensureReal(lhs);
   Node rhs = collectSum(sum);
   rhs = ensureReal(rhs);
-  Assert(lterm.first.getType().isReal() && !lterm.first.getType().isInteger());
+  Assert(lhs.getType().isReal() && !lhs.getType().isInteger());
   Assert(rhs.getType().isReal() && !rhs.getType().isInteger());
-  return buildRelation(Kind::EQUAL, lterm.first, rhs);
+  return buildRelation(Kind::EQUAL, lhs, rhs);
 }
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
