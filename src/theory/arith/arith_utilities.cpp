@@ -354,10 +354,10 @@ Node multConstants(const Node& c1, const Node& c2)
 Node mkEquality(Node a, Node b)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert (a.getType().isRealOrInt());
-  Assert (b.getType().isRealOrInt());
+  Assert(a.getType().isRealOrInt());
+  Assert(b.getType().isRealOrInt());
   // if they have the same type, just make them equal
-  if (a.getType()==b.getType())
+  if (a.getType() == b.getType())
   {
     return nm->mkNode(EQUAL, a, b);
   }
