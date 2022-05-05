@@ -101,9 +101,8 @@ void ExponentialSolver::checkInitialRefine()
           Node rzero = nm->mkConstReal(Rational(0));
           Node rone = nm->mkConstReal(Rational(1));
           // exp at zero: (t = 0.0) <=> (exp(t) = 1.0)
-          Node lem = nm->mkNode(Kind::EQUAL,
-                                t[0].eqNode(rzero),
-                                t.eqNode(rone));
+          Node lem =
+              nm->mkNode(Kind::EQUAL, t[0].eqNode(rzero), t.eqNode(rone));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -132,8 +131,7 @@ void ExponentialSolver::checkInitialRefine()
           Node lem = nm->mkNode(
               Kind::OR,
               nm->mkNode(Kind::LEQ, t[0], zero),
-              nm->mkNode(
-                  Kind::GT, t, nm->mkNode(Kind::ADD, t[0], one)));
+              nm->mkNode(Kind::GT, t, nm->mkNode(Kind::ADD, t[0], one)));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -282,19 +280,17 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node one = nm->mkConstInt(Rational(1));
     // pick c-1
-    bounds.first = rewrite(
-        nm->mkNode(Kind::SUB, center, one));
+    bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
   }
   if (bounds.second.isNull())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node one = nm->mkConstInt(Rational(1));
     // pick c+1
-    bounds.second = rewrite(
-        nm->mkNode(Kind::ADD, center, one));
+    bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
   }
   return bounds;
 }

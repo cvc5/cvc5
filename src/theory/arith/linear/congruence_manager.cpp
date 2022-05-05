@@ -399,7 +399,8 @@ void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
 {
   std::set<TNode>::const_iterator it = s.begin();
   std::set<TNode>::const_iterator it_end = s.end();
-  for(; it != it_end; ++it) {
+  for (; it != it_end; ++it)
+  {
     nb << *it;
   }
 }
