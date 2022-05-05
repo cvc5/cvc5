@@ -476,7 +476,7 @@ bool isOneOf(const std::string& logic, T&&... list)
 PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
 {
   PortfolioStrategy s;
-  if (logic == "QF_LRA")
+  if (isOneOf(logic, "QF_LRA"))
   {
     s.add(0.2)
         .set("miplib-trick")
@@ -494,7 +494,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
         .set("new-prop")
         .set("unconstrained-simp");
   }
-  else if (logic == "QF_LIA")
+  else if (isOneOf(logic, "QF_LIA"))
   {
     s.add()
         .set("miplib-trick")
@@ -510,7 +510,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
         .set("ite-simp")
         .set("simp-ite-compress");
   }
-  else if (logic == "QF_NIA")
+  else if (isOneOf(logic, "QF_NIA"))
   {
     s.add(0.35).set("nl-ext-tplanes").set("decision", "justification");
     s.add(0.05).set("nl-ext-tplanes").set("decision", "internal");
@@ -527,7 +527,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.5).set("solve-int-as-bv", "32").set("bitblast", "eager");
     s.add().set("nl-ext-tplanes").set("decision", "internal");
   }
-  else if (logic == "QF_NRA")
+  else if (isOneOf(logic, "QF_NRA"))
   {
     s.add(0.5).set("decision", "justification");
     s.add(0.25)
@@ -536,6 +536,37 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
         .set("nl-ext", "full")
         .set("nl-ext-tplanes");
     s.add().set("decision", "internal").set("nl-ext", "none");
+  }
+  else if (isOneOf(logic, "ALIA", "AUFLIA", "AUFLIRA", "AUFNIRA", "UF", "UFBVLIA", "UFIDL", "UFLIA", "UFLRA", "UFNIA", "UFDT", "UFDTLIA", "AUFDTLIA", "AUFBV", "AUFBVDTLIA", "AUFBVFP", "AUFNIA", "UFFPDTLIRA", "UFFPDTNIRA"))
+  {
+    // initial runs
+    s.add(0.025).set("simplifications", "none").set("enum-inst");
+    s.add(0.025).set("e-matching", "false").set("enum-inst");
+    s.add(0.025).set("e-matching", "false").set("enum-inst").set("enum-inst-sum");
+    // trigger selections
+    s.add(0.025).set("relevant-triggers").set("enum-inst");
+    s.add(0.025).set("trigger-sel", "max").set("enum-inst");
+    s.add(0.025).set("multi-trigger-when-single").set("enum-inst");
+    s.add(0.025).set("multi-trigger-when-single").set("multi-trigger-priority").set("enum-inst");
+    s.add(0.025).set("multi-trigger-cache").set("enum-inst");
+    s.add(0.025).set("multi-trigger-linear", "false").set("enum-inst");
+    // other
+    s.add(0.025).set("pre-skolem-quant").set("enum-inst");
+    s.add(0.025).set("inst-when", "full").set("enum-inst");
+    s.add(0.025).set("e-matching", "false").set("cbqi", "false").set("enum-inst");
+    s.add(0.025).set("enum-inst").set("quant-ind");
+    s.add(0.025).set("decision", "internal").set("simplification", "none").set("inst-no-entail", "false").set("cbqi", "false").set("enum-inst");
+    s.add(0.025).set("decision", "internal").set("enum-inst").set("enum-inst-sum");
+    s.add(0.025).set("term-db-mode", "relevant").set("enum-inst");
+    s.add(0.025).set("enum-inst-interleave").set("enum-inst");
+    // finite model find
+    s.add(0.025).set("finite-model-find").set("mbqi", "none");
+    s.add(0.025).set("finite-model-find").set("decision", "internal");
+    s.add(0.025).set("finite-model-find").set("macros-quant").set("macros-quant-mode", "all");
+    s.add(0.05).set("finite-model-find").set("e-matching");
+    // long runs
+    s.add(0.2).set("finite-model-find").set("decision", "internal");
+    s.add().set("enum-inst");
   }
   return s;
 }
