@@ -993,7 +993,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
         {
           elim = NodeManager::currentNM()->mkNode(kind::TO_REAL, elim);
         }
-        Assert (elim.getType()==minVar.getType());
+        Assert(elim.getType() == minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }

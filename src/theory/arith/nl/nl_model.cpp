@@ -1014,7 +1014,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 
 void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
   // we first update the map to the extended one.
@@ -1040,7 +1040,7 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
     else
     {
       // overwrite, ensure the type is correct
-      Assert (l.isConst());
+      Assert(l.isConst());
       Node ll = nm->mkConstRealOrInt(v.getType(), l.getConst<Rational>());
       arithModel[v] = ll;
       Trace("nl-model") << v << " exact approximation is " << ll << std::endl;

@@ -175,7 +175,7 @@ void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
     Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
     output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
   }
-  Assert (lhs.getType()==rhs.getType());
+  Assert(lhs.getType() == rhs.getType());
 }
 
 void PropEngine::assertInputFormulas(
