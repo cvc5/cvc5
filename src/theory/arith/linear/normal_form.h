@@ -911,7 +911,9 @@ public:
     }
   }
 
-  static Polynomial parsePolynomial(Node n) {
+  static Polynomial parsePolynomial(Node n)
+  {
+    // required to remove TO_REAL here since equalities may require casts
     n = n.getKind() == kind::TO_REAL ? n[0] : n;
     return Polynomial(n);
   }
