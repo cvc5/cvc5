@@ -958,20 +958,21 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       // this can happen in very rare cases where e.g. x -> a; f(x) -> b
       // and t*{x -> a} = t*{x -> a}*{f(x) -> b} != t*{x -> a, f(x) -> b}
-      if (ida==MethodId::SBA_SEQUENTIAL && vsList.size()>1)
+      if (ida == MethodId::SBA_SEQUENTIAL && vsList.size() > 1)
       {
-        Trace("smt-proof-pp-debug") << "resort to sequential reconstruction" << std::endl;
+        Trace("smt-proof-pp-debug")
+            << "resort to sequential reconstruction" << std::endl;
         // just do the naive sequential substitution,
         // (SUBS F1 ... Fn t) ---> (TRANS (SUBS F1 t) ... (SUBS Fn tn))
         Node curr = t;
         std::vector<Node> transChildren;
         for (size_t i = 0, nvs = vsList.size(); i < nvs; i++)
         {
-          size_t ii = nvs-1-i;
+          size_t ii = nvs - 1 - i;
           TNode var = vsList[ii];
           TNode subs = ssList[ii];
           Node next = curr.substitute(var, subs);
-          if (next!=curr)
+          if (next != curr)
           {
             Node eqo = curr.eqNode(next);
             transChildren.push_back(eqo);
@@ -982,15 +983,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             curr = next;
           }
         }
-        Assert (curr==ts);
+        Assert(curr == ts);
         cdp->addStep(eqq, PfRule::TRANS, transChildren, {});
         return eqq;
       }
-      Assert (false);
-      Trace("smt-proof-pp-debug") << "resort to TRUST_SUBS" << std::endl
-                << eq << std::endl
-                << eqq << std::endl
-                << "from " << children << " applied to " << t << std::endl;
+      Assert(false);
+      Trace("smt-proof-pp-debug")
+          << "resort to TRUST_SUBS" << std::endl
+          << eq << std::endl
+          << eqq << std::endl
+          << "from " << children << " applied to " << t << std::endl;
       cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
     }
     else
