@@ -1404,8 +1404,17 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
   if (opts.quantifiers.mbqi)
   {
-    notifyModifyOption("cegqi", "false", "mbqi");
-    opts.quantifiers.cegqi = false;
+    // MBQI is an alternative to CEGQI/SyQI
+    if (!opts.quantifiers.cegqiWasSetByUser)
+    {
+      notifyModifyOption("cegqi", "false", "mbqi");
+      opts.quantifiers.cegqi = false;
+    }
+    if (!opts.quantifiers.sygusInstWasSetByUser)
+    {
+      notifyModifyOption("sygusInst", "false", "mbqi");
+      opts.quantifiers.sygusInst = false;
+    }
   }
 
   if (opts.quantifiers.fmfBoundLazyWasSetByUser
