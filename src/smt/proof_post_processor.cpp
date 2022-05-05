@@ -962,7 +962,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       {
         Trace("smt-proof-pp-debug")
             << "resort to sequential reconstruction" << std::endl;
-        // just do the naive sequential substitution,
+        // just do the naive sequential reconstruction,
         // (SUBS F1 ... Fn t) ---> (TRANS (SUBS F1 t) ... (SUBS Fn tn))
         Node curr = t;
         std::vector<Node> transChildren;
@@ -978,7 +978,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             transChildren.push_back(eqo);
             // ensure the proof for the substitution exists
             addProofForSubsStep(var, subs, fromList[ii], cdp);
-            // do the single step SUBS on curr
+            // do the single step SUBS on curr with the default arguments
             cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, {curr});
             curr = next;
           }
