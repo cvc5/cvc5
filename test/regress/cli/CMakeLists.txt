@@ -812,6 +812,7 @@ set(regress_0_tests
   regress0/nl/issue8691-msum-subtypes.smt2
   regress0/nl/issue8691-3-msum-subtypes.smt2
   regress0/nl/issue8692-idem-flatten.smt2
+  regress0/nl/issue8712-div-toreal-rew.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1812,6 +1813,10 @@ set(regress_1_tests
   regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
+  regress1/bags/table_aggregate1.smt2
+  regress1/bags/table_join1.smt2
+  regress1/bags/table_join2.smt2
+  regress1/bags/table_join3.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
