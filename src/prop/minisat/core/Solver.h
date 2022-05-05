@@ -291,7 +291,9 @@ public:
  // Return the decision trail
  const vec<Lit>& getMiniSatDecisions() { return trail; }
 
- // Return the order_heap
+ // Return the order_heap, which is a priority queue of variables ordered with
+ // respect to the variable activity. The order heap is made available here
+ // in order to make partitions based on the literals contained in the heap.
  const std::vector<Node> getMiniSatOrderHeap();
 
  // Read state:

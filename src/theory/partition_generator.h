@@ -59,18 +59,22 @@ class PartitionGenerator : protected EnvObj
 
   /**
    * Partition using the "revised" strategy, which emits cubes such as C1, C2,
-   * C3, !C1 & !C2 & !C3. If strict is set to true, a modified version of this emits
-   * "strict cubes:" C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3.
+   * C3, !C1 & !C2 & !C3. If strict is set to true, a modified version of this
+   * emits "strict cubes:" C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3. If
+   * emitZLL is set to true, then zero-level learned literals will be appended
+   * to the cubes.
    */
   TrustNode makeRevisedPartitions(bool strict, bool emitZLL);
 
   /**
-   * Partition by taking a list of literals and emitting mutually exclusive cubes 
-   * that resemble entries in a truth table: 
+   * Partition by taking a list of literals and emitting mutually exclusive
+   * cubes that resemble entries in a truth table: 
    * C1: { l1, !l2}
-   * C2: { l1,  l2} 
-   * C3: {!l1, !l2} 
-   * C4: {!l1,  l2} 
+   * C2: { l1,  l2}
+   * C3: {!l1, !l2}
+   * C4: {!l1,  l2}
+   * If emitZLL is set to true, then zero-level learned literals will be
+   * appended to the cubes.
    */
   TrustNode makeFullTrailPartitions(LiteralListType litType, bool emitZLL);
 
