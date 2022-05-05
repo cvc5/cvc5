@@ -18,9 +18,10 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/partial_model.h"
-#include "theory/arith/theory_arith.h"
 #include "theory/arith/linear/theory_arith_private.h"
+#include "theory/arith/theory_arith.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
@@ -93,7 +94,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
       eq_rhs = nm->mkNode(MULT, lhs_coeff, eq_rhs);
     }
   }
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = arith::mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Node val;
   TermProperties pv_prop;
@@ -689,7 +690,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   // solve updated rewritten equality for vars[index], if coefficient is one,
   // then we are successful
   Node eq_rhs = sf.d_subs[index];
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = arith::mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map<Node, Node> msum;

@@ -351,6 +351,13 @@ Node multConstants(const Node& c1, const Node& c2)
       tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
 }
 
+Node mkEquality(Node a, Node b)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node diff = nm->mkNode(Kind::SUB, a, b);
+  return nm->mkNode(EQUAL, diff, mkZero(diff.getType()));
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
