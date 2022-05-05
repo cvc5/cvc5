@@ -58,7 +58,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << std::unordered_set<Term>{x, x};
 }
 
-TEST_F(TestApiBlackUncovered, datatype_api)
+TEST_F(TestApiBlackUncovered, datatypeApi)
 {
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
