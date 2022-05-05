@@ -99,7 +99,7 @@ TEST_F(TestApiBlackUncovered, datatypeApi)
   }
 }
 
-TEST_F(TestApiBlackUncovered, term_native_types)
+TEST_F(TestApiBlackUncovered, termNativeTypes)
 {
   Term t = d_solver.mkInteger(0);
   d_solver.mkReal(0);
