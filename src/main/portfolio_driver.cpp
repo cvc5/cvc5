@@ -237,7 +237,7 @@ class PortfolioProcessPool
                        std::vector<std::unique_ptr<cvc5::Command>>&& cmds)
       : d_ctx(ctx),
         d_commands(std::move(cmds)),
-        d_numJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
+        d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
         d_timeout(ctx.solver().getOptionInfo("tlimit").uintValue())
   {
   }
@@ -259,7 +259,7 @@ class PortfolioProcessPool
       }
 
       // While we can start jobs right now
-      while (d_nextJob < d_jobs.size() && d_running < d_numJobs)
+      while (d_nextJob < d_jobs.size() && d_running < d_maxJobs)
       {
         startNextJob();
       }
@@ -398,7 +398,7 @@ class PortfolioProcessPool
   size_t d_nextJob = 0;
   /** The number of currently running jobs */
   size_t d_running = 0;
-  const uint64_t d_numJobs;
+  const uint64_t d_maxJobs;
   const uint64_t d_timeout;
 };
 
