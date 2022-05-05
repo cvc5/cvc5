@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__MODEL_ORACLE_H
-#define CVC5__THEORY__QUANTIFIERS__MODEL_ORACLE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_MBQI_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_MBQI_H
 
 #include <map>
 #include <unordered_map>
@@ -98,4 +98,4 @@ class InstStrategyMbqi : public QuantifiersModule
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__QUANTIFIERS__MODEL_ORACLE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_MBQI_H */
