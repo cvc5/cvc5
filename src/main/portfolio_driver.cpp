@@ -87,8 +87,9 @@ std::vector<std::unique_ptr<cvc5::Command>> ExecutionContext::parseCommands(
   std::vector<std::unique_ptr<cvc5::Command>> res;
   while (true)
   {
-    res.emplace_back(parser->nextCommand());
-    if (!res.back()) break;
+    std::unique_ptr<cvc5::Command> cmd(parser->nextCommand());
+    if (!cmd) break;
+    res.emplace_back(std::move(cmd));
     if (dynamic_cast<cvc5::QuitCommand*>(res.back().get()) != nullptr)
     {
       break;
