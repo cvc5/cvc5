@@ -24,8 +24,7 @@
 #include "parser/parser.h"
 #include "smt/command.h"
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 
 /**
  * Holds the command executor and provides a few convenience methods for parsing
