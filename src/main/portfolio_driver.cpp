@@ -103,8 +103,7 @@ bool ExecutionContext::solveCommands(
 {
   bool interrupted = false;
   bool status = true;
-  auto it = cmds.begin();
-  while (status && it != cmds.end())
+  for (auto it = cmds.begin(); status && it != cmds.end(); ++it)
   {
     if (interrupted)
     {
