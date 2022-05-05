@@ -58,7 +58,7 @@ typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 struct OracleInterfaceAttributeId
 {
 };
-typedef expr::Attribute<OracleInterfaceAttributeId, std::string>
+typedef expr::Attribute<OracleInterfaceAttributeId, Node>
     OracleInterfaceAttribute;
 
 /**Attribute to give names to quantified formulas */
@@ -125,7 +125,6 @@ struct QAttributes
       : d_hasPattern(false),
         d_hasPool(false),
         d_sygus(false),
-        d_oracleInterfaceBin(""),
         d_qinstLevel(-1),
         d_quant_elim(false),
         d_quant_elim_partial(false),
@@ -142,8 +141,8 @@ struct QAttributes
   Node d_fundef_f;
   /** is this formula marked as a sygus conjecture? */
   bool d_sygus;
-  /** the binary name, if this is an oracle interface quantifier */
-  std::string d_oracleInterfaceBin;
+  /** the oracle, which stores an implementation */
+  Node d_oracle;
   /** side condition for sygus conjectures */
   Node d_sygusSideCondition;
   /** stores the maximum instantiation level allowed for this quantified formula
@@ -165,7 +164,7 @@ struct QAttributes
   /** is this quantified formula a function definition? */
   bool isFunDef() const { return !d_fundef_f.isNull(); }
   /** is this quantified formula an oracle interface quantifier? */
-  bool isOracleInterface() const { return !d_oracleInterfaceBin.empty(); }
+  bool isOracleInterface() const { return !d_oracle.isNull(); }
   /**
    * Is this a standard quantifier? A standard quantifier is one that we can
    * perform destructive updates (variable elimination, miniscoping, etc).

@@ -68,7 +68,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   }
   else if (BagsUtils::areChildrenConstants(n))
   {
-    Node value = BagsUtils::evaluate(n);
+    Node value = BagsUtils::evaluate(d_rewriter, n);
     response = BagsRewriteResponse(value, Rewrite::CONSTANT_EVALUATION);
   }
   else
@@ -95,6 +95,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_FOLD: response = postRewriteFold(n); break;
       case BAG_PARTITION: response = postRewritePartition(n); break;
       case TABLE_PRODUCT: response = postRewriteProduct(n); break;
+      case TABLE_AGGREGATE: response = postRewriteAggregate(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -659,6 +660,21 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
     if (ret != n)
     {
       return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
+    }
+  }
+
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
+{
+  Assert(n.getKind() == kind::TABLE_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = BagsUtils::evaluateTableAggregate(d_rewriter, n);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::AGGREGATE_CONST);
     }
   }
 

@@ -531,7 +531,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
       }
       else
       {
-        return RewriteResponse(REWRITE_DONE, t);
+        Node ret = nm->mkNode(t.getKind(), left, right);
+        return RewriteResponse(REWRITE_DONE, ret);
       }
     }
     Assert(den != Rational(0));
