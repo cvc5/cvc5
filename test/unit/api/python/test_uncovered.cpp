@@ -137,6 +137,7 @@ TEST_F(TestApiBlackUncovered, mkOpInitializerList)
 {
   d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1, 1});
 }
+
 TEST_F(TestApiBlackUncovered, mkTermKind)
 {
   Term b = d_solver.mkConst(d_solver.getRealSort(), "b");
