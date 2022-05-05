@@ -392,9 +392,7 @@ class PortfolioProcessPool
 
   ExecutionContext& d_ctx;
   std::vector<std::unique_ptr<cvc5::Command>> d_commands;
-  /**
-   * All jobs.
-   */
+  /** All jobs. */
   std::vector<Job> d_jobs;
   /** The id of the next job to be started within d_jobs */
   size_t d_nextJob = 0;
