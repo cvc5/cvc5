@@ -427,10 +427,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   }
 
   PortfolioStrategy strategy = getStrategy(*ctx.d_logic);
-  if (strategy.d_strategies.size() == 0)
-  {
-    return ctx.solveContinuous(d_parser, false);
-  }
+  Assert(!strategy.empty()) << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
     strategy.d_strategies.front().applyOptions(solver);
@@ -489,13 +486,14 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
         .set("unconstrained-simp")
         .set("use-soi");
     s.add()
-        .set("restrict-pivots", "false")
+        .unset("restrict-pivots")
         .set("use-soi")
         .set("new-prop")
         .set("unconstrained-simp");
   }
   else if (isOneOf(logic, "QF_LIA"))
   {
+    // same as QF_LRA but add --pb-rewrites
     s.add()
         .set("miplib-trick")
         .set("miplib-trick-subs", "4")
@@ -515,11 +513,12 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.35).set("nl-ext-tplanes").set("decision", "justification");
     s.add(0.05).set("nl-ext-tplanes").set("decision", "internal");
     s.add(0.05).set("nl-ext-tplanes").set("decision", "justification-old");
-    s.add(0.05).set("nl-ext-tplanes", "false").set("decision", "internal");
+    s.add(0.05).unset("nl-ext-tplanes").set("decision", "internal");
     s.add(0.05)
-        .set("arith-brab", "false")
+        .unset("arith-brab")
         .set("nl-ext-tplanes")
         .set("decision", "internal");
+    // totals to more than 100%, but smaller bit-widths usually fail quickly
     s.add(0.25).set("solve-int-as-bv", "2").set("bitblast", "eager");
     s.add(0.25).set("solve-int-as-bv", "4").set("bitblast", "eager");
     s.add(0.25).set("solve-int-as-bv", "8").set("bitblast", "eager");
@@ -532,7 +531,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.5).set("decision", "justification");
     s.add(0.25)
         .set("decision", "internal")
-        .set("nl-cov", "false")
+        .unset("nl-cov")
         .set("nl-ext", "full")
         .set("nl-ext-tplanes");
     s.add().set("decision", "internal").set("nl-ext", "none");
@@ -541,21 +540,21 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   {
     // initial runs
     s.add(0.025).set("simplifications", "none").set("enum-inst");
-    s.add(0.025).set("e-matching", "false").set("enum-inst");
-    s.add(0.025).set("e-matching", "false").set("enum-inst").set("enum-inst-sum");
+    s.add(0.025).unset("e-matching").set("enum-inst");
+    s.add(0.025).unset("e-matching").set("enum-inst").set("enum-inst-sum");
     // trigger selections
     s.add(0.025).set("relevant-triggers").set("enum-inst");
     s.add(0.025).set("trigger-sel", "max").set("enum-inst");
     s.add(0.025).set("multi-trigger-when-single").set("enum-inst");
     s.add(0.025).set("multi-trigger-when-single").set("multi-trigger-priority").set("enum-inst");
     s.add(0.025).set("multi-trigger-cache").set("enum-inst");
-    s.add(0.025).set("multi-trigger-linear", "false").set("enum-inst");
+    s.add(0.025).unset("multi-trigger-linear").set("enum-inst");
     // other
     s.add(0.025).set("pre-skolem-quant").set("enum-inst");
     s.add(0.025).set("inst-when", "full").set("enum-inst");
-    s.add(0.025).set("e-matching", "false").set("cbqi", "false").set("enum-inst");
+    s.add(0.025).unset("e-matching").unset("cbqi").set("enum-inst");
     s.add(0.025).set("enum-inst").set("quant-ind");
-    s.add(0.025).set("decision", "internal").set("simplification", "none").set("inst-no-entail", "false").set("cbqi", "false").set("enum-inst");
+    s.add(0.025).set("decision", "internal").set("simplification", "none").unset("inst-no-entail").unset("cbqi").set("enum-inst");
     s.add(0.025).set("decision", "internal").set("enum-inst").set("enum-inst-sum");
     s.add(0.025).set("term-db-mode", "relevant").set("enum-inst");
     s.add(0.025).set("enum-inst-interleave").set("enum-inst");
@@ -567,6 +566,78 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     // long runs
     s.add(0.2).set("finite-model-find").set("decision", "internal");
     s.add().set("enum-inst");
+  }
+  else if (isOneOf(logic, "UFBV"))
+  {
+    // most problems in UFBV are essentially BV
+    s.add(0.25).set("sygus-inst");
+    s.add(0.25).set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
+    s.add(0.025).set("enum-inst").unset("cegqi-innermost").set("global-negate");;
+    s.add().set("finite-model-find");
+  }
+  else if (isOneOf(logic, "ABV", "BV"))
+  {
+    s.add(0.1).set("enum-inst");
+    s.add(0.1).set("sygus-inst");
+    s.add(0.25).set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
+    s.add(0.025).set("enum-inst").unset("cegqi-bv");
+    s.add(0.025).set("enum-inst").set("cegqi-bv-ineq", "eq-slack");
+    s.add().set("enum-inst").unset("cegqi-innermost").set("global-negate");
+  }
+  else if (isOneOf(logic, "ABVFP", "ABVFPLRA", "BVFP", "FP", "NIA", "NRA"))
+  {
+    s.add(0.25).set("enum-inst").set("nl-ext-tplanes").set("fp-exp");
+    s.add().set("sygus-inst").set("fp-exp");
+  }
+  else if (isOneOf(logic, "LIA", "LRA"))
+  {
+    s.add(0.025).set("enum-inst");
+    s.add(0.25).set("enum-inst").set("cegqi-nested-qe");
+    s.add().set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
+  }
+  else if (isOneOf(logic, "QF_AUFBV"))
+  {
+    s.add(0.5);
+    s.add().set("decision", "justification-stoponly");
+  }
+  else if (isOneOf(logic, "QF_ABV"))
+  {
+    s.add(0.05).set("ite-simp").set("simp-with-care").set("repeat-simp").set("arrays-weak-equiv");
+    s.add(0.5).set("arrays-weak-equiv");
+    s.add().set("ite-simp").set("simp-with-care").set("repeat-simp").set("arrays-weak-equiv");
+  }
+  else if (isOneOf(logic, "QF_BV", "QF_UFBV"))
+  {
+    s.add().set("bitblast", "eager").set("bv-assert-input");
+  }
+  else if (isOneOf(logic, "QF_AUFLIA"))
+  {
+    s.add().unset("arrays-eager-index").set("arrays-eager-lemmas").set("decision", "justification");
+  }
+  else if (isOneOf(logic, "QF_AX"))
+  {
+    s.add().unset("arrays-eager-index").set("arrays-eager-lemmas").set("decision", "internal");
+  }
+  else if (isOneOf(logic, "QF_AUFNIA"))
+  {
+    s.add().set("decision", "justification").unset("arrays-eager-index").set("arrays-eager-lemmas");
+  }
+  else if (isOneOf(logic, "QF_ALIA"))
+  {
+    s.add(0.15).set("decision", "justification").set("arrays-weak-equiv");
+    s.add().set("decision", "justification-stoponly").unset("arrays-eager-index").set("arrays-eager-lemmas");
+  }
+  else if (isOneOf(logic, "QF_S", "QF_SLIA"))
+  {
+    s.add(0.25).set("strings-exp").set("strings-fmf").unset("jh-rlv-order");
+    s.add().set("strings-exp").unset("jh-rlv-order");
+  }
+  else if (isOneOf(logic, "QF_ABVFP", "QF_ABVFPLRA", "QF_BVFP", "QF_BVFPLRA", "QF_FP", "QF_FPLRA"))
+  {
+    s.add().set("fp-exp");
+  }
+  else{
+    s.add();
   }
   return s;
 }

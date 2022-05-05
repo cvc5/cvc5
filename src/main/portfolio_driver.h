@@ -90,6 +90,11 @@ struct PortfolioConfig
     d_options.emplace_back(option, value);
     return *this;
   }
+  /** Convenience function to set option to "false". */
+  PortfolioConfig& unset(const std::string& option)
+  {
+    return set(option, "false");
+  }
 
   /** Apply configured options to a solver object */
   void applyOptions(Solver& solver) const
