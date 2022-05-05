@@ -429,7 +429,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   }
 
   PortfolioStrategy strategy = getStrategy(*ctx.d_logic);
-  Assert(!strategy.empty()) << "The portfolio strategy should never be empty.";
+  Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
     strategy.d_strategies.front().applyOptions(solver);
