@@ -344,7 +344,6 @@ Node multConstants(const Node& c1, const Node& c2);
  */
 Node mkEquality(Node a, Node b);
 
-
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
