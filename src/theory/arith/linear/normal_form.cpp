@@ -32,7 +32,7 @@ namespace arith::linear {
 Constant Constant::mkConstant(const Rational& rat)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return Constant(nm->mkConstReal(rat));
+  return Constant(nm->mkConstRealOrInt(rat));
 }
 
 size_t Variable::getComplexity() const{

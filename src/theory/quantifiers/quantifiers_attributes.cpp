@@ -259,13 +259,12 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
         }
-        if (avar.hasAttribute(OracleInterfaceAttribute()))
+        // oracles are specified by a distinguished variable kind
+        if (avar.getKind() == kind::ORACLE)
         {
-          qa.d_oracleInterfaceBin =
-              avar.getAttribute(OracleInterfaceAttribute());
+          qa.d_oracle = avar;
           Trace("quant-attr")
-              << "Attribute : oracle interface : " << qa.d_oracleInterfaceBin
-              << " : " << q << std::endl;
+              << "Attribute : oracle interface : " << q << std::endl;
         }
         if (avar.hasAttribute(SygusSideConditionAttribute()))
         {

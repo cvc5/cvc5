@@ -219,6 +219,9 @@ TEST_F(TestApiBlackUncovered, Statistics)
     ASSERT_EQ(it, stats.begin());
     ss << it->first;
 
+    testing::internal::CaptureStdout();
+    d_solver.printStatisticsSafe(STDOUT_FILENO);
+    testing::internal::GetCapturedStdout();
 }
 
 }  // namespace test

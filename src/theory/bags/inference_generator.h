@@ -306,27 +306,59 @@ class InferenceGenerator
   InferInfo filterUpwards(Node n, Node e);
 
   /**
-   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param n is a (table.product A B) where A, B are tables
    * @param e1 an element of the form (tuple a1 ... am)
    * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
-   * (=
-   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
-   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * (=> (and (bag.member e1 A) (bag.member e2 B))
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count e1 A) (bag.count e2 B))))
    * where skolem is a variable equals (bag.product A B)
    */
   InferInfo productUp(Node n, Node e1, Node e2);
 
   /**
-   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param n is a (table.product A B) where A, B are tables
    * @param e an element of the form (tuple a1 ... am b1 ... bn)
    * @return an inference that represents the following
-   * (=
-   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
-   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * (=> (bag.member e skolem)
+   *   (=
+   *     (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *     (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B))))
    * where skolem is a variable equals (bag.product A B)
    */
   InferInfo productDown(Node n, Node e);
+
+  /**
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
+   * @return  an inference that represents the following
+   * (=> (and
+   *       (bag.member e1 A)
+   *       (bag.member e2 B)
+   *       (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk}))
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count e1 A) (bag.count e2 B))))
+   * where skolem is a variable equals ((_ table.join m1 n1 ... mk nk) A B)
+   */
+  InferInfo joinUp(Node n, Node e1, Node e2);
+
+  /**
+   * @param n is a (table.product A B) where A, B are tables
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=> (bag.member e skolem)
+   *   (and
+   *     (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk})
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B))))
+   * where skolem is a variable equals ((_ table.join m1 n1 ... mk nk) A B)
+   */
+  InferInfo joinDown(Node n, Node e);
 
   /**
    * @param element of type T
