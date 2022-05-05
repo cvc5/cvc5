@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An additional layer between commands and invoking them.
+ * An intermediary between the parser and the command executor, optionally using
+ * predefined portfolio strategies.
  */
 
 #ifndef CVC5__MAIN__PORTFOLIO_DRIVER_H
