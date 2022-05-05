@@ -987,7 +987,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         cdp->addStep(eqq, PfRule::TRANS, transChildren, {});
         return eqq;
       }
-      Assert(false);
       Trace("smt-proof-pp-debug")
           << "resort to TRUST_SUBS" << std::endl
           << eq << std::endl
