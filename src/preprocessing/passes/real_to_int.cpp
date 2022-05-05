@@ -185,11 +185,12 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
-          var_eq.push_back(n.eqNode(ret));
+          Node rret = nm->mkNode(kind::TO_REAL, ret);
+          var_eq.push_back(n.eqNode(rret));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
           // assertions when necessary.
-          d_preprocContext->addSubstitution(n, ret);
+          d_preprocContext->addSubstitution(n, rret);
         }
       }
     }

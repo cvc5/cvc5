@@ -17,6 +17,7 @@
 
 #include "smt/env.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -177,8 +178,8 @@ void BoundInference::update_lower_bound(const Node& origin,
 
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      Node vt = nm->mkConstRealOrInt(lhs.getType(), value.getConst<Rational>());
-      b.lower_bound = b.upper_bound = rewrite(nm->mkNode(Kind::EQUAL, lhs, vt));
+      Node eq = mkEquality(lhs, value);
+      b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
     {
@@ -212,8 +213,8 @@ void BoundInference::update_upper_bound(const Node& origin,
     b.upper_origin = origin;
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      Node vt = nm->mkConstRealOrInt(lhs.getType(), value.getConst<Rational>());
-      b.lower_bound = b.upper_bound = rewrite(nm->mkNode(Kind::EQUAL, lhs, vt));
+      Node eq = mkEquality(lhs, value);
+      b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
     {
