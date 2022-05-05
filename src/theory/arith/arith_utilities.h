@@ -339,7 +339,8 @@ Node negateProofLiteral(TNode n);
 Node multConstants(const Node& c1, const Node& c2);
 
 /**
- * Make the equality (= (- a b) zero) where zero has the same type as (- a b).
+ * Make the equality (= a b) or (= (- a b) zero) if a and b have different
+ * types, where zero has the same type as (- a b).
  * Use this utility to ensure an equality is properly typed.
  */
 Node mkEquality(Node a, Node b);

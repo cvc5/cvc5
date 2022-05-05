@@ -198,7 +198,7 @@ int ArithMSum::isolate(
         else
         {
           val = nm->mkNode(
-              MULT, val, nm->mkConstRealOrInt(Rational(1) / r.abs()));
+              MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
       val = r.sgn() == 1
