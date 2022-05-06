@@ -90,9 +90,9 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFD
   # other 4 min
   trywith 30 --pre-skolem-quant --enum-inst
   trywith 30 --inst-when=full --enum-inst
-  trywith 30 --no-e-matching --no-quant-cf --enum-inst
+  trywith 30 --no-e-matching --no-cbqi --enum-inst
   trywith 30 --enum-inst --quant-ind
-  trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --enum-inst
+  trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-cbqi --enum-inst
   trywith 30 --decision=internal --enum-inst --enum-inst-sum
   trywith 30 --term-db-mode=relevant --enum-inst
   trywith 30 --enum-inst-interleave --enum-inst
@@ -100,7 +100,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFD
   trywith 30 --finite-model-find --mbqi=none
   trywith 30 --finite-model-find --decision=internal
   trywith 30 --finite-model-find --macros-quant --macros-quant-mode=all
-  trywith 60 --finite-model-find --fmf-inst-engine
+  trywith 60 --finite-model-find --e-matching
   # long runs 4 min
   trywith 240 --finite-model-find --decision=internal
   finishwith --enum-inst

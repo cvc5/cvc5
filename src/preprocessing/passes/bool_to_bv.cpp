@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Makai Mann, Yoni Zohar, Clark Barrett
+ *   Makai Mann, Yoni Zohar, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,10 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bool-to-bv"),
@@ -153,7 +153,7 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
     TNode n = to_visit.back();
     to_visit.pop_back();
 
-    Debug("bool-to-bv") << "BoolToBV::lowerNode: Post-order traversal with "
+    Trace("bool-to-bv") << "BoolToBV::lowerNode: Post-order traversal with "
                         << n << " and visited = " << ContainsKey(visited, n)
                         << std::endl;
 
@@ -242,7 +242,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     }
   }
 
-  Debug("bool-to-bv") << "safe_to_lower = " << safe_to_lower
+  Trace("bool-to-bv") << "safe_to_lower = " << safe_to_lower
                       << ", safe_to_rebuild = " << safe_to_rebuild << std::endl;
 
   if (new_kind != k && safe_to_lower)
@@ -266,7 +266,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
                            fromCache(n),
                            bv::utils::mkOne(1),
                            bv::utils::mkZero(1)));
-    Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
+    Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
     if (d_boolToBVMode == options::BoolToBVMode::ALL)
@@ -290,7 +290,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // with ITE introductions
     updateCache(
         n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
-    Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
+    Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
     if (d_boolToBVMode == options::BoolToBVMode::ALL)
@@ -302,7 +302,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   else
   {
     // do nothing
-    Debug("bool-to-bv") << "BoolToBV::visit skipping: " << n
+    Trace("bool-to-bv") << "BoolToBV::visit skipping: " << n
                         << std::endl;
   }
 }
@@ -318,7 +318,7 @@ Node BoolToBV::lowerIte(const TNode& node)
     TNode n = visit.back();
     visit.pop_back();
 
-    Debug("bool-to-bv") << "BoolToBV::lowerIte: Post-order traversal with " << n
+    Trace("bool-to-bv") << "BoolToBV::lowerIte: Post-order traversal with " << n
                         << " and visited = " << ContainsKey(visited, n)
                         << std::endl;
 
@@ -327,7 +327,7 @@ Node BoolToBV::lowerIte(const TNode& node)
     {
       if ((n.getKind() == kind::ITE) && n[1].getType().isBitVector())
       {
-        Debug("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
+        Trace("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
                             << " to set of ite conditions" << std::endl;
         // don't force in this case -- forcing only introduces more ITEs
         Node loweredNode = lowerNode(n, false);
@@ -355,7 +355,7 @@ Node BoolToBV::lowerIte(const TNode& node)
     }
     else
     {
-      Debug("bool-to-bv")
+      Trace("bool-to-bv")
           << "BoolToBV::lowerIte Skipping because don't need to rebuild: " << n
           << std::endl;
     }
@@ -369,7 +369,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
   NodeManager* nm = NodeManager::currentNM();
   NodeBuilder builder(new_kind);
 
-  Debug("bool-to-bv") << "BoolToBV::rebuildNode with " << n
+  Trace("bool-to-bv") << "BoolToBV::rebuildNode with " << n
                       << " and new_kind = " << kindToString(new_kind)
                       << std::endl;
 
@@ -398,7 +398,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
     }
   }
 
-  Debug("bool-to-bv") << "BoolToBV::rebuildNode " << n << " =>\n"
+  Trace("bool-to-bv") << "BoolToBV::rebuildNode " << n << " =>\n"
                       << builder << std::endl;
 
   updateCache(n, builder.constructNode());
@@ -419,4 +419,4 @@ BoolToBV::Statistics::Statistics(StatisticsRegistry& reg)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

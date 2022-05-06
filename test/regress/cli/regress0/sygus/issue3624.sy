@@ -1,0 +1,8 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+(declare-var A Bool)
+(declare-var B (Array Int Bool))
+(synth-fun secure-sync ((A Bool) (B (Array Int Bool))) Bool)
+(constraint (secure-sync A B))
+(check-synth)

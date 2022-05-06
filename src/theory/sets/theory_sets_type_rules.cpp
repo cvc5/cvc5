@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include "theory/sets/singleton_op.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -124,7 +124,7 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::SET_SINGLETON && n.hasOperator()
          && n.getOperator().getKind() == kind::SET_SINGLETON_OP);
 
-  SetSingletonOp op = n.getOperator().getConst<SetSingletonOp>();
+  const SetSingletonOp& op = n.getOperator().getConst<SetSingletonOp>();
   TypeNode type1 = op.getType();
   if (check)
   {
@@ -526,4 +526,4 @@ Node SetsProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

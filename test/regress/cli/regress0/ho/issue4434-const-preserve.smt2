@@ -1,0 +1,8 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-datatype a ((b)))
+(declare-datatype c ((i (j a))))
+(declare-datatype e ((f)))
+(declare-fun h (c e Bool) Bool)
+(assert (h (i b) f false))
+(check-sat)

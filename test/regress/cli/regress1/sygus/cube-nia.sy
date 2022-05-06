@@ -1,0 +1,26 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic NIA)
+
+(synth-fun cube ((x Int)) Int
+  ((ntInt Int) (ntBool Bool))
+  (
+    (ntInt Int
+      (1 x
+        (* ntInt ntInt)
+        (ite ntBool ntInt ntInt)
+      )
+    )
+    (ntBool Bool
+      ( 
+        (> ntInt ntInt)
+        (= ntInt ntInt)
+      )
+    )
+  )
+)
+
+(constraint (= (cube 1) 1))
+(constraint (= (cube 2) 8))
+(check-synth)

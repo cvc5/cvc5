@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "proof/proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 /**
  * Class used to speculatively try and buffer a set of proof steps before
  * sending them to a proof object, extended with theory-specfic proof rule
@@ -115,6 +115,6 @@ class TheoryProofStepBuffer : public ProofStepBuffer
   Node elimDoubleNegLit(Node n);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__THEORY_PROOF_STEP_BUFFER_H */

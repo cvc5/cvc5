@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,13 +25,13 @@
 
 #include "cvc5_export.h"  // remove when Cvc language support is removed
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Rational;
 
 class CVC5_EXPORT Integer
 {
-  friend class cvc5::Rational;
+  friend class cvc5::internal::Rational;
 
  public:
   /**
@@ -328,7 +328,7 @@ class CVC5_EXPORT Integer
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
+  inline size_t operator()(const cvc5::internal::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)
@@ -336,6 +336,6 @@ inline std::ostream& operator<<(std::ostream& os, const Integer& n)
   return os << n.toString();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__INTEGER_H */

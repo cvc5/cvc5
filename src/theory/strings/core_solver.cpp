@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +29,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -127,7 +127,7 @@ void CoreSolver::checkCycles()
 void CoreSolver::checkFlatForms()
 {
   // debug print flat forms
-  if (Trace.isOn("strings-ff"))
+  if (TraceIsOn("strings-ff"))
   {
     Trace("strings-ff") << "Flat forms : " << std::endl;
     debugPrintFlatForms("strings-ff");
@@ -343,7 +343,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
               Node lcc = d_state.getLength(bc, lexp2);
               if (d_state.areEqual(lcurr, lcc))
               {
-                if (Trace.isOn("strings-ff-debug"))
+                if (TraceIsOn("strings-ff-debug"))
                 {
                   Trace("strings-ff-debug")
                       << "Infer " << ac << " == " << bc << " since " << lcurr
@@ -569,7 +569,7 @@ void CoreSolver::checkNormalFormsEq()
     Trace("strings-process-debug")
         << "Done verifying normal forms are the same for " << eqc << std::endl;
   }
-  if (Trace.isOn("strings-nf"))
+  if (TraceIsOn("strings-nf"))
   {
     Trace("strings-nf") << "**** Normal forms are : " << std::endl;
     for (std::map<Node, Node>::iterator it = eqc_to_exp.begin();
@@ -893,7 +893,7 @@ void CoreSolver::getNormalForms(Node eqc,
               {
                 for (const Node& nn : nfrv)
                 {
-                  if (Trace.isOn("strings-error"))
+                  if (TraceIsOn("strings-error"))
                   {
                     if (nn.getKind() == STRING_CONCAT)
                     {
@@ -957,7 +957,7 @@ void CoreSolver::getNormalForms(Node eqc,
             {
               for (unsigned i = 0; i < currv.size(); i++)
               {
-                if (Trace.isOn("strings-error"))
+                if (TraceIsOn("strings-error"))
                 {
                   Trace("strings-error") << "Cycle for normal form ";
                   utils::printConcatTrace(currv, "strings-error");
@@ -1005,7 +1005,7 @@ void CoreSolver::getNormalForms(Node eqc,
     nf_triv.init(eqc_non_c);
     normal_forms.push_back(nf_triv);
   }else{
-    if(Trace.isOn("strings-solve")) {
+    if(TraceIsOn("strings-solve")) {
       Trace("strings-solve") << "--- Normal forms for equivalance class " << eqc << " : " << std::endl;
       for (unsigned i = 0, size = normal_forms.size(); i < size; i++)
       {
@@ -2014,7 +2014,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
         Assert(v.getKind() == SEQ_UNIT);
         vc = v[0];
       }
-      Assert(u[0].getType() == vc.getType());
+      Assert(u[0].getType().isComparableTo(vc.getType()));
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {
@@ -2524,13 +2524,14 @@ void CoreSolver::checkNormalFormsDeq()
 {
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   std::map< Node, std::map< Node, bool > > processed;
-  
+
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();
   Trace("str-deq") << "Process disequalites..." << std::endl;
   std::vector<Node> relevantDeqs;
-  //for each pair of disequal strings, must determine whether their lengths are equal or disequal
+  // for each pair of disequal strings, must determine whether their lengths
+  // are equal or disequal
   for (const Node& eq : deqs)
   {
     Trace("str-deq") << "- disequality " << eq << std::endl;
@@ -2594,7 +2595,7 @@ void CoreSolver::checkNormalFormsDeq()
     {
       n[i] = ee->getRepresentative(eq[i]);
     }
-    if (Trace.isOn("strings-solve"))
+    if (TraceIsOn("strings-solve"))
     {
       Trace("strings-solve") << "- Compare " << n[0] << ", nf ";
       utils::printConcatTrace(getNormalForm(n[0]).d_nf, "strings-solve");
@@ -2630,7 +2631,7 @@ void CoreSolver::checkLengthsEqc() {
     if (ei->d_normalizedLength.get().isNull())
     {
       Node nf = d_termReg.mkNConcat(nfi.d_nf, stype);
-      if (Trace.isOn("strings-process-debug"))
+      if (TraceIsOn("strings-process-debug"))
       {
         Trace("strings-process-debug")
             << "  normal form is " << nf << " from base " << nfi.d_base
@@ -2692,4 +2693,4 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

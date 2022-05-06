@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds
+ *   Andres Noetzli, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 EvalResult::EvalResult(const EvalResult& other)
@@ -104,14 +104,16 @@ EvalResult::~EvalResult()
   }
 }
 
-Node EvalResult::toNode() const
+Node EvalResult::toNode(const TypeNode& tn) const
 {
   NodeManager* nm = NodeManager::currentNM();
   switch (d_tag)
   {
     case EvalResult::BOOL: return nm->mkConst(d_bool);
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
-    case EvalResult::RATIONAL: return nm->mkConst(CONST_RATIONAL, d_rat);
+    case EvalResult::RATIONAL:
+      Assert(!tn.isNull());
+      return nm->mkConstRealOrInt(tn, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
     case EvalResult::UVALUE: return nm->mkConst(d_av);
     default:
@@ -164,7 +166,8 @@ Node Evaluator::eval(TNode n,
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret =
+      evalInternal(n, args, vals, evalAsNode, results).toNode(n.getType());
   // if we failed to evaluate
   if (ret.isNull() && d_rr != nullptr)
   {
@@ -348,7 +351,8 @@ EvalResult Evaluator::evalInternal(
 
           for (const auto& lambdaVal : currNode)
           {
-            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
+            lambdaVals.insert(lambdaVals.begin(),
+                              results[lambdaVal].toNode(lambdaVal.getType()));
           }
 
           // Lambdas are evaluated in a recursive fashion because each
@@ -404,6 +408,7 @@ EvalResult Evaluator::evalInternal(
         }
 
         case kind::CONST_RATIONAL:
+        case kind::CONST_INTEGER:
         {
           const Rational& r = currNodeVal.getConst<Rational>();
           results[currNode] = EvalResult(r);
@@ -515,11 +520,25 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(x.abs());
           break;
         }
+        case kind::TO_REAL:
         case kind::CAST_TO_REAL:
         {
           // casting to real is a no-op
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x);
+          break;
+        }
+        case kind::TO_INTEGER:
+        {
+          // casting to int takes the floor
+          const Rational& x = results[currNode[0]].d_rat.floor();
+          results[currNode] = EvalResult(x);
+          break;
+        }
+        case kind::IS_INTEGER:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x.isIntegral());
           break;
         }
         case kind::CONST_STRING:
@@ -869,7 +888,7 @@ EvalResult Evaluator::evalInternal(
 
             default:
             {
-              Trace("evaluator") << "Theory " << Theory::theoryOf(currNode[0])
+              Trace("evaluator") << "Evaluation of " << currNode[0].getKind()
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
               evalAsNode[currNode] =
@@ -943,7 +962,7 @@ Node Evaluator::reconstruct(TNode n,
       else
       {
         // otherwise, use the evaluation of the operator
-        echildren.push_back(itr->second.toNode());
+        echildren.push_back(itr->second.toNode(op.getType()));
       }
     }
   }
@@ -961,7 +980,7 @@ Node Evaluator::reconstruct(TNode n,
     else
     {
       // otherwise, use the evaluation
-      echildren.push_back(itr->second.toNode());
+      echildren.push_back(itr->second.toNode(currNodeChild.getType()));
     }
   }
   // The value is the result of our (partially) successful evaluation
@@ -984,4 +1003,4 @@ void Evaluator::processUnhandled(TNode n,
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

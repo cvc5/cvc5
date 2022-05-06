@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -73,7 +73,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         {
           subs.push_back(s);
         }
-        if (Trace.isOn("uf-ho-beta"))
+        if (TraceIsOn("uf-ho-beta"))
         {
           Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
                               << " vars into " << subs.size() << " terms :\n";
@@ -262,4 +262,4 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

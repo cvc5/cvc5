@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Gereon Kremer
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +25,10 @@
 #include "theory/inference_id.h"
 #include "theory/theory_inference.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
-class TheoryInferenceManager;
+class InferenceManagerBuffered;
 
 namespace bags {
 
@@ -40,12 +40,12 @@ namespace bags {
 class InferInfo : public TheoryInference
 {
  public:
-  InferInfo(TheoryInferenceManager* im, InferenceId id);
+  InferInfo(InferenceManagerBuffered* im, InferenceId id);
   ~InferInfo() {}
   /** Process lemma */
   TrustNode processLemma(LemmaProperty& p) override;
   /** Pointer to the class used for processing this info */
-  TheoryInferenceManager* d_im;
+  InferenceManagerBuffered* d_im;
   /** The conclusion */
   Node d_conclusion;
   /**
@@ -72,6 +72,10 @@ class InferInfo : public TheoryInference
    * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
+  /**
+   * @return the lemma for this InferInfo.
+   */
+  Node getLemma() const;
 };
 
 /**
@@ -85,6 +89,6 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii);
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__INFER_INFO_H */

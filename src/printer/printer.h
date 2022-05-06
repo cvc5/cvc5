@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +29,9 @@ namespace cvc5 {
 
 class Command;
 class CommandStatus;
+
+namespace internal {
+
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
@@ -78,10 +81,10 @@ class Printer
   virtual void toStreamCmdAssert(std::ostream& out, Node n) const;
 
   /** Print push command */
-  virtual void toStreamCmdPush(std::ostream& out) const;
+  virtual void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const;
 
   /** Print pop command */
-  virtual void toStreamCmdPop(std::ostream& out) const;
+  virtual void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const;
 
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
@@ -94,6 +97,10 @@ class Printer
                                       const std::string& id,
                                       TypeNode type,
                                       const std::vector<Node>& initValue) const;
+  /** Print declare-oracle-fun command */
+  virtual void toStreamCmdDeclareOracleFun(std::ostream& out,
+                                           Node fun,
+                                           const std::string& binName) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
@@ -182,7 +189,8 @@ class Printer
   virtual void toStreamCmdGetModel(std::ostream& out) const;
 
   /** Print block-model command */
-  virtual void toStreamCmdBlockModel(std::ostream& out) const;
+  virtual void toStreamCmdBlockModel(std::ostream& out,
+                                     modes::BlockModelsMode mode) const;
 
   /** Print block-model-values command */
   virtual void toStreamCmdBlockModelValues(
@@ -194,13 +202,13 @@ class Printer
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
-  /** Print get-interpol command */
+  /** Print get-interpolant command */
   virtual void toStreamCmdGetInterpol(std::ostream& out,
                                       const std::string& name,
                                       Node conj,
                                       TypeNode sygusType) const;
 
-  /** Print get-interpol-next command */
+  /** Print get-interpolant-next command */
   virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
 
   /** Print get-abduct command */
@@ -225,6 +233,9 @@ class Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-learned-literals command */
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
@@ -276,11 +287,11 @@ class Printer
 
   /** Print command sequence command */
   virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const;
+      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
   /** Print declaration sequence command */
   virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const;
+      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
  protected:
   /** Derived classes can construct, but no one else. */
@@ -327,6 +338,7 @@ class Printer
 
 }; /* class Printer */
 
+}  // namespace internal
 }  // namespace cvc5
 
 #endif /* CVC5__PRINTER__PRINTER_H */

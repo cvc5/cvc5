@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Morgan Deters, Aina Niemetz
+ *   Morgan Deters, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,14 +18,14 @@
 
 #include "api/cpp/cvc5.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 using namespace std;
 
 int main() {
   Solver s1;
   Solver s2;
-  Result r = s1.checkEntailed(s1.mkBoolean(true));
-  Result r2 = s2.checkEntailed(s2.mkBoolean(true));
-  return r.isEntailed() && r2.isEntailed() ? 0 : 1;
+  Result r = s1.checkSatAssuming(s1.mkBoolean(false));
+  Result r2 = s2.checkSatAssuming(s2.mkBoolean(false));
+  return r.isUnsat() && r2.isUnsat() ? 0 : 1;
 }
 

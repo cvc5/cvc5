@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Haniel Barbosa, Liana Hadarean
+ *   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include "smt/env_obj.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <class Solver>
 prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
@@ -50,7 +50,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
-                  cvc5::context::UserContext* userContext,
+                  context::UserContext* userContext,
                   ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -93,6 +93,11 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   void requirePhase(SatLiteral lit) override;
 
   bool isDecision(SatVariable decn) const override;
+
+  /** Return the list of current list of decisions that have been made by the
+   * solver at the point when this function is called.
+   */
+  std::vector<SatLiteral> getDecisions() const override;
 
   /** Return decision level at which `lit` was decided on. */
   int32_t getDecisionLevel(SatVariable v) const override;
@@ -152,4 +157,4 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 }; /* class MinisatSatSolver */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

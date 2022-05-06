@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,12 +22,13 @@
 #include <unordered_set>
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 /**
@@ -42,6 +43,7 @@ namespace prop {
 class SkolemDefManager
 {
   using NodeNodeMap = context::CDInsertHashMap<Node, Node>;
+  using NodeBoolMap = context::CDHashMap<Node, bool>;
   using NodeSet = context::CDHashSet<Node>;
 
  public:
@@ -81,18 +83,24 @@ class SkolemDefManager
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
    */
-  void getSkolems(TNode n, std::unordered_set<Node>& skolems) const;
-  /** Does n have skolems having definitions managed by this class? */
-  bool hasSkolems(TNode n) const;
+  void getSkolems(TNode n, std::unordered_set<Node>& skolems);
+  /**
+   * Does n have skolems having definitions managed by this class? Should call
+   * this method *after* notifying skolem definitions for all potential
+   * skolems occurring in n.
+   */
+  bool hasSkolems(TNode n);
 
  private:
   /** skolems to definitions (user-context dependent) */
   NodeNodeMap d_skDefs;
   /** set of active skolems (SAT-context dependent) */
   NodeSet d_skActive;
+  /** Cache for hasSkolems */
+  NodeBoolMap d_hasSkolems;
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP__SKOLEM_DEF_MANAGER_H */

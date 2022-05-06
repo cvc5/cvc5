@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +32,9 @@
 #include "util/sampler.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -231,7 +231,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     }
     if (d_samples_trie.add(sample_pt))
     {
-      if (Trace.isOn("sygus-sample"))
+      if (TraceIsOn("sygus-sample"))
       {
         Trace("sygus-sample") << "Sample point #" << i << " : ";
         for (const Node& r : sample_pt)
@@ -831,15 +831,11 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     out << ptOut.str();
     Assert(bve != bvre);
     out << "where they evaluate to " << bve << " and " << bvre << std::endl;
-
-    if (options().quantifiers.sygusRewVerifyAbort)
-    {
-      AlwaysAssert(false)
-          << "--sygus-rr-verify detected unsoundness in the rewriter!";
-    }
+    AlwaysAssert(false)
+        << "--sygus-rr-verify detected unsoundness in the rewriter!";
   }
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

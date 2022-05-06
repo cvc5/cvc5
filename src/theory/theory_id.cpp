@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "base/check.h"
 #include "lib/ffs.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryId& operator++(TheoryId& id)
@@ -163,4 +163,4 @@ std::string TheoryIdSetUtil::setToString(TheoryIdSet theorySet)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

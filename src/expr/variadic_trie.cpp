@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
 
 #include "expr/variadic_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 bool VariadicTrie::add(Node n, const std::vector<Node>& i)
 {
@@ -52,4 +52,4 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/strings/sequences_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -57,7 +57,7 @@ class StringsRewriter : public SequencesRewriter
   /** rewrite string convert
    *
    * This is the entry point for post-rewriting terms n of the form
-   *   str.tolower( s ) and str.toupper( s )
+   *   str.to_lower( s ) and str.toupper( s )
    * Returns the rewritten form of n.
    */
   Node rewriteStrConvert(Node n);
@@ -109,6 +109,6 @@ class StringsRewriter : public SequencesRewriter
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__STRINGS_REWRITER_H */

@@ -1,0 +1,10 @@
+; EXPECT: sat
+(set-logic ALL)
+(set-option :produce-proofs true)
+(declare-const x Bool)
+(declare-const y Bool)
+(declare-const z Bool)
+(assert y)
+(assert (not z))
+(assert (ite x y z))
+(check-sat)

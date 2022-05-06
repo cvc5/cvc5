@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,11 +27,11 @@
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 
-using namespace cvc5::preprocessing;
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ExpandDefs::ExpandDefs(Env& env) : EnvObj(env), d_tpg(nullptr) {}
@@ -89,7 +89,7 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      theory::TheoryId tid = theory::Theory::theoryOf(node);
+      theory::TheoryId tid = d_env.theoryOf(node);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
@@ -125,14 +125,14 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
       // Working upwards
       // Reconstruct the node from it's (now rewritten) children on the stack
 
-      Debug("expand") << "cons : " << node << std::endl;
+      Trace("expand") << "cons : " << node << std::endl;
       if (node.getNumChildren() > 0)
       {
         // cout << "cons : " << node << std::endl;
         NodeBuilder nb(node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
-          Debug("expand") << "op   : " << node.getOperator() << std::endl;
+          Trace("expand") << "op   : " << node.getOperator() << std::endl;
           // cout << "op   : " << node.getOperator() << std::endl;
           nb << node.getOperator();
         }
@@ -142,7 +142,7 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
           Node expanded = result.top();
           result.pop();
           // cout << "exchld : " << expanded << std::endl;
-          Debug("expand") << "exchld : " << expanded << std::endl;
+          Trace("expand") << "exchld : " << expanded << std::endl;
           nb << expanded;
         }
         node = nb;
@@ -181,4 +181,4 @@ void ExpandDefs::enableProofs()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

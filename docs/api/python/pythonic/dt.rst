@@ -37,14 +37,14 @@ Now, one has access to a number of tools for interacting with integer lists.
 
 If constructor, accessor, or selector names are ambiguous (e.g., if different
 constructors have selectors of the same name), then see the methods on
-:py:class:`cvc5_z3py_compat.DatatypeSortRef` to unambiguously access a specific
+:py:class:`cvc5.pythonic.DatatypeSortRef` to unambiguously access a specific
 function.
 
 To create mutually recursive datatypes, see
-:py:func:`cvc5_z3py_compat.CreateDatatypes`.
+:py:func:`cvc5.pythonic.CreateDatatypes`.
 
 To create a codataype (e.g., a possibly infinite stream of integers), pass the
-``isCoDatatype=True`` argument to the :py:class:`cvc5_z3py_compat.Datatype`
+``isCoDatatype=True`` argument to the :py:class:`cvc5.pythonic.Datatype`
 constructor.
 
     >>> IntStream = Datatype('IntStream', isCoDatatype=True)
@@ -52,28 +52,28 @@ constructor.
 Declaration Utilities
 ---------------------
 
-.. autofunction:: cvc5_z3py_compat.CreateDatatypes
-.. autofunction:: cvc5_z3py_compat.TupleSort
-.. autofunction:: cvc5_z3py_compat.DisjointSum
+.. autofunction:: cvc5.pythonic.CreateDatatypes
+.. autofunction:: cvc5.pythonic.TupleSort
+.. autofunction:: cvc5.pythonic.DisjointSum
 
 
 Classes
 ------------------------
-.. autoclass:: cvc5_z3py_compat.Datatype
+.. autoclass:: cvc5.pythonic.Datatype
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.DatatypeSortRef
+.. autoclass:: cvc5.pythonic.DatatypeSortRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.DatatypeConstructorRef
+.. autoclass:: cvc5.pythonic.DatatypeConstructorRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.DatatypeSelectorRef
+.. autoclass:: cvc5.pythonic.DatatypeSelectorRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.DatatypeRecognizerRef
+.. autoclass:: cvc5.pythonic.DatatypeRecognizerRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.DatatypeRef
+.. autoclass:: cvc5.pythonic.DatatypeRef
   :members:
   :special-members:

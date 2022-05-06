@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/statistics_registry.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -149,7 +149,7 @@ void InferProofCons::convert(InferenceId infer,
     utils::flattenOp(AND, ec, ps.d_children);
   }
   // debug print
-  if (Trace.isOn("strings-ipc-debug"))
+  if (TraceIsOn("strings-ipc-debug"))
   {
     Trace("strings-ipc-debug") << "InferProofCons::convert: " << infer
                                << (isRev ? " :rev " : " ") << conc << std::endl;
@@ -1035,7 +1035,7 @@ void InferProofCons::convert(InferenceId infer,
   if (!success)
   {
     // debug print
-    if (Trace.isOn("strings-ipc-fail"))
+    if (TraceIsOn("strings-ipc-fail"))
     {
       Trace("strings-ipc-fail")
           << "InferProofCons::convert: Failed " << infer
@@ -1054,7 +1054,7 @@ void InferProofCons::convert(InferenceId infer,
     // use the trust rule
     ps.d_rule = PfRule::THEORY_INFERENCE;
   }
-  if (Trace.isOn("strings-ipc-debug"))
+  if (TraceIsOn("strings-ipc-debug"))
   {
     if (useBuffer)
     {
@@ -1358,4 +1358,4 @@ Node InferProofCons::maybePurifyTerm(Node n,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

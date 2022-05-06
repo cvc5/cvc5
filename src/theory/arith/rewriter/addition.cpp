@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -139,6 +139,35 @@ Node collectSumWithBase(const Sum& sum,
 }
 }
 
+bool isIntegral(const Sum& sum)
+{
+  std::vector<TNode> queue;
+  for (const auto& s: sum)
+  {
+    queue.emplace_back(s.first);
+  }
+  while (!queue.empty())
+  {
+    TNode cur = queue.back();
+    queue.pop_back();
+
+    if (cur.isConst()) continue;
+    switch (cur.getKind())
+    {
+      case Kind::ADD:
+      case Kind::NEG:
+      case Kind::SUB:
+      case Kind::MULT:
+      case Kind::NONLINEAR_MULT:
+        queue.insert(queue.end(), cur.begin(), cur.end());
+        break;
+      default:
+        if (!cur.getType().isInteger()) return false;
+    }
+  }
+  return true;
+}
+
 void addToSum(Sum& sum, TNode n, bool negate)
 {
   if (n.getKind() == Kind::ADD)
@@ -162,6 +191,7 @@ void addToSum(Sum& sum, TNode n, bool negate)
 Node collectSum(const Sum& sum)
 {
   if (sum.empty()) return mkConst(Rational(0));
+  Trace("arith-rewriter") << "Collecting sum " << sum << std::endl;
   // construct the sum as nodes.
   NodeBuilder nb(Kind::ADD);
   for (const auto& s : sum)
@@ -177,7 +207,7 @@ Node collectSum(const Sum& sum)
 
 Node distributeMultiplication(const std::vector<TNode>& factors)
 {
-  if (Trace.isOn("arith-rewriter-distribute"))
+  if (TraceIsOn("arith-rewriter-distribute"))
   {
     Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
     for (const auto& f : factors)
@@ -238,7 +268,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
       }
     }
-    if (Trace.isOn("arith-rewriter-distribute"))
+    if (TraceIsOn("arith-rewriter-distribute"))
     {
       Trace("arith-rewriter-distribute")
           << "multiplied with " << factor << std::endl;
@@ -262,4 +292,4 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

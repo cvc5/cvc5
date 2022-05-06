@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
+ *   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class TConvProofGenerator;
@@ -35,7 +35,7 @@ class Evaluator;
  * The main rewriter class.
  */
 class Rewriter {
-  friend class cvc5::Env;  // to set the resource manager
+  friend class cvc5::internal::Env;  // to set the resource manager
  public:
   Rewriter();
 
@@ -88,9 +88,6 @@ class Rewriter {
 
   /** Set proof node manager */
   void setProofNodeManager(ProofNodeManager* pnm);
-
-  /** Garbage collects the rewrite caches. */
-  void clearCaches();
 
   /**
    * Registers a theory rewriter with this rewriter. The rewriter does not own
@@ -153,8 +150,6 @@ class Rewriter {
    */
   Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
 
-  void clearCachesInternal();
-
   /**
    * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
    */
@@ -180,4 +175,4 @@ class Rewriter {
 };/* class Rewriter */
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

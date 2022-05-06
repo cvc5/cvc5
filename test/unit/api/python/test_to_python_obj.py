@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Andres Noetzli, Mudathir Mohamed
+#   Makai Mann, Alex Ozdemir, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -52,11 +52,14 @@ def testGetBV():
 
 def testGetArray():
     solver = cvc5.Solver()
-    arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
+    arrsort = solver.mkArraySort(solver.getIntegerSort(), solver.getIntegerSort())
     zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
-    stores = solver.mkTerm(Kind.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
-    stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
-    stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
+    stores = solver.mkTerm(
+            Kind.STORE, zero_array, solver.mkInteger(1), solver.mkInteger(2))
+    stores = solver.mkTerm(
+            Kind.STORE, stores, solver.mkInteger(2), solver.mkInteger(3))
+    stores = solver.mkTerm(
+            Kind.STORE, stores, solver.mkInteger(4), solver.mkInteger(5))
 
     array_dict = stores.toPythonObj()
 
@@ -90,7 +93,7 @@ def testGetValueInt():
 
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
-    solver.assertFormula(solver.mkTerm(Kind.Equal, x, solver.mkInteger(6)))
+    solver.assertFormula(solver.mkTerm(Kind.EQUAL, x, solver.mkInteger(6)))
 
     r = solver.checkSat()
     assert r.isSat()
@@ -106,8 +109,8 @@ def testGetValueReal():
     realsort = solver.getRealSort()
     x = solver.mkConst(realsort, "x")
     y = solver.mkConst(realsort, "y")
-    solver.assertFormula(solver.mkTerm(Kind.Equal, x, solver.mkReal("6")))
-    solver.assertFormula(solver.mkTerm(Kind.Equal, y, solver.mkReal("8.33")))
+    solver.assertFormula(solver.mkTerm(Kind.EQUAL, x, solver.mkReal("6")))
+    solver.assertFormula(solver.mkTerm(Kind.EQUAL, y, solver.mkReal("8.33")))
 
     r = solver.checkSat()
     assert r.isSat()

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa
+ *   Andrew Reynolds, Haniel Barbosa, Hanna Lachnitt
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
@@ -31,6 +31,21 @@ bool ProofNodeUpdaterCallback::update(Node res,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
                                       bool& continueUpdate)
+{
+  return false;
+}
+
+bool ProofNodeUpdaterCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa)
+{
+  return false;
+}
+
+bool ProofNodeUpdaterCallback::updatePost(Node res,
+                                          PfRule id,
+                                          const std::vector<Node>& children,
+                                          const std::vector<Node>& args,
+                                          CDProof* cdp)
 {
   return false;
 }
@@ -51,7 +66,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
 {
   if (d_debugFreeAssumps)
   {
-    if (Trace.isOn("pfnu-debug"))
+    if (TraceIsOn("pfnu-debug"))
     {
       Trace("pfnu-debug2") << "Initial proof: " << *pf.get() << std::endl;
       Trace("pfnu-debug") << "ProofNodeUpdater::process" << std::endl;
@@ -178,15 +193,11 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
 }
 
-bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
-                                 const std::vector<Node>& fa,
-                                 bool& continueUpdate)
+bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
+                                       const std::vector<Node>& fa,
+                                       bool& continueUpdate,
+                                       bool preVisit)
 {
-  // should it be updated?
-  if (!d_cb.shouldUpdate(cur, fa, continueUpdate))
-  {
-    return false;
-  }
   PfRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
   CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
@@ -203,7 +214,9 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   Trace("pf-process-debug")
       << "Updating (" << cur->getRule() << "): " << res << std::endl;
   // only if the callback updated the node
-  if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
+  if (preVisit
+          ? d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate)
+          : d_cb.updatePost(res, id, ccn, cur->getArguments(), &cpf))
   {
     std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
     std::vector<Node> fullFa;
@@ -222,7 +235,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
       // We have that npn is a node we occurring the final updated version of
       // the proof. We can now debug based on the expected set of free
       // assumptions.
-      Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
+      Trace("pfnu-debug") << "Ensure updated closed..." << std::endl;
       pfnEnsureClosedWrt(
           npn.get(), fullFa, "pfnu-debug", "ProofNodeUpdater:postupdate");
     }
@@ -233,6 +246,20 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   return false;
 }
 
+bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
+                                 const std::vector<Node>& fa,
+                                 bool& continueUpdate,
+                                 bool preVisit)
+{
+  // should it be updated?
+  if (preVisit ? !d_cb.shouldUpdate(cur, fa, continueUpdate)
+               : !d_cb.shouldUpdatePost(cur, fa))
+  {
+    return false;
+  }
+  return updateProofNode(cur, fa, continueUpdate, preVisit);
+}
+
 void ProofNodeUpdater::runFinalize(
     std::shared_ptr<ProofNode> cur,
     const std::vector<Node>& fa,
@@ -240,6 +267,12 @@ void ProofNodeUpdater::runFinalize(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
     std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
+  // run update (marked as post-visit) to a fixed point
+  bool dummyContinueUpdate;
+  while (runUpdate(cur, fa, dummyContinueUpdate, false))
+  {
+    Trace("pf-process-debug") << "...updated proof." << std::endl;
+  }
   if (d_mergeSubproofs)
   {
     Node res = cur->getResult();
@@ -285,4 +318,4 @@ void ProofNodeUpdater::setDebugFreeAssumptions(
   d_debugFreeAssumps = true;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

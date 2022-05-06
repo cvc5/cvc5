@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -116,7 +116,15 @@ Node LambdaLift::getAssertionFor(TNode node)
     skolem_app_c.push_back(skolem);
     skolem_app_c.insert(skolem_app_c.end(), node[0].begin(), node[0].end());
     Node skolem_app = nm->mkNode(APPLY_UF, skolem_app_c);
-    children.push_back(skolem_app.eqNode(node[1]));
+    skolem_app_c[0] = node;
+    Node rhs = nm->mkNode(APPLY_UF, skolem_app_c);
+    // For the sake of proofs, we use
+    // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is instead of
+    // (= (k t1 ... tn) s); the former is more accurate since
+    // beta reduction uses capture-avoiding substitution, which implies that
+    // ((lambda (y1 ... yn) s) t1 ... tn) is alpha-equivalent but not
+    // necessarily syntactical equal to s.
+    children.push_back(skolem_app.eqNode(rhs));
     // axiom defining skolem
     assertion = nm->mkNode(FORALL, children);
 
@@ -196,4 +204,4 @@ Node LambdaLift::betaReduce(TNode lam, const std::vector<Node>& args) const
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

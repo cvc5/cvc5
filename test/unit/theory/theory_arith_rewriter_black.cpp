@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
@@ -31,11 +31,10 @@ class TestTheoryArithRewriterBlack : public TestSmt
 
 TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 {
-  Trace.on("arith-rewriter");
   {
     RealAlgebraicNumber two({-8, 0, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(two);
-    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.isConst(), true);
     EXPECT_EQ(n.getConst<Rational>(), Rational(2));
   }
   {
@@ -52,7 +51,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::MULT, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
-    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.isConst(), true);
     EXPECT_EQ(n.getConst<Rational>(), Rational(2));
   }
   {
@@ -60,7 +59,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::SUB, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
-    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.isConst(), true);
     EXPECT_EQ(n.getConst<Rational>(), Rational(0));
   }
   {
@@ -116,4 +115,4 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

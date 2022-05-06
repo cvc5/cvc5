@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -105,7 +105,7 @@ class RegExpEntail
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExp(cvc5::String& s,
+  static bool testConstStringInRegExp(cvc5::internal::String& s,
                                       unsigned index_start,
                                       TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
@@ -122,7 +122,7 @@ class RegExpEntail
    * regular expression n. Return null if a constant bound cannot be determined.
    * This method will always worst case return 0 as a lower bound.
    */
-  Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
+  Node getConstantBoundLengthForRegexp(TNode n, bool isLower) const;
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
@@ -155,6 +155,6 @@ class RegExpEntail
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H */

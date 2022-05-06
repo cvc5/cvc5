@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace cvc5::options::ioutils {
+namespace cvc5::internal::options::ioutils {
 namespace {
 
 template <typename T>
@@ -102,4 +102,4 @@ Scope::Scope(std::ios_base& ios)
 }
 Scope::~Scope() { apply(d_ios, d_dagThresh, d_nodeDepth, d_outputLang); }
 
-}  // namespace cvc5::options::ioutils
+}  // namespace cvc5::internal::options::ioutils

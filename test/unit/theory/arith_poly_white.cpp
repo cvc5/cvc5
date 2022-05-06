@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "theory/arith/arith_poly_norm.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace theory::arith;
@@ -40,9 +40,9 @@ class TestTheoryWhiteArithPolyNorm : public TestSmt
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 {
   TypeNode intType = d_nodeManager->integerType();
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node zero = d_nodeManager->mkConstReal(Rational(0));
+  Node one = d_nodeManager->mkConstReal(Rational(1));
+  Node two = d_nodeManager->mkConstReal(Rational(2));
   Node x = d_nodeManager->mkVar("x", intType);
   Node y = d_nodeManager->mkVar("y", intType);
   Node z = d_nodeManager->mkVar("z", intType);
@@ -101,10 +101,10 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
 {
   TypeNode realType = d_nodeManager->realType();
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node half = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1) / Rational(2));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node zero = d_nodeManager->mkConstReal(Rational(0));
+  Node one = d_nodeManager->mkConstReal(Rational(1));
+  Node half = d_nodeManager->mkConstReal(Rational(1) / Rational(2));
+  Node two = d_nodeManager->mkConstReal(Rational(2));
   Node x = d_nodeManager->mkVar("x", realType);
   Node y = d_nodeManager->mkVar("y", realType);
 
@@ -129,4 +129,4 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

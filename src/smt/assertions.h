@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 class AbstractValues;
@@ -69,18 +69,15 @@ class Assertions : protected EnvObj
    * upcoming check-sat call.
    *
    * @param assumptions The assumptions of the upcoming check-sat call.
-   * @param isEntailmentCheck Whether we are checking entailment of assumptions
-   * in the upcoming check-sat call.
    */
-  void initializeCheckSat(const std::vector<Node>& assumptions,
-                          bool isEntailmentCheck);
+  void initializeCheckSat(const std::vector<Node>& assumptions);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
    * literals and conjunction of literals.  Returns false if
    * immediately determined to be inconsistent.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   void assertFormula(const Node& n);
   /**
@@ -189,6 +186,6 @@ class Assertions : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

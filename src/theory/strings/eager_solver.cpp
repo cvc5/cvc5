@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -126,8 +126,11 @@ bool EagerSolver::checkForMergeConflict(Node a,
                                         EqcInfo* eb)
 {
   Assert(eb != nullptr && ea != nullptr);
-  Assert(a.getType() == b.getType());
-  Assert(a.getType().isStringLike() || a.getType().isInteger());
+  Assert(a.getType().isComparableTo(b.getType()))
+      << "bad types for merge " << a << ", " << b;
+  // usages of isRealOrInt are only due to subtyping, where seq.nth for
+  // sequences of Real are merged to integer equivalence classes
+  Assert(a.getType().isStringLike() || a.getType().isRealOrInt());
   // check prefix, suffix
   for (size_t i = 0; i < 2; i++)
   {
@@ -224,10 +227,13 @@ bool EagerSolver::addEndpointConst(EqcInfo* e, Node t, Node c, bool isSuf)
 
 bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 {
+  Trace("strings-eager-aconf-debug")
+      << "addArithmeticBound " << t << ", isLower = " << isLower << "..."
+      << std::endl;
   Assert(e != nullptr);
   Assert(!t.isNull());
   Node tb = t.isConst() ? t : getBoundForLength(t, isLower);
-  Assert(!tb.isNull() && tb.isConst() && tb.getType().isInteger())
+  Assert(!tb.isNull() && tb.isConst() && tb.getType().isRealOrInt())
       << "Unexpected bound " << tb << " from " << t;
   Rational br = tb.getConst<Rational>();
   Node prev = isLower ? e->d_firstBound : e->d_secondBound;
@@ -236,7 +242,7 @@ bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   {
     // convert to bound
     Node prevb = prev.isConst() ? prev : getBoundForLength(prev, isLower);
-    Assert(!prevb.isNull() && prevb.isConst() && prevb.getType().isInteger());
+    Assert(!prevb.isNull() && prevb.isConst() && prevb.getType().isRealOrInt());
     Rational prevbr = prevb.getConst<Rational>();
     if (prevbr == br || (br < prevbr) == isLower)
     {
@@ -252,8 +258,11 @@ bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
     // are we in conflict?
     Node prevob = prevo.isConst() ? prevo : getBoundForLength(prevo, !isLower);
     Assert(!prevob.isNull() && prevob.isConst()
-           && prevob.getType().isInteger());
+           && prevob.getType().isRealOrInt());
     Rational prevobr = prevob.getConst<Rational>();
+    Trace("strings-eager-aconf-debug")
+        << "Previous opposite bound was " << prevobr << ", current bound is "
+        << br << ", isLower = " << isLower << std::endl;
     if (prevobr != br && (prevobr < br) == isLower)
     {
       // conflict
@@ -280,7 +289,7 @@ Node EagerSolver::getBoundForLength(Node t, bool isLower) const
 {
   if (t.getKind() == STRING_IN_REGEXP)
   {
-    return d_rent.getConstantBoundLengthForRegexp(t[1]);
+    return d_rent.getConstantBoundLengthForRegexp(t[1], isLower);
   }
   Assert(t.getKind() == STRING_LENGTH);
   // it is prohibitively expensive to convert to original form and rewrite,
@@ -300,4 +309,4 @@ Node EagerSolver::getBoundForLength(Node t, bool isLower) const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

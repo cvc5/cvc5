@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner
+ *   Gereon Kremer, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #define RAN_UNREACHABLE \
   Unreachable() << "RealAlgebraicNumber is not available without libpoly."
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 #ifdef CVC5_POLY_IMP
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
@@ -61,7 +61,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
   else
   {
     d_value = poly::AlgebraicNumber(
-        poly::UPolynomial({numerator(pr), -denominator(pr)}),
+        poly::UPolynomial({-numerator(pr), denominator(pr)}),
         poly::DyadicInterval(floor(pr), ceil(pr)));
   }
 #endif
@@ -247,11 +247,11 @@ RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
 #endif
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
-size_t hash<cvc5::RealAlgebraicNumber>::operator()(
-    const cvc5::RealAlgebraicNumber& ran) const
+size_t hash<cvc5::internal::RealAlgebraicNumber>::operator()(
+    const cvc5::internal::RealAlgebraicNumber& ran) const
 {
 #ifdef CVC5_POLY_IMP
   return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);

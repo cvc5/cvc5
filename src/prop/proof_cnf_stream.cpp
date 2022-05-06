@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,17 +20,21 @@
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
-ProofCnfStream::ProofCnfStream(context::UserContext* u,
+ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
-                               SatProofManager* satPM,
-                               ProofNodeManager* pnm)
-    : d_cnfStream(cnfStream),
+                               SatProofManager* satPM)
+    : EnvObj(env),
+      d_cnfStream(cnfStream),
       d_satPM(satPM),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_blocked(u)
+      d_proof(env.getProofNodeManager(),
+              nullptr,
+              userContext(),
+              "ProofCnfStream::LazyCDProof"),
+      d_blocked(userContext()),
+      d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
 }
 
@@ -59,7 +63,7 @@ std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
 {
   Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-  if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+  if (TraceIsOn("cnf") && normClauseNode != clauseNode)
   {
     Trace("cnf") << push
                  << "ProofCnfStream::normalizeAndRegister: steps to normalized "
@@ -77,7 +81,8 @@ void ProofCnfStream::convertAndAssert(TNode node,
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
-               << ", removable = " << (removable ? "true" : "false") << ")\n";
+               << ", removable = " << (removable ? "true" : "false")
+               << "), level " << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
   if (pg)
   {
@@ -590,8 +595,10 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   {
     clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
-  normalizeAndRegister(clauseExp);
-  // consume steps
+  d_currPropagationProccessed = normalizeAndRegister(clauseExp);
+  // consume steps if clausification being recorded. If we are not logging it,
+  // we need to add the clause as a closed step to the proof so that the SAT
+  // proof does not have non-input formulas as assumptions.
   if (proofLogging)
   {
     const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
@@ -601,8 +608,60 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
     }
     d_psb.clear();
   }
+  else
+  {
+    d_proof.addStep(clauseExp, PfRule::THEORY_LEMMA, {}, {clauseExp});
+  }
 }
 
+void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
+{
+  Assert(explLevel < (userContext()->getLevel() - 1));
+  Assert(!d_currPropagationProccessed.isNull());
+  Trace("cnf") << "Need to save curr propagation "
+               << d_currPropagationProccessed << "'s proof in level "
+               << explLevel + 1 << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  // Save into map the proof of the processed propagation. Note that
+  // propagations must be explained eagerly, since their justification depends
+  // on the theory engine and may be different if we only get its proof when the
+  // SAT solver pops the user context. Not doing this may lead to open proofs.
+  //
+  // It's also necessary to copy the proof node, so we prevent unintended
+  // updates to the saved proof. Not doing this may also lead to open proofs.
+  std::shared_ptr<ProofNode> currPropagationProcPf =
+      d_env.getProofNodeManager()->clone(
+          d_proof.getProofFor(d_currPropagationProccessed));
+  Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
+  Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
+                     << *currPropagationProcPf.get() << "\n";
+  d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
+                                           d_currPropagationProccessed);
+  // Reset
+  d_currPropagationProccessed = Node::null();
+}
+
+void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                                 int clLevel)
+{
+  Trace("cnf") << "Need to save clause " << clause << " in level "
+               << clLevel + 1 << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  Node clauseNode = getClauseNode(clause);
+  Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
+  Assert(clLevel < (userContext()->getLevel() - 1));
+  // As above, also justify eagerly.
+  std::shared_ptr<ProofNode> clauseCnfPf =
+      d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
+  Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
+  d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+}
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
 {
@@ -628,7 +687,7 @@ void ProofCnfStream::ensureLiteral(TNode n)
   // remove top level negation. We don't need to track this because it's a
   // literal.
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // These are not removable
     d_cnfStream.d_removable = false;
@@ -1059,4 +1118,4 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

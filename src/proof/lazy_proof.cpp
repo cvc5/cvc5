@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,18 +19,21 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          ProofGenerator* dpg,
                          context::Context* c,
                          const std::string& name,
-                         bool autoSym)
+                         bool autoSym,
+                         bool doCache)
     : CDProof(pnm, c, name, autoSym),
       d_gens(c ? c : &d_context),
-      d_defaultGen(dpg)
+      d_defaultGen(dpg),
+      d_doCache(doCache),
+      d_allVisited(c ? c : &d_context)
 {
 }
 
@@ -52,19 +55,33 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
   // otherwise, we traverse the proof opf and fill in the ASSUME leafs that
   // have generators
   std::unordered_set<ProofNode*> visited;
-  std::unordered_set<ProofNode*>::iterator it;
   std::vector<ProofNode*> visit;
   ProofNode* cur;
   visit.push_back(opf.get());
+  bool alreadyVisited;
   do
   {
     cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
+    if (d_doCache)
     {
-      visited.insert(cur);
+      alreadyVisited = d_allVisited.find(cur) != d_allVisited.end();
+    }
+    else
+    {
+      alreadyVisited = visited.find(cur) != visited.end();
+    }
+
+    if (!alreadyVisited)
+    {
+      if (d_doCache)
+      {
+        d_allVisited.insert(cur);
+      }
+      else
+      {
+        visited.insert(cur);
+      }
       Node cfact = cur->getResult();
       if (getProof(cfact).get() != cur)
       {
@@ -238,4 +255,4 @@ bool LazyCDProof::hasGenerator(Node fact) const
   return it != d_gens.end();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

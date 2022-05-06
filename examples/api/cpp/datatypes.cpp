@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 void test(Solver& slv, Sort& consListSort)
 {
@@ -35,25 +35,25 @@ void test(Solver& slv, Sort& consListSort)
   // which is equivalent to consList["cons"].getConstructor().  Note that
   // "nil" is a constructor too, so it needs to be applied with
   // APPLY_CONSTRUCTOR, even though it has no arguments.
-  Term t = slv.mkTerm(
-      APPLY_CONSTRUCTOR,
-      consList.getConstructorTerm("cons"),
-      slv.mkInteger(0),
-      slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
+  Term t = slv.mkTerm(APPLY_CONSTRUCTOR,
+                      {consList.getConstructor("cons").getTerm(),
+                       slv.mkInteger(0),
+                       slv.mkTerm(APPLY_CONSTRUCTOR,
+                                  {consList.getConstructor("nil").getTerm()})});
 
   std::cout << "t is " << t << std::endl
             << "sort of cons is "
-            << consList.getConstructorTerm("cons").getSort() << std::endl
-            << "sort of nil is " << consList.getConstructorTerm("nil").getSort()
-            << std::endl;
+            << consList.getConstructor("cons").getTerm().getSort() << std::endl
+            << "sort of nil is "
+            << consList.getConstructor("nil").getTerm().getSort() << std::endl;
 
   // t2 = head(cons 0 nil), and of course this can be evaluated
   //
   // Here we first get the DatatypeConstructor for cons (with
   // consList["cons"]) in order to get the "head" selector symbol
   // to apply.
-  Term t2 =
-      slv.mkTerm(APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t);
+  Term t2 = slv.mkTerm(APPLY_SELECTOR,
+                       {consList["cons"].getSelector("head").getTerm(), t});
 
   std::cout << "t2 is " << t2 << std::endl
             << "simplify(t2) is " << slv.simplify(t2) << std::endl
@@ -85,24 +85,22 @@ void test(Solver& slv, Sort& consListSort)
 
   // You can also define a tester term for constructor 'cons': (_ is cons)
   Term t_is_cons =
-      slv.mkTerm(APPLY_TESTER, consList["cons"].getTesterTerm(), t);
+      slv.mkTerm(APPLY_TESTER, {consList["cons"].getTesterTerm(), t});
   std::cout << "t_is_cons is " << t_is_cons << std::endl << std::endl;
   slv.assertFormula(t_is_cons);
   // Updating t at 'head' with value 1 is defined as follows:
-  Term t_updated = slv.mkTerm(APPLY_UPDATER,
-                              consList["cons"]["head"].getUpdaterTerm(),
-                              t,
-                              slv.mkInteger(1));
+  Term t_updated = slv.mkTerm(
+      APPLY_UPDATER,
+      {consList["cons"]["head"].getUpdaterTerm(), t, slv.mkInteger(1)});
   std::cout << "t_updated is " << t_updated << std::endl << std::endl;
-  slv.assertFormula(slv.mkTerm(DISTINCT, t, t_updated));
+  slv.assertFormula(slv.mkTerm(DISTINCT, {t, t_updated}));
 
   // You can also define parameterized datatypes.
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
   DatatypeDecl paramConsListSpec =
-      slv.mkDatatypeDecl("paramlist",
-                         sort);  // give the datatype a name
+      slv.mkDatatypeDecl("paramlist", {sort});  // give the datatype a name
   DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
@@ -130,14 +128,15 @@ void test(Solver& slv, Sort& consListSort)
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
   Term head_a = slv.mkTerm(
-      APPLY_SELECTOR, paramConsList["cons"].getSelectorTerm("head"), a);
+      APPLY_SELECTOR, {paramConsList["cons"].getSelector("head").getTerm(), a});
   std::cout << "head_a is " << head_a << " of sort " << head_a.getSort()
             << std::endl
             << "sort of cons is "
-            << paramConsList.getConstructorTerm("cons").getSort() << std::endl
+            << paramConsList.getConstructor("cons").getTerm().getSort()
+            << std::endl
             << std::endl;
 
-  Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
+  Term assertion = slv.mkTerm(GT, {head_a, slv.mkInteger(50)});
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;

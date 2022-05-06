@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -737,15 +737,15 @@ TEST_F(TestNodeBlackNode, isConst)
   Node cons_1_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
+                            d_nodeManager->mkConstInt(Rational(1)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
   Node cons_1_cons_2_nil = d_nodeManager->mkNode(
       APPLY_CONSTRUCTOR,
       cons,
-      d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
+      d_nodeManager->mkConstInt(Rational(1)),
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(2)),
+                            d_nodeManager->mkConstInt(Rational(2)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
   ASSERT_TRUE(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
   ASSERT_FALSE(cons_x_nil.isConst());
@@ -754,8 +754,8 @@ TEST_F(TestNodeBlackNode, isConst)
 
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 
@@ -811,4 +811,4 @@ TEST_F(TestNodeBlackNode, node_tnode_usage)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

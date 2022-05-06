@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -32,8 +32,9 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
       d_skCache(env.getRewriter()),
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
-      d_internal(
-          new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_pnm)),
+      d_cpacb(*this),
+      d_internal(new TheorySetsPrivate(
+          env, *this, d_state, d_im, d_skCache, d_pnm, d_cpacb)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -93,6 +94,9 @@ void TheorySets::finishInit()
 
   // finish initialization internally
   d_internal->finishInit();
+
+  // memberships are not relevant for model building
+  d_valuation.setIrrelevantKind(SET_MEMBER);
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
@@ -161,7 +165,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
-  Debug("sets-proc") << "ppAssert : " << in << std::endl;
+  Trace("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
   // this is based off of Theory::ppAssert
@@ -187,13 +191,6 @@ Theory::PPAssertStatus TheorySets::ppAssert(
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
   }
   return status;
 }
@@ -206,25 +203,46 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
 }
 
+void TheorySets::processCarePairArgs(TNode a, TNode b)
+{
+  // Usually when (= (f x) (f y)), we don't care whether (= x y) is true or
+  // not for the shared variables x, y in the care graph.
+  // However, this does not apply to the membership operator since the
+  // equality or disequality between members affects the number of elements
+  // in a set. Therefore we need to split on (= x y) for kind SET_MEMBER.
+  // Example:
+  // Suppose (set.member x S) = (set.member y S) = true and there are
+  // no other members in S. We would get S = {x} if (= x y) is true.
+  // Otherwise we would get S = {x, y}.
+  if (a.getKind() != SET_MEMBER && d_state.areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
+
+  d_internal->processCarePairArgs(a, b);
+}
+
 /**************************** eq::NotifyClass *****************************/
 
 void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:"
+  Trace("sets-eq") << "[sets-eq] eqNotifyNewClass:"
                    << " t = " << t << std::endl;
   d_theory.eqNotifyNewClass(t);
 }
 
 void TheorySets::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyMerge:"
+  Trace("sets-eq") << "[sets-eq] eqNotifyMerge:"
                    << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.eqNotifyMerge(t1, t2);
 }
 
 void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:"
+  Trace("sets-eq") << "[sets-eq] eqNotifyDisequal:"
                    << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
                    << std::endl;
   d_theory.eqNotifyDisequal(t1, t2, reason);
@@ -232,4 +250,4 @@ void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

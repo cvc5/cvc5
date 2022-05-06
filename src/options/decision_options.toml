@@ -19,55 +19,6 @@ name   = "Decision Heuristics"
 [[option.mode.STOPONLY]]
   name = "stoponly"
   help = "Use the justification heuristic only to stop early, not for decisions."
-[[option.mode.JUSTIFICATION_OLD]]
-  name = "justification-old"
-  help = "Older implementation of an ATGP-inspired justification heuristic."
-[[option.mode.STOPONLY_OLD]]
-  name = "stoponly-old"
-  help = "Use the old implementation of justification heuristic only to stop early, not for decisions."
-
-[[option]]
-  name       = "decisionThreshold"
-  category   = "expert"
-  long       = "decision-threshold=N"
-  type       = "cvc5::decision::DecisionWeight"
-  default    = "0"
-  includes   = ["options/decision_weight.h"]
-  help       = "ignore all nodes greater than threshold in first attempt to pick decision"
-
-[[option]]
-  name       = "decisionUseWeight"
-  category   = "expert"
-  long       = "decision-use-weight"
-  type       = "bool"
-  default    = "false"
-  help       = "use the weight nodes (locally, by looking at children) to direct recursive search"
-
-
-[[option]]
-  name       = "decisionRandomWeight"
-  category   = "expert"
-  long       = "decision-random-weight=N"
-  type       = "int64_t"
-  default    = "0"
-  help       = "assign random weights to nodes between 0 and N-1 (0: disable)"
-
-[[option]]
-  name       = "decisionWeightInternal"
-  category   = "expert"
-  long       = "decision-weight-internal=HOW"
-  type       = "DecisionWeightInternal"
-  default    = "OFF"
-  help       = "compute weights of internal nodes using children: off, max, sum, usr1"
-  help_mode  = "Decision weight internal mode."
-[[option.mode.OFF]]
-  name = "off"
-[[option.mode.MAX]]
-  name = "max"
-[[option.mode.SUM]]
-  name = "sum"
-[[option.mode.USR1]]
-  name = "usr1"
 
 [[option]]
   name       = "jhSkolemMode"

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett
+ *   Andrew Reynolds, Aina Niemetz, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -77,22 +77,20 @@ class IMGenerator : protected EnvObj
    * instantiation, which it populates in data structure m,
    * based on the current context using the implemented matching algorithm.
    *
-   * q is the quantified formula we are adding instantiations for
-   * m is the InstMatch object we are generating
-   *
-   * Returns a value >0 if an instantiation was successfully generated
+   * @param m the InstMatch object we are generating
+   * @return a value >0 if an instantiation was successfully generated
    */
-  virtual int getNextMatch(Node q, InstMatch& m) { return 0; }
+  virtual int getNextMatch(InstMatch& m) { return 0; }
   /** add instantiations
    *
-   * This adds all available instantiations for q based on the current context
-   * using the implemented matching algorithm. It typically is implemented as a
-   * fixed point of getNextMatch above.
+   * This adds all available instantiations for the quantified formula of m
+   * based on the current context using the implemented matching algorithm. It
+   * typically is implemented as a fixed point of getNextMatch above.
    *
    * It returns the number of instantiations added using calls to
    * Instantiate::addInstantiation(...).
    */
-  virtual uint64_t addInstantiations(Node q) { return 0; }
+  virtual uint64_t addInstantiations(InstMatch& m) { return 0; }
   /** get active score
    *
    * A heuristic value indicating how active this generator is.
@@ -102,14 +100,14 @@ class IMGenerator : protected EnvObj
  protected:
   /** send instantiation
    *
-   * This method sends instantiation, specified by m, to the parent trigger
+   * This method sends instantiation, specified by terms, to the parent trigger
    * object, which will in turn make a call to
    * Instantiate::addInstantiation(...). This method returns true if a
    * call to Instantiate::addInstantiation(...) was successfully made,
    * indicating that an instantiation was enqueued in the quantifier engine's
    * lemma cache.
    */
-  bool sendInstantiation(InstMatch& m, InferenceId id);
+  bool sendInstantiation(std::vector<Node>& terms, InferenceId id);
   /** The parent trigger that owns this */
   Trigger* d_tparent;
   /** Reference to the state of the quantifiers engine */
@@ -121,6 +119,6 @@ class IMGenerator : protected EnvObj
 }  // namespace inst
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

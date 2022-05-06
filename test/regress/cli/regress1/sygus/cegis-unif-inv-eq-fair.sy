@@ -1,0 +1,517 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-unif-pi=complete --sygus-bool-ite-return-const --sygus-out=status
+(set-logic LIA)
+
+(define-fun
+  __node_init_Sofar_0 (
+    (Sofar.usr.X@0 Bool)
+    (Sofar.usr.Sofar@0 Bool)
+    (Sofar.res.init_flag@0 Bool)
+  ) Bool
+  
+  (and (= Sofar.usr.Sofar@0 Sofar.usr.X@0) Sofar.res.init_flag@0)
+)
+
+(define-fun
+  __node_trans_Sofar_0 (
+    (Sofar.usr.X@1 Bool)
+    (Sofar.usr.Sofar@1 Bool)
+    (Sofar.res.init_flag@1 Bool)
+    (Sofar.usr.X@0 Bool)
+    (Sofar.usr.Sofar@0 Bool)
+    (Sofar.res.init_flag@0 Bool)
+  ) Bool
+  
+  (and
+   (= Sofar.usr.Sofar@1 (and Sofar.usr.X@1 Sofar.usr.Sofar@0))
+   (not Sofar.res.init_flag@1))
+)
+
+(define-fun
+  __node_init_excludes2_0 (
+    (excludes2.usr.X1@0 Bool)
+    (excludes2.usr.X2@0 Bool)
+    (excludes2.usr.excludes@0 Bool)
+    (excludes2.res.init_flag@0 Bool)
+  ) Bool
+  
+  (and
+   (=
+    excludes2.usr.excludes@0
+    (not (and excludes2.usr.X1@0 excludes2.usr.X2@0)))
+   excludes2.res.init_flag@0)
+)
+
+(define-fun
+  __node_trans_excludes2_0 (
+    (excludes2.usr.X1@1 Bool)
+    (excludes2.usr.X2@1 Bool)
+    (excludes2.usr.excludes@1 Bool)
+    (excludes2.res.init_flag@1 Bool)
+    (excludes2.usr.X1@0 Bool)
+    (excludes2.usr.X2@0 Bool)
+    (excludes2.usr.excludes@0 Bool)
+    (excludes2.res.init_flag@0 Bool)
+  ) Bool
+  
+  (and
+   (=
+    excludes2.usr.excludes@1
+    (not (and excludes2.usr.X1@1 excludes2.usr.X2@1)))
+   (not excludes2.res.init_flag@1))
+)
+
+(define-fun
+  __node_init_voiture_0 (
+    (voiture.usr.m@0 Bool)
+    (voiture.usr.s@0 Bool)
+    (voiture.usr.toofast@0 Bool)
+    (voiture.usr.stop@0 Bool)
+    (voiture.usr.bump@0 Bool)
+    (voiture.usr.dist@0 Int)
+    (voiture.usr.speed@0 Int)
+    (voiture.usr.time@0 Int)
+    (voiture.usr.move@0 Bool)
+    (voiture.usr.second@0 Bool)
+    (voiture.usr.meter@0 Bool)
+    (voiture.res.init_flag@0 Bool)
+    (voiture.res.abs_0@0 Bool)
+  ) Bool
+  
+  (and
+   (= voiture.usr.speed@0 0)
+   (= voiture.usr.toofast@0 (>= voiture.usr.speed@0 3))
+   (= voiture.usr.move@0 true)
+   (= voiture.usr.time@0 0)
+   (= voiture.usr.dist@0 0)
+   (= voiture.usr.bump@0 (= voiture.usr.dist@0 10))
+   (= voiture.usr.stop@0 (>= voiture.usr.time@0 4))
+   (=
+    voiture.res.abs_0@0
+    (and
+     (and
+      (and voiture.usr.move@0 (not voiture.usr.stop@0))
+      (not voiture.usr.toofast@0))
+     (not voiture.usr.bump@0)))
+   (= voiture.usr.second@0 false)
+   (= voiture.usr.meter@0 false)
+   voiture.res.init_flag@0)
+)
+
+(define-fun
+  __node_trans_voiture_0 (
+    (voiture.usr.m@1 Bool)
+    (voiture.usr.s@1 Bool)
+    (voiture.usr.toofast@1 Bool)
+    (voiture.usr.stop@1 Bool)
+    (voiture.usr.bump@1 Bool)
+    (voiture.usr.dist@1 Int)
+    (voiture.usr.speed@1 Int)
+    (voiture.usr.time@1 Int)
+    (voiture.usr.move@1 Bool)
+    (voiture.usr.second@1 Bool)
+    (voiture.usr.meter@1 Bool)
+    (voiture.res.init_flag@1 Bool)
+    (voiture.res.abs_0@1 Bool)
+    (voiture.usr.m@0 Bool)
+    (voiture.usr.s@0 Bool)
+    (voiture.usr.toofast@0 Bool)
+    (voiture.usr.stop@0 Bool)
+    (voiture.usr.bump@0 Bool)
+    (voiture.usr.dist@0 Int)
+    (voiture.usr.speed@0 Int)
+    (voiture.usr.time@0 Int)
+    (voiture.usr.move@0 Bool)
+    (voiture.usr.second@0 Bool)
+    (voiture.usr.meter@0 Bool)
+    (voiture.res.init_flag@0 Bool)
+    (voiture.res.abs_0@0 Bool)
+  ) Bool
+  
+  (and
+   (= voiture.usr.meter@1 (and voiture.usr.m@1 (not voiture.usr.s@1)))
+   (= voiture.usr.second@1 voiture.usr.s@1)
+   (= voiture.usr.move@1 voiture.res.abs_0@0)
+   (=
+    voiture.usr.speed@1
+    (ite
+     (or (not voiture.usr.move@1) voiture.usr.second@1)
+     0
+     (ite
+      (and voiture.usr.move@1 voiture.usr.meter@1)
+      (+ (- voiture.usr.speed@0 1) 1)
+      voiture.usr.speed@0)))
+   (= voiture.usr.toofast@1 (>= voiture.usr.speed@1 3))
+   (=
+    voiture.usr.time@1
+    (ite voiture.usr.second@1 (+ voiture.usr.time@0 1) voiture.usr.time@0))
+   (=
+    voiture.usr.dist@1
+    (ite
+     (and voiture.usr.move@1 voiture.usr.meter@1)
+     (+ voiture.usr.dist@0 1)
+     voiture.usr.dist@0))
+   (= voiture.usr.bump@1 (= voiture.usr.dist@1 10))
+   (= voiture.usr.stop@1 (>= voiture.usr.time@1 4))
+   (=
+    voiture.res.abs_0@1
+    (and
+     (and
+      (and voiture.usr.move@1 (not voiture.usr.stop@1))
+      (not voiture.usr.toofast@1))
+     (not voiture.usr.bump@1)))
+   (not voiture.res.init_flag@1))
+)
+
+(define-fun
+  __node_init_top_0 (
+    (top.usr.m@0 Bool)
+    (top.usr.s@0 Bool)
+    (top.usr.OK@0 Bool)
+    (top.res.init_flag@0 Bool)
+    (top.res.abs_0@0 Bool)
+    (top.res.abs_1@0 Bool)
+    (top.res.abs_2@0 Bool)
+    (top.res.abs_3@0 Int)
+    (top.res.abs_4@0 Int)
+    (top.res.abs_5@0 Int)
+    (top.res.abs_6@0 Bool)
+    (top.res.abs_7@0 Bool)
+    (top.res.abs_8@0 Bool)
+    (top.res.abs_9@0 Bool)
+    (top.res.abs_10@0 Bool)
+    (top.res.inst_3@0 Bool)
+    (top.res.inst_2@0 Bool)
+    (top.res.inst_1@0 Bool)
+    (top.res.inst_0@0 Bool)
+  ) Bool
+  
+  (let
+   ((X1 top.res.abs_10@0))
+   (let
+    ((X2 top.res.abs_4@0))
+    (and
+     (= top.usr.OK@0 (=> X1 (< X2 4)))
+     (__node_init_voiture_0
+      top.usr.m@0
+      top.usr.s@0
+      top.res.abs_0@0
+      top.res.abs_1@0
+      top.res.abs_2@0
+      top.res.abs_3@0
+      top.res.abs_4@0
+      top.res.abs_5@0
+      top.res.abs_6@0
+      top.res.abs_7@0
+      top.res.abs_8@0
+      top.res.inst_3@0
+      top.res.inst_2@0)
+     (__node_init_Sofar_0 top.res.abs_9@0 top.res.abs_10@0 top.res.inst_1@0)
+     (__node_init_excludes2_0
+      top.usr.m@0
+      top.usr.s@0
+      top.res.abs_9@0
+      top.res.inst_0@0)
+     top.res.init_flag@0)))
+)
+
+(define-fun
+  __node_trans_top_0 (
+    (top.usr.m@1 Bool)
+    (top.usr.s@1 Bool)
+    (top.usr.OK@1 Bool)
+    (top.res.init_flag@1 Bool)
+    (top.res.abs_0@1 Bool)
+    (top.res.abs_1@1 Bool)
+    (top.res.abs_2@1 Bool)
+    (top.res.abs_3@1 Int)
+    (top.res.abs_4@1 Int)
+    (top.res.abs_5@1 Int)
+    (top.res.abs_6@1 Bool)
+    (top.res.abs_7@1 Bool)
+    (top.res.abs_8@1 Bool)
+    (top.res.abs_9@1 Bool)
+    (top.res.abs_10@1 Bool)
+    (top.res.inst_3@1 Bool)
+    (top.res.inst_2@1 Bool)
+    (top.res.inst_1@1 Bool)
+    (top.res.inst_0@1 Bool)
+    (top.usr.m@0 Bool)
+    (top.usr.s@0 Bool)
+    (top.usr.OK@0 Bool)
+    (top.res.init_flag@0 Bool)
+    (top.res.abs_0@0 Bool)
+    (top.res.abs_1@0 Bool)
+    (top.res.abs_2@0 Bool)
+    (top.res.abs_3@0 Int)
+    (top.res.abs_4@0 Int)
+    (top.res.abs_5@0 Int)
+    (top.res.abs_6@0 Bool)
+    (top.res.abs_7@0 Bool)
+    (top.res.abs_8@0 Bool)
+    (top.res.abs_9@0 Bool)
+    (top.res.abs_10@0 Bool)
+    (top.res.inst_3@0 Bool)
+    (top.res.inst_2@0 Bool)
+    (top.res.inst_1@0 Bool)
+    (top.res.inst_0@0 Bool)
+  ) Bool
+  
+  (let
+   ((X1 top.res.abs_10@1))
+   (let
+    ((X2 top.res.abs_4@1))
+    (and
+     (= top.usr.OK@1 (=> X1 (< X2 4)))
+     (__node_trans_voiture_0
+      top.usr.m@1
+      top.usr.s@1
+      top.res.abs_0@1
+      top.res.abs_1@1
+      top.res.abs_2@1
+      top.res.abs_3@1
+      top.res.abs_4@1
+      top.res.abs_5@1
+      top.res.abs_6@1
+      top.res.abs_7@1
+      top.res.abs_8@1
+      top.res.inst_3@1
+      top.res.inst_2@1
+      top.usr.m@0
+      top.usr.s@0
+      top.res.abs_0@0
+      top.res.abs_1@0
+      top.res.abs_2@0
+      top.res.abs_3@0
+      top.res.abs_4@0
+      top.res.abs_5@0
+      top.res.abs_6@0
+      top.res.abs_7@0
+      top.res.abs_8@0
+      top.res.inst_3@0
+      top.res.inst_2@0)
+     (__node_trans_Sofar_0
+      top.res.abs_9@1
+      top.res.abs_10@1
+      top.res.inst_1@1
+      top.res.abs_9@0
+      top.res.abs_10@0
+      top.res.inst_1@0)
+     (__node_trans_excludes2_0
+      top.usr.m@1
+      top.usr.s@1
+      top.res.abs_9@1
+      top.res.inst_0@1
+      top.usr.m@0
+      top.usr.s@0
+      top.res.abs_9@0
+      top.res.inst_0@0)
+     (not top.res.init_flag@1))))
+)
+
+
+
+(synth-inv str_invariant(
+  (top.usr.m Bool)
+  (top.usr.s Bool)
+  (top.usr.OK Bool)
+  (top.res.init_flag Bool)
+  (top.res.abs_0 Bool)
+  (top.res.abs_1 Bool)
+  (top.res.abs_2 Bool)
+  (top.res.abs_3 Int)
+  (top.res.abs_4 Int)
+  (top.res.abs_5 Int)
+  (top.res.abs_6 Bool)
+  (top.res.abs_7 Bool)
+  (top.res.abs_8 Bool)
+  (top.res.abs_9 Bool)
+  (top.res.abs_10 Bool)
+  (top.res.inst_3 Bool)
+  (top.res.inst_2 Bool)
+  (top.res.inst_1 Bool)
+  (top.res.inst_0 Bool)
+))
+
+
+
+(define-fun
+  init (
+    (top.usr.m Bool)
+    (top.usr.s Bool)
+    (top.usr.OK Bool)
+    (top.res.init_flag Bool)
+    (top.res.abs_0 Bool)
+    (top.res.abs_1 Bool)
+    (top.res.abs_2 Bool)
+    (top.res.abs_3 Int)
+    (top.res.abs_4 Int)
+    (top.res.abs_5 Int)
+    (top.res.abs_6 Bool)
+    (top.res.abs_7 Bool)
+    (top.res.abs_8 Bool)
+    (top.res.abs_9 Bool)
+    (top.res.abs_10 Bool)
+    (top.res.inst_3 Bool)
+    (top.res.inst_2 Bool)
+    (top.res.inst_1 Bool)
+    (top.res.inst_0 Bool)
+  ) Bool
+  
+  (let
+   ((X1 top.res.abs_10))
+   (let
+    ((X2 top.res.abs_4))
+    (and
+     (= top.usr.OK (=> X1 (< X2 4)))
+     (__node_init_voiture_0
+      top.usr.m
+      top.usr.s
+      top.res.abs_0
+      top.res.abs_1
+      top.res.abs_2
+      top.res.abs_3
+      top.res.abs_4
+      top.res.abs_5
+      top.res.abs_6
+      top.res.abs_7
+      top.res.abs_8
+      top.res.inst_3
+      top.res.inst_2)
+     (__node_init_Sofar_0 top.res.abs_9 top.res.abs_10 top.res.inst_1)
+     (__node_init_excludes2_0
+      top.usr.m
+      top.usr.s
+      top.res.abs_9
+      top.res.inst_0)
+     top.res.init_flag)))
+)
+
+(define-fun
+  trans (
+    
+    ;; Current state.
+    (top.usr.m Bool)
+    (top.usr.s Bool)
+    (top.usr.OK Bool)
+    (top.res.init_flag Bool)
+    (top.res.abs_0 Bool)
+    (top.res.abs_1 Bool)
+    (top.res.abs_2 Bool)
+    (top.res.abs_3 Int)
+    (top.res.abs_4 Int)
+    (top.res.abs_5 Int)
+    (top.res.abs_6 Bool)
+    (top.res.abs_7 Bool)
+    (top.res.abs_8 Bool)
+    (top.res.abs_9 Bool)
+    (top.res.abs_10 Bool)
+    (top.res.inst_3 Bool)
+    (top.res.inst_2 Bool)
+    (top.res.inst_1 Bool)
+    (top.res.inst_0 Bool)
+    
+    ;; Next state.
+    (top.usr.m! Bool)
+    (top.usr.s! Bool)
+    (top.usr.OK! Bool)
+    (top.res.init_flag! Bool)
+    (top.res.abs_0! Bool)
+    (top.res.abs_1! Bool)
+    (top.res.abs_2! Bool)
+    (top.res.abs_3! Int)
+    (top.res.abs_4! Int)
+    (top.res.abs_5! Int)
+    (top.res.abs_6! Bool)
+    (top.res.abs_7! Bool)
+    (top.res.abs_8! Bool)
+    (top.res.abs_9! Bool)
+    (top.res.abs_10! Bool)
+    (top.res.inst_3! Bool)
+    (top.res.inst_2! Bool)
+    (top.res.inst_1! Bool)
+    (top.res.inst_0! Bool)
+  
+  ) Bool
+  
+  (let
+   ((X1 top.res.abs_10!))
+   (let
+    ((X2 top.res.abs_4!))
+    (and
+     (= top.usr.OK! (=> X1 (< X2 4)))
+     (__node_trans_voiture_0
+      top.usr.m!
+      top.usr.s!
+      top.res.abs_0!
+      top.res.abs_1!
+      top.res.abs_2!
+      top.res.abs_3!
+      top.res.abs_4!
+      top.res.abs_5!
+      top.res.abs_6!
+      top.res.abs_7!
+      top.res.abs_8!
+      top.res.inst_3!
+      top.res.inst_2!
+      top.usr.m
+      top.usr.s
+      top.res.abs_0
+      top.res.abs_1
+      top.res.abs_2
+      top.res.abs_3
+      top.res.abs_4
+      top.res.abs_5
+      top.res.abs_6
+      top.res.abs_7
+      top.res.abs_8
+      top.res.inst_3
+      top.res.inst_2)
+     (__node_trans_Sofar_0
+      top.res.abs_9!
+      top.res.abs_10!
+      top.res.inst_1!
+      top.res.abs_9
+      top.res.abs_10
+      top.res.inst_1)
+     (__node_trans_excludes2_0
+      top.usr.m!
+      top.usr.s!
+      top.res.abs_9!
+      top.res.inst_0!
+      top.usr.m
+      top.usr.s
+      top.res.abs_9
+      top.res.inst_0)
+     (not top.res.init_flag!))))
+)
+
+(define-fun
+  prop (
+    (top.usr.m Bool)
+    (top.usr.s Bool)
+    (top.usr.OK Bool)
+    (top.res.init_flag Bool)
+    (top.res.abs_0 Bool)
+    (top.res.abs_1 Bool)
+    (top.res.abs_2 Bool)
+    (top.res.abs_3 Int)
+    (top.res.abs_4 Int)
+    (top.res.abs_5 Int)
+    (top.res.abs_6 Bool)
+    (top.res.abs_7 Bool)
+    (top.res.abs_8 Bool)
+    (top.res.abs_9 Bool)
+    (top.res.abs_10 Bool)
+    (top.res.inst_3 Bool)
+    (top.res.inst_2 Bool)
+    (top.res.inst_1 Bool)
+    (top.res.inst_0 Bool)
+  ) Bool
+  
+  top.usr.OK
+)
+
+(inv-constraint str_invariant init trans prop)
+
+(check-synth)

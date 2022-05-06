@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Ying Sheng, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Ying Sheng
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,8 +24,9 @@
 #include "smt/env_obj.h"
 #include "smt/smt_mode.h"
 #include "util/result.h"
+#include "util/synth_result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class SolverEngine;
 
@@ -86,12 +87,12 @@ class SolverEngineState : protected EnvObj
    * If so, we pop a context.
    * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(bool hasAssumptions, Result r);
+  void notifyCheckSatResult(bool hasAssumptions, const Result& r);
   /**
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
    */
-  void notifyCheckSynthResult(Result r);
+  void notifyCheckSynthResult(const SynthResult& r);
   /**
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above
@@ -107,7 +108,7 @@ class SolverEngineState : protected EnvObj
   /**
    * Notify that we finished an interpolation query, where success is whether
    * the command was successful. This is managed independently of the above
-   * calls for notifying check-sat. In other words, if a get-interpol command
+   * calls for notifying check-sat. In other words, if a get-interpolant command
    * is issued to an SolverEngine, it may use a satisfiability call (if desired)
    * to solve the interpolation query. This method is called *in addition* to
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
@@ -249,6 +250,6 @@ class SolverEngineState : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

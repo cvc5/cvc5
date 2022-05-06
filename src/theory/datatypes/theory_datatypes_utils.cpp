@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +19,10 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -36,8 +36,8 @@ Node getInstCons(Node n, const DType& dt, size_t index)
   TypeNode tn = n.getType();
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
-    Node nc = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal(tn, i), n);
+    Node nc =
+        nm->mkNode(APPLY_SELECTOR, dt[index].getSelectorInternal(tn, i), n);
     children.push_back(nc);
   }
   Node n_ic = mkApplyCons(tn, dt, index, children);
@@ -61,7 +61,7 @@ Node mkApplyCons(TypeNode tn,
   if (dt.isParametric())
   {
     // add type ascription for ambiguous constructor types
-    Debug("datatypes-parametric")
+    Trace("datatypes-parametric")
         << "Constructor is " << dt[index] << std::endl;
     cchildren[0] = dt[index].getInstantiatedConstructor(tn);
   }
@@ -77,7 +77,7 @@ int isInstCons(Node t, Node n, const DType& dt)
     TypeNode tn = n.getType();
     for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
-      if (n[i].getKind() != APPLY_SELECTOR_TOTAL
+      if (n[i].getKind() != APPLY_SELECTOR
           || n[i].getOperator() != c.getSelectorInternal(tn, i) || n[i][0] != t)
       {
         return -1;
@@ -209,4 +209,4 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

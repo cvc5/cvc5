@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Abdalrhman Mohamed, Andrew Reynolds
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,13 +15,12 @@
  * These macros implement guards for the cvc5 C++ API functions.
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
 
 namespace cvc5 {
-namespace api {
 
 /* -------------------------------------------------------------------------- */
 /* Basic check macros.                                                        */
@@ -33,7 +32,8 @@ namespace api {
  */
 #define CVC5_API_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)    \
-  ? (void)0 : OstreamVoider() & CVC5ApiExceptionStream().ostream()
+  ? (void)0                  \
+  : cvc5::internal::OstreamVoider() & CVC5ApiExceptionStream().ostream()
 
 /**
  * The base check macro for throwing recoverable exceptions.
@@ -41,7 +41,9 @@ namespace api {
  */
 #define CVC5_API_RECOVERABLE_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC5ApiRecoverableExceptionStream().ostream()
+  ? (void)0                              \
+  : cvc5::internal::OstreamVoider()      \
+          & CVC5ApiRecoverableExceptionStream().ostream()
 
 /**
  * The base check macro for throwing unsupported exceptions.
@@ -49,7 +51,9 @@ namespace api {
  */
 #define CVC5_API_UNSUPPORTED_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC5ApiUnsupportedExceptionStream().ostream()
+  ? (void)0                              \
+  : cvc5::internal::OstreamVoider()      \
+          & CVC5ApiUnsupportedExceptionStream().ostream()
 
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
@@ -94,7 +98,7 @@ namespace api {
 #define CVC5_API_KIND_CHECK_EXPECTED(cond, kind) \
   CVC5_PREDICT_TRUE(cond)                        \
   ? (void)0                                      \
-  : OstreamVoider()                              \
+  : cvc5::internal::OstreamVoider()              \
           & CVC5ApiExceptionStream().ostream()   \
                 << "Invalid kind '" << kindToString(kind) << "', expected "
 
@@ -110,7 +114,7 @@ namespace api {
 #define CVC5_API_ARG_CHECK_EXPECTED(cond, arg)                      \
   CVC5_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
-  : OstreamVoider()                                                 \
+  : cvc5::internal::OstreamVoider()                                 \
           & CVC5ApiExceptionStream().ostream()                      \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
@@ -123,7 +127,7 @@ namespace api {
 #define CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(cond, arg)          \
   CVC5_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
-  : OstreamVoider()                                                 \
+  : cvc5::internal::OstreamVoider()                                 \
           & CVC5ApiRecoverableExceptionStream().ostream()           \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
@@ -138,7 +142,7 @@ namespace api {
 #define CVC5_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
   CVC5_PREDICT_TRUE(cond)                           \
   ? (void)0                                         \
-  : OstreamVoider()                                 \
+  : cvc5::internal::OstreamVoider()                 \
           & CVC5ApiExceptionStream().ostream()      \
                 << "Invalid size of argument '" << #arg << "', expected "
 
@@ -154,7 +158,7 @@ namespace api {
 #define CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, args, idx)          \
   CVC5_PREDICT_TRUE(cond)                                                    \
   ? (void)0                                                                  \
-  : OstreamVoider()                                                          \
+  : cvc5::internal::OstreamVoider()                                          \
           & CVC5ApiExceptionStream().ostream()                               \
                 << "Invalid " << (what) << " in '" << #args << "' at index " \
                 << (idx) << ", expected "
@@ -205,6 +209,29 @@ namespace api {
           this->d_solver == s.d_solver, "sort", sorts, i)                   \
           << "a sort associated with the solver this object is associated " \
              "with";                                                        \
+      i += 1;                                                               \
+    }                                                                       \
+  } while (0)
+
+/**
+ * Sort check for member functions of classes other than class Solver.
+ * Check if each sort in the given container of sorts is not null, is
+ * associated with the solver object this object is associated with, and is a
+ * first-class sort.
+ */
+#define CVC5_API_CHECK_DOMAIN_SORTS(sorts)                                  \
+  do                                                                        \
+  {                                                                         \
+    size_t i = 0;                                                           \
+    for (const auto& s : sorts)                                             \
+    {                                                                       \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);            \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
+          this->d_solver == s.d_solver, "sort", sorts, i)                   \
+          << "a sort associated with the solver this object is associated " \
+             "with";                                                        \
+      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)        \
+          << "first-class sort as domain sort";                             \
       i += 1;                                                               \
     }                                                                       \
   } while (0)
@@ -377,40 +404,18 @@ namespace api {
   } while (0)
 
 /**
- * Sort checks for member functions of class Solver.
- * Check if each sort in the given container of sorts is not null, associated
- * with this solver, and not function-like.
- */
-#define CVC5_API_SOLVER_CHECK_SORTS_NOT_FUNCTION_LIKE(sorts)      \
-  do                                                              \
-  {                                                               \
-    size_t i = 0;                                                 \
-    for (const auto& s : sorts)                                   \
-    {                                                             \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sorts", s, sorts, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          this == s.d_solver, "sort", sorts, i)                   \
-          << "a sorts associated with this solver";               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          !s.isFunctionLike(), "sort", sorts, i)                  \
-          << "non-function-like sort";                            \
-      i += 1;                                                     \
-    }                                                             \
-  } while (0)
-
-/**
  * Domain sort check for member functions of class Solver.
  * Check if domain sort is not null, associated with this solver, and a
  * first-class sort.
  */
-#define CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort)             \
-  do                                                        \
-  {                                                         \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
-    CVC5_API_CHECK(this == sort.d_solver)                   \
-        << "Given sort is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)  \
-        << "first-class sort as domain sort";               \
+#define CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort)                          \
+  do                                                                     \
+  {                                                                      \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);                                   \
+    CVC5_API_CHECK(this == sort.d_solver)                                \
+        << "Given sort is not associated with this solver";              \
+    CVC5_API_ARG_CHECK_EXPECTED(sort.getTypeNode().isFirstClass(), sort) \
+        << "first-class sort as domain sort";                            \
   } while (0)
 
 /**
@@ -429,7 +434,7 @@ namespace api {
           this == s.d_solver, "domain sort", sorts, i)                  \
           << "a sort associated with this solver object";               \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          s.isFirstClass(), "domain sort", sorts, i)                    \
+          s.getTypeNode().isFirstClass(), "domain sort", sorts, i)      \
           << "first-class sort as domain sort";                         \
       i += 1;                                                           \
     }                                                                   \
@@ -535,7 +540,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i) \
           << "a term associated with this solver object";       \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,   \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,   \
           "bound variable",                                     \
           bound_vars,                                           \
           i)                                                    \
@@ -567,7 +572,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i)               \
           << "a term associated with this solver object";                     \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,                 \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,                 \
           "bound variable",                                                   \
           bound_vars,                                                         \
           i)                                                                  \
@@ -578,7 +583,10 @@ namespace api {
           bound_vars,                                                         \
           i);                                                                 \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          domain_sorts[i].isFirstClass(), "domain sort", domain_sorts, i)     \
+          domain_sorts[i].getTypeNode().isFirstClass(),                       \
+          "domain sort",                                                      \
+          domain_sorts,                                                       \
+          i)                                                                  \
           << "first-class sort of parameter of defined function";             \
       i += 1;                                                                 \
     }                                                                         \
@@ -605,14 +613,15 @@ namespace api {
  * Check if given datatype declaration is not null and associated with this
  * solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                     \
-  do                                                                           \
-  {                                                                            \
-    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                         \
-    CVC5_API_CHECK(this == decl.d_solver)                                      \
-        << "Given datatype declaration is not associated with this solver";    \
-    CVC5_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl) \
-        << "a datatype declaration with at least one constructor";             \
+#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                  \
+  do                                                                        \
+  {                                                                         \
+    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                      \
+    CVC5_API_CHECK(this == decl.d_solver)                                   \
+        << "Given datatype declaration is not associated with this solver"; \
+    CVC5_API_ARG_CHECK_EXPECTED(                                            \
+        dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)        \
+        << "a datatype declaration with at least one constructor";          \
   } while (0)
 
 /**
@@ -620,22 +629,25 @@ namespace api {
  * Check if each datatype declaration in the given container of declarations is
  * not null and associated with this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECLS(decls)                            \
-  do                                                                    \
-  {                                                                     \
-    size_t i = 0;                                                       \
-    for (const auto& d : decls)                                         \
-    {                                                                   \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                             \
-          "datatype declaration", d, decls, i);                         \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          this == d.d_solver, "datatype declaration", decls, i)         \
-          << "a datatype declaration associated with this solver";      \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          d.getNumConstructors() > 0, "datatype declaration", decls, i) \
-          << "a datatype declaration with at least one constructor";    \
-      i += 1;                                                           \
-    }                                                                   \
+#define CVC5_API_SOLVER_CHECK_DTDECLS(decls)                         \
+  do                                                                 \
+  {                                                                  \
+    size_t i = 0;                                                    \
+    for (const auto& d : decls)                                      \
+    {                                                                \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                          \
+          "datatype declaration", d, decls, i);                      \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                          \
+          this == d.d_solver, "datatype declaration", decls, i)      \
+          << "a datatype declaration associated with this solver";   \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                          \
+          d.getDatatype().getNumConstructors() > 0,                  \
+          "datatype declaration",                                    \
+          decls,                                                     \
+          i)                                                         \
+          << "a datatype declaration with at least one constructor"; \
+      i += 1;                                                        \
+    }                                                                \
   } while (0)
 
 /**
@@ -658,6 +670,14 @@ namespace api {
       i += 1;                                                                  \
     }                                                                          \
   } while (0)
-}  // namespace api
+
+/**
+ * Argument number checks for mkOp.
+ */
+#define CVC5_API_OP_CHECK_ARITY(nargs, expected, kind)                      \
+  CVC5_API_CHECK(nargs == expected)                                         \
+      << "Invalid number of indices for operator " << kind << ". Expected " \
+      << expected << " but got " << nargs << "."
+
 }  // namespace cvc5
 #endif

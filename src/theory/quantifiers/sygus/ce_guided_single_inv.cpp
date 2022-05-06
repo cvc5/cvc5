@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
+ *   Andrew Reynolds, Abdalrhman Mohamed, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -236,7 +236,7 @@ bool CegSingleInv::solve()
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
-  Result::Sat res = r.asSatisfiabilityResult().isSat();
+  Result::Status res = r.getStatus();
   if (res != Result::UNSAT)
   {
     warning() << "Warning : the single invocation solver determined the SyGuS "
@@ -339,7 +339,7 @@ Node CegSingleInv::getSolution(size_t sol_index,
   sol = sol.substitute(
       vars.begin(), vars.end(), sygusVars.begin(), sygusVars.end());
   sol = reconstructToSyntax(sol, stn, reconstructed, rconsSygus);
-  return s.getKind() == LAMBDA
+  return !sol.isNull() && s.getKind() == LAMBDA
              ? NodeManager::currentNM()->mkNode(LAMBDA, s[0], sol)
              : sol;
 }
@@ -565,4 +565,4 @@ bool CegSingleInv::solveTrivial(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

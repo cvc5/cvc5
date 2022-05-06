@@ -7,9 +7,9 @@ mechanism.  The following terms apply to all such contributions:
   being submitted and to be signed using `git commit -s`.
 
 - cvc5 is distributed under the terms of the modified BSD license (see
-  [COPYING](https://github.com/cvc5/cvc5/blob/master/COPYING) file).  By
+  [COPYING](https://github.com/cvc5/cvc5/blob/main/COPYING) file).  By
   submitting a signed contribution, you automatically agree to accept the conditions
-  described in [COPYING](https://github.com/cvc5/cvc5/blob/master/COPYING).
+  described in [COPYING](https://github.com/cvc5/cvc5/blob/main/COPYING).
 
 - By submitting a signed contribution, you additionally automatically agree
   that the [Developer Certificate of Origin](https://developercertificate.org)

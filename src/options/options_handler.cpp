@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mathias Preiner
+ *   Gereon Kremer, Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@
 #include "smt/command.h"
 #include "util/didyoumean.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace options {
 
 // helper functions
@@ -107,9 +107,8 @@ OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
 void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
 {
-  Debug.setStream(me);
   Warning.setStream(me);
-  Trace.setStream(me);
+  TraceChannel.setStream(me);
 }
 
 Language OptionsHandler::stringToLanguage(const std::string& flag,
@@ -165,12 +164,11 @@ void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
 {
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&cvc5::null_os);
-    TraceChannel.setStream(&cvc5::null_os);
-    WarningChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::internal::null_os);
+    WarningChannel.setStream(&cvc5::internal::null_os);
   } else {
     if(value < 0) {
-      WarningChannel.setStream(&cvc5::null_os);
+      WarningChannel.setStream(&cvc5::internal::null_os);
     } else {
       WarningChannel.setStream(&std::cerr);
     }
@@ -205,7 +203,7 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
   {
     d_options->base.statisticsAll = false;
     d_options->base.statisticsEveryQuery = false;
-    d_options->base.statisticsExpert = false;
+    d_options->base.statisticsInternal = false;
   }
 }
 
@@ -250,7 +248,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   }
   for (const auto& tag: tags)
   {
-    Trace.on(tag);
+    TraceChannel.on(tag);
   }
 }
 
@@ -281,8 +279,7 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
                                         optarg,
                                         Configuration::getTraceTags()));
   }
-  Debug.on(optarg);
-  Trace.on(optarg);
+  TraceChannel.on(optarg);
 }
 
 void OptionsHandler::enableOutputTag(const std::string& flag,
@@ -296,10 +293,9 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
 
 void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
-  Debug.getStream() << Command::printsuccess(value);
-  Trace.getStream() << Command::printsuccess(value);
-  Warning.getStream() << Command::printsuccess(value);
-  *d_options->base.out << Command::printsuccess(value);
+  TraceChannel.getStream() << cvc5::Command::printsuccess(value);
+  Warning.getStream() << cvc5::Command::printsuccess(value);
+  *d_options->base.out << cvc5::Command::printsuccess(value);
 }
 
 void OptionsHandler::setResourceWeight(const std::string& flag,
@@ -361,33 +357,17 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
   }
 }
 
-void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
-{
-  if(arg) {
-    if (d_options->bv.bitblastModeWasSetByUser) {
-      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
-      {
-        throw OptionException("bitblast-aig must be used with eager bitblaster");
-      }
-    } else {
-      d_options->bv.bitblastMode = options::BitblastMode::EAGER;
-    }
-  }
-}
-
 void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
   ioutils::setDefaultNodeDepth(depth);
-  ioutils::applyNodeDepth(Debug.getStream(), depth);
-  ioutils::applyNodeDepth(Trace.getStream(), depth);
+  ioutils::applyNodeDepth(TraceChannel.getStream(), depth);
   ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
 
 void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
 {
   ioutils::setDefaultDagThresh(dag);
-  ioutils::applyDagThresh(Debug.getStream(), dag);
-  ioutils::applyDagThresh(Trace.getStream(), dag);
+  ioutils::applyDagThresh(TraceChannel.getStream(), dag);
   ioutils::applyDagThresh(Warning.getStream(), dag);
 }
 
@@ -447,6 +427,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
+  print_config_cond("cocoa", Configuration::isBuiltWithCoCoA());
   print_config_cond("editline", Configuration::isBuiltWithEditline());
 }
 
@@ -487,4 +468,4 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value)
 }
 
 }  // namespace options
-}  // namespace cvc5
+}  // namespace cvc5::internal

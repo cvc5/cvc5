@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, MikolasJanota, Aina Niemetz
+ *   Andrew Reynolds, Mikolas Janota, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -93,7 +93,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
   Assert(!d_qstate.isInConflict());
   double clSet = 0;
-  if (Trace.isOn("enum-engine"))
+  if (TraceIsOn("enum-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
@@ -160,7 +160,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       }
     }
   }
-  if (Trace.isOn("enum-engine"))
+  if (TraceIsOn("enum-engine"))
   {
     Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
@@ -182,18 +182,18 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
     return false;
   }
 
+  Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = fullEffort;
   ttec.d_increaseSum = options().quantifiers.enumInstSum;
+  ttec.d_tr = &d_treg;
   // make the enumerator, which is either relevant domain or term database
   // based on the flag isRd.
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(
       isRd ? mkTermTupleEnumeratorRd(quantifier, &ttec, d_rd)
-           : mkTermTupleEnumerator(
-                 quantifier, &ttec, d_qstate, d_treg.getTermDatabase()));
+           : mkTermTupleEnumerator(quantifier, &ttec, d_qstate));
   std::vector<Node> terms;
   std::vector<bool> failMask;
-  Instantiate* ie = d_qim.getInstantiate();
   for (enumerator->init(); enumerator->hasNext();)
   {
     if (d_qstate.isInConflict())
@@ -222,4 +222,4 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

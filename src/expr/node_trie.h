@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +21,7 @@
 #include <map>
 #include "expr/node.h"
 
-namespace cvc5 {
-namespace theory {
+namespace cvc5::internal {
 
 /** NodeTemplate trie class
  *
@@ -93,6 +92,20 @@ class NodeTemplateTrie
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
   bool empty() const { return d_data.empty(); }
+  /**
+   * Get leaves at the given depth, where depth>0. This argument is necessary
+   * since we do not know apriori the depth of where data occurs.
+   *
+   * If this trie stores applications of a function f, then depth should be set
+   * to the arity of f.
+   *
+   * Notice this method will never throw an assertion error, even if the
+   * depth is not set to the proper value. In particular, it will return
+   * the empty vector if the provided depth is larger than the actual depth,
+   * and will return internal nodes if the provided depth is less than the
+   * actual depth of the trie.
+   */
+  std::vector<Node> getLeaves(size_t depth) const;
 }; /* class NodeTemplateTrie */
 
 template <bool ref_count>
@@ -107,7 +120,6 @@ typedef NodeTemplateTrie<true> NodeTrie;
 /** Non-reference-counted version of the above data structure */
 typedef NodeTemplateTrie<false> TNodeTrie;
 
-}  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__NODE_TRIE_H */

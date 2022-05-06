@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,13 +26,14 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
+#include "tuple_utils.h"
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -50,7 +51,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteConstructor(in);
   }
-  else if (kind == kind::APPLY_SELECTOR_TOTAL || kind == kind::APPLY_SELECTOR)
+  else if (kind == kind::APPLY_SELECTOR)
   {
     return rewriteSelector(in);
   }
@@ -153,90 +154,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   else if (kind == MATCH)
   {
     Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
-    // ensure we've type checked
-    TypeNode tin = in.getType();
-    Node h = in[0];
-    std::vector<Node> cases;
-    std::vector<Node> rets;
-    TypeNode t = h.getType();
-    const DType& dt = t.getDType();
-    for (size_t k = 1, nchild = in.getNumChildren(); k < nchild; k++)
-    {
-      Node c = in[k];
-      Node cons;
-      Kind ck = c.getKind();
-      if (ck == MATCH_CASE)
-      {
-        Assert(c[0].getKind() == APPLY_CONSTRUCTOR);
-        cons = c[0].getOperator();
-      }
-      else if (ck == MATCH_BIND_CASE)
-      {
-        if (c[1].getKind() == APPLY_CONSTRUCTOR)
-        {
-          cons = c[1].getOperator();
-        }
-      }
-      else
-      {
-        AlwaysAssert(false);
-      }
-      size_t cindex = 0;
-      // cons is null in the default case
-      if (!cons.isNull())
-      {
-        cindex = utils::indexOf(cons);
-      }
-      Node body;
-      if (ck == MATCH_CASE)
-      {
-        body = c[1];
-      }
-      else if (ck == MATCH_BIND_CASE)
-      {
-        std::vector<Node> vars;
-        std::vector<Node> subs;
-        if (cons.isNull())
-        {
-          Assert(c[1].getKind() == BOUND_VARIABLE);
-          vars.push_back(c[1]);
-          subs.push_back(h);
-        }
-        else
-        {
-          for (size_t i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
-          {
-            vars.push_back(c[0][i]);
-            Node sc =
-                nm->mkNode(APPLY_SELECTOR, dt[cindex][i].getSelector(), h);
-            subs.push_back(sc);
-          }
-        }
-        body =
-            c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      }
-      if (!cons.isNull())
-      {
-        cases.push_back(utils::mkTester(h, cindex, dt));
-      }
-      else
-      {
-        // variables have no constraints
-        cases.push_back(nm->mkConst(true));
-      }
-      rets.push_back(body);
-    }
-    Assert(!cases.empty());
-    // now make the ITE
-    std::reverse(cases.begin(), cases.end());
-    std::reverse(rets.begin(), rets.end());
-    Node ret = rets[0];
-    // notice that due to our type checker, either there is a variable pattern
-    // or all constructors are present in the match.
-    for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
-    {
-      ret = nm->mkNode(ITE, cases[i], rets[i], ret);
-    }
+    Node ret = expandMatch(in);
     Trace("dt-rewrite-match")
         << "Rewrite match: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
@@ -248,29 +166,11 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     // where each i_j is less than the length of t
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
+
     TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
     std::vector<uint32_t> indices = op.getIndices();
     Node tuple = in[0];
-    std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
-    std::vector<TypeNode> types;
-    std::vector<Node> elements;
-    for (uint32_t index : indices)
-    {
-      TypeNode type = tupleTypes[index];
-      types.push_back(type);
-    }
-    TypeNode projectType = nm->mkTupleType(types);
-    const DType& dt = projectType.getDType();
-    elements.push_back(dt[0].getConstructor());
-    const DType& tupleDType = tuple.getType().getDType();
-    const DTypeConstructor& constructor = tupleDType[0];
-    for (uint32_t index : indices)
-    {
-      Node selector = constructor[index].getSelector();
-      Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
-      elements.push_back(element);
-    }
-    Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+    Node ret = TupleUtils::getTupleProjection(indices, tuple);
 
     Trace("dt-rewrite-project")
         << "Rewrite project: " << in << " ... " << ret << std::endl;
@@ -307,6 +207,94 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
 
   return RewriteResponse(REWRITE_DONE, in);
+}
+Node DatatypesRewriter::expandMatch(Node in)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // ensure we've type checked
+  TypeNode tin = in.getType();
+  Node h = in[0];
+  std::vector<Node> cases;
+  std::vector<Node> rets;
+  TypeNode t = h.getType();
+  const DType& dt = t.getDType();
+  for (size_t k = 1, nchild = in.getNumChildren(); k < nchild; k++)
+  {
+    Node c = in[k];
+    Node cons;
+    Kind ck = c.getKind();
+    if (ck == MATCH_CASE)
+    {
+      Assert(c[0].getKind() == APPLY_CONSTRUCTOR);
+      cons = c[0].getOperator();
+    }
+    else if (ck == MATCH_BIND_CASE)
+    {
+      if (c[1].getKind() == APPLY_CONSTRUCTOR)
+      {
+        cons = c[1].getOperator();
+      }
+    }
+    else
+    {
+      AlwaysAssert(false) << "Bad case for match term";
+    }
+    size_t cindex = 0;
+    // cons is null in the default case
+    if (!cons.isNull())
+    {
+      cindex = utils::indexOf(cons);
+    }
+    Node body;
+    if (ck == MATCH_CASE)
+    {
+      body = c[1];
+    }
+    else if (ck == MATCH_BIND_CASE)
+    {
+      std::vector<Node> vars;
+      std::vector<Node> subs;
+      if (cons.isNull())
+      {
+        Assert(c[1].getKind() == BOUND_VARIABLE);
+        vars.push_back(c[1]);
+        subs.push_back(h);
+      }
+      else
+      {
+        for (size_t i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
+        {
+          vars.push_back(c[0][i]);
+          Node sc = nm->mkNode(APPLY_SELECTOR, dt[cindex][i].getSelector(), h);
+          subs.push_back(sc);
+        }
+      }
+      body =
+          c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    }
+    if (!cons.isNull())
+    {
+      cases.push_back(utils::mkTester(h, cindex, dt));
+    }
+    else
+    {
+      // variables have no constraints
+      cases.push_back(nm->mkConst(true));
+    }
+    rets.push_back(body);
+  }
+  Assert(!cases.empty());
+  // now make the ITE
+  std::reverse(cases.begin(), cases.end());
+  std::reverse(rets.begin(), rets.end());
+  Node ret = rets[0];
+  // notice that due to our type checker, either there is a variable pattern
+  // or all constructors are present in the match.
+  for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
+  {
+    ret = nm->mkNode(ITE, cases[i], rets[i], ret);
+  }
+  return ret;
 }
 
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)
@@ -370,7 +358,7 @@ RewriteResponse DatatypesRewriter::rewriteConstructor(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
 {
-  Kind k = in.getKind();
+  Assert (in.getKind()==kind::APPLY_SELECTOR);
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
     // Have to be careful not to rewrite well-typed expressions
@@ -390,29 +378,9 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
                                      << std::endl;
     // The argument that the selector extracts, or -1 if the selector is
     // is wrongly applied.
-    int selectorIndex = -1;
-    if (k == kind::APPLY_SELECTOR_TOTAL)
-    {
-      // The argument index of internal selectors is obtained by
-      // getSelectorIndexInternal.
-      selectorIndex = c.getSelectorIndexInternal(selector);
-    }
-    else
-    {
-      // The argument index of external selectors (applications of
-      // APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
-      // The argument is only valid if it is the proper constructor.
-      selectorIndex = utils::indexOf(selector);
-      if (selectorIndex < 0
-          || selectorIndex >= static_cast<int>(c.getNumArgs()))
-      {
-        selectorIndex = -1;
-      }
-      else if (c[selectorIndex].getSelector() != selector)
-      {
-        selectorIndex = -1;
-      }
-    }
+    // The argument index of internal selectors is obtained by
+    // getSelectorIndexInternal.
+    int selectorIndex = c.getSelectorIndexInternal(selector);
     Trace("datatypes-rewrite-debug") << "Internal selector index is "
                                      << selectorIndex << std::endl;
     if (selectorIndex >= 0)
@@ -437,25 +405,6 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }
-    }
-    else if (k == kind::APPLY_SELECTOR_TOTAL)
-    {
-      // evaluates to the first ground value of type tn.
-      NodeManager* nm = NodeManager::currentNM();
-      Node gt = nm->mkGroundValue(tn);
-      Assert(!gt.isNull());
-      if (tn.isDatatype() && !tn.isInstantiatedDatatype())
-      {
-        gt = NodeManager::currentNM()->mkNode(
-            kind::APPLY_TYPE_ASCRIPTION,
-            NodeManager::currentNM()->mkConst(AscriptionType(tn)),
-            gt);
-      }
-      Trace("datatypes-rewrite")
-          << "DatatypesRewriter::postRewrite: "
-          << "Rewrite trivial selector " << in
-          << " to distinguished ground term " << gt << std::endl;
-      return RewriteResponse(REWRITE_DONE, gt);
     }
   }
   return RewriteResponse(REWRITE_DONE, in);
@@ -835,39 +784,24 @@ Node DatatypesRewriter::expandApplySelector(Node n)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
+  if (!options::dtSharedSelectors()
+      || !selector.hasAttribute(DTypeConsIndexAttr()))
+  {
+    return n;
+  }
   // APPLY_SELECTOR always applies to an external selector, cindexOf is
   // legal here
   size_t cindex = utils::cindexOf(selector);
   const DType& dt = utils::datatypeOf(selector);
   const DTypeConstructor& c = dt[cindex];
-  Node selector_use;
   TypeNode ndt = n[0].getType();
-  if (options::dtSharedSelectors())
-  {
-    size_t selectorIndex = utils::indexOf(selector);
-    Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
-    Assert(selectorIndex < c.getNumArgs());
-    selector_use = c.getSelectorInternal(ndt, selectorIndex);
-  }
-  else
-  {
-    selector_use = selector;
-  }
+  size_t selectorIndex = utils::indexOf(selector);
+  Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
+  Assert(selectorIndex < c.getNumArgs());
+  Node selector_use = c.getSelectorInternal(ndt, selectorIndex);
   NodeManager* nm = NodeManager::currentNM();
-  Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
-  if (options::dtRewriteErrorSel())
-  {
-    return sel;
-  }
-  Node tester = c.getTester();
-  Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
-  SkolemManager* sm = nm->getSkolemManager();
-  TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
-  Node f = sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
-  Node sk = nm->mkNode(kind::APPLY_UF, f, n[0]);
-  Node ret = nm->mkNode(kind::ITE, tst, sel, sk);
-  Trace("dt-expand") << "Expand def : " << n << " to " << ret << std::endl;
-  return ret;
+  Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
+  return sel;
 }
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
@@ -911,8 +845,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
         else
         {
-          b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(tn, i), n[0]);
+          b << nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
         }
       }
       ret = b;
@@ -938,6 +871,9 @@ Node DatatypesRewriter::sygusToBuiltinEval(Node n,
                                            const std::vector<Node>& args)
 {
   Assert(d_sygusEval != nullptr);
+  Assert (n.getType().isDatatype());
+  Assert (n.getType().getDType().isSygus());
+  Assert (n.getType().getDType().getSygusVarList().getNumChildren()==args.size());
   NodeManager* nm = NodeManager::currentNM();
   // constant arguments?
   bool constArgs = true;
@@ -1056,4 +992,4 @@ Node DatatypesRewriter::sygusToBuiltinEval(Node n,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

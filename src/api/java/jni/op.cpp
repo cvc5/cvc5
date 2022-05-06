@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,16 +15,16 @@
 
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
-#include "io_github_cvc5_api_Op.h"
+#include "io_github_cvc5_Op.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_api_Op_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Op_deletePointer(JNIEnv*,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -32,11 +32,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Op_deletePointer(JNIEnv*,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    equals
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_equals(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Op_equals(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer1,
                                                              jlong pointer2)
@@ -50,11 +50,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_equals(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    getKind
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getKind(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Op_getKind(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer)
 {
@@ -65,11 +65,11 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getKind(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isNull(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Op_isNull(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer)
 {
@@ -80,11 +80,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    isIndexed
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isIndexed(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Op_isIndexed(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -95,11 +95,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isIndexed(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    getNumIndices
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getNumIndices(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Op_getNumIndices(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
@@ -110,85 +110,28 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getNumIndices(JNIEnv* env,
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
- * Method:    getIntegerIndices
- * Signature: (J)[I
+ * Class:     io_github_cvc5_Op
+ * Method:    get
+ * Signature: (JI)J
  */
-JNIEXPORT jintArray JNICALL Java_io_github_cvc5_api_Op_getIntegerIndices(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Op_get(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jint i)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
-  size_t size = current->getNumIndices();
-  std::vector<jint> indices(size);
-  if (size == 1)
-  {
-    uint32_t index = current->getIndices<uint32_t>();
-    indices[0] = index;
-  }
-
-  if (size == 2)
-  {
-    std::pair<uint32_t, uint32_t> pair =
-        current->getIndices<std::pair<uint32_t, uint32_t>>();
-    indices[0] = pair.first;
-    indices[1] = pair.second;
-  }
-
-  if (size > 2)
-  {
-    std::string message = "Unhandled case when number of indices > 2.";
-    throw CVC5ApiException(message);
-  }
-
-  jintArray ret = env->NewIntArray((jsize)size);
-  env->SetIntArrayRegion(ret, 0, size, indices.data());
-  return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+  Term* ret = new Term((*current)[static_cast<size_t>(i)]);
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
- * Class:     io_github_cvc5_api_Op
- * Method:    getStringIndices
- * Signature: (J)[Ljava/lang/String;
- */
-JNIEXPORT jobjectArray JNICALL
-Java_io_github_cvc5_api_Op_getStringIndices(JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* current = reinterpret_cast<Op*>(pointer);
-  size_t size = current->getNumIndices();
-  std::vector<jstring> indices(size);
-  if (size == 1)
-  {
-    std::string cIndex = current->getIndices<std::string>();
-    jstring jIndex = env->NewStringUTF(cIndex.c_str());
-    indices[0] = jIndex;
-  }
-
-  if (size > 1)  // currently only one string is implemented in cvc5.cpp
-  {
-    std::string message = "Unhandled case when number of indices > 1.";
-    throw CVC5ApiException(message);
-  }
-
-  // construct a java array of String
-  jclass stringClass = env->FindClass("Ljava/lang/String;");
-  jobjectArray ret = env->NewObjectArray((jsize)size, stringClass, nullptr);
-  for (size_t i = 0; i < size; i++)
-  {
-    env->SetObjectArrayElement(ret, i, indices[i]);
-  }
-  return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_api_Op
+ * Class:     io_github_cvc5_Op
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Op_toString(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Op_toString(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {

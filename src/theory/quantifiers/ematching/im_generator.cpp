@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,9 +17,9 @@
 
 #include "theory/quantifiers/ematching/trigger.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -32,12 +32,12 @@ IMGenerator::IMGenerator(Env& env, Trigger* tparent)
 {
 }
 
-bool IMGenerator::sendInstantiation(InstMatch& m, InferenceId id)
+bool IMGenerator::sendInstantiation(std::vector<Node>& terms, InferenceId id)
 {
-  return d_tparent->sendInstantiation(m, id);
+  return d_tparent->sendInstantiation(terms, id);
 }
 
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

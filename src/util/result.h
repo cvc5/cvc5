@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,15 +15,16 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__RESULT_H
-#define CVC5__RESULT_H
+#ifndef CVC5__UTIL__RESULT_H
+#define CVC5__UTIL__RESULT_H
 
 #include <iosfwd>
 #include <string>
 
+#include "api/cpp/cvc5_types.h"
 #include "options/language.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Result;
 
@@ -35,54 +36,24 @@ std::ostream& operator<<(std::ostream& out, const Result& r);
 class Result
 {
  public:
-  enum Sat { UNSAT = 0, SAT = 1, SAT_UNKNOWN = 2 };
-
-  enum Entailment
+  enum Status
   {
-    NOT_ENTAILED = 0,
-    ENTAILED = 1,
-    ENTAILMENT_UNKNOWN = 2
+    // the status has not been set
+    NONE,
+    // the status is "unsat"
+    UNSAT,
+    // the status is "sat"
+    SAT,
+    // the status is "unknown"
+    UNKNOWN
   };
-
-  enum Type
-  {
-    TYPE_SAT,
-    TYPE_ENTAILMENT,
-    TYPE_NONE
-  };
-
-  enum UnknownExplanation
-  {
-    REQUIRES_FULL_CHECK,
-    INCOMPLETE,
-    TIMEOUT,
-    RESOURCEOUT,
-    MEMOUT,
-    INTERRUPTED,
-    NO_STATUS,
-    UNSUPPORTED,
-    OTHER,
-    UNKNOWN_REASON
-  };
-
- private:
-  enum Sat d_sat;
-  enum Entailment d_entailment;
-  enum Type d_which;
-  enum UnknownExplanation d_unknownExplanation;
-  std::string d_inputName;
 
  public:
   Result();
 
-  Result(enum Sat s, std::string inputName = "");
+  Result(Status s, std::string inputName = "");
 
-  Result(enum Entailment v, std::string inputName = "");
-
-  Result(enum Sat s, enum UnknownExplanation unknownExplanation,
-         std::string inputName = "");
-
-  Result(enum Entailment v,
+  Result(Status s,
          enum UnknownExplanation unknownExplanation,
          std::string inputName = "");
 
@@ -93,27 +64,15 @@ class Result
     d_inputName = inputName;
   }
 
-  enum Sat isSat() const { return d_which == TYPE_SAT ? d_sat : SAT_UNKNOWN; }
+  Status getStatus() const { return d_status; }
 
-  enum Entailment isEntailed() const
-  {
-    return d_which == TYPE_ENTAILMENT ? d_entailment : ENTAILMENT_UNKNOWN;
-  }
+  bool isNull() const { return d_status == NONE; }
+  bool isUnknown() const { return d_status == UNKNOWN; }
 
-  bool isUnknown() const {
-    return isSat() == SAT_UNKNOWN && isEntailed() == ENTAILMENT_UNKNOWN;
-  }
-
-  Type getType() const { return d_which; }
-
-  bool isNull() const { return d_which == TYPE_NONE; }
-
-  enum UnknownExplanation whyUnknown() const;
+  UnknownExplanation getUnknownExplanation() const;
 
   bool operator==(const Result& r) const;
-  inline bool operator!=(const Result& r) const;
-  Result asSatisfiabilityResult() const;
-  Result asEntailmentResult() const;
+  bool operator!=(const Result& r) const;
 
   std::string toString() const;
 
@@ -121,7 +80,7 @@ class Result
 
   /**
    * This is mostly the same the default
-   * If getType() == Result::TYPE_SAT && isSat() == Result::SAT_UNKNOWN,
+   * If getType() == Result::TYPE_SAT && getStatus() == Result::UNKNOWN,
    *
    */
   void toStreamSmt2(std::ostream& out) const;
@@ -140,20 +99,18 @@ class Result
    * has a particular preference for how results should appear.
    */
   void toStreamDefault(std::ostream& out) const;
+
+ private:
+  /** The result */
+  Status d_status;
+  /** The unknown explanation */
+  UnknownExplanation d_unknownExplanation;
+  /** The input name */
+  std::string d_inputName;
 }; /* class Result */
 
-inline bool Result::operator!=(const Result& r) const { return !(*this == r); }
+std::ostream& operator<<(std::ostream& out, enum Result::Status s);
 
-std::ostream& operator<<(std::ostream& out, enum Result::Sat s);
-std::ostream& operator<<(std::ostream& out, enum Result::Entailment e);
-std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);
-
-bool operator==(enum Result::Sat s, const Result& r);
-bool operator==(enum Result::Entailment e, const Result& r);
-
-bool operator!=(enum Result::Sat s, const Result& r);
-bool operator!=(enum Result::Entailment e, const Result& r);
-
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESULT_H */

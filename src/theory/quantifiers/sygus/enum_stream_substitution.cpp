@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -95,7 +95,7 @@ void EnumStreamPermutation::reset(Node value)
   for (const std::pair<const unsigned, std::vector<Node>>& p : d_var_classes)
   {
     d_perm_state_class.push_back(PermutationState(p.second));
-    if (Trace.isOn("synth-stream-concrete"))
+    if (TraceIsOn("synth-stream-concrete"))
     {
       Trace("synth-stream-concrete") << " " << p.first << " -> [";
       for (const Node& var : p.second)
@@ -112,7 +112,7 @@ void EnumStreamPermutation::reset(Node value)
 
 Node EnumStreamPermutation::getNext()
 {
-  if (Trace.isOn("synth-stream-concrete"))
+  if (TraceIsOn("synth-stream-concrete"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, d_value);
@@ -202,7 +202,7 @@ Node EnumStreamPermutation::getNext()
     // if permuted value is equivalent modulo rewriting to a previous one, look
     // for another
   } while (!d_perm_values.insert(bultin_perm_value).second);
-  if (Trace.isOn("synth-stream-concrete"))
+  if (TraceIsOn("synth-stream-concrete"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, perm_value);
@@ -288,7 +288,7 @@ void EnumStreamPermutation::PermutationState::getLastPerm(
 {
   for (unsigned i = 0, size = d_last_perm.size(); i < size; ++i)
   {
-    if (Trace.isOn("synth-stream-concrete"))
+    if (TraceIsOn("synth-stream-concrete"))
     {
       std::stringstream ss;
       TermDbSygus::toStreamSygus(ss, d_vars[d_last_perm[i]]);
@@ -369,7 +369,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
 
 void EnumStreamSubstitution::resetValue(Node value)
 {
-  if (Trace.isOn("synth-stream-concrete"))
+  if (TraceIsOn("synth-stream-concrete"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, value);
@@ -394,7 +394,7 @@ void EnumStreamSubstitution::resetValue(Node value)
     }
     d_comb_state_class.push_back(CombinationState(
         p.second.size(), perm_var_class_sz, p.first, p.second));
-    if (Trace.isOn("synth-stream-concrete"))
+    if (TraceIsOn("synth-stream-concrete"))
     {
       Trace("synth-stream-concrete")
           << " " << p.first << " -> " << perm_var_class_sz << " from [ ";
@@ -412,7 +412,7 @@ void EnumStreamSubstitution::resetValue(Node value)
 
 Node EnumStreamSubstitution::getNext()
 {
-  if (Trace.isOn("synth-stream-concrete"))
+  if (TraceIsOn("synth-stream-concrete"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, d_value);
@@ -467,7 +467,7 @@ Node EnumStreamSubstitution::getNext()
       }
     }
   }
-  if (Trace.isOn("synth-stream-concrete-debug"))
+  if (TraceIsOn("synth-stream-concrete-debug"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, d_last);
@@ -516,7 +516,7 @@ Node EnumStreamSubstitution::getNext()
   {
     builtin_comb_value = d_tds->rewriteNode(builtin_comb_value);
   }
-  if (Trace.isOn("synth-stream-concrete"))
+  if (TraceIsOn("synth-stream-concrete"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, comb_value);
@@ -528,7 +528,7 @@ Node EnumStreamSubstitution::getNext()
   if (!builtin_comb_value.isConst()
       && !d_comb_values.insert(builtin_comb_value).second)
   {
-    if (Trace.isOn("synth-stream-concrete"))
+    if (TraceIsOn("synth-stream-concrete"))
     {
       std::stringstream ss, ss1;
       TermDbSygus::toStreamSygus(ss, comb_value);
@@ -539,7 +539,7 @@ Node EnumStreamSubstitution::getNext()
     }
     return Node::null();
   }
-  if (Trace.isOn("synth-stream-concrete"))
+  if (TraceIsOn("synth-stream-concrete"))
   {
     std::stringstream ss;
     TermDbSygus::toStreamSygus(ss, comb_value);
@@ -576,7 +576,7 @@ void EnumStreamSubstitution::CombinationState::getLastComb(
 {
   for (unsigned i = 0, size = d_last_comb.size(); i < size; ++i)
   {
-    if (Trace.isOn("synth-stream-concrete"))
+    if (TraceIsOn("synth-stream-concrete"))
     {
       std::stringstream ss;
       TermDbSygus::toStreamSygus(ss, d_vars[d_last_comb[i]]);
@@ -625,4 +625,4 @@ bool EnumStreamConcrete::increment()
 Node EnumStreamConcrete::getCurrent() { return d_currTerm; }
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

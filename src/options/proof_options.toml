@@ -27,7 +27,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPrintConclusion"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-print-conclusion"
   type       = "bool"
   default    = "false"
@@ -35,15 +35,16 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPedantic"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-pedantic=N"
   type       = "uint64_t"
   default    = "0"
+  maximum    = "100"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
 [[option]]
   name       = "proofCheck"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-check=MODE"
   type       = "ProofCheckMode"
   default    = "LAZY"
@@ -64,7 +65,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPpMerge"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-pp-merge"
   type       = "bool"
   default    = "true"
@@ -93,7 +94,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofAnnotate"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-annotate"
   type       = "bool"
   default    = "false"
@@ -101,7 +102,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPruneInput"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-prune-input"
   type       = "bool"
   default    = "false"
@@ -109,8 +110,16 @@ name   = "Proof"
 
 [[option]]
   name       = "proofAletheResPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-alethe-res-pivots"
   type       = "bool"
   default    = "false"
   help       = "Add pivots to Alethe resolution steps"
+
+[[option]]
+  name       = "proofDotDAG"
+  category   = "expert"
+  long       = "proof-dot-dag"
+  type       = "bool"
+  default    = "false"
+  help       = "Indicates if the dot proof will be printed as a DAG or as a tree"

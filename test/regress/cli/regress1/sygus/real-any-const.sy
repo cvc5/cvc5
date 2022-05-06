@@ -1,0 +1,9 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --sygus-si=none --sygus-grammar-cons=any-term-concise
+
+(set-logic LRA)
+(synth-fun f ((x Real) (y Real)) Real)
+(constraint (= (f 1.5 7.5) 59.7))
+(constraint (= (f 0.5 27.5) 174.9))
+(constraint (= (f 0.8 20.0) 131.04))
+(check-synth)

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Liana Hadarean, Aina Niemetz
+ *   Mathias Preiner, Aina Niemetz, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@ namespace CMSat {
   class SATSolver;
 }
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class CryptoMinisatSolver : public SatSolver
@@ -115,7 +115,7 @@ class CryptoMinisatSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5_USE_CRYPTOMINISAT
 #endif  // CVC5__PROP__CRYPTOMINISAT_H

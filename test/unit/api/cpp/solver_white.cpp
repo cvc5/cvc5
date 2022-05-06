@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Makai Mann, Andrew Reynolds
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,7 @@
 #include "base/configuration.h"
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -38,14 +36,14 @@ TEST_F(TestApiWhiteSolver, getOp)
   Sort consListSort = d_solver.mkDatatypeSort(consListSpec);
   Datatype consList = consListSort.getDatatype();
 
-  Term nilTerm = consList.getConstructorTerm("nil");
-  Term consTerm = consList.getConstructorTerm("cons");
-  Term headTerm = consList["cons"].getSelectorTerm("head");
+  Term nilTerm = consList.getConstructor("nil").getTerm();
+  Term consTerm = consList.getConstructor("cons").getTerm();
+  Term headTerm = consList["cons"].getSelector("head").getTerm();
 
-  Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm);
-  Term listcons1 = d_solver.mkTerm(
-      APPLY_CONSTRUCTOR, consTerm, d_solver.mkInteger(1), listnil);
-  Term listhead = d_solver.mkTerm(APPLY_SELECTOR, headTerm, listcons1);
+  Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
+  Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
+                                   {consTerm, d_solver.mkInteger(1), listnil});
+  Term listhead = d_solver.mkTerm(APPLY_SELECTOR, {headTerm, listcons1});
 
   ASSERT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
   ASSERT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
@@ -53,4 +51,4 @@ TEST_F(TestApiWhiteSolver, getOp)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

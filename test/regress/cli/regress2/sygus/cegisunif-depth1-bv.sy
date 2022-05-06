@@ -1,0 +1,38 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-unif-pi=complete --sygus-out=status
+(set-logic BV)
+
+(synth-fun f ((x (_ BitVec 64)) (y (_ BitVec 64))) (_ BitVec 64)
+  ((Start (_ BitVec 64)) (CBool Bool))
+  (
+    (Start (_ BitVec 64)
+      (#x0000000000000000 #x0000000000000001 x y
+        (bvnot Start)
+        (bvand Start Start)
+        (bvor Start Start)
+        (bvxor Start Start)
+        (bvadd Start Start)
+        (ite CBool Start Start)
+        )
+      )
+    (CBool Bool
+      (true false
+        (and CBool CBool)
+        (or CBool CBool)
+        (not CBool)
+        (bvule Start Start)
+        (= Start Start)
+        )
+      )
+    )
+  )
+
+(declare-var x (_ BitVec 64))
+(declare-var y (_ BitVec 64))
+
+(constraint (= (f #x0000000000000000 #x0000000000000001) #x0000000000000000))
+(constraint (= (f #x0000000000000000 #x0000000000000000) #x0000000000000001))
+(constraint (= (f #x0000000000000001 y) y))
+(constraint (= (f #x0000000000000002 #x0000000000000001) #x0000000000000000))
+
+(check-synth)
