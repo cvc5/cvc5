@@ -394,6 +394,7 @@ void BagSolver::checkGroup(Node n)
         // x, y should have the same projection
         InferInfo sameProjection = d_ig.groupSameProjection(n, part1, x, y);
         d_im.lemmaTheoryInference(&sameProjection);
+        ++j;
       }
 
       for (const Node& a : elementsA)
@@ -409,12 +410,13 @@ void BagSolver::checkGroup(Node n)
     }
 
     std::set<Node>::iterator partIt2 = partIt1;
-    partIt2++;
+    ++partIt2;
     while (partIt2 != parts.end())
     {
       Node part2 = d_state.getRepresentative(*partIt2);
       InferInfo disjoint = d_ig.groupPartsDisjoint(n, part1, part2);
       d_im.lemmaTheoryInference(&disjoint);
+      ++partIt2;
     }
   }
 }
