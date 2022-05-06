@@ -1088,9 +1088,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
       Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT,
-                     scalar,
-                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
+          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConstInt(Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());
