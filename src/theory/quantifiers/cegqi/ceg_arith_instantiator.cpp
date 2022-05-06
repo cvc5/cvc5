@@ -46,6 +46,7 @@ void ArithInstantiator::reset(CegInstantiator* ci,
                               Node pv,
                               CegInstEffort effort)
 {
+  Assert(pv.getType() == d_type);
   d_vts_sym[0] = d_vtc->getVtsInfinity(d_type, false, false);
   d_vts_sym[1] = d_vtc->getVtsDelta(false, false);
   for (unsigned i = 0; i < 2; i++)
@@ -923,6 +924,11 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   }
   vts_coeff_inf = vts_coeff[0];
   vts_coeff_delta = vts_coeff[1];
+  if (!pv.getType().isInteger() && val.getType().isInteger())
+  {
+    val = nm->mkNode(TO_REAL, val);
+  }
+  Assert(pv.getType() == val.getType());
   Trace("cegqi-arith-debug")
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
