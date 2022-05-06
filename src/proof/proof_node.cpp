@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Vinícius Braga Freire
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_to_sexpr.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNode::ProofNode(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -70,4 +70,26 @@ std::ostream& operator<<(std::ostream& out, const ProofNode& pn)
   return out;
 }
 
-}  // namespace cvc5
+size_t ProofNodeHashFunction::operator()(const ProofNode* pfn) const
+{
+  uint64_t ret = fnv1a::offsetBasis;
+
+  ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(pfn->getResult()));
+  ret = fnv1a::fnv1a_64(ret, static_cast<size_t>(pfn->getRule()));
+
+  const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  for (const Pf& child : children)
+  {
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(child->getResult()));
+  }
+
+  const std::vector<Node>& args = pfn->getArguments();
+  for (const Node& arg : args)
+  {
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(arg));
+  }
+
+  return static_cast<size_t>(ret);
+}
+
+}  // namespace cvc5::internal

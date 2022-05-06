@@ -1,0 +1,10 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-fun a () Real)
+(declare-fun b () Real)
+(declare-fun dbz (Real) Real)
+(assert
+(let ((_let_0 (dbz 0.0))) (let ((_let_1 (= b 0.0))) (let ((_let_2 (/ 1.0 a))) (let ((_let_3 (dbz 1.0))) (let ((_let_4 (= a 0.0))) (let ((_let_5 (ite _let_4 _let_3 _let_2))) (let ((_let_6 (/ _let_5 b))) (let ((_let_7 (dbz _let_5))) (let ((_let_8 (dbz (dbz (ite _let_1 _let_7 _let_6))))) (or (>= (* (- 1.0) (ite (= _let_8 0.0) _let_0 (/ 0.0 _let_8))) 0.0) (>= _let_0 0.0)))))))))))
+)
+(assert (> a 0.0))
+(check-sat)

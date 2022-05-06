@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Tianyi Liang
+ *   Andrew Reynolds, Tim King, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,16 +18,15 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
 NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
@@ -37,12 +36,9 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
     std::map<Node, std::vector<Node>>& exp)
 {
   // get the constant equivalence classes
-  std::map<Node, std::vector<int>> rep_to_subs_index;
-
   bool retVal = false;
-  for (unsigned i = 0; i < vars.size(); i++)
+  for (const Node& n : vars)
   {
-    Node n = vars[i];
     if (d_ee->hasTerm(n))
     {
       Node nr = d_ee->getRepresentative(n);
@@ -56,7 +52,6 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
       }
       else
       {
-        rep_to_subs_index[nr].push_back(i);
         subs.push_back(n);
       }
     }
@@ -65,7 +60,6 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
       subs.push_back(n);
     }
   }
-
   // return true if the substitution is non-trivial
   return retVal;
 }
@@ -73,18 +67,29 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
 bool NlExtTheoryCallback::isExtfReduced(
     int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
 {
-  if (n != d_zero)
+  if (isTranscendentalKind(on.getKind()))
+  {
+    // we do not handle reductions of transcendental functions here
+    return false;
+  }
+  if (!isZero(n))
   {
     Kind k = n.getKind();
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
         && k != POW2)
     {
+      // we consider an extended function to be reduced if it simplifies to
+      // something that is not a non-linear term. For example, if we know
+      // that (= x 5), then (NONLINEAR_MULT x y) can be simplified to
+      // (MULT 5 y). We may consider (NONLINEAR_MULT x y) to be reduced.
       id = ExtReducedId::ARITH_SR_LINEAR;
       return true;
     }
     return false;
   }
-  Assert(n == d_zero);
+  // As an optimization, we minimize the explanation for why a term can be
+  // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
+  // we minimize the explanation to (= x 0) => (= (* x y) 0).
   id = ExtReducedId::ARITH_SR_ZERO;
   if (on.getKind() == NONLINEAR_MULT)
   {
@@ -117,7 +122,7 @@ bool NlExtTheoryCallback::isExtfReduced(
       {
         for (unsigned r = 0; r < 2; r++)
         {
-          if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end())
+          if (isZero(eqs[j][r]) && vars.find(eqs[j][1 - r]) != vars.end())
           {
             Trace("nl-ext-zero-exp")
                 << "...single exp : " << eqs[j] << std::endl;
@@ -135,4 +140,4 @@ bool NlExtTheoryCallback::isExtfReduced(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

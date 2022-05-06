@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew V. Jones, Andres Noetzli, Andrew Reynolds
+ *   Andrew V. Jones, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 #include "api/cpp/cvc5.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 using namespace std;
 
 /**
@@ -54,7 +54,7 @@ int validate_exception(void)
   Term y = slv.mkConst(integer, "y");
 
   /* y > x */
-  Term y_gt_x(slv.mkTerm(Kind::GT, y, x));
+  Term y_gt_x(slv.mkTerm(Kind::GT, {y, x}));
 
   /* assert it */
   slv.assertFormula(y_gt_x);
@@ -156,18 +156,18 @@ int validate_getters(void)
   Term p2 = slv.mkConst(integer, "p2");
 
   /* Constraints on x and y */
-  Term x_equal_const = slv.mkTerm(Kind::EQUAL, x, random_constant);
-  Term y_gt_x = slv.mkTerm(Kind::GT, y, x);
+  Term x_equal_const = slv.mkTerm(Kind::EQUAL, {x, random_constant});
+  Term y_gt_x = slv.mkTerm(Kind::GT, {y, x});
 
   /* Points-to expressions */
-  Term p1_to_x = slv.mkTerm(Kind::SEP_PTO, p1, x);
-  Term p2_to_y = slv.mkTerm(Kind::SEP_PTO, p2, y);
+  Term p1_to_x = slv.mkTerm(Kind::SEP_PTO, {p1, x});
+  Term p2_to_y = slv.mkTerm(Kind::SEP_PTO, {p2, y});
 
   /* Heap -- the points-to have to be "starred"! */
-  Term heap = slv.mkTerm(Kind::SEP_STAR, p1_to_x, p2_to_y);
+  Term heap = slv.mkTerm(Kind::SEP_STAR, {p1_to_x, p2_to_y});
 
   /* Constain "nil" to be something random */
-  Term fix_nil = slv.mkTerm(Kind::EQUAL, nil, expr_nil_val);
+  Term fix_nil = slv.mkTerm(Kind::EQUAL, {nil, expr_nil_val});
 
   /* Add it all to the solver! */
   slv.assertFormula(x_equal_const);

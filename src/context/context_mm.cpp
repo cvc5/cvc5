@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Clark Barrett, Andres Noetzli, Morgan Deters
+ *   Clark Barrett, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,8 +28,7 @@
 #include "base/output.h"
 #include "context/context_mm.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 #ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 
@@ -108,9 +107,6 @@ void* ContextMemoryManager::newData(size_t size) {
     AlwaysAssert(d_nextFree <= d_endChunk)
         << "Request is bigger than memory chunk size";
   }
-  Debug("context") << "ContextMemoryManager::newData(" << size
-                   << ") returning " << res << " at level "
-                   << d_chunkList.size() << std::endl;
 
 #ifdef CVC5_VALGRIND
   VALGRIND_MEMPOOL_ALLOC(this, static_cast<char*>(res), size);
@@ -176,5 +172,4 @@ unsigned ContextMemoryManager::getMaxAllocationSize()
 
 #endif /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

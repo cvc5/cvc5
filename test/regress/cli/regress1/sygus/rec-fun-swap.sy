@@ -1,0 +1,76 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2
+
+(set-logic ALL)
+
+; The environment datatypes
+(declare-datatype NVars ((x) (y)))
+
+(declare-datatype Pair ((pair (first NVars) (second Int))))
+
+(declare-datatype Env ((cons (head Pair) (tail Env)) (nil)))
+
+(define-fun-rec envStore ((var NVars) (value Int) (env Env)) Env
+  (ite (is-nil env)
+    (cons (pair var value) env)
+    (ite (= var (first (head env)))
+      (cons (pair var value) (tail env))
+      (cons (head env) (envStore var value (tail env)))
+      )
+    )
+  )
+
+(define-fun-rec envSelect ((var NVars) (env Env)) Int
+  (ite (is-nil env)
+    (- 1)
+    (ite (= var (first (head env)))
+      (second (head env))
+      (envSelect var (tail env))
+      )
+    )
+  )
+
+; Syntax for arithmetic expressions
+(declare-datatype Aexp
+  (
+    (Val (val Int))
+    )
+  )
+
+; Function to evaluate arithmetic expressions
+(define-fun-rec evalA ((env Env) (a Aexp)) Int
+    (val a)
+      )
+
+; Syntax for commands
+(declare-datatype Com
+  (
+    (Skip)
+    (Assign (lhs NVars) (rhs Aexp))
+    (CSeq (cBef Com) (aAft Com))
+    )
+  )
+
+; Function to evaluate statements
+(define-fun-rec evalC ((env Env) (c Com)) Env
+  (ite (is-Skip c)
+    env
+    (ite (is-Assign c)
+      (envStore (lhs c) (evalA env (rhs c)) env)
+      (evalC (evalC env (cBef c)) (aAft c)))
+    )
+  )
+
+(synth-fun prog () Com
+  ((C Com) (V NVars) (A Aexp) (I Int))
+  (
+    (C Com (Skip (Assign V A) (CSeq C C)))
+    (V NVars (x y))
+    (A Aexp ((Val I)))
+    (I Int (0 1))
+    )
+)
+
+(constraint (= (evalC (cons (pair y 0) (cons (pair x 1) nil)) prog) (cons (pair y 1) (cons (pair x 0) nil))))
+
+(check-synth)

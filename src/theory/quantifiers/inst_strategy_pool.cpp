@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,10 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -72,7 +72,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   double clSet = 0;
-  if (Trace.isOn("pool-engine"))
+  if (TraceIsOn("pool-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
@@ -111,7 +111,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       break;
     }
   }
-  if (Trace.isOn("pool-engine"))
+  if (TraceIsOn("pool-engine"))
   {
     Trace("pool-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
@@ -127,13 +127,13 @@ std::string InstStrategyPool::identify() const
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
+  Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = true;
   ttec.d_increaseSum = options().quantifiers.enumInstSum;
-  TermPools* tp = d_treg.getTermPools();
+  ttec.d_tr = &d_treg;
   std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
-      mkTermTupleEnumeratorPool(q, &ttec, tp, p));
-  Instantiate* ie = d_qim.getInstantiate();
+      mkTermTupleEnumeratorPool(q, &ttec, p));
   std::vector<Node> terms;
   std::vector<bool> failMask;
   // we instantiate exhaustively
@@ -166,4 +166,4 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

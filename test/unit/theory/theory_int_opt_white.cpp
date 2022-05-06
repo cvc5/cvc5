@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou
+ *   Michael Chang, Yancheng Ou, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,11 +18,11 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::smt;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::smt;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
@@ -44,8 +44,8 @@ class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteIntOpt, max)
 {
-  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
-  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node ub = d_nodeManager->mkConstInt(Rational("100"));
+  Node lb = d_nodeManager->mkConstInt(Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -64,7 +64,7 @@ TEST_F(TestTheoryWhiteIntOpt, max)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -75,8 +75,8 @@ TEST_F(TestTheoryWhiteIntOpt, max)
 
 TEST_F(TestTheoryWhiteIntOpt, min)
 {
-  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
-  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node ub = d_nodeManager->mkConstInt(Rational("100"));
+  Node lb = d_nodeManager->mkConstInt(Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -95,7 +95,7 @@ TEST_F(TestTheoryWhiteIntOpt, min)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -106,8 +106,8 @@ TEST_F(TestTheoryWhiteIntOpt, min)
 
 TEST_F(TestTheoryWhiteIntOpt, result)
 {
-  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
-  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node ub = d_nodeManager->mkConstInt(Rational("100"));
+  Node lb = d_nodeManager->mkConstInt(Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -128,15 +128,15 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   Result r = d_optslv->checkOpt();
 
   // We expect our check to have returned UNSAT
-  ASSERT_EQ(r.isSat(), Result::UNSAT);
+  ASSERT_EQ(r.getStatus(), Result::UNSAT);
   d_slvEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, open_interval)
 {
-  Node ub1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
-  Node lb1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
-  Node lb2 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("110"));
+  Node ub1 = d_nodeManager->mkConstInt(Rational("100"));
+  Node lb1 = d_nodeManager->mkConstInt(Rational("0"));
+  Node lb2 = d_nodeManager->mkConstInt(Rational("110"));
 
   Node cost1 = d_nodeManager->mkVar(*d_intType);
   Node cost2 = d_nodeManager->mkVar(*d_intType);
@@ -159,7 +159,7 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -168,4 +168,4 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

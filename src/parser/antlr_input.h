@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,11 +69,8 @@ public:
   /** Create a file input.
    *
    * @param name the path of the file to read
-   * @param useMmap <code>true</code> if the input should use memory-mapped I/O; otherwise, the
-   * input will use the standard ANTLR3 I/O implementation.
    */
-  static AntlrInputStream* newFileInputStream(const std::string& name,
-                                              bool useMmap = false);
+  static AntlrInputStream* newFileInputStream(const std::string& name);
 
   /** Create an input from an istream. */
   static AntlrInputStream* newStreamInputStream(std::istream& input,
@@ -223,7 +220,7 @@ inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
   /* start and end are boundary pointers. The text is a string
    * of (end-start+1) bytes beginning at start. */
   std::string txt( (const char *)start, end-start+1 );
-  Debug("parser-extra") << "tokenText: start=" << start << std::endl
+  Trace("parser-extra") << "tokenText: start=" << start << std::endl
                         <<  "end=" << end << std::endl
                         <<  "txt='" << txt << "'" << std::endl;
   return txt;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -414,7 +414,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                       << std::endl;
   // should always be non-null
   Assert(pf != nullptr);
-  if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))
+  if (TraceIsOn("pfee-proof") || TraceIsOn("pfee-proof-final"))
   {
     Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
                         << std::endl;
@@ -541,7 +541,7 @@ void ProofEqEngine::explainWithProof(Node lit,
       assumps.push_back(a);
     }
   }
-  if (Trace.isOn("pfee-proof"))
+  if (TraceIsOn("pfee-proof"))
   {
     Trace("pfee-proof") << "pfee::explainWithProof: add to proof ---"
                         << std::endl;
@@ -557,4 +557,4 @@ void ProofEqEngine::explainWithProof(Node lit,
 
 }  // namespace eq
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Aina Niemetz
+#   Mathias Preiner, Gereon Kremer, Andrew V. Jones
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -35,8 +35,6 @@ set(libcvc5parser_src_files
   input.h
   line_buffer.cpp
   line_buffer.h
-  memory_mapped_input_buffer.cpp
-  memory_mapped_input_buffer.h
   parse_op.cpp
   parse_op.h
   parser.cpp

@@ -1,0 +1,9 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic HO_ALL)
+(synth-fun f ((x Int)) Int)
+(synth-fun g ((x Int)) Int)
+(declare-var P (-> (-> Int Int) Bool))
+(constraint (=> (P f) (P g)))
+; a trivial class of solutions is where f = g.
+(check-synth)

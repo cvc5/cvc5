@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Tim King, Andres Noetzli
+ *   Aina Niemetz, Dejan Jovanovic, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 ${rewriter_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node)
@@ -82,30 +82,5 @@ ${post_rewrite_set_cache}
 
 Rewriter::Rewriter() : d_resourceManager(nullptr), d_tpg(nullptr) {}
 
-void Rewriter::clearCachesInternal()
-{
-  typedef cvc5::expr::attr::AttributeUniqueId AttributeUniqueId;
-  std::vector<AttributeUniqueId> preids;
-  // clang-format off
-  ${pre_rewrite_attribute_ids}  // clang-format on
-
-  std::vector<AttributeUniqueId>
-      postids;
-  // clang-format off
-  ${post_rewrite_attribute_ids}  // clang-format on
-
-  std::vector<const AttributeUniqueId*>
-      allids;
-  for (size_t i = 0, size = preids.size(); i < size; ++i)
-  {
-    allids.push_back(&preids[i]);
-  }
-  for (size_t i = 0, size = postids.size(); i < size; ++i)
-  {
-    allids.push_back(&postids[i]);
-  }
-  NodeManager::currentNM()->deleteAttributes(allids);
-}
-
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

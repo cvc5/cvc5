@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,14 +15,12 @@
 
 #include "prop/skolem_def_manager.h"
 
-#include "expr/attribute.h"
-
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 SkolemDefManager::SkolemDefManager(context::Context* context,
                                    context::UserContext* userContext)
-    : d_skDefs(userContext), d_skActive(context)
+    : d_skDefs(userContext), d_skActive(context), d_hasSkolems(userContext)
 {
 }
 
@@ -37,6 +35,9 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   // equivalent up to purification
   if (d_skDefs.find(skolem) == d_skDefs.end())
   {
+    // should not have already computed whether the skolem has skolems, or else
+    // our computation of hasSkolems is wrong after adding this definition
+    Assert(d_hasSkolems.find(skolem) == d_hasSkolems.end());
     d_skDefs.insert(skolem, def);
   }
 }
@@ -54,6 +55,8 @@ void SkolemDefManager::notifyAsserted(TNode literal,
 {
   std::unordered_set<Node> skolems;
   getSkolems(literal, skolems);
+  Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems "
+                   << skolems << std::endl;
   for (const Node& k : skolems)
   {
     if (d_skActive.find(k) != d_skActive.end())
@@ -62,6 +65,7 @@ void SkolemDefManager::notifyAsserted(TNode literal,
       continue;
     }
     d_skActive.insert(k);
+    Trace("sk-defs") << "...activate " << k << std::endl;
     if (useDefs)
     {
       // add its definition to the activated list
@@ -77,28 +81,20 @@ void SkolemDefManager::notifyAsserted(TNode literal,
   }
 }
 
-struct HasSkolemTag
+bool SkolemDefManager::hasSkolems(TNode n)
 {
-};
-struct HasSkolemComputedTag
-{
-};
-/** Attribute true for nodes with skolems in them */
-typedef expr::Attribute<HasSkolemTag, bool> HasSkolemAttr;
-/** Attribute true for nodes where we have computed the above attribute */
-typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
-
-bool SkolemDefManager::hasSkolems(TNode n) const
-{
+  Trace("sk-defs-debug") << "Compute has skolems for " << n << std::endl;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
+  NodeBoolMap::const_iterator itn;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
   do
   {
     cur = visit.back();
-    if (cur.getAttribute(HasSkolemComputedAttr()))
+    itn = d_hasSkolems.find(cur);
+    if (itn != d_hasSkolems.end())
     {
       visit.pop_back();
       // already computed
@@ -116,8 +112,7 @@ bool SkolemDefManager::hasSkolems(TNode n) const
         {
           hasSkolem = (d_skDefs.find(cur) != d_skDefs.end());
         }
-        cur.setAttribute(HasSkolemAttr(), hasSkolem);
-        cur.setAttribute(HasSkolemComputedAttr(), true);
+        d_hasSkolems[cur] = hasSkolem;
       }
       else
       {
@@ -133,7 +128,7 @@ bool SkolemDefManager::hasSkolems(TNode n) const
       visit.pop_back();
       bool hasSkolem;
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED
-          && cur.getOperator().getAttribute(HasSkolemAttr()))
+          && d_hasSkolems[cur.getOperator()])
       {
         hasSkolem = true;
       }
@@ -142,24 +137,22 @@ bool SkolemDefManager::hasSkolems(TNode n) const
         hasSkolem = false;
         for (TNode i : cur)
         {
-          Assert(i.getAttribute(HasSkolemComputedAttr()));
-          if (i.getAttribute(HasSkolemAttr()))
+          Assert(d_hasSkolems.find(i) != d_hasSkolems.end());
+          if (d_hasSkolems[i])
           {
             hasSkolem = true;
             break;
           }
         }
       }
-      cur.setAttribute(HasSkolemAttr(), hasSkolem);
-      cur.setAttribute(HasSkolemComputedAttr(), true);
+      d_hasSkolems[cur] = hasSkolem;
     }
   } while (!visit.empty());
-  Assert(n.getAttribute(HasSkolemComputedAttr()));
-  return n.getAttribute(HasSkolemAttr());
+  Assert(d_hasSkolems.find(n) != d_hasSkolems.end());
+  return d_hasSkolems[n];
 }
 
-void SkolemDefManager::getSkolems(TNode n,
-                                  std::unordered_set<Node>& skolems) const
+void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems)
 {
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
@@ -197,4 +190,4 @@ void SkolemDefManager::getSkolems(TNode n,
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

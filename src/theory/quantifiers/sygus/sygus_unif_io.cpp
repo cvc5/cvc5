@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 
 #include <math.h>
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -679,7 +679,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         }
         cond_vals[resb] = true;
         results.push_back(resb);
-        if (Trace.isOn("sygus-sui-enum"))
+        if (TraceIsOn("sygus-sui-enum"))
         {
           if (resb.isNull())
           {
@@ -839,7 +839,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
                   && datatypes::utils::getSygusTermSize(vcc)
                          < d_sol_term_size)))
       {
-        if (Trace.isOn("sygus-pbe"))
+        if (TraceIsOn("sygus-pbe"))
         {
           Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = ";
           TermDbSygus::toStreamSygus("sygus-pbe", vcc);
@@ -935,7 +935,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     // if the enumerator is in a conditional context, then we are stricter
     // about when to exclude
     bool isConditional = d_use_str_contains_eexc_conditional[e];
-    if (Trace.isOn("sygus-sui-cterm-debug"))
+    if (TraceIsOn("sygus-sui-cterm-debug"))
     {
       Trace("sygus-sui-enum") << std::endl;
     }
@@ -1019,7 +1019,7 @@ Node SygusUnifIo::constructSol(
   Assert(d_candidate == f);
   UnifContextIo& x = d_context;
   TypeNode etn = e.getType();
-  if (Trace.isOn("sygus-sui-dt-debug"))
+  if (TraceIsOn("sygus-sui-dt-debug"))
   {
     indent("sygus-sui-dt-debug", ind);
     Trace("sygus-sui-dt-debug") << "ConstructPBE: (" << e << ", " << nrole
@@ -1185,7 +1185,7 @@ Node SygusUnifIo::constructSol(
         {
           ret_dt = *intersection.begin();
         }
-        if (Trace.isOn("sygus-sui-dt"))
+        if (TraceIsOn("sygus-sui-dt"))
         {
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
@@ -1213,7 +1213,7 @@ Node SygusUnifIo::constructSol(
       // make the value of the examples
       std::vector<Node> ex_vals;
       x.getCurrentStrings(this, d_examples_out, ex_vals);
-      if (Trace.isOn("sygus-sui-dt-debug"))
+      if (TraceIsOn("sygus-sui-dt-debug"))
       {
         indent("sygus-sui-dt-debug", ind);
         Trace("sygus-sui-dt-debug") << "current strings : " << std::endl;
@@ -1408,7 +1408,7 @@ Node SygusUnifIo::constructSol(
               possible_cond.find(0);
           if (itpc != possible_cond.end())
           {
-            if (Trace.isOn("sygus-sui-dt-debug"))
+            if (TraceIsOn("sygus-sui-dt-debug"))
             {
               indent("sygus-sui-dt-debug", ind + 1);
               Trace("sygus-sui-dt-debug")
@@ -1535,7 +1535,7 @@ Node SygusUnifIo::constructSol(
     }
   }
   Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
-  if (Trace.isOn("sygus-sui-dt"))
+  if (TraceIsOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned ";
@@ -1551,7 +1551,7 @@ Node SygusUnifIo::constructSol(
       {
         if (x.d_vals[i].getConst<bool>())
         {
-          if (Trace.isOn("sygus-sui-cache"))
+          if (TraceIsOn("sygus-sui-cache"))
           {
             indent("sygus-sui-cache", ind);
             Trace("sygus-sui-cache") << "Cache solution (#" << i << ") : ";
@@ -1679,4 +1679,4 @@ Node SygusUnifIo::constructBestConditional(Node ce,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

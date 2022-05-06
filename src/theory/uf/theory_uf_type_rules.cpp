@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "util/cardinality.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -73,7 +73,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
-    if (!cc.getType().isSort())
+    if (!cc.getType().isUninterpretedSort())
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must apply to uninterpreted sort");
@@ -84,7 +84,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
           n, "cardinality constraint must be positive");
     }
   }
-  return nodeManager->booleanType();
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
@@ -107,20 +107,13 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
           n, "combined cardinality constraint must be positive");
     }
   }
-  return nodeManager->booleanType();
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode CombinedCardinalityConstraintTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
 {
   return nodeManager->booleanType();
-}
-
-TypeNode PartialTypeRule::computeType(NodeManager* nodeManager,
-                                      TNode n,
-                                      bool check)
-{
-  return n.getOperator().getType().getRangeType();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
@@ -270,4 +263,4 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

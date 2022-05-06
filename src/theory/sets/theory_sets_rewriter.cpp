@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ *   Aina Niemetz, Andrew Reynolds, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,10 +24,10 @@
 #include "theory/sets/rels_utils.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -672,4 +672,4 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

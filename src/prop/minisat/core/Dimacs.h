@@ -26,7 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/utils/ParseUtils.h"
 #include "prop/minisat/core/SolverTypes.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace Minisat {
 
 //=================================================================================================
@@ -86,6 +86,6 @@ static void parse_DIMACS(gzFile input_stream, Solver& S) {
 
 //=================================================================================================
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Gereon Kremer, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,12 +17,13 @@
 
 #include "expr/emptybag.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -41,8 +42,8 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
-    : d_statistics(statistics)
+BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
+    : d_rewriter(r), d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -67,7 +68,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   }
   else if (BagsUtils::areChildrenConstants(n))
   {
-    Node value = BagsUtils::evaluate(n);
+    Node value = BagsUtils::evaluate(d_rewriter, n);
     response = BagsRewriteResponse(value, Rewrite::CONSTANT_EVALUATION);
   }
   else
@@ -92,7 +93,9 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_MAP: response = postRewriteMap(n); break;
       case BAG_FILTER: response = postRewriteFilter(n); break;
       case BAG_FOLD: response = postRewriteFold(n); break;
+      case BAG_PARTITION: response = postRewritePartition(n); break;
       case TABLE_PRODUCT: response = postRewriteProduct(n); break;
+      case TABLE_AGGREGATE: response = postRewriteAggregate(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -454,14 +457,6 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     return BagsRewriteResponse(n[0][1], Rewrite::CARD_BAG_MAKE);
   }
 
-  if (n[0].getKind() == BAG_UNION_DISJOINT)
-  {
-    // (bag.card (bag.union-disjoint A B)) = (+ (bag.card A) (bag.card B))
-    Node A = d_nm->mkNode(BAG_CARD, n[0][0]);
-    Node B = d_nm->mkNode(BAG_CARD, n[0][1]);
-    Node plus = d_nm->mkNode(ADD, A, B);
-    return BagsRewriteResponse(plus, Rewrite::CARD_DISJOINT);
-  }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
@@ -656,6 +651,36 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
+BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_PARTITION);
+  if (n[1].isConst())
+  {
+    Node ret = BagsUtils::evaluateBagPartition(d_rewriter, n);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
+    }
+  }
+
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
+{
+  Assert(n.getKind() == kind::TABLE_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = BagsUtils::evaluateTableAggregate(d_rewriter, n);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::AGGREGATE_CONST);
+    }
+  }
+
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
 BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
 {
   Assert(n.getKind() == TABLE_PRODUCT);
@@ -671,4 +696,4 @@ BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

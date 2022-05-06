@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,10 +24,10 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -157,7 +157,7 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
 bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
 {
   RepSet* rs = d_model->getRepSetPtr();
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     // must ensure uninterpreted type is non-empty.
     if (!rs->hasType(tn))
@@ -294,18 +294,11 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     }
     else
     {
-      if (options().quantifiers.fmfFreshDistConst)
-      {
-        mbt = d_treg.getTermDatabase()->getOrMakeTypeFreshVariable(tn);
-      }
-      else
-      {
-        // The model basis term cannot be an interpreted function, or else we
-        // may produce an inconsistent model by choosing an arbitrary
-        // equivalence class for it. Hence, we require that it be an existing or
-        // fresh variable.
-        mbt = d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
-      }
+      // The model basis term cannot be an interpreted function, or else we
+      // may produce an inconsistent model by choosing an arbitrary
+      // equivalence class for it. Hence, we require that it be an existing or
+      // fresh variable.
+      mbt = d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
     }
     ModelBasisAttribute mba;
     mbt.setAttribute(mba, true);
@@ -390,4 +383,4 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

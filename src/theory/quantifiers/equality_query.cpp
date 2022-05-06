@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -63,7 +63,8 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
           r = tr;
           r = d_qstate.getRepresentative(r);
         }else{
-          if( r.getType().isSort() ){
+          if (r.getType().isUninterpretedSort())
+          {
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             //should never happen : UF constants should never escape model
             Assert(false);
@@ -129,7 +130,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
       << " and type " << r_best.getType() << std::endl;
   Assert(r_best.getType().isSubtypeOf(v_tn));
   v_int_rep[r] = r_best;
-  if (Trace.isOn("internal-rep-debug"))
+  if (TraceIsOn("internal-rep-debug"))
   {
     if (r_best != a)
     {
@@ -167,7 +168,7 @@ Node EqualityQuery::getInstance(Node n,
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
 int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 {
-  if (options().quantifiers.cegqi && quantifiers::TermUtil::hasInstConstAttr(n))
+  if (quantifiers::TermUtil::hasInstConstAttr(n))
   {  // reject
     return -2;
   }
@@ -181,7 +182,7 @@ int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
     if( n.hasAttribute(InstLevelAttribute()) ){
       return n.getAttribute(InstLevelAttribute());
     }
-    return options().quantifiers.instLevelInputOnly ? -1 : 0;
+    return -1;
   }
   else if (options().quantifiers.quantRepMode == options::QuantRepMode::FIRST)
   {
@@ -194,4 +195,4 @@ int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Listener;
 class Options;
@@ -73,6 +73,7 @@ class WallClockTimer
 enum class Resource
 {
   ArithPivotStep,
+  ArithNlCoveringStep,
   ArithNlLemmaStep,
   BitblastStep,
   BvEagerAssertStep,
@@ -147,13 +148,13 @@ class ResourceManager
   uint64_t getResourceRemaining() const;
 
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(Resource r);
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(theory::InferenceId iid);
 
@@ -209,6 +210,6 @@ class ResourceManager
   std::unique_ptr<Statistics> d_statistics;
 }; /* class ResourceManager */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESOURCE_MANAGER_H */

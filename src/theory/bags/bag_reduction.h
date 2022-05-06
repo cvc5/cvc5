@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,17 +22,17 @@
 #include "smt/env_obj.h"
 #include "theory/bags/inference_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
 /**
  * class for bag reductions
  */
-class BagReduction : EnvObj
+class BagReduction
 {
  public:
-  BagReduction(Env& env);
+  BagReduction();
   ~BagReduction();
 
   /**
@@ -64,7 +64,7 @@ class BagReduction : EnvObj
    * combine: Int -> T2 is an uninterpreted function
    * unionDisjoint: Int -> (Bag T1) is an uninterpreted function
    */
-  Node reduceFoldOperator(Node node, std::vector<Node>& asserts);
+  static Node reduceFoldOperator(Node node, std::vector<Node>& asserts);
 
   /**
    * @param node a term of the form (bag.card A) where A: (Bag T) is a bag
@@ -95,13 +95,25 @@ class BagReduction : EnvObj
    *   cardinality: Int -> Int is an uninterpreted function
    *   unionDisjoint: Int -> (Bag T1) is an uninterpreted function
    */
-  Node reduceCardOperator(Node node, std::vector<Node>& asserts);
-
- private:
+  static Node reduceCardOperator(Node node, std::vector<Node>& asserts);
+  /**
+   * @param node of the form ((_ table.aggr n1 ... nk) f initial A))
+   * @return reduction term that uses map, fold, and partition using
+   * tuple projection as the equivalence relation as follows:
+   * (bag.map
+   *   (lambda ((B Table)) (bag.fold f initial B))
+   *   (bag.partition
+   *     (lambda ((t1 Tuple) (t2 Tuple)) ; equivalence relation
+   *             (=
+   *               ((_ tuple.project n1 ... nk) t1)
+   *               ((_ tuple.project n1 ... nk) t2)))
+   *     A))
+   */
+  static Node reduceAggregateOperator(Node node);
 };
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BAG_REDUCTION_H */

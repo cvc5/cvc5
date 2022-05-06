@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "expr/node_value.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -185,7 +185,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     if (!done) {
       RewriteResponse ret = flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
-      Debug("bool-flatten") << n << ": " << ret.d_node << std::endl;
+      Trace("bool-flatten") << n << ": " << ret.d_node << std::endl;
       return ret;
     }
     // x ^ ... ^ x --> x
@@ -328,25 +328,25 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     if (n[0].isConst()) {
       if (n[0] == tt) {
         // ITE true x y
-        Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==tt "
+        Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==tt "
                           << n << ": " << n[1] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[1]);
       } else {
         Assert(n[0] == ff);
         // ITE false x y
-        Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==ff "
+        Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==ff "
                           << n << ": " << n[1] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[2]);
       }
     } else if (n[1].isConst()) {
       if (n[1] == tt && n[2] == ff) {
-        Debug("bool-ite")
+        Trace("bool-ite")
             << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==tt && n[2] == ff "
             << n << ": " << n[0] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[0]);
       }
       else if (n[1] == ff && n[2] == tt) {
-        Debug("bool-ite")
+        Trace("bool-ite")
             << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==ff && n[2] == tt "
             << n << ": " << n[0].notNode() << std::endl;
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
@@ -363,7 +363,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     int parityTmp;
     if ((parityTmp = equalityParity(n[1], n[2])) != 0) {
       Node resp = (parityTmp == 1) ? (Node)n[1] : n[0].eqNode(n[1]);
-      Debug("bool-ite")
+      Trace("bool-ite")
           << "TheoryBoolRewriter::preRewrite_ITE:  equalityParity n[1], n[2] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
@@ -376,7 +376,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
 
       // if n[1] is constant this can loop, this is possible in prewrite
       Node resp = n[0].iteNode( (parityTmp == 1) ? tt : ff, n[2]);
-      Debug("bool-ite")
+      Trace("bool-ite")
           << "TheoryBoolRewriter::preRewrite_ITE: equalityParity n[0], n[1] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
@@ -384,7 +384,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // (parityTmp == 1) if n[0] == n[2]
       // otherwise, n[0] == not(n[2]) or not(n[0]) == n[2]
       Node resp = n[0].iteNode(n[1], (parityTmp == 1) ? ff : tt);
-      Debug("bool-ite")
+      Trace("bool-ite")
           << "TheoryBoolRewriter::preRewrite_ITE: equalityParity n[0], n[2] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
@@ -394,7 +394,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // (parityTmp > 1)  then n : (ite c (ite (not c) x y) z) or
       // n: (ite (not c) (ite c x y) z)
       Node resp = n[0].iteNode((parityTmp == 1) ? n[1][1] : n[1][2], n[2]);
-      Debug("bool-ite")
+      Trace("bool-ite")
           << "TheoryBoolRewriter::preRewrite: equalityParity n[0], n[1][0] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
@@ -404,7 +404,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // (parityTmp > 1)  then n : (ite c x (ite (not c) y z)) or
       // n: (ite (not c) x (ite c y z))
       Node resp = n[0].iteNode(n[1], (parityTmp == 1) ? n[2][2] : n[2][1]);
-      Debug("bool-ite")
+      Trace("bool-ite")
           << "TheoryBoolRewriter::preRewrite: equalityParity n[0], n[2][0] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
@@ -420,7 +420,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // ITE C false y --> ~C ^ y
       Node resp =
           n[1] == tt ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
-      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
+      Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
                         << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
     }
@@ -430,7 +430,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // ITE C x false --> C ^ x
       Node resp =
           n[2] == tt ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
-      Debug("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
+      Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
                         << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
     }
@@ -445,4 +445,4 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

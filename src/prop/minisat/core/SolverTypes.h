@@ -31,7 +31,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Vec.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace Minisat {
 
 class Solver;
@@ -177,9 +177,9 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 }
 
 }  // namespace Minisat
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace Minisat{
 
 //=================================================================================================
@@ -492,6 +492,6 @@ inline void Clause::strengthen(Lit p)
 
 //=================================================================================================
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

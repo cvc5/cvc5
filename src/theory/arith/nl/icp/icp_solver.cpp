@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,11 +23,11 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/poly_conversion.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -89,7 +89,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
   {
     return {};
   }
-  auto comp = Comparison::parseNormalForm(tmp).decompose(false);
+  auto comp = linear::Comparison::parseNormalForm(tmp).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {
@@ -127,13 +127,12 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
-      rhsmult = poly::Rational(1) / rhsmult;
       // only correct up to a constant (denominator is thrown away!)
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, rhsmult, n, collectVariables(val)};
+      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -153,12 +152,11 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
-      rhsmult = poly::Rational(1) / rhsmult;
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, rhsmult, n, collectVariables(val)};
+      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -357,9 +355,7 @@ void ICPSolver::check()
         }
         d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
                              InferenceId::ARITH_NL_ICP_CONFLICT);
-        did_progress = true;
-        progress = false;
-        break;
+        return;
     }
   } while (progress);
   if (did_progress)
@@ -390,4 +386,4 @@ void ICPSolver::check()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

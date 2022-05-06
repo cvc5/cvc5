@@ -1,0 +1,21 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2
+(set-logic ALL)
+(synth-fun f 
+	() Bool
+	((B Bool))
+	(
+		(B Bool ((Constant Bool)))
+	)
+)
+(synth-fun g 
+	((x0 Int) (r Int)) Bool 
+	((B Bool) (I Int)) 
+	(
+		(B Bool ((= I I))) 
+		(I Int (x0 r))
+	)
+)
+(constraint (=> f (g 2 2)))
+(constraint (not (=> f (g 0 1))))
+(check-synth)

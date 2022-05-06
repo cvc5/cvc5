@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,9 +33,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -245,7 +245,7 @@ void InstMatchGenerator::initialize(Node q,
   }
   else if (mpk == INST_CONSTANT)
   {
-    if (d_pattern.getKind() == APPLY_SELECTOR_TOTAL)
+    if (d_pattern.getKind() == APPLY_SELECTOR)
     {
       Node selectorExpr = tdb->getMatchOperator(d_pattern);
       size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
@@ -282,7 +282,7 @@ void InstMatchGenerator::initialize(Node q,
 }
 
 /** get match (not modulo equality) */
-int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
+int InstMatchGenerator::getMatch(Node t, InstMatch& m)
 {
   Trace("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
                     << m << ")" << ", " << d_children.size() << ", pattern is " << d_pattern << std::endl;
@@ -309,7 +309,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
       Trace("matching-debug2")
           << "Setting " << ct << " to " << t[i] << "..." << std::endl;
       bool addToPrev = m.get(ct).isNull();
-      if (!m.set(d_qstate, ct, t[i]))
+      if (!m.set(ct, t[i]))
       {
         // match is in conflict
         Trace("matching-fail")
@@ -341,7 +341,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
   if (d_match_pattern.getKind() == INST_CONSTANT)
   {
     bool addToPrev = m.get(d_children_types[0]).isNull();
-    if (!m.set(d_qstate, d_children_types[0], t))
+    if (!m.set(d_children_types[0], t))
     {
       success = false;
     }
@@ -400,7 +400,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     if (!t_match.isNull())
     {
       bool addToPrev = m.get(v).isNull();
-      if (!m.set(d_qstate, v, t_match))
+      if (!m.set(v, t_match))
       {
         success = false;
       }
@@ -427,30 +427,28 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     if (success)
     {
       Trace("matching-debug2") << "Continue next " << d_next << std::endl;
-      ret_val =
-          continueNextMatch(f, m, InferenceId::QUANTIFIERS_INST_E_MATCHING);
+      ret_val = continueNextMatch(m, InferenceId::QUANTIFIERS_INST_E_MATCHING);
     }
   }
   if (ret_val < 0)
   {
     for (int& pv : prev)
     {
-      m.d_vals[pv] = Node::null();
+      m.reset(pv);
     }
   }
   return ret_val;
 }
 
-int InstMatchGenerator::continueNextMatch(Node q,
-                                          InstMatch& m,
-                                          InferenceId id)
+int InstMatchGenerator::continueNextMatch(InstMatch& m, InferenceId id)
 {
   if( d_next!=NULL ){
-    return d_next->getNextMatch(q, m);
+    return d_next->getNextMatch(m);
   }
   if (d_active_add)
   {
-    return sendInstantiation(m, id) ? 1 : -1;
+    std::vector<Node> mc = m.get();
+    return sendInstantiation(mc, id) ? 1 : -1;
   }
   return 1;
 }
@@ -505,7 +503,7 @@ bool InstMatchGenerator::reset(Node eqc)
   return !d_curr_first_candidate.isNull();
 }
 
-int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
+int InstMatchGenerator::getNextMatch(InstMatch& m)
 {
   if( d_needsReset ){
     Trace("matching") << "Reset not done yet, must do the reset..." << std::endl;
@@ -523,7 +521,7 @@ int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
         Assert(t.getType().isComparableTo(d_match_pattern_type));
         Trace("matching-summary") << "Try " << d_match_pattern << " : " << t << std::endl;
-        success = getMatch(f, t, m);
+        success = getMatch(t, m);
         if( d_independent_gen && success<0 ){
           Assert(d_eq_class.isNull() || !d_eq_class_rel.isNull());
           d_curr_exclude_match[t] = true;
@@ -549,15 +547,16 @@ int InstMatchGenerator::getNextMatch(Node f, InstMatch& m)
   return success;
 }
 
-uint64_t InstMatchGenerator::addInstantiations(Node f)
+uint64_t InstMatchGenerator::addInstantiations(InstMatch& m)
 {
   //try to add instantiation for each match produced
   uint64_t addedLemmas = 0;
-  InstMatch m( f );
-  while (getNextMatch(f, m) > 0)
+  m.resetAll();
+  while (getNextMatch(m) > 0)
   {
     if( !d_active_add ){
-      if (sendInstantiation(m, InferenceId::UNKNOWN))
+      std::vector<Node> mc = m.get();
+      if (sendInstantiation(mc, InferenceId::UNKNOWN))
       {
         addedLemmas++;
         if (d_qstate.isInConflict())
@@ -572,7 +571,7 @@ uint64_t InstMatchGenerator::addInstantiations(Node f)
         break;
       }
     }
-    m.clear();
+    m.resetAll();
   }
   //return number of lemmas added
   return addedLemmas;
@@ -699,4 +698,4 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Env& env,
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

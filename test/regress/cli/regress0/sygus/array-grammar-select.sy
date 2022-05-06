@@ -1,0 +1,15 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALIA)
+
+(synth-fun f
+  ((s (Array Int Int)) (t Int))
+  Int
+  )
+
+(declare-var x (Array Int Int))
+
+(constraint (= (= (select x 0) (select x 1)) (= (f x 0) (f x 1))))
+
+
+(check-synth)

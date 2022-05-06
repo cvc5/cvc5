@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,17 +26,17 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using ::cvc5::context::CDHashMap;
-using ::cvc5::context::CDHashSet;
-using ::cvc5::context::Context;
-using ::std::copy;
-using ::std::endl;
-using ::std::ostream_iterator;
-using ::std::pair;
-using ::std::string;
-using ::std::vector;
+using context::CDHashMap;
+using context::CDHashSet;
+using context::Context;
+using std::copy;
+using std::endl;
+using std::ostream_iterator;
+using std::pair;
+using std::string;
+using std::vector;
 
 /** Overloaded type trie.
  *
@@ -91,33 +91,33 @@ class OverloadedTypeTrie {
  public:
   OverloadedTypeTrie(Context* c, bool allowFunVariants = false)
       : d_overloaded_symbols(
-            new (true) CDHashSet<api::Term, std::hash<api::Term>>(c)),
+          new (true) CDHashSet<cvc5::Term, std::hash<cvc5::Term>>(c)),
         d_allowFunctionVariants(allowFunVariants)
   {
   }
   ~OverloadedTypeTrie() { d_overloaded_symbols->deleteSelf(); }
 
   /** is this function overloaded? */
-  bool isOverloadedFunction(api::Term fun) const;
+  bool isOverloadedFunction(cvc5::Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
    */
-  api::Term getOverloadedConstantForType(const std::string& name,
-                                         api::Sort t) const;
+  cvc5::Term getOverloadedConstantForType(const std::string& name,
+                                          cvc5::Sort t) const;
 
   /**
    * If possible, returns a defined function for a name
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  api::Term getOverloadedFunctionForTypes(
-      const std::string& name, const std::vector<api::Sort>& argTypes) const;
+  cvc5::Term getOverloadedFunctionForTypes(
+      const std::string& name, const std::vector<cvc5::Sort>& argTypes) const;
   /** called when obj is bound to name, and prev_bound_obj was already bound to
    * name Returns false if the binding is invalid.
    */
-  bool bind(const string& name, api::Term prev_bound_obj, api::Term obj);
+  bool bind(const string& name, cvc5::Term prev_bound_obj, cvc5::Term obj);
 
  private:
   /** Marks expression obj with name as overloaded.
@@ -135,9 +135,9 @@ class OverloadedTypeTrie {
    * These are put in the same place in the trie but do not have identical type,
    * hence we return false.
    */
-  bool markOverloaded(const string& name, api::Term obj);
+  bool markOverloaded(const string& name, cvc5::Term obj);
   /** the null expression */
-  api::Term d_nullTerm;
+  cvc5::Term d_nullTerm;
   // The (context-independent) trie storing that maps expected argument
   // vectors to symbols. All expressions stored in d_symbols are only
   // interpreted as active if they also appear in the context-dependent
@@ -145,15 +145,15 @@ class OverloadedTypeTrie {
   class TypeArgTrie {
    public:
     // children of this node
-    std::map<api::Sort, TypeArgTrie> d_children;
+    std::map<cvc5::Sort, TypeArgTrie> d_children;
     // symbols at this node
-    std::map<api::Sort, api::Term> d_symbols;
+    std::map<cvc5::Sort, cvc5::Term> d_symbols;
   };
   /** for each string with operator overloading, this stores the data structure
    * above. */
   std::unordered_map<std::string, TypeArgTrie> d_overload_type_arg_trie;
   /** The set of overloaded symbols. */
-  CDHashSet<api::Term, std::hash<api::Term>>* d_overloaded_symbols;
+  CDHashSet<cvc5::Term, std::hash<cvc5::Term>>* d_overloaded_symbols;
   /** allow function variants
    * This is true if we allow overloading (non-constant) functions that expect
    * the same argument types.
@@ -165,25 +165,25 @@ class OverloadedTypeTrie {
   * if reqUnique=true.
   * Otherwise, it returns the null expression.
   */
-  api::Term getOverloadedFunctionAt(const TypeArgTrie* tat,
-                                    bool reqUnique = true) const;
+  cvc5::Term getOverloadedFunctionAt(const TypeArgTrie* tat,
+                                     bool reqUnique = true) const;
 };
 
-bool OverloadedTypeTrie::isOverloadedFunction(api::Term fun) const
+bool OverloadedTypeTrie::isOverloadedFunction(cvc5::Term fun) const
 {
   return d_overloaded_symbols->find(fun) != d_overloaded_symbols->end();
 }
 
-api::Term OverloadedTypeTrie::getOverloadedConstantForType(
-    const std::string& name, api::Sort t) const
+cvc5::Term OverloadedTypeTrie::getOverloadedConstantForType(
+    const std::string& name, cvc5::Sort t) const
 {
   std::unordered_map<std::string, TypeArgTrie>::const_iterator it =
       d_overload_type_arg_trie.find(name);
   if (it != d_overload_type_arg_trie.end()) {
-    std::map<api::Sort, api::Term>::const_iterator its =
+    std::map<cvc5::Sort, cvc5::Term>::const_iterator its =
         it->second.d_symbols.find(t);
     if (its != it->second.d_symbols.end()) {
-      api::Term expr = its->second;
+      cvc5::Term expr = its->second;
       // must be an active symbol
       if (isOverloadedFunction(expr)) {
         return expr;
@@ -193,15 +193,15 @@ api::Term OverloadedTypeTrie::getOverloadedConstantForType(
   return d_nullTerm;
 }
 
-api::Term OverloadedTypeTrie::getOverloadedFunctionForTypes(
-    const std::string& name, const std::vector<api::Sort>& argTypes) const
+cvc5::Term OverloadedTypeTrie::getOverloadedFunctionForTypes(
+    const std::string& name, const std::vector<cvc5::Sort>& argTypes) const
 {
   std::unordered_map<std::string, TypeArgTrie>::const_iterator it =
       d_overload_type_arg_trie.find(name);
   if (it != d_overload_type_arg_trie.end()) {
     const TypeArgTrie* tat = &it->second;
     for (unsigned i = 0; i < argTypes.size(); i++) {
-      std::map<api::Sort, TypeArgTrie>::const_iterator itc =
+      std::map<cvc5::Sort, TypeArgTrie>::const_iterator itc =
           tat->d_children.find(argTypes[i]);
       if (itc != tat->d_children.end()) {
         tat = &itc->second;
@@ -220,8 +220,8 @@ api::Term OverloadedTypeTrie::getOverloadedFunctionForTypes(
 }
 
 bool OverloadedTypeTrie::bind(const string& name,
-                              api::Term prev_bound_obj,
-                              api::Term obj)
+                              cvc5::Term prev_bound_obj,
+                              cvc5::Term obj)
 {
   bool retprev = true;
   if (!isOverloadedFunction(prev_bound_obj)) {
@@ -233,33 +233,28 @@ bool OverloadedTypeTrie::bind(const string& name,
   return retprev && retobj;
 }
 
-bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
+bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
 {
   Trace("parser-overloading") << "Overloaded function : " << name;
   Trace("parser-overloading") << " with type " << obj.getSort() << std::endl;
   // get the argument types
-  api::Sort t = obj.getSort();
-  api::Sort rangeType = t;
-  std::vector<api::Sort> argTypes;
+  cvc5::Sort t = obj.getSort();
+  cvc5::Sort rangeType = t;
+  std::vector<cvc5::Sort> argTypes;
   if (t.isFunction())
   {
     argTypes = t.getFunctionDomainSorts();
     rangeType = t.getFunctionCodomainSort();
   }
-  else if (t.isConstructor())
+  else if (t.isDatatypeConstructor())
   {
-    argTypes = t.getConstructorDomainSorts();
-    rangeType = t.getConstructorCodomainSort();
+    argTypes = t.getDatatypeConstructorDomainSorts();
+    rangeType = t.getDatatypeConstructorCodomainSort();
   }
-  else if (t.isTester())
+  else if (t.isDatatypeSelector())
   {
-    argTypes.push_back(t.getTesterDomainSort());
-    rangeType = t.getTesterCodomainSort();
-  }
-  else if (t.isSelector())
-  {
-    argTypes.push_back(t.getSelectorDomainSort());
-    rangeType = t.getSelectorCodomainSort();
+    argTypes.push_back(t.getDatatypeSelectorDomainSort());
+    rangeType = t.getDatatypeSelectorCodomainSort();
   }
   // add to the trie
   TypeArgTrie* tat = &d_overload_type_arg_trie[name];
@@ -271,11 +266,11 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
   if (d_allowFunctionVariants || argTypes.empty())
   {
     // they are allowed, check for redefinition
-    std::map<api::Sort, api::Term>::iterator it =
+    std::map<cvc5::Sort, cvc5::Term>::iterator it =
         tat->d_symbols.find(rangeType);
     if (it != tat->d_symbols.end())
     {
-      api::Term prev_obj = it->second;
+      cvc5::Term prev_obj = it->second;
       // if there is already an active function with the same name and expects
       // the same argument types and has the same return type, we reject the 
       // re-declaration here.
@@ -288,7 +283,7 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
   else
   {
     // they are not allowed, we cannot have any function defined here.
-    api::Term existingFun = getOverloadedFunctionAt(tat, false);
+    cvc5::Term existingFun = getOverloadedFunctionAt(tat, false);
     if (!existingFun.isNull())
     {
       return false;
@@ -301,16 +296,16 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, api::Term obj)
   return true;
 }
 
-api::Term OverloadedTypeTrie::getOverloadedFunctionAt(
+cvc5::Term OverloadedTypeTrie::getOverloadedFunctionAt(
     const OverloadedTypeTrie::TypeArgTrie* tat, bool reqUnique) const
 {
-  api::Term retExpr;
-  for (std::map<api::Sort, api::Term>::const_iterator its =
+  cvc5::Term retExpr;
+  for (std::map<cvc5::Sort, cvc5::Term>::const_iterator its =
            tat->d_symbols.begin();
        its != tat->d_symbols.end();
        ++its)
   {
-    api::Term expr = its->second;
+    cvc5::Term expr = its->second;
     if (isOverloadedFunction(expr))
     {
       if (retExpr.isNull())
@@ -342,24 +337,21 @@ class SymbolTable::Implementation {
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
   {
-    // use an outermost push, to be able to clear definitions not at level zero
-    d_context.push();
   }
 
-  ~Implementation() { d_context.pop(); }
+  ~Implementation() {}
 
-  bool bind(const string& name, api::Term obj, bool levelZero, bool doOverload);
-  void bindType(const string& name, api::Sort t, bool levelZero = false);
+  bool bind(const string& name, cvc5::Term obj, bool doOverload);
+  void bindType(const string& name, cvc5::Sort t);
   void bindType(const string& name,
-                const vector<api::Sort>& params,
-                api::Sort t,
-                bool levelZero = false);
+                const vector<cvc5::Sort>& params,
+                cvc5::Sort t);
   bool isBound(const string& name) const;
   bool isBoundType(const string& name) const;
-  api::Term lookup(const string& name) const;
-  api::Sort lookupType(const string& name) const;
-  api::Sort lookupType(const string& name,
-                       const vector<api::Sort>& params) const;
+  cvc5::Term lookup(const string& name) const;
+  cvc5::Sort lookupType(const string& name) const;
+  cvc5::Sort lookupType(const string& name,
+                        const vector<cvc5::Sort>& params) const;
   size_t lookupArity(const string& name);
   void popScope();
   void pushScope();
@@ -368,30 +360,30 @@ class SymbolTable::Implementation {
   void resetAssertions();
   //------------------------ operator overloading
   /** implementation of function from header */
-  bool isOverloadedFunction(api::Term fun) const;
+  bool isOverloadedFunction(cvc5::Term fun) const;
 
   /** implementation of function from header */
-  api::Term getOverloadedConstantForType(const std::string& name,
-                                         api::Sort t) const;
+  cvc5::Term getOverloadedConstantForType(const std::string& name,
+                                          cvc5::Sort t) const;
 
   /** implementation of function from header */
-  api::Term getOverloadedFunctionForTypes(
-      const std::string& name, const std::vector<api::Sort>& argTypes) const;
+  cvc5::Term getOverloadedFunctionForTypes(
+      const std::string& name, const std::vector<cvc5::Sort>& argTypes) const;
   //------------------------ end operator overloading
  private:
   /** The context manager for the scope maps. */
   Context d_context;
 
   /** A map for expressions. */
-  CDHashMap<string, api::Term> d_exprMap;
+  CDHashMap<string, cvc5::Term> d_exprMap;
 
   /** A map for types. */
-  using TypeMap = CDHashMap<string, std::pair<vector<api::Sort>, api::Sort>>;
+  using TypeMap = CDHashMap<string, std::pair<vector<cvc5::Sort>, cvc5::Sort>>;
   TypeMap d_typeMap;
 
   //------------------------ operator overloading
   // the null expression
-  api::Term d_nullTerm;
+  cvc5::Term d_nullTerm;
   // overloaded type trie, stores all information regarding overloading
   OverloadedTypeTrie d_overload_trie;
   /** bind with overloading
@@ -399,29 +391,24 @@ class SymbolTable::Implementation {
    * allowed. If a symbol is previously bound to that name, it marks both as
    * overloaded. Returns false if the binding was invalid.
    */
-  bool bindWithOverloading(const string& name, api::Term obj);
+  bool bindWithOverloading(const string& name, cvc5::Term obj);
   //------------------------ end operator overloading
 }; /* SymbolTable::Implementation */
 
 bool SymbolTable::Implementation::bind(const string& name,
-                                       api::Term obj,
-                                       bool levelZero,
+                                       cvc5::Term obj,
                                        bool doOverload)
 {
-  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null api::Term");
+  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null cvc5::Term");
   Trace("sym-table") << "SymbolTable: bind " << name
-                     << ", levelZero=" << levelZero
                      << ", doOverload=" << doOverload << std::endl;
   if (doOverload) {
     if (!bindWithOverloading(name, obj)) {
       return false;
     }
   }
-  if (levelZero) {
-    d_exprMap.insertAtContextLevelZero(name, obj);
-  } else {
     d_exprMap.insert(name, obj);
-  }
+
   return true;
 }
 
@@ -429,10 +416,10 @@ bool SymbolTable::Implementation::isBound(const string& name) const {
   return d_exprMap.find(name) != d_exprMap.end();
 }
 
-api::Term SymbolTable::Implementation::lookup(const string& name) const
+cvc5::Term SymbolTable::Implementation::lookup(const string& name) const
 {
   Assert(isBound(name));
-  api::Term expr = (*d_exprMap.find(name)).second;
+  cvc5::Term expr = (*d_exprMap.find(name)).second;
   if (isOverloadedFunction(expr)) {
     return d_nullTerm;
   } else {
@@ -440,46 +427,36 @@ api::Term SymbolTable::Implementation::lookup(const string& name) const
   }
 }
 
-void SymbolTable::Implementation::bindType(const string& name,
-                                           api::Sort t,
-                                           bool levelZero)
+void SymbolTable::Implementation::bindType(const string& name, cvc5::Sort t)
 {
-  if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(vector<api::Sort>(), t));
-  } else {
-    d_typeMap.insert(name, make_pair(vector<api::Sort>(), t));
-  }
+  d_typeMap.insert(name, make_pair(vector<cvc5::Sort>(), t));
 }
 
 void SymbolTable::Implementation::bindType(const string& name,
-                                           const vector<api::Sort>& params,
-                                           api::Sort t,
-                                           bool levelZero)
+                                           const vector<cvc5::Sort>& params,
+                                           cvc5::Sort t)
 {
-  if (Debug.isOn("sort")) {
-    Debug("sort") << "bindType(" << name << ", [";
+  if (TraceIsOn("sort")) {
+    Trace("sort") << "bindType(" << name << ", [";
     if (params.size() > 0) {
       copy(params.begin(),
            params.end() - 1,
-           ostream_iterator<api::Sort>(Debug("sort"), ", "));
-      Debug("sort") << params.back();
+           ostream_iterator<cvc5::Sort>(Trace("sort"), ", "));
+      Trace("sort") << params.back();
     }
-    Debug("sort") << "], " << t << ")" << endl;
+    Trace("sort") << "], " << t << ")" << endl;
   }
-  if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(params, t));
-  } else {
+
     d_typeMap.insert(name, make_pair(params, t));
-  }
 }
 
 bool SymbolTable::Implementation::isBoundType(const string& name) const {
   return d_typeMap.find(name) != d_typeMap.end();
 }
 
-api::Sort SymbolTable::Implementation::lookupType(const string& name) const
+cvc5::Sort SymbolTable::Implementation::lookupType(const string& name) const
 {
-  std::pair<std::vector<api::Sort>, api::Sort> p =
+  std::pair<std::vector<cvc5::Sort>, cvc5::Sort> p =
       (*d_typeMap.find(name)).second;
   PrettyCheckArgument(p.first.size() == 0, name,
                       "type constructor arity is wrong: "
@@ -488,10 +465,10 @@ api::Sort SymbolTable::Implementation::lookupType(const string& name) const
   return p.second;
 }
 
-api::Sort SymbolTable::Implementation::lookupType(
-    const string& name, const vector<api::Sort>& params) const
+cvc5::Sort SymbolTable::Implementation::lookupType(
+    const string& name, const vector<cvc5::Sort>& params) const
 {
-  std::pair<std::vector<api::Sort>, api::Sort> p =
+  std::pair<std::vector<cvc5::Sort>, cvc5::Sort> p =
       (*d_typeMap.find(name)).second;
   PrettyCheckArgument(p.first.size() == params.size(), params,
                       "type constructor arity is wrong: "
@@ -503,46 +480,48 @@ api::Sort SymbolTable::Implementation::lookupType(
   }
   if (p.second.isDatatype())
   {
-    PrettyCheckArgument(
-        p.second.isParametricDatatype(), name, "expected parametric datatype");
+    PrettyCheckArgument(p.second.getDatatype().isParametric(),
+                        name,
+                        "expected parametric datatype");
     return p.second.instantiate(params);
   }
-  bool isSortConstructor = p.second.isSortConstructor();
-  if (Debug.isOn("sort"))
+  bool isUninterpretedSortConstructor =
+      p.second.isUninterpretedSortConstructor();
+  if (TraceIsOn("sort"))
   {
-    Debug("sort") << "instantiating using a sort "
-                  << (isSortConstructor ? "constructor" : "substitution")
+    Trace("sort") << "instantiating using a sort "
+                  << (isUninterpretedSortConstructor ? "constructor"
+                                                     : "substitution")
                   << std::endl;
-    Debug("sort") << "have formals [";
+    Trace("sort") << "have formals [";
     copy(p.first.begin(),
          p.first.end() - 1,
-         ostream_iterator<api::Sort>(Debug("sort"), ", "));
-    Debug("sort") << p.first.back() << "]" << std::endl << "parameters   [";
+         ostream_iterator<cvc5::Sort>(Trace("sort"), ", "));
+    Trace("sort") << p.first.back() << "]" << std::endl << "parameters   [";
     copy(params.begin(),
          params.end() - 1,
-         ostream_iterator<api::Sort>(Debug("sort"), ", "));
-    Debug("sort") << params.back() << "]" << endl
+         ostream_iterator<cvc5::Sort>(Trace("sort"), ", "));
+    Trace("sort") << params.back() << "]" << endl
                   << "type ctor    " << name << std::endl
                   << "type is      " << p.second << std::endl;
   }
-  api::Sort instantiation = isSortConstructor
-                                ? p.second.instantiate(params)
-                                : p.second.substitute(p.first, params);
-
-  Debug("sort") << "instance is  " << instantiation << std::endl;
+  cvc5::Sort instantiation = isUninterpretedSortConstructor
+                                 ? p.second.instantiate(params)
+                                 : p.second.substitute(p.first, params);
+  Trace("sort") << "instance is  " << instantiation << std::endl;
 
   return instantiation;
 }
 
 size_t SymbolTable::Implementation::lookupArity(const string& name) {
-  std::pair<std::vector<api::Sort>, api::Sort> p =
+  std::pair<std::vector<cvc5::Sort>, cvc5::Sort> p =
       (*d_typeMap.find(name)).second;
   return p.first.size();
 }
 
 void SymbolTable::Implementation::popScope() {
   // should not pop beyond level one
-  if (d_context.getLevel() == 1)
+  if (d_context.getLevel() == 0)
   {
     throw ScopeException();
   }
@@ -572,30 +551,30 @@ void SymbolTable::Implementation::resetAssertions()
   d_context.push();
 }
 
-bool SymbolTable::Implementation::isOverloadedFunction(api::Term fun) const
+bool SymbolTable::Implementation::isOverloadedFunction(cvc5::Term fun) const
 {
   return d_overload_trie.isOverloadedFunction(fun);
 }
 
-api::Term SymbolTable::Implementation::getOverloadedConstantForType(
-    const std::string& name, api::Sort t) const
+cvc5::Term SymbolTable::Implementation::getOverloadedConstantForType(
+    const std::string& name, cvc5::Sort t) const
 {
   return d_overload_trie.getOverloadedConstantForType(name, t);
 }
 
-api::Term SymbolTable::Implementation::getOverloadedFunctionForTypes(
-    const std::string& name, const std::vector<api::Sort>& argTypes) const
+cvc5::Term SymbolTable::Implementation::getOverloadedFunctionForTypes(
+    const std::string& name, const std::vector<cvc5::Sort>& argTypes) const
 {
   return d_overload_trie.getOverloadedFunctionForTypes(name, argTypes);
 }
 
 bool SymbolTable::Implementation::bindWithOverloading(const string& name,
-                                                      api::Term obj)
+                                                      cvc5::Term obj)
 {
-  CDHashMap<string, api::Term>::const_iterator it = d_exprMap.find(name);
+  CDHashMap<string, cvc5::Term>::const_iterator it = d_exprMap.find(name);
   if (it != d_exprMap.end())
   {
-    const api::Term& prev_bound_obj = (*it).second;
+    const cvc5::Term& prev_bound_obj = (*it).second;
     if (prev_bound_obj != obj) {
       return d_overload_trie.bind(name, prev_bound_obj, obj);
     }
@@ -603,19 +582,19 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
   return true;
 }
 
-bool SymbolTable::isOverloadedFunction(api::Term fun) const
+bool SymbolTable::isOverloadedFunction(cvc5::Term fun) const
 {
   return d_implementation->isOverloadedFunction(fun);
 }
 
-api::Term SymbolTable::getOverloadedConstantForType(const std::string& name,
-                                                    api::Sort t) const
+cvc5::Term SymbolTable::getOverloadedConstantForType(const std::string& name,
+                                                     cvc5::Sort t) const
 {
   return d_implementation->getOverloadedConstantForType(name, t);
 }
 
-api::Term SymbolTable::getOverloadedFunctionForTypes(
-    const std::string& name, const std::vector<api::Sort>& argTypes) const
+cvc5::Term SymbolTable::getOverloadedFunctionForTypes(
+    const std::string& name, const std::vector<cvc5::Sort>& argTypes) const
 {
   return d_implementation->getOverloadedFunctionForTypes(name, argTypes);
 }
@@ -625,25 +604,21 @@ SymbolTable::SymbolTable() : d_implementation(new SymbolTable::Implementation())
 }
 
 SymbolTable::~SymbolTable() {}
-bool SymbolTable::bind(const string& name,
-                       api::Term obj,
-                       bool levelZero,
-                       bool doOverload)
+bool SymbolTable::bind(const string& name, cvc5::Term obj, bool doOverload)
 {
-  return d_implementation->bind(name, obj, levelZero, doOverload);
+  return d_implementation->bind(name, obj, doOverload);
 }
 
-void SymbolTable::bindType(const string& name, api::Sort t, bool levelZero)
+void SymbolTable::bindType(const string& name, cvc5::Sort t)
 {
-  d_implementation->bindType(name, t, levelZero);
+  d_implementation->bindType(name, t);
 }
 
 void SymbolTable::bindType(const string& name,
-                           const vector<api::Sort>& params,
-                           api::Sort t,
-                           bool levelZero)
+                           const vector<cvc5::Sort>& params,
+                           cvc5::Sort t)
 {
-  d_implementation->bindType(name, params, t, levelZero);
+  d_implementation->bindType(name, params, t);
 }
 
 bool SymbolTable::isBound(const string& name) const
@@ -654,17 +629,17 @@ bool SymbolTable::isBoundType(const string& name) const
 {
   return d_implementation->isBoundType(name);
 }
-api::Term SymbolTable::lookup(const string& name) const
+cvc5::Term SymbolTable::lookup(const string& name) const
 {
   return d_implementation->lookup(name);
 }
-api::Sort SymbolTable::lookupType(const string& name) const
+cvc5::Sort SymbolTable::lookupType(const string& name) const
 {
   return d_implementation->lookupType(name);
 }
 
-api::Sort SymbolTable::lookupType(const string& name,
-                                  const vector<api::Sort>& params) const
+cvc5::Sort SymbolTable::lookupType(const string& name,
+                                   const vector<cvc5::Sort>& params) const
 {
   return d_implementation->lookupType(name, params);
 }
@@ -677,4 +652,4 @@ size_t SymbolTable::getLevel() const { return d_implementation->getLevel(); }
 void SymbolTable::reset() { d_implementation->reset(); }
 void SymbolTable::resetAssertions() { d_implementation->resetAssertions(); }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

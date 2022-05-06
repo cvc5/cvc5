@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Tim King
+ *   Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,11 +28,9 @@
 
 #include <functional>
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class CDInsertHashMap;
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDINSERT_HASHMAP_FORWARD_H */

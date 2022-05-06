@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,9 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_bound_inference.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -30,7 +30,7 @@ QRepBoundExt::QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m)
 }
 
 RsiEnumType QRepBoundExt::setBound(Node owner,
-                                   unsigned i,
+                                   size_t i,
                                    std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
@@ -51,7 +51,7 @@ RsiEnumType QRepBoundExt::setBound(Node owner,
 
 bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
                               Node owner,
-                              unsigned i,
+                              size_t i,
                               bool initial,
                               std::vector<Node>& elements)
 {
@@ -73,7 +73,7 @@ bool QRepBoundExt::initializeRepresentativesForType(TypeNode tn)
   return d_model->initializeRepresentativesForType(tn);
 }
 
-bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
+bool QRepBoundExt::getVariableOrder(Node owner, std::vector<size_t>& varOrder)
 {
   // must set a variable index order based on bounded integers
   if (owner.getKind() != FORALL)
@@ -87,4 +87,4 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

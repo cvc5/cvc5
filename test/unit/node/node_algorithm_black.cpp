@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace expr;
 using namespace kind;
@@ -140,8 +140,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
 {
   TypeNode integer = d_nodeManager->integerType();
 
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
 
   Node x = d_nodeManager->mkBoundVar(integer);
   Node a = d_skolemManager->mkDummySkolem("a", integer);
@@ -200,4 +200,4 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   ASSERT_EQ(subs[x], a);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

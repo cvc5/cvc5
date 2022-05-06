@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -50,15 +50,6 @@ inline bool isAtom(TNode n)
     default: return false;
   }
 }
-
-/**
- * Check whether the given node can be rewritten to an integer node. This
- * differs from checking the node type in two major ways: we consider relational
- * operators integral if both children are integral in this sense; rational
- * constants are always integral, as they are rewritten to integers by simple
- * multiplication with their denominator.
- */
-bool isIntegral(TNode n);
 
 /** Check whether the node wraps a real algebraic number. */
 inline bool isRAN(TNode n)
@@ -100,15 +91,7 @@ inline Node mkConst(const Integer& value)
 {
   return NodeManager::currentNM()->mkConstInt(value);
 }
-/** Create an integer or rational constant node */
-inline Node mkConst(const Rational& value)
-{
-  if (value.isIntegral())
-  {
-    return NodeManager::currentNM()->mkConstInt(value);
-  }
-  return NodeManager::currentNM()->mkConstReal(value);
-}
+
 /** Create a real algebraic number node */
 inline Node mkConst(const RealAlgebraicNumber& value)
 {
@@ -161,9 +144,21 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial);
 
+/**
+ * Remove TO_REAL from t, returns t[0] if t has kind TO_REAL.
+ */
+TNode removeToReal(TNode t);
+/**
+ * Ensure that t has real type if tn is the real type. Do so by applying
+ * TO_REAL to t.
+ */
+Node maybeEnsureReal(TypeNode tn, TNode t);
+/** Same as above, without a check for the type of tn. */
+Node ensureReal(TNode t);
+
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

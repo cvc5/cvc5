@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 AbductionSolver::AbductionSolver(Env& env) : EnvObj(env) {}
@@ -181,7 +181,7 @@ void AbductionSolver::checkAbduct(Node a)
     bool isError = false;
     if (j == 0)
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      if (r.getStatus() != Result::SAT)
       {
         isError = true;
         serr
@@ -197,7 +197,7 @@ void AbductionSolver::checkAbduct(Node a)
     }
     else
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         isError = true;
         serr << "SolverEngine::checkAbduct(): negated goal cannot be shown "
@@ -214,4 +214,4 @@ void AbductionSolver::checkAbduct(Node a)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

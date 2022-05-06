@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Mathias Preiner
+ *   Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #ifndef CVC5__UTIL__RANDOM_H
 #define CVC5__UTIL__RANDOM_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Random
 {
@@ -68,5 +68,5 @@ class Random
   uint64_t d_state;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

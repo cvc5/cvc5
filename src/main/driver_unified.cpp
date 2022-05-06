@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Liana Hadarean, Tim King
+ *   Gereon Kremer, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,12 +40,11 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace cvc5;
+using namespace cvc5::internal;
 using namespace cvc5::parser;
 using namespace cvc5::main;
 
-namespace cvc5 {
-namespace main {
+namespace cvc5::main {
 
 /** Full argv[0] */
 const char* progPath;
@@ -54,12 +53,11 @@ const char* progPath;
 std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
-std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
+std::unique_ptr<CommandExecutor> pExecutor;
 
-}  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::main
 
-int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
+int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 {
   // Initialize the signal handlers
   signal_handlers::install();
@@ -68,13 +66,13 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
-  api::DriverOptions dopts = solver->getDriverOptions();
+  cvc5::DriverOptions dopts = solver->getDriverOptions();
 
   // Parse the options
-  std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
+  std::vector<string> filenames = parse(*solver, argc, argv, progName);
   if (solver->getOptionInfo("help").boolValue())
   {
-    main::printUsage(progName, dopts.out());
+    printUsage(progName, dopts.out());
     exit(1);
   }
   for (const auto& name : {"show-config",
@@ -137,6 +135,14 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       }
     }
   }
+  if (solver->getOption("input-language") == "LANG_SYGUS_V2")
+  {
+    // Enable the sygus API. We set this here instead of in set defaults 
+    // to simplify checking at the API level. In particular, the sygus
+    // option is the authority on whether sygus commands are currently
+    // allowed in the API.
+    solver->setOption("sygus", "true");
+  }
 
   if (solver->getOption("output-language") == "LANG_AUTO")
   {
@@ -146,9 +152,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&cvc5::null_os);
-    TraceChannel.setStream(&cvc5::null_os);
-    WarningChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::internal::null_os);
+    WarningChannel.setStream(&cvc5::internal::null_os);
   }
 
   int returnValue = 0;
@@ -156,7 +161,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    std::unique_ptr<Command> cmd;
+    std::unique_ptr<cvc5::Command> cmd;
     bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
@@ -182,12 +187,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           << Configuration::copyright() << std::endl;
 
       while(true) {
-        try {
-          cmd.reset(shell.readCommand());
-        } catch(UnsafeInterruptException& e) {
-          dopts.out() << CommandInterrupted();
-          break;
-        }
+        cmd.reset(shell.readCommand());
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
@@ -202,6 +202,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       {
         solver->setOption("incremental", "false");
       }
+      // we don't need to check that terms passed to API methods are well
+      // formed, since this should be an invariant of the parser
+      if (!solver->getOptionInfo("wf-checking").setByUser)
+      {
+        solver->setOption("wf-checking", "false");
+      }
 
       ParserBuilder parserBuilder(
           pExecutor->getSolver(), pExecutor->getSymbolManager(), true);
@@ -213,26 +219,19 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       else
       {
         parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"),
-                                filename,
-                                solver->getOptionInfo("mmap").boolValue()));
+            Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
       bool interrupted = false;
       while (status)
       {
         if (interrupted) {
-          dopts.out() << CommandInterrupted();
+          dopts.out() << cvc5::CommandInterrupted();
           pExecutor->reset();
           break;
         }
-        try {
-          cmd.reset(parser->nextCommand());
-          if (cmd == nullptr) break;
-        } catch (UnsafeInterruptException& e) {
-          interrupted = true;
-          continue;
-        }
+        cmd.reset(parser->nextCommand());
+        if (cmd == nullptr) break;
 
         status = pExecutor->doCommand(cmd);
         if (cmd->interrupted() && status == 0) {
@@ -240,13 +239,14 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           break;
         }
 
-        if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
+        if (dynamic_cast<cvc5::QuitCommand*>(cmd.get()) != nullptr)
+        {
           break;
         }
       }
     }
 
-    api::Result result;
+    cvc5::Result result;
     if(status) {
       result = pExecutor->getResult();
       returnValue = 0;

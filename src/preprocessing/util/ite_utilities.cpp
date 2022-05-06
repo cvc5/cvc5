@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
 #include "util/rational.h"
 
 using namespace std;
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace util {
 
@@ -670,7 +670,7 @@ ITESimplifier::~ITESimplifier()
 
 bool ITESimplifier::leavesAreConst(TNode e)
 {
-  return leavesAreConst(e, theory::Theory::theoryOf(e));
+  return leavesAreConst(e, d_env.theoryOf(e));
 }
 
 void ITESimplifier::clearSimpITECaches()
@@ -978,7 +978,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
         {
           d_statistics.d_maxNonConstantsFolded.maxAssign(
               search.nonConstants.size());
-          Debug("ite::simpite") << "used " << search.nonConstants.size()
+          Trace("ite::simpite") << "used " << search.nonConstants.size()
                                 << " nonconstants" << endl;
           NodeManager* nm = NodeManager::currentNM();
           Node simpVar = getSimpVar(notIte.getType());
@@ -1075,13 +1075,13 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
 {
   static int instance = 0;
   ++instance;
-  Debug("ite::constantIteEqualsConstant")
+  Trace("ite::constantIteEqualsConstant")
       << instance << "constantIteEqualsConstant(" << cite << ", " << constant
       << ")" << endl;
   if (cite.isConst())
   {
     Node res = (cite == constant) ? d_true : d_false;
-    Debug("ite::constantIteEqualsConstant") << instance << "->" << res << endl;
+    Trace("ite::constantIteEqualsConstant") << instance << "->" << res << endl;
     return res;
   }
   std::pair<Node, Node> pair = make_pair(cite, constant);
@@ -1090,7 +1090,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       d_constantIteEqualsConstantCache.find(pair);
   if (eq_pos != d_constantIteEqualsConstantCache.end())
   {
-    Debug("ite::constantIteEqualsConstant")
+    Trace("ite::constantIteEqualsConstant")
         << instance << "->" << (*eq_pos).second << endl;
     return (*eq_pos).second;
   }
@@ -1105,7 +1105,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
     {
       // probably unreachable
       d_constantIteEqualsConstantCache[pair] = d_true;
-      Debug("ite::constantIteEqualsConstant")
+      Trace("ite::constantIteEqualsConstant")
           << instance << "->" << d_true << endl;
       return d_true;
     }
@@ -1128,7 +1128,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       }
       ++itesMade;
       d_constantIteEqualsConstantCache[pair] = boolIte;
-      // Debug("ite::constantIteEqualsConstant") << instance << "->" << boolIte
+      // Trace("ite::constantIteEqualsConstant") << instance << "->" << boolIte
       // << endl;
       return boolIte;
     }
@@ -1136,7 +1136,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   else
   {
     d_constantIteEqualsConstantCache[pair] = d_false;
-    Debug("ite::constantIteEqualsConstant")
+    Trace("ite::constantIteEqualsConstant")
         << instance << "->" << d_false << endl;
     return d_false;
   }
@@ -1157,7 +1157,7 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
     unsigned preNumBranches = numBranches;
     unsigned preNumFalseBranches = numFalseBranches;
     Node bterm = constantIteEqualsConstant(cite, constant);
-    Debug("intersectConstantIte") << (numBranches - preNumBranches) << " "
+    Trace("intersectConstantIte") << (numBranches - preNumBranches) << " "
                                   << (numFalseBranches - preNumFalseBranches)
                                   << " " << (itesMade - preItesMade) << endl;
     return bterm;
@@ -1258,7 +1258,7 @@ Node ITESimplifier::attemptConstantRemoval(TNode atom)
 bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
 {
   Assert((e.getKind() == kind::ITE && !e.getType().isBoolean())
-         || theory::Theory::theoryOf(e) != theory::THEORY_BOOL);
+         || d_env.theoryOf(e) != theory::THEORY_BOOL);
   if (e.isConst())
   {
     return true;
@@ -1452,13 +1452,13 @@ uint32_t countReachable(TNode x, Kind k)
 Node ITESimplifier::simpITEAtom(TNode atom)
 {
   CVC5_UNUSED static int instance = 0;
-  Debug("ite::atom") << "still simplifying " << (++instance) << endl;
+  Trace("ite::atom") << "still simplifying " << (++instance) << endl;
   Node attempt = transformAtom(atom);
-  Debug("ite::atom") << "  finished " << instance << endl;
+  Trace("ite::atom") << "  finished " << instance << endl;
   if (!attempt.isNull())
   {
     Node rewritten = rewrite(attempt);
-    Debug("ite::print-success")
+    Trace("ite::print-success")
         << instance << " "
         << "rewriting " << countReachable(rewritten, kind::ITE) << " from "
         << countReachable(atom, kind::ITE) << endl
@@ -1479,9 +1479,9 @@ Node ITESimplifier::simpITEAtom(TNode atom)
       {
         Assert(leavesAreConst(simpContext) && !containsTermITE(simpContext));
         ++(d_statistics.d_unexpected);
-        Debug("ite::simpite") << instance << " "
+        Trace("ite::simpite") << instance << " "
                               << "how about?" << atom << endl;
-        Debug("ite::simpite") << instance << " "
+        Trace("ite::simpite") << instance << " "
                               << "\t" << simpContext << endl;
         return rewrite(simpContext);
       }
@@ -1489,19 +1489,19 @@ Node ITESimplifier::simpITEAtom(TNode atom)
       if (!n.isNull())
       {
         ++(d_statistics.d_unexpected);
-        Debug("ite::simpite") << instance << " "
+        Trace("ite::simpite") << instance << " "
                               << "here?" << atom << endl;
-        Debug("ite::simpite") << instance << " "
+        Trace("ite::simpite") << instance << " "
                               << "\t" << n << endl;
         return n;
       }
     }
   }
-  if (Debug.isOn("ite::simpite"))
+  if (TraceIsOn("ite::simpite"))
   {
     if (countReachable(atom, kind::ITE) > 0)
     {
-      Debug("ite::simpite") << instance << " "
+      Trace("ite::simpite") << instance << " "
                             << "remaining " << atom << endl;
     }
   }
@@ -1539,7 +1539,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     // If node has no ITE's or already in the cache we're done, pop from the
     // stack
     if (current.getNumChildren() == 0
-        || (theory::Theory::theoryOf(current) != theory::THEORY_BOOL
+        || (d_env.theoryOf(current) != theory::THEORY_BOOL
             && !containsTermITE(current)))
     {
       d_simpITECache[current] = current;
@@ -1575,7 +1575,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       Node result = builder;
 
       // If this is an atom, we process it
-      if (theory::Theory::theoryOf(result) != theory::THEORY_BOOL
+      if (d_env.theoryOf(result) != theory::THEORY_BOOL
           && result.getType().isBoolean())
       {
         result = simpITEAtom(result);
@@ -1884,4 +1884,4 @@ ITECareSimplifier::CareSetPtr ITECareSimplifier::CareSetPtr::mkNew(
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

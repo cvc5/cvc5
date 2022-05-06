@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +18,15 @@
 #ifndef CVC5__UTIL__STATISTICS_PUBLIC_H
 #define CVC5__UTIL__STATISTICS_PUBLIC_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class StatisticsRegistry;
 
 /**
- * Preregisters all public (non-expert) statistics.
+ * Preregisters all public statistics.
  */
 void registerPublicStatistics(StatisticsRegistry& reg);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

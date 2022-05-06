@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Mudathir Mohamed
+#   Yoni Zohar, Aina Niemetz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -25,14 +25,13 @@ if __name__ == "__main__":
   slv = cvc5.Solver()
 
   # required options
-  slv.setOption("lang", "sygus2")
+  slv.setOption("sygus", "true")
   slv.setOption("incremental", "false")
 
   # set the logic
   slv.setLogic("LIA")
 
   integer = slv.getIntegerSort()
-  boolean = slv.getBooleanSort()
 
   # declare input variable for the function-to-synthesize
   x = slv.mkVar(integer, "x")
@@ -42,13 +41,13 @@ if __name__ == "__main__":
 
   # define the rules
   zero = slv.mkInteger(0)
-  neg_x = slv.mkTerm(Kind.Neg, x)
-  plus = slv.mkTerm(Kind.Add, x, start)
+  neg_x = slv.mkTerm(Kind.NEG, x)
+  plus = slv.mkTerm(Kind.ADD, x, start)
 
   # create the grammar object
-  g1 = slv.mkSygusGrammar({x}, {start})
-  g2 = slv.mkSygusGrammar({x}, {start})
-  g3 = slv.mkSygusGrammar({x}, {start})
+  g1 = slv.mkGrammar({x}, {start})
+  g2 = slv.mkGrammar({x}, {start})
+  g3 = slv.mkGrammar({x}, {start})
 
   # bind each non-terminal to its rules
   g1.addRules(start, {neg_x, plus})
@@ -70,19 +69,24 @@ if __name__ == "__main__":
   id4 = slv.synthFun("id4", {x}, integer, g1)
 
   # declare universal variables.
-  varX = slv.mkSygusVar(integer, "x")
+  varX = slv.declareSygusVar("x", integer)
 
-  id1_x = slv.mkTerm(Kind.ApplyUf, id1, varX)
-  id2_x = slv.mkTerm(Kind.ApplyUf, id2, varX)
-  id3_x = slv.mkTerm(Kind.ApplyUf, id3, varX)
-  id4_x = slv.mkTerm(Kind.ApplyUf, id4, varX)
+  id1_x = slv.mkTerm(Kind.APPLY_UF, id1, varX)
+  id2_x = slv.mkTerm(Kind.APPLY_UF, id2, varX)
+  id3_x = slv.mkTerm(Kind.APPLY_UF, id3, varX)
+  id4_x = slv.mkTerm(Kind.APPLY_UF, id4, varX)
 
   # add semantic constraints
   # (constraint (= (id1 x) (id2 x) (id3 x) (id4 x) x))
-  slv.addSygusConstraint(slv.mkTerm(Kind.And, [slv.mkTerm(Kind.Equal, id1_x, id2_x), slv.mkTerm(Kind.Equal, id1_x, id3_x), slv.mkTerm(Kind.Equal, id1_x, id4_x), slv.mkTerm(Kind.Equal, id1_x, varX)]))
+  slv.addSygusConstraint(
+        slv.mkTerm(Kind.AND,
+                   slv.mkTerm(Kind.EQUAL, id1_x, id2_x),
+                   slv.mkTerm(Kind.EQUAL, id1_x, id3_x),
+                   slv.mkTerm(Kind.EQUAL, id1_x, id4_x),
+                   slv.mkTerm(Kind.EQUAL, id1_x, varX)))
 
   # print solutions if available
-  if (slv.checkSynth().isUnsat()):
+  if (slv.checkSynth().hasSolution()):
     # Output should be equivalent to:
     # (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
     # (define-fun id2 ((x Int)) Int x)

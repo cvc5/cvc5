@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
+ *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@
 #include "theory/quantifiers/sygus/synth_verify.h"
 #include "theory/quantifiers/sygus/template_infer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -88,12 +88,6 @@ class SynthConjecture : protected EnvObj
    */
   bool doCheck();
   //-------------------------------end for counterexample-guided check/refine
-  /**
-   * Prints the current synthesis solution to output stream out. This is
-   * currently used for printing solutions for sygusStream only. We do not
-   * enclose solutions in parentheses.
-   */
-  void printSynthSolutionInternal(std::ostream& out);
   /** get synth solutions
    *
    * This method returns true if this class has a solution available to the
@@ -201,6 +195,8 @@ class SynthConjecture : protected EnvObj
   bool d_hasSolution;
   /** Whether we have computed a solution */
   bool d_computedSolution;
+  /** whether we are running expression mining */
+  bool d_runExprMiner;
   /**
    * The final solution and status, caches getSynthSolutionsInternal, valid
    * if d_computedSolution is true.
@@ -269,6 +265,10 @@ class SynthConjecture : protected EnvObj
    * Get or make enumerator manager for the enumerator e.
    */
   EnumValueManager* getEnumValueManagerFor(Node e);
+  /**
+   * Get or make the expression miner manager for enumerator e.
+   */
+  ExpressionMinerManager* getExprMinerManagerFor(Node e);
   //------------------------end enumerators
 
   /** list of constants for quantified formula
@@ -325,16 +325,17 @@ class SynthConjecture : protected EnvObj
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int8_t>& status);
-  //-------------------------------- sygus stream
   /**
-   * Prints the current synthesis solution to the output stream indicated by
-   * the Options object, send a lemma blocking the current solution to the
-   * output channel, which we refer to as a "stream exclusion lemma".
+   * Run expression mining on the last synthesis solution. Return true
+   * if we should skip it.
    *
-   * The argument enums is the set of enumerators that comprise the current
-   * solution, and values is their current values.
+   * This method also prints the current synthesis solution to output stream out
+   * when sygusStream is enabled, which does not enclose solutions in
+   * parentheses. If sygusStream is enabled, this always returns true, as the
+   * current solution should be printed and then immediately excluded.
    */
-  void printAndContinueStream(const std::vector<Node>& values);
+  bool runExprMiner();
+  //-------------------------------- sygus stream
   /** exclude the current solution { enums -> values } */
   void excludeCurrentSolution(const std::vector<Node>& values);
   /**
@@ -358,6 +359,6 @@ class SynthConjecture : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

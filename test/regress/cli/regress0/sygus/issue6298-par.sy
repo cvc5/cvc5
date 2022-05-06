@@ -1,0 +1,6 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+(declare-datatypes (( List 1)) ( (par (T) ((nil) (cons (head T) (tail (List T)))))))
+(synth-fun f () (List Int))
+(check-synth)

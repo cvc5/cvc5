@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -35,7 +35,7 @@ namespace nl {
 FactoringCheck::FactoringCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,
@@ -60,7 +60,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
       {
         Trace("nl-ext-factor") << "Factoring for literal " << lit
                                << ", monomial sum is : " << std::endl;
-        if (Trace.isOn("nl-ext-factor"))
+        if (TraceIsOn("nl-ext-factor"))
         {
           ArithMSum::debugPrintMonomialSum(msum, "nl-ext-factor");
         }
@@ -125,6 +125,8 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           }
           Node sum = nm->mkNode(Kind::ADD, itf->second);
           sum = rewrite(sum);
+          // remove TO_REAL if necessary here
+          sum = sum.getKind() == TO_REAL ? sum[0] : sum;
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
 
@@ -211,4 +213,4 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

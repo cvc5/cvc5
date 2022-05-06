@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,10 @@
 #include "util/statistics_registry.h"
 #include "util/string.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -513,7 +513,7 @@ Node StringsPreprocess::reduce(Node t,
     // nodes for the case where `seq.nth` is defined.
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
-    Node unit = nm->mkNode(SEQ_UNIT, skt);
+    Node unit = nm->mkSeqUnit(t.getType(), skt);
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
     // length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
@@ -521,19 +521,14 @@ Node StringsPreprocess::reduce(Node t,
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, t12));
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
-    // nodes for the case where `seq.nth` is undefined.
-    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
-    Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
-
-    // the full ite, split on definedness of `seq.nth`
-    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+    // the lemma for `seq.nth`
+    Node lemma = nm->mkNode(IMPLIES, cond, b1);
 
     // assert:
-    // IF    n >=0 AND n < len( s )
-    // THEN: s = sk1 ++ unit(skt) ++ sk2 AND
-    //       len( sk1 ) = n AND
-    //       ( len( sk2 ) = len( s )- (n+1)
-    // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
+    // n >=0 AND n < len( s )
+    // IMPLIES: s = sk1 ++ unit(skt) ++ sk2 AND
+    //          len( sk1 ) = n AND
+    //          ( len( sk2 ) = len( s )- (n+1)
     asserts.push_back(lemma);
     retNode = skt;
   }
@@ -849,7 +844,7 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(ITE, noMatch, k.eqNode(x), nm->mkNode(AND, lemmas)));
     retNode = k;
   }
-  else if (t.getKind() == STRING_TOLOWER || t.getKind() == STRING_TOUPPER)
+  else if (t.getKind() == STRING_TO_LOWER || t.getKind() == STRING_TO_UPPER)
   {
     Node x = t[0];
     Node r = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
@@ -864,11 +859,12 @@ Node StringsPreprocess::reduce(Node t,
     Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
     Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
 
-    Node lb = nm->mkConstInt(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
+    Node lb =
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 97 : 65));
     Node ub =
-        nm->mkConstInt(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 122 : 90));
     Node offset =
-        nm->mkConstInt(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? -32 : 32));
 
     Node res = nm->mkNode(
         ITE,
@@ -1091,4 +1087,4 @@ Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,0 +1,12 @@
+; EXPECT: sat
+;; only triggers with UFNRA (instead of QF_UFNRA)
+(set-logic UFNRA)
+(declare-fun r2 () Real)
+(declare-fun r5 () Real)
+(declare-fun r () Real)
+(declare-fun b (Bool) Real)
+(declare-fun u (Real) Real)
+(declare-fun r9 () Real)
+(assert (= r2 (u (+ 0.2 r2))))
+(assert (= (= 0.0 (+ r2 3.2 r)) (= 1.0 (+ (u r5) (- r9 (b (= (* r r5) (+ 3 r))))))))
+(check-sat)

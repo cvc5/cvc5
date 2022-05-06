@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@
  * streams), `apply*()` will set the given values on the given object while
  * `get*()` retrieves the specified option.
  */
-namespace cvc5::options::ioutils {
+namespace cvc5::internal::options::ioutils {
 /** Set the default dag threshold */
 void setDefaultDagThresh(int64_t value);
 /** Set the default node depth */
@@ -87,6 +87,6 @@ class Scope
   /** The stored output language */
   Language d_outputLang;
 };
-}  // namespace cvc5::options::ioutils
+}  // namespace cvc5::internal::options::ioutils
 
 #endif /* CVC5__OPTIONS__IO_UTILS_H */

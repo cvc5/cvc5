@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-const x Real)
+(declare-const u Real)
+(declare-const v Real)
+(assert (exists ((t Real)) (and (>= x (- 1.0)) (not (or (< t 0.0) (= t (* u t v)))))))
+(check-sat)

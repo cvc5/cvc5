@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace context;
+using namespace cvc5::context;
 using namespace prop;
 using namespace smt;
 using namespace theory;
@@ -109,14 +109,12 @@ class TestPropWhiteCnfStream : public TestSmt
     TestSmt::SetUp();
     d_theoryEngine = d_slvEngine->getTheoryEngine();
     d_satSolver.reset(new FakeSatSolver());
-    d_cnfContext.reset(new context::Context());
+    d_cnfContext.reset(new Context());
     d_cnfRegistrar.reset(new prop::NullRegistrar);
-    d_cnfStream.reset(
-        new cvc5::prop::CnfStream(d_satSolver.get(),
-                                  d_cnfRegistrar.get(),
-                                  d_cnfContext.get(),
-                                  &d_slvEngine->getEnv(),
-                                  d_slvEngine->getResourceManager()));
+    d_cnfStream.reset(new prop::CnfStream(d_slvEngine->getEnv(),
+                                          d_satSolver.get(),
+                                          d_cnfRegistrar.get(),
+                                          d_cnfContext.get()));
   }
 
   void TearDown() override
@@ -259,4 +257,4 @@ TEST_F(TestPropWhiteCnfStream, ensure_literal)
   ASSERT_TRUE(d_cnfStream->hasLiteral(a_and_b));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

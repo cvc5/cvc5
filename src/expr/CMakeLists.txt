@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -15,6 +15,8 @@
 
 libcvc5_add_sources(
   algorithm/flatten.h
+  annotation_elim_node_converter.cpp
+  annotation_elim_node_converter.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -52,10 +54,15 @@ libcvc5_add_sources(
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
+  node_trie_algorithm.cpp
+  node_trie_algorithm.h
   node_traversal.cpp
   node_traversal.h
   node_value.cpp
   node_value.h
+  oracle.h
+  oracle_caller.cpp
+  oracle_caller.h
   sequence.cpp
   sequence.h
   node_visitor.h
@@ -80,8 +87,6 @@ libcvc5_add_sources(
   type_matcher.h
   type_node.cpp
   type_node.h
-  datatype_index.h
-  datatype_index.cpp
   dtype.h
   dtype.cpp
   dtype_cons.h

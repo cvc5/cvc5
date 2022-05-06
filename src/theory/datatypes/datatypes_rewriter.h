@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "theory/evaluator.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -64,13 +64,22 @@ class DatatypesRewriter : public TheoryRewriter
    * Expand an APPLY_SELECTOR term n, return its expanded form. If n is
    *   (APPLY_SELECTOR selC x)
    * its expanded form is
-   *   (ITE (APPLY_TESTER is-C x)
-   *     (APPLY_SELECTOR_TOTAL selC' x)
-   *     (f x))
+   *   (APPLY_SELECTOR selC' x)
    * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
    * internal selector function for selC (possibly a shared selector).
+   * Note that we do not introduce an uninterpreted function here, e.g. to
+   * handle when the selector is misapplied. This is because it suffices to
+   * reason about the original selector term e.g. via congruence.
    */
   static Node expandApplySelector(Node n);
+  /**
+   * Expand a match term into its definition.
+   * For example
+   *   (MATCH x (((APPLY_CONSTRUCTOR CONS y z) z) (APPLY_CONSTRUCTOR NIL x)))
+   * returns
+   *   (ITE (APPLY_TESTER CONS x) (APPLY_SELECTOR x) x)
+   */
+  static Node expandMatch(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
 
@@ -195,6 +204,6 @@ class DatatypesRewriter : public TheoryRewriter
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H */

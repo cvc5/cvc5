@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Liana Hadarean, Mathias Preiner
+ *   Dejan Jovanovic, Mathias Preiner, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace prop {
 
@@ -124,7 +124,7 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
-                          cvc5::context::UserContext* userContext,
+                          context::UserContext* userContext,
                           ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
@@ -142,6 +142,11 @@ class CDCLTSatSolverInterface : public SatSolver
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
+
+  /**
+   * Return the current list of decisions made by the SAT solver.
+   */
+  virtual std::vector<SatLiteral> getDecisions() const = 0;
 
   /**
    * Return the current decision level of `lit`.
@@ -193,6 +198,6 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP__SAT_MODULE_H */

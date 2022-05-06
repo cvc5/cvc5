@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,6 +45,8 @@ extern int optreset;
 #include <limits>
 
 namespace cvc5::main {
+
+using namespace cvc5::internal;
 
 // clang-format off
 static const std::string commonOptionsDescription =
@@ -117,20 +119,20 @@ std::string suggestCommandLineOptions(const std::string& optionName)
       optionName.substr(0, optionName.find('=')));
 }
 
-void parseInternal(api::Solver& solver,
+void parseInternal(cvc5::Solver& solver,
                    int argc,
                    char* argv[],
                    std::vector<std::string>& nonoptions)
 {
   Assert(argv != nullptr);
-  if (Debug.isOn("options"))
+  if (TraceIsOn("options"))
   {
-    Debug("options") << "starting a new parseInternal with " << argc
+    Trace("options") << "starting a new parseInternal with " << argc
                      << " arguments" << std::endl;
     for (int i = 0; i < argc; ++i)
     {
       Assert(argv[i] != nullptr);
-      Debug("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
+      Trace("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
     }
   }
 
@@ -159,17 +161,17 @@ void parseInternal(api::Solver& solver,
     // non-option.
     if (main_optind > 0 && main_optind < argc && argv[main_optind][0] != '-')
     {
-      Debug("options") << "enqueueing " << argv[main_optind]
+      Trace("options") << "enqueueing " << argv[main_optind]
                        << " as a non-option." << std::endl;
       nonoptions.push_back(argv[main_optind]);
       ++main_optind;
       continue;
     }
 
-    Debug("options") << "[ before, main_optind == " << main_optind << " ]"
+    Trace("options") << "[ before, main_optind == " << main_optind << " ]"
                      << std::endl;
-    Debug("options") << "[ before, optind == " << optind << " ]" << std::endl;
-    Debug("options") << "[ argc == " << argc << ", argv == " << argv << " ]"
+    Trace("options") << "[ before, optind == " << optind << " ]" << std::endl;
+    Trace("options") << "[ argc == " << argc << ", argv == " << argv << " ]"
                      << std::endl;
     // clang-format off
     int c = getopt_long(argc, argv,
@@ -179,7 +181,7 @@ void parseInternal(api::Solver& solver,
 
     main_optind = optind;
 
-    Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]"
+    Trace("options") << "[ got " << int(c) << " (" << char(c) << ") ]"
                      << "[ next option will be at pos: " << optind << " ]"
                      << std::endl;
 
@@ -194,12 +196,12 @@ void parseInternal(api::Solver& solver,
 
     if (c == -1)
     {
-      if (Debug.isOn("options"))
+      if (TraceIsOn("options"))
       {
-        Debug("options") << "done with option parsing" << std::endl;
+        Trace("options") << "done with option parsing" << std::endl;
         for (int index = optind; index < argc; ++index)
         {
-          Debug("options") << "remaining " << argv[index] << std::endl;
+          Trace("options") << "remaining " << argv[index] << std::endl;
         }
       }
       break;
@@ -208,7 +210,7 @@ void parseInternal(api::Solver& solver,
     std::string option = argv[old_optind == 0 ? 1 : old_optind];
     std::string optionarg = (optarg == nullptr) ? "" : optarg;
 
-    Debug("preemptGetopt") << "processing option " << c << " (`" << char(c)
+    Trace("preemptGetopt") << "processing option " << c << " (`" << char(c)
                            << "'), " << option << std::endl;
 
     switch (c)
@@ -229,18 +231,18 @@ void parseInternal(api::Solver& solver,
     }
   }
 
-  Debug("options") << "got " << nonoptions.size() << " non-option arguments."
+  Trace("options") << "got " << nonoptions.size() << " non-option arguments."
                    << std::endl;
 }
 
 /**
- * Parse argc/argv and put the result into a cvc5::Options.
+ * Parse argc/argv and put the result into a cvc5::internal::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  *
  * Throws OptionException on failures.
  */
-std::vector<std::string> parse(api::Solver& solver,
+std::vector<std::string> parse(cvc5::Solver& solver,
                                int argc,
                                char* argv[],
                                std::string& binaryName)
@@ -252,9 +254,9 @@ std::vector<std::string> parse(api::Solver& solver,
   // To debug options parsing, you may prefer to simply uncomment this
   // and recompile. Debug flags have not been parsed yet so these have
   // not been set.
-  // DebugChannel.on("options");
+  // TraceChannel.on("options");
 
-  Debug("options") << "argv == " << argv << std::endl;
+  Trace("options") << "argv == " << argv << std::endl;
 
   // Find the base name of the program.
   const char* x = strrchr(progName, '/');
@@ -266,15 +268,15 @@ std::vector<std::string> parse(api::Solver& solver,
 
   std::vector<std::string> nonoptions;
   parseInternal(solver, argc, argv, nonoptions);
-  if (Debug.isOn("options"))
+  if (TraceIsOn("options"))
   {
     for (const auto& no : nonoptions)
     {
-      Debug("options") << "nonoptions " << no << std::endl;
+      Trace("options") << "nonoptions " << no << std::endl;
     }
   }
 
   return nonoptions;
 }
 
-}  // namespace cvc5::options
+}  // namespace cvc5::main
