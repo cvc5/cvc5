@@ -720,7 +720,24 @@ InferInfo InferenceGenerator::joinDown(Node n, Node e)
 
 InferInfo InferenceGenerator::groupUp(Node n, Node e)
 {
-  return InferInfo(nullptr, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
+  Assert(n.getKind() == TABLE_GROUP);
+  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+
+  Node A = n[0];
+  TypeNode bagType = A.getType();
+  Node count_e_A = getMultiplicityTerm(e, A);
+  Node B = d_sm->mkSkolemFunction(
+      SkolemFunId::TABLES_GROUP_UP_PART, bagType, {n, e});
+  InferInfo inferInfo(d_im, InferenceId::TABLES_JOIN_DOWN);
+  Node count_e_B = getMultiplicityTerm(e, B);
+
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_e_B, d_one));
+
+  Node count_B_n = getMultiplicityTerm(B, n);
+  Node member_B_n = count_B_n.eqNode(d_one);
+  Node sameMultiplicity = count_e_B.eqNode(count_e_A);
+  inferInfo.d_conclusion = member_B_n.andNode(sameMultiplicity);
+  return inferInfo;
 }
 
 }  // namespace bags
