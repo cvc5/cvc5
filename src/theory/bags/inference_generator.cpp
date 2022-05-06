@@ -858,7 +858,7 @@ InferInfo InferenceGenerator::groupPartsDisjoint(Node n, Node B, Node C)
   TypeNode bagType = A.getType();
   Node empty = d_nm->mkConst(EmptyBag(bagType));
 
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_DOWN);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PARTS_DISJOINT);
 
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count_B_n = getMultiplicityTerm(B, skolem);
