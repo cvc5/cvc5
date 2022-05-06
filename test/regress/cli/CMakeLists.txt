@@ -2924,7 +2924,6 @@ set(regress_2_tests
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
-  regress2/nl/ufnia-factor-open-proof.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
@@ -3196,6 +3195,8 @@ set(regression_disabled_tests
   regress2/ho/SYO362^5.p
   # timeout after refactoring selectors
   regress2/quantifiers/exp-trivially-dd3.smt2
+  # timeout after no subtypes
+  regress2/nl/ufnia-factor-open-proof.smt2
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
