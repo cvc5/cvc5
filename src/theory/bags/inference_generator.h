@@ -426,9 +426,44 @@ class InferenceGenerator
    * )
    * where skolem is a variable equals ((_ table.group n1 ... nk) A).
    */
-  InferInfo groupSameProjection(Node n, Node part, Node x, Node y);
-  InferInfo groupSamePart(Node n, Node part, Node x, Node y);
-  InferInfo groupPartsDisjoint(Node n, Node part1, Node part2);
+  InferInfo groupSameProjection(Node n, Node B, Node x, Node y);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param B an element of type (Table T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (bag.member B skolem)
+   *     (bag.member x B)
+   *     (bag.member y A)
+   *     (distinct x y)
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *   )
+   *   (= (bag.count y B) (bag.count y A))
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  InferInfo groupSamePart(Node n, Node B, Node x, Node y);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param B an element of type (Table T)
+   * @param C an element of type (Table T)
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (bag.member B skolem)
+   *     (bag.member C skolem)
+   *   )
+   *   (or (= B C)
+   *       (= (bag.inter_min B C) (as bag.empty (Table T)))
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  InferInfo groupPartsDisjoint(Node n, Node B, Node C);
 
  private:
   /**
