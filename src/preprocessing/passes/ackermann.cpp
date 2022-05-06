@@ -222,7 +222,6 @@ void collectUSortsToBV(const std::unordered_set<TNode>& vars,
         "a variable created by the ackermannization "
         "preprocessing pass, representing a variable with uninterpreted sort "
             + type.toString() + ".");
-    Trace("ajr-temp") << var.getType() << " " << skolem.getType() << std::endl;
     usVarsToBVVars.addSubstitution(var, skolem);
   }
 }
