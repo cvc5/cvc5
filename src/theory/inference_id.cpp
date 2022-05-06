@@ -142,6 +142,14 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
+    case InferenceId::TABLES_GROUP_UP: return "TABLES_GROUP_UP";
+    case InferenceId::TABLES_GROUP_DOWN: return "TABLES_GROUP_DOWN";
+    case InferenceId::TABLES_GROUP_PART_COUNT: return "TABLES_GROUP_PART_COUNT";
+    case InferenceId::TABLES_GROUP_SAME_PROJECTION:
+      return "TABLES_GROUP_SAME_PROJECTION";
+    case InferenceId::TABLES_GROUP_SAME_PART: return "TABLES_GROUP_SAME_PART";
+    case InferenceId::TABLES_GROUP_PARTS_DISJOINT:
+      return "TABLES_GROUP_PARTS_DISJOINT";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:

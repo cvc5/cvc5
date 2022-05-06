@@ -728,12 +728,13 @@ InferInfo InferenceGenerator::groupUp(Node n, Node e)
   Node count_e_A = getMultiplicityTerm(e, A);
   Node B = d_sm->mkSkolemFunction(
       SkolemFunId::TABLES_GROUP_UP_PART, bagType, {n, e});
-  InferInfo inferInfo(d_im, InferenceId::TABLES_JOIN_DOWN);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP);
   Node count_e_B = getMultiplicityTerm(e, B);
 
   inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_e_B, d_one));
 
-  Node count_B_n = getMultiplicityTerm(B, n);
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
+  Node count_B_n = getMultiplicityTerm(B, skolem);
   Node member_B_n = count_B_n.eqNode(d_one);
   Node sameMultiplicity = count_e_B.eqNode(count_e_A);
   inferInfo.d_conclusion = member_B_n.andNode(sameMultiplicity);

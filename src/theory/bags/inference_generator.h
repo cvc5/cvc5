@@ -367,6 +367,20 @@ class InferenceGenerator
    */
   Node getMultiplicityTerm(Node element, Node bag);
 
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param e an element of type T
+   * @return an inference that represents:
+   * (=>
+   *   (bag.member e A)
+   *   (and
+   *     (bag.member B skolem)
+   *     (= (bag.count e B) (bag.count e A)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A) and B is
+   * a unique skolem for n, e that represents the part containing e.
+   */
   InferInfo groupUp(Node n, Node e);
   InferInfo groupDown(Node n, Node part, Node x);
   InferInfo groupPartCount(Node n, Node part);
