@@ -826,7 +826,7 @@ InferInfo InferenceGenerator::groupSamePart(Node n, Node B, Node x, Node y)
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_SAME_PART);
   Node count_x_B = getMultiplicityTerm(x, B);
-  Node count_y_A = getMultiplicityTerm(y, B);
+  Node count_y_A = getMultiplicityTerm(y, A);
   Node count_y_B = getMultiplicityTerm(y, B);
 
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
