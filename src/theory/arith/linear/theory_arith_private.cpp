@@ -3861,9 +3861,10 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
-                                            std::map<Node, Node>& arithModel,
-                          std::map<Node, Node>& arithModelIllTyped)
+void TheoryArithPrivate::collectModelValues(
+    const std::set<Node>& termSet,
+    std::map<Node, Node>& arithModel,
+    std::map<Node, Node>& arithModelIllTyped)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
 

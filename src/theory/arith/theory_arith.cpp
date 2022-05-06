@@ -373,7 +373,8 @@ void TheoryArith::updateModelCache(std::set<Node>& termSet)
   {
     d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
-    d_internal->collectModelValues(termSet, d_arithModelCache, d_arithModelCacheIllTyped);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
@@ -381,19 +382,20 @@ void TheoryArith::updateModelCache(const std::set<Node>& termSet)
   if (!d_arithModelCacheSet)
   {
     d_arithModelCacheSet = true;
-    d_internal->collectModelValues(termSet, d_arithModelCache, d_arithModelCacheIllTyped);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 bool TheoryArith::sanityCheckIntegerModel()
 {
   // Double check that the model from the linear solver respects integer types,
   // if it does not, add a branch and bound lemma. This typically should never
-  // be necessary, but is needed in rare cases.  
+  // be necessary, but is needed in rare cases.
   if (Configuration::isAssertionBuild())
   {
     for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Assert (p.first.getType()==p.second.getType());
+      Assert(p.first.getType() == p.second.getType());
     }
   }
   bool addedLemma = false;
@@ -402,9 +404,9 @@ bool TheoryArith::sanityCheckIntegerModel()
   for (const auto& p : d_arithModelCacheIllTyped)
   {
     Trace("arith-check") << p.first << " -> " << p.second << std::endl;
-    Assert (p.first.getType().isInteger() && !p.second.getType().isInteger());
+    Assert(p.first.getType().isInteger() && !p.second.getType().isInteger());
     warning() << "TheoryArithPrivate generated a bad model value for "
-                  "integer variable "
+                 "integer variable "
               << p.first << " : " << p.second << std::endl;
     // must branch and bound
     TrustNode lem =
@@ -425,7 +427,7 @@ bool TheoryArith::sanityCheckIntegerModel()
   // and bound lemma
   AlwaysAssert(!badAssignment)
       << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
-        "branching lemma was sent";
+         "branching lemma was sent";
   return false;
 }
 

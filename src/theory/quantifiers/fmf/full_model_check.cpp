@@ -1301,7 +1301,8 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   return true;
 }
 
-Node FullModelChecker::mkCond( const std::vector< Node > & cond ) {
+Node FullModelChecker::mkCond(const std::vector<Node>& cond)
+{
   return NodeManager::currentNM()->mkNode(APPLY_UF, cond);
 }
 
