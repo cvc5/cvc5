@@ -151,9 +151,20 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
       {
         bool childChanged = false;
         std::vector<Node> children;
-        for (unsigned i = 0; i < n.getNumChildren(); i++)
+        Kind k = n.getKind();
+        // we change Real equalities to Int equalities
+        bool preserveTypes = k!=EQUAL && (kindToTheoryId(k)!=THEORY_ARITH);
+        for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
+          // must preserve types if we don't belong to arithmetic, cast back
+          if (preserveTypes)
+          {
+            if (!n[i].getType().isInteger() && nc.getType().isInteger())
+            {
+              nc = nm->mkNode(TO_REAL, nc);
+            }
+          }
           childChanged = childChanged || nc != n[i];
           children.push_back(nc);
         }
@@ -163,7 +174,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           {
             children.insert(children.begin(), n.getOperator());
           }
-          ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+          ret = nm->mkNode(k, children);
         }
       }
     }

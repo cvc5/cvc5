@@ -170,7 +170,9 @@ Node mkSygusTerm(const DType& dt,
       opn = getExpandedDefinitionForm(op);
     }
   }
-  return mkSygusTerm(opn, children, doBetaReduction);
+  Node ret = mkSygusTerm(opn, children, doBetaReduction);
+  Assert (ret.getType()==dt.getSygusType());
+  return ret;
 }
 
 Node mkSygusTerm(Node op,
