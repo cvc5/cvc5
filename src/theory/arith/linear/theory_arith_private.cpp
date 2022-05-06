@@ -989,7 +989,6 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
         // substitution is integral
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
-
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
@@ -3857,8 +3856,10 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
-                                            std::map<Node, Node>& arithModel)
+void TheoryArithPrivate::collectModelValues(
+    const std::set<Node>& termSet,
+    std::map<Node, Node>& arithModel,
+    std::map<Node, Node>& arithModelIllTyped)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
 
@@ -3895,6 +3896,11 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
           // integer variables in rare cases. We construct real in this case;
           // this will be corrected in TheoryArith::sanityCheckIntegerModel.
           qNode = nm->mkConstReal(qmodel);
+          if (term.getType().isInteger())
+          {
+            arithModelIllTyped[term] = qNode;
+            continue;
+          }
         }
         else
         {
