@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --fmf-bound --no-cegqi
-; EXPECT: sat
+; EXPECT: unknown
 (set-logic ALL)
 (assert (forall ((a Int)) (or (distinct (/ 0 0) (to_real a)) (= (/ 0 a) 0.0))))
 (check-sat)
