@@ -3898,6 +3898,7 @@ void TheoryArithPrivate::collectModelValues(
           qNode = nm->mkConstReal(qmodel);
           if (term.getType().isInteger())
           {
+            // in this case, we add to the ill-typed map instead of the main map
             arithModelIllTyped[term] = qNode;
             continue;
           }
