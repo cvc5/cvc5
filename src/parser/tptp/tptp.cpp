@@ -271,16 +271,16 @@ cvc5::Term Tptp::isTptpDeclared(const std::string& name)
 Term Tptp::makeApplyUf(std::vector<Term>& args)
 {
   std::vector<Sort> argSorts = args[0].getSort().getFunctionDomainSorts();
-  if (argSorts.size()+1!=args.size())
+  if (argSorts.size() + 1 != args.size())
   {
     // arity mismatch
     parseError("Applying function to wrong number of arguments");
   }
-  for (size_t i=0, nargs = argSorts.size(); i<nargs; i++)
+  for (size_t i = 0, nargs = argSorts.size(); i < nargs; i++)
   {
-    if (argSorts[i].isReal() && args[i+1].getSort().isInteger())
+    if (argSorts[i].isReal() && args[i + 1].getSort().isInteger())
     {
-      args[i+1] = d_solver->mkTerm(TO_REAL, {args[i+1]});
+      args[i + 1] = d_solver->mkTerm(TO_REAL, {args[i + 1]});
     }
   }
   return d_solver->mkTerm(APPLY_UF, args);

@@ -50,7 +50,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
     {
       TypeNode currentArgument = (*argument_it).getType();
       TypeNode currentArgumentType = *argument_type_it;
-      if (currentArgument!=currentArgumentType)
+      if (currentArgument != currentArgumentType)
       {
         Assert(false) << "Bad APPLY_UF " << n;
         std::stringstream ss;

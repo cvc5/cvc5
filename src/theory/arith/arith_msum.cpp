@@ -219,7 +219,7 @@ int ArithMSum::isolate(
   int ires = isolate(v, msum, veq_c, val, k);
   if (ires != 0)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node vc = v;
     if (!veq_c.isNull())
     {
@@ -234,7 +234,7 @@ int ArithMSum::isolate(
     }
     bool inOrder = ires == 1;
     // ensure type is correct for equality
-    if (k==EQUAL && !vc.getType().isInteger() && val.getType().isInteger())
+    if (k == EQUAL && !vc.getType().isInteger() && val.getType().isInteger())
     {
       val = nm->mkNode(TO_REAL, val);
     }

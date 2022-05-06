@@ -440,8 +440,9 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
   Node skolem = getArithSkolem(id);
   if (usePartialFunction(id))
   {
-    NodeManager * nm = NodeManager::currentNM();
-    Assert (skolem.getType().isFunction() && skolem.getType().getNumChildren()==2);
+    NodeManager* nm = NodeManager::currentNM();
+    Assert(skolem.getType().isFunction()
+           && skolem.getType().getNumChildren() == 2);
     TypeNode argType = skolem.getType()[0];
     if (!argType.isInteger() && n.getType().isInteger())
     {
