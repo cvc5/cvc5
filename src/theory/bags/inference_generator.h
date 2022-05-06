@@ -367,6 +367,13 @@ class InferenceGenerator
    */
   Node getMultiplicityTerm(Node element, Node bag);
 
+  InferInfo groupUp(Node n, Node e);
+  InferInfo groupDown(Node n, Node part, Node x);
+  InferInfo groupPartCount(Node n, Node part);
+  InferInfo groupSameProjection(Node n, Node part, Node x, Node y);
+  InferInfo groupSamePart(Node n, Node part, Node x, Node y);
+  InferInfo groupPartsDisjoint(Node n, Node part1, Node part2);
+
  private:
   /**
    * generate skolem variable for node n and add pending lemma for the equality

@@ -718,6 +718,11 @@ InferInfo InferenceGenerator::joinDown(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::groupUp(Node n, Node e)
+{
+  return InferInfo(nullptr, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5::internal
