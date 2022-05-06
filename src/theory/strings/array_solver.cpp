@@ -33,6 +33,7 @@ ArraySolver::ArraySolver(Env& env,
                          SolverState& s,
                          InferenceManager& im,
                          TermRegistry& tr,
+                         BaseSolver& bs,
                          CoreSolver& cs,
                          ExtfSolver& es,
                          ExtTheory& extt)
@@ -40,6 +41,7 @@ ArraySolver::ArraySolver(Env& env,
       d_state(s),
       d_im(im),
       d_termReg(tr),
+      d_bsolver(bs),
       d_csolver(cs),
       d_esolver(es),
       d_coreSolver(env, s, im, tr, cs, es, extt),
@@ -133,6 +135,11 @@ void ArraySolver::checkTerms(const std::vector<Node>& terms)
       continue;
     }
 
+    if (d_bsolver.isCongruent(t)) {
+      continue;
+    }
+
+    /*
     // Ignore congruent terms
     std::vector<Node> rchildren;
     for (const Node& child : t)
@@ -146,6 +153,7 @@ void ArraySolver::checkTerms(const std::vector<Node>& terms)
       continue;
     }
     processed.insert(rt);
+    */
 
     // check the normal inference
     checkTerm(t, false);
