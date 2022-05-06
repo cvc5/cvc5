@@ -171,7 +171,7 @@ Node mkSygusTerm(const DType& dt,
     }
   }
   Node ret = mkSygusTerm(opn, children, doBetaReduction);
-  Assert (ret.getType()==dt.getSygusType());
+  Assert(ret.getType() == dt.getSygusType());
   return ret;
 }
 

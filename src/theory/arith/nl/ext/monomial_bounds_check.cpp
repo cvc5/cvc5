@@ -296,7 +296,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           }
           Node lhsTgt = t;
           Node rhsTgt = rhs;
-          if (type==kind::EQUAL)
+          if (type == kind::EQUAL)
           {
             Node eq = mkEquality(lhsTgt, rhsTgt);
             lhsTgt = eq[0];

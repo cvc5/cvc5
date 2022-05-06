@@ -153,7 +153,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         std::vector<Node> children;
         Kind k = n.getKind();
         // we change Real equalities to Int equalities
-        bool preserveTypes = k!=EQUAL && (kindToTheoryId(k)!=THEORY_ARITH);
+        bool preserveTypes = k != EQUAL && (kindToTheoryId(k) != THEORY_ARITH);
         for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
