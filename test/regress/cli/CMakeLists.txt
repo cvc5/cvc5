@@ -1409,6 +1409,7 @@ set(regress_0_tests
   regress0/strings/issue8346-idof-max.smt2
   regress0/strings/issue8481.smt2
   regress0/strings/issue8481-2.smt2
+  regress0/strings/issue8722-learned-rew.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1813,6 +1814,10 @@ set(regress_1_tests
   regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
+  regress1/bags/table_aggregate1.smt2
+  regress1/bags/table_join1.smt2
+  regress1/bags/table_join2.smt2
+  regress1/bags/table_join3.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2

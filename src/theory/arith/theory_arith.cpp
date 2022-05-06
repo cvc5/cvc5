@@ -197,6 +197,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheIllTyped.clear();
     d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
@@ -251,14 +252,11 @@ bool TheoryArith::needsCheckLastEffort() {
 
 TrustNode TheoryArith::explain(TNode n)
 {
-  if (options().arith.arithEqSolver)
+  // if the equality solver has an explanation for it, use it
+  TrustNode texp = d_eqSolver->explain(n);
+  if (!texp.isNull())
   {
-    // if the equality solver has an explanation for it, use it
-    TrustNode texp = d_eqSolver->explain(n);
-    if (!texp.isNull())
-    {
-      return texp;
-    }
+    return texp;
   }
   return d_internal->explain(n);
 }
@@ -375,7 +373,8 @@ void TheoryArith::updateModelCache(std::set<Node>& termSet)
   {
     d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
-    d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
@@ -383,48 +382,54 @@ void TheoryArith::updateModelCache(const std::set<Node>& termSet)
   if (!d_arithModelCacheSet)
   {
     d_arithModelCacheSet = true;
-    d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 bool TheoryArith::sanityCheckIntegerModel()
 {
-
-    // Double check that the model from the linear solver respects integer types,
-    // if it does not, add a branch and bound lemma. This typically should never
-    // be necessary, but is needed in rare cases.
-    bool addedLemma = false;
-    bool badAssignment = false;
-    Trace("arith-check") << "model:" << std::endl;
-    for (const auto& p : d_arithModelCache)
+  // Double check that the model from the linear solver respects integer types,
+  // if it does not, add a branch and bound lemma. This typically should never
+  // be necessary, but is needed in rare cases.
+  if (Configuration::isAssertionBuild())
+  {
+    for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Trace("arith-check") << p.first << " -> " << p.second << std::endl;
-      if (p.first.getType().isInteger() && !p.second.getType().isInteger())
-      {
-        warning() << "TheoryArithPrivate generated a bad model value for "
-                     "integer variable "
-                  << p.first << " : " << p.second << std::endl;
-        // must branch and bound
-        TrustNode lem =
-            d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
-        if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
-        {
-          addedLemma = true;
-        }
-        badAssignment = true;
-      }
+      // will change to strict type equal
+      Assert(p.second.getType().isSubtypeOf(p.second.getType()));
     }
-    if (addedLemma)
+  }
+  bool addedLemma = false;
+  bool badAssignment = false;
+  Trace("arith-check") << "model:" << std::endl;
+  for (const auto& p : d_arithModelCacheIllTyped)
+  {
+    Trace("arith-check") << p.first << " -> " << p.second << std::endl;
+    Assert(p.first.getType().isInteger() && !p.second.getType().isInteger());
+    warning() << "TheoryArithPrivate generated a bad model value for "
+                 "integer variable "
+              << p.first << " : " << p.second << std::endl;
+    // must branch and bound
+    TrustNode lem =
+        d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+    if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
     {
-      // we had to add a branch and bound lemma since the linear solver assigned
-      // a non-integer value to an integer variable.
-      return true;
+      addedLemma = true;
     }
-    // this would imply that linear arithmetic's model failed to satisfy a branch
-    // and bound lemma
-    AlwaysAssert(!badAssignment)
-        << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
-          "branching lemma was sent";
-    return false;
+    badAssignment = true;
+  }
+  if (addedLemma)
+  {
+    // we had to add a branch and bound lemma since the linear solver assigned
+    // a non-integer value to an integer variable.
+    return true;
+  }
+  // this would imply that linear arithmetic's model failed to satisfy a branch
+  // and bound lemma
+  AlwaysAssert(!badAssignment)
+      << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
+         "branching lemma was sent";
+  return false;
 }
 
 }  // namespace arith
