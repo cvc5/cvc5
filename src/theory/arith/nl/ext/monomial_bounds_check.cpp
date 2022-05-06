@@ -298,12 +298,10 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           Node rhsTgt = rhs;
           // if we are making an equality below, we require making it
           // well-typed so that lhs/rhs have the same type. We use the
-          // mkEquality utility to do this
+          // mkSameType utility to do this
           if (type == kind::EQUAL)
           {
-            Node eq = mkEquality(lhsTgt, rhsTgt);
-            lhsTgt = eq[0];
-            rhsTgt = eq[1];
+            std::tie(lhsTgt, rhsTgt) = mkSameType(lhsTgt, rhsTgt);
           }
           Trace("nl-ext-bound-debug")
               << "  from " << x << " * " << mult << " = " << y << " and " << t

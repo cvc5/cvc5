@@ -234,9 +234,15 @@ int ArithMSum::isolate(
     }
     bool inOrder = ires == 1;
     // ensure type is correct for equality
-    if (k == EQUAL && !vc.getType().isInteger() && val.getType().isInteger())
+    if (k == EQUAL)
     {
-      val = nm->mkNode(TO_REAL, val);
+      if (!vc.getType().isInteger() && val.getType().isInteger())
+      {
+        val = nm->mkNode(TO_REAL, val);
+      }
+      // note that conversely this utility will never use a real value as
+      // the solution for an integer, thus the types should match now
+      Assert (val.getType()==vc.getType());
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
   }
