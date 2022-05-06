@@ -3898,8 +3898,9 @@ void TheoryArithPrivate::collectModelValues(
           qNode = nm->mkConstReal(qmodel);
           if (term.getType().isInteger())
           {
-            Trace("arith::collectModelInfo") << "add to arithModelIllTyped " << term << " -> "
-                                            << qNode  << std::endl;
+            Trace("arith::collectModelInfo")
+                << "add to arithModelIllTyped " << term << " -> " << qNode
+                << std::endl;
             // in this case, we add to the ill-typed map instead of the main map
             arithModelIllTyped[term] = qNode;
             continue;
@@ -3909,8 +3910,8 @@ void TheoryArithPrivate::collectModelValues(
         {
           qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
         }
-        Trace("arith::collectModelInfo") << "add to arithModel " << term << " -> "
-                                         << qNode  << std::endl;
+        Trace("arith::collectModelInfo")
+            << "add to arithModel " << term << " -> " << qNode << std::endl;
         // Add to the map
         arithModel[term] = qNode;
       }else{
