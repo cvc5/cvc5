@@ -145,7 +145,9 @@ std::vector<Node> TupleUtils::getTupleElements(Node tuple1, Node tuple2)
   return elements;
 }
 
-bool TupleUtils::sameProjection(const std::vector<uint32_t>& indices, Node tuple1, Node tuple2)
+bool TupleUtils::sameProjection(const std::vector<uint32_t>& indices,
+                                Node tuple1,
+                                Node tuple2)
 {
   Assert(tuple1.isConst() && tuple2.isConst())
       << "Both " << tuple1 << " and " << tuple2 << " are not constants"
