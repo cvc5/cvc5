@@ -197,14 +197,14 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   std::map<size_t, uint64_t> proofLet;
   std::map<size_t, uint64_t> firstScopeLet;
   std::unordered_map<const ProofNode*, bool> cfaMap;
-  std::vector<size_t> ancestors;
+  std::vector<size_t> ancestorHashs;
 
   DotPrinter::printInternal(out,
                             pn,
                             proofLet,
                             firstScopeLet,
                             cfaMap,
-                            ancestors,
+                            ancestorHashs,
                             ProofNodeClusterType::NOT_DEFINED);
 
   if (options::printDotClusters())
@@ -224,7 +224,7 @@ uint64_t DotPrinter::printInternal(
     std::map<size_t, uint64_t>& pfLetClosed,
     std::map<size_t, uint64_t>& pfLetOpen,
     std::unordered_map<const ProofNode*, bool>& cfaMap,
-    std::vector<size_t>& ancestors,
+    std::vector<size_t>& ancestorHashs,
     ProofNodeClusterType parentType)
 {
   uint64_t currentRuleID = d_ruleID;
@@ -235,13 +235,25 @@ uint64_t DotPrinter::printInternal(
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
 
+    // Search if the current hash is in the vector
+    std::reverse_iterator<std::vector<size_t>::iterator> it;
+    for (it = ancestorHashs.rbegin(); it != ancestorHashs.rend(); ++it)
+    {
+      if (*it == currentHash)
+      {
+        break;
+      }
+    }
+
+    // Register the current proof node hash in the ancestor vector
+    ancestorHashs.push_back(currentHash);
+
     // we only consider sharing when this would not introduce a cycle, which
     // would be the case if this hash is occurring under a proof node with the
-    // same hash (this can happen since our hash computation does not take into
-    // account all the information, the limit of hash representation
-    // notwithstanding)
-    if (std::find(ancestors.begin(), ancestors.end(), currentHash)
-        == ancestors.end())
+    // same hash (this can happen since our hash computation only takes into
+    // account the immediate descendants of a proof node, the limit of hash
+    // representation notwithstanding)
+    if (it == ancestorHashs.rend())
     {
       auto openProofIt = pfLetOpen.find(currentHash);
 
@@ -265,9 +277,6 @@ uint64_t DotPrinter::printInternal(
       }
       pfLetOpen[currentHash] = currentRuleID;
     }
-
-    // Register the current proof node hash in the ancestor vector
-    ancestors.push_back(currentHash);
   }
 
   ProofNodeClusterType proofNodeType = ProofNodeClusterType::NOT_DEFINED;
@@ -288,7 +297,6 @@ uint64_t DotPrinter::printInternal(
 
   PfRule r = pn->getRule();
 
-  size_t currentAncestorsSize = ancestors.size();
   // Scopes trigger a traversal with a new local cache for proof nodes
   if (isSCOPE(r) && currentRuleID)
   {
@@ -299,12 +307,12 @@ uint64_t DotPrinter::printInternal(
                                      pfLetClosed,
                                      thisScopeLet,
                                      cfaMap,
-                                     ancestors,
+                                     ancestorHashs,
                                      proofNodeType);
     out << "\t" << childId << " -> " << currentRuleID << ";\n";
-    if (options::proofDotDAG() && ancestors.size() > currentAncestorsSize)
+    if (options::proofDotDAG())
     {
-      ancestors.pop_back();
+      ancestorHashs.pop_back();
     }
   }
   else
@@ -317,12 +325,12 @@ uint64_t DotPrinter::printInternal(
                                        pfLetClosed,
                                        pfLetOpen,
                                        cfaMap,
-                                       ancestors,
+                                       ancestorHashs,
                                        proofNodeType);
       out << "\t" << childId << " -> " << currentRuleID << ";\n";
-      if (options::proofDotDAG() && ancestors.size() > currentAncestorsSize)
+      if (options::proofDotDAG())
       {
-        ancestors.pop_back();
+        ancestorHashs.pop_back();
       }
     }
   }
