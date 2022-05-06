@@ -3862,7 +3862,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
 }
 
 void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
-                                            std::map<Node, Node>& arithModel)
+                                            std::map<Node, Node>& arithModel,
+                          std::map<Node, Node>& arithModelIllTyped)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
 
@@ -3899,6 +3900,11 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
           // integer variables in rare cases. We construct real in this case;
           // this will be corrected in TheoryArith::sanityCheckIntegerModel.
           qNode = nm->mkConstReal(qmodel);
+          if (term.getType().isInteger())
+          {
+            arithModelIllTyped[term] = qNode;
+            continue;
+          }
         }
         else
         {
