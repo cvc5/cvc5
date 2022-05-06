@@ -374,7 +374,7 @@ class InferenceGenerator
    * (=>
    *   (bag.member e A)
    *   (and
-   *     (bag.member B skolem)
+   *     (= (bag.member B skolem) 1)
    *     (= (bag.count e B) (bag.count e A)
    *   )
    * )
