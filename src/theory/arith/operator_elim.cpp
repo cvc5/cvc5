@@ -440,7 +440,14 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
   Node skolem = getArithSkolem(id);
   if (usePartialFunction(id))
   {
-    skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
+    NodeManager * nm = NodeManager::currentNM();
+    Assert (skolem.getType().isFunction() && skolem.getType().getNumChildren()==2);
+    TypeNode argType = skolem.getType()[0];
+    if (!argType.isInteger() && n.getType().isInteger())
+    {
+      n = nm->mkNode(TO_REAL, n);
+    }
+    skolem = nm->mkNode(APPLY_UF, skolem, n);
   }
   return skolem;
 }
