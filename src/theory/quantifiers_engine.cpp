@@ -63,16 +63,17 @@ QuantifiersEngine::QuantifiersEngine(
       d_quants_red(userContext()),
       d_numInstRoundsLemma(0)
 {
+  options::FmfMbqiMode mmode = options().quantifiers.fmfMbqiMode;
   Trace("quant-init-debug")
-      << "Initialize model engine, mbqi : " << options().quantifiers.mbqiMode
-      << " " << options().quantifiers.fmfBound << std::endl;
+      << "Initialize model engine, mbqi : " << mmode << " "
+      << options().quantifiers.fmfBound << std::endl;
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
   if (options().quantifiers.fmfBound || options().strings.stringExp
       || (options().quantifiers.finiteModelFind
-          && (options().quantifiers.mbqiMode == options::MbqiMode::FMC
-              || options().quantifiers.mbqiMode == options::MbqiMode::TRUST)))
+          && (mmode == options::FmfMbqiMode::FMC
+              || mmode == options::FmfMbqiMode::TRUST)))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
@@ -702,7 +703,7 @@ void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
   d_treg.declarePool(p, initValue);
 }
 
-void QuantifiersEngine::declareOracleFun(Node f, const std::string& binName)
+void QuantifiersEngine::declareOracleFun(Node f)
 {
   if (d_qmodules->d_oracleEngine.get() == nullptr)
   {
@@ -710,7 +711,7 @@ void QuantifiersEngine::declareOracleFun(Node f, const std::string& binName)
               << std::endl;
     return;
   }
-  d_qmodules->d_oracleEngine->declareOracleFun(f, binName);
+  d_qmodules->d_oracleEngine->declareOracleFun(f);
 }
 std::vector<Node> QuantifiersEngine::getOracleFuns() const
 {
