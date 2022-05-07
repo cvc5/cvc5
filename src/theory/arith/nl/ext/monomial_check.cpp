@@ -331,7 +331,7 @@ int MonomialCheck::compareSign(
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
       Node prem = av.eqNode(zero);
-      Node conc = oa.eqNode(zero);
+      Node conc = oa.eqNode(mkZero(oa.getType()));
       Node lemma = prem.impNode(conc);
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
@@ -420,10 +420,9 @@ bool MonomialCheck::compareMonomial(
       if (status == 2)
       {
         // must state that all variables are non-zero
-        Node zero = mkZero(oa.getType());
         for (const Node& v : vla)
         {
-          exp.push_back(v.eqNode(zero).negate());
+          exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
       Node clem = nm->mkNode(
