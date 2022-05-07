@@ -262,7 +262,9 @@ Node TheoryModel::getModelValue(TNode n) const
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we an evaluated kind. This can occur if the
     // children of n failed to evaluate.
-    if (ret.isConst())
+    if (ret.isConst() || (
+     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
     {
       d_modelCache[n] = ret;
       return ret;
@@ -275,7 +277,6 @@ Node TheoryModel::getModelValue(TNode n) const
   }
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
-  bool eeHasTerm;
   if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
   {
     // functions are in the equality engine, but *not* as first-class members
@@ -284,13 +285,8 @@ Node TheoryModel::getModelValue(TNode n) const
     // to the equality engine despite hasTerm returning true. However, they are
     // first class members when higher-order is enabled. Hence, the special
     // case here.
-    eeHasTerm = false;
   }
-  else
-  {
-    eeHasTerm = d_equalityEngine->hasTerm(ret);
-  }
-  if (eeHasTerm)
+  else if (d_equalityEngine->hasTerm(ret))
   {
     Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
