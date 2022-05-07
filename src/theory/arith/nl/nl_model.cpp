@@ -1013,6 +1013,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 
 void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
   // we first update the map to the extended one.
@@ -1037,9 +1038,11 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
     }
     else
     {
-      // overwrite
-      arithModel[v] = l;
-      Trace("nl-model") << v << " exact approximation is " << l << std::endl;
+      // overwrite, ensure the type is correct
+      Assert(l.isConst());
+      Node ll = nm->mkConstRealOrInt(v.getType(), l.getConst<Rational>());
+      arithModel[v] = ll;
+      Trace("nl-model") << v << " exact approximation is " << ll << std::endl;
     }
   }
   // Also record the exact values we used. An exact value can be seen as a
@@ -1048,10 +1051,18 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
   // is eliminated.
   for (size_t i = 0; i < d_substitutions.size(); ++i)
   {
-    // overwrite
-    arithModel[d_substitutions.d_vars[i]] = d_substitutions.d_subs[i];
-    Trace("nl-model") << d_substitutions.d_vars[i] << " solved is "
-                      << d_substitutions.d_subs[i] << std::endl;
+    // overwrite, ensure the type is correct
+    Node v = d_substitutions.d_vars[i];
+    Node s = d_substitutions.d_subs[i];
+    Node ss = s;
+    // If its a rational constant, ensure it has the proper type now. It
+    // also may be a RAN, in which case v should be a real.
+    if (s.isConst())
+    {
+      ss = nm->mkConstRealOrInt(v.getType(), s.getConst<Rational>());
+    }
+    arithModel[v] = ss;
+    Trace("nl-model") << v << " solved is " << ss << std::endl;
   }
 
   // multiplication terms should not be given values; their values are
