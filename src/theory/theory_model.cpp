@@ -262,16 +262,17 @@ Node TheoryModel::getModelValue(TNode n) const
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we an evaluated kind. This can occur if the
     // children of n failed to evaluate.
-    if (ret.isConst() || (
-     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
-      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
+    if (ret.isConst())
     {
       d_modelCache[n] = ret;
       return ret;
     }
   }
-  // must rewrite the term at this point
-  ret = rewrite(n);
+  else
+  {
+    // must rewrite the term at this point
+    ret = rewrite(n);
+  }
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
   bool eeHasTerm;
