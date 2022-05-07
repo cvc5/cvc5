@@ -269,12 +269,12 @@ Node TheoryModel::getModelValue(TNode n) const
       d_modelCache[n] = ret;
       return ret;
     }
+    // Note that we discard the evaluation of the arguments here
+    Trace("model-getvalue-debug") << "Failed to evaluate " << ret << std::endl;
   }
-  else
-  {
-    // must rewrite the term at this point
-    ret = rewrite(n);
-  }
+  // must rewrite the term at this point
+  ret = rewrite(n);
+  Trace("model-getvalue-debug") << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
   if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
