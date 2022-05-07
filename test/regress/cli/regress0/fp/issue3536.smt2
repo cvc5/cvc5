@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_FP)
 (declare-const x (_ FloatingPoint 11 53))

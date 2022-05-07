@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)

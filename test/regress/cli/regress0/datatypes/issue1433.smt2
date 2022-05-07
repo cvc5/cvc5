@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_UFDTLIA)
 (set-info :status sat)
