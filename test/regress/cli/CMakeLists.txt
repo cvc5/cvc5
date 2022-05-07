@@ -486,6 +486,7 @@ set(regress_0_tests
   regress0/cores/issue5238.smt2
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
+  regress0/cores/issue8705-bool-ppassert.smt2
   regress0/cvc-rerror-print.cvc.smt2
   regress0/cvc3-bug15.cvc.smt2
   regress0/cvc3.userdoc.01.cvc.smt2
@@ -2949,6 +2950,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/dd.trust-subs.smt2
   regress2/strings/issue3203.smt2
   regress2/strings/issue5381.smt2
   regress2/strings/issue6483.smt2
