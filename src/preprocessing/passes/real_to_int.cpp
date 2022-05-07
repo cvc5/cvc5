@@ -196,12 +196,15 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
-          Node rret = nm->mkNode(kind::TO_REAL, ret);
-          var_eq.push_back(n.eqNode(rret));
+          Node retToReal = nm->mkNode(kind::TO_REAL, ret);
+          var_eq.push_back(n.eqNode(retToReal));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
           // assertions when necessary.
-          d_preprocContext->addSubstitution(n, rret);
+          // The model value for the Real variable n we are eliminating is
+          // (to_real k), where k is the Int skolem whose unpurified form is
+          // (to_int n).
+          d_preprocContext->addSubstitution(n, retToReal);
         }
       }
     }
