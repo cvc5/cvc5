@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE:
 (set-logic QF_UFBVLIA)
 (set-info :status sat)
 (declare-fun f ((_ BitVec 3)) Int)

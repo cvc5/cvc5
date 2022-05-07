@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --fmf-fun-rlv -q
+; COMMAND-LINE: --incremental --fmf-fun-rlv
 ; DISABLE-TESTER: model
 (set-logic ALL)
 

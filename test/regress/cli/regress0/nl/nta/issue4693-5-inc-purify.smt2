@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
