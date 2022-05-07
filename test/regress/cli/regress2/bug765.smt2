@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --incremental --fmf-fun-rlv -q
+; DISABLE-TESTER: model
 (set-logic ALL)
 
 (declare-datatypes ((Color 0)) (

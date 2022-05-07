@@ -260,7 +260,7 @@ Node TheoryModel::getModelValue(TNode n) const
                         <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
-    // we only return it if we an evaluated kind. This can occur if the
+    // we only return it if we are an evaluated kind. This can occur if the
     // children of n failed to evaluate.
     if (ret.isConst() || (
      d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
