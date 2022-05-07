@@ -274,7 +274,8 @@ Node TheoryModel::getModelValue(TNode n) const
   }
   // must rewrite the term at this point
   ret = rewrite(n);
-  Trace("model-getvalue-debug") << "Look up " << ret << " in equality engine" << std::endl;
+  Trace("model-getvalue-debug")
+      << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
   if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
