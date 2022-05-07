@@ -178,6 +178,8 @@ Node SubstitutionMap::internalSubstitute(TNode t,
 
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
+  // don't check type equal here, since this utility may be used in conversions
+  // that change the types of terms
   Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
