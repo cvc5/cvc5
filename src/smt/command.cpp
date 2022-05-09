@@ -1217,13 +1217,7 @@ void DeclareOracleFunCommand::invoke(Solver* solver, SymbolManager* sm)
   {
     ret = d_sort;
   }
-  Term fun = solver->declareOracleFun(d_id, args, ret, d_binName);
-  // bind the symbol
-  if (!sm->getSymbolTable()->bind(d_id, fun))
-  {
-    // fail
-  }
-  sm->addModelDeclarationTerm(fun);
+  // will call solver declare oracle function when available in API
   d_commandStatus = CommandSuccess::instance();
 }
 
