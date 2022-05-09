@@ -25,11 +25,14 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
 {
+  // we use different kinds for constant integers and reals
   if (n.getKind() == kind::CONST_RATIONAL)
   {
+    // constant rationals are always real type, even if their value is integral
     return nodeManager->realType();
   }
   Assert(n.getKind() == kind::CONST_INTEGER);
+  // constant integers should always have integral value
   if (check)
   {
     if (!n.getConst<Rational>().isIntegral())
