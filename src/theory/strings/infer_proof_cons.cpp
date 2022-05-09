@@ -392,6 +392,12 @@ void InferProofCons::convert(InferenceId infer,
         // fail
         break;
       }
+      std::vector<Node> tvec;
+      std::vector<Node> svec;
+      theory::strings::utils::getConcat(mainEqCeq[0], tvec);
+      theory::strings::utils::getConcat(mainEqCeq[1], svec);
+      Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+      Node s0 = svec[isRev ? svec.size() - 1 : 0];
       // Now, mainEqCeq is an equality t ++ ... == s ++ ... where the
       // inference involved t and s.
       if (infer == InferenceId::STRINGS_N_ENDPOINT_EQ
@@ -430,12 +436,6 @@ void InferProofCons::convert(InferenceId infer,
         // if it is between sequences, we require the explicit disequality
         if (mainEqCeq[0].getType().isSequence())
         {
-          std::vector<Node> tvec;
-          std::vector<Node> svec;
-          theory::strings::utils::getConcat(mainEqCeq[0], tvec);
-          theory::strings::utils::getConcat(mainEqCeq[1], svec);
-          Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
-          Node s0 = svec[isRev ? svec.size() - 1 : 0];
           Assert(t0.isConst() && s0.isConst());
           // We introduce an explicit disequality for the constants
           Node deq = t0.eqNode(s0).notNode();
@@ -473,12 +473,6 @@ void InferProofCons::convert(InferenceId infer,
       }
       else
       {
-        std::vector<Node> tvec;
-        std::vector<Node> svec;
-        utils::getConcat(mainEqCeq[0], tvec);
-        utils::getConcat(mainEqCeq[1], svec);
-        Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
-        Node s0 = svec[isRev ? svec.size() - 1 : 0];
         bool applySym = false;
         // may need to apply symmetry
         if ((infer == InferenceId::STRINGS_SSPLIT_CST
