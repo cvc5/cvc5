@@ -427,6 +427,29 @@ void InferProofCons::convert(InferenceId infer,
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
+        // if it is between sequences, we require the explicit disequality
+        if (mainEqCeq[0].getType().isSequence())
+        {
+          std::vector<Node> tvec;
+          std::vector<Node> svec;
+          theory::strings::utils::getConcat(mainEqCeq[0], tvec);
+          theory::strings::utils::getConcat(mainEqCeq[1], svec);
+          Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+          Node s0 = svec[isRev ? svec.size() - 1 : 0];
+          Assert(t0.isConst() && s0.isConst());
+          // We introduce an explicit disequality for the constants:
+          // ------------------- EVALUATE
+          // (= (= c1 c2) false)
+          // ------------------- FALSE_ELIM
+          // (not (= c1 c2))
+          Node falsen = nm->mkConst(false);
+          Node eq = t0.eqNode(s0);
+          Node eqEqFalse = eq.eqNode(falsen);
+          psb.addStep(eqEqFalse, PfRule::EVALUATE, {}, {eq});
+          Node deq = eq.notNode();
+          psb.addStep(deq, PfRule::FALSE_ELIM, {eqEqFalse}, {});
+          childrenC.push_back(deq);
+        }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
         Node mainEqC = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
