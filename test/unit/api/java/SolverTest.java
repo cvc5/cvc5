@@ -2341,6 +2341,25 @@ class SolverTest
   }
 
   @Test
+  void getInstantiations() throws CVC5ApiException
+  {
+    Sort iSort = d_solver.getIntegerSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Term p = d_solver.declareFun("p", new Sort[] {iSort}, boolSort);
+    Term x = d_solver.mkVar(iSort, "x");
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, new Term[] {x});
+    Term app = d_solver.mkTerm(APPLY_UF, new Term[] {p, x});
+    Term q = d_solver.mkTerm(FORALL, new Term[] {bvl, app});
+    d_solver.assertFormula(q);
+    Term five = d_solver.mkInteger(5);
+    Term app2 = d_solver.mkTerm(NOT, new Term[] {d_solver.mkTerm(APPLY_UF, new Term[] {p, five})});
+    d_solver.assertFormula(app2);
+    assertThrows(CVC5ApiException.class, () -> d_solver.getInstantiations());
+    d_solver.checkSat();
+    assertDoesNotThrow(() -> d_solver.getInstantiations());
+  }
+
+  @Test
   void setInfo() throws CVC5ApiException
   {
     assertThrows(CVC5ApiException.class, () -> d_solver.setInfo("cvc4-lagic", "QF_BV"));
