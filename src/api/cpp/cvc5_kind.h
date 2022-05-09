@@ -903,7 +903,7 @@ enum Kind : int32_t
    */
   DIVISIBLE,
   /**
-   * Multiple-precision rational constant.
+   * Arbitrary-precision rational constant.
    *
    * - Create Term of this Kind with:
    *
@@ -913,7 +913,7 @@ enum Kind : int32_t
    */
   CONST_RATIONAL,
   /**
-   * Multiple-precision rational constant.
+   * Arbitrary-precision rational constant.
    *
    * - Create Term of this Kind with:
    *
