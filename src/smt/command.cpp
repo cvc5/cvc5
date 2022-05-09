@@ -1203,9 +1203,6 @@ const std::string& DeclareOracleFunCommand::getBinaryName() const
 
 void DeclareOracleFunCommand::invoke(Solver* solver, SymbolManager* sm)
 {
-  // Notice that the oracle function is already declared by the parser so that
-  // the symbol is bound eagerly.
-  // mark that it will be printed in the model
   std::vector<Sort> args;
   Sort ret;
   if (d_sort.isFunction())
