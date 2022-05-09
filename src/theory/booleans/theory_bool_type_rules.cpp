@@ -53,8 +53,7 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
     if (thenType != elseType)
     {
       std::stringstream ss;
-      ss << "Branches of the ITE must have the same type."
-         << std::endl
+      ss << "Branches of the ITE must have the same type." << std::endl
          << "then branch: " << n[1] << std::endl
          << "its type   : " << thenType << std::endl
          << "else branch: " << n[2] << std::endl
