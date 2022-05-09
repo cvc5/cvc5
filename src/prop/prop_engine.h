@@ -160,6 +160,9 @@ class PropEngine : protected EnvObj
 
   /**
    * Get the order heap from the SAT solver.
+   * order_heap is a priority queue of variables ordered with
+   * respect to the variable activity. The order heap is made available here
+   * in order to make partitions based on the literals contained in the heap.
    *
    * @return List of Nodes from the SAT variables order heap.
    */
