@@ -441,7 +441,7 @@ void InferProofCons::convert(InferenceId infer,
           // We introduce an explicit disequality for the constants
           Node deq = t0.eqNode(s0).notNode();
           psb.addStep(PfRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
-          Assert (!deq.isNull());
+          Assert(!deq.isNull());
           childrenC.push_back(deq);
         }
         std::vector<Node> argsC;

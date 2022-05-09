@@ -371,13 +371,12 @@ bool LfscProofPostprocessCallback::update(Node res,
         // no need to change
         return false;
       }
-      Assert (children.size()==2);
+      Assert(children.size() == 2);
       Assert(children[0].getKind() == EQUAL);
       Assert(children[0][0].getType().isSequence());
       // must use the sequences version of the rule
       Node falsen = nm->mkConst(false);
-      addLfscRule(
-          cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
+      addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
     default: return false; break;
