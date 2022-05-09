@@ -7292,7 +7292,8 @@ std::string Solver::getInstantiations() const
                              || d_slv->getSmtMode() == internal::SmtMode::SAT
                              || d_slv->getSmtMode()
                                     == internal::SmtMode::SAT_UNKNOWN)
-      << "Cannot get instantiations unless after a UNSAT, SAT or UNKNOWN response.";
+      << "Cannot get instantiations unless after a UNSAT, SAT or UNKNOWN "
+         "response.";
   //////// all checks before this line
   std::stringstream ss;
   d_slv->printInstantiations(ss);
