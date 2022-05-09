@@ -74,7 +74,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       break;
     }
     case zll: {
-      unfilteredLiterals = d_propEngine->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT); 
+      unfilteredLiterals = d_propEngine->getLearnedZeroLevelLiterals(
+          modes::LearnedLitType::INPUT);
       break;
     }
     default: return filteredLiterals;
@@ -353,7 +354,7 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
   // Reset betweenChecks
   d_betweenChecks = 0;
 
-  bool emitZLL = options().parallel.emitLearnedLiterals; 
+  bool emitZLL = options().parallel.appendLearnedLiteralsToCubes;
   switch (options().parallel.partitionStrategy)
   {
     case options::PartitionMode::HEAP_TRAIL: return makeFullTrailPartitions(/*litType=*/heap, emitZLL); 

@@ -82,9 +82,9 @@ name   = "Parallel"
   help       = "set the output channel for writing partitions"
 
 [[option]]
-  name       = "emitLearnedLiterals"
+  name       = "appendLearnedLiteralsToCubes"
   category   = "expert"
-  long       = "emit-learned-literals"
+  long       = "append-learned-literals-to-cubes"
   type       = "bool"
   default    = "false"
   help       = "emit learned literals with the cubes"
