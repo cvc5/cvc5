@@ -122,6 +122,8 @@ void TheoryDatatypes::finishInit()
   // testers are not relevant for model building
   d_valuation.setIrrelevantKind(APPLY_TESTER);
   d_valuation.setIrrelevantKind(DT_SYGUS_BOUND);
+  // selectors don't always evaluate
+  d_valuation.setUnevaluatedKind(APPLY_SELECTOR);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){

@@ -1,5 +1,6 @@
-; COMMAND-LINE: --fmf-fun --fmf-bound -q
+; COMMAND-LINE: --fmf-fun --fmf-bound
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic UFDTSLIA)
 (set-option :produce-models true)
 
