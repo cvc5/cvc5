@@ -2347,8 +2347,8 @@ class SolverTest
     Sort boolSort = d_solver.getBooleanSort();
     Term p = d_solver.declareFun("p", new Sort[] {iSort}, boolSort);
     Term x = d_solver.mkVar(iSort, "x");
-    Term bvl = d_solver.mkTerm(VARIABLE_LIST, {x});
-    Term app = d_solver.mkTerm(APPLY_UF, {p, x});
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, new Term[] {x});
+    Term app = d_solver.mkTerm(APPLY_UF, new Term[] {p, x});
     Term q = d_solver.mkTerm(FORALL, new Term[] {bvl, app});
     d_solver.assertFormula(q);
     Term five = d_solver.mkInteger(5);
