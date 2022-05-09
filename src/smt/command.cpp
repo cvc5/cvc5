@@ -1177,17 +1177,25 @@ void DeclarePoolCommand::toStream(std::ostream& out,
 /* class DeclareOracleFunCommand */
 /* -------------------------------------------------------------------------- */
 
-DeclareOracleFunCommand::DeclareOracleFunCommand(Term func)
-    : d_func(func), d_binName("")
+DeclareOracleFunCommand::DeclareOracleFunCommand(const std::string& id,
+                                                 Sort sort)
+    : d_id(id), d_sort(sort), d_binName("")
 {
 }
-DeclareOracleFunCommand::DeclareOracleFunCommand(Term func,
+DeclareOracleFunCommand::DeclareOracleFunCommand(const std::string& id,
+                                                 Sort sort,
                                                  const std::string& binName)
-    : d_func(func), d_binName(binName)
+    : d_id(id), d_sort(sort), d_binName(binName)
 {
 }
 
-Term DeclareOracleFunCommand::getFunction() const { return d_func; }
+const std::string& DeclareOracleFunCommand::getIdentifier() const
+{
+  return d_id;
+}
+
+Sort DeclareOracleFunCommand::getSort() const { return d_sort; }
+
 const std::string& DeclareOracleFunCommand::getBinaryName() const
 {
   return d_binName;
@@ -1198,13 +1206,31 @@ void DeclareOracleFunCommand::invoke(Solver* solver, SymbolManager* sm)
   // Notice that the oracle function is already declared by the parser so that
   // the symbol is bound eagerly.
   // mark that it will be printed in the model
-  sm->addModelDeclarationTerm(d_func);
+  std::vector<Sort> args;
+  Sort ret;
+  if (d_sort.isFunction())
+  {
+    args = d_sort.getFunctionDomainSorts();
+    ret = d_sort.getFunctionCodomainSort();
+  }
+  else
+  {
+    ret = d_sort;
+  }
+  Term fun = solver->declareOracleFun(d_id, args, ret, d_binName);
+  // bind the symbol
+  if (!sm->getSymbolTable()->bind(d_id, fun))
+  {
+    // fail
+  }
+  sm->addModelDeclarationTerm(fun);
   d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareOracleFunCommand::clone() const
 {
-  DeclareOracleFunCommand* dfc = new DeclareOracleFunCommand(d_func, d_binName);
+  DeclareOracleFunCommand* dfc =
+      new DeclareOracleFunCommand(d_id, d_sort, d_binName);
   return dfc;
 }
 
@@ -1219,7 +1245,7 @@ void DeclareOracleFunCommand::toStream(std::ostream& out,
                                        Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareOracleFun(
-      out, termToNode(d_func), d_binName);
+      out, d_id, sortToTypeNode(d_sort), d_binName);
 }
 
 /* -------------------------------------------------------------------------- */
