@@ -204,6 +204,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
           return Node::null();
         }
       }
+      else if (t0.getType().isSequence())
+      {
+        // we require the disequality for sequences
+        return Node::null();
+      }
       return nm->mkConst(false);
     }
     else if (id == PfRule::CONCAT_SPLIT)
