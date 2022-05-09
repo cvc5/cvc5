@@ -392,6 +392,7 @@ void InferProofCons::convert(InferenceId infer,
         // fail
         break;
       }
+      // get the heads of the equality
       std::vector<Node> tvec;
       std::vector<Node> svec;
       theory::strings::utils::getConcat(mainEqCeq[0], tvec);
