@@ -87,8 +87,8 @@ class PartitionGenerator : protected EnvObj
 
   /**
    * Get a list of literals.
-   * Current options are from the decision trail in the sat solver,
-   * from the order heap in the sat solver, and zero level learned literals.
+   * litType specifies whether to pull from the decision trail in the sat solver,
+   * from the order heap in the sat solver, or from the zero level learned literals.
    */
   std::vector<Node> collectLiterals(LiteralListType litType);
 
