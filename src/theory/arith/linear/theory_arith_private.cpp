@@ -989,6 +989,11 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
         // substitution is integral
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
+        if (elim.getType().isInteger() && !minVar.getType().isInteger())
+        {
+          elim = NodeManager::currentNM()->mkNode(kind::TO_REAL, elim);
+        }
+        Assert(elim.getType() == minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
