@@ -1444,7 +1444,8 @@ enum class PfRule : uint32_t
    *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
    *
    * where t_1 and s_1 are constants of length one, or otherwise one side
-   * of the equality is the empty string.
+   * of the equality is the empty sequence and t_1 or s_1 corresponding to
+   * that side is the empty sequence.
    *
    * \endverbatim
    */
