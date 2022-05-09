@@ -437,23 +437,16 @@ void InferProofCons::convert(InferenceId infer,
           Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
           Node s0 = svec[isRev ? svec.size() - 1 : 0];
           Assert(t0.isConst() && s0.isConst());
-          // We introduce an explicit disequality for the constants:
-          // ------------------- EVALUATE
-          // (= (= c1 c2) false)
-          // ------------------- FALSE_ELIM
-          // (not (= c1 c2))
-          Node falsen = nm->mkConst(false);
-          Node eq = t0.eqNode(s0);
-          Node eqEqFalse = eq.eqNode(falsen);
-          psb.addStep(eqEqFalse, PfRule::EVALUATE, {}, {eq});
-          Node deq = eq.notNode();
-          psb.addStep(deq, PfRule::FALSE_ELIM, {eqEqFalse}, {});
+          // We introduce an explicit disequality for the constants
+          Node deq = t0.eqNode(s0).notNode();
+          psb.addStep(PfRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
+          Assert (!deq.isNull());
           childrenC.push_back(deq);
         }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node mainEqC = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
-        if (mainEqC == conc)
+        Node conflict = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
+        if (conflict == conc)
         {
           useBuffer = true;
           Trace("strings-ipc-core") << "...success!" << std::endl;

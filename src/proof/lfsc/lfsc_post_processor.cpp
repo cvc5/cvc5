@@ -373,12 +373,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       Assert (children.size()==2);
       Assert(children[0].getKind() == EQUAL);
-      if (children[0][0].getType().isString())
-      {
-        // no need to change
-        return false;
-      }
-      // must use special rule
+      Assert(children[0][0].getType().isSequence());
+      // must use the sequences version of the rule
+      Node falsen = nm->mkConst(false);
       addLfscRule(
           cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
