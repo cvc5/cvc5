@@ -52,9 +52,8 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
     TypeNode elseType = n[2].getType(check);
     if (thenType != elseType)
     {
-      Assert(false) << "Bad ITE: " << n;
       std::stringstream ss;
-      ss << "Both branches of the ITE must be a subtype of a common type."
+      ss << "Branches of the ITE must have the same type."
          << std::endl
          << "then branch: " << n[1] << std::endl
          << "its type   : " << thenType << std::endl
