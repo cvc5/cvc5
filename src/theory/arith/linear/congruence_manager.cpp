@@ -444,22 +444,9 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   ++(d_statistics.d_watchedVariables);
 
   d_watchedVariables.add(s);
-  TypeNode xt = x.getType();
-  TypeNode yt = y.getType();
-  Node eq;
   // must ensure types are correct, thus, add TO_REAL if necessary here
-  if (xt != yt)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node xx = xt.isInteger() ? nm->mkNode(kind::TO_REAL, x) : Node(x);
-    Node yy = yt.isInteger() ? nm->mkNode(kind::TO_REAL, y) : Node(y);
-    Assert(xx.getType() == yy.getType());
-    eq = xx.eqNode(yy);
-  }
-  else
-  {
-    eq = x.eqNode(y);
-  }
+  std::pair<Node, Node> p = mkSameType(x, y);
+  Node eq = p.first.eqNode(p.second);
   d_watchedEqualities.set(s, eq);
 }
 
