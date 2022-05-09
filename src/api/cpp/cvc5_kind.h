@@ -913,7 +913,7 @@ enum Kind : int32_t
    */
   CONST_RATIONAL,
   /**
-   * Arbitrary-precision rational constant.
+   * Arbitrary-precision integer constant.
    *
    * - Create Term of this Kind with:
    *
