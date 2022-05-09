@@ -2351,7 +2351,7 @@ TEST_F(TestApiBlackSolver, getInstantiations)
   Term q = d_solver.mkTerm(FORALL, {bvl, app});
   d_solver.assertFormula(q);
   Term five = d_solver.mkInteger(5);
-  Term app2 = d_solver.mkTerm(NOT, d_solver.mkTerm(APPLY_UF, {p, five}));
+  Term app2 = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {p, five})});
   d_solver.assertFormula(app2);
   ASSERT_THROW(d_solver.getInstantiations(), CVC5ApiException);
   d_solver.checkSat();

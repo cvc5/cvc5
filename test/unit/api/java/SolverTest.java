@@ -2352,7 +2352,7 @@ class SolverTest
     Term q = d_solver.mkTerm(FORALL, new Term[] {bvl, app});
     d_solver.assertFormula(q);
     Term five = d_solver.mkInteger(5);
-    Term app2 = d_solver.mkTerm(NOT, d_solver.mkTerm(APPLY_UF, new Term[] {p, five}));
+    Term app2 = d_solver.mkTerm(NOT, new Term[] {d_solver.mkTerm(APPLY_UF, new Term[] {p, five})});
     d_solver.assertFormula(app2);
     assertThrows(CVC5ApiException.class, () -> d_solver.getInstantiations());
     d_solver.checkSat();
