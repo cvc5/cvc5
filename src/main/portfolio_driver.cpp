@@ -238,10 +238,9 @@ class PortfolioProcessPool
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx,
-                       std::vector<std::unique_ptr<cvc5::Command>>&& cmds)
+  PortfolioProcessPool(ExecutionContext& ctx, parser::Parser* parser)
       : d_ctx(ctx),
-        d_commands(std::move(cmds)),
+        d_parser(parser),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
         d_timeout(ctx.solver().getOptionInfo("tlimit").uintValue())
   {
@@ -307,7 +306,8 @@ class PortfolioProcessPool
       job.d_config.applyOptions(d_ctx.solver());
       // 0 = solved, 1 = not solved
       SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
-      if (d_ctx.solveCommands(d_commands))
+      if (d_ctx.solveContinuous(d_parser, false))
+      // if (d_ctx.solveCommands(d_commands))
       {
         Result res = d_ctx.d_executor->getResult();
         if (res.isSat() || res.isUnsat())
@@ -396,7 +396,8 @@ class PortfolioProcessPool
   }
 
   ExecutionContext& d_ctx;
-  std::vector<std::unique_ptr<cvc5::Command>> d_commands;
+  // std::vector<std::unique_ptr<cvc5::Command>> d_commands;
+  parser::Parser* d_parser;
   /** All jobs. */
   std::vector<Job> d_jobs;
   /** The id of the next job to be started within d_jobs */
@@ -442,7 +443,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     total_timeout = 1200;
   }
 
-  PortfolioProcessPool pool(ctx, ctx.parseCommands(d_parser));
+  PortfolioProcessPool pool(ctx, d_parser);  // ctx.parseCommands(d_parser));
 
   return pool.run(strategy);
 #else
