@@ -960,7 +960,10 @@ Polynomial Comparison::getLeft() const {
   Kind k = comparisonKind();
   switch(k){
   case kind::LT:
-  case kind::LEQ: left = getNode()[0][0]; break;
+  case kind::LEQ: 
+    left = getNode()[0][0];
+    Assert (left.getKind() != kind::TO_REAL);
+    break;
   case kind::DISTINCT:
     left = getNode()[0][0];
     left = left.getKind() == kind::TO_REAL ? left[0] : left;
@@ -972,6 +975,7 @@ Polynomial Comparison::getLeft() const {
   case kind::GT:
   case kind::GEQ:
     left = getNode()[0];
+    Assert (left.getKind() != kind::TO_REAL);
     break;
   default: Unhandled() << k;
   }
@@ -983,7 +987,10 @@ Polynomial Comparison::getRight() const {
   Kind k = comparisonKind();
   switch(k){
   case kind::LT:
-  case kind::LEQ: right = getNode()[0][1]; break;
+  case kind::LEQ: 
+    right = getNode()[0][1];
+    Assert (right.getKind() != kind::TO_REAL);
+    break;
   case kind::DISTINCT:
     right = getNode()[0][1];
     right = right.getKind() == kind::TO_REAL ? right[0] : right;
@@ -995,6 +1002,7 @@ Polynomial Comparison::getRight() const {
   case kind::GT:
   case kind::GEQ:
     right = getNode()[1];
+    Assert (right.getKind() != kind::TO_REAL);
     break;
   default: Unhandled() << k;
   }
