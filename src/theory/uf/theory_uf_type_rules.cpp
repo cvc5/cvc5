@@ -52,7 +52,6 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
       TypeNode currentArgumentType = *argument_type_it;
       if (currentArgument != currentArgumentType)
       {
-        Assert(false) << "Bad APPLY_UF " << n;
         std::stringstream ss;
         ss << "argument type is not a subtype of the function's argument "
            << "type:\n"
