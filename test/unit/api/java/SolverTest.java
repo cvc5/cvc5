@@ -2356,7 +2356,7 @@ class SolverTest
     d_solver.assertFormula(app2);
     assertThrows(CVC5ApiException.class, () -> d_solver.getInstantiations());
     d_solver.checkSat();
-    AassertDoesNotThrow(() -> d_solver.getInstantiations());
+    assertDoesNotThrow(() -> d_solver.getInstantiations());
   }
 
   @Test
