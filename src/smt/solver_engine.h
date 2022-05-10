@@ -326,6 +326,7 @@ class CVC5_EXPORT SolverEngine
                          const std::vector<Node>& formals,
                          Node formula,
                          bool global = false);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -460,6 +461,16 @@ class CVC5_EXPORT SolverEngine
    * of type T.
    */
   void declarePool(const Node& p, const std::vector<Node>& initValue);
+
+  /**
+   * Add an oracle function to the state, also adds an oracle interface
+   * defining it.
+   *
+   * @param var The oracle function symbol
+   * @param fn The method for the oracle
+   */
+  void declareOracleFun(
+      Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
@@ -1015,7 +1026,6 @@ class CVC5_EXPORT SolverEngine
   void debugCheckFunctionBody(Node formula,
                               const std::vector<Node>& formals,
                               Node func);
-
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
@@ -1047,7 +1057,6 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */

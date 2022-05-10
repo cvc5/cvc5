@@ -486,6 +486,7 @@ set(regress_0_tests
   regress0/cores/issue5238.smt2
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
+  regress0/cores/issue8705-bool-ppassert.smt2
   regress0/cvc-rerror-print.cvc.smt2
   regress0/cvc3-bug15.cvc.smt2
   regress0/cvc3.userdoc.01.cvc.smt2
@@ -522,6 +523,7 @@ set(regress_0_tests
   regress0/datatypes/datatype2.cvc.smt2
   regress0/datatypes/datatype3.cvc.smt2
   regress0/datatypes/datatype4.cvc.smt2
+  regress0/datatypes/dd.pair-real-bool-const-conf.smt2
   regress0/datatypes/dt-2.6.smt2
   regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
@@ -812,6 +814,7 @@ set(regress_0_tests
   regress0/nl/issue8691-msum-subtypes.smt2
   regress0/nl/issue8691-3-msum-subtypes.smt2
   regress0/nl/issue8692-idem-flatten.smt2
+  regress0/nl/issue8712-div-toreal-rew.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1408,6 +1411,7 @@ set(regress_0_tests
   regress0/strings/issue8346-idof-max.smt2
   regress0/strings/issue8481.smt2
   regress0/strings/issue8481-2.smt2
+  regress0/strings/issue8722-learned-rew.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1812,6 +1816,10 @@ set(regress_1_tests
   regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
+  regress1/bags/table_aggregate1.smt2
+  regress1/bags/table_join1.smt2
+  regress1/bags/table_join2.smt2
+  regress1/bags/table_join3.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
@@ -2943,6 +2951,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/dd.trust-subs.smt2
   regress2/strings/issue3203.smt2
   regress2/strings/issue5381.smt2
   regress2/strings/issue6483.smt2

@@ -454,11 +454,16 @@ private:
    * non-linear extension) can modify arithModel before it is sent to the model.
    *
    * @param termSet The set of relevant terms
-   * @param arithModel Mapping from terms (of real type) to their values. The
-   * caller should assert equalities to the model for each entry in this map.
+   * @param arithModel Mapping from terms (of int/real type) to their values.
+   * The caller should assert equalities to the model for each entry in this
+   * map.
+   * @param arithModelIllTyped Mapping from terms (of int type) to real values.
+   * This is used for catching cases where this solver mistakenly set an
+   * integer variable to a real.
    */
   void collectModelValues(const std::set<Node>& termSet,
-                          std::map<Node, Node>& arithModel);
+                          std::map<Node, Node>& arithModel,
+                          std::map<Node, Node>& arithModelIllTyped);
 
   void shutdown(){ }
 

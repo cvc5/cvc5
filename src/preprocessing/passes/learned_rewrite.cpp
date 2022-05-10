@@ -88,13 +88,17 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
         if (!pol)
         {
           atomu = nm->mkNode(LT, atom[0], atom[1]);
+          atomu = rewrite(atomu);
           originLit[atomu] = l;
         }
         else
         {
           atomu = l;
+          atomu = rewrite(atomu);
           originLit[l] = l;
         }
+        Trace("learned-rewrite-ll")
+            << "Add atom (rewritten): " << atomu << std::endl;
         binfer.add(atomu);
       }
       Trace("learned-rewrite-ll") << "- " << l << std::endl;

@@ -81,10 +81,12 @@ void ExponentialSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
+        Node zero = nm->mkConstInt(Rational(0));
+        Node one = nm->mkConstInt(Rational(1));
         d_tf_initial_refine[t] = true;
         {
           // exp is always positive: exp(t) > 0
-          Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
+          Node lem = nm->mkNode(Kind::GT, t, zero);
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -95,10 +97,12 @@ void ExponentialSolver::checkInitialRefine()
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
-          // exp at zero: (t = 0) <=> (exp(t) = 1)
-          Node lem = nm->mkNode(Kind::EQUAL,
-                                t[0].eqNode(d_data->d_zero),
-                                t.eqNode(d_data->d_one));
+          // must use real one/zero in equalities
+          Node rzero = mkZero(t[0].getType());
+          Node rone = nm->mkConstReal(Rational(1));
+          // exp at zero: (t = 0.0) <=> (exp(t) = 1.0)
+          Node lem =
+              nm->mkNode(Kind::EQUAL, t[0].eqNode(rzero), t.eqNode(rone));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -111,8 +115,8 @@ void ExponentialSolver::checkInitialRefine()
         {
           // exp on negative values: (t < 0) <=> (exp(t) < 1)
           Node lem = nm->mkNode(Kind::EQUAL,
-                                nm->mkNode(Kind::LT, t[0], d_data->d_zero),
-                                nm->mkNode(Kind::LT, t, d_data->d_one));
+                                nm->mkNode(Kind::LT, t[0], zero),
+                                nm->mkNode(Kind::LT, t, one));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -126,9 +130,8 @@ void ExponentialSolver::checkInitialRefine()
           // exp on positive values: (t <= 0) or (exp(t) > t+1)
           Node lem = nm->mkNode(
               Kind::OR,
-              nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
-              nm->mkNode(
-                  Kind::GT, t, nm->mkNode(Kind::ADD, t[0], d_data->d_one)));
+              nm->mkNode(Kind::LEQ, t[0], zero),
+              nm->mkNode(Kind::GT, t, nm->mkNode(Kind::ADD, t[0], one)));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -277,15 +280,17 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    Node one = nm->mkConstInt(Rational(1));
     // pick c-1
-    bounds.first = rewrite(
-        NodeManager::currentNM()->mkNode(Kind::SUB, center, d_data->d_one));
+    bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
   }
   if (bounds.second.isNull())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    Node one = nm->mkConstInt(Rational(1));
     // pick c+1
-    bounds.second = rewrite(
-        NodeManager::currentNM()->mkNode(Kind::ADD, center, d_data->d_one));
+    bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
   }
   return bounds;
 }

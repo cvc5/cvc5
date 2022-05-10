@@ -119,9 +119,6 @@ class CardSolver : protected EnvObj
   InferenceManager& d_im;
   NodeManager* d_nm;
 
-  /** bag reduction */
-  BagReduction d_bagReduction;
-
   /**
    * A map from bag representatives to sets of bag representatives with the
    * invariant that each key is the disjoint union of each set in the value.

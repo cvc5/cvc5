@@ -1313,7 +1313,7 @@ enum class PfRule : uint32_t
    *
    *   \inferrule{-\mid k}{k = t}
    *
-   * where :math:`t` is the original form of skolem :math:`k`.
+   * where :math:`t` is the unpurified form of skolem :math:`k`.
    * \endverbatim
    */
   SKOLEM_INTRO,

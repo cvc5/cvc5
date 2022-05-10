@@ -806,6 +806,37 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  case kind::TABLE_AGGREGATE:
+  {
+    TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.project function initial_value bag)
+      out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
+    }
+    else
+    {
+      // e.g.  ((_ table.aggr 0) function initial_value bag)
+      out << "(_ table.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
+          << ")";
+    }
+    return;
+  }
+  case kind::TABLE_JOIN:
+  {
+    TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.join A B)
+      out << "table.join " << n[0] << " " << n[1] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.project 0 1 2 3) A B)
+      out << "(_ table.join" << op << ") " << n[0] << " " << n[1] << ")";
+    }
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];
@@ -978,7 +1009,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   stringstream parens;
-  
+
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
       toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c, lbind);
@@ -1074,9 +1105,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::GEQ: return ">=";
   case kind::DIVISION:
   case kind::DIVISION_TOTAL: return "/";
-  case kind::INTS_DIVISION_TOTAL: 
+  case kind::INTS_DIVISION_TOTAL:
   case kind::INTS_DIVISION: return "div";
-  case kind::INTS_MODULUS_TOTAL: 
+  case kind::INTS_MODULUS_TOTAL:
   case kind::INTS_MODULUS: return "mod";
   case kind::ABS: return "abs";
   case kind::IS_INTEGER: return "is_int";
@@ -1186,6 +1217,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_PARTITION: return "bag.partition";
   case kind::TABLE_PRODUCT: return "table.product";
   case kind::TABLE_PROJECT: return "table.project";
+  case kind::TABLE_AGGREGATE: return "table.aggr";
+  case kind::TABLE_JOIN: return "table.join";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
