@@ -35,9 +35,6 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   // equivalent up to purification
   if (d_skDefs.find(skolem) == d_skDefs.end())
   {
-    // should not have already computed whether the skolem has skolems, or else
-    // our computation of hasSkolems is wrong after adding this definition
-    Assert(d_hasSkolems.find(skolem) == d_hasSkolems.end());
     d_skDefs.insert(skolem, def);
   }
 }
@@ -53,6 +50,11 @@ void SkolemDefManager::notifyAsserted(TNode literal,
                                       std::vector<TNode>& activatedSkolems,
                                       bool useDefs)
 {
+  if (d_skActive.size()==d_skDefs.size())
+  {
+    // already activated all skolems;
+    return;
+  }
   std::unordered_set<Node> skolems;
   getSkolems(literal, skolems);
   Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems "
@@ -109,11 +111,8 @@ bool SkolemDefManager::hasSkolems(TNode n)
       {
         visit.pop_back();
         bool hasSkolem = false;
-        if (cur.isVar())
-        {
-          hasSkolem = (d_skDefs.find(cur) != d_skDefs.end());
-        }
-        d_hasSkolems[cur] = hasSkolem;
+        Kind ck = cur.getKind();
+        d_hasSkolems[cur] = (ck == kind::SKOLEM || ck == kind::BOOLEAN_TERM_VARIABLE);
       }
       else
       {
