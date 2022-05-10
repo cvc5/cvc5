@@ -220,7 +220,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
   {
     if (emitZLL) 
     {
-      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT);
+      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
+          modes::LearnedLitType::INPUT);
       std::vector<Node>* cubes = strict ? &d_strict_cubes : &d_cubes;
       
       for (const auto& c : *cubes)
@@ -241,7 +242,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
     if (emitZLL) 
     {
-      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT);
+      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
+          modes::LearnedLitType::INPUT);
       zllLiterals.push_back(lemma);
       Node zllLemma = NodeManager::currentNM()->mkAnd(zllLiterals);
       emitCube(zllLemma);
@@ -357,10 +359,14 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
   bool emitZLL = options().parallel.appendLearnedLiteralsToCubes;
   switch (options().parallel.partitionStrategy)
   {
-    case options::PartitionMode::HEAP_TRAIL: return makeFullTrailPartitions(/*litType=*/heap, emitZLL); 
-    case options::PartitionMode::DECISION_TRAIL: return makeFullTrailPartitions(/*litType=*/decision, emitZLL); 
-    case options::PartitionMode::STRICT_CUBE: return makeRevisedPartitions(/*strict=*/true, emitZLL); 
-    case options::PartitionMode::REVISED: return makeRevisedPartitions(/*strict=*/false, emitZLL);
+    case options::PartitionMode::HEAP_TRAIL:
+      return makeFullTrailPartitions(/*litType=*/heap, emitZLL);
+    case options::PartitionMode::DECISION_TRAIL:
+      return makeFullTrailPartitions(/*litType=*/decision, emitZLL);
+    case options::PartitionMode::STRICT_CUBE:
+      return makeRevisedPartitions(/*strict=*/true, emitZLL);
+    case options::PartitionMode::REVISED:
+      return makeRevisedPartitions(/*strict=*/false, emitZLL);
     default: return TrustNode::null();
   }
 }
