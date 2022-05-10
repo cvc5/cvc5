@@ -293,8 +293,10 @@ void PropEngine::assertLemmasInternal(
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
   // by default by the decision engine. In particular, sending to the SAT
-  // solver first means that lemmas sent in response to a lemma are processed
-  // before that lemma.
+  // solver first means that lemmas sent during preregistration in response to
+  // the current lemma are processed before that lemma. This is important
+  // e.g. for string reduction lemmas, where preregistration lemmas should be
+  // processed first for skolems that appear in reductions.
   if (!trn.isNull())
   {
     assertTrustedLemmaInternal(trn, removable);
@@ -304,7 +306,8 @@ void PropEngine::assertLemmasInternal(
     assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
   // Now, notify the decision engine, which also notifies the skolem definition
-  // manager.
+  // manager. The skolem definitions will be activated when a subsequent
+  // literal is asserted that contains that skolem.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
