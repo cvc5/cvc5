@@ -2923,6 +2923,16 @@ set(regress_2_tests
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
   regress2/nl/ufnia-factor-open-proof.smt2
+  regress2/partitioning-for-parallel/qf_lra_basic_8.smt2
+  regress2/partitioning-for-parallel/qf_lra_basic.smt2
+  regress2/partitioning-for-parallel/qf_lra_betchecks.smt2
+  regress2/partitioning-for-parallel/qf_lra_conflictsize.smt2
+  regress2/partitioning-for-parallel/qf_lra_decision.smt2
+  regress2/partitioning-for-parallel/qf_lra_heap.smt2
+  regress2/partitioning-for-parallel/qf_lra_numchecks.smt2
+  regress2/partitioning-for-parallel/qf_lra_revised.smt2
+  regress2/partitioning-for-parallel/qf_lra_strict.smt2
+  regress2/partitioning-for-parallel/qf_lra_zll.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
