@@ -167,19 +167,19 @@ def test_mk_datatype_sorts(solver):
     dtdecl0 = solver.mkDatatypeDecl("dt0", [p0])
     dtdecl1 = solver.mkDatatypeDecl("dt1", [p1])
     ctordecl0 = solver.mkDatatypeConstructorDecl("c0")
-    ctordecl0.addSelector("s0", u1.instantiate(p0))
+    ctordecl0.addSelector("s0", u1.instantiate([p0]))
     ctordecl1 = solver.mkDatatypeConstructorDecl("c1")
-    ctordecl1.addSelector("s1", u0.instantiate(p1))
+    ctordecl1.addSelector("s1", u0.instantiate([p1]))
     dtdecl0.addConstructor(ctordecl0)
     dtdecl1.addConstructor(ctordecl1)
     dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1])
-    isort1 = dt_sorts[1].instantiate(solver.getBooleanSort())
+    isort1 = dt_sorts[1].instantiate([solver.getBooleanSort()])
     t1 = solver.mkConst(isort1, "t")
     t0 = solver.mkTerm(
         Kind.APPLY_SELECTOR,
         t1.getSort().getDatatype().getSelector("s1").getTerm(),
         t1)
-    assert dt_sorts[0].instantiate(solver.getBooleanSort()) == t0.getSort()
+    assert dt_sorts[0].instantiate([solver.getBooleanSort()]) == t0.getSort()
 
 def test_mk_function_sort(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
