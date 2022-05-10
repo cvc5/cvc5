@@ -1,5 +1,6 @@
-; COMMAND-LINE: --fmf-fun -q
+; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 
 (define-fun-rec p2 ((n Int) (p Int)) Bool (
