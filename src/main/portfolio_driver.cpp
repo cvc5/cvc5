@@ -575,7 +575,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.025).set("multi-trigger-cache").set("enum-inst");
     s.add(0.025).unset("multi-trigger-linear").set("enum-inst");
     // other
-    s.add(0.025).set("pre-skolem-quant").set("enum-inst");
+    s.add(0.025).set("pre-skolem-quant", "on").set("enum-inst");
     s.add(0.025).set("inst-when", "full").set("enum-inst");
     s.add(0.025).unset("e-matching").unset("cbqi").set("enum-inst");
     s.add(0.025).set("enum-inst").set("quant-ind");
@@ -592,7 +592,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     s.add(0.025).set("term-db-mode", "relevant").set("enum-inst");
     s.add(0.025).set("enum-inst-interleave").set("enum-inst");
     // finite model find
-    s.add(0.025).set("finite-model-find").set("mbqi", "none");
+    s.add(0.025).set("finite-model-find").set("fmf-mbqi", "none");
     s.add(0.025).set("finite-model-find").set("decision", "internal");
     s.add(0.025)
         .set("finite-model-find")
