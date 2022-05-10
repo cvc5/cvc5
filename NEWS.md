@@ -7,6 +7,12 @@ cvc5 1.0.1
 
 - Removed support for non-standard `declare-funs`, `declare-consts`, and
   `declare-sorts` commands.
+- The kind for integer constants is now `CONST_INTEGER`, while real constants
+  continue to have kind `CONST_RATIONAL`.
+- Type rules for (dis)equality and if-then-else no longer allow mixing
+  integers and reals. Type rules for other operators like `APPLY_UF` now
+  require their arguments to match the type of the function being applied, and
+  do not assume integer/real subtyping.
 
 
 cvc5 1.0
