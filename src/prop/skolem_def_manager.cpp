@@ -74,7 +74,6 @@ void SkolemDefManager::notifyAsserted(TNode literal,
 
 bool SkolemDefManager::hasSkolems(TNode n)
 {
-  return true;
   Trace("sk-defs-debug") << "Compute has skolems for " << n << std::endl;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
