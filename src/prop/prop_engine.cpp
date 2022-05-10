@@ -293,27 +293,25 @@ void PropEngine::assertLemmasInternal(
   // setting up information about the relevance of skolems before literals
   // are potentially asserted to the theory engine, which it listens to for
   // tracking active skolem definitions.
+  Trace("ajr-temp") << "Assert trusted lemma internal" << std::endl;
   if (!trn.isNull())
   {
     assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
-  if (!removable)
-  {
-    // also add to the decision engine, where notice we don't need proofs
-    if (!trn.isNull())
+    if (!removable)
     {
       // notify the theory proxy of the lemma
       d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
     }
-    for (const theory::SkolemLemma& lem : ppLemmas)
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    if (!removable)
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
+  Trace("ajr-temp") << "Finished" << std::endl;
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
