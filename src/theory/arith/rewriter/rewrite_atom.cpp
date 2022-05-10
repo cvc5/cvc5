@@ -316,7 +316,7 @@ Node buildRealEquality(Sum&& sum)
   {
     s.second = s.second / lcoeff;
   }
-  // Must ensure real for both sides. This will change one but not both
+  // Must ensure real for both sides. This may change one but not both
   // terms.
   Node lhs = lterm.first;
   lhs = ensureReal(lhs);
