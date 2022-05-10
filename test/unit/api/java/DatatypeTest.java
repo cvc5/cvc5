@@ -69,11 +69,11 @@ class DatatypeTest
     DatatypeSelector sel = null;
 
     // verifying that the objects are considered null.
-    assertTrue(dtypeSpec == null);
-    assertTrue(cons == null);
-    assertTrue(d == null);
-    assertTrue(consConstr == null);
-    assertTrue(sel == null);
+    assertNull(dtypeSpec);
+    assertNull(cons);
+    assertNull(d);
+    assertNull(consConstr);
+    assertNull(sel);
 
     // changing the objects to be non-null
     dtypeSpec = d_solver.mkDatatypeDecl("list");
