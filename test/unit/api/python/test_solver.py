@@ -1146,7 +1146,7 @@ def test_define_fun_rec_global(solver):
   b = solver.mkVar(bSort, "b")
   gSym = solver.mkConst(fSort, "g")
   # (define-fun g (b Bool) Bool b)
-  g = solver.defineFunRec(gSym, [b], b, True)
+  g = solver.defineFunRec(gSym, [b], b, glbl=True)
 
   # (assert (or (not f) (not (g true))))
   solver.assertFormula(solver.mkTerm(
