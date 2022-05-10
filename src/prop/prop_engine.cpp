@@ -293,6 +293,14 @@ void PropEngine::assertLemmasInternal(
   // setting up information about the relevance of skolems before literals
   // are potentially asserted to the theory engine, which it listens to for
   // tracking active skolem definitions.
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
+  }
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -305,14 +313,6 @@ void PropEngine::assertLemmasInternal(
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
-  }
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
 }
 
