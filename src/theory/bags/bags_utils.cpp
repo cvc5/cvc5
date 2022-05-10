@@ -985,6 +985,13 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
   Node A = n[0];
   TypeNode bagType = A.getType();
   TypeNode partitionType = n.getType();
+
+  if (A.getKind() == BAG_EMPTY)
+  {
+    // return a nonempty partition
+    return nm->mkBag(bagType, A, nm->mkConstInt(Rational(1)));
+  }
+
   std::vector<uint32_t> indices =
       n.getOperator().getConst<TableGroupOp>().getIndices();
 
