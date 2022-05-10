@@ -276,7 +276,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, b
     size_t total = pow(2, numVar);
 
     // resultNodeLists is built column by column. 
-    std::vector<std::vector<TNode> > resultNodeLists(total);
+    std::vector<std::vector<Node> > resultNodeLists(total);
 
     // t is used to determine whether to push the node or its not_node.
     bool t = false;
@@ -314,7 +314,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, b
 
       numConsecutiveTF = numConsecutiveTF / 2;
     }
-    for (const std::vector<TNode>& row : resultNodeLists)
+    for (const std::vector<Node>& row : resultNodeLists)
     {
       Node conj = NodeManager::currentNM()->mkAnd(row);
       if (emitZLL)
