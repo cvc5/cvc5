@@ -22,6 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
+#include "options/parallel_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -56,7 +57,8 @@ TheoryProxy::TheoryProxy(Env& env,
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
-      || options().smt.produceLearnedLiterals;
+      || options().smt.produceLearnedLiterals
+      || options().parallel.computePartitions > 0;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
