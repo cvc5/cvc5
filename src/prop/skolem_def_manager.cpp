@@ -58,8 +58,8 @@ void SkolemDefManager::notifyAsserted(TNode literal,
   }
   std::unordered_set<Node> defs;
   getSkolems(literal, defs, true);
-  Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems "
-                   << defs << std::endl;
+  Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems " << defs
+                   << std::endl;
   for (const Node& d : defs)
   {
     if (d_skActive.find(d) != d_skActive.end())
@@ -143,8 +143,10 @@ bool SkolemDefManager::hasSkolems(TNode n)
   return d_hasSkolems[n];
 }
 
-void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems, bool useDefs)
-{  
+void SkolemDefManager::getSkolems(TNode n,
+                                  std::unordered_set<Node>& skolems,
+                                  bool useDefs)
+{
   NodeNodeMap::const_iterator itd;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;

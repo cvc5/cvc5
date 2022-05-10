@@ -78,9 +78,12 @@ class SkolemDefManager
    *
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
-   * @param useDefs Whether to add definitions for the skolems instead of the skolems
+   * @param useDefs Whether to add definitions for the skolems instead of the
+   * skolems
    */
-  void getSkolems(TNode n, std::unordered_set<Node>& skolems, bool useDefs = false);
+  void getSkolems(TNode n,
+                  std::unordered_set<Node>& skolems,
+                  bool useDefs = false);
   /**
    * Does n have skolems having definitions managed by this class? Should call
    * this method *after* notifying skolem definitions for all potential
