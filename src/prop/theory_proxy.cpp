@@ -162,9 +162,12 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       // which triggers their definitions to becoming active.
       std::vector<TNode> activeSkolemDefs;
       d_skdm->notifyAsserted(assertion, activeSkolemDefs, true);
-      // notify the decision engine of the skolem definitions that have become
-      // active due to the assertion.
-      d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      if (!activeSkolemDefs.empty())
+      {
+        // notify the decision engine of the skolem definitions that have become
+        // active due to the assertion.
+        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      }
     }
   }
   if (!d_stopSearch.get())
