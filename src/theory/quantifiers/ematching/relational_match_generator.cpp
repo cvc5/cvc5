@@ -63,7 +63,7 @@ bool RelationalMatchGenerator::reset(Node eqc)
   return true;
 }
 
-int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
+int RelationalMatchGenerator::getNextMatch(InstMatch& m)
 {
   Trace("relational-match-gen") << "getNextMatch, rel match gen" << std::endl;
   // try (up to) two different terms
@@ -100,11 +100,11 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     d_counter++;
     Trace("relational-match-gen")
         << "...try set " << s << " for " << checkPol << std::endl;
-    if (m.set(d_qstate, d_vindex, s))
+    if (m.set(d_vindex, s))
     {
       Trace("relational-match-gen") << "...success" << std::endl;
       int ret = continueNextMatch(
-          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
+          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;
@@ -114,7 +114,7 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
       // failed
       if (rmPrev)
       {
-        m.d_vals[d_vindex] = Node::null();
+        m.reset(d_vindex);
       }
     }
   }

@@ -34,8 +34,8 @@ class TestNodeWhiteNodeManager : public TestNode
 TEST_F(TestNodeWhiteNodeManager, mkConst_rational)
 {
   Rational i("3");
-  Node n = d_nodeManager->mkConst(CONST_RATIONAL, i);
-  Node m = d_nodeManager->mkConst(CONST_RATIONAL, i);
+  Node n = d_nodeManager->mkConstInt(i);
+  Node m = d_nodeManager->mkConstInt(i);
   ASSERT_EQ(n.getId(), m.getId());
 }
 

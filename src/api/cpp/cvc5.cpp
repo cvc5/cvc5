@@ -331,6 +331,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BAG_PARTITION, internal::Kind::BAG_PARTITION),
         KIND_ENUM(TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
         KIND_ENUM(TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
+        KIND_ENUM(TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),
+        KIND_ENUM(TABLE_JOIN, internal::Kind::TABLE_JOIN),
         /* Strings ---------------------------------------------------------- */
         KIND_ENUM(STRING_CONCAT, internal::Kind::STRING_CONCAT),
         KIND_ENUM(STRING_IN_REGEXP, internal::Kind::STRING_IN_REGEXP),
@@ -649,6 +651,10 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
         {internal::Kind::TABLE_PROJECT, TABLE_PROJECT},
         {internal::Kind::TABLE_PROJECT_OP, TABLE_PROJECT},
+        {internal::Kind::TABLE_AGGREGATE_OP, TABLE_AGGREGATE},
+        {internal::Kind::TABLE_AGGREGATE, TABLE_AGGREGATE},
+        {internal::Kind::TABLE_JOIN_OP, TABLE_JOIN},
+        {internal::Kind::TABLE_JOIN, TABLE_JOIN},
         /* Strings --------------------------------------------------------- */
         {internal::Kind::STRING_CONCAT, STRING_CONCAT},
         {internal::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -1038,7 +1044,7 @@ bool SynthResult::isUnknown() const
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
 
-std::ostream& operator<<(std::ostream& out, const internal::SynthResult& sr)
+std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
 {
   out << sr.toString();
   return out;
@@ -1061,17 +1067,6 @@ Sort::~Sort()
   {
     d_type.reset();
   }
-}
-
-std::set<internal::TypeNode> Sort::sortSetToTypeNodes(
-    const std::set<Sort>& sorts)
-{
-  std::set<internal::TypeNode> types;
-  for (const Sort& s : sorts)
-  {
-    types.insert(s.getTypeNode());
-  }
-  return types;
 }
 
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
@@ -1915,6 +1910,9 @@ size_t Op::getNumIndicesHelper() const
     case TUPLE_PROJECT:
       size = d_node->getConst<internal::TupleProjectOp>().getIndices().size();
       break;
+    case TABLE_PROJECT:
+      size = d_node->getConst<internal::TableProjectOp>().getIndices().size();
+      break;
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
   return size;
@@ -2605,6 +2603,7 @@ const internal::Rational& getRational(const internal::Node& node)
   {
     case internal::Kind::CAST_TO_REAL:
       return node[0].getConst<internal::Rational>();
+    case internal::Kind::CONST_INTEGER:
     case internal::Kind::CONST_RATIONAL:
       return node.getConst<internal::Rational>();
     default:
@@ -2636,6 +2635,7 @@ bool checkReal64Bounds(const internal::Rational& r)
 bool isReal(const internal::Node& node)
 {
   return node.getKind() == internal::Kind::CONST_RATIONAL
+         || node.getKind() == internal::Kind::CONST_INTEGER
          || node.getKind() == internal::Kind::CAST_TO_REAL;
 }
 bool isReal32(const internal::Node& node)
@@ -2649,7 +2649,8 @@ bool isReal64(const internal::Node& node)
 
 bool isInteger(const internal::Node& node)
 {
-  return node.getKind() == internal::Kind::CONST_RATIONAL
+  return (node.getKind() == internal::Kind::CONST_RATIONAL
+          || node.getKind() == internal::Kind::CONST_INTEGER)
          && node.getConst<internal::Rational>().isIntegral();
 }
 bool isInt32(const internal::Node& node)
@@ -3428,6 +3429,7 @@ bool DatatypeConstructorDecl::isNull() const
 std::string DatatypeConstructorDecl::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   std::stringstream ss;
   ss << *d_ctor;
@@ -3465,16 +3467,6 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
     : d_solver(slv), d_dtype(new internal::DType(name, isCoDatatype))
-{
-}
-
-DatatypeDecl::DatatypeDecl(const Solver* slv,
-                           const std::string& name,
-                           const Sort& param,
-                           bool isCoDatatype)
-    : d_solver(slv),
-      d_dtype(new internal::DType(
-          name, std::vector<internal::TypeNode>{*param.d_type}, isCoDatatype))
 {
 }
 
@@ -3640,6 +3632,7 @@ bool DatatypeSelector::isNull() const
 std::string DatatypeSelector::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   std::stringstream ss;
   ss << *d_stor;
@@ -4207,6 +4200,11 @@ bool Datatype::const_iterator::operator!=(
 
 bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
 
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
+{
+  return out << dtype.toString();
+}
+
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -4649,15 +4647,21 @@ Stat::Stat() {}
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
     : d_internal(s.d_internal),
-      d_default(s.d_default),
-      d_data(std::make_unique<StatData>(s.d_data->data))
+      d_default(s.d_default)
 {
+  if (s.d_data)
+  {
+    d_data = std::make_unique<StatData>(s.d_data->data);
+  }
 }
 Stat& Stat::operator=(const Stat& s)
 {
   d_internal = s.d_internal;
   d_default = s.d_default;
-  d_data = std::make_unique<StatData>(s.d_data->data);
+  if (s.d_data)
+  {
+    d_data = std::make_unique<StatData>(s.d_data->data);
+  }
   return *this;
 }
 
@@ -5227,12 +5231,10 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
     // constructors. We do this cast using division with 1. This has the
     // advantage wrt using TO_REAL since (constant) division is always included
     // in the theory.
-    res = Term(
-        this,
-        d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                          *res.d_node,
-                          d_nodeMgr->mkConst(internal::kind::CONST_RATIONAL,
-                                             internal::Rational(1))));
+    res = Term(this,
+               d_nodeMgr->mkNode(extToIntKind(DIVISION),
+                                 *res.d_node,
+                                 d_nodeMgr->mkConstInt(internal::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
@@ -6221,6 +6223,12 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case TABLE_PROJECT:
       res = mkOpHelper(kind, internal::TableProjectOp(args));
+      break;
+    case TABLE_AGGREGATE:
+      res = mkOpHelper(kind, internal::TableAggregateOp(args));
+      break;
+    case TABLE_JOIN:
+      res = mkOpHelper(kind, internal::TableJoinOp(args));
       break;
     default:
       if (nargs == 0)
@@ -7280,6 +7288,12 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
 std::string Solver::getInstantiations() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT
+                             || d_slv->getSmtMode() == internal::SmtMode::SAT
+                             || d_slv->getSmtMode()
+                                    == internal::SmtMode::SAT_UNKNOWN)
+      << "Cannot get instantiations unless after a UNSAT, SAT or UNKNOWN "
+         "response.";
   //////// all checks before this line
   std::stringstream ss;
   d_slv->printInstantiations(ss);

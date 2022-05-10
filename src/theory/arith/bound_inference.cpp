@@ -16,6 +16,7 @@
 #include "theory/arith/bound_inference.h"
 
 #include "smt/env.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 
@@ -161,6 +162,7 @@ void BoundInference::update_lower_bound(const Node& origin,
                                         const Node& value,
                                         bool strict)
 {
+  Assert(value.isConst());
   // lhs > or >= value because of origin
   Trace("bound-inf") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
                      << " due to " << origin << std::endl;
@@ -176,8 +178,8 @@ void BoundInference::update_lower_bound(const Node& origin,
 
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      b.lower_bound = b.upper_bound =
-          rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+      Node eq = mkEquality(lhs, value);
+      b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
     {
@@ -211,8 +213,8 @@ void BoundInference::update_upper_bound(const Node& origin,
     b.upper_origin = origin;
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      b.lower_bound = b.upper_bound =
-          rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+      Node eq = mkEquality(lhs, value);
+      b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
     {

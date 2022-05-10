@@ -230,7 +230,15 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
     else if (!opts.base.incrementalSolving)
     {
+      // if not incremental, we rely on ackermann to eliminate other theories.
       opts.smt.ackermann = true;
+    }
+    else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
+    {
+      // requested bitblast=eager in incremental mode, must be QF_BV only.
+      throw OptionException(
+          std::string("Eager bit-blasting is only support in incremental mode "
+                      "if the logic is quantifier-free bit-vectors"));
     }
   }
 
@@ -284,6 +292,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
     notifyModifyOption("ackermann", "false", "model generation");
     opts.smt.ackermann = false;
+    // we are not relying on ackermann to eliminate theories in this case
+    Assert(opts.bv.bitblastMode != options::BitblastMode::EAGER);
   }
 
   if (opts.smt.ackermann)
@@ -367,6 +377,18 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     {
       std::stringstream ss;
       ss << reasonNoQuant.str() << " not supported in quantified logics.";
+      throw OptionException(ss.str());
+    }
+  }
+  // check if we have separation logic heap types
+  if (d_env.hasSepHeap())
+  {
+    std::stringstream reasonNoSepLogic;
+    if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
+    {
+      std::stringstream ss;
+      ss << reasonNoSepLogic.str()
+         << " not supported when using separation logic.";
       throw OptionException(ss.str());
     }
   }
@@ -662,15 +684,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       // use the arithmetic equality solver by default
       opts.arith.arithEqSolver = true;
-    }
-  }
-  if (opts.arith.arithEqSolver)
-  {
-    if (!opts.arith.arithCongManWasSetByUser)
-    {
-      // if we are using the arithmetic equality solver, do not use the
-      // arithmetic congruence manager by default
-      opts.arith.arithCongMan = false;
     }
   }
 
@@ -1264,6 +1277,22 @@ bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
   return false;
 }
 
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
+                                                  std::ostream& reason) const
+{
+  if (options().smt.simplificationBoolConstProp)
+  {
+    // Spatial formulas in separation logic have a semantics that depends on
+    // their position in the AST (e.g. their nesting beneath separation
+    // conjunctions). Thus, we cannot apply BCP as a substitution for spatial
+    // predicates to the input formula. We disable this option altogether to
+    // ensure this is the case
+    notifyModifyOption("simplification-bcp", "false", "separation logic");
+    options().smt.simplificationBoolConstProp = false;
+  }
+  return false;
+}
+
 void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
 {
   bool needsUf = false;
@@ -1387,12 +1416,12 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // apply fmfBound options
   if (opts.quantifiers.fmfBound)
   {
-    if (!opts.quantifiers.mbqiModeWasSetByUser
-        || (opts.quantifiers.mbqiMode != options::MbqiMode::NONE
-            && opts.quantifiers.mbqiMode != options::MbqiMode::FMC))
+    if (!opts.quantifiers.fmfMbqiModeWasSetByUser
+        || (opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE
+            && opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::FMC))
     {
       // if bounded integers are set, use no MBQI by default
-      opts.quantifiers.mbqiMode = options::MbqiMode::NONE;
+      opts.quantifiers.fmfMbqiMode = options::FmfMbqiMode::NONE;
     }
     if (!opts.quantifiers.prenexQuantUserWasSetByUser)
     {
@@ -1403,9 +1432,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
-    if (opts.quantifiers.mbqiMode != options::MbqiMode::NONE)
+    if (opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE)
     {
-      opts.quantifiers.mbqiMode = options::MbqiMode::NONE;
+      opts.quantifiers.fmfMbqiMode = options::FmfMbqiMode::NONE;
     }
     if (!opts.quantifiers.hoElimStoreAxWasSetByUser)
     {

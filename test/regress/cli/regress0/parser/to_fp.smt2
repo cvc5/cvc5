@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strict-parsing -q
+; COMMAND-LINE: --strict-parsing
 ; EXPECT: sat
 (set-logic QF_FP)
 (declare-fun |c::main::main::3::div@1!0&0#1| () (_ FloatingPoint 8 24))

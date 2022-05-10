@@ -1,5 +1,6 @@
-; COMMAND-LINE: --strings-exp -q
+; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
+(set-logic ALL)
 (declare-fun a () String)
 (declare-fun b () String)
 (declare-fun c () String)

@@ -226,11 +226,13 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
   return {};
 }
 
-std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
+std::optional<bool> tryEvaluateRelationReflexive(Kind rel,
+                                                 TNode left,
+                                                 TNode right)
 {
-  if (atom.getNumChildren() == 2 && atom[0] == atom[1])
+  if (left == right)
   {
-    switch (atom.getKind())
+    switch (rel)
     {
       case Kind::LT: return false;
       case Kind::LEQ: return true;

@@ -16,7 +16,6 @@
 
 #include <vector>
 
-#include "expr/datatype_index.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
@@ -369,19 +368,14 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 {
   Assert(isInstantiated());
   vector<TypeNode> params;
-  for (uint32_t i = isInstantiatedDatatype() ? 1 : 0, i_end = getNumChildren();
-       i < i_end;
-       ++i)
+  for (uint32_t i = 1, i_end = getNumChildren(); i < i_end; ++i)
   {
     params.push_back((*this)[i]);
   }
   return params;
 }
 
-bool TypeNode::isTuple() const
-{
-  return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
-}
+bool TypeNode::isTuple() const { return getKind() == kind::TUPLE_TYPE; }
 
 bool TypeNode::isRecord() const
 {
@@ -390,34 +384,35 @@ bool TypeNode::isRecord() const
 
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
-  const DType& dt = getDType();
-  Assert(dt.getNumConstructors() == 1);
-  return dt[0].getNumArgs();
+  return getNumChildren();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
-  const DType& dt = getDType();
-  Assert(dt.getNumConstructors() == 1);
-  vector<TypeNode> types;
-  for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
-    types.push_back(dt[0][i].getRangeType());
+  std::vector<TypeNode> args;
+  for (uint32_t i = 0, i_end = getNumChildren(); i < i_end; ++i)
+  {
+    args.push_back((*this)[i]);
   }
-  return types;
+  return args;
 }
 
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
-  if(getKind() == kind::DATATYPE_TYPE) {
+  Kind k = getKind();
+  if (k == kind::DATATYPE_TYPE || k == kind::TUPLE_TYPE)
+  {
     return true;
   }
-  if(getKind() != kind::PARAMETRIC_DATATYPE) {
+  if (k != kind::PARAMETRIC_DATATYPE)
+  {
     return false;
   }
   const DType& dt = (*this)[0].getDType();
-  unsigned n = dt.getNumParameters();
+  size_t n = dt.getNumParameters();
   Assert(n < getNumChildren());
-  for(unsigned i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i)
+  {
     if (dt.getParameter(i) == (*this)[i + 1])
     {
       return false;
@@ -428,7 +423,7 @@ bool TypeNode::isInstantiatedDatatype() const {
 
 bool TypeNode::isInstantiatedUninterpretedSort() const
 {
-  return isUninterpretedSort() && getNumChildren() > 0;
+  return getKind() == kind::INSTANTIATED_SORT_TYPE;
 }
 
 bool TypeNode::isInstantiated() const
@@ -439,21 +434,29 @@ bool TypeNode::isInstantiated() const
 TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (getKind() == kind::PARAMETRIC_DATATYPE)
+  Kind k = getKind();
+  TypeNode ret;
+  // Note that parametric datatypes we instantiate have an AST where they are
+  // applied to their default parameters. In constrast, sort constructors have
+  // no children.
+  if (k == kind::PARAMETRIC_DATATYPE)
   {
     Assert(params.size() == getNumChildren() - 1);
-    TypeNode cons =
-        nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+    TypeNode cons = (*this)[0];
     std::vector<TypeNode> paramsNodes;
     paramsNodes.push_back(cons);
     for (const TypeNode& t : params)
     {
       paramsNodes.push_back(t);
     }
-    return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+    ret = nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
   }
-  Assert(isUninterpretedSortConstructor());
-  return nm->mkSort(*this, params);
+  else
+  {
+    Assert(isUninterpretedSortConstructor());
+    ret = nm->mkSort(*this, params);
+  }
+  return ret;
 }
 
 uint64_t TypeNode::getUninterpretedSortConstructorArity() const
@@ -476,10 +479,8 @@ std::string TypeNode::getName() const
 
 TypeNode TypeNode::getUninterpretedSortConstructor() const
 {
-  Assert(isInstantiatedUninterpretedSort());
-  NodeBuilder nb(kind::SORT_TYPE);
-  nb << NodeManager::operatorFromType(*this);
-  return nb.constructTypeNode();
+  Assert(getKind() == kind::INSTANTIATED_SORT_TYPE);
+  return (*this)[0];
 }
 
 bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
@@ -509,7 +510,9 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
 /** Is this a sort kind */
 bool TypeNode::isUninterpretedSort() const
 {
-  return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
+  Kind k = getKind();
+  return k == kind::INSTANTIATED_SORT_TYPE
+         || (k == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()));
 }
 
 /** Is this a sort constructor kind */
@@ -527,8 +530,9 @@ bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
 
 bool TypeNode::isDatatype() const
 {
-  return getKind() == kind::DATATYPE_TYPE
-         || getKind() == kind::PARAMETRIC_DATATYPE;
+  Kind k = getKind();
+  return k == kind::DATATYPE_TYPE || k == kind::PARAMETRIC_DATATYPE
+         || k == kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isParametricDatatype() const
@@ -582,13 +586,7 @@ std::string TypeNode::toString() const {
 
 const DType& TypeNode::getDType() const
 {
-  if (getKind() == kind::DATATYPE_TYPE)
-  {
-    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDTypeForIndex(dic.getIndex());
-  }
-  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-  return (*this)[0].getDType();
+  return NodeManager::currentNM()->getDTypeFor(*this);
 }
 
 bool TypeNode::isBag() const

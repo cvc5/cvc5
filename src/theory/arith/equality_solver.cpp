@@ -16,6 +16,7 @@
 #include "theory/arith/equality_solver.h"
 
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/linear/congruence_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -31,7 +32,8 @@ EqualitySolver::EqualitySolver(Env& env,
       d_aim(aim),
       d_notify(*this),
       d_ee(nullptr),
-      d_propLits(context())
+      d_propLits(context()),
+      d_acm(nullptr)
 {
 }
 
@@ -70,6 +72,16 @@ bool EqualitySolver::preNotifyFact(
 TrustNode EqualitySolver::explain(TNode lit)
 {
   Trace("arith-eq-solver-debug") << "explain " << lit << "?" << std::endl;
+  if (d_acm != nullptr)
+  {
+    // if we are using the congruence manager, consult whether it can explain
+    if (d_acm->canExplain(lit))
+    {
+      return d_acm->explain(lit);
+    }
+    // otherwise, don't explain
+    return TrustNode::null();
+  }
   // check if we propagated it?
   if (d_propLits.find(lit) == d_propLits.end())
   {
@@ -81,8 +93,19 @@ TrustNode EqualitySolver::explain(TNode lit)
   // if we did, explain with the arithmetic inference manager
   return d_aim.explainLit(lit);
 }
+
+void EqualitySolver::setCongruenceManager(linear::ArithCongruenceManager* acm)
+{
+  d_acm = acm;
+}
+
 bool EqualitySolver::propagateLit(Node lit)
 {
+  if (d_acm != nullptr)
+  {
+    // if we are using the congruence manager, notify it
+    return d_acm->propagate(lit);
+  }
   // if we've already propagated, ignore
   if (d_aim.hasPropagated(lit))
   {
@@ -96,6 +119,13 @@ bool EqualitySolver::propagateLit(Node lit)
 }
 void EqualitySolver::conflictEqConstantMerge(TNode a, TNode b)
 {
+  if (d_acm != nullptr)
+  {
+    // if we are using the congruence manager, notify it
+    Node eq = a.eqNode(b);
+    d_acm->propagate(eq);
+    return;
+  }
   d_aim.conflictEqConstantMerge(a, b);
 }
 

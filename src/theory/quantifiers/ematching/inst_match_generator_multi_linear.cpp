@@ -135,7 +135,7 @@ bool InstMatchGeneratorMultiLinear::reset(Node eqc)
   return resetChildren() > 0;
 }
 
-int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
+int InstMatchGeneratorMultiLinear::getNextMatch(InstMatch& m)
 {
   Trace("multi-trigger-linear-debug")
       << "InstMatchGeneratorMultiLinear::getNextMatch : reset " << std::endl;
@@ -153,7 +153,7 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
       << std::endl;
   Assert(d_next != nullptr);
   int ret_val =
-      continueNextMatch(q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
+      continueNextMatch(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
   if (ret_val > 0)
   {
     Trace("multi-trigger-linear")

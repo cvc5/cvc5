@@ -183,6 +183,8 @@ class TheoryArith : public Theory {
    * used to augment the TheoryModel.
    */
   std::map<Node, Node> d_arithModelCache;
+  /** Component of the above that was ill-typed */
+  std::map<Node, Node> d_arithModelCacheIllTyped;
   /** Is the above map computed? */
   bool d_arithModelCacheSet;
 

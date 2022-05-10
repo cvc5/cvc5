@@ -231,6 +231,7 @@ public:
    Kind k = n.getKind();
    switch (k)
    {
+     case kind::CONST_INTEGER:
      case kind::CONST_RATIONAL: return false;
      case kind::INTS_DIVISION:
      case kind::INTS_MODULUS:
@@ -347,13 +348,18 @@ class Constant : public NodeWrapper {
 public:
  Constant(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
 
- static bool isMember(Node n) { return n.getKind() == kind::CONST_RATIONAL; }
+ static bool isMember(Node n)
+ {
+   Kind k = n.getKind();
+   return k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER;
+ }
 
  bool isNormalForm() { return isMember(getNode()); }
 
  static Constant mkConstant(Node n)
  {
-   Assert(n.getKind() == kind::CONST_RATIONAL);
+   Assert(n.getKind() == kind::CONST_RATIONAL
+          || n.getKind() == kind::CONST_INTEGER);
    return Constant(n);
  }
 
@@ -633,9 +639,8 @@ private:
   }
 
   static bool multStructured(Node n) {
-    return n.getKind() ==  kind::MULT &&
-      n[0].getKind() == kind::CONST_RATIONAL &&
-      n.getNumChildren() == 2;
+    return n.getKind() == kind::MULT && n[0].isConst()
+           && n.getNumChildren() == 2;
   }
 
   Monomial(const Constant& c):
@@ -794,7 +799,7 @@ private:
   bool d_singleton;
 
   Polynomial(TNode n) : NodeWrapper(n), d_singleton(Monomial::isMember(n)) {
-    Assert(isMember(getNode()));
+    Assert(isMember(getNode())) << "Bad polynomial member " << n;
   }
 
   static Node makePlusNode(const std::vector<Monomial>& m) {
@@ -906,7 +911,10 @@ public:
     }
   }
 
-  static Polynomial parsePolynomial(Node n) {
+  static Polynomial parsePolynomial(Node n)
+  {
+    // required to remove TO_REAL here since equalities may require casts
+    n = n.getKind() == kind::TO_REAL ? n[0] : n;
     return Polynomial(n);
   }
 

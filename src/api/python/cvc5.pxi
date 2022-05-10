@@ -42,7 +42,7 @@ from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 
 cdef extern from "Python.h":
-    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
     object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
     void PyMem_Free(void*)
 
@@ -652,6 +652,9 @@ cdef class Grammar:
     def __cinit__(self, Solver solver):
         self.solver = solver
         self.cgrammar = c_Grammar()
+
+    def __str__(self):
+        return self.cgrammar.toString().decode()
 
     def addRule(self, Term ntSymbol, Term rule):
         """
@@ -2377,21 +2380,26 @@ cdef class Solver:
             diffi[termk] = termv
         return diffi
 
-    def getValue(self, Term t):
+    def getValue(self, term_or_list):
         """
-            Get the value of the given term in the current model.
+            Get the value of the given term or list of terms in the current
+            model.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-                ( get-value ( <term> ) )
+                ( get-value ( <term>* ) )
 
-            :param term: The term for which the value is queried.
-            :return: The value of the given term.
+            :param term_or_list: The term or list of terms for which the value
+                                 is queried.
+            :return: The value or list of values of the given term or list of
+                     terms.
         """
+        if isinstance(term_or_list, list):
+            return [self.getValue(t) for t in term_or_list]
         cdef Term term = Term(self)
-        term.cterm = self.csolver.getValue(t.cterm)
+        term.cterm = self.csolver.getValue((<Term> term_or_list).cterm)
         return term
 
     def getModelDomainElements(self, Sort s):
@@ -3236,8 +3244,8 @@ cdef class Sort:
         cdef vector[c_Sort] ces
         cdef vector[c_Sort] creplacements
 
-        # normalize the input parameters to be lists
         if isinstance(sort_or_list_1, list):
+            # call the API substitute method with lists
             assert isinstance(sort_or_list_2, list)
             es = sort_or_list_1
             replacements = sort_or_list_2
@@ -3250,14 +3258,11 @@ cdef class Sort:
             for e, r in zip(es, replacements):
                 ces.push_back((<Sort?> e).csort)
                 creplacements.push_back((<Sort?> r).csort)
-
+            sort.csort = self.csort.substitute(ces, creplacements)
         else:
-            # add the single elements to the vectors
-            ces.push_back((<Sort?> sort_or_list_1).csort)
-            creplacements.push_back((<Sort?> sort_or_list_2).csort)
+            # call the API substitute method with single sorts
+            sort.csort = self.csort.substitute((<Sort?> sort_or_list_1).csort, (<Sort?> sort_or_list_2).csort)
 
-        # call the API substitute method with lists
-        sort.csort = self.csort.substitute(ces, creplacements)
         return sort
 
 
@@ -3594,8 +3599,8 @@ cdef class Term:
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
 
-        # normalize the input parameters to be lists
         if isinstance(term_or_list_1, list):
+            # call the API substitute method with lists
             assert isinstance(term_or_list_2, list)
             es = term_or_list_1
             replacements = term_or_list_2
@@ -3607,14 +3612,11 @@ cdef class Term:
             for e, r in zip(es, replacements):
                 ces.push_back((<Term?> e).cterm)
                 creplacements.push_back((<Term?> r).cterm)
-
+            term.cterm = self.cterm.substitute(ces, creplacements)
         else:
-            # add the single elements to the vectors
-            ces.push_back((<Term?> term_or_list_1).cterm)
-            creplacements.push_back((<Term?> term_or_list_2).cterm)
+            # call the API substitute method with single terms
+            term.cterm = self.cterm.substitute((<Term?> term_or_list_1).cterm, (<Term?> term_or_list_2).cterm)
 
-        # call the API substitute method with lists
-        term.cterm = self.cterm.substitute(ces, creplacements)
         return term
 
     def hasOp(self):
