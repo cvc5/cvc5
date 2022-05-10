@@ -37,8 +37,6 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   {
     d_skDefs.insert(skolem, def);
   }
-  // notice we assume that skolem definitions are added at a time prior to
-  // when a literal containing that skolem is asserted.
 }
 
 TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
