@@ -989,7 +989,11 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
         // substitution is integral
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
-
+        if (elim.getType().isInteger() && !minVar.getType().isInteger())
+        {
+          elim = NodeManager::currentNM()->mkNode(kind::TO_REAL, elim);
+        }
+        Assert(elim.getType() == minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
@@ -3857,8 +3861,10 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
-                                            std::map<Node, Node>& arithModel)
+void TheoryArithPrivate::collectModelValues(
+    const std::set<Node>& termSet,
+    std::map<Node, Node>& arithModel,
+    std::map<Node, Node>& arithModelIllTyped)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
 
@@ -3895,13 +3901,22 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
           // integer variables in rare cases. We construct real in this case;
           // this will be corrected in TheoryArith::sanityCheckIntegerModel.
           qNode = nm->mkConstReal(qmodel);
+          if (term.getType().isInteger())
+          {
+            Trace("arith::collectModelInfo")
+                << "add to arithModelIllTyped " << term << " -> " << qNode
+                << std::endl;
+            // in this case, we add to the ill-typed map instead of the main map
+            arithModelIllTyped[term] = qNode;
+            continue;
+          }
         }
         else
         {
           qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
         }
-        Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", "
-                                         << qNode << ", true)" << endl;
+        Trace("arith::collectModelInfo")
+            << "add to arithModel " << term << " -> " << qNode << std::endl;
         // Add to the map
         arithModel[term] = qNode;
       }else{

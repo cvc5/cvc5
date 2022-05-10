@@ -1,4 +1,3 @@
-; COMMAND-LINE: -q
 (set-logic QF_AUFBV)
 (set-info :status sat)
 (declare-fun bv_22-0 () (_ BitVec 1))

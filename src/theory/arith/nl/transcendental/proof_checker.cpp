@@ -136,7 +136,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
-    Node rzero = nm->mkConstReal(Rational(0));
+    Node rzero = nm->mkConstRealOrInt(args[0].getType(), Rational(0));
     Node rone = nm->mkConstReal(Rational(1));
     return nm->mkNode(EQUAL, args[0].eqNode(rzero), e.eqNode(rone));
   }

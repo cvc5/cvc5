@@ -58,14 +58,16 @@ def test_is_null(solver):
   assert sel.isNull()
 
   # changing the objects to be non-null
-  dtypeSpec = solver.mkDatatypeDecl("list");
-  cons = solver.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", solver.getIntegerSort());
-  dtypeSpec.addConstructor(cons);
+  dtypeSpec = solver.mkDatatypeDecl("list")
+  cons = solver.mkDatatypeConstructorDecl("cons")
+  cons.addSelector("head", solver.getIntegerSort())
+  dtypeSpec.addConstructor(cons)
+  assert dtypeSpec.getNumConstructors() == 1
+  assert not dtypeSpec.isParametric()
   listSort = solver.mkDatatypeSort(dtypeSpec)
-  d = listSort.getDatatype();
-  consConstr = d[0];
-  sel = consConstr[0];
+  d = listSort.getDatatype()
+  consConstr = d[0]
+  sel = consConstr[0]
 
   # verifying that the new objects are non-null
   assert not dtypeSpec.isNull()
