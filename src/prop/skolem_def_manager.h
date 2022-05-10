@@ -78,8 +78,9 @@ class SkolemDefManager
    *
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
+   * @param useDefs Whether to add definitions for the skolems instead of the skolems
    */
-  void getSkolems(TNode n, std::unordered_set<Node>& skolems);
+  void getSkolems(TNode n, std::unordered_set<Node>& skolems, bool useDefs = false);
   /**
    * Does n have skolems having definitions managed by this class? Should call
    * this method *after* notifying skolem definitions for all potential
@@ -90,7 +91,7 @@ class SkolemDefManager
  private:
   /** skolems to definitions (user-context dependent) */
   NodeNodeMap d_skDefs;
-  /** set of active skolems (SAT-context dependent) */
+  /** set of active skolem definitions (SAT-context dependent) */
   NodeSet d_skActive;
   /** Cache for hasSkolems */
   NodeBoolMap d_hasSkolems;

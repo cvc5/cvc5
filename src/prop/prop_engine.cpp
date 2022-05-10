@@ -288,11 +288,13 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // Assert to decision engine. Notice this must come before the calls to
-  // assertTrustedLemmaInternal below, since the decision engine requires
-  // setting up information about the relevance of skolems before literals
-  // are potentially asserted to the theory engine, which it listens to for
-  // tracking active skolem definitions.
+  // We assert to the SAT solver first, which may trigger preregistration
+  // of literals to theory solvers.
+  // Note that this order is important for theories that send lemmas during
+  // preregistration, as it impacts the order in which lemmas are processed
+  // by default by the decision engine. In particular, sending to the SAT
+  // solver first means that lemmas sent in response to a lemma are processed
+  // before that lemma.
   if (!trn.isNull())
   {
     assertTrustedLemmaInternal(trn, removable);
@@ -301,6 +303,8 @@ void PropEngine::assertLemmasInternal(
   {
     assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
+  // Now, notify the decision engine, which also notifies the skolem definition
+  // manager.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs

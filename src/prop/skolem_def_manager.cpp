@@ -37,6 +37,8 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   {
     d_skDefs.insert(skolem, def);
   }
+  // notice we assume that skolem definitions are added at a time prior to
+  // when a literal containing that skolem is asserted.
 }
 
 TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
@@ -54,23 +56,21 @@ void SkolemDefManager::notifyAsserted(TNode literal,
     // already activated all skolems
     return;
   }
-  std::unordered_set<Node> skolems;
-  getSkolems(literal, skolems);
+  std::unordered_set<Node> defs;
+  getSkolems(literal, defs, true);
   Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems "
-                   << skolems << std::endl;
-  for (const Node& k : skolems)
+                   << defs << std::endl;
+  for (const Node& d : defs)
   {
-    if (d_skActive.find(k) != d_skActive.end())
+    if (d_skActive.find(d) != d_skActive.end())
     {
       // already active
       continue;
     }
-    d_skActive.insert(k);
-    Trace("sk-defs") << "...activate " << k << std::endl;
+    d_skActive.insert(d);
+    Trace("sk-defs") << "...activate " << d << std::endl;
     // add its definition to the activated list
-    NodeNodeMap::const_iterator it = d_skDefs.find(k);
-    Assert(it != d_skDefs.end());
-    activatedSkolems.push_back(it->second);
+    activatedSkolems.push_back(d);
   }
 }
 
@@ -143,8 +143,9 @@ bool SkolemDefManager::hasSkolems(TNode n)
   return d_hasSkolems[n];
 }
 
-void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems)
-{
+void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems, bool useDefs)
+{  
+  NodeNodeMap::const_iterator itd;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
@@ -165,9 +166,10 @@ void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems)
       visited.insert(cur);
       if (cur.isVar())
       {
-        if (d_skDefs.find(cur) != d_skDefs.end())
+        itd = d_skDefs.find(cur);
+        if (itd != d_skDefs.end())
         {
-          skolems.insert(cur);
+          skolems.insert(useDefs ? itd->second : Node(cur));
         }
         continue;
       }
