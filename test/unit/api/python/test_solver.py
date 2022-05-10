@@ -1641,17 +1641,17 @@ def test_block_model_values5(solver):
     solver.checkSat()
     solver.blockModelValues([x])
 
-def getInstantiations():
+def test_get_instantiations(solver):
     iSort = solver.getIntegerSort()
     boolSort = solver.getBooleanSort()
     p = solver.declareFun("p", [iSort], boolSort)
     x = solver.mkVar(iSort, "x")
-    bvl = solver.mkTerm(Kind.VARIABLE_LIST, [x])
-    app = solver.mkTerm(Kind.APPLY_UF, [p, x])
-    q = solver.mkTerm(Kind.FORALL, [bvl, app]);
+    bvl = solver.mkTerm(Kind.VARIABLE_LIST, x)
+    app = solver.mkTerm(Kind.APPLY_UF, p, x)
+    q = solver.mkTerm(Kind.FORALL, bvl, app)
     solver.assertFormula(q)
     five = solver.mkInteger(5)
-    app2 = solver.mkTerm(Kind.NOT, [solver.mkTerm(Kind.APPLY_UF, [p, five])])
+    app2 = solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.APPLY_UF, p, five))
     solver.assertFormula(app2)
     with pytest.raises(RuntimeError):
         solver.getInstantiations()
