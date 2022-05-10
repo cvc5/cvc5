@@ -364,6 +364,10 @@ void BagSolver::checkJoin(Node n)
 void BagSolver::checkGroup(Node n)
 {
   Assert(n.getKind() == TABLE_GROUP);
+
+  InferInfo notEmpty = d_ig.groupNotEmpty(n);
+  d_im.lemmaTheoryInference(&notEmpty);
+
   const set<Node>& elementsA = d_state.getElements(n[0]);
   for (const Node& a : elementsA)
   {

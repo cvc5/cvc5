@@ -369,6 +369,16 @@ class InferenceGenerator
 
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @return an inference that represents:
+   * (distinct
+   *   ((_ table.group n1 ... nk) A)
+   *   (as bag.empty (Bag (Table T)))
+   * )
+   */
+  InferInfo groupNotEmpty(Node n);
+
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param e an element of type T
    * @return an inference that represents:
    * (=>

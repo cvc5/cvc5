@@ -142,6 +142,7 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
+    case InferenceId::TABLES_GROUP_NOT_EMPTY: return "TABLES_GROUP_NOT_EMPTY";
     case InferenceId::TABLES_GROUP_UP: return "TABLES_GROUP_UP";
     case InferenceId::TABLES_GROUP_DOWN: return "TABLES_GROUP_DOWN";
     case InferenceId::TABLES_GROUP_PART_COUNT: return "TABLES_GROUP_PART_COUNT";
