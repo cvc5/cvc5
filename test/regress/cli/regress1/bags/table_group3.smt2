@@ -18,4 +18,3 @@
 (assert (bag.member (tuple "A" "X" "1") part2))
 
 (check-sat)
-(get-unsat-core)
