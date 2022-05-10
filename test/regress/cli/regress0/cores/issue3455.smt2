@@ -1,9 +1,10 @@
-; COMMAND-LINE: -q --incremental
+; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
+(set-logic ALL)
 (declare-fun x0 () Real)
 (check-sat)
 (assert (<= (* x0 (- 1.0)) 0.0))

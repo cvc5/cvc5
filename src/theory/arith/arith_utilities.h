@@ -338,6 +338,20 @@ Node negateProofLiteral(TNode n);
  */
 Node multConstants(const Node& c1, const Node& c2);
 
+/**
+ * Make the equality (= a b) or (= (- a b) zero) if a and b have different
+ * types, where zero has the same type as (- a b).
+ * Use this utility to ensure an equality is properly typed.
+ */
+Node mkEquality(const Node& a, const Node& b);
+
+/**
+ * Ensures that the returned pair has equal type, where a and b have
+ * real or integer type. We add TO_REAL if not.
+ */
+std::pair<Node,Node> mkSameType(const Node& a, const Node& b);
+
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

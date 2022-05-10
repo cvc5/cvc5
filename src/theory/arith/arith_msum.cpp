@@ -185,24 +185,24 @@ int ArithMSum::isolate(
           children.push_back(m);
         }
       }
-      val =
-          children.size() > 1
-              ? nm->mkNode(ADD, children)
-              : (children.size() == 1 ? children[0]
-                                      : nm->mkConstRealOrInt(vtn, Rational(0)));
+      val = children.size() > 1
+                ? nm->mkNode(ADD, children)
+                : (children.size() == 1 ? children[0]
+                                        : nm->mkConstInt(Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())
         {
-          veq_c = nm->mkConstReal(r.abs());
+          veq_c = nm->mkConstRealOrInt(r.abs());
         }
         else
         {
-          val = nm->mkNode(MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
+          val = nm->mkNode(
+              MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
       val = r.sgn() == 1
-                ? nm->mkNode(MULT, nm->mkConstRealOrInt(vtn, Rational(-1)), val)
+                ? nm->mkNode(MULT, nm->mkConstRealOrInt(Rational(-1)), val)
                 : val;
       return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
     }
@@ -219,12 +219,13 @@ int ArithMSum::isolate(
   int ires = isolate(v, msum, veq_c, val, k);
   if (ires != 0)
   {
+    NodeManager* nm = NodeManager::currentNM();
     Node vc = v;
     if (!veq_c.isNull())
     {
       if (doCoeff)
       {
-        vc = NodeManager::currentNM()->mkNode(MULT, veq_c, vc);
+        vc = nm->mkNode(MULT, veq_c, vc);
       }
       else
       {
@@ -232,8 +233,17 @@ int ArithMSum::isolate(
       }
     }
     bool inOrder = ires == 1;
-    veq = NodeManager::currentNM()->mkNode(
-        k, inOrder ? vc : val, inOrder ? val : vc);
+    // ensure type is correct for equality
+    if (k == EQUAL)
+    {
+      if (!vc.getType().isInteger() && val.getType().isInteger())
+      {
+        val = nm->mkNode(TO_REAL, val);
+      }
+      // note that conversely this utility will never use a real value as
+      // the solution for an integer, thus the types should match now
+    }
+    veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
   }
   return ires;
 }

@@ -1,4 +1,3 @@
-; COMMAND-LINE: -q
 ; EXPECT: sat
 ; EXPECT: ((baz true))
 (set-logic QF_NIRA)

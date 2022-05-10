@@ -26,6 +26,25 @@ class TupleUtils
 {
  public:
   /**
+   *
+   * @param n a node to print in the message if TypeCheckingExceptionPrivate
+   * exception is thrown
+   * @param tupleType the type of the tuple
+   * @param indices a list of indices for projection
+   * @throw an exception if one of the indices in node n is greater than the
+   * expected tuple's length
+   */
+  static void checkTypeIndices(Node n,
+                               TypeNode tupleType,
+                               const std::vector<uint32_t> indices);
+  /**
+   * @param tupleType1 tuple type
+   * @param tupleType2 tuple type
+   * @return the type of concatenation of tupleType1, tupleType2
+   */
+  static TypeNode concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2);
+
+  /**
    * @param tuple a node of tuple type
    * @param n_th the index of the element to be extracted, and must satisfy the
    * constraint 0 <= n_th < length of tuple.
