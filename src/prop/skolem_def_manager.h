@@ -70,8 +70,7 @@ class SkolemDefManager
    * @param literal The literal that became asserted
    * @param activatedDefs The list to add skolem definitions to
    */
-  void notifyAsserted(TNode literal,
-                      std::vector<TNode>& activatedDefs);
+  void notifyAsserted(TNode literal, std::vector<TNode>& activatedDefs);
 
   /**
    * Get the set of skolems maintained by this class that occur in node n,

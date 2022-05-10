@@ -49,7 +49,7 @@ TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
 void SkolemDefManager::notifyAsserted(TNode literal,
                                       std::vector<TNode>& activatedSkolems)
 {
-  if (d_skActive.size()==d_skDefs.size())
+  if (d_skActive.size() == d_skDefs.size())
   {
     // already activated all skolems
     return;
@@ -102,7 +102,8 @@ bool SkolemDefManager::hasSkolems(TNode n)
       {
         visit.pop_back();
         Kind ck = cur.getKind();
-        d_hasSkolems[cur] = (ck == kind::SKOLEM || ck == kind::BOOLEAN_TERM_VARIABLE);
+        d_hasSkolems[cur] =
+            (ck == kind::SKOLEM || ck == kind::BOOLEAN_TERM_VARIABLE);
       }
       else
       {
