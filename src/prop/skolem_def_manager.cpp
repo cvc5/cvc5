@@ -47,12 +47,11 @@ TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
 }
 
 void SkolemDefManager::notifyAsserted(TNode literal,
-                                      std::vector<TNode>& activatedSkolems,
-                                      bool useDefs)
+                                      std::vector<TNode>& activatedSkolems)
 {
   if (d_skActive.size()==d_skDefs.size())
   {
-    // already activated all skolems;
+    // already activated all skolems
     return;
   }
   std::unordered_set<Node> skolems;
@@ -68,18 +67,10 @@ void SkolemDefManager::notifyAsserted(TNode literal,
     }
     d_skActive.insert(k);
     Trace("sk-defs") << "...activate " << k << std::endl;
-    if (useDefs)
-    {
-      // add its definition to the activated list
-      NodeNodeMap::const_iterator it = d_skDefs.find(k);
-      Assert(it != d_skDefs.end());
-      activatedSkolems.push_back(it->second);
-    }
-    else
-    {
-      // add to the activated list
-      activatedSkolems.push_back(k);
-    }
+    // add its definition to the activated list
+    NodeNodeMap::const_iterator it = d_skDefs.find(k);
+    Assert(it != d_skDefs.end());
+    activatedSkolems.push_back(it->second);
   }
 }
 
@@ -110,7 +101,6 @@ bool SkolemDefManager::hasSkolems(TNode n)
       if (cur.getNumChildren() == 0)
       {
         visit.pop_back();
-        bool hasSkolem = false;
         Kind ck = cur.getKind();
         d_hasSkolems[cur] = (ck == kind::SKOLEM || ck == kind::BOOLEAN_TERM_VARIABLE);
       }
