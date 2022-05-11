@@ -157,6 +157,7 @@ class Module(object):
         self.options = []
         self.id = self.id.lower()
         self.id_cap = self.id.upper()
+        self.id_capitalized = self.id.capitalize()
         self.filename = os.path.splitext(os.path.split(filename)[-1])[0]
         self.header = os.path.join('options', '{}.h'.format(self.filename))
 
@@ -220,7 +221,8 @@ def generate_holder_mem_decls(modules):
 
 def generate_holder_ref_decls(modules):
     """Render reference declarations for holder members of the Option class"""
-    return concat_format('  options::Holder{id_cap}& {id};', modules)
+    return concat_format('''  const options::Holder{id_cap}& {id};
+  options::Holder{id_cap}& write{id_capitalized}();''', modules)
 
 
 ################################################################################
@@ -242,6 +244,15 @@ def generate_holder_mem_inits(modules):
 def generate_holder_ref_inits(modules):
     """Render initializations of holder references of the Option class"""
     return concat_format('        {id}(*d_{id}),', modules)
+
+
+def generate_write_functions(modules):
+    """Render write functions for holders within the Option class"""
+    return concat_format('''  options::Holder{id_cap}& write{id_capitalized}()
+  {{
+    return *d_{id};
+  }}
+''', modules)
 
 
 def generate_holder_mem_copy(modules):
@@ -873,6 +884,7 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
         'headers_module': generate_module_headers(modules),
         'holder_mem_inits': generate_holder_mem_inits(modules),
         'holder_ref_inits': generate_holder_ref_inits(modules),
+        'write_functions': generate_write_functions(modules),
         'holder_mem_copy': generate_holder_mem_copy(modules),
         # options/options_public.cpp
         'options_includes': generate_public_includes(modules),
