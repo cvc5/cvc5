@@ -65,6 +65,11 @@ if(NOT GMP_FOUND_SYSTEM)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
   endif()
 
+  set(CONFIGURE_OPTS "")
+  if(CMAKE_CROSSCOMPILING)
+    set(CONFIGURE_OPTS --host=${TOOLCHAIN_PREFIX} --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
+  endif()
+
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
   # Without the `--build` flag, `configure` may fail for cross-compilation
@@ -81,8 +86,7 @@ if(NOT GMP_FOUND_SYSTEM)
           --prefix=<INSTALL_DIR>
           --with-pic
           --enable-cxx
-          --host=${TOOLCHAIN_PREFIX}
-          --build=${CMAKE_HOST_SYSTEM_PROCESSOR}
+          ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
