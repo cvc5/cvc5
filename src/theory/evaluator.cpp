@@ -169,17 +169,22 @@ Node Evaluator::eval(TNode n,
   Node ret =
       evalInternal(n, args, vals, evalAsNode, results).toNode(n.getType());
   // if we failed to evaluate
-  if (ret.isNull() && d_rr != nullptr)
+  if (d_rr != nullptr)
   {
-    // should be stored in the evaluation-as-node map
-    std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
-    Assert(itn != evalAsNode.end());
-    ret = d_rr->rewrite(itn->second);
+    if (ret.isNull())
+    {
+      // should be stored in the evaluation-as-node map
+      std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
+      Assert(itn != evalAsNode.end());
+      ret = itn->second;
+    }
+    // always rewrite, which can change if the evaluation was not a constant
+    ret = d_rr->rewrite(ret);
   }
   // should be the same as substitution + rewriting, or possibly null if
   // d_rr is nullptr or non-constant
-  AlwaysAssert((ret.isNull() && d_rr == nullptr)
-         || !ret.isConst() || ret
+  Assert(((ret.isNull() || !ret.isConst()) && d_rr == nullptr)
+         || ret
                 == d_rr->rewrite(n.substitute(
                     args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
