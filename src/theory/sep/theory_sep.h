@@ -268,6 +268,8 @@ class TheorySep : public Theory {
    * Do p and q have a root label in common?
    */
   bool sharesRootLabel(Node p, Node q) const;
+  /** Is q an ancestor of p? */
+  bool isAncestorLabel(Node p, Node q) const;
 
   //term model
   std::map< Node, Node > d_tmodel;
