@@ -1350,11 +1350,11 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
-  Assert (children.size()>=2);
+  Assert(children.size() >= 2);
   // remember parent relationships
   for (const Node& c : children)
   {
-    Assert (c.getType()==parent.getType());
+    Assert(c.getType() == parent.getType());
     d_parentMap[c].push_back(parent);
   }
   // make the disjointness constraints
@@ -1734,15 +1734,16 @@ bool TheorySep::areDisequal( Node a, Node b ){
 void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
 {
   HeapAssertInfo * e2 = getOrMakeEqcInfo( t2, false );
-  if( !e2  || ( e2->d_posPto.empty() && e2->d_negPto.empty() ) ){
+  if (!e2 || (e2->d_posPto.empty() && e2->d_negPto.empty()))
+  {
     return;
   }
   // allocate the heap assert info for e1
-  HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
+  HeapAssertInfo* e1 = getOrMakeEqcInfo(t1, true);
   std::vector<Node> toAdd[2];
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
-    bool pol = i==0;
+    bool pol = i == 0;
     NodeList& e2list = pol ? e2->d_posPto : e2->d_negPto;
     for (const Node& p : e2list)
     {
@@ -1754,9 +1755,9 @@ void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
     }
   }
   // now that checks are complete, add them all now
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
-    NodeList& e1list = i==0 ? e1->d_posPto : e1->d_negPto;
+    NodeList& e1list = i == 0 ? e1->d_posPto : e1->d_negPto;
     for (const Node& p : toAdd[i])
     {
       e1list.push_back(p);
@@ -1764,29 +1765,23 @@ void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-bool TheorySep::sharesLblParent(Node p, Node q) const
-{
-  return true;
-}
+bool TheorySep::sharesLblParent(Node p, Node q) const { return true; }
 
-bool TheorySep::hasLblParent(Node p, Node q) const
-{
-  return true;
-}
+bool TheorySep::hasLblParent(Node p, Node q) const { return true; }
 
-bool TheorySep::checkPto( HeapAssertInfo * e, Node p, bool polarity )
+bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
 {
-  Assert (e!=nullptr);
+  Assert(e != nullptr);
   Assert(p.getKind() == kind::SEP_LABEL && p[0].getKind() == kind::SEP_PTO);
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node plbl = p[1];
   Node pval = p[0][1];
   bool ret = true;
   // check for inferences involving p with all pto constraints already
   // contained in e.
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
-    bool pol = i==0;
+    bool pol = i == 0;
     NodeList& elist = pol ? e->d_posPto : e->d_negPto;
     for (const Node& q : elist)
     {
@@ -1803,46 +1798,48 @@ bool TheorySep::checkPto( HeapAssertInfo * e, Node p, bool polarity )
         // two positive pto
         if (!areEqual(pval, qval))
         {
-          std::vector< Node > exp;
-          if( p[0][0]!=q[0][0] ){
+          std::vector<Node> exp;
+          if (p[0][0] != q[0][0])
+          {
             Assert(areEqual(p[0][0], q[0][0]));
-            exp.push_back( p[0][0].eqNode( q[0][0]) );
+            exp.push_back(p[0][0].eqNode(q[0][0]));
           }
-          exp.push_back( p );
-          exp.push_back( q );
-          //enforces injectiveness of pto
+          exp.push_back(p);
+          exp.push_back(q);
+          // enforces injectiveness of pto
           //  (pto x y) ^ (pto y w) ^ x = y => y = w
-          sendLemma( exp, pval.eqNode( qval ), InferenceId::SEP_PTO_PROP);
+          sendLemma(exp, pval.eqNode(qval), InferenceId::SEP_PTO_PROP);
           // Don't need to add this if the labels are identical. This is an
           // optimization to minimize the size of the pto list
-          if (plbl==qlbl)
+          if (plbl == qlbl)
           {
             ret = false;
           }
         }
       }
-      else if (polarity != pol )
+      else if (polarity != pol)
       {
         // a positive and negative pto
         if (!areDisequal(pval, qval))
         {
-          std::vector< Node > exp;
-          if( p[0][0]!=q[0][0] ){
+          std::vector<Node> exp;
+          if (p[0][0] != q[0][0])
+          {
             Assert(areEqual(p[0][0], q[0][0]));
-            exp.push_back( p[0][0].eqNode( q[0][0]) );
+            exp.push_back(p[0][0].eqNode(q[0][0]));
           }
-          exp.push_back( polarity ? p : p.negate() );
-          exp.push_back( polarity ? q.negate() : q );
+          exp.push_back(polarity ? p : p.negate());
+          exp.push_back(polarity ? q.negate() : q);
           std::vector<Node> conc;
-          if (pval!=qval)
+          if (pval != qval)
           {
             conc.push_back(pval.eqNode(qval).notNode());
           }
           Node concn = nm->mkOr(conc);
-          Trace("sep-pto")  << "Conclusion is " << concn << std::endl;
+          Trace("sep-pto") << "Conclusion is " << concn << std::endl;
           // propagation (pto x y) ^ ~(pto z w) ^ x = z => y != w
           // or (pto x y) ^ ~(pto z y) ^ x = z => false
-          sendLemma( exp, concn, InferenceId::SEP_PTO_NEG_PROP);
+          sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
         }
       }
       else

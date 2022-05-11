@@ -246,8 +246,8 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
-  std::map< Node, std::vector<Node> > d_parentMap;
-  
+  std::map<Node, std::vector<Node> > d_parentMap;
+
   void makeDisjointHeap(Node parent, const std::vector<Node>& children);
 
   //term model
@@ -313,7 +313,7 @@ class TheorySep : public Theory {
   bool hasLblParent(Node p, Node q) const;
 
   void debugPrintHeap( HeapInfo& heap, const char * c );
-  bool checkPto( HeapAssertInfo * ei, Node p, bool polarity );
+  bool checkPto(HeapAssertInfo* ei, Node p, bool polarity);
   void computeLabelModel( Node lbl );
   Node instantiateLabel(Node n,
                         Node o_lbl,
