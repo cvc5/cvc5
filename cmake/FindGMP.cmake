@@ -82,7 +82,6 @@ if(NOT GMP_FOUND_SYSTEM)
           --with-pic
           --enable-cxx
           --host=${TOOLCHAIN_PREFIX}
-          --build=${CMAKE_HOST_SYSTEM_PROCESSOR}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
