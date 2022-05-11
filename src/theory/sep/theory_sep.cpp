@@ -1383,7 +1383,7 @@ std::vector<Node> TheorySep::getRootLabels(Node p) const
 
 bool TheorySep::sharesRootLabel(Node p, Node q) const
 {
-  if (p==q)
+  if (p == q)
   {
     return true;
   }
@@ -1411,7 +1411,7 @@ bool TheorySep::isAncestorLabel(Node p, Node q) const
   {
     cur = visit.back();
     visit.pop_back();
-    if (cur==q)
+    if (cur == q)
     {
       return true;
     }
@@ -1828,9 +1828,11 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       Assert(q.getKind() == SEP_LABEL && q[0].getKind() == SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
-      if (qlbl.getKind()!=SET_SINGLETON && plbl.getKind()!=SET_SINGLETON && !sharesRootLabel(plbl, qlbl))
+      if (qlbl.getKind() != SET_SINGLETON && plbl.getKind() != SET_SINGLETON
+          && !sharesRootLabel(plbl, qlbl))
       {
-        Trace("sep-pto") << "Constraints " << p << " and " << q << " do not share a root label" << std::endl;
+        Trace("sep-pto") << "Constraints " << p << " and " << q
+                         << " do not share a root label" << std::endl;
         // if do not share a parent, skip
         continue;
       }
