@@ -321,7 +321,7 @@ void TheorySep::notifyFact(TNode atom,
   if (atom.getKind() == SEP_LABEL && atom[0].getKind() == SEP_PTO)
   {
     // associate the equivalence class of the lhs with this pto
-    Node r = getRepresentative(atom[1]);
+    Node r = getRepresentative(atom[0][0]);
     HeapAssertInfo* e = getOrMakeEqcInfo(r, true);
     if (checkPto(e, atom, polarity))
     {
@@ -1808,7 +1808,9 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           exp.push_back(q);
           // enforces injectiveness of pto
           //  (pto x y) ^ (pto y w) ^ x = y => y = w
-          sendLemma(exp, pval.eqNode(qval), InferenceId::SEP_PTO_PROP);
+          Node concn = pval.eqNode(qval);
+          Trace("sep-pto") << "prop pos/pos: " << concn << " by " << exp << std::endl;
+          sendLemma(exp, concn, InferenceId::SEP_PTO_PROP);
           // Don't need to add this if the labels are identical. This is an
           // optimization to minimize the size of the pto list
           if (plbl == qlbl)
@@ -1836,7 +1838,7 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
             conc.push_back(pval.eqNode(qval).notNode());
           }
           Node concn = nm->mkOr(conc);
-          Trace("sep-pto") << "Conclusion is " << concn << std::endl;
+          Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp << std::endl;
           // propagation (pto x y) ^ ~(pto z w) ^ x = z => y != w
           // or (pto x y) ^ ~(pto z y) ^ x = z => false
           sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
