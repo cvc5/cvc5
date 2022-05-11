@@ -25,7 +25,7 @@ namespace cvc5::internal {
 /**
  * \internal
  * This documentation is target for the online documentation that can
- * be found at https://cvc5.github.io/docs/cvc5-1.0.0/proofs/proof_rules.html.
+ * be found at https://cvc5.github.io/docs/latest/proofs/proof_rules.html
  * \endinternal
  *
  * \verbatim embed:rst:leading-asterisk
