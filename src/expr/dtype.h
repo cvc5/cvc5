@@ -650,43 +650,6 @@ struct DTypeHashFunction
   }
 }; /* struct DTypeHashFunction */
 
-/* stores an index to DType residing in NodeManager */
-class DTypeIndexConstant
-{
- public:
-  DTypeIndexConstant(size_t index);
-
-  size_t getIndex() const { return d_index; }
-  bool operator==(const DTypeIndexConstant& uc) const
-  {
-    return d_index == uc.d_index;
-  }
-  bool operator!=(const DTypeIndexConstant& uc) const { return !(*this == uc); }
-  bool operator<(const DTypeIndexConstant& uc) const
-  {
-    return d_index < uc.d_index;
-  }
-  bool operator<=(const DTypeIndexConstant& uc) const
-  {
-    return d_index <= uc.d_index;
-  }
-  bool operator>(const DTypeIndexConstant& uc) const { return !(*this <= uc); }
-  bool operator>=(const DTypeIndexConstant& uc) const { return !(*this < uc); }
-
- private:
-  const size_t d_index;
-}; /* class DTypeIndexConstant */
-
-std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic);
-
-struct DTypeIndexConstantHashFunction
-{
-  size_t operator()(const DTypeIndexConstant& dic) const
-  {
-    return IntegerHashFunction()(dic.getIndex());
-  }
-}; /* struct DTypeIndexConstantHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
 }  // namespace cvc5::internal

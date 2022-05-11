@@ -1,5 +1,5 @@
-; COMMAND-LINE: -q
 ; EXPECT: sat
+(set-logic ALL)
 (set-option :nl-ext-ent-conf true)
 (declare-const x Int)
 (assert (> (* x x) (+ x x)))

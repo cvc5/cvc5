@@ -25,7 +25,6 @@
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"
-#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
@@ -308,35 +307,6 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
 
-    case kind::DATATYPE_TYPE:
-    {
-      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
-          n.getConst<DatatypeIndexConstant>().getIndex()));
-      if (dt.isTuple())
-      {
-        unsigned int nargs = dt[0].getNumArgs();
-        if (nargs == 0)
-        {
-          out << "Tuple";
-        }
-        else
-        {
-          out << "(Tuple";
-          for (unsigned int i = 0; i < nargs; i++)
-          {
-            out << " ";
-            toStreamType(out, dt[0][i].getRangeType());
-          }
-          out << ")";
-        }
-      }
-      else
-      {
-        out << cvc5::internal::quoteSymbol(dt.getName());
-      }
-      break;
-    }
-
     case kind::UNINTERPRETED_SORT_VALUE:
     {
       const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
@@ -468,7 +438,9 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if(n.getKind() == kind::SORT_TYPE) {
+  Kind k = n.getKind();
+  if (k == kind::SORT_TYPE)
+  {
     string name;
     if(n.getNumChildren() != 0) {
       out << '(';
@@ -485,10 +457,36 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  else if (k == kind::DATATYPE_TYPE)
+  {
+    const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
+    if (dt.isTuple())
+    {
+      unsigned int nargs = dt[0].getNumArgs();
+      if (nargs == 0)
+      {
+        out << "Tuple";
+      }
+      else
+      {
+        out << "(Tuple";
+        for (unsigned int i = 0; i < nargs; i++)
+        {
+          out << " ";
+          toStreamType(out, dt[0][i].getRangeType());
+        }
+        out << ")";
+      }
+    }
+    else
+    {
+      out << cvc5::internal::quoteSymbol(dt.getName());
+    }
+    return;
+  }
 
   // determine if we are printing out a type ascription, store the argument of
   // the type ascription into type_asc_arg.
-  Kind k = n.getKind();
   Node type_asc_arg;
   TypeNode force_nt;
   if (k == kind::APPLY_TYPE_ASCRIPTION)
@@ -808,6 +806,37 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  case kind::TABLE_AGGREGATE:
+  {
+    TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.project function initial_value bag)
+      out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
+    }
+    else
+    {
+      // e.g.  ((_ table.aggr 0) function initial_value bag)
+      out << "(_ table.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
+          << ")";
+    }
+    return;
+  }
+  case kind::TABLE_JOIN:
+  {
+    TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.join A B)
+      out << "table.join " << n[0] << " " << n[1] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.project 0 1 2 3) A B)
+      out << "(_ table.join" << op << ") " << n[0] << " " << n[1] << ")";
+    }
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];
@@ -980,7 +1009,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   stringstream parens;
-  
+
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
       toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c, lbind);
@@ -1076,9 +1105,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::GEQ: return ">=";
   case kind::DIVISION:
   case kind::DIVISION_TOTAL: return "/";
-  case kind::INTS_DIVISION_TOTAL: 
+  case kind::INTS_DIVISION_TOTAL:
   case kind::INTS_DIVISION: return "div";
-  case kind::INTS_MODULUS_TOTAL: 
+  case kind::INTS_MODULUS_TOTAL:
   case kind::INTS_MODULUS: return "mod";
   case kind::ABS: return "abs";
   case kind::IS_INTEGER: return "is_int";
@@ -1141,6 +1170,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // datatypes theory
   case kind::APPLY_TESTER: return "is";
   case kind::APPLY_UPDATER: return "update";
+  case kind::TUPLE_TYPE: return "Tuple";
 
   // set theory
   case kind::SET_UNION: return "set.union";
@@ -1187,6 +1217,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_PARTITION: return "bag.partition";
   case kind::TABLE_PRODUCT: return "table.product";
   case kind::TABLE_PROJECT: return "table.project";
+  case kind::TABLE_AGGREGATE: return "table.aggr";
+  case kind::TABLE_JOIN: return "table.join";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

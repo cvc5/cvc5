@@ -57,10 +57,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 
-  if (options().arith.arithEqSolver)
-  {
-    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
-  }
+  // construct the equality solver
+  d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
 }
 
 TheoryArith::~TheoryArith(){
@@ -78,13 +76,7 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
   // if the equality solver is enabled, then it is responsible for setting
   // up the equality engine
-  if (d_eqSolver != nullptr)
-  {
-    return d_eqSolver->needsEqualityEngine(esi);
-  }
-  // otherwise, the linear arithmetic solver is responsible for setting up
-  // the equality engine
-  return d_internal->needsEqualityEngine(esi);
+  return d_eqSolver->needsEqualityEngine(esi);
 }
 void TheoryArith::finishInit()
 {
@@ -104,12 +96,14 @@ void TheoryArith::finishInit()
     d_nonlinearExtension.reset(
         new nl::NonlinearExtension(d_env, *this, d_astate));
   }
-  if (d_eqSolver != nullptr)
-  {
-    d_eqSolver->finishInit();
-  }
+  d_eqSolver->finishInit();
   // finish initialize in the old linear solver
   d_internal->finishInit();
+
+  // Set the congruence manager on the equality solver. If the congruence
+  // manager exists, it is responsible for managing the notifications from
+  // the equality engine, which the equality solver forwards to it.
+  d_eqSolver->setCongruenceManager(d_internal->getCongruenceManager());
 }
 
 void TheoryArith::preRegisterTerm(TNode n)
@@ -121,7 +115,11 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
+void TheoryArith::notifySharedTerm(TNode n)
+{
+  n = n.getKind() == kind::TO_REAL ? n[0] : n;
+  d_internal->notifySharedTerm(n);
+}
 
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
@@ -199,6 +197,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheIllTyped.clear();
     d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
@@ -232,7 +231,7 @@ bool TheoryArith::preNotifyFact(
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.
   bool ret = true;
-  if (d_eqSolver != nullptr)
+  if (options().arith.arithEqSolver)
   {
     // the equality solver may indicate ret = false, after which the assertion
     // will be asserted to the equality engine in the default way.
@@ -253,14 +252,11 @@ bool TheoryArith::needsCheckLastEffort() {
 
 TrustNode TheoryArith::explain(TNode n)
 {
-  if (d_eqSolver != nullptr)
+  // if the equality solver has an explanation for it, use it
+  TrustNode texp = d_eqSolver->explain(n);
+  if (!texp.isNull())
   {
-    // if the equality solver has an explanation for it, use it
-    TrustNode texp = d_eqSolver->explain(n);
-    if (!texp.isNull())
-    {
-      return texp;
-    }
+    return texp;
   }
   return d_internal->explain(n);
 }
@@ -352,6 +348,7 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryArith::getModelValue(TNode var) {
+  var = var.getKind() == kind::TO_REAL ? var[0] : var;
   std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
   if (it != d_arithModelCache.end())
   {
@@ -376,7 +373,8 @@ void TheoryArith::updateModelCache(std::set<Node>& termSet)
   {
     d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
-    d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
@@ -384,48 +382,54 @@ void TheoryArith::updateModelCache(const std::set<Node>& termSet)
   if (!d_arithModelCacheSet)
   {
     d_arithModelCacheSet = true;
-    d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 bool TheoryArith::sanityCheckIntegerModel()
 {
-
-    // Double check that the model from the linear solver respects integer types,
-    // if it does not, add a branch and bound lemma. This typically should never
-    // be necessary, but is needed in rare cases.
-    bool addedLemma = false;
-    bool badAssignment = false;
-    Trace("arith-check") << "model:" << std::endl;
-    for (const auto& p : d_arithModelCache)
+  // Double check that the model from the linear solver respects integer types,
+  // if it does not, add a branch and bound lemma. This typically should never
+  // be necessary, but is needed in rare cases.
+  if (Configuration::isAssertionBuild())
+  {
+    for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Trace("arith-check") << p.first << " -> " << p.second << std::endl;
-      if (p.first.getType().isInteger() && !p.second.getType().isInteger())
-      {
-        warning() << "TheoryArithPrivate generated a bad model value for "
-                     "integer variable "
-                  << p.first << " : " << p.second << std::endl;
-        // must branch and bound
-        TrustNode lem =
-            d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
-        if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
-        {
-          addedLemma = true;
-        }
-        badAssignment = true;
-      }
+      // will change to strict type equal
+      Assert(p.second.getType().isSubtypeOf(p.second.getType()));
     }
-    if (addedLemma)
+  }
+  bool addedLemma = false;
+  bool badAssignment = false;
+  Trace("arith-check") << "model:" << std::endl;
+  for (const auto& p : d_arithModelCacheIllTyped)
+  {
+    Trace("arith-check") << p.first << " -> " << p.second << std::endl;
+    Assert(p.first.getType().isInteger() && !p.second.getType().isInteger());
+    warning() << "TheoryArithPrivate generated a bad model value for "
+                 "integer variable "
+              << p.first << " : " << p.second << std::endl;
+    // must branch and bound
+    TrustNode lem =
+        d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+    if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
     {
-      // we had to add a branch and bound lemma since the linear solver assigned
-      // a non-integer value to an integer variable.
-      return true;
+      addedLemma = true;
     }
-    // this would imply that linear arithmetic's model failed to satisfy a branch
-    // and bound lemma
-    AlwaysAssert(!badAssignment)
-        << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
-          "branching lemma was sent";
-    return false;
+    badAssignment = true;
+  }
+  if (addedLemma)
+  {
+    // we had to add a branch and bound lemma since the linear solver assigned
+    // a non-integer value to an integer variable.
+    return true;
+  }
+  // this would imply that linear arithmetic's model failed to satisfy a branch
+  // and bound lemma
+  AlwaysAssert(!badAssignment)
+      << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
+         "branching lemma was sent";
+  return false;
 }
 
 }  // namespace arith

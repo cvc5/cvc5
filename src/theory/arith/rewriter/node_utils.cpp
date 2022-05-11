@@ -81,6 +81,37 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
+TNode removeToReal(TNode t) { return t.getKind() == kind::TO_REAL ? t[0] : t; }
+
+Node maybeEnsureReal(TypeNode tn, TNode t)
+{
+  // if we require being a real
+  if (!tn.isInteger())
+  {
+    // ensure that t has type real
+    Assert(tn.isReal());
+    return ensureReal(t);
+  }
+  return t;
+}
+
+Node ensureReal(TNode t)
+{
+  if (t.getType().isInteger())
+  {
+    if (t.isConst())
+    {
+      // short-circuit
+      Node ret = NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
+      Assert(ret.getType().isReal());
+      return ret;
+    }
+    Trace("arith-rewriter-debug") << "maybeEnsureReal: " << t << std::endl;
+    return NodeManager::currentNM()->mkNode(kind::TO_REAL, t);
+  }
+  return t;
+}
+
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory

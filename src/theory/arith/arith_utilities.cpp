@@ -351,6 +351,38 @@ Node multConstants(const Node& c1, const Node& c2)
       tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
 }
 
+Node mkEquality(const Node& a, const Node& b)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(a.getType().isRealOrInt());
+  Assert(b.getType().isRealOrInt());
+  // if they have the same type, just make them equal
+  if (a.getType() == b.getType())
+  {
+    return nm->mkNode(EQUAL, a, b);
+  }
+  // otherwise subtract and set equal to zero
+  Node diff = nm->mkNode(Kind::SUB, a, b);
+  return nm->mkNode(EQUAL, diff, mkZero(diff.getType()));
+}
+
+std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
+{
+  TypeNode at = a.getType();
+  TypeNode bt = b.getType();
+  if (at == bt)
+  {
+    return {a, b};
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  if (at.isInteger() && bt.isReal())
+  {
+    return {nm->mkNode(kind::TO_REAL, a), b};
+  }
+  Assert(at.isReal() && bt.isInteger());
+  return {a, nm->mkNode(kind::TO_REAL, b)};
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

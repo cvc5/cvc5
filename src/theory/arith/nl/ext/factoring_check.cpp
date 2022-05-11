@@ -35,7 +35,7 @@ namespace nl {
 FactoringCheck::FactoringCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,
@@ -125,6 +125,8 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           }
           Node sum = nm->mkNode(Kind::ADD, itf->second);
           sum = rewrite(sum);
+          // remove TO_REAL if necessary here
+          sum = sum.getKind() == TO_REAL ? sum[0] : sum;
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
 
