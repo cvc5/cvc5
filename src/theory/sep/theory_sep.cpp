@@ -1399,36 +1399,6 @@ bool TheorySep::sharesRootLabel(Node p, Node q) const
   return false;
 }
 
-bool TheorySep::isAncestorLabel(Node p, Node q) const
-{
-  std::unordered_set<Node> visited;
-  std::unordered_set<Node>::iterator it;
-  std::vector<Node> visit;
-  std::map<Node, std::vector<Node> >::const_iterator itp;
-  Node cur;
-  visit.push_back(p);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (cur == q)
-    {
-      return true;
-    }
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      itp = d_parentMap.find(cur);
-      if (itp != d_parentMap.end())
-      {
-        visit.insert(visit.end(), itp->second.begin(), itp->second.end());
-      }
-    }
-  } while (!visit.empty());
-  return false;
-}
-
 Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) {
   Assert(n.getKind() != kind::SEP_LABEL);
   NodeManager* nm = NodeManager::currentNM();
