@@ -1812,7 +1812,7 @@ void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
 bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
 {
   Assert(e != nullptr);
-  Assert(p.getKind() == kind::SEP_LABEL && p[0].getKind() == kind::SEP_PTO);
+  Assert(p.getKind() == SEP_LABEL && p[0].getKind() == SEP_PTO);
   NodeManager* nm = NodeManager::currentNM();
   Node plbl = p[1];
   Node pval = p[0][1];
@@ -1825,11 +1825,12 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
     NodeList& elist = pol ? e->d_posPto : e->d_negPto;
     for (const Node& q : elist)
     {
-      Assert(q.getKind() == kind::SEP_LABEL && q[0].getKind() == kind::SEP_PTO);
+      Assert(q.getKind() == SEP_LABEL && q[0].getKind() == SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
-      if (!sharesRootLabel(plbl, qlbl))
+      if (qlbl.getKind()!=SET_SINGLETON && plbl.getKind()!=SET_SINGLETON && !sharesRootLabel(plbl, qlbl))
       {
+        Trace("sep-pto") << "Constraints " << p << " and " << q << " do not share a root label" << std::endl;
         // if do not share a parent, skip
         continue;
       }
