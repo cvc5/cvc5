@@ -381,14 +381,13 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     // make conclusion based on type of assertion
     if (satom.getKind() == SEP_STAR || satom.getKind() == SEP_WAND)
     {
-      std::vector<Node> children;
-      std::vector<Node> c_lems;
       TypeNode tn = getReferenceType();
       if (d_reference_bound_max.find(tn) != d_reference_bound_max.end())
       {
-        c_lems.push_back(
-            nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max[tn]));
+        Node blem = nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max[tn]);
+        d_im.lemma(blem, InferenceId::SEP_LABEL_DEF);
       }
+      std::vector<Node> children;
       std::vector<Node> labels;
       getLabelChildren(satom, slbl, children, labels);
       Node empSet = nm->mkConst(EmptySet(slbl.getType()));
@@ -400,6 +399,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       else
       {
+        Assert (satom.getKind()==SEP_WAND);
         // nil does not occur in labels[0]
         Node nr = getNilRef(tn);
         Node nrlem = nm->mkNode(SET_MEMBER, nr, labels[0]).negate();
