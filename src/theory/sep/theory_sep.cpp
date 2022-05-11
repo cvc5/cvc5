@@ -1359,19 +1359,22 @@ std::vector<Node> TheorySep::getRootLabels(Node p) const
   std::map<Node, std::vector<Node> >::const_iterator itp;
   Node cur;
   visit.push_back(p);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited.insert(cur);
       itp = d_parentMap.find(cur);
-      if( itp==d_parentMap.end() ){
+      if (itp == d_parentMap.end())
+      {
         roots.push_back(cur);
       }
       else
       {
-        visit.insert(visit.end(),itp->second.begin(),itp->second.end());
+        visit.insert(visit.end(), itp->second.begin(), itp->second.end());
       }
     }
   } while (!visit.empty());
@@ -1384,7 +1387,7 @@ bool TheorySep::sharesRootLabel(Node p, Node q) const
   std::vector<Node> rq = getRootLabels(q);
   for (const Node& r : rp)
   {
-    if (std::find(rq.begin(), rq.end(), r)!=rq.end())
+    if (std::find(rq.begin(), rq.end(), r) != rq.end())
     {
       return true;
     }
