@@ -119,7 +119,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkArraySort(bvSort, fpSort));
 
     Solver slv = new Solver();
-    assertThrows(CVC5ApiException.class, () -> slv.mkArraySort(boolSort, boolSort));
+    assertDoesNotThrow(() -> slv.mkArraySort(boolSort, boolSort));
     slv.close();
   }
 
@@ -150,7 +150,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkDatatypeSort(dtypeSpec));
 
     Solver slv = new Solver();
-    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSort(dtypeSpec));
+    assertDoesNotThrow(() -> slv.mkDatatypeSort(dtypeSpec));
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSort(throwsDtypeSpec));

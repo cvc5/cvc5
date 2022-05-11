@@ -80,8 +80,7 @@ def test_mk_array_sort(solver):
     solver.mkArraySort(bvSort, fpSort)
 
     slv = cvc5.Solver()
-    with pytest.raises(RuntimeError):
-        slv.mkArraySort(boolSort, boolSort)
+    slv.mkArraySort(boolSort, boolSort)
 
 
 def test_mk_bit_vector_sort(solver):
@@ -108,8 +107,7 @@ def test_mk_datatype_sort(solver):
     solver.mkDatatypeSort(dtypeSpec)
 
     slv = cvc5.Solver()
-    with pytest.raises(RuntimeError):
-        slv.mkDatatypeSort(dtypeSpec)
+    slv.mkDatatypeSort(dtypeSpec)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     with pytest.raises(RuntimeError):

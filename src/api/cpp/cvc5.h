@@ -832,15 +832,15 @@ class CVC5_EXPORT Sort
       const std::vector<Sort>& sorts);
   /** Helper to convert a vector of internal TypeNodes to Sorts. */
   std::vector<Sort> static typeNodeVectorToSorts(
-      const Solver* slv, const std::vector<internal::TypeNode>& types);
+      internal::NodeManager* nm, const std::vector<internal::TypeNode>& types);
 
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param t The internal type that is to be wrapped by this sort.
    * @return The Sort.
    */
-  Sort(const Solver* slv, const internal::TypeNode& t);
+  Sort(internal::NodeManager* nm, const internal::TypeNode& t);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -849,9 +849,9 @@ class CVC5_EXPORT Sort
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal type wrapped by this sort.
@@ -918,7 +918,7 @@ class CVC5_EXPORT Op
   /**
    * Syntactic equality operator.
    *
-   * @note Both operators must belong to the same solver object.
+   * @note Both operators must belong to the same node manager.
    *
    * @param t The operator to compare to for equality.
    * @return True if both operators are syntactically identical.
@@ -928,7 +928,7 @@ class CVC5_EXPORT Op
   /**
    * Syntactic disequality operator.
    *
-   * @note Both terms must belong to the same solver object.
+   * @note Both terms must belong to the same node manager.
    *
    * @param t The operator to compare to for disequality.
    * @return True if operators differ syntactically.
@@ -970,19 +970,19 @@ class CVC5_EXPORT Op
  private:
   /**
    * Constructor for a single kind (non-indexed operator).
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param k The kind of this Op.
    */
-  Op(const Solver* slv, const Kind k);
+  Op(internal::NodeManager* nm, const Kind k);
 
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node managaer.
    * @param k The kind of this Op.
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
    */
-  Op(const Solver* slv, const Kind k, const internal::Node& n);
+  Op(internal::NodeManager* nm, const Kind k, const internal::Node& n);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1015,9 +1015,9 @@ class CVC5_EXPORT Op
   Term getIndexHelper(size_t index) const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /** The kind of this operator. */
   Kind d_kind;
@@ -1086,7 +1086,7 @@ class CVC5_EXPORT Term
   /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
-   * Both terms must belong to the same solver object.
+   * @note Both terms must belong to the same node manager.
    * @param t The term to compare to for equality.
    * @return True if the terms are equal.
    */
@@ -1095,7 +1095,7 @@ class CVC5_EXPORT Term
   /**
    * Syntactic disequality operator.
    * Return true if both terms differ syntactically.
-   * Both terms must belong to the same solver object.
+   * @note Both terms must belong to the same node manager.
    * @param t The term to compare to for disequality.
    * @return True if terms are disequal.
    */
@@ -1309,11 +1309,11 @@ class CVC5_EXPORT Term
 
     /**
      * Constructor
-     * @param slv The associated solver object.
+     * @param nm The associated node manager.
      * @param e A ``std::shared pointer`` to the node that we're iterating over.
      * @param p The position of the iterator (e.g. which child it's on).
      */
-    const_iterator(const Solver* slv,
+    const_iterator(internal::NodeManager* nm,
                    const std::shared_ptr<internal::Node>& e,
                    uint32_t p);
 
@@ -1363,9 +1363,9 @@ class CVC5_EXPORT Term
 
    private:
     /**
-     * The associated solver object.
+     * The associated node manager.
      */
-    const Solver* d_solver;
+    internal::NodeManager* d_nm;
     /** The original node to be iterated over. */
     std::shared_ptr<internal::Node> d_origNode;
     /** Keeps track of the iteration position. */
@@ -1682,37 +1682,37 @@ class CVC5_EXPORT Term
 
  protected:
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
  private:
+  /** Helper method to collect all elements of a set. */
+  static void collectSet(std::set<Term>& set,
+                         const internal::Node& node,
+                         internal::NodeManager* nm);
+  /** Helper method to collect all elements of a sequence. */
+  static void collectSequence(std::vector<Term>& seq,
+                              const internal::Node& node,
+                              internal::NodeManager* nm);
+
+  /**
+   * Constructor.
+   * @param nm The associated node manager.
+   * @param n The internal node that is to be wrapped by this term.
+   * @return The Term.
+   */
+  Term(internal::NodeManager* nm, const internal::Node& n);
+
+  /** @return The internal wrapped Node of this term. */
+  const internal::Node& getNode(void) const;
+
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<internal::Node> static termVectorToNodes(
       const std::vector<Term>& terms);
   /** Helper to convert a vector of internal Nodes to Terms. */
   std::vector<Term> static nodeVectorToTerms(
-      const Solver* slv, const std::vector<internal::Node>& nodes);
-
-  /** Helper method to collect all elements of a set. */
-  static void collectSet(std::set<Term>& set,
-                         const internal::Node& node,
-                         const Solver* slv);
-  /** Helper method to collect all elements of a sequence. */
-  static void collectSequence(std::vector<Term>& seq,
-                              const internal::Node& node,
-                              const Solver* slv);
-
-  /**
-   * Constructor.
-   * @param slv The associated solver object.
-   * @param n The internal node that is to be wrapped by this term.
-   * @return The Term.
-   */
-  Term(const Solver* slv, const internal::Node& n);
-
-  /** @return The internal wrapped Node of this term. */
-  const internal::Node& getNode(void) const;
+      internal::NodeManager* nm, const std::vector<internal::Node>& nodes);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1873,11 +1873,11 @@ class CVC5_EXPORT DatatypeConstructorDecl
  private:
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
-  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+  DatatypeConstructorDecl(internal::NodeManager* nm, const std::string& name);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1892,9 +1892,9 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isResolved() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal (intermediate) datatype constructor wrapped by this
@@ -1966,24 +1966,24 @@ class CVC5_EXPORT DatatypeDecl
  private:
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param name The name of the datatype.
    * @param isCoDatatype True if a codatatype is to be constructed.
    * @return The DatatypeDecl.
    */
-  DatatypeDecl(const Solver* slv,
+  DatatypeDecl(internal::NodeManager* nm,
                const std::string& name,
                bool isCoDatatype = false);
 
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param name The name of the datatype.
    * @param params A list of sort parameters.
    * @param isCoDatatype True if a codatatype is to be constructed.
    */
-  DatatypeDecl(const Solver* slv,
+  DatatypeDecl(internal::NodeManager* nm,
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
@@ -1998,9 +1998,9 @@ class CVC5_EXPORT DatatypeDecl
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal (intermediate) datatype wrapped by this datatype
@@ -2072,11 +2072,12 @@ class CVC5_EXPORT DatatypeSelector
  private:
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param stor The internal datatype selector to be wrapped.
    * @return The DatatypeSelector.
    */
-  DatatypeSelector(const Solver* slv, const internal::DTypeSelector& stor);
+  DatatypeSelector(internal::NodeManager* nm,
+                   const internal::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2085,9 +2086,9 @@ class CVC5_EXPORT DatatypeSelector
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
@@ -2302,18 +2303,18 @@ class CVC5_EXPORT DatatypeConstructor
    private:
     /**
      * Constructor.
-     * @param slv The associated Solver object.
+     * @param nm The associated node manager.
      * @param ctor The internal datatype constructor to iterate over.
      * @param begin True if this is a `begin()` iterator.
      */
-    const_iterator(const Solver* slv,
+    const_iterator(internal::NodeManager* nm,
                    const internal::DTypeConstructor& ctor,
                    bool begin);
 
     /**
-     * The associated solver object.
+     * The associated node manager.
      */
-    const Solver* d_solver;
+    internal::NodeManager* d_nm;
 
     /**
      * A pointer to the list of selectors of the internal datatype
@@ -2342,11 +2343,11 @@ class CVC5_EXPORT DatatypeConstructor
  private:
   /**
    * Constructor.
-   * @param slv The associated solver instance.
+   * @param nm The associated node manager.
    * @param ctor The internal datatype constructor to be wrapped.
    * @return The DatatypeConstructor.
    */
-  DatatypeConstructor(const Solver* slv,
+  DatatypeConstructor(internal::NodeManager* nm,
                       const internal::DTypeConstructor& ctor);
 
   /**
@@ -2363,9 +2364,9 @@ class CVC5_EXPORT DatatypeConstructor
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
@@ -2554,16 +2555,18 @@ class CVC5_EXPORT Datatype
    private:
     /**
      * Constructor.
-     * @param slv The associated Solver object.
+     * @param nm The associated node manager.
      * @param dtype The internal datatype to iterate over.
      * @param begin True if this is a begin() iterator.
      */
-    const_iterator(const Solver* slv, const internal::DType& dtype, bool begin);
+    const_iterator(internal::NodeManager* nm,
+                   const internal::DType& dtype,
+                   bool begin);
 
     /**
-     * The associated solver object.
+     * The associated node manager.
      */
-    const Solver* d_solver;
+    internal::NodeManager* d_nm;
 
     /**
      * A pointer to the list of constructors of the internal datatype
@@ -2592,11 +2595,11 @@ class CVC5_EXPORT Datatype
  private:
   /**
    * Constructor.
-   * @param slv The associated solver instance.
+   * @param nm The associated node manager.
    * @param dtype The internal datatype to be wrapped.
    * @return The Datatype.
    */
-  Datatype(const Solver* slv, const internal::DType& dtype);
+  Datatype(internal::NodeManager* nm, const internal::DType& dtype);
 
   /**
    * Return constructor for name.
@@ -2619,9 +2622,9 @@ class CVC5_EXPORT Datatype
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal datatype wrapped by this datatype.
@@ -3211,13 +3214,6 @@ class CVC5_EXPORT Solver
   friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
-
- private:
-  /*
-   * Constructs a solver with the given original options. This should only be
-   * used internally when the Solver is reset.
-   */
-  Solver(std::unique_ptr<internal::Options>&& original);
 
  public:
   /* .................................................................... */
@@ -5002,6 +4998,29 @@ class CVC5_EXPORT Solver
   std::ostream& getOutput(const std::string& tag) const;
 
  private:
+  /**
+   * Helper for mk-functions that call d_nm->mkConst().
+   * @param nm The associated node manager.
+   * @pram t The value.
+   */
+  template <typename T>
+  static Term mkValHelper(internal::NodeManager* nm, const T& t);
+  /**
+   * Helper for creating rational values.
+   * @param nm The associated node manager.
+   * @param r The value (either int or real).
+   * @param isInt True to create an integer value.
+   */
+  static Term mkRationalValHelper(internal::NodeManager*,
+                                  const internal::Rational&,
+                                  bool);
+
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
+  Solver(std::unique_ptr<internal::Options>&& original);
+
   /** @return The node manager of this solver */
   internal::NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
@@ -5012,12 +5031,6 @@ class CVC5_EXPORT Solver
   /** Helper for creating operators. */
   template <typename T>
   Op mkOpHelper(Kind kind, const T& t) const;
-  /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
-  template <typename T>
-  Term mkValHelper(const T& t) const;
-  /** Helper for making rational values. */
-  Term mkRationalValHelper(const internal::Rational& r,
-                           bool isInt = true) const;
   /** Helper for mkReal functions that take a string as argument. */
   Term mkRealOrIntegerFromStrHelper(const std::string& s,
                                     bool isInt = true) const;
@@ -5104,7 +5117,7 @@ class CVC5_EXPORT Solver
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<internal::Options> d_originalOptions;
   /** The node manager of this solver. */
-  internal::NodeManager* d_nodeMgr;
+  internal::NodeManager* d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */

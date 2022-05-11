@@ -160,7 +160,7 @@ TEST_F(TestApiBlackSolver, mkArraySort)
   ASSERT_NO_THROW(d_solver.mkArraySort(bvSort, fpSort));
 
   Solver slv;
-  ASSERT_THROW(slv.mkArraySort(boolSort, boolSort), CVC5ApiException);
+  ASSERT_NO_THROW(slv.mkArraySort(boolSort, boolSort));
 }
 
 TEST_F(TestApiBlackSolver, mkBitVectorSort)
