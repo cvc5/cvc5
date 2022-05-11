@@ -395,42 +395,11 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       Assert(children.size() > 1);
       if (satom.getKind() == SEP_STAR)
       {
-        // reduction for heap : union, pairwise disjoint
-        Node ulem = nm->mkNode(SET_UNION, labels[0], labels[1]);
-        size_t lsize = labels.size();
-        for (size_t i = 2; i < lsize; i++)
-        {
-          ulem = nm->mkNode(SET_UNION, ulem, labels[i]);
-        }
-        ulem = slbl.eqNode(ulem);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : star reduction, union : " << ulem << std::endl;
-        c_lems.push_back(ulem);
-        for (size_t i = 0; i < lsize; i++)
-        {
-          for (size_t j = (i + 1); j < lsize; j++)
-          {
-            Node s = nm->mkNode(SET_INTER, labels[i], labels[j]);
-            Node ilem = s.eqNode(empSet);
-            Trace("sep-lemma-debug")
-                << "Sep::Lemma : star reduction, disjoint : " << ilem
-                << std::endl;
-            c_lems.push_back(ilem);
-          }
-        }
+        // make disjoint heap
+        makeDisjointHeap(slbl, labels);
       }
       else
       {
-        Node ulem = nm->mkNode(SET_UNION, slbl, labels[0]);
-        ulem = ulem.eqNode(labels[1]);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : wand reduction, union : " << ulem << std::endl;
-        c_lems.push_back(ulem);
-        Node s = nm->mkNode(SET_INTER, slbl, labels[0]);
-        Node ilem = s.eqNode(empSet);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : wand reduction, disjoint : " << ilem << std::endl;
-        c_lems.push_back(ilem);
         // nil does not occur in labels[0]
         Node nr = getNilRef(tn);
         Node nrlem = nm->mkNode(SET_MEMBER, nr, labels[0]).negate();
@@ -438,12 +407,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
             << "Sep::Lemma: sep.nil not in wand antecedant heap : " << nrlem
             << std::endl;
         d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
-      }
-      // send out definitional lemmas for introduced sets
-      for (const Node& clem : c_lems)
-      {
-        Trace("sep-lemma") << "Sep::Lemma : definition : " << clem << std::endl;
-        d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
+        // make disjoint heap
+        makeDisjointHeap(labels[1], {slbl, labels[0]});
       }
       conc = nm->mkNode(AND, children);
     }
