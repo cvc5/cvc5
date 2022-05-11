@@ -321,7 +321,7 @@ void TheorySep::notifyFact(TNode atom,
   if (atom.getKind() == SEP_LABEL && atom[0].getKind() == SEP_PTO)
   {
     // associate the equivalence class of the lhs with this pto
-    Node r = getRepresentative(atom[0][0]);
+    Node r = getRepresentative(atom[1]);
     HeapAssertInfo* e = getOrMakeEqcInfo(r, true);
     if (checkPto(e, atom, polarity))
     {
@@ -1828,21 +1828,21 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       Assert(q.getKind() == kind::SEP_LABEL && q[0].getKind() == kind::SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
+      if (!sharesRootLabel(plbl, qlbl))
+      {
+        // if do not share a parent, skip
+        continue;
+      }
       if (polarity && pol)
       {
         // two positive pto
         if (!areEqual(pval, qval))
         {
-          if (!sharesRootLabel(plbl, qlbl))
-          {
-            // if do not share a parent, skip
-            continue;
-          }
           std::vector<Node> exp;
-          if (p[0][0] != q[0][0])
+          if (plbl != qlbl)
           {
-            Assert(areEqual(p[0][0], q[0][0]));
-            exp.push_back(p[0][0].eqNode(q[0][0]));
+            Assert(areEqual(plbl, qlbl));
+            exp.push_back(plbl.eqNode(qlbl));
           }
           exp.push_back(p);
           exp.push_back(q);
@@ -1862,21 +1862,17 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       }
       else if (polarity != pol)
       {
-        Node pos = polarity ? p : q;
-        Node neg = polarity ? q : p;
-        if (qlbl != plbl)
-        {
-          continue;
-        }
         // a positive and negative pto
         if (!areDisequal(pval, qval))
         {
           std::vector<Node> exp;
-          if (p[0][0] != q[0][0])
+          if (plbl != qlbl)
           {
-            Assert(areEqual(p[0][0], q[0][0]));
-            exp.push_back(p[0][0].eqNode(q[0][0]));
+            Assert(areEqual(plbl, qlbl));
+            exp.push_back(plbl.eqNode(qlbl));
           }
+          Node pos = polarity ? p : q;
+          Node neg = polarity ? q : p;
           exp.push_back(pos);
           exp.push_back(neg.notNode());
           std::vector<Node> conc;
