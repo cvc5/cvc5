@@ -177,9 +177,9 @@ Node Evaluator::eval(TNode n,
     ret = d_rr->rewrite(itn->second);
   }
   // should be the same as substitution + rewriting, or possibly null if
-  // d_rr is nullptr
-  Assert((ret.isNull() && d_rr == nullptr)
-         || ret
+  // d_rr is nullptr or non-constant
+  AlwaysAssert((ret.isNull() && d_rr == nullptr)
+         || !ret.isConst() || ret
                 == d_rr->rewrite(n.substitute(
                     args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
