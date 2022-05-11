@@ -99,6 +99,9 @@ bool SkolemDefManager::hasSkolems(TNode n)
       {
         visit.pop_back();
         Kind ck = cur.getKind();
+        // We have skolems if we have one of these kinds. We do not make this
+        // test depend on whether the skolem has a definition, since that is
+        // prone to change.
         d_hasSkolems[cur] =
             (ck == kind::SKOLEM || ck == kind::BOOLEAN_TERM_VARIABLE);
       }
