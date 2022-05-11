@@ -246,7 +246,9 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
-  std::map< Node, Node > d_label_map_parent;
+  std::map< Node, std::vector<Node> > d_parentMap;
+  
+  void makeDisjointHeap(Node parent, const std::vector<Node>& children);
 
   //term model
   std::map< Node, Node > d_tmodel;
@@ -256,8 +258,6 @@ class TheorySep : public Theory {
   public:
    HeapAssertInfo(context::Context* c);
    ~HeapAssertInfo() {}
-   context::CDO<Node> d_pto;
-   context::CDO<bool> d_has_neg_pto;
    /** List of positive pto */
    NodeList d_posPto;
    /** List of negative pto */

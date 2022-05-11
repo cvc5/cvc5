@@ -1342,10 +1342,46 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(refType));
     Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "sep label");
     d_label_map[atom][lbl][child] = n_lbl;
-    d_label_map_parent[n_lbl] = lbl;
     return n_lbl;
   }else{
     return (*it).second;
+  }
+}
+
+void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
+{
+  Assert (children.size()>=2);
+  // remember parent relationships
+  for (const Node& c : children)
+  {
+    Assert (c.getType()==parent.getType());
+    d_parentMap[c].push_back(parent);
+  }
+  // make the disjointness constraints
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> lems;
+  Node ulem = nm->mkNode(SET_UNION, children[0], children[1]);
+  size_t lsize = children.size();
+  for (size_t i = 2; i < lsize; i++)
+  {
+    ulem = nm->mkNode(SET_UNION, ulem, children[i]);
+  }
+  ulem = parent.eqNode(ulem);
+  lems.push_back(ulem);
+  Node empSet = nm->mkConst(EmptySet(parent.getType()));
+  for (size_t i = 0; i < lsize; i++)
+  {
+    for (size_t j = (i + 1); j < lsize; j++)
+    {
+      Node s = nm->mkNode(SET_INTER, children[i], children[j]);
+      Node ilem = s.eqNode(empSet);
+      lems.push_back(ilem);
+    }
+  }
+  // send out definitional lemmas for introduced sets
+  for (const Node& clem : lems)
+  {
+    d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
   }
 }
 
@@ -1698,26 +1734,32 @@ bool TheorySep::areDisequal( Node a, Node b ){
 void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
 {
   HeapAssertInfo * e2 = getOrMakeEqcInfo( t2, false );
-  if( e2 && ( !e2->d_posPto.empty() || !e2->d_negPto.empty() ) ){
-    HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
-    for (size_t i=0; i<2; i++)
+  if( !e2  || ( e2->d_posPto.empty() && e2->d_negPto.empty() ) ){
+    return;
+  }
+  // allocate the heap assert info for e1
+  HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
+  std::vector<Node> toAdd[2];
+  for (size_t i=0; i<2; i++)
+  {
+    bool pol = i==0;
+    NodeList& e2list = pol ? e2->d_posPto : e2->d_negPto;
+    for (const Node& p : e2list)
     {
-      bool pol = i==0;
-      NodeList& e2list = pol ? e2->d_posPto : e2->d_negPto;
-      std::vector<Node> toAdd;
-      for (const Node& p : e2list)
+      if (checkPto(e1, p, pol))
       {
-        if (checkPto(e1, p, pol))
-        {
-          // add unless checkPto determined it was redundant
-          toAdd.push_back(p);
-        }
+        // add unless checkPto determined it was redundant
+        toAdd[i].push_back(p);
       }
-      NodeList& e1list = pol ? e1->d_posPto : e1->d_negPto;
-      for (const Node& p : toAdd)
-      {
-        e1list.push_back(p);
-      }
+    }
+  }
+  // now that checks are complete, add them all now
+  for (size_t i=0; i<2; i++)
+  {
+    NodeList& e1list = i==0 ? e1->d_posPto : e1->d_negPto;
+    for (const Node& p : toAdd[i])
+    {
+      e1list.push_back(p);
     }
   }
 }
@@ -1736,24 +1778,29 @@ bool TheorySep::checkPto( HeapAssertInfo * e, Node p, bool polarity )
 {
   Assert (e!=nullptr);
   Assert(p.getKind() == kind::SEP_LABEL && p[0].getKind() == kind::SEP_PTO);
+  NodeManager * nm = NodeManager::currentNM();
   Node plbl = p[1];
   Node pval = p[0][1];
   bool ret = true;
+  // check for inferences involving p with all pto constraints already
+  // contained in e.
   for (size_t i=0; i<2; i++)
   {
     bool pol = i==0;
     NodeList& elist = pol ? e->d_posPto : e->d_negPto;
     for (const Node& q : elist)
     {
+      Assert(q.getKind() == kind::SEP_LABEL && q[0].getKind() == kind::SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
-      // if do not share a parent, skip
       if (!sharesLblParent(plbl, qlbl))
       {
+        // if do not share a parent, skip
         continue;
       }
       if (polarity && pol)
       {
+        // two positive pto
         if (!areEqual(pval, qval))
         {
           std::vector< Node > exp;
@@ -1766,12 +1813,17 @@ bool TheorySep::checkPto( HeapAssertInfo * e, Node p, bool polarity )
           //enforces injectiveness of pto
           //  (pto x y) ^ (pto y w) ^ x = y => y = w
           sendLemma( exp, pval.eqNode( qval ), InferenceId::SEP_PTO_PROP);
-          // don't need to add this
-          ret = false;
+          // Don't need to add this if the labels are identical. This is an
+          // optimization to minimize the size of the pto list
+          if (plbl==qlbl)
+          {
+            ret = false;
+          }
         }
       }
       else if (polarity != pol )
       {
+        // a positive and negative pto
         if (!areDisequal(pval, qval))
         {
           std::vector< Node > exp;
