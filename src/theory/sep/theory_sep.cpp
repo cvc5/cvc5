@@ -1809,7 +1809,8 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           // enforces injectiveness of pto
           //  (pto x y) ^ (pto y w) ^ x = y => y = w
           Node concn = pval.eqNode(qval);
-          Trace("sep-pto") << "prop pos/pos: " << concn << " by " << exp << std::endl;
+          Trace("sep-pto") << "prop pos/pos: " << concn << " by " << exp
+                           << std::endl;
           sendLemma(exp, concn, InferenceId::SEP_PTO_PROP);
           // Don't need to add this if the labels are identical. This is an
           // optimization to minimize the size of the pto list
@@ -1838,7 +1839,8 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
             conc.push_back(pval.eqNode(qval).notNode());
           }
           Node concn = nm->mkOr(conc);
-          Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp << std::endl;
+          Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp
+                           << std::endl;
           // propagation (pto x y) ^ ~(pto z w) ^ x = z => y != w
           // or (pto x y) ^ ~(pto z y) ^ x = z => false
           sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
