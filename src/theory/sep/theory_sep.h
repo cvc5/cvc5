@@ -258,6 +258,10 @@ class TheorySep : public Theory {
    ~HeapAssertInfo() {}
    context::CDO<Node> d_pto;
    context::CDO<bool> d_has_neg_pto;
+   /** List of positive pto */
+   NodeList d_posPto;
+   /** List of negative pto */
+   NodeList d_negPto;
   };
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
@@ -305,8 +309,12 @@ class TheorySep : public Theory {
   // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
   std::map< Node, std::vector< Node > > d_heap_locs_nptos;
 
+  bool sharesLblParent(Node p, Node q) const;
+  bool hasLblParent(Node p, Node q) const;
+
   void debugPrintHeap( HeapInfo& heap, const char * c );
   void validatePto( HeapAssertInfo * ei, Node ei_n );
+  bool checkPto( HeapAssertInfo * ei, Node p, bool polarity );
   void addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity );
   void mergePto( Node p1, Node p2 );
   void computeLabelModel( Node lbl );

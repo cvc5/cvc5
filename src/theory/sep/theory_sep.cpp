@@ -938,7 +938,7 @@ void TheorySep::conflict(TNode a, TNode b) {
 }
 
 TheorySep::HeapAssertInfo::HeapAssertInfo(context::Context* c)
-    : d_pto(c), d_has_neg_pto(c, false)
+    : d_posPto(c), d_negPto(c)
 {
 }
 
@@ -1694,24 +1694,112 @@ bool TheorySep::areDisequal( Node a, Node b ){
 void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
 {
   HeapAssertInfo * e2 = getOrMakeEqcInfo( t2, false );
-  if( e2 && ( !e2->d_pto.get().isNull() || e2->d_has_neg_pto.get() ) ){
+  if( e2 && ( !e2->d_posPto.empty() || !e2->d_negPto.empty() ) ){
     HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
-    if( !e2->d_pto.get().isNull() ){
-      if( !e1->d_pto.get().isNull() ){
-        Trace("sep-pto-debug") << "While merging " << t1 << " " << t2 << ", merge pto." << std::endl;
-        mergePto( e1->d_pto.get(), e2->d_pto.get() );
-      }else{
-        e1->d_pto.set( e2->d_pto.get() );
+    for (size_t i=0; i<2; i++)
+    {
+      bool pol = i==0;
+      NodeList& e2list = pol ? e2->d_posPto : e2->d_negPto;
+      std::vector<Node> toAdd;
+      for (const Node& p : e2list)
+      {
+        if (checkPto(e1, p, pol))
+        {
+          // add unless checkPto determined it was redundant
+          toAdd.push_back(p);
+        }
+      }
+      NodeList& e1list = pol ? e1->d_posPto : e1->d_negPto;
+      for (const Node& p : toAdd)
+      {
+        e1list.push_back(p);
       }
     }
-    e1->d_has_neg_pto.set( e1->d_has_neg_pto.get() || e2->d_has_neg_pto.get() );
-    //validate
-    validatePto( e1, t1 );
   }
 }
 
+bool TheorySep::sharesLblParent(Node p, Node q) const
+{
+  return true;
+}
+
+bool TheorySep::hasLblParent(Node p, Node q) const
+{
+  return true;
+}
+
+bool TheorySep::checkPto( HeapAssertInfo * e, Node p, bool polarity )
+{
+  Assert (e!=nullptr);
+  Assert(p.getKind() == kind::SEP_LABEL && p[0].getKind() == kind::SEP_PTO);
+  Node plbl = p[1];
+  Node pval = p[0][1];
+  bool ret = true;
+  for (size_t i=0; i<2; i++)
+  {
+    bool pol = i==0;
+    NodeList& elist = pol ? e->d_posPto : e->d_negPto;
+    for (const Node& q : elist)
+    {
+      Node qlbl = q[1];
+      Node qval = q[0][1];
+      // if do not share a parent, skip
+      if (!sharesLblParent(plbl, qlbl))
+      {
+        continue;
+      }
+      if (polarity && pol)
+      {
+        if (!areEqual(pval, qval))
+        {
+          std::vector< Node > exp;
+          if( p[0][0]!=q[0][0] ){
+            Assert(areEqual(p[0][0], q[0][0]));
+            exp.push_back( p[0][0].eqNode( q[0][0]) );
+          }
+          exp.push_back( p );
+          exp.push_back( q );
+          //enforces injectiveness of pto
+          //  (pto x y) ^ (pto y w) ^ x = y => y = w
+          sendLemma( exp, pval.eqNode( qval ), InferenceId::SEP_PTO_PROP);
+          // don't need to add this
+          ret = false;
+        }
+      }
+      else if (polarity != pol )
+      {
+        if (!areDisequal(pval, qval))
+        {
+          std::vector< Node > exp;
+          if( p[0][0]!=q[0][0] ){
+            Assert(areEqual(p[0][0], q[0][0]));
+            exp.push_back( p[0][0].eqNode( q[0][0]) );
+          }
+          exp.push_back( polarity ? p : p.negate() );
+          exp.push_back( polarity ? q.negate() : q );
+          std::vector<Node> conc;
+          if (pval!=qval)
+          {
+            conc.push_back(pval.eqNode(qval).notNode());
+          }
+          Node concn = nm->mkOr(conc);
+          Trace("sep-pto")  << "Conclusion is " << concn << std::endl;
+          // propagation (pto x y) ^ ~(pto z w) ^ x = z => y != w
+          // or (pto x y) ^ ~(pto z y) ^ x = z => false
+          sendLemma( exp, concn, InferenceId::SEP_PTO_NEG_PROP);
+        }
+      }
+      else
+      {
+        // otherwise if both are disequal, do nothing
+      }
+    }
+  }
+  return ret;
+}
+
 void TheorySep::validatePto( HeapAssertInfo * ei, Node ei_n ) {
-  if( !ei->d_pto.get().isNull() && ei->d_has_neg_pto.get() ){
+  if( !ei->d_posPto.empty() && !ei->d_negPto.empty() ){
     for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
       Node fact = (*i);
       if (fact.getKind() == kind::NOT)
@@ -1734,7 +1822,7 @@ void TheorySep::validatePto( HeapAssertInfo * ei, Node ei_n ) {
 
 void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) {
   Trace("sep-pto") << "Add pto " << p << ", pol = " << polarity << " to eqc " << ei_n << std::endl;
-  if( !ei->d_pto.get().isNull() ){
+  if( !ei->d_posPto.empty() ){
     if( polarity ){
       Trace("sep-pto-debug") << "...eqc " << ei_n << " already has pto " << ei->d_pto.get() << ", merge." << std::endl;
       mergePto( ei->d_pto.get(), p );
