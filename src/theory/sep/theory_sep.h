@@ -246,9 +246,28 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
+  /**
+   * Maps label sets to their direct parents. A set may have multiple parents
+   * if sep.wand constraints are present.
+   */
   std::map<Node, std::vector<Node> > d_parentMap;
 
+  /**
+   * This sends the lemmas:
+   *   parent = (set.union children)
+   *   (set.inter children_i children_j) = empty, for each i != j
+   * It also stores these relationships in d_parentMap.
+   */
   void makeDisjointHeap(Node parent, const std::vector<Node>& children);
+  /**
+   * Get the sets that are parents of p and are roots in the graph induced
+   * by d_parentMap.
+   */
+  std::vector<Node> getRootLabels(Node p) const;
+  /**
+   * Do p and q have a root label in common?
+   */
+  bool sharesRootLabel(Node p, Node q) const;
 
   //term model
   std::map< Node, Node > d_tmodel;
@@ -308,9 +327,6 @@ class TheorySep : public Theory {
   std::map< Node, HeapInfo > d_label_model;
   // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
   std::map< Node, std::vector< Node > > d_heap_locs_nptos;
-
-  bool sharesLblParent(Node p, Node q) const;
-  bool hasLblParent(Node p, Node q) const;
 
   void debugPrintHeap( HeapInfo& heap, const char * c );
   bool checkPto(HeapAssertInfo* ei, Node p, bool polarity);

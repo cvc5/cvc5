@@ -1350,6 +1350,48 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   }
 }
 
+std::vector<Node> TheorySep::getRootLabels(Node p) const
+{
+  std::vector<Node> roots;
+  std::unordered_set<Node> visited;
+  std::unordered_set<Node>::iterator it;
+  std::vector<Node> visit;
+  std::map<Node, std::vector<Node> >::const_iterator itp;
+  Node cur;
+  visit.push_back(p);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end()) {
+      visited.insert(cur);
+      itp = d_parentMap.find(cur);
+      if( itp==d_parentMap.end() ){
+        roots.push_back(cur);
+      }
+      else
+      {
+        visit.insert(visit.end(),itp->second.begin(),itp->second.end());
+      }
+    }
+  } while (!visit.empty());
+  return roots;
+}
+
+bool TheorySep::sharesRootLabel(Node p, Node q) const
+{
+  std::vector<Node> rp = getRootLabels(p);
+  std::vector<Node> rq = getRootLabels(q);
+  for (const Node& r : rp)
+  {
+    if (std::find(rq.begin(), rq.end(), r)!=rq.end())
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) {
   Assert(n.getKind() != kind::SEP_LABEL);
   NodeManager* nm = NodeManager::currentNM();
@@ -1730,10 +1772,6 @@ void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-bool TheorySep::sharesLblParent(Node p, Node q) const { return true; }
-
-bool TheorySep::hasLblParent(Node p, Node q) const { return true; }
-
 bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
 {
   Assert(e != nullptr);
@@ -1753,16 +1791,16 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       Assert(q.getKind() == kind::SEP_LABEL && q[0].getKind() == kind::SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
-      if (!sharesLblParent(plbl, qlbl))
-      {
-        // if do not share a parent, skip
-        continue;
-      }
       if (polarity && pol)
       {
         // two positive pto
         if (!areEqual(pval, qval))
         {
+          if (!sharesRootLabel(plbl, qlbl))
+          {
+            // if do not share a parent, skip
+            continue;
+          }
           std::vector<Node> exp;
           if (p[0][0] != q[0][0])
           {
@@ -1790,14 +1828,17 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
         // a positive and negative pto
         if (!areDisequal(pval, qval))
         {
+          Node pos = polarity ? p : q;
+          Node neg = polarity ? q : p;
+          // TODO
           std::vector<Node> exp;
           if (p[0][0] != q[0][0])
           {
             Assert(areEqual(p[0][0], q[0][0]));
             exp.push_back(p[0][0].eqNode(q[0][0]));
           }
-          exp.push_back(polarity ? p : p.negate());
-          exp.push_back(polarity ? q.negate() : q);
+          exp.push_back(pos);
+          exp.push_back(neg.notNode());
           std::vector<Node> conc;
           if (pval != qval)
           {
