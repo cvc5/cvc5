@@ -250,3 +250,11 @@ name   = "Strings Theory"
   type       = "uint64_t"
   default    = "65536"
   help       = "The maximum size of string values in models"
+
+[[option]]
+  name       = "stringsCodePoint"
+  category   = "expert"
+  long       = "strings-code-point-solver"
+  type       = "bool"
+  default    = "false"
+  help       = "use code point solver"
