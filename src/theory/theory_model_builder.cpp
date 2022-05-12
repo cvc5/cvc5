@@ -991,7 +991,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             {
               Trace("model-builder-debug") << "Enumerate term of type " << t
                                            << std::endl;
-              n = typeConstSet.nextTypeEnum(t, true);
+              n = typeConstSet.nextTypeEnum(t);
               //--- AJR: this code checks whether n is a legal value
               Assert(!n.isNull());
               success = true;
