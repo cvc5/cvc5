@@ -466,7 +466,7 @@ bool TheoryStrings::collectModelInfoType(
           // value of this term, since it might not be available yet, as
           // it may belong to a theory that has not built its model yet.
           // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
-          assignedValue = nfe.d_nf[0][0];
+          assignedValue = nfe.d_nf[0];
         }
         assignedValue = rewrite(assignedValue);
         Trace("strings-model")
