@@ -81,7 +81,7 @@ if(NOT GMP_FOUND_SYSTEM)
     set(CONFIGURE_OPTS --host=${TOOLCHAIN_PREFIX} --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
   endif()
   if (CMAKE_CROSSCOMPILING_MACOS)
-    set(CONFIGURE_ENV ${CONFIGURE_ENV} CFLAGS=--target=${TOOLCHAIN_PREFIX} LDFLAGS="-arch arm64")
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} env CFLAGS=--target=${TOOLCHAIN_PREFIX} env LDFLAGS="-arch arm64")
   endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
@@ -94,7 +94,7 @@ if(NOT GMP_FOUND_SYSTEM)
     URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
-      ${CMAKE_COMMAND} -E env ${CONFIGURE_ENV}
+      ${CMAKE_COMMAND} -E ${CONFIGURE_ENV}
         <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
