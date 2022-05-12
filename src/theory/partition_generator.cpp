@@ -81,7 +81,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
     default: return filteredLiterals;
   }
 
-  if (litType == heap || litType == decision) {
+  if (litType == heap || litType == decision)
+  {
     for (const Node& n : unfilteredLiterals)
     {
       Node originalN = SkolemManager::getOriginalForm(n);

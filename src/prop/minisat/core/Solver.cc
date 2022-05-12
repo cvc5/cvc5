@@ -2247,7 +2247,7 @@ bool Solver::assertionLevelOnly() const
 const std::vector<Node> Solver::getMiniSatOrderHeap()
 {
   std::vector<Node> heapList;
-  for (int i = 0; i < order_heap.size(); ++i)
+  for (int i = 0, hsize = order_heap.size(); i < hsize; ++i)
   {
     Node n = d_proxy->getNode(order_heap[i]);
     heapList.push_back(n);
