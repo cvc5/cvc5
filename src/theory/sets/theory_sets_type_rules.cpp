@@ -104,7 +104,7 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (member 1 (singleton 1.0)) is true whereas
     // (member 1.0 (singleton 1)) throws a typing error
-    if (elementType!=setType.getSetElementType())
+    if (elementType != setType.getSetElementType())
     {
       std::stringstream ss;
       ss << "member operating on sets of different types:\n"

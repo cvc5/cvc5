@@ -40,7 +40,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                          "array select operating on non-array");
     }
     TypeNode indexType = n[1].getType(check);
-    if (indexType!=arrayType.getArrayIndexType())
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array select not indexed with correct type for array");

@@ -114,7 +114,7 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (bag.count 1 (bag (BagMakeOp Real) 1.0 3))) is 3 whereas
     // (bag.count 1.0 (bag (BagMakeOp Int) 1 3)) throws a typing error
-    if (elementType!=bagType.getBagElementType())
+    if (elementType != bagType.getBagElementType())
     {
       std::stringstream ss;
       ss << "member operating on bags of different types:\n"
@@ -143,7 +143,7 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (bag.member 1 (bag 1.0 1)) is true whereas
     // (bag.member 1.0 (bag 1 1)) throws a typing error
-    if (elementType!=bagType.getBagElementType())
+    if (elementType != bagType.getBagElementType())
     {
       std::stringstream ss;
       ss << "member operating on bags of different types:\n"
@@ -201,7 +201,7 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     TypeNode actualElementType = n[0].getType(check);
     // the type of the element should be a subtype of the type of the operator
     // e.g. (bag (bag_op Real) 1 1) where 1 is an Int
-    if (actualElementType!=expectedElementType)
+    if (actualElementType != expectedElementType)
     {
       std::stringstream ss;
       ss << "The type '" << actualElementType
@@ -486,9 +486,8 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
-    if (!(argTypes.size() == 2 && elementType==argTypes[0]
-          && elementType==argTypes[1]
-          && rangeType == nm->booleanType()))
+    if (!(argTypes.size() == 2 && elementType == argTypes[0]
+          && elementType == argTypes[1] && rangeType == nm->booleanType()))
     {
       std::stringstream ss;
       ss << "Operator " << n.getKind() << " expects a function of type  (-> "

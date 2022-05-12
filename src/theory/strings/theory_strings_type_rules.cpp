@@ -336,7 +336,7 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
     TypeNode argType = n[0].getType(check);
     // the type of the element should be a subtype of the type of the operator
     // e.g. (seq.unit (SeqUnitOp Real) 1) where 1 is an Int
-    if (argType!=otype)
+    if (argType != otype)
     {
       std::stringstream ss;
       ss << "The type '" << argType << "' of the element is not the type of '"
