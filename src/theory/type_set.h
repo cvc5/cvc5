@@ -52,11 +52,8 @@ class TypeSet
   void add(TypeNode t, TNode n);
   /** get the set of values of type t */
   std::set<Node>* getSet(TypeNode t) const;
-  /** get the next enumerated term of type t
-   *
-   * useBaseType is whether
-   */
-  Node nextTypeEnum(TypeNode t, bool useBaseType = false);
+  /** get the next enumerated term of type t */
+  Node nextTypeEnum(TypeNode t);
 
   bool empty() { return d_typeSet.empty(); }
   iterator begin() { return d_typeSet.begin(); }
