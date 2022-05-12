@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +29,9 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -639,7 +639,11 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     }
     // now recurse on parents (to ensure their normal will be computed after
     // this eqc)
-    exp.push_back(eqc.eqNode(n));
+    bool needExp = (eqc != n);
+    if (needExp)
+    {
+      exp.push_back(eqc.eqNode(n));
+    }
     for (const std::pair<Node, Node>& cpnc : d_cardParent[n])
     {
       Trace("sets-cycle-debug") << "Traverse card parent " << eqc << " -> "
@@ -650,7 +654,10 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         return;
       }
     }
-    exp.pop_back();
+    if (needExp)
+    {
+      exp.pop_back();
+    }
   }
   curr.pop_back();
   // parents now processed, can add to ordered list
@@ -772,7 +779,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       }
       if (!only[0].empty() || !only[1].empty())
       {
-        if (Trace.isOn("sets-nf-debug"))
+        if (TraceIsOn("sets-nf-debug"))
         {
           Trace("sets-nf-debug") << "Unique venn regions : " << std::endl;
           for (unsigned e = 0; e < 2; e++)
@@ -1030,7 +1037,12 @@ void CardinalityExtension::mkModelValueElementsFor(
 {
   TypeNode elementType = eqc.getType().getSetElementType();
   bool elementTypeFinite = d_env.isFiniteType(elementType);
-  if (isModelValueBasic(eqc))
+  bool isBasic = isModelValueBasic(eqc);
+  Trace("sets-model") << "mkModelValueElementsFor: " << eqc
+                      << ", isBasic = " << isBasic
+                      << ", isFinite = " << elementTypeFinite
+                      << ", els = " << els << std::endl;
+  if (isBasic)
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
     if (it != d_eqc_to_card_term.end())
@@ -1155,4 +1167,4 @@ const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

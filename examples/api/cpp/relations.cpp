@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -39,12 +39,12 @@ int main()
 
   // (Tuple Person)
   Sort tupleArity1 = solver.mkTupleSort({personSort});
-  // (Set (Tuple Person))
+  // (Relation Person)
   Sort relationArity1 = solver.mkSetSort(tupleArity1);
 
   // (Tuple Person Person)
   Sort tupleArity2 = solver.mkTupleSort({personSort, personSort});
-  // (Set (Tuple Person Person))
+  // (Relation Person Person)
   Sort relationArity2 = solver.mkSetSort(tupleArity2);
 
   // empty set
@@ -66,59 +66,60 @@ int main()
   Term ancestor = solver.mkConst(relationArity2, "ancestor");
   Term descendant = solver.mkConst(relationArity2, "descendant");
 
-  Term isEmpty1 = solver.mkTerm(EQUAL, males, emptySetTerm);
-  Term isEmpty2 = solver.mkTerm(EQUAL, females, emptySetTerm);
+  Term isEmpty1 = solver.mkTerm(EQUAL, {males, emptySetTerm});
+  Term isEmpty2 = solver.mkTerm(EQUAL, {females, emptySetTerm});
 
-  // (assert (= people (as set.universe (Set (Tuple Person)))))
-  Term peopleAreTheUniverse = solver.mkTerm(EQUAL, people, universeSet);
-  // (assert (not (= males (as set.empty (Set (Tuple Person))))))
-  Term maleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty1);
-  // (assert (not (= females (as set.empty (Set (Tuple Person))))))
-  Term femaleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty2);
+  // (assert (= people (as set.universe (Relation Person))))
+  Term peopleAreTheUniverse = solver.mkTerm(EQUAL, {people, universeSet});
+  // (assert (not (= males (as set.empty (Relation Person)))))
+  Term maleSetIsNotEmpty = solver.mkTerm(NOT, {isEmpty1});
+  // (assert (not (= females (as set.empty (Relation Person)))))
+  Term femaleSetIsNotEmpty = solver.mkTerm(NOT, {isEmpty2});
 
   // (assert (= (set.inter males females)
-  //            (as set.empty (Set (Tuple Person)))))
-  Term malesFemalesIntersection = solver.mkTerm(SET_INTER, males, females);
+  //            (as set.empty (Relation Person))))
+  Term malesFemalesIntersection = solver.mkTerm(SET_INTER, {males, females});
   Term malesAndFemalesAreDisjoint =
-      solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
+      solver.mkTerm(EQUAL, {malesFemalesIntersection, emptySetTerm});
 
-  // (assert (not (= father (as set.empty (Set (Tuple Person Person))))))
-  // (assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
-  Term isEmpty3 = solver.mkTerm(EQUAL, father, emptyRelationTerm);
-  Term isEmpty4 = solver.mkTerm(EQUAL, mother, emptyRelationTerm);
-  Term fatherIsNotEmpty = solver.mkTerm(NOT, isEmpty3);
-  Term motherIsNotEmpty = solver.mkTerm(NOT, isEmpty4);
+  // (assert (not (= father (as set.empty (Relation Person Person)))))
+  // (assert (not (= mother (as set.empty (Relation Person Person)))))
+  Term isEmpty3 = solver.mkTerm(EQUAL, {father, emptyRelationTerm});
+  Term isEmpty4 = solver.mkTerm(EQUAL, {mother, emptyRelationTerm});
+  Term fatherIsNotEmpty = solver.mkTerm(NOT, {isEmpty3});
+  Term motherIsNotEmpty = solver.mkTerm(NOT, {isEmpty4});
 
   // fathers are males
   // (assert (set.subset (rel.join father people) males))
-  Term fathers = solver.mkTerm(RELATION_JOIN, father, people);
-  Term fathersAreMales = solver.mkTerm(SET_SUBSET, fathers, males);
+  Term fathers = solver.mkTerm(RELATION_JOIN, {father, people});
+  Term fathersAreMales = solver.mkTerm(SET_SUBSET, {fathers, males});
 
   // mothers are females
   // (assert (set.subset (rel.join mother people) females))
-  Term mothers = solver.mkTerm(RELATION_JOIN, mother, people);
-  Term mothersAreFemales = solver.mkTerm(SET_SUBSET, mothers, females);
+  Term mothers = solver.mkTerm(RELATION_JOIN, {mother, people});
+  Term mothersAreFemales = solver.mkTerm(SET_SUBSET, {mothers, females});
 
   // (assert (= parent (set.union father mother)))
-  Term unionFatherMother = solver.mkTerm(SET_UNION, father, mother);
-  Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
+  Term unionFatherMother = solver.mkTerm(SET_UNION, {father, mother});
+  Term parentIsFatherOrMother =
+      solver.mkTerm(EQUAL, {parent, unionFatherMother});
 
   // (assert (= ancestor (rel.tclosure parent)))
-  Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
-  Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transitiveClosure);
+  Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, {parent});
+  Term ancestorFormula = solver.mkTerm(EQUAL, {ancestor, transitiveClosure});
 
   // (assert (= descendant (rel.transpose descendant)))
-  Term transpose = solver.mkTerm(RELATION_TRANSPOSE, ancestor);
-  Term descendantFormula = solver.mkTerm(EQUAL, descendant, transpose);
+  Term transpose = solver.mkTerm(RELATION_TRANSPOSE, {ancestor});
+  Term descendantFormula = solver.mkTerm(EQUAL, {descendant, transpose});
 
   // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
   Term x = solver.mkVar(personSort, "x");
   Term xxTuple = solver.mkTuple({personSort, personSort}, {x, x});
-  Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
-  Term notMember = solver.mkTerm(NOT, member);
+  Term member = solver.mkTerm(SET_MEMBER, {xxTuple, ancestor});
+  Term notMember = solver.mkTerm(NOT, {member});
 
-  Term quantifiedVariables = solver.mkTerm(VARIABLE_LIST, x);
-  Term noSelfAncestor = solver.mkTerm(FORALL, quantifiedVariables, notMember);
+  Term quantifiedVariables = solver.mkTerm(VARIABLE_LIST, {x});
+  Term noSelfAncestor = solver.mkTerm(FORALL, {quantifiedVariables, notMember});
 
   // formulas
   solver.assertFormula(peopleAreTheUniverse);

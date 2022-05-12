@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed
+ *   Aina Niemetz, Mudathir Mohamed, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "theory/sets/singleton_op.h"
 #include "util/rational.h"
 
-using namespace cvc5::api;
+using namespace cvc5;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestTheoryWhiteSetsTypeRuleApi : public TestApi
@@ -48,17 +48,17 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
   Term emptyReal = d_solver.mkEmptySet(d_solver.mkSetSort(realSort));
   Term integerOne = d_solver.mkInteger(1);
   Term realOne = d_solver.mkReal(1);
-  Term singletonInt = d_solver.mkTerm(api::SET_SINGLETON, integerOne);
-  Term singletonReal = d_solver.mkTerm(api::SET_SINGLETON, realOne);
+  Term singletonInt = d_solver.mkTerm(cvc5::SET_SINGLETON, {integerOne});
+  Term singletonReal = d_solver.mkTerm(cvc5::SET_SINGLETON, {realOne});
   // (union
   //    (singleton (singleton_op Int) 1)
   //    (as emptyset (Set Real)))
-  ASSERT_THROW(d_solver.mkTerm(SET_UNION, singletonInt, emptyReal),
+  ASSERT_THROW(d_solver.mkTerm(SET_UNION, {singletonInt, emptyReal}),
                CVC5ApiException);
   // (union
   //    (singleton (singleton_op Real) 1)
   //    (as emptyset (Set Real)))
-  ASSERT_NO_THROW(d_solver.mkTerm(SET_UNION, singletonReal, emptyReal));
+  ASSERT_NO_THROW(d_solver.mkTerm(SET_UNION, {singletonReal, emptyReal}));
 }
 
 TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
@@ -86,4 +86,4 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
   ASSERT_TRUE(n.isConst());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

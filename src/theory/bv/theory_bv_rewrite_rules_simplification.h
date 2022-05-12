@@ -4,16 +4,13 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Simplification rewrite rules of the BV theory.
  */
 
 #include "cvc5_private.h"
@@ -25,7 +22,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -63,7 +60,7 @@ inline bool RewriteRule<BvIteConstCond>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteConstCond>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteConstCond>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteConstCond>(" << node << ")"
                       << std::endl;
   return utils::isZero(node[0]) ? node[2] : node[1];
 }
@@ -84,7 +81,7 @@ inline bool RewriteRule<BvIteEqualChildren>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteEqualChildren>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteEqualChildren>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteEqualChildren>(" << node << ")"
                       << std::endl;
   return node[1];
 }
@@ -107,7 +104,7 @@ inline bool RewriteRule<BvIteConstChildren>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteConstChildren>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteConstChildren>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteConstChildren>(" << node << ")"
                       << std::endl;
   if (utils::isOne(node[1]) && utils::isZero(node[2]))
   {
@@ -141,7 +138,7 @@ inline bool RewriteRule<BvIteEqualCond>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteEqualCond>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteEqualCond>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteEqualCond>(" << node << ")"
                       << std::endl;
   Node t0 = node[1].getKind() == kind::BITVECTOR_ITE && node[0] == node[1][0]
                 ? node[1][1]
@@ -171,7 +168,7 @@ inline bool RewriteRule<BvIteMergeThenIf>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteMergeThenIf>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteMergeThenIf>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteMergeThenIf>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(node[1].getKind() == kind::BITVECTOR_ITE);
@@ -200,7 +197,7 @@ inline bool RewriteRule<BvIteMergeElseIf>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteMergeElseIf>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteMergeElseIf>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteMergeElseIf>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(node[1].getKind() == kind::BITVECTOR_ITE);
@@ -227,7 +224,7 @@ inline bool RewriteRule<BvIteMergeThenElse>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteMergeThenElse>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteMergeThenElse>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteMergeThenElse>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(node[2].getKind() == kind::BITVECTOR_ITE);
@@ -256,7 +253,7 @@ inline bool RewriteRule<BvIteMergeElseElse>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvIteMergeElseElse>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteMergeElseElse>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<BvIteMergeElseElse>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(node[2].getKind() == kind::BITVECTOR_ITE);
@@ -284,7 +281,7 @@ inline bool RewriteRule<BvComp>::applies(TNode node)
 template <>
 inline Node RewriteRule<BvComp>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvComp>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<BvComp>(" << node << ")" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
@@ -311,7 +308,7 @@ bool RewriteRule<ShlByConst>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ShlByConst>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ShlByConst>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ShlByConst>(" << node << ")" << std::endl;
   Integer amount = node[1].getConst<BitVector>().toInteger();
   if (amount == 0) {
     return node[0]; 
@@ -352,7 +349,7 @@ bool RewriteRule<LshrByConst>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<LshrByConst>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<LshrByConst>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<LshrByConst>(" << node << ")" << std::endl;
   Integer amount = node[1].getConst<BitVector>().toInteger();
   if (amount == 0) {
     return node[0]; 
@@ -393,7 +390,7 @@ bool RewriteRule<AshrByConst>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<AshrByConst>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<AshrByConst>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<AshrByConst>(" << node << ")" << std::endl;
   Integer amount = node[1].getConst<BitVector>().toInteger();
   if (amount == 0) {
     return node[0]; 
@@ -443,7 +440,7 @@ bool RewriteRule<BitwiseIdemp>::applies(TNode node) {
 template<> inline
 Node RewriteRule<BitwiseIdemp>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<BitwiseIdemp>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<BitwiseIdemp>(" << node << ")" << std::endl;
   return node[0]; 
 }
 
@@ -468,7 +465,7 @@ bool RewriteRule<AndZero>::applies(TNode node) {
 template<> inline
 Node RewriteRule<AndZero>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<AndZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<AndZero>(" << node << ")" << std::endl;
   return utils::mkConst(utils::getSize(node), 0); 
 }
 
@@ -494,7 +491,7 @@ bool RewriteRule<AndOne>::applies(TNode node) {
 template<> inline
 Node RewriteRule<AndOne>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<AndOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<AndOne>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node);
   
   if (node[0] == utils::mkOnes(size)) {
@@ -552,7 +549,7 @@ inline bool RewriteRule<AndOrXorConcatPullUp>::applies(TNode node)
 template <>
 inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<AndOrXorConcatPullUp>(" << node << ")"
+  Trace("bv-rewrite") << "RewriteRule<AndOrXorConcatPullUp>(" << node << ")"
                       << std::endl;
   uint32_t m, my, mz;
   size_t nc;
@@ -652,7 +649,7 @@ bool RewriteRule<OrZero>::applies(TNode node) {
 template<> inline
 Node RewriteRule<OrZero>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<OrZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<OrZero>(" << node << ")" << std::endl;
   
   unsigned size = utils::getSize(node); 
   if (node[0] == utils::mkConst(size, 0)) {
@@ -685,7 +682,7 @@ bool RewriteRule<OrOne>::applies(TNode node) {
 template<> inline
 Node RewriteRule<OrOne>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<OrOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<OrOne>(" << node << ")" << std::endl;
   return utils::mkOnes(utils::getSize(node)); 
 }
 
@@ -708,7 +705,7 @@ bool RewriteRule<XorDuplicate>::applies(TNode node) {
 template<> inline
 Node RewriteRule<XorDuplicate>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<XorDuplicate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<XorDuplicate>(" << node << ")" << std::endl;
   return utils::mkZero(utils::getSize(node));
 }
 
@@ -737,7 +734,7 @@ bool RewriteRule<XorOne>::applies(TNode node) {
 template <>
 inline Node RewriteRule<XorOne>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<XorOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<XorOne>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   Node ones = utils::mkOnes(utils::getSize(node));
   std::vector<Node> children;
@@ -789,7 +786,7 @@ bool RewriteRule<XorZero>::applies(TNode node) {
 template <>
 inline Node RewriteRule<XorZero>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<XorZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<XorZero>(" << node << ")" << std::endl;
   std::vector<Node> children;
   Node zero = utils::mkConst(utils::getSize(node), 0);
 
@@ -825,7 +822,7 @@ bool RewriteRule<BitwiseNotAnd>::applies(TNode node) {
 template<> inline
 Node RewriteRule<BitwiseNotAnd>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<BitwiseNegAnd>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<BitwiseNegAnd>(" << node << ")" << std::endl;
   return utils::mkZero(utils::getSize(node));
 }
 
@@ -849,7 +846,7 @@ bool RewriteRule<BitwiseNotOr>::applies(TNode node) {
 template<> inline
 Node RewriteRule<BitwiseNotOr>::apply(TNode node) {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<BitwiseNotOr>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<BitwiseNotOr>(" << node << ")" << std::endl;
   uint32_t size = utils::getSize(node);
   return utils::mkOnes(size);
 }
@@ -871,7 +868,7 @@ template <>
 inline Node RewriteRule<XorNot>::apply(TNode node)
 {
   Unreachable();
-  Debug("bv-rewrite") << "RewriteRule<XorNot>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<XorNot>(" << node << ")" << std::endl;
   Node a = node[0][0];
   Node b = node[1][0];
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_XOR, a, b);
@@ -894,7 +891,7 @@ bool RewriteRule<NotXor>::applies(TNode node) {
 template <>
 inline Node RewriteRule<NotXor>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<NotXor>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NotXor>(" << node << ")" << std::endl;
   std::vector<Node> children;
   TNode::iterator child_it = node[0].begin();
   children.push_back(
@@ -922,8 +919,14 @@ bool RewriteRule<NotIdemp>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NotIdemp>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<NotIdemp>(" << node << ")" << std::endl;
-  return node[0][0];
+  Trace("bv-rewrite") << "RewriteRule<NotIdemp>(" << node << ")" << std::endl;
+  TNode ret = node[0][0];
+  while (ret.getKind() == kind::BITVECTOR_NOT
+         && ret[0].getKind() == kind::BITVECTOR_NOT)
+  {
+    ret = ret[0][0];
+  }
+  return ret;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -943,7 +946,7 @@ bool RewriteRule<LtSelf>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<LtSelf>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<LtSelf>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<LtSelf>(" << node << ")" << std::endl;
   return utils::mkFalse(); 
 }
 
@@ -964,7 +967,7 @@ bool RewriteRule<LteSelf>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<LteSelf>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<LteSelf>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<LteSelf>(" << node << ")" << std::endl;
   return utils::mkTrue(); 
 }
 
@@ -986,7 +989,7 @@ inline bool RewriteRule<ZeroUlt>::applies(TNode node)
 template <>
 inline Node RewriteRule<ZeroUlt>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<ZeroUlt>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ZeroUlt>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   return nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, node[0], node[1]));
 }
@@ -1007,7 +1010,7 @@ bool RewriteRule<UltZero>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<UltZero>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
   return utils::mkFalse(); 
 }
 
@@ -1026,7 +1029,7 @@ bool RewriteRule<UltOne>::applies(TNode node) {
 template <>
 inline Node RewriteRule<UltOne>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UltOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UltOne>(" << node << ")" << std::endl;
   return NodeManager::currentNM()->mkNode(
       kind::EQUAL, node[0], utils::mkZero(utils::getSize(node[0])));
 }
@@ -1045,7 +1048,7 @@ bool RewriteRule<SltZero>::applies(TNode node) {
 template <>
 inline Node RewriteRule<SltZero>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node[0]);
   Node most_significant_bit = utils::mkExtract(node[0], size - 1, size - 1);
   return NodeManager::currentNM()->mkNode(
@@ -1068,7 +1071,7 @@ bool RewriteRule<UltSelf>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<UltSelf>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UltSelf>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UltSelf>(" << node << ")" << std::endl;
   return utils::mkFalse(); 
 }
 
@@ -1090,7 +1093,7 @@ bool RewriteRule<UleZero>::applies(TNode node) {
 template <>
 inline Node RewriteRule<UleZero>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UleZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UleZero>(" << node << ")" << std::endl;
   return NodeManager::currentNM()->mkNode(kind::EQUAL, node[0], node[1]);
 }
 
@@ -1110,7 +1113,7 @@ bool RewriteRule<UleSelf>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<UleSelf>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UleSelf>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UleSelf>(" << node << ")" << std::endl;
   return utils::mkTrue(); 
 }
 
@@ -1130,7 +1133,7 @@ bool RewriteRule<ZeroUle>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ZeroUle>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ZeroUle>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ZeroUle>(" << node << ")" << std::endl;
   return utils::mkTrue(); 
 }
 
@@ -1154,7 +1157,7 @@ bool RewriteRule<UleMax>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<UleMax>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UleMax>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UleMax>(" << node << ")" << std::endl;
   return utils::mkTrue(); 
 }
 
@@ -1175,7 +1178,7 @@ bool RewriteRule<NotUlt>::applies(TNode node) {
 template <>
 inline Node RewriteRule<NotUlt>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<NotUlt>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NotUlt>(" << node << ")" << std::endl;
   Node ult = node[0];
   Node a = ult[0];
   Node b = ult[1];
@@ -1199,7 +1202,7 @@ bool RewriteRule<NotUle>::applies(TNode node) {
 template <>
 inline Node RewriteRule<NotUle>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<NotUle>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NotUle>(" << node << ")" << std::endl;
   Node ult = node[0];
   Node a = ult[0];
   Node b = ult[1];
@@ -1234,7 +1237,7 @@ inline bool RewriteRule<MultPow2>::applies(TNode node)
 template <>
 inline Node RewriteRule<MultPow2>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<MultPow2>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   unsigned size = utils::getSize(node);
   std::vector<Node>  children;
@@ -1333,7 +1336,7 @@ bool RewriteRule<ExtractMultLeadingBit>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ExtractMultLeadingBit>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<MultLeadingBit>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<MultLeadingBit>(" << node << ")" << std::endl;
 
   unsigned bitwidth = utils::getSize(node); 
   
@@ -1378,7 +1381,7 @@ bool RewriteRule<NegIdemp>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NegIdemp>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<NegIdemp>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<NegIdemp>(" << node << ")" << std::endl;
   return node[0][0]; 
 }
 
@@ -1405,7 +1408,7 @@ inline bool RewriteRule<UdivPow2>::applies(TNode node)
 template <>
 inline Node RewriteRule<UdivPow2>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UdivPow2>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UdivPow2>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   unsigned size = utils::getSize(node);
   Node a = node[0];
@@ -1446,7 +1449,7 @@ inline bool RewriteRule<UdivZero>::applies(TNode node) {
 
 template <>
 inline Node RewriteRule<UdivZero>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UdivZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UdivZero>(" << node << ")" << std::endl;
   return utils::mkOnes(utils::getSize(node));
 }
 
@@ -1466,7 +1469,7 @@ inline bool RewriteRule<UdivOne>::applies(TNode node) {
 
 template <>
 inline Node RewriteRule<UdivOne>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UdivOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UdivOne>(" << node << ")" << std::endl;
   return node[0];
 }
 
@@ -1493,7 +1496,7 @@ inline bool RewriteRule<UremPow2>::applies(TNode node)
 template <>
 inline Node RewriteRule<UremPow2>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UremPow2>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UremPow2>(" << node << ")" << std::endl;
   TNode a = node[0];
   bool isNeg = false;
   unsigned power = utils::isPow2Const(node[1], isNeg) - 1;
@@ -1528,7 +1531,7 @@ bool RewriteRule<UremOne>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<UremOne>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UremOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UremOne>(" << node << ")" << std::endl;
   return utils::mkConst(utils::getSize(node), 0); 
 }
 
@@ -1547,7 +1550,7 @@ bool RewriteRule<UremSelf>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<UremSelf>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<UremSelf>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UremSelf>(" << node << ")" << std::endl;
   return utils::mkConst(utils::getSize(node), 0); 
 }
 
@@ -1569,7 +1572,7 @@ bool RewriteRule<ShiftZero>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ShiftZero>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ShiftZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ShiftZero>(" << node << ")" << std::endl;
   return node[0]; 
 }
 
@@ -1597,7 +1600,7 @@ inline bool RewriteRule<UgtUrem>::applies(TNode node)
 template <>
 inline Node RewriteRule<UgtUrem>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UgtUrem>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UgtUrem>(" << node << ")" << std::endl;
   const Node& T = node[0][0];
   const Node& x = node[1];
   Node zero = utils::mkConst(utils::getSize(x), 0);
@@ -1636,7 +1639,7 @@ inline bool RewriteRule<BBAddNeg>::applies(TNode node)
 template <>
 inline Node RewriteRule<BBAddNeg>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BBAddNeg>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<BBAddNeg>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   std::vector<Node> children;
   unsigned neg_count = 0;
@@ -1671,7 +1674,7 @@ bool RewriteRule<MergeSignExtend>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<MergeSignExtend>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<MergeSignExtend>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<MergeSignExtend>(" << node << ")" << std::endl;
   unsigned amount1 =
       node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
@@ -1984,7 +1987,7 @@ bool RewriteRule<MultSlice>::applies(TNode node) {
 template <>
 inline Node RewriteRule<MultSlice>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<MultSlice>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<MultSlice>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   unsigned bitwidth = utils::getSize(node[0]);
   Node zeros = utils::mkConst(bitwidth / 2, 0);
@@ -2043,7 +2046,7 @@ inline bool RewriteRule<UltAddOne>::applies(TNode node)
 template <>
 inline Node RewriteRule<UltAddOne>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<UltAddOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<UltAddOne>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   TNode x = node[0];
   TNode y1 = node[1];
@@ -2209,4 +2212,4 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Gereon Kremer
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "infer_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -36,6 +36,20 @@ class InferenceGenerator
 {
  public:
   InferenceGenerator(SolverState* state, InferenceManager* im);
+
+  /**
+   * @param n a node of the form (bag.count e A)
+   * @return a skolem that equals (bag.count repE repA) where
+   * repE, repA are representatives of e, A respectively
+   */
+  Node registerCountTerm(Node n);
+
+  /**
+   * @param n a node of the form (bag.card A)
+   * @return a skolem that equals (bag.card repA) where repA is the
+   * representative of A
+   */
+  void registerCardinalityTerm(Node n);
 
   /**
    * @param A is a bag of type (Bag E)
@@ -73,15 +87,16 @@ class InferenceGenerator
    */
   InferInfo bagMake(Node n, Node e);
   /**
-   * @param n is (= A B) where A, B are bags of type (Bag E), and
+   * @param equality is (= A B) where A, B are bags of type (Bag E), and
    * (not (= A B)) is an assertion in the equality engine
+   * @param witness a skolem node that witnesses the disequality
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
-   *   (not (= (bag.count e A) (bag.count e B))))
-   *   where e is a fresh skolem of type E.
+   *   (not (= (bag.count witness A) (bag.count witness B))))
+   *   where witness is a skolem of type E.
    */
-  InferInfo bagDisequality(Node n);
+  InferInfo bagDisequality(Node equality, Node witness);
   /**
    * @param n is (as bag.empty (Bag E))
    * @param e is a node of Type E
@@ -180,7 +195,7 @@ class InferenceGenerator
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is (as bag.empty (Bag E))
    * @return an inference that represents the following implication
-   * (=> (= A (as bag.empty (Bag E)))
+   * (= (= A (as bag.empty (Bag E)))
    *     (= (bag.card A) 0))
    */
   InferInfo cardEmpty(const std::pair<Node, Node>& pair, Node n);
@@ -211,7 +226,7 @@ class InferenceGenerator
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
-   * @param e is a node of Type E
+   * @param e is a node of Type T
    * @return an inference that represents the following implication
    * (and
    *   (= (sum 0) 0)
@@ -291,27 +306,59 @@ class InferenceGenerator
   InferInfo filterUpwards(Node n, Node e);
 
   /**
-   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param n is a (table.product A B) where A, B are tables
    * @param e1 an element of the form (tuple a1 ... am)
    * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
-   * (=
-   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
-   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * (=> (and (bag.member e1 A) (bag.member e2 B))
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count e1 A) (bag.count e2 B))))
    * where skolem is a variable equals (bag.product A B)
    */
   InferInfo productUp(Node n, Node e1, Node e2);
 
   /**
-   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param n is a (table.product A B) where A, B are tables
    * @param e an element of the form (tuple a1 ... am b1 ... bn)
    * @return an inference that represents the following
-   * (=
-   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
-   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * (=> (bag.member e skolem)
+   *   (=
+   *     (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *     (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B))))
    * where skolem is a variable equals (bag.product A B)
    */
   InferInfo productDown(Node n, Node e);
+
+  /**
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
+   * @return  an inference that represents the following
+   * (=> (and
+   *       (bag.member e1 A)
+   *       (bag.member e2 B)
+   *       (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk}))
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count e1 A) (bag.count e2 B))))
+   * where skolem is a variable equals ((_ table.join m1 n1 ... mk nk) A B)
+   */
+  InferInfo joinUp(Node n, Node e1, Node e2);
+
+  /**
+   * @param n is a (table.product A B) where A, B are tables
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=> (bag.member e skolem)
+   *   (and
+   *     (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk})
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B))))
+   * where skolem is a variable equals ((_ table.join m1 n1 ... mk nk) A B)
+   */
+  InferInfo joinDown(Node n, Node e);
 
   /**
    * @param element of type T
@@ -321,8 +368,10 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
  private:
-  /** generate skolem variable for node n and add it to inferInfo */
-  Node getSkolem(Node& n, InferInfo& inferInfo);
+  /**
+   * generate skolem variable for node n and add pending lemma for the equality
+   */
+  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;
@@ -337,6 +386,6 @@ class InferenceGenerator
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H */

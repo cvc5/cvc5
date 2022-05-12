@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
     : ContextNotifyObj(env.getContext()),
@@ -77,7 +77,7 @@ void SharedTermsDatabase::addSharedTerm(TNode atom,
                                         TNode term,
                                         TheoryIdSet theories)
 {
-  Debug("register") << "SharedTermsDatabase::addSharedTerm(" << atom << ", "
+  Trace("register") << "SharedTermsDatabase::addSharedTerm(" << atom << ", "
                     << term << ", " << TheoryIdSetUtil::setToString(theories)
                     << ")" << std::endl;
 
@@ -154,7 +154,7 @@ TheoryIdSet SharedTermsDatabase::getNotifiedTheories(TNode term) const
 
 bool SharedTermsDatabase::propagateSharedEquality(TheoryId theory, TNode a, TNode b, bool value)
 {
-  Debug("shared-terms-database") << "SharedTermsDatabase::newEquality(" << theory << "," << a << "," << b << ", " << (value ? "true" : "false") << ")" << endl;
+  Trace("shared-terms-database") << "SharedTermsDatabase::newEquality(" << theory << "," << a << "," << b << ", " << (value ? "true" : "false") << ")" << endl;
 
   if (d_inConflict) {
     return false;
@@ -188,7 +188,7 @@ void SharedTermsDatabase::markNotified(TNode term, TheoryIdSet theories)
     return;
   }
 
-  Debug("shared-terms-database") << "SharedTermsDatabase::markNotified(" << term << ")" << endl;
+  Trace("shared-terms-database") << "SharedTermsDatabase::markNotified(" << term << ")" << endl;
 
   // First update the set of notified theories for this term
   d_alreadyNotifiedMap[term] =
@@ -246,7 +246,7 @@ theory::eq::EqualityEngine* SharedTermsDatabase::getEqualityEngine()
 void SharedTermsDatabase::assertShared(TNode n, bool polarity, TNode reason)
 {
   Assert(d_equalityEngine != nullptr);
-  Debug("shared-terms-database::assert")
+  Trace("shared-terms-database::assert")
       << "SharedTermsDatabase::assertShared(" << n << ", "
       << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
@@ -322,4 +322,4 @@ TrustNode SharedTermsDatabase::explain(TNode literal) const
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

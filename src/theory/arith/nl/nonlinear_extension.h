@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,7 @@
 #include "theory/theory.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
   class EqualityEngine;
@@ -128,11 +128,11 @@ class NonlinearExtension : EnvObj
    * the current candidate model.
    *
    * This function returns whether we found a satisfying assignment
-   * (Result::Sat::SAT), or not (Result::Sat::UNSAT). Note that UNSAT does not
+   * (Result::SAT), or not (Result::UNSAT). Note that UNSAT does not
    * necessarily means the whole query is UNSAT, but that the linear model was
    * refuted by a lemma.
    */
-  Result::Sat modelBasedRefinement(const std::set<Node>& termSet);
+  Result::Status modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *
@@ -190,9 +190,6 @@ class NonlinearExtension : EnvObj
                    const std::vector<Node>& xts);
 
   /** commonly used terms */
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
@@ -267,6 +264,6 @@ class NonlinearExtension : EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

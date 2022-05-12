@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -165,7 +165,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     return false;
   }
-  if (Trace.isOn("sygus-rr-filter"))
+  if (TraceIsOn("sygus-rr-filter"))
   {
     std::stringstream ss;
     ss << "(redundant-rewrite ";
@@ -231,7 +231,7 @@ bool CandidateRewriteFilter::notify(Node s,
   n = d_drewrite->toExternal(n);
   Assert(!n.isNull());
   std::map<Node, std::unordered_set<Node> >::iterator it = d_pairs.find(n);
-  if (Trace.isOn("crf-match"))
+  if (TraceIsOn("crf-match"))
   {
     Trace("crf-match") << "  " << s << " matches " << n
                        << " under:" << std::endl;
@@ -280,4 +280,4 @@ bool CandidateRewriteFilter::notify(Node s,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

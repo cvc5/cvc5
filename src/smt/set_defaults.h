@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /**
@@ -111,6 +111,13 @@ class SetDefaults : protected EnvObj
    * The output stream reason is similar to above.
    */
   bool incompatibleWithQuantifiers(Options& opts, std::ostream& reason) const;
+  /**
+   * Check if incompatible with separation logic. Notice this method may
+   * modify the options to ensure that we are compatible with separation logic.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithSeparationLogic(Options& opts,
+                                       std::ostream& reason) const;
   //------------------------- options setting, prior finalization of logic
   /**
    * Set defaults pre, which sets all options prior to finalizing the logic.
@@ -156,6 +163,6 @@ class SetDefaults : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__SET_DEFAULTS_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,10 +37,10 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -351,8 +351,8 @@ bool SynthConjecture::doCheck()
 
   Assert(!d_candidates.empty());
 
-  Trace("cegqi-check") << "CegConjuncture : check, build candidates..."
-                       << std::endl;
+  Trace("sygus-engine-debug")
+      << "CegConjuncture : check, build candidates..." << std::endl;
   std::vector<Node> candidate_values;
   bool constructed_cand = false;
 
@@ -369,7 +369,7 @@ bool SynthConjecture::doCheck()
     if (d_repair_index < ninst)
     {
       std::vector<Node> fail_cvs = d_solutionValues[d_repair_index];
-      if (Trace.isOn("sygus-engine"))
+      if (TraceIsOn("sygus-engine"))
       {
         Trace("sygus-engine") << "CegConjuncture : repair previous solution ";
         for (const Node& fc : fail_cvs)
@@ -419,8 +419,8 @@ bool SynthConjecture::doCheck()
     if (modelSuccess)
     {
       // Must separately compute whether trace is on due to compilation of
-      // Trace.isOn.
-      bool traceIsOn = Trace.isOn("sygus-engine");
+      // TraceIsOn.
+      bool traceIsOn = TraceIsOn("sygus-engine");
       if (printDebug || traceIsOn)
       {
         Trace("sygus-engine") << "  * Value is : ";
@@ -445,7 +445,7 @@ bool SynthConjecture::doCheck()
           else
           {
             Trace("sygus-engine") << ss.str() << " ";
-            if (Trace.isOn("sygus-engine-rr"))
+            if (TraceIsOn("sygus-engine-rr"))
             {
               Node bv = d_tds->sygusToBuiltin(nv, tn);
               bv = rewrite(bv);
@@ -493,14 +493,15 @@ bool SynthConjecture::doCheck()
   Node query;
   if (constructed_cand)
   {
-    if (Trace.isOn("cegqi-check"))
+    if (TraceIsOn("sygus-engine-debug"))
     {
-      Trace("cegqi-check") << "CegConjuncture : check candidate : "
-                           << std::endl;
+      Trace("sygus-engine-debug")
+          << "CegConjuncture : check candidate : " << std::endl;
       for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
       {
-        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> "
-                             << candidate_values[i] << std::endl;
+        Trace("sygus-engine-debug")
+            << "  " << i << " : " << d_candidates[i] << " -> "
+            << candidate_values[i] << std::endl;
       }
     }
     Assert(candidate_values.size() == d_candidates.size());
@@ -560,12 +561,12 @@ bool SynthConjecture::doCheck()
   std::vector<Node> skModel;
   Result r = d_verify.verify(query, d_innerSks, skModel);
 
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  if (r.getStatus() == Result::SAT)
   {
     // we have a counterexample
     return processCounterexample(skModel);
   }
-  else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  else if (r.getStatus() != Result::UNSAT)
   {
     // In the rare case that the subcall is unknown, we simply exclude the
     // solution, without adding a counterexample point. This should only
@@ -676,6 +677,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
                                           std::vector<Node>& v,
                                           bool& activeIncomplete)
 {
+  Trace("sygus-engine-debug") << "getEnumeratedValues" << std::endl;
   std::vector<Node> ncheck = n;
   n.clear();
   bool ret = true;
@@ -695,7 +697,9 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
       }
     }
     EnumValueManager* eman = getEnumValueManagerFor(e);
+    Trace("sygus-engine-debug2") << "- get value for " << e << std::endl;
     Node nv = eman->getEnumeratedValue(activeIncomplete);
+    Trace("sygus-engine-debug2") << "  ...return " << nv << std::endl;
     n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
@@ -1025,30 +1029,21 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
         {
           Trace("cegqi-inv-debug")
               << sf << " used template : " << templ << std::endl;
-          // if it was not embedded into the grammar
-          if (!options().quantifiers.sygusTemplEmbedGrammar)
-          {
-            TNode templa = d_templInfer->getTemplateArg(sf);
-            // make the builtin version of the full solution
-            sol = d_tds->sygusToBuiltin(sol, sol.getType());
-            Trace("cegqi-inv") << "Builtin version of solution is : " << sol
-                               << ", type : " << sol.getType() << std::endl;
-            TNode tsol = sol;
-            sol = templ.substitute(templa, tsol);
-            Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
-            sol = rewrite(sol);
-            Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
-            // now, reconstruct to the syntax
-            sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
-            sol = sol.getKind() == LAMBDA ? sol[1] : sol;
-            Trace("cegqi-inv-debug")
-                << "Reconstructed to syntax : " << sol << std::endl;
-          }
-          else
-          {
-            Trace("cegqi-inv-debug")
-                << "...was embedding into grammar." << std::endl;
-          }
+          TNode templa = d_templInfer->getTemplateArg(sf);
+          // make the builtin version of the full solution
+          sol = d_tds->sygusToBuiltin(sol, sol.getType());
+          Trace("cegqi-inv") << "Builtin version of solution is : " << sol
+                             << ", type : " << sol.getType() << std::endl;
+          TNode tsol = sol;
+          sol = templ.substitute(templa, tsol);
+          Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
+          sol = rewrite(sol);
+          Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
+          // now, reconstruct to the syntax
+          sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
+          sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+          Trace("cegqi-inv-debug")
+              << "Reconstructed to syntax : " << sol << std::endl;
         }
         else
         {
@@ -1106,4 +1101,4 @@ ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

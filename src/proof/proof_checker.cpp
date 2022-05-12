@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
@@ -93,6 +93,12 @@ ProofChecker::ProofChecker(bool eagerCheck,
 {
 }
 
+void ProofChecker::reset()
+{
+  d_checker.clear();
+  d_plevel.clear();
+}
+
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   return check(pn->getRule(), pn->getChildren(), pn->getArguments(), expected);
@@ -131,7 +137,7 @@ Node ProofChecker::check(
       return Node::null();
     }
     cchildren.push_back(cres);
-    if (Trace.isOn("pfcheck"))
+    if (TraceIsOn("pfcheck"))
     {
       std::stringstream ssc;
       pc->printDebug(ssc);
@@ -164,7 +170,7 @@ Node ProofChecker::checkDebug(PfRule id,
                               const char* traceTag)
 {
   std::stringstream out;
-  bool traceEnabled = Trace.isOn(traceTag);
+  bool traceEnabled = TraceIsOn(traceTag);
   // Since we are debugging, we want to treat trusted (null) checkers as
   // a failure. We only enable output if the trace is enabled for efficiency.
   Node res =
@@ -256,7 +262,7 @@ Node ProofChecker::checkInternal(PfRule id,
       if (enableOutput)
       {
         out << serr.str() << std::endl;
-        if (Trace.isOn("proof-pedantic"))
+        if (TraceIsOn("proof-pedantic"))
         {
           Trace("proof-pedantic")
               << "Failed pedantic check for " << id << std::endl;
@@ -343,7 +349,7 @@ bool ProofChecker::isPedanticFailure(PfRule id,
         out << "pedantic level for " << id << " not met (rule level is "
             << itp->second << " which is at or below the pedantic level "
             << d_pclevel << ")";
-        bool pedanticTraceEnabled = Trace.isOn("proof-pedantic");
+        bool pedanticTraceEnabled = TraceIsOn("proof-pedantic");
         if (!pedanticTraceEnabled)
         {
           out << ", use -t proof-pedantic for details";
@@ -355,4 +361,4 @@ bool ProofChecker::isPedanticFailure(PfRule id,
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

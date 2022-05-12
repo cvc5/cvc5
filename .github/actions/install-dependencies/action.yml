@@ -7,6 +7,9 @@ inputs:
     default: false
   with-python-packaging:
     default: false
+  windows-build:
+    default: false
+    type: boolean
 runs:
   using: composite
   steps:
@@ -23,16 +26,11 @@ runs:
           libcln-dev \
           libedit-dev \
           libgmp-dev \
-          libgtest-dev \
           libtinfo-dev \
           flex \
           libfl-dev \
           flexc++
         python3 -m pip install pexpect setuptools toml
-        cd /usr/src/googletest
-        sudo cmake .
-        sudo cmake --build . --target install
-        cd -
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -40,8 +38,25 @@ runs:
         echo "SED=sed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(nproc)" >> $GITHUB_ENV
+        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
         echo "/usr/lib/ccache" >> $GITHUB_PATH
+        echo "::endgroup::"
+
+    - name: Install software for cross-compiling for Windows
+      # Boolean inputs are actually strings:
+      # https://github.com/actions/runner/issues/1483
+      if: inputs.windows-build == 'true'
+      shell: bash
+      run: |
+        echo "::group::Install software for cross-compiling for Windows"
+        sudo apt-get update
+        sudo apt-get install -y \
+          mingw-w64
+
+        # cvc5 requires the POSIX version of MinGW to implement the time limit
+        # using threads
+        sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
@@ -66,7 +81,7 @@ runs:
         echo "SED=gsed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
+        echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 

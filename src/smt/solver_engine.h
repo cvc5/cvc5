@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
-
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +29,18 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
+#include "util/synth_result.h"
+
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
 
 namespace cvc5 {
+
+class Solver;
+
+namespace internal {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -46,19 +56,6 @@ class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-namespace api {
-class Solver;
-}  // namespace api
-
-/* -------------------------------------------------------------------------- */
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -108,9 +105,9 @@ class QuantifiersEngine;
 
 class CVC5_EXPORT SolverEngine
 {
-  friend class ::cvc5::api::Solver;
-  friend class ::cvc5::smt::SolverEngineState;
-  friend class ::cvc5::smt::SolverEngineScope;
+  friend class cvc5::Solver;
+  friend class smt::SolverEngineState;
+  friend class smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -229,10 +226,8 @@ class CVC5_EXPORT SolverEngine
    *
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by cvc5.
-   *
-   * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModel();
+  void blockModel(modes::BlockModelsMode mode);
 
   /**
    * Block the current model values of (at least) the values in exprs.
@@ -243,10 +238,8 @@ class CVC5_EXPORT SolverEngine
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
    * where M0 ... Mn are the current model values of exprs[0] ... exprs[n].
-   *
-   * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModelValues(const std::vector<Node>& exprs);
+  void blockModelValues(const std::vector<Node>& exprs);
 
   /**
    * Declare heap. For smt2 inputs, this is called when the command
@@ -333,16 +326,16 @@ class CVC5_EXPORT SolverEngine
                          const std::vector<Node>& formals,
                          Node formula,
                          bool global = false);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent. Note this formula will
+   * literals and conjunction of literals. Note this formula will
    * be included in the unsat core when applicable.
    *
    * @throw TypeCheckingException, LogicException
    */
-  Result assertFormula(const Node& formula);
+  void assertFormula(const Node& formula);
 
   /**
    * Reduce an unsatisfiable core to make it minimal.
@@ -351,7 +344,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Assert a formula (if provided) to the current context and call
-   * check().  Returns SAT, UNSAT, or SAT_UNKNOWN result.
+   * check().  Returns SAT, UNSAT, or UNKNOWN result.
    *
    * @throw Exception
    */
@@ -453,7 +446,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @throw Exception
    */
-  Result checkSynth(bool isNext = false);
+  SynthResult checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -468,6 +461,16 @@ class CVC5_EXPORT SolverEngine
    * of type T.
    */
   void declarePool(const Node& p, const std::vector<Node>& initValue);
+
+  /**
+   * Add an oracle function to the state, also adds an oracle interface
+   * defining it.
+   *
+   * @param var The oracle function symbol
+   * @param fn The method for the oracle
+   */
+  void declareOracleFun(
+      Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
@@ -868,8 +871,7 @@ class CVC5_EXPORT SolverEngine
   std::vector<Node> getExpandedAssertions();
 
   /**
-   * !!!!! temporary, until the environment is passsed to all classes that
-   * require it.
+   * Get the enviornment from this solver engine.
    */
   Env& getEnv();
   /* .......................................................................  */
@@ -881,7 +883,7 @@ class CVC5_EXPORT SolverEngine
   SolverEngine& operator=(const SolverEngine&) = delete;
 
   /** Set solver instance that owns this SolverEngine. */
-  void setSolver(api::Solver* solver) { d_solver = solver; }
+  void setSolver(cvc5::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the (new) PfManager owned by this SolverEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
@@ -898,7 +900,7 @@ class CVC5_EXPORT SolverEngine
   UnsatCore getUnsatCoreInternal();
 
   /** Internal version of assertFormula */
-  Result assertFormulaInternal(const Node& formula);
+  void assertFormulaInternal(const Node& formula);
 
   /**
    * Check that a generated proof checks. This method is the same as printProof,
@@ -939,13 +941,6 @@ class CVC5_EXPORT SolverEngine
   void shutdown();
 
   /**
-   * Quick check of consistency in current context: calls
-   * processAssertionList() then look for inconsistency (based only on
-   * that).
-   */
-  Result quickCheck();
-
-  /**
    * Get the (SMT-level) model pointer, if we are in SAT mode. Otherwise,
    * return nullptr.
    *
@@ -966,6 +961,14 @@ class CVC5_EXPORT SolverEngine
    * this method was called.
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
+
+  /**
+   * Deep restart, assumes that we just ran a satisfiability check.
+   * Returns true if we wish to reconstruct the SMT solver and try again. If
+   * so, the SMT solver is deep restarted, and we are prepared to make another
+   * satisfiability check.
+   */
+  bool deepRestart();
 
   // --------------------------------------- callbacks from the state
   /**
@@ -1023,7 +1026,6 @@ class CVC5_EXPORT SolverEngine
   void debugCheckFunctionBody(Node formula,
                               const std::vector<Node>& formals,
                               Node func);
-
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
@@ -1055,11 +1057,10 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
-  api::Solver* d_solver = nullptr;
+  cvc5::Solver* d_solver = nullptr;
 
   /**
    * The environment object, which contains all utilities that are globally
@@ -1130,6 +1131,7 @@ class CVC5_EXPORT SolverEngine
 
 /* -------------------------------------------------------------------------- */
 
+}  // namespace internal
 }  // namespace cvc5
 
 #endif /* CVC5__SMT_ENGINE_H */

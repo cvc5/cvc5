@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,10 +30,10 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
@@ -122,7 +122,7 @@ bool ProofPostprocessCallback::update(Node res,
       else
       {
         Assert(pfn->getResult() == f);
-        if (Trace.isOn("smt-proof-pp"))
+        if (TraceIsOn("smt-proof-pp"))
         {
           Trace("smt-proof-pp")
               << "=== Connect proof for preprocessing: " << f << std::endl;
@@ -261,7 +261,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
   // order eliminators
   std::sort(eliminators.begin(), eliminators.end());
-  if (Trace.isOn("smt-proof-pp-debug"))
+  if (TraceIsOn("smt-proof-pp-debug"))
   {
     Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
     for (const auto& pair : lastInclusion)
@@ -952,19 +952,49 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node ts = builtin::BuiltinProofRuleChecker::applySubstitution(
         t, children, ids, ida);
     Node eqq = t.eqNode(ts);
+    // should have the same conclusion, if not, then tcpg does not agree with
+    // the substitution.
     if (eq != eqq)
     {
-      pfn = nullptr;
-    }
-    // should give a proof, if not, then tcpg does not agree with the
-    // substitution.
-    if (pfn == nullptr)
-    {
-      warning() << "resort to TRUST_SUBS" << std::endl
-                << eq << std::endl
-                << eqq << std::endl
-                << "from " << children << " applied to " << t << std::endl;
-      cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      // this can happen in very rare cases where e.g. x -> a; f(x) -> b
+      // and t*{x -> a} = t*{x -> a}*{f(x) -> b} != t*{x -> a, f(x) -> b}
+      if (ida == MethodId::SBA_SEQUENTIAL && vsList.size() > 1)
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to sequential reconstruction" << std::endl;
+        // just do the naive sequential reconstruction,
+        // (SUBS F1 ... Fn t) ---> (TRANS (SUBS F1 t) ... (SUBS Fn tn))
+        Node curr = t;
+        std::vector<Node> transChildren;
+        for (size_t i = 0, nvs = vsList.size(); i < nvs; i++)
+        {
+          size_t ii = nvs - 1 - i;
+          TNode var = vsList[ii];
+          TNode subs = ssList[ii];
+          Node next = curr.substitute(var, subs);
+          if (next != curr)
+          {
+            Node eqo = curr.eqNode(next);
+            transChildren.push_back(eqo);
+            // ensure the proof for the substitution exists
+            addProofForSubsStep(var, subs, fromList[ii], cdp);
+            // do the single step SUBS on curr with the default arguments
+            cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, {curr});
+            curr = next;
+          }
+        }
+        Assert(curr == ts);
+        cdp->addStep(eqq, PfRule::TRANS, transChildren, {});
+      }
+      else
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to TRUST_SUBS" << std::endl
+            << eq << std::endl
+            << eqq << std::endl
+            << "from " << children << " applied to " << t << std::endl;
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      }
     }
     else
     {
@@ -1067,14 +1097,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Debug("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (Debug.isOn("macro::arith"))
+    Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
+    if (TraceIsOn("macro::arith"))
     {
       for (const auto& child : children)
       {
-        Debug("macro::arith") << "  child: " << child << std::endl;
+        Trace("macro::arith") << "  child: " << child << std::endl;
       }
-      Debug("macro::arith") << "   args: " << args << std::endl;
+      Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
     NodeManager* nm = NodeManager::currentNM();
@@ -1088,9 +1118,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
       Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT,
-                     scalar,
-                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
+          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConstInt(Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());
@@ -1115,7 +1143,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
     Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
     cdp->addSteps(steps);
-    Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
+    Trace("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
   }
@@ -1275,4 +1303,4 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

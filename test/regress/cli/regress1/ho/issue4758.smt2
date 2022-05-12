@@ -1,0 +1,6 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-fun a () Real)
+(declare-fun b (Real Real) Real)
+(assert (> (b a 0.0) (b (- a) 1.0)))
+(check-sat)

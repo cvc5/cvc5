@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -37,7 +37,8 @@ SygusEvalUnfold::SygusEvalUnfold(Env& env, TermDbSygus* tds)
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
-  Assert(options().quantifiers.sygusEvalUnfold);
+  Assert(options().quantifiers.sygusEvalUnfoldMode
+         != options::SygusEvalUnfoldMode::NONE);
   // is this a sygus evaluation function application?
   if (n.getKind() != DT_SYGUS_EVAL)
   {
@@ -146,7 +147,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
         Node expn;
         // should we unfold?
         bool do_unfold = false;
-        if (options().quantifiers.sygusEvalUnfoldBool)
+        if (options().quantifiers.sygusEvalUnfoldMode
+            == options::SygusEvalUnfoldMode::SINGLE_BOOL)
         {
           Node bTermUse = bTerm;
           if (bTerm.getKind() == APPLY_UF)
@@ -163,6 +165,12 @@ void SygusEvalUnfold::registerModelValue(Node a,
           {
             do_unfold = true;
           }
+        }
+        else if (options().quantifiers.sygusEvalUnfoldMode
+                 == options::SygusEvalUnfoldMode::SINGLE)
+        {
+          // do single step for all
+          do_unfold = true;
         }
         if (do_unfold || hasSymCons)
         {
@@ -334,4 +342,4 @@ Node SygusEvalUnfold::unfold(Node en,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

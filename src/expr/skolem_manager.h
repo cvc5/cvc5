@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofGenerator;
 
@@ -30,6 +30,8 @@ class ProofGenerator;
 enum class SkolemFunId
 {
   NONE,
+  /** array diff to witness (not (= A B)) */
+  ARRAY_DEQ_DIFF,
   /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
   DIV_BY_ZERO,
   /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
@@ -48,8 +50,6 @@ enum class SkolemFunId
   SELECTOR_WRONG,
   /** a shared selector */
   SHARED_SELECTOR,
-  /** an application of seq.nth that is out of bounds */
-  SEQ_NTH_OOB,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
@@ -148,6 +148,12 @@ enum class SkolemFunId
    */
   BAGS_MAP_PREIMAGE,
   /**
+   * A skolem variable for the size of the preimage of {y} that is unique per
+   * terms (map f A), y which might be an element in (map f A). (see the
+   * documentation for BAGS_MAP_PREIMAGE)
+   */
+  BAGS_MAP_PREIMAGE_SIZE,
+  /**
    * A skolem variable for the index that is unique per terms
    * (map f A), y, preImageSize, y, e which might be an element in A.
    * (see the documentation for BAGS_MAP_PREIMAGE)
@@ -161,6 +167,8 @@ enum class SkolemFunId
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    */
   BAGS_MAP_SUM,
+  /** bag diff to witness (not (= A B)) */
+  BAG_DEQ_DIFF,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))
@@ -172,8 +180,10 @@ enum class SkolemFunId
    * of A
    */
   SETS_CHOOSE,
+  /** set diff to witness (not (= A B)) */
+  SETS_DEQ_DIFF,
   /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED,
+  HO_TYPE_MATCH_PRED
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
@@ -330,22 +340,19 @@ class SkolemManager
                    int flags = SKOLEM_DEFAULT,
                    ProofGenerator* pg = nullptr);
   /**
-   * Same as above, but for special case of (witness ((x T)) (= x t))
-   * where T is the type of t. This skolem is unique for each t, which we
+   * Make purification skolem. This skolem is unique for each t, which we
    * implement via an attribute on t. This attribute is used to ensure to
    * associate a unique skolem for each t.
    *
-   * Notice that a purification skolem is trivial to justify, and hence it
-   * does not require a proof generator.
+   * Notice that a purification skolem is trivial to justify (via SKOLEM_INTRO),
+   * and hence it does not require a proof generator.
    *
-   * Notice that in very rare cases, two different terms may have the
-   * same purification skolem. For example, let k be the skolem introduced to
-   * eliminate (ite A B C). Then, the pair of terms:
+   * Notice that we do not convert t to original form in this call. Thus,
+   * in very rare cases, two Skolems may be introduced that have the same
+   * original form. For example, let k be the skolem introduced to eliminate
+   * (ite A B C). Then, asking for the purify skolem for:
    *  (ite (ite A B C) D E) and (ite k D E)
-   * have the same purification skolem. In the implementation, this is a result
-   * of the fact that the above terms have the same original form. It is sound
-   * to use the same skolem to purify these two terms, since they are
-   * definitionally equivalent.
+   * will return two different Skolems.
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
@@ -442,6 +449,17 @@ class SkolemManager
    * @return n in original form.
    */
   static Node getOriginalForm(Node n);
+  /**
+   * Convert to unpurified form, which returns the term that k purifies. This
+   * is literally the term that was passed as an argument to mkPurify on the
+   * call that created k. In contrast to getOriginalForm, this is not recursive
+   * w.r.t. skolems, so that the term purified by k may itself contain
+   * purification skolems that are not expanded.
+   *
+   * @param k The skolem to convert to unpurified form
+   * @return the unpurified form of k.
+   */
+  static Node getUnpurifiedForm(Node k);
 
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
@@ -498,6 +516,6 @@ class SkolemManager
                     int flags = SKOLEM_DEFAULT);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__PROOF_SKOLEM_CACHE_H */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,6 @@
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"
-#include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
@@ -42,6 +41,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt_util/boolean_simplification.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
@@ -60,7 +60,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace printer {
 namespace smt2 {
 
@@ -307,35 +307,6 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
 
-    case kind::DATATYPE_TYPE:
-    {
-      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
-          n.getConst<DatatypeIndexConstant>().getIndex()));
-      if (dt.isTuple())
-      {
-        unsigned int nargs = dt[0].getNumArgs();
-        if (nargs == 0)
-        {
-          out << "Tuple";
-        }
-        else
-        {
-          out << "(Tuple";
-          for (unsigned int i = 0; i < nargs; i++)
-          {
-            out << " ";
-            toStreamType(out, dt[0][i].getRangeType());
-          }
-          out << ")";
-        }
-      }
-      else
-      {
-        out << cvc5::quoteSymbol(dt.getName());
-      }
-      break;
-    }
-
     case kind::UNINTERPRETED_SORT_VALUE:
     {
       const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
@@ -435,13 +406,6 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
-      out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().getSize().exponentWidth()
-          << ' '
-          << n.getConst<FloatingPointToFPGeneric>().getSize().significandWidth()
-          << ")";
-      break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
       out << "(_ fp.to_ubv "
           << n.getConst<FloatingPointToUBV>().d_bv_size.d_size << ")";
@@ -474,13 +438,15 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if(n.getKind() == kind::SORT_TYPE) {
+  Kind k = n.getKind();
+  if (k == kind::SORT_TYPE)
+  {
     string name;
     if(n.getNumChildren() != 0) {
       out << '(';
     }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << cvc5::quoteSymbol(name);
+      out << cvc5::internal::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
@@ -491,10 +457,36 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  else if (k == kind::DATATYPE_TYPE)
+  {
+    const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
+    if (dt.isTuple())
+    {
+      unsigned int nargs = dt[0].getNumArgs();
+      if (nargs == 0)
+      {
+        out << "Tuple";
+      }
+      else
+      {
+        out << "(Tuple";
+        for (unsigned int i = 0; i < nargs; i++)
+        {
+          out << " ";
+          toStreamType(out, dt[0][i].getRangeType());
+        }
+        out << ")";
+      }
+    }
+    else
+    {
+      out << cvc5::internal::quoteSymbol(dt.getName());
+    }
+    return;
+  }
 
   // determine if we are printing out a type ascription, store the argument of
   // the type ascription into type_asc_arg.
-  Kind k = n.getKind();
   Node type_asc_arg;
   TypeNode force_nt;
   if (k == kind::APPLY_TYPE_ASCRIPTION)
@@ -551,7 +543,7 @@ void Smt2Printer::toStream(std::ostream& out,
     // abstract value
     std::string s;
     n.getAttribute(expr::VarNameAttr(), s);
-    out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
+    out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
@@ -560,7 +552,15 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << cvc5::quoteSymbol(s);
+      if (n.getKind() == kind::RAW_SYMBOL)
+      {
+        // raw symbols are never quoted
+        out << s;
+      }
+      else
+      {
+        out << cvc5::internal::quoteSymbol(s);
+      }
     }
     else
     {
@@ -760,7 +760,6 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_TO_FP_FROM_REAL:
   case kind::FLOATINGPOINT_TO_FP_FROM_SBV:
   case kind::FLOATINGPOINT_TO_FP_FROM_UBV:
-  case kind::FLOATINGPOINT_TO_FP_GENERIC:
   case kind::FLOATINGPOINT_TO_UBV:
   case kind::FLOATINGPOINT_TO_SBV:
     out << n.getOperator() << ' ';
@@ -782,13 +781,59 @@ void Smt2Printer::toStream(std::ostream& out,
     TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
     if (op.getIndices().empty())
     {
-      // e.g. (tuple_project tuple)
-      out << "tuple_project " << n[0] << ")";
+      // e.g. (tuple.project tuple)
+      out << "tuple.project " << n[0] << ")";
     }
     else
     {
-      // e.g. ((_ tuple_project 2 4 4) tuple)
-      out << "(_ tuple_project" << op << ") " << n[0] << ")";
+      // e.g. ((_ tuple.project 2 4 4) tuple)
+      out << "(_ tuple.project" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
+  case kind::TABLE_PROJECT:
+  {
+    TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.project A)
+      out << "table.project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.project 2 4 4) A)
+      out << "(_ table.project" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
+  case kind::TABLE_AGGREGATE:
+  {
+    TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.project function initial_value bag)
+      out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
+    }
+    else
+    {
+      // e.g.  ((_ table.aggr 0) function initial_value bag)
+      out << "(_ table.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
+          << ")";
+    }
+    return;
+  }
+  case kind::TABLE_JOIN:
+  {
+    TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.join A B)
+      out << "table.join " << n[0] << " " << n[1] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.project 0 1 2 3) A B)
+      out << "(_ table.join" << op << ") " << n[0] << " " << n[1] << ")";
     }
     return;
   }
@@ -805,7 +850,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
+      out << "(_ tuple.select " << DType::indexOf(op) << ") ";
     }
   }
   break;
@@ -831,7 +876,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tuple_update " << DType::indexOf(op) << ") ";
+      out << "(_ tuple.update " << DType::indexOf(op) << ") ";
     }
     else
     {
@@ -843,6 +888,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   break;
+  case kind::INSTANTIATED_SORT_TYPE: break;
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
@@ -943,7 +989,11 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::INST_PATTERN_LIST: break;
   default:
     // by default, print the kind using the smtKindString utility
-    out << smtKindString(k, d_variant) << " ";
+    out << smtKindString(k, d_variant);
+    if (n.getNumChildren() > 0)
+    {
+      out << " ";
+    }
     break;
   }
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
@@ -959,7 +1009,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   stringstream parens;
-  
+
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
       toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c, lbind);
@@ -1055,9 +1105,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::GEQ: return ">=";
   case kind::DIVISION:
   case kind::DIVISION_TOTAL: return "/";
-  case kind::INTS_DIVISION_TOTAL: 
+  case kind::INTS_DIVISION_TOTAL:
   case kind::INTS_DIVISION: return "div";
-  case kind::INTS_MODULUS_TOTAL: 
+  case kind::INTS_MODULUS_TOTAL:
   case kind::INTS_MODULUS: return "mod";
   case kind::ABS: return "abs";
   case kind::IS_INTEGER: return "is_int";
@@ -1120,6 +1170,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // datatypes theory
   case kind::APPLY_TESTER: return "is";
   case kind::APPLY_UPDATER: return "update";
+  case kind::TUPLE_TYPE: return "Tuple";
 
   // set theory
   case kind::SET_UNION: return "set.union";
@@ -1163,7 +1214,11 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_MAP: return "bag.map";
   case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
+  case kind::BAG_PARTITION: return "bag.partition";
   case kind::TABLE_PRODUCT: return "table.product";
+  case kind::TABLE_PROJECT: return "table.project";
+  case kind::TABLE_AGGREGATE: return "table.aggr";
+  case kind::TABLE_JOIN: return "table.join";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1201,7 +1256,6 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_TO_FP_FROM_REAL: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_FROM_SBV: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_FROM_UBV: return "to_fp_unsigned";
-  case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
   case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
@@ -1231,8 +1285,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_REPLACE_ALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
   case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
-  case kind::STRING_TOLOWER: return "str.tolower";
-  case kind::STRING_TOUPPER: return "str.toupper";
+  case kind::STRING_TO_LOWER: return "str.to_lower";
+  case kind::STRING_TO_UPPER: return "str.to_upper";
   case kind::STRING_REV: return "str.rev";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
@@ -1292,7 +1346,7 @@ std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
   Kind k = n.getKind();
   if (n.getNumChildren() > 0 && n[0].getType().isSequence())
   {
-    // this method parallels api::Term::getKind
+    // this method parallels cvc5::Term::getKind
     switch (k)
     {
       case kind::STRING_CONCAT: return "seq.concat";
@@ -1316,6 +1370,24 @@ std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
   return smtKindString(k, v);
 }
 
+void Smt2Printer::toStreamDeclareType(std::ostream& out, TypeNode tn) const
+{
+  out << "(";
+  if (tn.isFunction())
+  {
+    const vector<TypeNode> argTypes = tn.getArgTypes();
+    if (argTypes.size() > 0)
+    {
+      copy(argTypes.begin(),
+           argTypes.end() - 1,
+           ostream_iterator<TypeNode>(out, " "));
+      out << argTypes.back();
+    }
+    tn = tn.getRangeType();
+  }
+  out << ") " << tn;
+}
+
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
@@ -1323,27 +1395,31 @@ void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c);
+static bool tryToStream(std::ostream& out, const cvc5::Command* c);
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c, Variant v);
+static bool tryToStream(std::ostream& out, const cvc5::Command* c, Variant v);
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v);
+static bool tryToStream(std::ostream& out,
+                        const cvc5::CommandStatus* s,
+                        Variant v);
 
-void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const
+void Smt2Printer::toStream(std::ostream& out,
+                           const cvc5::CommandStatus* s) const
 {
-  if (tryToStream<CommandSuccess>(out, s, d_variant) ||
-      tryToStream<CommandFailure>(out, s, d_variant) ||
-      tryToStream<CommandRecoverableFailure>(out, s, d_variant) ||
-      tryToStream<CommandUnsupported>(out, s, d_variant) ||
-      tryToStream<CommandInterrupted>(out, s, d_variant)) {
+  if (tryToStream<cvc5::CommandSuccess>(out, s, d_variant)
+      || tryToStream<cvc5::CommandFailure>(out, s, d_variant)
+      || tryToStream<cvc5::CommandRecoverableFailure>(out, s, d_variant)
+      || tryToStream<cvc5::CommandUnsupported>(out, s, d_variant)
+      || tryToStream<cvc5::CommandInterrupted>(out, s, d_variant))
+  {
     return;
   }
 
-  out << "ERROR: don't know how to print a CommandStatus of class: "
+  out << "ERROR: don't know how to print a cvc5::CommandStatus of class: "
       << typeid(*s).name() << endl;
 
-}/* Smt2Printer::toStream(CommandStatus*) */
+} /* Smt2Printer::toStream(cvc5::CommandStatus*) */
 
 void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
@@ -1354,7 +1430,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
     const std::vector<std::string>& cnames = core.getCoreNames();
     for (const std::string& cn : cnames)
     {
-      out << cvc5::quoteSymbol(cn) << std::endl;
+      out << cvc5::internal::quoteSymbol(cn) << std::endl;
     }
   }
   else
@@ -1392,7 +1468,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
                                     TypeNode tn,
                                     const std::vector<Node>& elements) const
 {
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
     out << "ERROR: don't know how to print non uninterpreted sort in model: "
         << tn << std::endl;
@@ -1408,15 +1484,27 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (trn.isVar())
+    if (options::modelUninterpPrint()
+            == options::ModelUninterpPrintMode::DeclSortAndFun
+        || options::modelUninterpPrint()
+               == options::ModelUninterpPrintMode::DeclFun)
     {
-      if (options::modelUninterpPrint()
-              == options::ModelUninterpPrintMode::DeclSortAndFun
-          || options::modelUninterpPrint()
-                 == options::ModelUninterpPrintMode::DeclFun)
+      out << "(declare-fun ";
+      if (trn.getKind() == kind::UNINTERPRETED_SORT_VALUE)
       {
-        out << "(declare-fun " << trn << " () " << tn << ")" << endl;
+        // prints as raw symbol
+        const UninterpretedSortValue& av =
+            trn.getConst<UninterpretedSortValue>();
+        out << av;
       }
+      else
+      {
+        Assert(false)
+            << "model domain element is not an uninterpreted sort value: "
+            << trn;
+        out << trn;
+      }
+      out << " () " << tn << ")" << endl;
     }
     else
     {
@@ -1451,14 +1539,14 @@ void Smt2Printer::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "(assert " << n << ')' << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPush(std::ostream& out) const
+void Smt2Printer::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "(push 1)" << std::endl;
+  out << "(push " << nscopes << ")" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdPop(std::ostream& out) const
+void Smt2Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 {
-  out << "(pop 1)" << std::endl;
+  out << "(pop " << nscopes << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
@@ -1502,16 +1590,16 @@ void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
 }
 
 void Smt2Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
-  for (Command* i : sequence)
+  for (cvc5::Command* i : sequence)
   {
     out << *i;
   }
 }
 
 void Smt2Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   toStreamCmdCommandSequence(out, sequence);
 }
@@ -1520,21 +1608,18 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
 {
-  out << "(declare-fun " << cvc5::quoteSymbol(id) << " (";
-  if (type.isFunction())
-  {
-    const vector<TypeNode> argTypes = type.getArgTypes();
-    if (argTypes.size() > 0)
-    {
-      copy(argTypes.begin(),
-           argTypes.end() - 1,
-           ostream_iterator<TypeNode>(out, " "));
-      out << argTypes.back();
-    }
-    type = type.getRangeType();
-  }
+  out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
+  toStreamDeclareType(out, type);
+  out << ')' << std::endl;
+}
 
-  out << ") " << type << ')' << std::endl;
+void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
+                                              Node fun,
+                                              const std::string& binName) const
+{
+  out << "(declare-oracle-fun " << fun << " ";
+  toStreamDeclareType(out, fun.getType());
+  out << " " << binName << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclarePool(
@@ -1543,7 +1628,7 @@ void Smt2Printer::toStreamCmdDeclarePool(
     TypeNode type,
     const std::vector<Node>& initValue) const
 {
-  out << "(declare-pool " << cvc5::quoteSymbol(id) << ' ' << type << " (";
+  out << "(declare-pool " << cvc5::internal::quoteSymbol(id) << ' ' << type << " (";
   for (size_t i = 0, n = initValue.size(); i < n; ++i)
   {
     if (i != 0) {
@@ -1560,25 +1645,9 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  out << "(define-fun " << cvc5::quoteSymbol(id) << " (";
-  if (!formals.empty())
-  {
-    vector<Node>::const_iterator i = formals.cbegin();
-    for (;;)
-    {
-      out << "(" << (*i) << " " << (*i).getType() << ")";
-      ++i;
-      if (i != formals.cend())
-      {
-        out << " ";
-      }
-      else
-      {
-        break;
-      }
-    }
-  }
-  out << ") " << range << ' ' << formula << ')' << std::endl;
+  out << "(define-fun " << cvc5::internal::quoteSymbol(id) << " ";
+  toStreamSortedVarList(out, formals);
+  out << " " << range << ' ' << formula << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineFunctionRec(
@@ -1607,24 +1676,15 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
       }
       out << "(";
     }
-    out << funcs[i] << " (";
+    out << funcs[i] << " ";
     // print its type signature
-    vector<Node>::const_iterator itf = formals[i].cbegin();
-    while (itf != formals[i].cend())
-    {
-      out << "(" << (*itf) << " " << (*itf).getType() << ")";
-      ++itf;
-      if (itf != formals[i].cend())
-      {
-        out << " ";
-      }
-    }
+    toStreamSortedVarList(out, formals[i]);
     TypeNode type = funcs[i].getType();
     if (type.isFunction())
     {
       type = type.getRangeType();
     }
-    out << ") " << type;
+    out << " " << type;
     if (funcs.size() > 1)
     {
       out << ")";
@@ -1653,11 +1713,28 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
   out << ")" << std::endl;
 }
 
+void Smt2Printer::toStreamSortedVarList(std::ostream& out,
+                                        const std::vector<Node>& vars) const
+{
+  out << "(";
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  {
+    out << "(" << vars[i] << " " << vars[i].getType() << ")";
+    if (i + 1 < nvars)
+    {
+      out << " ";
+    }
+  }
+  out << ")";
+}
+
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          TypeNode type) const
 {
-  Assert(type.isSort() || type.isSortConstructor());
-  size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
+  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
+  size_t arity = type.isUninterpretedSortConstructor()
+                     ? type.getUninterpretedSortConstructorArity()
+                     : 0;
   out << "(declare-sort " << type << " " << arity << ")" << std::endl;
 }
 
@@ -1666,7 +1743,7 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
                                         const std::vector<TypeNode>& params,
                                         TypeNode t) const
 {
-  out << "(define-sort " << cvc5::quoteSymbol(id) << " (";
+  out << "(define-sort " << cvc5::internal::quoteSymbol(id) << " (";
   if (params.size() > 0)
   {
     copy(
@@ -1694,9 +1771,17 @@ void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const
   out << "(get-model)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdBlockModel(std::ostream& out) const
+void Smt2Printer::toStreamCmdBlockModel(std::ostream& out,
+                                        modes::BlockModelsMode mode) const
 {
-  out << "(block-model)" << std::endl;
+  out << "(block-model :";
+  switch (mode)
+  {
+    case modes::BlockModelsMode::LITERALS: out << "literals"; break;
+    case modes::BlockModelsMode::VALUES: out << "values"; break;
+    default: Unreachable() << "Invalid block models mode " << mode;
+  }
+  out << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdBlockModelValues(
@@ -1790,7 +1875,7 @@ void Smt2Printer::toStream(std::ostream& out, const DType& dt) const
     {
       out << " ";
     }
-    out << "(" << cvc5::quoteSymbol(cons.getName());
+    out << "(" << cvc5::internal::quoteSymbol(cons.getName());
     for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
     {
       const DTypeSelector& arg = cons[j];
@@ -1823,7 +1908,7 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
   {
     Assert(t.isDatatype());
     const DType& d = t.getDType();
-    out << "(" << cvc5::quoteSymbol(d.getName());
+    out << "(" << cvc5::internal::quoteSymbol(d.getName());
     out << " " << d.getNumParameters() << ")";
   }
   out << ") (";
@@ -1868,7 +1953,7 @@ void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
                                   const std::string& output) const
 {
-  out << "(echo " << cvc5::quoteString(output) << ')' << std::endl;
+  out << "(echo " << cvc5::internal::quoteString(output) << ')' << std::endl;
 }
 
 /*
@@ -1943,20 +2028,9 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
                                       bool isInv,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ' << '(';
-  if (!vars.empty())
-  {
-    // print variable list
-    std::vector<Node>::const_iterator i = vars.cbegin(), i_end = vars.cend();
-    out << '(' << *i << ' ' << i->getType() << ')';
-    ++i;
-    while (i != i_end)
-    {
-      out << " (" << *i << ' ' << i->getType() << ')';
-      ++i;
-    }
-  }
-  out << ')';
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ';
+  // print variable list
+  toStreamSortedVarList(out, vars);
   // if not invariant-to-synthesize, print return type
   if (!isInv)
   {
@@ -2012,7 +2086,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          Node conj,
                                          TypeNode sygusType) const
 {
-  out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
+  out << "(get-interpolant " << cvc5::internal::quoteSymbol(name) << ' ' << conj;
   if (!sygusType.isNull())
   {
     out << ' ' << sygusGrammarString(sygusType);
@@ -2022,7 +2096,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
 
 void Smt2Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
 {
-  out << "(get-interpol-next)" << std::endl;
+  out << "(get-interpolant-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
@@ -2062,7 +2136,7 @@ void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
 */
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c)
+static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c));
@@ -2072,7 +2146,7 @@ static bool tryToStream(std::ostream& out, const Command* c)
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c, Variant v)
+static bool tryToStream(std::ostream& out, const cvc5::Command* c, Variant v)
 {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c), v);
@@ -2081,19 +2155,26 @@ static bool tryToStream(std::ostream& out, const Command* c, Variant v)
   return false;
 }
 
-static void toStream(std::ostream& out, const CommandSuccess* s, Variant v)
+static void toStream(std::ostream& out,
+                     const cvc5::CommandSuccess* s,
+                     Variant v)
 {
-  if(Command::printsuccess::getPrintSuccess(out)) {
+  if (cvc5::Command::printsuccess::getPrintSuccess(out))
+  {
     out << "success" << endl;
   }
 }
 
-static void toStream(std::ostream& out, const CommandInterrupted* s, Variant v)
+static void toStream(std::ostream& out,
+                     const cvc5::CommandInterrupted* s,
+                     Variant v)
 {
   out << "interrupted" << endl;
 }
 
-static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
+static void toStream(std::ostream& out,
+                     const cvc5::CommandUnsupported* s,
+                     Variant v)
 {
 #ifdef CVC5_COMPETITION_MODE
   // if in competition mode, lie and say we're ok
@@ -2107,20 +2188,27 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 
 static void errorToStream(std::ostream& out, std::string message, Variant v)
 {
-  out << "(error " << cvc5::quoteString(message) << ')' << endl;
+  out << "(error " << cvc5::internal::quoteString(message) << ')' << endl;
 }
 
-static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {
+static void toStream(std::ostream& out,
+                     const cvc5::CommandFailure* s,
+                     Variant v)
+{
   errorToStream(out, s->getMessage(), v);
 }
 
-static void toStream(std::ostream& out, const CommandRecoverableFailure* s,
-                     Variant v) {
+static void toStream(std::ostream& out,
+                     const cvc5::CommandRecoverableFailure* s,
+                     Variant v)
+{
   errorToStream(out, s->getMessage(), v);
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
+static bool tryToStream(std::ostream& out,
+                        const cvc5::CommandStatus* s,
+                        Variant v)
 {
   if(typeid(*s) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(s), v);
@@ -2131,4 +2219,4 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
 
 }  // namespace smt2
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal

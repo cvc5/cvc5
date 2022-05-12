@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2021  The cvc5 Project
+# Copyright (c) 2009-2022  The cvc5 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -42,6 +42,7 @@ $excluded_paths .= '|cmake/FindCython.cmake';
 $excluded_paths .= '|cmake/FindPythonExtensions.cmake';
 $excluded_paths .= '|cmake/UseCython.cmake';
 $excluded_paths .= '|cmake/targetLinkLibrariesWithDynamicLookup.cmake';
+$excluded_paths .= '|cmake/version-base.cmake';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
@@ -51,7 +52,7 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2021';
+my $years = '2009-2022';
 
 my $standard_template = <<EOF;
  *

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,8 @@
 
 #include "base/configuration.h"
 
-const bool ::cvc5::Configuration::GIT_BUILD = @GIT_BUILD@;
-const bool ::cvc5::Configuration::CVC5_IS_RELEASE = @CVC5_IS_RELEASE@;
-const char* const ::cvc5::Configuration::CVC5_VERSION = "@CVC5_VERSION@";
-const char* const ::cvc5::Configuration::CVC5_FULL_VERSION = "@CVC5_FULL_VERSION@";
-const char* const ::cvc5::Configuration::CVC5_GIT_INFO = "@CVC5_GIT_INFO@";
+const bool cvc5::internal::Configuration::GIT_BUILD = @GIT_BUILD@;
+const bool cvc5::internal::Configuration::CVC5_IS_RELEASE = @CVC5_IS_RELEASE@;
+const char* const cvc5::internal::Configuration::CVC5_VERSION = "@CVC5_VERSION@";
+const char* const cvc5::internal::Configuration::CVC5_FULL_VERSION = "@CVC5_FULL_VERSION@";
+const char* const cvc5::internal::Configuration::CVC5_GIT_INFO = "@CVC5_GIT_INFO@";

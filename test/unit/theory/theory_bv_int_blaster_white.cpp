@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar
+ *   Yoni Zohar, Makai Mann, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -39,11 +39,7 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->setOption("produce-models", "true");
     d_slvEngine->finishInit();
-    d_true = d_nodeManager->mkConst<bool>(true);
-    d_one = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational(1));
   }
-  Node d_true;
-  Node d_one;
 };
 
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
@@ -63,7 +59,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
-  Node seven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(7));
+  Node seven = d_nodeManager->mkConstInt(Rational(7));
   ASSERT_EQ(seven, result);
 
   // translating integer constants should not change them
@@ -321,4 +317,4 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

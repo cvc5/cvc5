@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -41,7 +41,8 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc,
-                                     ProofNodeManager* pnm)
+                                     ProofNodeManager* pnm,
+                                     CarePairArgumentCallback& cpacb)
     : EnvObj(env),
       d_deq(context()),
       d_termProcessed(userContext()),
@@ -55,7 +56,8 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
-      d_card_enabled(false)
+      d_card_enabled(false),
+      d_cpacb(cpacb)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -191,33 +193,11 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   }
 }
 
-bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
-{
-  if (d_equalityEngine->isTriggerTerm(a, THEORY_SETS)
-      && d_equalityEngine->isTriggerTerm(b, THEORY_SETS))
-  {
-    TNode a_shared =
-        d_equalityEngine->getTriggerTermRepresentative(a, THEORY_SETS);
-    TNode b_shared =
-        d_equalityEngine->getTriggerTermRepresentative(b, THEORY_SETS);
-    EqualityStatus eqStatus =
-        d_external.d_valuation.getEqualityStatus(a_shared, b_shared);
-    if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
-        || eqStatus == EQUALITY_FALSE_IN_MODEL)
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
   d_fullCheckIncomplete = false;
   d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
-  d_most_common_type.clear();
-  d_most_common_type_term.clear();
   d_card_enabled = false;
   d_rels_enabled = false;
   // reset the state object
@@ -245,19 +225,9 @@ void TheorySetsPrivate::fullEffortCheck()
     while (!eqcs_i.isFinished())
     {
       Node eqc = (*eqcs_i);
-      bool isSet = false;
       TypeNode tn = eqc.getType();
       d_state.registerEqc(tn, eqc);
       eqcTypeCount[tn]++;
-      // common type node and term
-      TypeNode tnc;
-      Node tnct;
-      if (tn.isSet())
-      {
-        isSet = true;
-        tnc = tn.getSetElementType();
-        tnct = eqc;
-      }
       Trace("sets-eqc") << "[" << eqc << "] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
       while (!eqc_i.isFinished())
@@ -265,21 +235,16 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
-        }
-        TypeNode tnn = n.getType();
-        if (isSet)
-        {
-          Assert(tnn.isSet());
-          TypeNode tnnel = tnn.getSetElementType();
-          tnc = TypeNode::mostCommonTypeNode(tnc, tnnel);
-          Assert(!tnc.isNull());
-          // update the common type term
-          if (tnc == tnnel)
+          if (TraceIsOn("sets-eqc"))
           {
-            tnct = n;
+            Trace("sets-eqc") << n;
+            if (n.isConst())
+            {
+              Trace("sets-eqc") << " (const) ";
+            }
           }
         }
+        TypeNode tnn = n.getType();
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
         Kind nk = n.getKind();
@@ -323,19 +288,13 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         ++eqc_i;
       }
-      if (isSet)
-      {
-        Assert(tnct.getType().getSetElementType() == tnc);
-        d_most_common_type[eqc] = tnc;
-        d_most_common_type_term[eqc] = tnct;
-      }
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
     }
 
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
 
-    if (Trace.isOn("sets-state"))
+    if (TraceIsOn("sets-state"))
     {
       Trace("sets-state") << "Equivalence class counters:" << std::endl;
       for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
@@ -351,7 +310,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
-    if (Trace.isOn("sets-mem"))
+    if (TraceIsOn("sets-mem"))
     {
       const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)
@@ -699,6 +658,7 @@ void TheorySetsPrivate::checkDisequalities()
   // disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (NodeBoolMap::const_iterator it = d_deq.begin(); it != d_deq.end(); ++it)
   {
     if (!(*it).second)
@@ -732,8 +692,8 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = d_skCache.mkTypedSkolemCached(
-        elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
+    Node x = sm->mkSkolemFunction(
+        SkolemFunId::SETS_DEQ_DIFF, elementType, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(SET_MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
@@ -750,6 +710,7 @@ void TheorySetsPrivate::checkDisequalities()
 void TheorySetsPrivate::checkReduceComprehensions()
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& comps = d_state.getComprehensionSets();
   for (const Node& n : comps)
   {
@@ -773,9 +734,12 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
     body = nm->mkNode(EXISTS, bvl, body);
-    Node mem = nm->mkNode(SET_MEMBER, v, n);
-    Node lem =
-        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
+    Node k = sm->mkPurifySkolem(n, "kcomp");
+    Node mem = nm->mkNode(SET_MEMBER, v, k);
+    Node lem = nm->mkNode(
+        AND,
+        k.eqNode(n),
+        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem)));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);
@@ -849,135 +813,6 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
 }
 //--------------------------------- end standard check
 
-/************************ Sharing ************************/
-/************************ Sharing ************************/
-/************************ Sharing ************************/
-
-void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
-                                     TNodeTrie* t2,
-                                     unsigned arity,
-                                     unsigned depth,
-                                     unsigned& n_pairs)
-{
-  if (depth == arity)
-  {
-    if (t2 != NULL)
-    {
-      Node f1 = t1->getData();
-      Node f2 = t2->getData();
-
-      // Usually when (= (f x) (f y)), we don't care whether (= x y) is true or
-      // not for the shared variables x, y in the care graph.
-      // However, this does not apply to the membership operator since the
-      // equality or disequality between members affects the number of elements
-      // in a set. Therefore we need to split on (= x y) for kind SET_MEMBER.
-      // Example:
-      // Suppose (= (member x S) member( y, S)) is true and there are
-      // no other members in S. We would get S = {x} if (= x y) is true.
-      // Otherwise we would get S = {x, y}.
-      if (f1.getKind() == SET_MEMBER || !d_state.areEqual(f1, f2))
-      {
-        Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
-        vector<pair<TNode, TNode> > currentPairs;
-        for (unsigned k = 0; k < f1.getNumChildren(); ++k)
-        {
-          TNode x = f1[k];
-          TNode y = f2[k];
-          Assert(d_equalityEngine->hasTerm(x));
-          Assert(d_equalityEngine->hasTerm(y));
-          Assert(!d_state.areDisequal(x, y));
-          Assert(!areCareDisequal(x, y));
-          if (!d_equalityEngine->areEqual(x, y))
-          {
-            Trace("sets-cg")
-                << "Arg #" << k << " is " << x << " " << y << std::endl;
-            if (d_equalityEngine->isTriggerTerm(x, THEORY_SETS)
-                && d_equalityEngine->isTriggerTerm(y, THEORY_SETS))
-            {
-              TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(
-                  x, THEORY_SETS);
-              TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(
-                  y, THEORY_SETS);
-              currentPairs.push_back(make_pair(x_shared, y_shared));
-            }
-            else if (isCareArg(f1, k) && isCareArg(f2, k))
-            {
-              // splitting on sets (necessary for handling set of sets properly)
-              if (x.getType().isSet())
-              {
-                Assert(y.getType().isSet());
-                if (!d_state.areDisequal(x, y))
-                {
-                  Trace("sets-cg-lemma")
-                      << "Should split on : " << x << "==" << y << std::endl;
-                  d_im.split(x.eqNode(y), InferenceId::SETS_CG_SPLIT);
-                }
-              }
-            }
-          }
-        }
-        for (unsigned c = 0; c < currentPairs.size(); ++c)
-        {
-          Trace("sets-cg-pair") << "Pair : " << currentPairs[c].first << " "
-                                << currentPairs[c].second << std::endl;
-          d_external.addCarePair(currentPairs[c].first, currentPairs[c].second);
-          n_pairs++;
-        }
-      }
-    }
-  }
-  else
-  {
-    if (t2 == NULL)
-    {
-      if (depth < (arity - 1))
-      {
-        // add care pairs internal to each child
-        for (std::pair<const TNode, TNodeTrie>& t : t1->d_data)
-        {
-          addCarePairs(&t.second, NULL, arity, depth + 1, n_pairs);
-        }
-      }
-      // add care pairs based on each pair of non-disequal arguments
-      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
-           it != t1->d_data.end();
-           ++it)
-      {
-        std::map<TNode, TNodeTrie>::iterator it2 = it;
-        ++it2;
-        for (; it2 != t1->d_data.end(); ++it2)
-        {
-          if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
-          {
-            if (!areCareDisequal(it->first, it2->first))
-            {
-              addCarePairs(
-                  &it->second, &it2->second, arity, depth + 1, n_pairs);
-            }
-          }
-        }
-      }
-    }
-    else
-    {
-      // add care pairs based on product of indices, non-disequal arguments
-      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
-      {
-        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
-        {
-          if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
-          {
-            if (!areCareDisequal(tt1.first, tt2.first))
-            {
-              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1, n_pairs);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 void TheorySetsPrivate::computeCareGraph()
 {
   const std::map<Kind, std::vector<Node> >& ol = d_state.getOperatorList();
@@ -1039,7 +874,7 @@ void TheorySetsPrivate::computeCareGraph()
         {
           Trace("sets-cg") << "Process index " << tt.first << "..."
                            << std::endl;
-          addCarePairs(&tt.second, nullptr, arity, 0, n_pairs);
+          nodeTriePathPairProcess(&tt.second, arity, d_cpacb);
         }
       }
       Trace("sets-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
@@ -1059,10 +894,7 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
   {
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 /******************** Model generation ********************/
@@ -1204,47 +1036,6 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
 
-Node mkAnd(const std::vector<TNode>& conjunctions)
-{
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  for (unsigned i = 0; i < conjunctions.size(); ++i)
-  {
-    TNode t = conjunctions[i];
-    if (t.getKind() == kind::AND)
-    {
-      for (TNode::iterator child_it = t.begin(); child_it != t.end();
-           ++child_it)
-      {
-        Assert((*child_it).getKind() != kind::AND);
-        all.insert(*child_it);
-      }
-    }
-    else
-    {
-      all.insert(t);
-    }
-  }
-
-  Assert(all.size() > 0);
-  if (all.size() == 1)
-  {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end)
-  {
-    conjunction << *it;
-    ++it;
-  }
-  return conjunction;
-} /* mkAnd() */
-
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
 bool TheorySetsPrivate::isEntailed(Node n, bool pol)
@@ -1252,9 +1043,32 @@ bool TheorySetsPrivate::isEntailed(Node n, bool pol)
   return d_state.isEntailed(n, pol);
 }
 
+void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
+{
+  for (size_t k = 0, nchild = a.getNumChildren(); k < nchild; ++k)
+  {
+    TNode x = a[k];
+    TNode y = b[k];
+    if (!d_equalityEngine->areEqual(x, y))
+    {
+      if (isCareArg(a, k) && isCareArg(b, k))
+      {
+        // splitting on sets (necessary for handling set of sets properly)
+        if (x.getType().isSet())
+        {
+          Assert(y.getType().isSet());
+          Trace("sets-cg-lemma")
+              << "Should split on : " << x << "==" << y << std::endl;
+          d_im.split(x.eqNode(y), InferenceId::SETS_CG_SPLIT);
+        }
+      }
+    }
+  }
+}
+
 Node TheorySetsPrivate::explain(TNode literal)
 {
-  Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
+  Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
 
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -1270,17 +1084,16 @@ Node TheorySetsPrivate::explain(TNode literal)
   }
   else
   {
-    Debug("sets") << "unhandled: " << literal << "; (" << atom << ", "
+    Trace("sets") << "unhandled: " << literal << "; (" << atom << ", "
                   << polarity << "); kind" << atom.getKind() << std::endl;
     Unhandled();
   }
-
-  return mkAnd(assumptions);
+  return NodeManager::currentNM()->mkAnd(assumptions);
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
-  Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
+  Trace("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
   TypeNode tn = node.getType();
   if (tn.isSet())
@@ -1304,7 +1117,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");
       }
-      cvc5::Rational r(INT_MAX);
+      cvc5::internal::Rational r(INT_MAX);
       if (node[1].getConst<Rational>() > r)
       {
         throw LogicException(
@@ -1317,6 +1130,12 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       }
     }
     break;
+    case kind::SET_MAP:
+    {
+        throw LogicException(
+            "set.map not currently supported by the sets theory solver");
+    }
+      break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
@@ -1324,7 +1143,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 TrustNode TheorySetsPrivate::ppRewrite(Node node,
                                        std::vector<SkolemLemma>& lems)
 {
-  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
+  Trace("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {
@@ -1373,7 +1192,13 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node, "setChoose");
+  // the skolem will occur in a term context, thus we give it Boolean
+  // term variable kind immediately.
+  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
+                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                         : SkolemManager::SKOLEM_DEFAULT;
+  Node x = sm->mkPurifySkolem(
+      node, "setChoose", "a variable used to eliminate set choose", flags);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);
@@ -1447,4 +1272,4 @@ void TheorySetsPrivate::presolve() { d_state.reset(); }
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

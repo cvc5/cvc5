@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
@@ -80,15 +80,6 @@ class TheorySep : public Theory {
   TheorySep(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySep();
 
-  /**
-   * Declare heap. For smt2 inputs, this is called when the command
-   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
-   * location type and dataT is the data type for the heap. This command can be
-   * executed once only, and must be invoked before solving separation logic
-   * inputs.
-   */
-  void declareSepHeap(TypeNode locT, TypeNode dataT) override;
-
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
@@ -108,38 +99,26 @@ class TheorySep : public Theory {
 
   std::string identify() const override { return std::string("TheorySep"); }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // PREPROCESSING
-  /////////////////////////////////////////////////////////////////////////////
-
- public:
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
-  /////////////////////////////////////////////////////////////////////////////
-  // T-PROPAGATION / REGISTRATION
-  /////////////////////////////////////////////////////////////////////////////
+
+  TrustNode explain(TNode n) override;
+
+  void computeCareGraph() override;
+
+  void postProcessModel(TheoryModel* m) override;
 
  private:
+  /**
+   * Initialize heap. For smt2 inputs, this will initialize the heap types
+   * based on if a command (declare-heap (locT datat)) was used. This command
+   * can be executed once only, and must be invoked before solving separation
+   * logic inputs, which is controlled by the solver engine.
+   */
+  void initializeHeapTypes();
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
-
- public:
-  TrustNode explain(TNode n) override;
-
- public:
-  void computeCareGraph() override;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // MODEL GENERATION
-  /////////////////////////////////////////////////////////////////////////////
-
- public:
-  void postProcessModel(TheoryModel* m) override;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTIFICATIONS
-  /////////////////////////////////////////////////////////////////////////////
 
  public:
 
@@ -180,7 +159,7 @@ class TheorySep : public Theory {
 
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Debug("sep::propagate")
+      Trace("sep::propagate")
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
       Assert(predicate.getKind() == kind::EQUAL);
@@ -196,7 +175,7 @@ class TheorySep : public Theory {
                                      TNode t2,
                                      bool value) override
     {
-      Debug("sep::propagate")
+      Trace("sep::propagate")
           << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
           << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value)
@@ -209,7 +188,7 @@ class TheorySep : public Theory {
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
-      Debug("sep::propagate") << "NotifyClass::eqNotifyConstantTermMerge(" << t1
+      Trace("sep::propagate") << "NotifyClass::eqNotifyConstantTermMerge(" << t1
                               << ", " << t2 << ")" << std::endl;
       d_sep.conflict(t1, t2);
     }
@@ -275,10 +254,10 @@ class TheorySep : public Theory {
 
   class HeapAssertInfo {
   public:
-    HeapAssertInfo( context::Context* c );
-    ~HeapAssertInfo(){}
-    context::CDO< Node > d_pto;
-    context::CDO< bool > d_has_neg_pto;
+   HeapAssertInfo(context::Context* c);
+   ~HeapAssertInfo() {}
+   context::CDO<Node> d_pto;
+   context::CDO<bool> d_has_neg_pto;
   };
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
@@ -305,6 +284,9 @@ class TheorySep : public Theory {
   Node getNilRef( TypeNode tn );
   void setNilRef( TypeNode tn, Node n );
   Node getLabel( Node atom, int child, Node lbl );
+  /**
+   * Apply label lbl to all top-level spatial assertions, recursively, in n.
+   */
   Node applyLabel( Node n, Node lbl, std::map< Node, Node >& visited );
   void getLabelChildren( Node atom, Node lbl, std::vector< Node >& children, std::vector< Node >& labels );
 
@@ -341,7 +323,6 @@ class TheorySep : public Theory {
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );
 
- private:
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
@@ -351,13 +332,11 @@ class TheorySep : public Theory {
   void sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer = false );
   void doPending();
 
- public:
-
   void initializeBounds();
 };/* class TheorySep */
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SEP__THEORY_SEP_H */

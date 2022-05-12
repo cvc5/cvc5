@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,9 +35,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/valuation.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -50,7 +50,13 @@ Trigger::Trigger(Env& env,
                  TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : EnvObj(env), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
+    : EnvObj(env),
+      d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
+      d_treg(tr),
+      d_quant(q),
+      d_instMatch(env, qs, tr, q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
@@ -60,7 +66,7 @@ Trigger::Trigger(Env& env,
     Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
     d_nodes.push_back(np);
   }
-  if (Trace.isOn("trigger"))
+  if (TraceIsOn("trigger"))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
     Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
@@ -104,7 +110,7 @@ Trigger::Trigger(Env& env,
       d_mg =
           InstMatchGenerator::mkInstMatchGeneratorMulti(env, this, q, d_nodes);
     }
-    if (Trace.isOn("multi-trigger"))
+    if (TraceIsOn("multi-trigger"))
     {
       Trace("multi-trigger") << "Trigger for " << q << ": " << std::endl;
       for (const Node& nc : d_nodes)
@@ -145,8 +151,12 @@ uint64_t Trigger::addInstantiations()
     {
       if (!ee->hasTerm(gt))
       {
+        SkolemManager::SkolemFlags flags =
+            gt.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                     : SkolemManager::SKOLEM_DEFAULT;
         SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        Node k = sm->mkPurifySkolem(gt, "gt");
+        Node k = sm->mkPurifySkolem(
+            gt, "gt", "introduced for ground subterms of triggers", flags);
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;
@@ -155,12 +165,12 @@ uint64_t Trigger::addInstantiations()
       }
     }
   }
-  uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
-  if (Debug.isOn("inst-trigger"))
+  uint64_t addedLemmas = d_mg->addInstantiations(d_instMatch);
+  if (TraceIsOn("inst-trigger"))
   {
     if (addedLemmas > 0)
     {
-      Debug("inst-trigger") << "Added " << addedLemmas
+      Trace("inst-trigger") << "Added " << addedLemmas
                             << " lemmas, trigger was " << d_nodes << std::endl;
     }
   }
@@ -170,11 +180,6 @@ uint64_t Trigger::addInstantiations()
 bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
   return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
-}
-
-bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
-{
-  return sendInstantiation(m.d_vals, id);
 }
 
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
@@ -251,4 +256,4 @@ void Trigger::debugPrint(const char* c) const
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
+ *   Andrew Reynolds, Dejan Jovanovic, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 // Note that this function is a simplified version of Theory::theoryOf for
@@ -219,6 +219,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           TheoryId newTheory = theoryOf(newNode);
           rewriteStackTop.d_node = newNode;
           rewriteStackTop.d_theoryId = newTheory;
+          Assert(
+              newNode.getType().isSubtypeOf(rewriteStackTop.d_node.getType()))
+              << "Pre-rewriting " << rewriteStackTop.d_node
+              << " does not preserve type";
           // In the pre-rewrite, if changing theories, we just call the other
           // theories pre-rewrite. If the kind of the node was changed, then we
           // pre-rewrite again.
@@ -306,6 +310,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // We continue with the response we got
         TNode newNode = response.d_node;
         TheoryId newTheoryId = theoryOf(newNode);
+        Assert(newNode.getType().isSubtypeOf(rewriteStackTop.d_node.getType()))
+            << "Post-rewriting " << rewriteStackTop.d_node
+            << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
             || response.d_status == REWRITE_AGAIN_FULL)
         {
@@ -313,8 +320,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           Assert(response.d_node != rewriteStackTop.d_node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
 #ifdef CVC5_ASSERTIONS
-          Assert(d_rewriteStack->find(response.d_node)
-                 == d_rewriteStack->end());
+          Assert(d_rewriteStack->find(response.d_node) == d_rewriteStack->end())
+              << "Non-terminating rewriting detected for: " << response.d_node;
           d_rewriteStack->insert(response.d_node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.d_node, tcpg);
@@ -474,19 +481,10 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
   return RewriteResponse(tresponse.d_status, trn.getNode());
 }
 
-void Rewriter::clearCaches()
-{
-#ifdef CVC5_ASSERTIONS
-  d_rewriteStack.reset(nullptr);
-#endif
-
-  clearCachesInternal();
-}
-
 bool Rewriter::hasRewrittenWithProofs(TNode n) const
 {
   return d_tpgNodes.find(n) != d_tpgNodes.end();
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

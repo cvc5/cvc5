@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -26,12 +26,47 @@ class TupleUtils
 {
  public:
   /**
+   *
+   * @param n a node to print in the message if TypeCheckingExceptionPrivate
+   * exception is thrown
+   * @param tupleType the type of the tuple
+   * @param indices a list of indices for projection
+   * @throw an exception if one of the indices in node n is greater than the
+   * expected tuple's length
+   */
+  static void checkTypeIndices(Node n,
+                               TypeNode tupleType,
+                               const std::vector<uint32_t> indices);
+  /**
+   * @param tupleType1 tuple type
+   * @param tupleType2 tuple type
+   * @return the type of concatenation of tupleType1, tupleType2
+   */
+  static TypeNode concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2);
+
+  /**
    * @param tuple a node of tuple type
    * @param n_th the index of the element to be extracted, and must satisfy the
    * constraint 0 <= n_th < length of tuple.
    * @return tuple element at index n_th
    */
   static Node nthElementOfTuple(Node tuple, int n_th);
+
+  /**
+   * @param indices a list of indices for projected elements
+   * @param tuple a node of tuple type
+   * @return the projection of the tuple with the specified indices
+   */
+  static Node getTupleProjection(const std::vector<uint32_t>& indices,
+                                 Node tuple);
+
+  /**
+   * @param indices a list of indices for projected elements
+   * @param tupleType the type of the original tuple
+   * @return the type of the projected tuple
+   */
+  static TypeNode getTupleProjectionType(const std::vector<uint32_t>& indices,
+                                         TypeNode tupleType);
 
   /**
    * @param tuple a tuple node of the form (tuple a_1 ... a_n)
@@ -78,6 +113,6 @@ class TupleUtils
 };
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__TUPLE__UTILS_H */

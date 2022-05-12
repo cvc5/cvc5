@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,10 +26,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -147,7 +147,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
-        if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+        if (r.getStatus() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
           NodeManager* nm = NodeManager::currentNM();
@@ -191,7 +191,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         }
         else
         {
-          verified = !r.asSatisfiabilityResult().isUnknown();
+          verified = !r.isUnknown();
         }
       }
       else
@@ -231,7 +231,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // we count this as printed, despite not literally printing it
         rew_print = true;
         // debugging information
-        if (Trace.isOn("sygus-rr-debug"))
+        if (TraceIsOn("sygus-rr-debug"))
         {
           Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
                                   << std::endl;
@@ -261,6 +261,17 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
                                << std::endl;
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
+      }
+      // If we failed to verify, then we return the original term. This is done
+      // so that the user of this method is not told of a rewrite rule that
+      // may not hold. Furthermore, note that the term is not added to the lazy
+      // trie in the sygus sampler. This means that the set of rewrites is not
+      // complete, as we are discarding the current solution. Ideally, we would
+      // store a list of terms (that are pairwise unknown to be equal) at each
+      // leaf of the lazy trie.
+      if (!verified)
+      {
+        eq_sol = sol;
       }
     }
     // We count this as a rewrite if we did not explicitly rule it out.
@@ -298,4 +309,4 @@ void CandidateRewriteDatabase::enableExtendedRewriter()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

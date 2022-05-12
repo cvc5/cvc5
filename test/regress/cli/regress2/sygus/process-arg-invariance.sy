@@ -1,0 +1,16 @@
+; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status --no-sygus-add-const-grammar --sygus-arg-relevant
+; EXPECT: feasible
+(set-logic LIA)
+
+(synth-fun f ((x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int) (x6 Int) (x7 Int) (x8 Int) (x9 Int) (x10 Int)) Int)
+
+(declare-var x Int)
+(declare-var y Int)
+
+; should be able to determine that only 3 arguments 
+; (one of 5...9, one of 1 or 4, one of 2 or 3) is relevant for f
+
+(constraint (> (f (+ x x) (+ x 1) (+ x 1) (+ x x) x x x x x 0) (+ x x x)))
+(constraint (<= (f x x x x x x x x x 0) (+ x x x)))
+
+(check-synth)

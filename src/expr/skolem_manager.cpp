@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
@@ -43,6 +43,11 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+struct UnpurifiedFormAttributeId
+{
+};
+typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
+
 struct AbstractValueId
 {
 };
@@ -52,6 +57,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
@@ -60,7 +66,6 @@ const char* toString(SkolemFunId id)
       return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
@@ -86,8 +91,12 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
     case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
     case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
+    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
+    case SkolemFunId::BAG_DEQ_DIFF: return "BAG_DEQ_DIFF";
+    case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
+    case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     default: return "?";
   }
@@ -216,16 +225,16 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& comment,
                                    int flags)
 {
-  Node to = getOriginalForm(t);
-  // We do not currently insist that to does not contain witness terms
-
-  Node k = mkSkolemInternal(to, prefix, comment, flags);
-  // set original form attribute for k
-  OriginalFormAttribute ofa;
-  k.setAttribute(ofa, to);
+  // We do not recursively compute the original form of t here
+  Node k = mkSkolemInternal(t, prefix, comment, flags);
+  // set unpurified form attribute for k
+  UnpurifiedFormAttribute ufa;
+  k.setAttribute(ufa, t);
+  // the original form of k can be computed by calling getOriginalForm, but
+  // it is not computed here
 
   Trace("sk-manager-skolem")
-      << "skolem: " << k << " purify " << to << std::endl;
+      << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 
@@ -321,6 +330,7 @@ Node SkolemManager::getOriginalForm(Node n)
   Trace("sk-manager-debug")
       << "SkolemManager::getOriginalForm " << n << std::endl;
   OriginalFormAttribute ofa;
+  UnpurifiedFormAttribute ufa;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -338,6 +348,25 @@ Node SkolemManager::getOriginalForm(Node n)
       if (cur.hasAttribute(ofa))
       {
         visited[cur] = cur.getAttribute(ofa);
+      }
+      else if (cur.hasAttribute(ufa))
+      {
+        // if it has an unpurified form, compute the original form of it
+        Node ucur = cur.getAttribute(ufa);
+        if (ucur.hasAttribute(ofa))
+        {
+          // Already computed, set. This always happens after cur is visited
+          // again after computing the original form of its unpurified form.
+          Node ucuro = ucur.getAttribute(ofa);
+          cur.setAttribute(ofa, ucuro);
+          visited[cur] = ucuro;
+        }
+        else
+        {
+          // visit ucur then visit cur again
+          visit.push_back(cur);
+          visit.push_back(ucur);
+        }
       }
       else
       {
@@ -386,6 +415,16 @@ Node SkolemManager::getOriginalForm(Node n)
   Assert(!visited.find(n)->second.isNull());
   Trace("sk-manager-debug") << "..return " << visited[n] << std::endl;
   return visited[n];
+}
+
+Node SkolemManager::getUnpurifiedForm(Node k)
+{
+  UnpurifiedFormAttribute ufa;
+  if (k.hasAttribute(ufa))
+  {
+    return k.getAttribute(ufa);
+  }
+  return k;
 }
 
 Node SkolemManager::mkSkolemInternal(Node w,
@@ -448,4 +487,4 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   return n;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

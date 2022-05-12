@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *   Gereon Kremer, Morgan Deters, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 enum class Language
 {
@@ -65,6 +65,6 @@ inline bool isLangSygus(Language lang)
 Language toLanguage(const std::string& language) CVC5_EXPORT;
 
 }  // namespace language
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__LANGUAGE_H */

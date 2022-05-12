@@ -1,0 +1,145 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic LIA)
+
+;declare enums
+
+(declare-datatypes ((prev_dw.is_c4_model_t 0))
+	(((prev_dw.is_c4_modelIN_DiscPresent) (prev_dw.is_c4_modelIN_Ejecting) (prev_dw.is_c4_modelIN_Empty) (prev_dw.is_c4_modelIN_Inserting) (prev_dw.is_c4_modelIN_NO_ACTIVE_CHILD) )))
+(declare-datatypes ((prev_dw.is_c1_model_t 0))
+	(((prev_dw.is_c1_modelIN_Eject) (prev_dw.is_c1_modelIN_ModeManager) (prev_dw.is_c1_modelIN_NO_ACTIVE_CHILD) )))
+(declare-datatypes ((prev_dw.is_ModeManager_t 0))
+	(((prev_dw.is_ModeManagerIN_NO_ACTIVE_CHILD) (prev_dw.is_ModeManagerIN_ON) (prev_dw.is_ModeManagerIN_Standby) )))
+(declare-datatypes ((prev_dw.was_ModeManager_t 0))
+	(((prev_dw.was_ModeManagerIN_NO_ACTIVE_CHILD) (prev_dw.was_ModeManagerIN_ON) (prev_dw.was_ModeManagerIN_Standby) )))
+(declare-datatypes ((prev_dw.is_ON_t 0))
+	(((prev_dw.is_ONIN_AMMode) (prev_dw.is_ONIN_CDMode) (prev_dw.is_ONIN_FMMode) (prev_dw.is_ONIN_NO_ACTIVE_CHILD) )))
+(declare-datatypes ((prev_dw.was_ON_t 0))
+	(((prev_dw.was_ONIN_AMMode) (prev_dw.was_ONIN_CDMode) (prev_dw.was_ONIN_FMMode) (prev_dw.was_ONIN_NO_ACTIVE_CHILD) )))
+(declare-datatypes ((prev_dw.RadioReq_start_t 0))
+	(((prev_dw.RadioReq_startAM) (prev_dw.RadioReq_startCD) (prev_dw.RadioReq_startFM) (prev_dw.RadioReq_startOFF) )))
+(declare-datatypes ((rtU.RadioReq_t 0))
+	(((rtU.RadioReqAM) (rtU.RadioReqCD) (rtU.RadioReqFM) (rtU.RadioReqOFF) )))
+(declare-datatypes ((rtY.MechCmd_t 0))
+	(((rtY.MechCmdDISCINSERT) (rtY.MechCmdEJECT) (rtY.MechCmdEMPTY) (rtY.MechCmdPLAY) (rtY.MechCmdREW) (rtY.MechCmdSTOP) )))
+
+
+;function to be synthesised
+
+(synth-fun next ((prev_dw.is_c4_model prev_dw.is_c4_model_t)(prev_dw.is_c1_model prev_dw.is_c1_model_t)(prev_dw.is_ModeManager prev_dw.is_ModeManager_t)(prev_dw.was_ModeManager prev_dw.was_ModeManager_t)(prev_dw.is_ON prev_dw.is_ON_t)(prev_dw.was_ON prev_dw.was_ON_t)(prev_dw.temporalCounter_i1 Int) (prev_dw.RadioReq_start prev_dw.RadioReq_start_t)(rtU.DiscInsert Bool) (rtU.RadioReq rtU.RadioReq_t)(rtU.DiscEject Bool) (rtY.MechCmd rtY.MechCmd_t)) Int
+	((Start Int)  (Var Int) (EnumVar0 prev_dw.is_c4_model_t) (EnumVar1 prev_dw.is_c1_model_t) (EnumVar2 prev_dw.is_ModeManager_t) (EnumVar3 prev_dw.was_ModeManager_t) (EnumVar4 prev_dw.is_ON_t) (EnumVar5 prev_dw.was_ON_t) (EnumVar6 prev_dw.RadioReq_start_t) (EnumVar7 rtU.RadioReq_t) (EnumVar8 rtY.MechCmd_t) (StartBool Bool))
+	((Start Int (
+				 0
+				 1
+				 (ite StartBool Start Start)))
+
+	(Var Int (
+				 1
+				 2
+				 101
+			 	 prev_dw.temporalCounter_i1
+				 (abs Var)						
+			 	 (+ Var Var)						
+			 	 (- Var Var)						
+			 	 (* Var Var)))
+
+	(EnumVar0 prev_dw.is_c4_model_t (
+				prev_dw.is_c4_model
+				prev_dw.is_c4_modelIN_DiscPresent
+				prev_dw.is_c4_modelIN_Ejecting
+				prev_dw.is_c4_modelIN_Empty
+				prev_dw.is_c4_modelIN_Inserting
+				prev_dw.is_c4_modelIN_NO_ACTIVE_CHILD
+	))
+
+	(EnumVar1 prev_dw.is_c1_model_t (
+				prev_dw.is_c1_model
+				prev_dw.is_c1_modelIN_Eject
+				prev_dw.is_c1_modelIN_ModeManager
+				prev_dw.is_c1_modelIN_NO_ACTIVE_CHILD
+	))
+
+	(EnumVar2 prev_dw.is_ModeManager_t (
+				prev_dw.is_ModeManager
+				prev_dw.is_ModeManagerIN_NO_ACTIVE_CHILD
+				prev_dw.is_ModeManagerIN_ON
+				prev_dw.is_ModeManagerIN_Standby
+	))
+
+	(EnumVar3 prev_dw.was_ModeManager_t (
+				prev_dw.was_ModeManager
+				prev_dw.was_ModeManagerIN_NO_ACTIVE_CHILD
+				prev_dw.was_ModeManagerIN_ON
+				prev_dw.was_ModeManagerIN_Standby
+	))
+
+	(EnumVar4 prev_dw.is_ON_t (
+				prev_dw.is_ON
+				prev_dw.is_ONIN_AMMode
+				prev_dw.is_ONIN_CDMode
+				prev_dw.is_ONIN_FMMode
+				prev_dw.is_ONIN_NO_ACTIVE_CHILD
+	))
+
+	(EnumVar5 prev_dw.was_ON_t (
+				prev_dw.was_ON
+				prev_dw.was_ONIN_AMMode
+				prev_dw.was_ONIN_CDMode
+				prev_dw.was_ONIN_FMMode
+				prev_dw.was_ONIN_NO_ACTIVE_CHILD
+	))
+
+	(EnumVar6 prev_dw.RadioReq_start_t (
+				prev_dw.RadioReq_start
+				prev_dw.RadioReq_startAM
+				prev_dw.RadioReq_startCD
+				prev_dw.RadioReq_startFM
+				prev_dw.RadioReq_startOFF
+	))
+
+	(EnumVar7 rtU.RadioReq_t (
+				rtU.RadioReq
+				rtU.RadioReqAM
+				rtU.RadioReqCD
+				rtU.RadioReqFM
+				rtU.RadioReqOFF
+	))
+
+	(EnumVar8 rtY.MechCmd_t (
+				rtY.MechCmd
+				rtY.MechCmdDISCINSERT
+				rtY.MechCmdEJECT
+				rtY.MechCmdEMPTY
+				rtY.MechCmdPLAY
+				rtY.MechCmdREW
+				rtY.MechCmdSTOP
+	))
+
+	(StartBool Bool (
+			 	 rtU.DiscInsert
+			 	 rtU.DiscEject
+                 (> Var Var)                                            
+                 (>= Var Var)                                           
+                 (< Var Var)                                            
+                 (<= Var Var)                                           
+                 (= Var Var)                                            
+				 ( = EnumVar0 EnumVar0)
+				 ( = EnumVar1 EnumVar1)
+				 ( = EnumVar2 EnumVar2)
+				 ( = EnumVar3 EnumVar3)
+				 ( = EnumVar4 EnumVar4)
+				 ( = EnumVar5 EnumVar5)
+				 ( = EnumVar6 EnumVar6)
+				 ( = EnumVar7 EnumVar7)
+				 ( = EnumVar8 EnumVar8)
+				 (and StartBool StartBool)			
+				 (or  StartBool StartBool)				
+				 (not StartBool)))))
+
+;constraints
+
+;c1
+(constraint (= (next prev_dw.is_c4_modelIN_DiscPresent prev_dw.is_c1_modelIN_ModeManager prev_dw.is_ModeManagerIN_ON prev_dw.was_ModeManagerIN_ON prev_dw.is_ONIN_CDMode prev_dw.was_ONIN_CDMode 101 prev_dw.RadioReq_startAM true rtU.RadioReqCD false rtY.MechCmdPLAY ) 0))
+;c2
+(constraint (= (next prev_dw.is_c4_modelIN_DiscPresent prev_dw.is_c1_modelIN_ModeManager prev_dw.is_ModeManagerIN_ON prev_dw.was_ModeManagerIN_ON prev_dw.is_ONIN_CDMode prev_dw.was_ONIN_CDMode 101 prev_dw.RadioReq_startAM true rtU.RadioReqFM false rtY.MechCmdSTOP ) 1))
+(check-synth)

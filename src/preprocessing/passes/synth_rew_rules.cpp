@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +32,9 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -263,7 +263,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("srs-input") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
-  std::set<TypeNode> unres;
   std::vector<SygusDatatype> sdts;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
@@ -273,9 +272,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::stringstream ss;
     ss << "T" << i;
     std::string tname = ss.str();
-    TypeNode tnu = nm->mkSort(tname, NodeManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode tnu = nm->mkUnresolvedDatatypeSort(tname);
     cterm_to_utype[ct] = tnu;
-    unres.insert(tnu);
     sdts.push_back(SygusDatatype(tname));
   }
   Trace("srs-input") << "...finished." << std::endl;
@@ -397,10 +395,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
-  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(
-      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(datatypes);
   Trace("srs-input") << "...finished." << std::endl;
-  Assert(types.size() == unres.size());
+  Assert(types.size() == datatypes.size());
   std::map<Node, TypeNode> subtermTypes;
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
@@ -442,8 +439,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // set that this is a sygus datatype
     sdttl.initializeDatatype(t, sygusVarList, false, false);
     DType dttl = sdttl.getDatatype();
-    TypeNode tlt =
-        nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+    TypeNode tlt = nm->mkDatatypeType(dttl);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
     Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt)
@@ -494,4 +490,4 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

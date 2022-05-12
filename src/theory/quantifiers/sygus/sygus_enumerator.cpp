@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -166,7 +166,7 @@ Node SygusEnumerator::getCurrent()
       ret = Node::null();
     }
   }
-  if (Trace.isOn("sygus-enum"))
+  if (TraceIsOn("sygus-enum"))
   {
     Trace("sygus-enum") << "Enumerate : ";
     TermDbSygus::toStreamSygus("sygus-enum", ret);
@@ -391,11 +391,15 @@ unsigned SygusEnumerator::TermCache::getNumTerms() const
 
 bool SygusEnumerator::TermCache::isComplete() const { return d_isComplete; }
 void SygusEnumerator::TermCache::setComplete() { d_isComplete = true; }
-unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
+unsigned SygusEnumerator::TermEnum::getCurrentSize() const
+{
+  return d_currSize;
+}
 SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
     : TermEnum(),
       d_sizeLim(0),
+      d_indexValid(false),
       d_index(0),
       d_indexNextEnd(0),
       d_hasIndexNextEnd(false),
@@ -436,6 +440,7 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
     Trace("sygus-enum-debug2") << "slave(" << d_tn
                                << "): ...success init force master\n";
   }
+  d_indexValid = false;
   d_index = tc.getIndexForSize(d_currSize);
   Trace("sygus-enum-debug2") << "slave(" << d_tn << "): validate indices...\n";
   // initialize the next end index (marks where size increments)
@@ -454,6 +459,10 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnumSlave::getCurrent()
 {
+  if (!d_indexValid)
+  {
+    return Node::null();
+  }
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   Node curr = tc.getTerm(d_index);
   Trace("sygus-enum-debug2")
@@ -478,10 +487,11 @@ bool SygusEnumerator::TermEnumSlave::increment()
 
 bool SygusEnumerator::TermEnumSlave::validateIndex()
 {
+  d_indexValid = false;
   Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : validate index...\n";
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // ensure that index is in the range
-  while (d_index >= tc.getNumTerms())
+  if (d_index >= tc.getNumTerms())
   {
     Assert(d_index == tc.getNumTerms());
     Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
@@ -501,6 +511,16 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
     }
     Trace("sygus-enum-debug2") << "slave(" << d_tn
                                << ") : ...success force master\n";
+    if (d_index >= tc.getNumTerms())
+    {
+      // will try this index again
+      d_index--;
+      // The master may have incremented successfully but did not add any
+      // terms to the database, in the case it returns null and breaks. In
+      // this case, we break as well. We return "true" with d_indexValid false
+      // to indicate that we are done, but will return the null term.
+      return true;
+    }
   }
   // always validate the next index end here
   validateIndexNextEnd();
@@ -521,6 +541,7 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
     validateIndexNextEnd();
   }
   Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : finished\n";
+  d_indexValid = true;
   return true;
 }
 
@@ -809,7 +830,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     d_currSize++;
     Trace("sygus-enum-debug2") << "master(" << d_tn
                                << "): size++ : " << d_currSize << "\n";
-    if (Trace.isOn("sygus-engine"))
+    if (TraceIsOn("sygus-engine"))
     {
       // am i the master enumerator? if so, print
       if (d_se->d_tlEnum == this)
@@ -975,6 +996,9 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   Assert(d_ccWeight <= d_currSize);
   Assert(d_currChildSize + d_ccWeight <= d_currSize);
   unsigned sizeMax = (d_currSize - d_ccWeight) - d_currChildSize;
+  // size should be bound by the size of the top-level enumerator
+  Assert(d_se->d_tlEnum == nullptr
+         || sizeMax <= d_se->d_tlEnum->getCurrentSize());
   Trace("sygus-enum-debug2") << "master(" << d_tn << "): initializeChild " << i
                              << " (" << d_currSize << ", " << d_ccWeight << ", "
                              << d_currChildSize << ")\n";
@@ -1198,4 +1222,4 @@ bool SygusEnumerator::TermEnumMasterFv::increment()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

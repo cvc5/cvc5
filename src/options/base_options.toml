@@ -3,9 +3,10 @@ name   = "Base"
 
 [[option]]
   name       = "err"
-  category   = "regular"
+  category   = "expert"
   long       = "err=erroutput"
   type       = "ManagedErr"
+  default    = '{}'
   alias      = ["diagnostic-output-channel"]
   predicates = ["setErrStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
@@ -13,17 +14,19 @@ name   = "Base"
 
 [[option]]
   name       = "in"
-  category   = "regular"
+  category   = "expert"
   long       = "in=input"
   type       = "ManagedIn"
+  default    = '{}'
   includes   = ["<iostream>", "options/managed_streams.h"]
   help       = "Set the error (or diagnostic) output channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
 
 [[option]]
   name       = "out"
-  category   = "regular"
+  category   = "expert"
   long       = "out=output"
   type       = "ManagedOut"
+  default    = '{}'
   alias      = ["regular-output-channel"]
   includes   = ["<iostream>", "options/managed_streams.h"]
   help       = "Set the error (or diagnostic) output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
@@ -56,7 +59,7 @@ name   = "Base"
 [[option]]
   name       = "verbosity"
   long       = "verbosity=N"
-  category   = "regular"
+  category   = "common"
   type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
@@ -94,6 +97,7 @@ name   = "Base"
   long       = "stats"
   category   = "common"
   type       = "bool"
+  default    = "false"
   predicates = ["setStats"]
   help       = "give statistics on exit"
 
@@ -102,6 +106,7 @@ name   = "Base"
   long       = "stats-all"
   category   = "expert"
   type       = "bool"
+  default    = "false"
   predicates = ["setStatsDetail"]
   help       = "print unchanged (defaulted) statistics as well"
 
@@ -110,6 +115,7 @@ name   = "Base"
   long       = "stats-internal"
   category   = "expert"
   type       = "bool"
+  default    = "false"
   predicates = ["setStatsDetail"]
   help       = "print internal (non-public) statistics as well"
 
@@ -118,22 +124,24 @@ name   = "Base"
   long       = "stats-every-query"
   category   = "regular"
   type       = "bool"
-  predicates = ["setStatsDetail"]
   default    = "false"
+  predicates = ["setStatsDetail"]
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 
 [[option]]
   name       = "parseOnly"
-  category   = "regular"
+  category   = "common"
   long       = "parse-only"
   type       = "bool"
+  default    = "false"
   help       = "exit after parsing input"
 
 [[option]]
   name       = "preprocessOnly"
-  category   = "regular"
+  category   = "common"
   long       = "preprocess-only"
   type       = "bool"
+  default    = "false"
   help       = "exit after preprocessing input"
 
 [[option]]
@@ -154,11 +162,11 @@ name   = "Base"
 
 [[option]]
   short      = "o"
+  category   = "common"
   long       = "output=TAG"
   type       = "OutputTag"
   default    = "NONE"
   predicates = ["enableOutputTag"]
-  category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
 [[option.mode.NONE]]
@@ -207,7 +215,11 @@ name   = "Base"
   name = "pre-asserts"
   help = "print a benchmark corresponding to the assertions of the input problem before preprocessing"
   description = "With ``-o pre-asserts``, cvc5 prints a benchmark corresponding to the assertions of the input problem before preprocessing."
-  example-file = "regress0/printer/pre-asserts-output.smt2"
+[[option.mode.DEEP_RESTART]]
+  name = "deep-restart"
+  help = "print when cvc5 performs a deep restart along with the literals it has learned"
+  description = "With ``-o deep-restart``, cvc5 prints when it performs a deep restart along with the literals it has learned."
+  example-file = "regress0/printer/deep-restart-output.smt2"
 
 # Stores then enabled output tags.
 [[option]]
@@ -215,12 +227,14 @@ name   = "Base"
   category   = "undocumented"
   includes   = ["<bitset>"]
   type       = "std::bitset<static_cast<size_t>(OutputTag::__MAX_VALUE)+1>"
+  default    = '{}'
 
 [[option]]
   name       = "printSuccess"
-  category   = "regular"
+  category   = "common"
   long       = "print-success"
   type       = "bool"
+  default    = "false"
   predicates = ["setPrintSuccess"]
   help       = "print the \"success\" output required of SMT-LIBv2"
 
@@ -229,6 +243,7 @@ name   = "Base"
   category   = "common"
   long       = "tlimit=MS"
   type       = "uint64_t"
+  default    = "0"
   help       = "set time limit in milliseconds of wall clock time"
 
 [[option]]
@@ -236,6 +251,7 @@ name   = "Base"
   category   = "common"
   long       = "tlimit-per=MS"
   type       = "uint64_t"
+  default    = "0"
   help       = "set time limit per query in milliseconds"
 
 [[option]]
@@ -243,6 +259,7 @@ name   = "Base"
   category   = "common"
   long       = "rlimit=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "set resource limit"
 
 [[option]]
@@ -251,6 +268,7 @@ name   = "Base"
   category   = "common"
   long       = "rlimit-per=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "set resource limit per query"
 
 # --rweight is used to override the default of one particular resource weight.
@@ -272,3 +290,4 @@ name   = "Base"
   name       = "resourceWeightHolder"
   category   = "undocumented"
   type       = "std::vector<std::string>"
+  default    = '{}'

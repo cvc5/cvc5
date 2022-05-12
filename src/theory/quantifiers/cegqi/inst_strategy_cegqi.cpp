@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -56,11 +56,11 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_vtsCache(new VtsTermCache(env, qim)),
       d_bv_invert(nullptr),
       d_small_const_multiplier(NodeManager::currentNM()->mkConstReal(
           Rational(1) / Rational(1000000))),
-      d_small_const(d_small_const_multiplier)
+      d_small_const(d_small_const_multiplier),
+      d_freeDeltaLb(false, userContext())
 {
   d_check_vts_lemma_lc = false;
   if (options().quantifiers.cegqiBv)
@@ -110,7 +110,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
-      Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
+      Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
@@ -200,12 +200,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       if (fm->isQuantifierActive(q))
       {
         d_active_quant[q] = true;
-        Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
+        Trace("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
         if (d_qstate.getValuation().hasSatValue(cel, value))
         {
-          Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
+          Trace("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
             if (d_qstate.getValuation().isDecision(cel))
             {
@@ -218,7 +218,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
             }
           }
         }else{
-          Debug("cegqi-debug") << "...CE Literal does not have value " << std::endl;
+          Trace("cegqi-debug") << "...CE Literal does not have value " << std::endl;
         }
       }
     }
@@ -260,7 +260,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   {
     Assert(!d_qstate.isInConflict());
     double clSet = 0;
-    if( Trace.isOn("cegqi-engine") ){
+    if( TraceIsOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
@@ -283,7 +283,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         break;
       }
     }
-    if( Trace.isOn("cegqi-engine") ){
+    if( TraceIsOn("cegqi-engine") ){
       if (d_qim.numPendingLemmas() > lastWaiting)
       {
         Trace("cegqi-engine")
@@ -355,7 +355,8 @@ TrustNode InstStrategyCegqi::rewriteInstantiation(
     // do virtual term substitution
     inst = rewrite(inst);
     Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
-    inst = d_vtsCache->rewriteVtsSymbols(inst);
+    VtsTermCache* vtc = d_treg.getVtsTermCache();
+    inst = vtc->rewriteVtsSymbols(inst);
     Trace("quant-vts-debug") << "...got " << inst << std::endl;
   }
   if (prevInst != inst)
@@ -424,38 +425,61 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
     // don't need to process this, since it has been reduced
     return;
   }
+  // run the check
   if( e==0 ){
     CegInstantiator * cinst = getInstantiator( q );
     Trace("inst-alg") << "-> Run cegqi for " << q << std::endl;
     d_curr_quant = q;
     if( !cinst->check() ){
       d_incomplete_check = true;
-      d_check_vts_lemma_lc = true;
     }
     d_curr_quant = Node::null();
-  }else if( e==1 ){
-    NodeManager* nm = NodeManager::currentNM();
+  }
+
+  // now, process the bounding lemmas for virtual terms
+  NodeManager* nm = NodeManager::currentNM();
+  VtsTermCache* vtc = d_treg.getVtsTermCache();
+  if (e == 0)
+  {
+    // if the check was incomplete, process bounds at next effort level
+    d_check_vts_lemma_lc = d_incomplete_check;
+    // process the lower bound for free delta immediately
+    Node delta = vtc->getVtsDelta(true, false);
+    if (!delta.isNull())
+    {
+      if (!d_freeDeltaLb.get())
+      {
+        d_freeDeltaLb = true;
+        Node zero = nm->mkConstReal(Rational(0));
+        Node delta_lem = nm->mkNode(GT, delta, zero);
+        d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
+      }
+    }
+  }
+  else if (e == 1)
+  {
     //minimize the free delta heuristically on demand
     if( d_check_vts_lemma_lc ){
       Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
-      d_small_const = NodeManager::currentNM()->mkNode(
-          MULT, d_small_const, d_small_const_multiplier);
+      d_small_const = nm->mkNode(MULT, d_small_const, d_small_const_multiplier);
       d_small_const = rewrite(d_small_const);
       //heuristic for now, until we know how to do nested quantification
-      Node delta = d_vtsCache->getVtsDelta(true, false);
+      Node delta = vtc->getVtsDelta(true, false);
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
-        Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
+        Node delta_lem_ub = nm->mkNode(LT, delta, d_small_const);
         d_qim.lemma(delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA);
       }
       std::vector< Node > inf;
-      d_vtsCache->getVtsTerms(inf, true, false, false);
-      for( unsigned i=0; i<inf.size(); i++ ){
-        Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
+      vtc->getVtsTerms(inf, true, false, false);
+      for (const Node& i : inf)
+      {
+        Trace("quant-vts-debug")
+            << "Infinity lemma for " << i << " " << d_small_const << std::endl;
         Node inf_lem_lb = nm->mkNode(
             GT,
-            inf[i],
+            i,
             nm->mkConstReal(Rational(1) / d_small_const.getConst<Rational>()));
         d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
       }
@@ -482,7 +506,8 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
   // check if we need virtual term substitution (if used delta or infinity)
-  bool usedVts = d_vtsCache->containsVtsTerm(subs, false);
+  VtsTermCache* vtc = d_treg.getVtsTermCache();
+  bool usedVts = vtc->containsVtsTerm(subs, false);
   Instantiate* inst = d_qim.getInstantiate();
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
@@ -496,7 +521,6 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
                                   subs,
                                   InferenceId::QUANTIFIERS_INST_CEGQI,
                                   Node::null(),
-                                  false,
                                   usedVts))
   {
     return true;
@@ -518,7 +542,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
 
 VtsTermCache* InstStrategyCegqi::getVtsTermCache() const
 {
-  return d_vtsCache.get();
+  return d_treg.getVtsTermCache();
 }
 
 BvInverter* InstStrategyCegqi::getBvInverter() const
@@ -555,4 +579,4 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

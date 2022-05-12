@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,10 +22,10 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
@@ -119,7 +119,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
   }
   // print for debugging
-  if (Trace.isOn("final-pf-hole"))
+  if (TraceIsOn("final-pf-hole"))
   {
     // currently only track theory rewrites
     if (r == PfRule::THEORY_REWRITE)
@@ -146,4 +146,4 @@ bool ProofFinalCallback::wasPedanticFailure(std::ostream& out) const
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

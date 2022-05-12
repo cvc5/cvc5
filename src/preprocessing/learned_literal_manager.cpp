@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 LearnedLiteralManager::LearnedLiteralManager(Env& env)
@@ -50,4 +50,4 @@ std::vector<Node> LearnedLiteralManager::getLearnedLiterals() const
 }
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

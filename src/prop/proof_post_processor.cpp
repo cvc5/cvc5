@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 ProofPostprocessCallback::ProofPostprocessCallback(
@@ -34,6 +34,11 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   bool result = pn->getRule() == PfRule::ASSUME
                 && d_proofCnfStream->hasProofFor(pn->getResult());
+  if (TraceIsOn("prop-proof-pp") && !result && pn->getRule() == PfRule::ASSUME)
+  {
+    Trace("prop-proof-pp") << "- Ignoring no-proof assumption "
+                           << pn->getResult() << "\n";
+  }
   // check if should continue traversing
   if (d_proofCnfStream->isBlocked(pn))
   {
@@ -50,8 +55,9 @@ bool ProofPostprocessCallback::update(Node res,
                                       CDProof* cdp,
                                       bool& continueUpdate)
 {
-  Trace("prop-proof-pp-debug")
-      << "- Post process " << id << " " << children << " / " << args << "\n";
+  Trace("prop-proof-pp") << "- Post process " << id << " " << res << " : "
+                         << children << " / " << args << "\n"
+                         << push;
   Assert(id == PfRule::ASSUME);
   // we cache based on the assumption node, not the proof node, since there
   // may be multiple occurrences of the same node.
@@ -61,7 +67,7 @@ bool ProofPostprocessCallback::update(Node res,
       d_assumpToProof.find(f);
   if (it != d_assumpToProof.end())
   {
-    Trace("prop-proof-pp-debug") << "...already computed" << std::endl;
+    Trace("prop-proof-pp") << "...already computed" << std::endl;
     pfn = it->second;
   }
   else
@@ -70,13 +76,14 @@ bool ProofPostprocessCallback::update(Node res,
     // get proof from proof cnf stream
     pfn = d_proofCnfStream->getProofFor(f);
     Assert(pfn != nullptr && pfn->getResult() == f);
-    if (Trace.isOn("prop-proof-pp"))
+    if (TraceIsOn("prop-proof-pp"))
     {
       Trace("prop-proof-pp") << "=== Connect CNF proof for: " << f << "\n";
       Trace("prop-proof-pp") << *pfn.get() << "\n";
     }
     d_assumpToProof[f] = pfn;
   }
+  Trace("prop-proof-pp") << pop;
   // connect the proof
   cdp->addProof(pfn);
   // do not recursively process the result
@@ -106,4 +113,4 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

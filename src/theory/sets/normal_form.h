@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Andrew Reynolds, Kshitij Bansal, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include "expr/emptyset.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -67,7 +67,7 @@ class NormalForm {
    * Also handles the corner cases of empty set and singleton set.
    */
   static bool checkNormalConstant(TNode n) {
-    Debug("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :"
+    Trace("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :"
                               << std::endl;
     if (n.getKind() == kind::SET_EMPTY)
     {
@@ -93,7 +93,7 @@ class NormalForm {
                                 << n[0] << std::endl;
           return false;
         }
-        Debug("sets-checknormal")
+        Trace("sets-checknormal")
             << "[sets-checknormal]              element = " << n[0][0] << " "
             << n[0][0].getId() << std::endl;
         if (!prvs.isNull() && n[0][0] >= prvs)
@@ -114,7 +114,7 @@ class NormalForm {
                               << " not due to final " << n << std::endl;
         return false;
       }
-      Debug("sets-checknormal")
+      Trace("sets-checknormal")
           << "[sets-checknormal]              lst element = " << n[0] << " "
           << n[0].getId() << std::endl;
       // compare last ID
@@ -166,6 +166,6 @@ class NormalForm {
 };
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

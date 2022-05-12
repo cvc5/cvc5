@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,9 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
@@ -151,4 +151,4 @@ void CheckModels::checkModel(TheoryModel* m,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

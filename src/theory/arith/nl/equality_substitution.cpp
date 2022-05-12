@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
+ *   Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -54,7 +54,7 @@ void EqualitySubstitution::reset()
 std::vector<Node> EqualitySubstitution::eliminateEqualities(
     const std::vector<Node>& assertions)
 {
-  if (Trace.isOn("nl-eqs"))
+  if (TraceIsOn("nl-eqs"))
   {
     Trace("nl-eqs") << "Input:" << std::endl;
     for (const auto& a : assertions)
@@ -85,10 +85,17 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       {
         const auto& l = o[i];
         const auto& r = o[1 - i];
+        // lhs can't be constant
         if (l.isConst()) continue;
+        // types must match (otherwise we might have int/real issues)
+        if (r.getType() != l.getType()) continue;
+        // can't substitute stuff from other theories
         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
+        // can't substitute the same thing twice
         if (d_substitutions->hasSubstitution(l)) continue;
+        // lhs can't be a subexpression of rhs, would leaf to recursion
         if (expr::hasSubterm(r, l)) continue;
+        // the same, but after substitution
         d_substitutions->invalidateCache();
         if (expr::hasSubterm(d_substitutions->apply(r, nullptr, nullptr, &stc), l)) continue;
         Trace("nl-eqs") << "Found substitution " << l << " -> " << r
@@ -147,7 +154,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     asserts = std::move(next);
   }
   d_conflict.clear();
-  if (Trace.isOn("nl-eqs"))
+  if (TraceIsOn("nl-eqs"))
   {
     Trace("nl-eqs") << "Output:" << std::endl;
     for (const auto& a : asserts)
@@ -216,4 +223,4 @@ void EqualitySubstitution::addToConflictMap(const Node& n,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,13 +38,13 @@
 #include "theory/theory_engine.h"
 #include "util/poly_util.h"
 
-namespace cvc5::test {
+namespace cvc5::internal::test {
 
-using namespace cvc5;
-using namespace cvc5::kind;
-using namespace cvc5::theory;
-using namespace cvc5::theory::arith;
-using namespace cvc5::theory::arith::nl;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::arith;
+using namespace cvc5::internal::theory::arith::nl;
 
 NodeManager* nodeManager;
 class TestTheoryWhiteArithCoverings : public TestSmt
@@ -205,15 +205,14 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
-      d_nodeManager->mkNode(
-          Kind::EQUAL, a, d_nodeManager->mkConst(CONST_RATIONAL, d_zero)),
+      d_nodeManager->mkNode(Kind::EQUAL, a, d_nodeManager->mkConstReal(d_zero)),
       d_nodeManager->mkNode(
           Kind::EQUAL,
           d_nodeManager->mkNode(
               Kind::ADD,
               d_nodeManager->mkNode(Kind::NONLINEAR_MULT, a, c),
-              d_nodeManager->mkConst(CONST_RATIONAL, d_one)),
-          d_nodeManager->mkConst(CONST_RATIONAL, d_zero))});
+              d_nodeManager->mkConstReal(d_one)),
+          d_nodeManager->mkConstReal(d_zero))});
 
   {
     Node rewritten = rewriter->rewrite(orig);
@@ -384,8 +383,8 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 {
   Options opts;
   // enable proofs
-  opts.smt.proofMode = options::ProofMode::FULL;
-  opts.smt.produceProofs = true;
+  opts.writeSmt().proofMode = options::ProofMode::FULL;
+  opts.writeSmt().produceProofs = true;
   Env env(NodeManager::currentNM(), &opts);
   opts.handler().setDefaultDagThresh("--dag-thresh", 0);
   smt::PfManager pfm(env);
@@ -426,10 +425,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
 {
   std::vector<Node> a;
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node mone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node fifth = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2));
+  Node zero = d_nodeManager->mkConstReal(Rational(0));
+  Node one = d_nodeManager->mkConstReal(Rational(1));
+  Node mone = d_nodeManager->mkConstReal(Rational(-1));
+  Node fifth = d_nodeManager->mkConstReal(Rational(1, 2));
   Node g = make_real_variable("g");
   Node l = make_real_variable("l");
   Node q = make_real_variable("q");
@@ -449,10 +448,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
 TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
 {
   std::vector<Node> a;
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node mone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node fifth = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2));
+  Node zero = d_nodeManager->mkConstReal(Rational(0));
+  Node one = d_nodeManager->mkConstReal(Rational(1));
+  Node mone = d_nodeManager->mkConstReal(Rational(-1));
+  Node fifth = d_nodeManager->mkConstReal(Rational(1, 2));
   Node g = make_real_variable("g");
   Node l = make_real_variable("l");
   Node q = make_real_variable("q");
@@ -480,6 +479,6 @@ TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)
     EXPECT_TRUE(ran == back);
   }
 }
-}  // namespace cvc5::test
+}  // namespace cvc5::internal::test
 
 #endif

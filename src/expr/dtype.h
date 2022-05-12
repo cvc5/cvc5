@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "expr/type_node.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // ----------------------- datatype attributes
 /**
@@ -436,6 +436,14 @@ class DType
 
  private:
   /**
+   * Collect unresolved datatype types. This is called by NodeManager when
+   * constructing datatypes from datatype declarations. This adds all
+   * unresolved datatype types to unresTypes, which are then considered
+   * when constructing the datatype (for details, see
+   * NodeManager::mkMutualDatatypeTypesInternal).
+   */
+  void collectUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const;
+  /**
    * DTypes refer to themselves, recursively, and we have a
    * chicken-and-egg problem.  The TypeNode around the DType
    * cannot exist until the DType is finalized, and the DType
@@ -642,45 +650,8 @@ struct DTypeHashFunction
   }
 }; /* struct DTypeHashFunction */
 
-/* stores an index to DType residing in NodeManager */
-class DTypeIndexConstant
-{
- public:
-  DTypeIndexConstant(size_t index);
-
-  size_t getIndex() const { return d_index; }
-  bool operator==(const DTypeIndexConstant& uc) const
-  {
-    return d_index == uc.d_index;
-  }
-  bool operator!=(const DTypeIndexConstant& uc) const { return !(*this == uc); }
-  bool operator<(const DTypeIndexConstant& uc) const
-  {
-    return d_index < uc.d_index;
-  }
-  bool operator<=(const DTypeIndexConstant& uc) const
-  {
-    return d_index <= uc.d_index;
-  }
-  bool operator>(const DTypeIndexConstant& uc) const { return !(*this <= uc); }
-  bool operator>=(const DTypeIndexConstant& uc) const { return !(*this < uc); }
-
- private:
-  const size_t d_index;
-}; /* class DTypeIndexConstant */
-
-std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic);
-
-struct DTypeIndexConstantHashFunction
-{
-  size_t operator()(const DTypeIndexConstant& dic) const
-  {
-    return IntegerHashFunction()(dic.getIndex());
-  }
-}; /* struct DTypeIndexConstantHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

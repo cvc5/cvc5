@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,11 +14,10 @@
  *
  */
 
-
 #include "api/cpp/cvc5.h"
 #include <cassert>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main(void)
 {
@@ -34,7 +33,7 @@ int main(void)
   Term t37 = slv.mkTerm(Kind::BITVECTOR_TO_NAT, {t35});
   Term t40 = slv.mkTerm(Kind::PI);
   Term t43 = slv.mkTerm(Kind::ADD, {t40, t40});
-  Term t45 = slv.mkTerm(slv.mkOp(Kind::IAND, 31), {t37, t5});
+  Term t45 = slv.mkTerm(slv.mkOp(Kind::IAND, {31}), {t37, t5});
   Term t66 = slv.mkTerm(Kind::EQUAL, {t43, t40});
   Term t101 = slv.mkTerm(Kind::LT, {t37, t45});
   slv.assertFormula({t66});

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace cvc5::theory::arith::nl::coverings {
+namespace cvc5::internal::theory::arith::nl::coverings {
 
 struct LazardEvaluationState;
 /**
@@ -111,7 +111,7 @@ class LazardEvaluation
   std::unique_ptr<LazardEvaluationState> d_state;
 };
 
-}  // namespace cvc5::theory::arith::nl::coverings
+}  // namespace cvc5::internal::theory::arith::nl::coverings
 
 #endif
 #endif

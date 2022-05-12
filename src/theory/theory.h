@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@
 #include "theory/valuation.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class TheoryEngine;
@@ -47,6 +47,7 @@ class ProofRuleChecker;
 
 namespace theory {
 
+class CarePairArgumentCallback;
 class DecisionManager;
 struct EeSetupInfo;
 class OutputChannel;
@@ -97,7 +98,8 @@ namespace eq {
  */
 class Theory : protected EnvObj
 {
-  friend class ::cvc5::TheoryEngine;
+  friend class CarePairArgumentCallback;
+  friend class internal::TheoryEngine;
 
  protected:
   /** Name of this theory instance. Along with the TheoryId this should
@@ -112,10 +114,24 @@ class Theory : protected EnvObj
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  /**
-   * The only method to add suff to the care graph.
-   */
+  /** Add (t1, t2) to the care graph */
   void addCarePair(TNode t1, TNode t2);
+  /**
+   * Assuming a is f(a1, ..., an) and b is f(b1, ..., bn), this method adds
+   * (ai, bi) to the care graph for each i where ai is not equal to bi.
+   */
+  void addCarePairArgs(TNode a, TNode b);
+  /**
+   * Process care pair arguments for a and b. By default, this calls the
+   * method above if a and b are not equal according to the equality engine
+   * of this theory.
+   */
+  virtual void processCarePairArgs(TNode a, TNode b);
+  /**
+   * Are care disequal? Return true if x and y are shared terms that are
+   * disequal according to the valuation.
+   */
+  virtual bool areCareDisequal(TNode x, TNode y);
 
   /**
    * The function should compute the care graph over the shared terms.
@@ -186,15 +202,6 @@ class Theory : protected EnvObj
    * They are considered enabled if the ProofNodeManager is non-null.
    */
   bool proofsEnabled() const;
-
-  /**
-   * Set separation logic heap. This is called when the location and data
-   * types for separation logic are determined. This should be called at
-   * most once, before solving.
-   *
-   * This currently should be overridden by the separation logic theory only.
-   */
-  virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
@@ -827,7 +834,7 @@ class Theory : protected EnvObj
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
 
 inline std::ostream& operator<<(std::ostream& out,
-                                const cvc5::theory::Theory& theory)
+                                const cvc5::internal::theory::Theory& theory)
 {
   return out << theory.identify();
 }
@@ -847,6 +854,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_H */

@@ -11,7 +11,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "dtBinarySplit"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-binary-split"
   type       = "bool"
   default    = "false"
@@ -19,7 +19,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "cdtBisimilar"
-  category   = "regular"
+  category   = "expert"
   long       = "cdt-bisimilar"
   type       = "bool"
   default    = "true"
@@ -27,7 +27,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "dtCyclic"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-cyclic"
   type       = "bool"
   default    = "true"
@@ -35,7 +35,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "dtInferAsLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-infer-as-lemmas"
   type       = "bool"
   default    = "false"
@@ -43,7 +43,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "dtBlastSplits"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-blast-splits"
   type       = "bool"
   default    = "false"
@@ -51,7 +51,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "dtNestedRec"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-nested-rec"
   type       = "bool"
   default    = "false"
@@ -111,7 +111,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "sygusSymBreakLazy"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-sym-break-lazy"
   type       = "bool"
   default    = "true"
@@ -119,7 +119,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "sygusSymBreakRlv"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-sym-break-rlv"
   type       = "bool"
   default    = "true"
@@ -151,7 +151,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "sygusFairMax"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-fair-max"
   type       = "bool"
   default    = "true"

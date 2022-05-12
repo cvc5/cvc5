@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@
 #include "theory/strings/word.h"
 #include "util/regexp.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -267,7 +267,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 }
 
 // 0-unknown, 1-yes, 2-no
-int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
+int RegExpOpr::derivativeS(Node r, cvc5::internal::String c, Node& retNode)
 {
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
@@ -306,8 +306,8 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
         break;
       }
       case kind::REGEXP_RANGE: {
-        cvc5::String a = r[0].getConst<String>();
-        cvc5::String b = r[1].getConst<String>();
+        cvc5::internal::String a = r[0].getConst<String>();
+        cvc5::internal::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -527,7 +527,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
   return ret;
 }
 
-Node RegExpOpr::derivativeSingle(Node r, cvc5::String c)
+Node RegExpOpr::derivativeSingle(Node r, cvc5::internal::String c)
 {
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
@@ -563,8 +563,8 @@ Node RegExpOpr::derivativeSingle(Node r, cvc5::String c)
         break;
       }
       case kind::REGEXP_RANGE: {
-        cvc5::String a = r[0].getConst<String>();
-        cvc5::String b = r[1].getConst<String>();
+        cvc5::internal::String a = r[0].getConst<String>();
+        cvc5::internal::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -820,7 +820,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     d_fset_cache[r] = p;
   }
 
-  if(Trace.isOn("regexp-fset")) {
+  if(TraceIsOn("regexp-fset")) {
     Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
     for (std::set<unsigned>::const_iterator it = pcset.begin();
          it != pcset.end();
@@ -1280,7 +1280,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             Unreachable();
           }
         }
-        if(Trace.isOn("regexp-int-debug")) {
+        if(TraceIsOn("regexp-int-debug")) {
           Trace("regexp-int-debug") << "Try CSET(" << cset.size() << ") = {";
           for (std::vector<unsigned>::const_iterator it = cset.begin();
                it != cset.end();
@@ -1424,7 +1424,7 @@ Node RegExpOpr::removeIntersection(Node r) {
   } while (!visit.empty());
   Assert(visited.find(r) != visited.end());
   Assert(!visited.find(r)->second.isNull());
-  if (Trace.isOn("regexp-intersect"))
+  if (TraceIsOn("regexp-intersect"))
   {
     Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r)
                               << " ) = " << mkString(visited[r]) << std::endl;
@@ -1588,4 +1588,4 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

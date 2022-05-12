@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,18 +18,19 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/linear/partial_model.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -45,6 +46,7 @@ void ArithInstantiator::reset(CegInstantiator* ci,
                               Node pv,
                               CegInstEffort effort)
 {
+  Assert(pv.getType() == d_type);
   d_vts_sym[0] = d_vtc->getVtsInfinity(d_type, false, false);
   d_vts_sym[1] = d_vtc->getVtsDelta(false, false);
   for (unsigned i = 0; i < 2; i++)
@@ -93,7 +95,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
       eq_rhs = nm->mkNode(MULT, lhs_coeff, eq_rhs);
     }
   }
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = arith::mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Node val;
   TermProperties pv_prop;
@@ -144,6 +146,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
                                          Node alit,
                                          CegInstEffort effort)
 {
+  Trace("cegqi-arith-debug") << "Process assertion " << lit << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
@@ -256,7 +259,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         uires = is_upper ? CEG_TT_LOWER_STRICT : CEG_TT_UPPER_STRICT;
       }
     }
-    if (Trace.isOn("cegqi-arith-bound-inf"))
+    if (TraceIsOn("cegqi-arith-bound-inf"))
     {
       Node pvmod = pv_prop.getModifiedTerm(pv);
       Trace("cegqi-arith-bound-inf") << "From " << lit << ", got : ";
@@ -352,7 +355,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       for (unsigned j = 0, nbounds = d_mbp_bounds[rr].size(); j < nbounds; j++)
       {
         Node value[3];
-        if (Trace.isOn("cegqi-arith-bound"))
+        if (TraceIsOn("cegqi-arith-bound"))
         {
           Assert(!d_mbp_bounds[rr][j].isNull());
           Trace("cegqi-arith-bound")
@@ -420,7 +423,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                 MULT,
                 nm->mkConstReal(Rational(1)
                                 / d_mbp_coeff[rr][j].getConst<Rational>()),
-                value[t]);
+                nm->mkNode(TO_REAL, value[t]));
             value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
@@ -429,15 +432,20 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
             {
-              Kind k = rr == 0 ? GEQ : LEQ;
-              Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
-              cmp_bound = rewrite(cmp_bound);
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
               // the new best bound. We might not be comparing constant
               // values (for instance if transcendental functions are
-              // involved), in which case we do update the best bound value.
-              if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
+              // involved), in which case we do not update the best bound value.
+              if (!value[t].isConst() || !best_bound_value[t].isConst())
+              {
+                new_best = false;
+                break;
+              }
+              Rational rt = value[t].getConst<Rational>();
+              Rational brt = best_bound_value[t].getConst<Rational>();
+              bool cmp = rr == 0 ? rt >= brt : rt <= brt;
+              if (!cmp)
               {
                 new_best = false;
                 break;
@@ -672,7 +680,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
       std::find(sf.d_vars.begin(), sf.d_vars.end(), pv) - sf.d_vars.begin();
   Assert(!sf.d_props[index].isBasic());
   Node eq_lhs = sf.d_props[index].getModifiedTerm(sf.d_vars[index]);
-  if (Trace.isOn("cegqi-arith-debug"))
+  if (TraceIsOn("cegqi-arith-debug"))
   {
     Trace("cegqi-arith-debug") << "Normalize substitution for ";
     Trace("cegqi-arith-debug")
@@ -683,7 +691,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   // solve updated rewritten equality for vars[index], if coefficient is one,
   // then we are successful
   Node eq_rhs = sf.d_subs[index];
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = arith::mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map<Node, Node> msum;
@@ -753,7 +761,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     return CEG_TT_INVALID;
   }
   Trace("cegqi-arith-debug") << "got monomial sum: " << std::endl;
-  if (Trace.isOn("cegqi-arith-debug"))
+  if (TraceIsOn("cegqi-arith-debug"))
   {
     ArithMSum::debugPrintMonomialSum(msum, "cegqi-arith-debug");
   }
@@ -811,7 +819,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     Trace("cegqi-arith-debug") << "fail : isolate" << std::endl;
     return CEG_TT_INVALID;
   }
-  if (Trace.isOn("cegqi-arith-debug"))
+  if (TraceIsOn("cegqi-arith-debug"))
   {
     Trace("cegqi-arith-debug") << "Isolate : ";
     if (!veq_c.isNull())
@@ -828,9 +836,10 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     return CEG_TT_INVALID;
   }
   // if its type is integer but the substitution is not integer
+  Node vval = mkVtsSum(val, vts_coeff[0], vts_coeff[1]);
   if (pvtn.isInteger()
       && ((!veq_c.isNull() && !veq_c.getType().isInteger())
-          || !val.getType().isInteger()))
+          || !vval.getType().isInteger()))
   {
     // redo, split integer/non-integer parts
     bool useCoeff = false;
@@ -897,10 +906,12 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       int ires_use =
           (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
                                                                           : -1;
-      val = rewrite(
-          nm->mkNode(ires_use == -1 ? ADD : SUB,
-                     nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
-                     nm->mkNode(TO_INTEGER, realPart)));
+      val = nm->mkNode(TO_INTEGER, nm->mkNode(ires_use == -1 ? ADD : SUB,
+                       nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
+                       nm->mkNode(TO_INTEGER, realPart)));
+      Trace("cegqi-arith-debug")
+          << "result (pre-rewrite) : " << val << std::endl;
+      val = rewrite(val);
       // could round up for upper bounds here
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
       Assert(val.getType().isInteger());
@@ -912,6 +923,11 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   }
   vts_coeff_inf = vts_coeff[0];
   vts_coeff_delta = vts_coeff[1];
+  if (!pv.getType().isInteger() && val.getType().isInteger())
+  {
+    val = nm->mkNode(TO_REAL, val);
+  }
+  Assert(pv.getType() == val.getType());
   Trace("cegqi-arith-debug")
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
@@ -985,20 +1001,30 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     val = rewrite(val);
     Trace("cegqi-arith-bound2") << "(after rho) : " << val << std::endl;
   }
+  return mkVtsSum(val, inf_coeff, delta_coeff);
+}
+
+Node ArithInstantiator::mkVtsSum(const Node& val,
+                                 const Node& inf_coeff,
+                                 const Node& delta_coeff)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node vval = val;
   if (!inf_coeff.isNull())
   {
     Assert(!d_vts_sym[0].isNull());
-    val = nm->mkNode(ADD, val, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
-    val = rewrite(val);
+    vval = nm->mkNode(ADD, vval, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
   }
   if (!delta_coeff.isNull())
   {
     // create delta here if necessary
-    val = nm->mkNode(
-        ADD, val, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
-    val = rewrite(val);
+    vval = nm->mkNode(
+        ADD,
+        vval,
+        nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
   }
-  return val;
+  vval = rewrite(vval);
+  return vval;
 }
 
 Node ArithInstantiator::negate(const Node& t) const
@@ -1010,4 +1036,4 @@ Node ArithInstantiator::negate(const Node& t) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

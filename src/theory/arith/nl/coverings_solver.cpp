@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -59,7 +59,7 @@ CoveringsSolver::~CoveringsSolver() {}
 void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
-  if (Trace.isOn("nl-cov"))
+  if (TraceIsOn("nl-cov"))
   {
     Trace("nl-cov") << "CoveringsSolver::initLastCall" << std::endl;
     Trace("nl-cov") << "* Assertions: " << std::endl;
@@ -79,7 +79,7 @@ void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
         Trace("nl-cov") << "Found conflict: " << lem << std::endl;
         return;
     }
-    if (Trace.isOn("nl-cov"))
+    if (TraceIsOn("nl-cov"))
     {
       Trace("nl-cov") << "After simplifications" << std::endl;
       Trace("nl-cov") << "* Assertions: " << std::endl;
@@ -244,12 +244,16 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 
 void CoveringsSolver::addToModel(TNode var, TNode value) const
 {
-  Trace("nl-cov") << "-> " << var << " = " << value << std::endl;
   Assert(value.getType().isRealOrInt());
-  d_model.addSubstitution(var, value);
+  // we must take its substituted form here, since other solvers (e.g. the
+  // reductions inference of the sine solver) may have introduced substitutions
+  // internally during check.
+  Node svalue = d_model.getSubstitutedForm(value);
+  Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
+  d_model.addSubstitution(var, svalue);
 }
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,0 +1,71 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none --sygus-enum=fast
+
+(set-logic ALL)
+
+(declare-datatypes ((IntRange 0))
+   (((IntRange (lower Int) (upper Int)))))
+
+(declare-datatypes ((Loc 0))
+   (((Loc (x Int) (y Int)))))
+
+(declare-datatypes ((LocRange 0))
+   (((LocRange (xD IntRange) (yD IntRange)))))
+
+(declare-datatypes ((Ship 0))
+   (((Ship (shipCapacity Int) (shipLoc Loc)))))
+
+(declare-datatypes ((ShipRange 0))
+   (((ShipRange (shipCapacityD IntRange) (shipLocD LocRange)))))
+
+(define-fun betweenInt ((x Int) (r IntRange)) Bool
+    (and (< (lower r) x) (< x (upper r)))
+)
+
+(define-fun betweenLoc ((l Loc) (lr LocRange)) Bool
+    (and (betweenInt (x l) (xD lr)) (betweenInt (y l) (yD lr)))
+)
+
+(define-fun subsetInt ((r1 IntRange) (r2 IntRange)) Bool
+    (and (>= (lower r1) (lower r2)) (<= (upper r1) (upper r2)))
+)
+
+(define-fun betweenShip ((s Ship) (sr ShipRange)) Bool
+    (and (betweenInt (shipCapacity s) (shipCapacityD sr)) (betweenLoc (shipLoc s) (shipLocD sr)))
+)
+
+(define-fun atLeast ((s Ship)) Bool
+    (> (shipCapacity s) 50)
+)
+
+(define-fun subsetLoc ((s1 LocRange) (s2 LocRange)) Bool
+    (and (subsetInt (xD s1) (xD s2)) (subsetInt (yD s1) (yD s2)))
+)
+
+(define-fun subsetShip ((s1 ShipRange) (s2 ShipRange)) Bool
+    (and (subsetInt (shipCapacityD s1) (shipCapacityD s2)) (subsetLoc (shipLocD s1) (shipLocD s2)))
+)
+
+(define-fun max ((x Int) (y Int)) Int
+ (ite (>= x y) x y)
+)
+
+(define-fun min ((x Int) (y Int)) Int
+ (ite (<= x y) x y)
+)
+
+
+(synth-fun f ((secret Ship) (prior ShipRange) (response Bool)) ShipRange)
+
+(declare-var secret Ship)
+(declare-var prior ShipRange)
+(declare-var response Bool)
+
+(constraint
+  (=> (betweenShip secret (f secret prior response))
+          (= response
+             (and (atLeast secret)
+                  (subsetShip (f secret prior response) prior))))
+)
+
+(check-synth)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "expr/node_converter.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -40,6 +40,8 @@ class LfscNodeConverter : public NodeConverter
   Node preConvert(Node n) override;
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
+  /** convert type at pre-order traversal */
+  TypeNode preConvertType(TypeNode tn) override;
   /** convert type at post-order traversal */
   TypeNode postConvertType(TypeNode tn) override;
   /**
@@ -97,7 +99,9 @@ class LfscNodeConverter : public NodeConverter
    * has a distinguished status so that it is *not* printed as (bvar ...). The
    * returned variable is always fresh.
    */
-  Node mkInternalSymbol(const std::string& name, TypeNode tn);
+  Node mkInternalSymbol(const std::string& name,
+                        TypeNode tn,
+                        bool useRawSym = true);
   /**
    * Get builtin kind for internal symbol op
    */
@@ -113,8 +117,15 @@ class LfscNodeConverter : public NodeConverter
                                         size_t variant = 0);
   /** get name for the name of node v, where v should be a variable */
   std::string getNameForUserNameOf(Node v);
+  /** Get the declared symbols (variables) that we have converted */
+  const std::unordered_set<Node>& getDeclaredSymbols() const;
+  /** Get the declared types that we have converted */
+  const std::unordered_set<TypeNode>& getDeclaredTypes() const;
 
  private:
+  /** get name for a Node/TypeNode whose id is id and whose name is name */
+  std::string getNameForUserNameOfInternal(uint64_t id,
+                                           const std::string& name);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
@@ -134,14 +145,19 @@ class LfscNodeConverter : public NodeConverter
    * Get symbol for term, a special case of the method below for the type and
    * kind of n.
    */
-  Node getSymbolInternalFor(Node n, const std::string& name);
+  Node getSymbolInternalFor(Node n,
+                            const std::string& name,
+                            bool useRawSym = true);
   /**
    * Get symbol internal, (k,tn,name) are for caching, name is the name. This
    * method returns a fresh symbol of the given name and type. It is frequently
    * used when the type of a native operator does not match the type of the
    * LFSC operator.
    */
-  Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name);
+  Node getSymbolInternal(Kind k,
+                         TypeNode tn,
+                         const std::string& name,
+                         bool useRawSym = true);
   /**
    * Get character vector, add internal vector of characters for c.
    */
@@ -158,9 +174,10 @@ class LfscNodeConverter : public NodeConverter
   std::unordered_set<Node> d_symbols;
   /**
    * Mapping from user symbols to the (list of) symbols with that name. This
-   * is used to resolve symbol overloading, which is forbidden in LFSC.
+   * is used to resolve symbol overloading, which is forbidden in LFSC. We use
+   * Node identifiers, since this map is used for both Node and TypeNode.
    */
-  std::map<std::string, std::vector<Node> > d_userSymbolList;
+  std::map<std::string, std::vector<uint64_t> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */
@@ -173,9 +190,13 @@ class LfscNodeConverter : public NodeConverter
   std::map<TypeNode, Node> d_typeAsNode;
   /** Used for interpreted builtin parametric sorts */
   std::map<Kind, Node> d_typeKindToNodeCons;
+  /** The set of declared variables */
+  std::unordered_set<Node> d_declVars;
+  /** The set of declared types */
+  std::unordered_set<TypeNode> d_declTypes;
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

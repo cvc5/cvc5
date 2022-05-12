@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,9 +33,9 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -71,9 +71,6 @@ NonlinearExtension::NonlinearExtension(Env& env,
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
 
   if (d_env.isTheoryProofProducing())
   {
@@ -99,6 +96,17 @@ void NonlinearExtension::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
          << " requires nl-ext mode to be set to value 'full'";
+      throw LogicException(ss.str());
+    }
+  }
+  if (isTranscendentalKind(k) || k == Kind::IAND || k == Kind::POW2)
+  {
+    if (options().arith.nlCov && !options().arith.nlCovForce)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " is not compatible with using the coverings-based solver. If you know what you are doing, "
+          "you can try --nl-cov-force, but expect crashes or incorrect results.";
       throw LogicException(ss.str());
     }
   }
@@ -288,8 +296,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Sat res = modelBasedRefinement(termSet);
-  if (res == Result::Sat::SAT)
+  Result::Status res = modelBasedRefinement(termSet);
+  if (res == Result::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     // modify the model values
@@ -301,7 +309,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_trSlv.postProcessModel(arithModel, termSet);
 }
 
-Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
+Result::Status NonlinearExtension::modelBasedRefinement(
+    const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -330,7 +339,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
     }
   }
 
-  if (Trace.isOn("nl-ext-debug"))
+  if (TraceIsOn("nl-ext-debug"))
   {
     Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
                           << std::endl;
@@ -364,7 +373,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
     }
     Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -385,7 +394,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       if (d_im.hasUsed())
       {
         d_im.clearWaitingLemmas();
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
     }
 
@@ -399,7 +408,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
 
       // we are incomplete
@@ -420,14 +429,14 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
                            "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
-        return Result::Sat::SAT_UNKNOWN;
+        return Result::UNKNOWN;
       }
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
-  return Result::Sat::SAT;
+  return Result::SAT;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
@@ -437,7 +446,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 {
   ++(d_stats.d_checkRuns);
 
-  if (Trace.isOn("nl-strategy"))
+  if (TraceIsOn("nl-strategy"))
   {
     for (const auto& a : assertions)
     {
@@ -529,4 +538,4 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

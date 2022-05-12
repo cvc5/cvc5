@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,9 +39,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscNodeConverter::LfscNodeConverter()
@@ -101,9 +101,9 @@ Node LfscNodeConverter::postConvert(Node n)
       << "postConvert " << n << " " << k << std::endl;
   if (k == BOUND_VARIABLE)
   {
-    // ignore internally generated symbols
     if (d_symbols.find(n) != d_symbols.end())
     {
+      // ignore internally generated symbols
       return n;
     }
     // bound variable v is (bvar x T)
@@ -114,12 +114,17 @@ Node LfscNodeConverter::postConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
+  else if (k == RAW_SYMBOL)
+  {
+    // ignore internally generated symbols
+    return n;
+  }
   else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester()
-        || tn.isUpdater())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // note these are not converted to their user named (cvc.) symbols here,
       // to avoid type errors when constructing terms for postConvert
@@ -127,7 +132,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
-    Node wi = SkolemManager::getOriginalForm(n);
+    Node wi = SkolemManager::getUnpurifiedForm(n);
     if (wi == n)
     {
       // if it is not a purification skolem, maybe it is a witness skolem
@@ -151,7 +156,8 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // Otherwise, it is an uncategorized skolem, must use a fresh variable.
     // This case will only apply for terms originating from places with no
-    // proof support.
+    // proof support. Note it is not added as a declared variable, instead it
+    // is used as (var N T) throughout.
     TypeNode intType = nm->integerType();
     TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
     Node var = mkInternalSymbol("var", varType);
@@ -161,6 +167,7 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (n.isVar())
   {
+    d_declVars.insert(n);
     return mkInternalSymbol(getNameForUserNameOf(n), tn);
   }
   else if (k == CARDINALITY_CONSTRAINT)
@@ -183,6 +190,9 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
            || k == APPLY_UPDATER)
   {
+    // must add to declared types
+    const DType& dt = DType::datatypeOf(n.getOperator());
+    d_declTypes.insert(dt.getTypeNode());
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
     Node opc = getOperatorOfTerm(n, true);
@@ -268,8 +278,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node sn = convert(nm->mkConst(s));
     Node en = convert(nm->mkConst(e));
     Node in = convert(nm->mkConst(i));
-    TypeNode btn = nm->booleanType();
-    TypeNode tnv = nm->mkFunctionType({btn, btn, btn}, tn);
+    TypeNode tnv =
+        nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
     return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
   }
@@ -303,7 +313,8 @@ Node LfscNodeConverter::postConvert(Node n)
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size - (i + 1)]));
+      Node u = nm->mkSeqUnit(tn.getSequenceElementType(),
+                             postConvert(charVec[size - (i + 1)]));
       if (size == 1)
       {
         // singleton case
@@ -361,7 +372,8 @@ Node LfscNodeConverter::postConvert(Node n)
     {
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
-      // use the partial operator for variables beyond the first
+      // use the partial operator for variables except the last one.  This
+      // avoids type errors in internal representation of LFSC terms.
       Node vop = getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
       ret = nm->mkNode(APPLY_UF, vop, ret);
     }
@@ -483,6 +495,18 @@ Node LfscNodeConverter::postConvert(Node n)
   return n;
 }
 
+TypeNode LfscNodeConverter::preConvertType(TypeNode tn)
+{
+  if (tn.getKind() == TUPLE_TYPE)
+  {
+    // Must collect the tuple type here, since at post-order traversal, the
+    // type has been modified and no longer maintains the mapping to its
+    // datatype encoding.
+    d_declTypes.insert(tn);
+  }
+  return tn;
+}
+
 TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -525,53 +549,63 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     Node s = nm->mkConstInt(Rational(tn.getFloatingPointSignificandSize()));
     tnn = nm->mkNode(APPLY_UF, tnn, e, s);
   }
-  else if (tn.getNumChildren() == 0)
+  else if (k == TUPLE_TYPE)
   {
     // special case: tuples must be distinguished by their arity
-    if (tn.isTuple())
+    size_t nargs = tn.getNumChildren();
+    if (nargs > 0)
     {
-      const DType& dt = tn.getDType();
-      unsigned int nargs = dt[0].getNumArgs();
-      if (nargs > 0)
+      std::vector<TypeNode> types;
+      std::vector<TypeNode> convTypes;
+      std::vector<Node> targs;
+      for (size_t i = 0; i < nargs; i++)
       {
-        std::vector<TypeNode> types;
-        std::vector<TypeNode> convTypes;
-        std::vector<Node> targs;
-        for (unsigned int i = 0; i < nargs; i++)
-        {
-          // it is not converted yet, convert here
-          TypeNode tnc = convertType(dt[0][i].getRangeType());
-          types.push_back(d_sortType);
-          convTypes.push_back(tnc);
-          targs.push_back(typeAsNode(tnc));
-        }
-        TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-        // must distinguish by arity
-        std::stringstream ss;
-        ss << "Tuple_" << nargs;
-        targs.insert(targs.begin(), getSymbolInternal(k, ftype, ss.str()));
-        tnn = nm->mkNode(APPLY_UF, targs);
-        // we are changing its name, we must make a sort constructor
-        cur = nm->mkSortConstructor(ss.str(), nargs);
-        cur = nm->mkSort(cur, convTypes);
+        TypeNode tnc = tn[i];
+        types.push_back(d_sortType);
+        convTypes.push_back(tnc);
+        targs.push_back(typeAsNode(tnc));
       }
-    }
-    if (tnn.isNull())
-    {
+      TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+      // must distinguish by arity
       std::stringstream ss;
-      options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
-      tn.toStream(ss);
-      if (tn.isSort() || (tn.isDatatype() && !tn.isTuple()))
-      {
-        std::stringstream sss;
-        sss << LfscNodeConverter::getNameForUserName(ss.str());
-        tnn = getSymbolInternal(k, d_sortType, sss.str());
-        cur = nm->mkSort(sss.str());
-      }
-      else
-      {
-        tnn = getSymbolInternal(k, d_sortType, ss.str());
-      }
+      ss << "Tuple_" << nargs;
+      targs.insert(targs.begin(), getSymbolInternal(k, ftype, ss.str()));
+      tnn = nm->mkNode(APPLY_UF, targs);
+      // we are changing its name, we must make a sort constructor
+      cur = nm->mkSortConstructor(ss.str(), nargs);
+      cur = nm->mkSort(cur, convTypes);
+    }
+    else
+    {
+      // no need to convert type for tuples of size 0,
+      // type as node is simple
+      tnn = getSymbolInternal(k, d_sortType, "Tuple");
+    }
+  }
+  else if (tn.getNumChildren() == 0)
+  {
+    Assert(!tn.isTuple());
+    // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
+    d_declTypes.insert(tn);
+    std::stringstream ss;
+    options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+    tn.toStream(ss);
+    if (tn.isUninterpretedSortConstructor())
+    {
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+    }
+    else if (tn.isUninterpretedSort() || tn.isDatatype())
+    {
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSort(s);
+    }
+    else
+    {
+      // all other builtin type constants, e.g. Int
+      tnn = getSymbolInternal(k, d_sortType, ss.str());
     }
   }
   else
@@ -587,6 +621,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     Node op;
     if (k == PARAMETRIC_DATATYPE)
     {
+      // note we don't add to declared types here, since the parametric
+      // datatype is traversed and will be declared as a type constructor
       // erase first child, which repeats the datatype
       targs.erase(targs.begin(), targs.begin() + 1);
       types.erase(types.begin(), types.begin() + 1);
@@ -599,10 +635,15 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     }
     else if (k == SORT_TYPE)
     {
+      // Add its uninterpreted sort constructor to the list of declared types.
+      // This is required since the (type) operator is not part of the AST of
+      // the TypeNode.
+      d_declTypes.insert(tn.getUninterpretedSortConstructor());
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
-      tn.getAttribute(expr::VarNameAttr(), name);
-      op = getSymbolInternal(k, ftype, name);
+      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
+                                                        name);
+      op = getSymbolInternal(k, ftype, name, false);
     }
     else
     {
@@ -679,9 +720,16 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
   std::string name;
   v.getAttribute(expr::VarNameAttr(), name);
-  std::vector<Node>& syms = d_userSymbolList[name];
+  return getNameForUserNameOfInternal(v.getId(), name);
+}
+
+std::string LfscNodeConverter::getNameForUserNameOfInternal(
+    uint64_t id, const std::string& name)
+{
+  std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
+  std::vector<uint64_t>::iterator itr =
+      std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -689,7 +737,7 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   else
   {
     variant = syms.size();
-    syms.push_back(v);
+    syms.push_back(id);
   }
   return getNameForUserName(name, variant);
 }
@@ -727,12 +775,12 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
       // a skolem corresponding to shared selector should print in
       // LFSC as (sel T n) where T is the type and n is the index of the
       // shared selector.
-      TypeNode fselt = nm->mkFunctionType(tn.getSelectorDomainType(),
-                                          tn.getSelectorRangeType());
+      TypeNode fselt = nm->mkFunctionType(tn.getDatatypeSelectorDomainType(),
+                                          tn.getDatatypeSelectorRangeType());
       TypeNode intType = nm->integerType();
       TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
       Node sel = getSymbolInternal(k.getKind(), selt, "sel");
-      Node kn = typeAsNode(convertType(tn.getSelectorRangeType()));
+      Node kn = typeAsNode(convertType(tn.getDatatypeSelectorRangeType()));
       Assert(!cacheVal.isNull() && cacheVal.getKind() == CONST_RATIONAL);
       return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
     }
@@ -766,21 +814,28 @@ Node LfscNodeConverter::typeAsNode(TypeNode tni) const
   return it->second;
 }
 
-Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn)
+Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
+                                         TypeNode tn,
+                                         bool useRawSym)
 {
-  Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
+  // use raw symbol so that it is never quoted
+  NodeManager* nm = NodeManager::currentNM();
+  Node sym = useRawSym ? nm->mkRawSymbol(name, tn) : nm->mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
 
-Node LfscNodeConverter::getSymbolInternalFor(Node n, const std::string& name)
+Node LfscNodeConverter::getSymbolInternalFor(Node n,
+                                             const std::string& name,
+                                             bool useRawSym)
 {
-  return getSymbolInternal(n.getKind(), n.getType(), name);
+  return getSymbolInternal(n.getKind(), n.getType(), name, useRawSym);
 }
 
 Node LfscNodeConverter::getSymbolInternal(Kind k,
                                           TypeNode tn,
-                                          const std::string& name)
+                                          const std::string& name,
+                                          bool useRawSym)
 {
   std::tuple<Kind, TypeNode, std::string> key(k, tn, name);
   std::map<std::tuple<Kind, TypeNode, std::string>, Node>::iterator it =
@@ -789,7 +844,7 @@ Node LfscNodeConverter::getSymbolInternal(Kind k,
   {
     return it->second;
   }
-  Node sym = mkInternalSymbol(name, tn);
+  Node sym = mkInternalSymbol(name, tn, useRawSym);
   d_symbolToBuiltinKind[sym] = k;
   d_symbolsMap[key] = sym;
   return sym;
@@ -842,8 +897,9 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL
-         || k == FLOATINGPOINT_TO_FP_GENERIC || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
+         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
+         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -925,12 +981,30 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_GENERIC:
+    case FLOATINGPOINT_TO_SBV:
     {
-      const FloatingPointToFPGeneric& fg =
-          n.getConst<FloatingPointToFPGeneric>();
-      indices.push_back(nm->mkConstInt(fg.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(fg.getSize().significandWidth()));
+      const FloatingPointToSBV& fsbv = n.getConst<FloatingPointToSBV>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV:
+    {
+      const FloatingPointToUBV& fubv = n.getConst<FloatingPointToUBV>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_SBV_TOTAL:
+    {
+      const FloatingPointToSBVTotal& fsbv =
+          n.getConst<FloatingPointToSBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fsbv)));
+    }
+    break;
+    case FLOATINGPOINT_TO_UBV_TOTAL:
+    {
+      const FloatingPointToUBVTotal& fubv =
+          n.getConst<FloatingPointToUBVTotal>();
+      indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;
     case APPLY_TESTER:
@@ -1074,10 +1148,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "to_fp_real";
       }
-      else if (k == FLOATINGPOINT_TO_FP_GENERIC)
-      {
-        opName << "to_fp_generic";
-      }
       else
       {
         opName << printer::smt2::Smt2Printer::smtKindString(k);
@@ -1101,7 +1171,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         opName << getNameForUserNameOf(dt[cindex][index].getSelector());
       }
     }
-    else if (k == SET_SINGLETON || k == BAG_MAKE)
+    else if (k == SET_SINGLETON || k == BAG_MAKE || k == SEQ_UNIT)
     {
       if (!macroApply)
       {
@@ -1132,7 +1202,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
-    argTypes.push_back(nc.getType());
+    // We take the base type, so that e.g. arithmetic operators are over
+    // real. This avoids issues with subtyping when currying during proof
+    // postprocessing
+    argTypes.push_back(nc.getType().getBaseType());
   }
   // we only use binary operators
   if (NodeManager::isNAryKind(k))
@@ -1211,5 +1284,15 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
   return id;
 }
 
+const std::unordered_set<Node>& LfscNodeConverter::getDeclaredSymbols() const
+{
+  return d_declVars;
+}
+
+const std::unordered_set<TypeNode>& LfscNodeConverter::getDeclaredTypes() const
+{
+  return d_declTypes;
+}
+
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

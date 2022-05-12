@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -107,7 +107,9 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
       {
         // For example, (= x y) ---> (and (>= x y) (<= x y))
-        TrustNode trn = te->ppRewriteEquality(ret);
+        std::vector<SkolemLemma> lems;
+        TrustNode trn = te->ppRewrite(ret, lems);
+        Assert(lems.empty());
         // can make proof producing by using proof generator from trn
         if (!trn.isNull() && trn.getNode() != ret)
         {
@@ -144,4 +146,4 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

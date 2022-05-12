@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 /** Type check returns the builtin operator sort */
@@ -110,6 +110,17 @@ struct AReal
     return t.isReal();
   }
   constexpr static const char* typeName = "real";
+};
+
+/** Argument is a real or an integer */
+struct ARealOrInteger
+{
+  static bool checkArg(TNode n, size_t arg)
+  {
+    TypeNode t = n[arg].getType(true);
+    return t.isRealOrInt();
+  }
+  constexpr static const char* typeName = "real or integer";
 };
 
 /** Argument is a regexp */
@@ -202,4 +213,4 @@ class SimpleTypeRuleVar
 };
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

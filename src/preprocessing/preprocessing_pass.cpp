@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Justin Xu, Abdalrhman Mohamed, Andres Noetzli
+ *   Justin Xu, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "smt/solver_engine_scope.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
@@ -48,4 +48,4 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
 PreprocessingPass::~PreprocessingPass() { Assert(smt::solverEngineInScope()); }
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

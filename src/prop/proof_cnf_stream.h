@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,10 +26,11 @@
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
+#include "prop/opt_clauses_manager.h"
 #include "prop/sat_proof_manager.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class SatProofManager;
@@ -100,6 +101,19 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * blocked proof node is one integrated into this class via an external proof
    * generator. */
   bool isBlocked(std::shared_ptr<ProofNode> pfn);
+
+  /** Notify that current propagation inserted at lower level than current.
+   *
+   * The proof of the current propagation (d_currPropagationProccessed) will be
+   * saved in d_optClausesPfs, so that it is not potentially lost when the user
+   * context is popped.
+   */
+  void notifyCurrPropagationInsertedAtLevel(int explLevel);
+  /** Notify that added clause was inserted at lower level than current.
+   *
+   * As above, the proof of this clause is saved in  d_optClausesPfs.
+   */
+  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
  private:
   /**
@@ -174,9 +188,21 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * These are proof nodes added to this class by external generators. */
   context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
       d_blocked;
+
+  /** The current propagation being processed via this class. */
+  Node d_currPropagationProccessed;
+  /** User-context-dependent map assertion level to proof nodes.
+   *
+   * This map is used to update the internal proof of this class when the
+   * context pops.
+   */
+  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
+  /** Manager for optimized propagations and added clauses inserted at assertion
+   * levels below the current user level. */
+  OptimizedClausesManager d_optClausesManager;
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

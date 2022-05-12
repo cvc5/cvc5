@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "context/cdlist.h"
 #include "test_context.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 using cvc5::context::CDHashMap;
@@ -189,4 +189,4 @@ TEST_F(TestContextBlackCDHashMap, insert_at_context_level_zero)
   ASSERT_TRUE(elements_are(map, {{3, 4}}));
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

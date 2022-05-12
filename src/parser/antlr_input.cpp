@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Christopher L. Conway, Kshitij Bansal, Tim King
+ *   Kshitij Bansal, Christopher L. Conway, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,8 +31,6 @@
 #include "parser/tptp/tptp_input.h"
 
 using namespace std;
-using namespace cvc5;
-using namespace cvc5::parser;
 
 namespace cvc5 {
 namespace parser {
@@ -374,9 +372,9 @@ std::string parseErrorHelper(const char* lineStart,
         // we found the right place
         string word = slice.substr(caretPos, (caretPosOrig - caretPos + 1));
         size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
-        Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+        Trace("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
         if( matchLoc != string::npos ) {
-          Debug("friendlyparser") << "[friendlyparser] Feeling good." << std::endl;
+          Trace("friendlyparser") << "[friendlyparser] Feeling good." << std::endl;
         }
       }
     } else {
@@ -397,10 +395,10 @@ std::string parseErrorHelper(const char* lineStart,
           }
           string word = slice.substr(nearestWordSt, (nearestWordEn - nearestWordSt + 1));
           size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
-          Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
-          Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+          Trace("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
+          Trace("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
           if( matchLoc != string::npos ) {
-            Debug("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
+            Trace("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
                                     << nearestWordSt << std::endl;
             foundCaretPos = true;
           }
@@ -438,7 +436,7 @@ void AntlrInput::parseError(const std::string& message, bool eofException)
       d_lexer->getCharPositionInLine(d_lexer),
       message);
 
-  Debug("parser") << "Throwing exception: "
+  Trace("parser") << "Throwing exception: "
       << (const char*)d_lexer->rec->state->tokSource->fileName->chars << ":"
       << d_lexer->getLine(d_lexer) << "."
       << d_lexer->getCharPositionInLine(d_lexer) << ": "

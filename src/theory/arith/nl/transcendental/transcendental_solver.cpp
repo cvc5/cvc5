@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +29,9 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -211,7 +211,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
 
 void TranscendentalSolver::checkTranscendentalTangentPlanes()
 {
-  if (Trace.isOn("nl-ext"))
+  if (TraceIsOn("nl-ext"))
   {
     if (!d_tstate.d_funcMap.empty())
     {
@@ -272,6 +272,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
   // Figure 3 : c
   Node c = d_tstate.d_model.computeAbstractModelValue(tf[0]);
+  Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)
   {
@@ -367,7 +368,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
           is_tangent = concavity == -1;
           is_secant = concavity == 1;
         }
-        if (Trace.isOn("nl-ext-tftp"))
+        if (TraceIsOn("nl-ext-tftp"))
         {
           Trace("nl-ext-tftp") << "*** Outside boundary point (";
           Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
@@ -517,4 +518,4 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

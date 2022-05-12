@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -143,11 +143,11 @@ struct SetMapTypeRule
 /**
  * Type rule for binary operators (rel.join, rel.product) to check
  * if the two arguments are relations (set of tuples).
- * For arguments A of type (Set (Tuple A1 ... Am)) and B of type
- * (Set (Tuple B1 ... Bn)):
- * - (rel.product A B): it computes the type (Set (Tuple (A1 ... Am B1 ... Bn)).
+ * For arguments A of type (Relation A1 ... Am) and B of type
+ * (Relation B1 ... Bn):
+ * - (rel.product A B): it computes the type (Relation (A1 ... Am B1 ... Bn).
  * - (rel.join A B) it checks that m, n > 1 and Am = B1 and computes the type
- *   (Set (Tuple (A1 ... Am-1 B2 ... Bn)).
+ *   (Relation (A1 ... Am-1 B2 ... Bn).
  */
 struct RelBinaryOperatorTypeRule
 {
@@ -156,8 +156,8 @@ struct RelBinaryOperatorTypeRule
 
 /**
  * Type rule for unary operator (rel.transpose A) to check that A is a relation
- * (set of Tuples). For an argument A of type (Set (Tuple A1 ... An))
- * it reveres A1 ... An and computes the type (Set (Tuple An ... A1)).
+ * (set of Tuples). For an argument A of type (Relation A1 ... An)
+ * it reveres A1 ... An and computes the type (Relation An ... A1).
  */
 struct RelTransposeTypeRule
 {
@@ -166,7 +166,7 @@ struct RelTransposeTypeRule
 
 /**
  * Type rule for unary operator (rel.tclosure A) to check that A is a binary
- * relation of type (Set (Tuple T T)), where T is a type
+ * relation of type (Relation T T), where T is a type
  */
 struct RelTransClosureTypeRule
 {
@@ -175,7 +175,7 @@ struct RelTransClosureTypeRule
 
 /**
  * Type rule for operator (rel.join_image A c) that checks A is a binary
- * relation of type (Set (Tuple T T)), where T is a type, and c is an integer
+ * relation of type (Relation T T), where T is a type, and c is an integer
  * term (in fact c should be a non-negative constant, otherwise a logic
  * exception is thrown TheorySetsPrivate::preRegisterTerm).
  */
@@ -186,7 +186,7 @@ struct JoinImageTypeRule
 
 /**
  * Type rule for unary operator (rel.iden A) to check that A is a unary relation
- * of type (Set (Tuple T)) and computes the type (Set (Tuple T T)) for the
+ * of type (Relation T) and computes the type (Relation T T) for the
  * identity
  */
 struct RelIdenTypeRule
@@ -205,6 +205,6 @@ struct SetsProperties
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */

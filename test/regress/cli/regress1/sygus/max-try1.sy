@@ -1,0 +1,15 @@
+; COMMAND-LINE: --sygus-si=all --sygus-si-rcons=try --sygus-out=status
+; EXPECT: feasible
+
+(set-logic LIA)
+
+(synth-fun sum ((x Int) (y Int)) Int
+  ((Start Int))
+  ((Start Int (0 1 x y (+ Start Start)))))
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (= (sum x y) (+ x y)))
+
+(check-synth)

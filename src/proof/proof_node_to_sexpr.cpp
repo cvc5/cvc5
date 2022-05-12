@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,15 +23,16 @@
 #include "proof/proof_node.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->sExprType());
-  d_argsMarker = nm->mkBoundVar(":args", nm->sExprType());
+  // use raw symbols so that `:args` is not converted to `|:args|`
+  d_conclusionMarker = nm->mkRawSymbol(":conclusion", nm->sExprType());
+  d_argsMarker = nm->mkRawSymbol(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
@@ -308,4 +309,4 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   return ArgFormat::DEFAULT;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

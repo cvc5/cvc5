@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -19,6 +19,8 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  api/cpp/cvc5_types.cpp
+  api/cpp/cvc5_types.h
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_engine.cpp
@@ -230,10 +232,8 @@ libcvc5_add_sources(
   prop/cryptominisat.h
   prop/kissat.cpp
   prop/kissat.h
-  prop/opt_clauses_manager.cpp
-  prop/opt_clauses_manager.h
-  prop/proof_cnf_stream.cpp
-  prop/proof_cnf_stream.h
+  prop/learned_db.cpp
+  prop/learned_db.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -252,6 +252,10 @@ libcvc5_add_sources(
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
+  prop/proof_cnf_stream.cpp
+  prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
   prop/proof_post_processor.h
   prop/prop_engine.cpp
@@ -345,8 +349,6 @@ libcvc5_add_sources(
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  theory/arith/approx_simplex.cpp
-  theory/arith/approx_simplex.h
   theory/arith/arith_evaluator.cpp
   theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
@@ -361,48 +363,66 @@ libcvc5_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_state.cpp
   theory/arith/arith_state.h
-  theory/arith/arith_static_learner.cpp
-  theory/arith/arith_static_learner.h
   theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
-  theory/arith/arithvar.cpp
-  theory/arith/arithvar.h
-  theory/arith/attempt_solution_simplex.cpp
-  theory/arith/attempt_solution_simplex.h
-  theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
   theory/arith/branch_and_bound.cpp
   theory/arith/branch_and_bound.h
-  theory/arith/callbacks.cpp
-  theory/arith/callbacks.h
-  theory/arith/congruence_manager.cpp
-  theory/arith/congruence_manager.h
-  theory/arith/constraint.cpp
-  theory/arith/constraint.h
-  theory/arith/constraint_forward.h
-  theory/arith/cut_log.cpp
-  theory/arith/cut_log.h
   theory/arith/delta_rational.cpp
   theory/arith/delta_rational.h
-  theory/arith/dio_solver.cpp
-  theory/arith/dio_solver.h
-  theory/arith/dual_simplex.cpp
-  theory/arith/dual_simplex.h
   theory/arith/equality_solver.cpp
   theory/arith/equality_solver.h
-  theory/arith/error_set.cpp
-  theory/arith/error_set.h
-  theory/arith/fc_simplex.cpp
-  theory/arith/fc_simplex.h
-  theory/arith/infer_bounds.cpp
-  theory/arith/infer_bounds.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
-  theory/arith/linear_equality.cpp
-  theory/arith/linear_equality.h
-  theory/arith/matrix.cpp
-  theory/arith/matrix.h
+  theory/arith/linear/approx_simplex.cpp
+  theory/arith/linear/approx_simplex.h
+  theory/arith/linear/arith_static_learner.cpp
+  theory/arith/linear/arith_static_learner.h
+  theory/arith/linear/arithvar.cpp
+  theory/arith/linear/arithvar.h
+  theory/arith/linear/attempt_solution_simplex.cpp
+  theory/arith/linear/attempt_solution_simplex.h
+  theory/arith/linear/bound_counts.h
+  theory/arith/linear/callbacks.cpp
+  theory/arith/linear/callbacks.h
+  theory/arith/linear/congruence_manager.cpp
+  theory/arith/linear/congruence_manager.h
+  theory/arith/linear/constraint.cpp
+  theory/arith/linear/constraint.h
+  theory/arith/linear/constraint_forward.h
+  theory/arith/linear/cut_log.cpp
+  theory/arith/linear/cut_log.h
+  theory/arith/linear/dio_solver.cpp
+  theory/arith/linear/dio_solver.h
+  theory/arith/linear/dual_simplex.cpp
+  theory/arith/linear/dual_simplex.h
+  theory/arith/linear/error_set.cpp
+  theory/arith/linear/error_set.h
+  theory/arith/linear/fc_simplex.cpp
+  theory/arith/linear/fc_simplex.h
+  theory/arith/linear/infer_bounds.cpp
+  theory/arith/linear/infer_bounds.h
+  theory/arith/linear/linear_equality.cpp
+  theory/arith/linear/linear_equality.h
+  theory/arith/linear/matrix.cpp
+  theory/arith/linear/matrix.h
+  theory/arith/linear/normal_form.cpp
+  theory/arith/linear/normal_form.h
+  theory/arith/linear/partial_model.cpp
+  theory/arith/linear/partial_model.h
+  theory/arith/linear/simplex.cpp
+  theory/arith/linear/simplex.h
+  theory/arith/linear/simplex_update.cpp
+  theory/arith/linear/simplex_update.h
+  theory/arith/linear/soi_simplex.cpp
+  theory/arith/linear/soi_simplex.h
+  theory/arith/linear/tableau.cpp
+  theory/arith/linear/tableau.h
+  theory/arith/linear/tableau_sizes.cpp
+  theory/arith/linear/tableau_sizes.h
+  theory/arith/linear/theory_arith_private.cpp
+  theory/arith/linear/theory_arith_private.h
   theory/arith/nl/coverings_solver.cpp
   theory/arith/nl/coverings_solver.h
   theory/arith/nl/coverings/cdcac.cpp
@@ -485,12 +505,8 @@ libcvc5_add_sources(
   theory/arith/nl/transcendental/transcendental_solver.h
   theory/arith/nl/transcendental/transcendental_state.cpp
   theory/arith/nl/transcendental/transcendental_state.h
-  theory/arith/normal_form.cpp
-  theory/arith/normal_form.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
-  theory/arith/partial_model.cpp
-  theory/arith/partial_model.h
   theory/arith/pp_rewrite_eq.cpp
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
@@ -504,20 +520,8 @@ libcvc5_add_sources(
   theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
-  theory/arith/simplex.cpp
-  theory/arith/simplex.h
-  theory/arith/simplex_update.cpp
-  theory/arith/simplex_update.h
-  theory/arith/soi_simplex.cpp
-  theory/arith/soi_simplex.h
-  theory/arith/tableau.cpp
-  theory/arith/tableau.h
-  theory/arith/tableau_sizes.cpp
-  theory/arith/tableau_sizes.h
   theory/arith/theory_arith.cpp
   theory/arith/theory_arith.h
-  theory/arith/theory_arith_private.cpp
-  theory/arith/theory_arith_private.h
   theory/arith/theory_arith_type_rules.cpp
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h
@@ -569,6 +573,8 @@ libcvc5_add_sources(
   theory/bags/solver_state.h
   theory/bags/strategy.cpp
   theory/bags/strategy.h
+  theory/bags/table_project_op.cpp
+  theory/bags/table_project_op.h
   theory/bags/term_registry.cpp
   theory/bags/term_registry.h
   theory/bags/theory_bags.cpp
@@ -634,6 +640,8 @@ libcvc5_add_sources(
   theory/bv/theory_bv_utils.h
   theory/bv/type_enumerator.h
   theory/care_graph.h
+  theory/care_pair_argument_callback.cpp
+  theory/care_pair_argument_callback.cpp
   theory/combination_care_graph.cpp
   theory/combination_care_graph.h
   theory/combination_engine.cpp
@@ -823,6 +831,10 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/oracle_checker.cpp
+  theory/quantifiers/oracle_checker.h
+  theory/quantifiers/oracle_engine.cpp
+  theory/quantifiers/oracle_engine.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_bound_inference.cpp
@@ -988,6 +1000,8 @@ libcvc5_add_sources(
   theory/relevance_manager.h
   theory/rep_set.cpp
   theory/rep_set.h
+  theory/rep_set_iterator.cpp
+  theory/rep_set_iterator.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h
@@ -1036,6 +1050,8 @@ libcvc5_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/partition_generator.cpp
+  theory/partition_generator.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
@@ -1201,6 +1217,7 @@ set(options_toml_files
   options/expr_options.toml
   options/fp_options.toml
   options/main_options.toml
+  options/parallel_options.toml
   options/parser_options.toml
   options/printer_options.toml
   options/proof_options.toml
@@ -1404,6 +1421,7 @@ add_subdirectory(main)
 install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
+          api/cpp/cvc5_types.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,20 +24,21 @@
 #include "theory/arith/nl/coverings/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/resource_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
 namespace std {
 /** Generic streaming operator for std::vector. */
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
-  cvc5::container_to_stream(os, v);
+  cvc5::internal::container_to_stream(os, v);
   return os;
 }
 }  // namespace std
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -125,7 +126,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
         == options::nlCovLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
-      if (Trace.isOn("cdcac"))
+      if (TraceIsOn("cdcac"))
       {
         auto reference = poly::infeasible_regions(p, d_assignment, sc);
         Trace("cdcac") << "Lazard: " << intervals << std::endl;
@@ -268,7 +269,7 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  auto zero = NodeManager::currentNM()->mkConstReal(Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
     conditions.emplace_back(NodeManager::currentNM()->mkNode(
@@ -292,7 +293,7 @@ PolyVector requiredCoefficientsLazardModified(
 
 PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
 {
-  if (Trace.isOn("cdcac::projection"))
+  if (TraceIsOn("cdcac::projection"))
   {
     Trace("cdcac::projection")
         << "Poly: " << p << " over " << d_assignment << std::endl;
@@ -352,6 +353,14 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
           << "Discriminant of " << p << " -> " << discriminant(p) << std::endl;
       // Add all discriminants
       res.add(discriminant(p));
+
+      // Add pairwise resultants
+      for (const auto& q : i.d_mainPolys)
+      {
+        // avoid symmetric duplicates
+        if (p >= q) continue;
+        res.add(resultant(p, q));
+      }
 
       for (const auto& q : requiredCoefficients(p))
       {
@@ -515,11 +524,12 @@ CACInterval CDCAC::intervalFromCharacterization(
 std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
                                                   bool returnFirstInterval)
 {
+  d_env.getResourceManager()->spendResource(Resource::ArithNlCoveringStep);
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
 
-  if (Trace.isOn("cdcac"))
+  if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[curVariable]
                    << ":" << std::endl;
@@ -610,7 +620,7 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     pruneRedundantIntervals(intervals);
   }
 
-  if (Trace.isOn("cdcac"))
+  if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
                    << d_variableOrdering[curVariable] << ":" << std::endl;
@@ -704,7 +714,7 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
   cleanIntervals(intervals);
   if (options().arith.nlCovPrune)
   {
-    if (Trace.isOn("cdcac"))
+    if (TraceIsOn("cdcac"))
     {
       auto copy = intervals;
       removeRedundantIntervals(intervals);
@@ -763,6 +773,6 @@ std::vector<poly::Value> CDCAC::isolateRealRoots(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

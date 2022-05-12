@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include "expr/node_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /** A virtual base class for the algorithm below. */
 class NodeTriePathPairProcessCallback
@@ -47,6 +47,6 @@ void nodeTriePathPairProcess(const TNodeTrie* t,
                              size_t n,
                              NodeTriePathPairProcessCallback& ntpc);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__NODE_TRIE_ALGORITHM_H */

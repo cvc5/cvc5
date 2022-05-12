@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "cvc5_private.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Traverses the nodes reverse-topologically (children before parents),
@@ -121,4 +121,4 @@ public:
 template <typename Visitor>
 thread_local bool NodeVisitor<Visitor>::s_inRun = false;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

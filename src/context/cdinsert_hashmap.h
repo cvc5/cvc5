@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Morgan Deters
+ *   Tim King, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,9 +44,7 @@
 
 #pragma once
 
-namespace cvc5 {
-namespace context {
-
+namespace cvc5::context {
 
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
@@ -153,7 +151,7 @@ public:
     const Key& front = d_keys.front();
     d_hashMap.erase(front);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
     d_keys.pop_front();
   }
 
@@ -165,7 +163,7 @@ public:
     const Key& back = d_keys.back();
     d_hashMap.erase(back);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
     d_keys.pop_back();
   }
 
@@ -198,7 +196,7 @@ private:
   CDInsertHashMap(const CDInsertHashMap& l)
       : ContextObj(l), d_insertMap(nullptr), d_size(l.d_size)
   {
-    Debug("CDInsertHashMap") << "copy ctor: " << this
+    Trace("CDInsertHashMap") << "copy ctor: " << this
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
@@ -214,11 +212,6 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
-    Debug("CDInsertHashMap") << "save " << this
-                            << " at level " << this->getContext()->getLevel()
-                            << " size at " << this->d_size
-                            << " d_list is " << this->d_insertMap
-                            << " data:" << data << std::endl;
     return data;
   }
 protected:
@@ -230,10 +223,6 @@ protected:
   */
  void restore(ContextObj* data) override
  {
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " data == " << data << " d_insertMap == " << this->d_insertMap
-       << std::endl;
    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
 
    // The size to restore to.
@@ -241,9 +230,6 @@ protected:
    d_insertMap->pop_to_size(restoreSize);
    d_size = restoreSize;
    Assert(d_insertMap->size() == d_size);
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " size back to " << this->d_size << std::endl;
   }
 public:
 
@@ -361,7 +347,8 @@ public:
 };/* class CDInsertHashMap<> */
 
 template <class Data, class HashFcn>
-class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
+class CDInsertHashMap<internal::TNode, Data, HashFcn> : public ContextObj
+{
   /* CDInsertHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -377,5 +364,4 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

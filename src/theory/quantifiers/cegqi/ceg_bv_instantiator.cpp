@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,15 +19,14 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -55,7 +54,7 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
 };
 
 BvInstantiator::BvInstantiator(Env& env, TypeNode tn, BvInverter* inv)
-    : Instantiator(env, tn), d_inverter(inv), d_inst_id_counter(0)
+    : Instantiator(env, tn), d_inverter(inv), d_util(env), d_inst_id_counter(0)
 {
   // The inverter utility d_inverter is global to all BvInstantiator classes.
   // This must be global since we need to:
@@ -242,7 +241,7 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
     //   this should remove instances of non-invertible operators, and
     //   "linearize" lit with respect to pv as much as possible
     Node rlit = rewriteAssertionForSolvePv(ci, pv, lit);
-    if (Trace.isOn("cegqi-bv"))
+    if (TraceIsOn("cegqi-bv"))
     {
       Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv
                         << " in " << lit << std::endl;
@@ -290,7 +289,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   }
   bool firstVar = sf.empty();
   // get inst id list
-  if (Trace.isOn("cegqi-bv"))
+  if (TraceIsOn("cegqi-bv"))
   {
     Trace("cegqi-bv") << "  " << iti->second.size()
                       << " candidate instantiations for " << pv << " : "
@@ -308,7 +307,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   // we may find an invertible literal that leads to a useful instantiation.
   std::shuffle(iti->second.begin(), iti->second.end(), Random::getRandom());
 
-  if (Trace.isOn("cegqi-bv"))
+  if (TraceIsOn("cegqi-bv"))
   {
     for (unsigned j = 0, size = iti->second.size(); j < size; j++)
     {
@@ -506,7 +505,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
   Node result = visited.top()[lit];
 
-  if (Trace.isOn("cegqi-bv-nl"))
+  if (TraceIsOn("cegqi-bv-nl"))
   {
     std::vector<TNode> trace_visit;
     std::unordered_set<TNode> trace_visited;
@@ -563,7 +562,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     if (options().quantifiers.cegqiBvLinearize && contains_pv[lhs]
         && contains_pv[rhs])
     {
-      Node result = utils::normalizePvEqual(pv, children, contains_pv);
+      Node result = d_util.normalizePvEqual(pv, children, contains_pv);
       if (!result.isNull())
       {
         Trace("cegqi-bv-nl")
@@ -584,11 +583,11 @@ Node BvInstantiator::rewriteTermForSolvePv(
       Node result;
       if (n.getKind() == BITVECTOR_MULT)
       {
-        result = utils::normalizePvMult(pv, children, contains_pv);
+        result = d_util.normalizePvMult(pv, children, contains_pv);
       }
       else
       {
-        result = utils::normalizePvPlus(pv, children, contains_pv);
+        result = d_util.normalizePvPlus(pv, children, contains_pv);
       }
       if (!result.isNull())
       {
@@ -765,4 +764,4 @@ void BvInstantiatorPreprocess::collectExtracts(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,5 +1,0 @@
-(set-logic ALL)
-(set-info :status unsat)
-(declare-fun x () Real)
-(assert (and (> 0.0 x) (not (= 0.0 (/ 0.0 (* 2 x))))))
-(check-sat)
