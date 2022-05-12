@@ -56,10 +56,6 @@ if(NOT CoCoA_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     URL "https://cocoa.dima.unige.it/cocoa/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz"
     URL_HASH SHA1=f4fd9ea846b245adb3ee955dd8af9aaf192a9df3
-    # CoCoA requires C++14, but the check does not work with compilers that
-    # default to C++17 or newer. The patch fixes the check.
-    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
-        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoA-patch-0.99712.patch
     BUILD_IN_SOURCE YES
     CONFIGURE_COMMAND ./configure --prefix=<INSTALL_DIR>
     BUILD_COMMAND ${make_cmd} library
