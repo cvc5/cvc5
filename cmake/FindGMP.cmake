@@ -79,6 +79,7 @@ if(NOT GMP_FOUND_SYSTEM)
   if(CMAKE_CROSSCOMPILING)
     set(CONFIGURE_OPTS --host=${TOOLCHAIN_PREFIX} --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
   endif()
+  message(STATUS "Configuring GMP with ${CMAKE_CROSSCOMPILING} / ${CONFIGURE_OPTS}")
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
