@@ -41,7 +41,7 @@ jobs:
           - name: macos:production-arm64
             os: macos-11
             config: production --auto-download --python-bindings --editline --arm64 --poly
-            cache-key: production
+            cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
             check-examples: true
