@@ -477,7 +477,7 @@ BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
   Assert(n.getKind() == BAG_FROM_SET);
   if (n[0].getKind() == SET_SINGLETON)
   {
-    // (bag.from_set (set.singleton (SetSingletonOp Int) x)) = (bag x 1)
+    // (bag.from_set (set.singleton x)) = (bag x 1)
     Node bag = d_nm->mkNode(BAG_MAKE, n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);
   }
@@ -490,7 +490,7 @@ BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
   if (n[0].getKind() == BAG_MAKE && n[0][1].isConst()
       && n[0][1].getConst<Rational>().sgn() == 1)
   {
-    // (bag.to_set (bag x n)) = (set.singleton (SetSingletonOp T) x)
+    // (bag.to_set (bag x n)) = (set.singleton x)
     // where n is a positive constant and T is the type of the bag's elements
     Node set = d_nm->mkNode(SET_SINGLETON, n[0][0]);
     return BagsRewriteResponse(set, Rewrite::TO_SINGLETON);

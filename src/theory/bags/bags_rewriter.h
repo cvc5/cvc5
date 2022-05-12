@@ -198,13 +198,13 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.from_set (singleton (SetSingletonOp Int) x)) = (bag x 1)
+   *  - (bag.from_set (singleton x)) = (bag x 1)
    */
   BagsRewriteResponse rewriteFromSet(const TNode& n) const;
 
   /**
    *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (singleton (SetSingletonOp T) x)
+   *  - (bag.to_set (bag x n)) = (singleton x)
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;

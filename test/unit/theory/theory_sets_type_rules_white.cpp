@@ -62,10 +62,6 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
 
 TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
 {
-  Node singletonInt =
-      d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->integerType()));
-  Node singletonReal =
-      d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->realType()));
   Node intConstant = d_nodeManager->mkConstReal(Rational(1));
   Node realConstant = d_nodeManager->mkConstReal(Rational(1, 5));
   // (singleton (singleton_op Real) 1)
