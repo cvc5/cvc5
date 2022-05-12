@@ -248,7 +248,7 @@ def generate_holder_ref_inits(modules):
 
 def generate_write_functions(modules):
     """Render write functions for holders within the Option class"""
-    return concat_format('''  options::Holder{id_cap}& write{id_capitalized}()
+    return concat_format('''  options::Holder{id_cap}& Options::write{id_capitalized}()
   {{
     return *d_{id};
   }}
@@ -345,10 +345,10 @@ def generate_set_impl(modules):
         for pred in _set_predicates(option):
             res.append('  {}'.format(pred))
         if option.name:
-            res.append('  opts.{module}.{name} = value;'.format(
-                module=module.id, name=option.name))
-            res.append('  opts.{module}.{name}WasSetByUser = true;'.format(
-                module=module.id, name=option.name))
+            res.append('  opts.write{module}().{name} = value;'.format(
+                module=module.id_capitalized, name=option.name))
+            res.append('  opts.write{module}().{name}WasSetByUser = true;'.format(
+                module=module.id_capitalized, name=option.name))
     return '\n    '.join(res)
 
 
