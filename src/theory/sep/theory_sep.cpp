@@ -1401,7 +1401,7 @@ Node TheorySep::instantiateLabel(Node n,
                                  std::map<Node, bool>& active_lbl,
                                  unsigned ind)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sep-inst-debug") << "Instantiate label " << n << " " << lbl << " " << lbl_v << std::endl;
   if (options().sep.sepMinimalRefine && lbl != o_lbl
       && active_lbl.find(lbl) != active_lbl.end())
@@ -1605,7 +1605,7 @@ void TheorySep::getLabelChildren(Node satom,
 void TheorySep::computeLabelModel( Node lbl ) {
   if( !d_label_model[lbl].d_computed ){
     d_label_model[lbl].d_computed = true;
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     //we must get the value of lbl from the model: this is being run at last call, after the model is constructed
     //Assert(...); TODO
     Node v_val = d_valuation.getModel()->getRepresentative( lbl );

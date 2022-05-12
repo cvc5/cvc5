@@ -1090,7 +1090,8 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(nm->mkNode(SET_SINGLETON, sm->mkDummySkolem("msde", elementType)));
+          els.push_back(nm->mkNode(SET_SINGLETON,
+                                   sm->mkDummySkolem("msde", elementType)));
         }
       }
     }

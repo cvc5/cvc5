@@ -549,8 +549,7 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     {
       // (bag.map f (bag x y)) = (bag (apply f x) y)
       Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret =
-          d_nm->mkNode(BAG_MAKE, mappedElement, n[1][1]);
+      Node ret = d_nm->mkNode(BAG_MAKE, mappedElement, n[1][1]);
       return BagsRewriteResponse(ret, Rewrite::MAP_BAG_MAKE);
     }
 
