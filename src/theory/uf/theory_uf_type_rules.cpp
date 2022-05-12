@@ -131,7 +131,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TypeNode aType = n[1].getType(check);
-    if (!aType.isSubtypeOf(fType[0]))
+    if (aType!=fType[0])
     {
       throw TypeCheckingExceptionPrivate(
           n, "argument does not match function type");
