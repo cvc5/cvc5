@@ -903,17 +903,24 @@ enum Kind : int32_t
    */
   DIVISIBLE,
   /**
-   * Multiple-precision rational constant.
+   * Arbitrary-precision rational constant.
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkInteger(const std::string&) const
-   *   - Solver::mkInteger(int64_t) const
    *   - Solver::mkReal(const std::string&) const
    *   - Solver::mkReal(int64_t) const
    *   - Solver::mkReal(int64_t, int64_t) const
    */
   CONST_RATIONAL,
+  /**
+   * Arbitrary-precision integer constant.
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkInteger(const std::string&) const
+   *   - Solver::mkInteger(int64_t) const
+   */
+  CONST_INTEGER,
   /**
    * Less than, chainable.
    *

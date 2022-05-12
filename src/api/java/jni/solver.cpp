@@ -2118,6 +2118,25 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getValueSepNil(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    declarePool
+ * Signature: (Ljava/lang/String;J[J])J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declarePool(
+    JNIEnv* env, jobject, jlong pointer, jstring jsymbol, jlong sort, jlongArray initValuePointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  const char* s = env->GetStringUTFChars(jsymbol, nullptr);
+  std::string symbol(s);
+  Sort* sortptr = reinterpret_cast<Sort*>(sort);
+  std::vector<Term> initValue = getObjectsFromPointers<Term>(env, initValuePointers);
+  Term* retPointer = new Term(solver->declarePool(symbol, *sortptr, initValue));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    pop
  * Signature: (JI)V
  */
