@@ -23,6 +23,7 @@ int main(void)
 {
   Solver slv;
   slv.setOption("solve-bv-as-int", "iand");
+  slv.setOption("string-exp", "true");
   Sort s12 = slv.getIntegerSort();
   Term t13 = slv.mkConst(s12, "_x11");
   Term t25 = slv.mkTerm(slv.mkOp(Kind::INT_TO_BITVECTOR, {4124876294}), {t13});
