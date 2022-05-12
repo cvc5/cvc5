@@ -15,20 +15,26 @@
 # Use: cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake
 ##
 
-SET(CMAKE_SYSTEM_NAME Linux)
-SET(CMAKE_SYSTEM_PROCESSOR aarch64)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-set(TOOLCHAIN_PREFIX aarch64-linux-gnu)
+	SET(CMAKE_SYSTEM_NAME Linux)
+	SET(CMAKE_SYSTEM_PROCESSOR aarch64)
 
-SET(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
-SET(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
+	set(TOOLCHAIN_PREFIX aarch64-linux-gnu)
 
-# Set target environment path
-SET(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
+	SET(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
+	SET(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
 
-# Adjust the default behaviour of the find_XXX() commands:
-# search headers and libraries in the target environment, search
-# programs in the host environment
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+	# Set target environment path
+	SET(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
+
+	# Adjust the default behaviour of the find_XXX() commands:
+	# search headers and libraries in the target environment, search
+	# programs in the host environment
+	set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+	set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+	set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+
+endif()
