@@ -358,11 +358,10 @@ Node StringsPreprocess::reduce(Node t,
     Node xPlusOne = nm->mkNode(ADD, x, one);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, leni));
-    Node sx = nm->mkNode(STRING_SUBSTR, itost, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, xPlusOne);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
-    Node c = nm->mkNode(SUB, nm->mkNode(STRING_TO_CODE, sx), c0);
+    Node c = nm->mkNode(SUB, mkCodePointAtIndex(itost, x), c0);
 
     Node ten = nm->mkConstInt(Rational(10));
     Node eq = ux1.eqNode(nm->mkNode(ADD, c, nm->mkNode(MULT, ten, ux)));
@@ -429,7 +428,7 @@ Node StringsPreprocess::reduce(Node t,
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
     Node codeSk = nm->mkNode(
         SUB,
-        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, s, k, one)),
+        mkCodePointAtIndex(s, k),
         c0);
     Node ten = nm->mkConstInt(Rational(10));
     Node kc3 = nm->mkNode(
@@ -455,10 +454,9 @@ Node StringsPreprocess::reduce(Node t,
     Node x = SkolemCache::mkIndexVar(t);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, lens));
-    Node sx = nm->mkNode(STRING_SUBSTR, s, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(ADD, x, one));
-    Node c = nm->mkNode(SUB, nm->mkNode(STRING_TO_CODE, sx), c0);
+    Node c = nm->mkNode(SUB, mkCodePointAtIndex(s, x), c0);
 
     Node eq = ux1.eqNode(nm->mkNode(ADD, c, nm->mkNode(MULT, ten, ux)));
     Node cb = nm->mkNode(AND, nm->mkNode(GEQ, c, zero), nm->mkNode(LT, c, ten));
@@ -856,8 +854,8 @@ Node StringsPreprocess::reduce(Node t,
     Node i = SkolemCache::mkIndexVar(t);
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
-    Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
-    Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
+    Node ci = mkCodePointAtIndex(x, i);
+    Node ri = mkCodePointAtIndex(r, i);
 
     Node lb =
         nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 97 : 65));
@@ -959,7 +957,7 @@ Node StringsPreprocess::reduce(Node t,
       Node tb = t[1 - r];
       substr[r] = nm->mkNode(STRING_SUBSTR, ta, zero, k);
       code[r] =
-          nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, ta, k, one));
+          mkCodePointAtIndex(ta, k);
       conj.push_back(nm->mkNode(LEQ, k, nm->mkNode(STRING_LENGTH, ta)));
     }
     conj.push_back(substr[0].eqNode(substr[1]));
@@ -1066,6 +1064,12 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
     d_visited[t] = retNode;
     return retNode;
   }
+}
+Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node subs = nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(1));
+  return nm->mkNode(STRING_TO_CODE, subs);
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
