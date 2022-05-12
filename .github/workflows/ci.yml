@@ -38,30 +38,16 @@ jobs:
             binary-name: cvc5-Win64.exe
             binary-ext: .exe
 
-          - name: ubuntu:production-clang
-            os: ubuntu-18.04
-            env: CC=clang CXX=clang++
-            config: production --auto-download --no-poly
-            cache-key: productionclang
+          - name: macos:production-arm64
+            os: macos-11
+            config: production --auto-download --python-bindings --editline -arm64
+            cache-key: production
+            strip-bin: strip
+            python-bindings: true
             check-examples: true
+            binary-name: cvc5-macOS-arm64
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
-          - name: ubuntu:production-dbg
-            os: ubuntu-18.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline
-            cache-key: dbg
-            exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
-            python-bindings: true
-
-          - name: ubuntu:production-dbg-clang
-            os: ubuntu-latest
-            env: CC=clang CXX=clang++
-            config: production --auto-download --assertions --tracing --cln --gpl
-            cache-key: dbgclang
-            exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
