@@ -48,3 +48,5 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   	set(TOOLCHAIN_PREFIX arm64-apple-darwin)
 
 endif()
+
+message(STATUS "Are we crosscompiling now? ${CMAKE_CROSSCOMPILING}")
