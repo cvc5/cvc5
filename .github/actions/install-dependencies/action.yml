@@ -68,8 +68,6 @@ runs:
         brew update --quiet
         brew install \
           ccache \
-          cln \
-          gmp \
           pkgconfig \
           flex \
           gnu-sed
