@@ -1064,10 +1064,10 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 }
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
+  // we use (SEQ_NTH, x, i) instead of
+  // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1))
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(SEQ_NTH, x, i);
-  Node subs = nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(1));
-  return nm->mkNode(STRING_TO_CODE, subs);
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
