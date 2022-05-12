@@ -76,7 +76,7 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
     {
       Trace("typecheck-idt")
           << "check types " << tn << " " << d_match[index] << std::endl;
-      if (tn!=d_match[index])
+      if (tn != d_match[index])
       {
         return false;
       }

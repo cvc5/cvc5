@@ -87,7 +87,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
         Trace("typecheck-idt") << "typecheck cons arg: " << childType << " "
                                << (*tchild_it) << std::endl;
         TypeNode argumentType = *tchild_it;
-        if (childType!=argumentType)
+        if (childType != argumentType)
         {
           std::stringstream ss;
           ss << "bad type for constructor argument:\n"
@@ -161,7 +161,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
       Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
       Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getType(check);
-      if (selType[0]!=childType)
+      if (selType[0] != childType)
       {
         Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
                                << childType.getKind() << std::endl;
@@ -203,7 +203,7 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
     {
       Trace("typecheck-idt") << "typecheck test: " << n << std::endl;
       Trace("typecheck-idt") << "test type: " << testType << std::endl;
-      if (testType[0]!=childType)
+      if (testType[0] != childType)
       {
         throw TypeCheckingExceptionPrivate(n, "bad type for tester argument");
       }
@@ -238,7 +238,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
               "matching failed for update argument of parameterized datatype");
         }
       }
-      else if (targ!=childType)
+      else if (targ != childType)
       {
         throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
       }
@@ -365,7 +365,7 @@ TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
     {
       TypeNode vtype = svl[i].getType(check);
       TypeNode atype = n[i + 1].getType(check);
-      if (vtype!=atype)
+      if (vtype != atype)
       {
         throw TypeCheckingExceptionPrivate(
             n,

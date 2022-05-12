@@ -197,13 +197,13 @@ TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
                                          "array table fun arg 1 is non-array");
     }
     TypeNode indexType = n[2].getType(check);
-    if (indexType!=arrayType.getArrayIndexType())
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 2 does not match type of array");
     }
     indexType = n[3].getType(check);
-    if (indexType!=arrayType.getArrayIndexType())
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 3 does not match type of array");
