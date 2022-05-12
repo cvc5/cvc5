@@ -34,7 +34,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == EQUAL || k == GEQ)
+  else if (k == GEQ)
   {
     convertToRealChildren =
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
@@ -47,10 +47,16 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
     {
       if (nc.getType().isInteger())
       {
-        // we use CAST_TO_REAL for constants, so that e.g. 5 is printed as
-        // 5.0 not (to_real 5)
-        Kind nk = nc.isConst() ? CAST_TO_REAL : TO_REAL;
-        children.push_back(nm->mkNode(nk, nc));
+        if (nc.isConst())
+        {
+          // we convert constant integers to constant reals
+          children.push_back(nm->mkConstReal(nc.getConst<Rational>()));
+        }
+        else
+        {
+          // otherwise, use TO_REAL
+          children.push_back(nm->mkNode(TO_REAL, nc));
+        }
       }
       else
       {
