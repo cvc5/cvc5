@@ -526,7 +526,6 @@ EvalResult Evaluator::evalInternal(
           break;
         }
         case kind::TO_REAL:
-        case kind::CAST_TO_REAL:
         {
           // casting to real is a no-op
           const Rational& x = results[currNode[0]].d_rat;

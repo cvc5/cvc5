@@ -92,8 +92,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
   switch (k)
   {
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return realType;
+    case kind::TO_REAL: return realType;
     case kind::TO_INTEGER: return integerType;
     default:
     {
