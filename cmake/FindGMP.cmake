@@ -83,7 +83,6 @@ if(NOT GMP_FOUND_SYSTEM)
   if (CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_ENV ${CONFIGURE_ENV} CFLAGS=--target=${TOOLCHAIN_PREFIX} LDFLAGS="-arch arm64")
   endif()
-  message(STATUS "Configuring GMP with ${CMAKE_CROSSCOMPILING_MACOS} / ${CONFIGURE_OPTS}")
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
