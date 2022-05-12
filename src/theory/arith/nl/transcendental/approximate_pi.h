@@ -21,6 +21,7 @@
 #include "util/rational.h"
 
 namespace cvc5 {
+namespace internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -69,6 +70,7 @@ class ApproximatePi
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
+}  // namespace internal
 }  // namespace cvc5
 
 #endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
