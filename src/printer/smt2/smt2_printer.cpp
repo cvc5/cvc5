@@ -306,9 +306,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "((as const ";
       toStreamType(out, asa.getType());
       out << ") ";
-      toStream(out,
-                         asa.getValue(),
-                         toDepth < 0 ? toDepth : toDepth - 1);
+      toStream(out, asa.getValue(), toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
       break;
     }
@@ -723,8 +721,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEQ_UNIT:
   {
     out << smtKindString(k, d_variant) << " ";
-    toStream(
-        out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << ")";
     return;
   }
@@ -734,8 +731,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_SINGLETON:
   {
     out << smtKindString(k, d_variant) << " ";
-    toStream(
-        out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << ")";
     return;
   }
@@ -747,8 +743,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
     out << smtKindString(k, d_variant) << " ";
-    toStream(
-        out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << " " << n[1] << ")";
     return;
   }

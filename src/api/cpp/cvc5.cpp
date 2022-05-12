@@ -4974,7 +4974,7 @@ Term Solver::getValueHelper(const Term& term) const
   //////// all checks before this line
   internal::Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
-  Assert (res.getSort()==term.getSort());
+  Assert(res.getSort() == term.getSort());
   return res;
 }
 
