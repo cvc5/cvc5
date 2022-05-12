@@ -146,7 +146,7 @@ void TermProperties::composeProperty(TermProperties& p)
 // push the substitution pv_prop.getModifiedTerm(pv) -> n
 void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
 {
-  Assert(n.getType().isSubtypeOf(pv.getType()));
+  Assert(n.getType() == pv.getType());
   d_vars.push_back(pv);
   d_subs.push_back(n);
   d_props.push_back(pv_prop);
@@ -945,7 +945,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                                                 SolvedForm& sf,
                                                 bool revertOnSuccess)
 {
-  Assert(n.getType().isSubtypeOf(pv.getType()));
+  Assert(n.getType() == pv.getType());
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -957,7 +957,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
       Trace("cegqi-inst-debug") << mod_pv << " -> " << n << std::endl;
-      Assert(n.getType().isSubtypeOf(pv.getType()));
+      Assert(n.getType() == pv.getType());
     }
     //must ensure variables have been computed for n
     computeProgVars( n );
