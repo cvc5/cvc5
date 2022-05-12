@@ -1757,8 +1757,18 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       if (posInt.fitsUnsignedInt() && posInt < Integer(len))
       {
         size_t pos = posInt.toUnsignedInt();
-        std::vector<Node> elements = s.getConst<Sequence>().getVec();
-        const Node& ret = elements[pos];
+        Node ret;
+        if (s.getKind()==CONST_SEQUENCE)
+        {
+          std::vector<Node> elements = s.getConst<Sequence>().getVec();
+          ret = elements[pos];
+        }
+        else
+        {
+          Assert (s.getKind()==CONST_STRING);
+          std::vector<unsigned> elements = s.getConst<String>().getVec();
+          ret = NodeManager::currentNM()->mkConstInt(elements[pos]);
+        }
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
       }
     }

@@ -78,6 +78,16 @@ uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
+
+Node mkCodeRange(Node t, uint32_t alphaCard)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return 
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
+                   nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+}
+
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -89,11 +99,27 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node len = nm->mkNode(STRING_LENGTH, t[0]);
     Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
-    Node code_range =
-        nm->mkNode(AND,
-                   nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
-                   nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+    Node code_range = mkCodeRange(t, alphaCard);
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
+  }
+  else if (tk == SEQ_NTH)
+  {
+    if (t[0].getType().isString())
+    {
+      Node s = t[0];
+      Node n = t[1];
+      // start point is greater than or equal zero
+      Node c1 = nm->mkNode(GEQ, n, nm->mkConstInt(0));
+      // start point is less than end of string
+      Node c2 = nm->mkNode(GT, nm->mkNode(STRING_LENGTH, s), n);
+      // check whether this application of seq.nth is defined.
+      Node cond = nm->mkNode(AND, c1, c2);
+      Node code_range = mkCodeRange(t, alphaCard);
+      // the lemma for `seq.nth`
+      lemma = nm->mkNode(IMPLIES, cond, code_range);
+      // n >=0 AND n < len( s )
+      // IMPLIES: 0 <= (seq.nth s n) < |A|
+    }
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
   {

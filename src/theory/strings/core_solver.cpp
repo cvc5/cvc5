@@ -2011,7 +2011,15 @@ void CoreSolver::processDeq(Node ni, Node nj)
           break;
         }
         // get the element of the character
-        vc = vchars[0].getConst<Sequence>().getVec()[0];
+        if (vchars[0].getKind()==CONST_SEQUENCE)
+        {
+          vc = vchars[0].getConst<Sequence>().getVec()[0];
+        }
+        else
+        {
+          Assert (vchars[0].getKind()==CONST_STRING);
+          vc = nm->mkConstInt(vchars[0].getConst<String>().getVec()[0]);
+        }
       }
       else
       {
@@ -2031,6 +2039,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       Node deq = u.eqNode(v).notNode();
       std::vector<Node> premises;
       premises.push_back(deq);
+      Assert (u[0].getType().isComparableTo(vc.getType()));
       Node conc = u[0].eqNode(vc).notNode();
       d_im.sendInference(premises, conc, InferenceId::STRINGS_UNIT_INJ_DEQ, false, true);
       return;
