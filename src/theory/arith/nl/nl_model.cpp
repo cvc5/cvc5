@@ -309,11 +309,11 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  Subs tmp;
+  ArithSubs tmp;
   tmp.add(v, s);
   for (auto& sub : d_substitutions.d_subs)
   {
-    Node ms = arithSubstitute(sub, tmp);
+    Node ms = tmp.apply(sub);
     if (ms != sub)
     {
       sub = rewrite(ms);
@@ -625,7 +625,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
                                                 ? vs_invalid[0]
                                                 : nm->mkNode(ADD, vs_invalid));
   // substitution to try
-  Subs qsub;
+  ArithSubs qsub;
   for (const Node& v : vs)
   {
     // is it a valid variable?
@@ -695,7 +695,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
             for (unsigned r = 0; r < 2; r++)
             {
               qsub.d_subs.back() = boundn[r];
-              Node ts = arithSubstitute(t, qsub);
+              Node ts = qsub.apply(t);
               tcmpn[r] = rewrite(ts);
             }
             Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
@@ -734,7 +734,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   }
   if (!qsub.empty())
   {
-    Node slit = arithSubstitute(lit, qsub);
+    Node slit = qsub.apply(lit);
     slit = rewrite(slit);
     return simpleCheckModelLit(slit);
   }
@@ -1129,7 +1129,7 @@ Node NlModel::getSubstitutedForm(TNode s) const
     // no substitutions, just return s
     return s;
   }
-  return rewrite(arithSubstitute(s, d_substitutions));
+  return rewrite(d_substitutions.apply(s));
 }
 
 }  // namespace nl

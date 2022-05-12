@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "expr/skolem_manager.h"
+#include "base/configuration.h"
 
 namespace cvc5::internal {
 
@@ -79,7 +80,7 @@ void Subs::add(const Node& v, const Node& s)
   d_subs.push_back(s);
 }
 
-void checkSubs(const Node& v, const Node& s)
+void Subs::checkSubs(const Node& v, const Node& s)
 {
   Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
 }

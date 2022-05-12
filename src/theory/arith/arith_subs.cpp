@@ -21,7 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-Node ArithSubs::apply(Node n) const
+Node ArithSubs::apply(const Node& n) const
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
@@ -37,7 +37,7 @@ Node ArithSubs::apply(Node n) const
     {
       visited[cur] = Node::null();
       Kind ck = cur.getKind();
-      auto s = sub.find(cur);
+      auto s = find(cur);
       if (s)
       {
         visited[cur] = *s;

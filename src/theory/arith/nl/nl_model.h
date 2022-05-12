@@ -22,7 +22,7 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "expr/subs.h"
+#include "theory/arith/arith_subs.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::context {
@@ -201,7 +201,7 @@ class NlModel : protected EnvObj
    * A substitution from variables that appear in assertions to a solved form
    * term.
    */
-  Subs d_substitutions;
+  ArithSubs d_substitutions;
 
   /** Get the model value of n from the model object above */
   Node getValueInternal(TNode n);
