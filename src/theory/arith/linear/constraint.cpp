@@ -658,8 +658,11 @@ bool Constraint::sanityChecking(Node n) const {
   Kind k = cmp.comparisonKind();
   Polynomial pleft = cmp.normalizedVariablePart();
   Assert(k == EQUAL || k == DISTINCT || pleft.leadingCoefficientIsPositive());
-  Assert(k != EQUAL || Monomial::isMember(n[0]));
-  Assert(k != DISTINCT || Monomial::isMember(n[0][0]));
+  Assert(k != EQUAL
+         || Monomial::isMember(n[0].getKind() == TO_REAL ? n[0][0] : n[0]));
+  Assert(k != DISTINCT
+         || Monomial::isMember(n[0][0].getKind() == TO_REAL ? n[0][0][0]
+                                                            : n[0][0]));
 
   TNode left = pleft.getNode();
   DeltaRational right = cmp.normalizedDeltaRational();
