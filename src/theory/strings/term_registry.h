@@ -165,7 +165,7 @@ class TermRegistry : protected EnvObj
    */
   bool hasSeqUpdate() const;
   /** is handled update */
-  bool isHandledUpdate(Node n);
+  bool isHandledUpdateOrSubstr(Node n);
   /** get base */
   Node getUpdateBase(Node n);
   //---------------------------- end queries

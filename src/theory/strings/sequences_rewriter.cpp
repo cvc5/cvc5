@@ -1713,11 +1713,11 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteRepeatRegExp(node);
   }
-  else if (nk == SEQ_UNIT || nk == STIRNG_UNIT)
+  else if (nk == SEQ_UNIT)
   {
     retNode = rewriteSeqUnit(node);
   }
-  else if (nk == SEQ_NTH || nk == STRING_NTH)
+  else if (nk == SEQ_NTH)
   {
     retNode = rewriteSeqNth(node);
   }
@@ -3642,20 +3642,17 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
 
 Node SequencesRewriter::rewriteSeqUnit(Node node)
 {
-  Assert (node.getKind()==SEQ_UNIT || node.getKind()==STRING_NTH);
+  Assert (node.getKind()==SEQ_UNIT);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    if (node.getKind()==SEQ_UNIT)
-    {
-      std::vector<Node> seq;
-      seq.push_back(node[0]);
-      // important to take the type according to the operator here, not the
-      // type of the argument
-      TypeNode stype = node.getType().getSequenceElementType();
-      Node ret = nm->mkConst(Sequence(stype, seq));
-      return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
-    }
+    std::vector<Node> seq;
+    seq.push_back(node[0]);
+    // important to take the type according to the operator here, not the
+    // type of the argument
+    TypeNode stype = node.getType().getSequenceElementType();
+    Node ret = nm->mkConst(Sequence(stype, seq));
+    return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
   return node;
 }

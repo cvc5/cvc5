@@ -352,12 +352,10 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      bool check)
 {
   TypeNode t = n[0].getType(check);
-  if (check && !t.isSequence())
+  if (check && !t.isStringLike())
   {
     throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
   }
-
-  TypeNode t1 = t.getSequenceElementType();
   if (check)
   {
     TypeNode t2 = n[1].getType(check);
@@ -367,7 +365,12 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
           n, "expecting an integer start term in nth");
     }
   }
-  return t1;
+  if (t.isSequence())
+  {
+    return t.getSequenceElementType();
+  }
+  Assert (t.isString());
+  return nodeManager->integerType();
 }
 
 Cardinality SequenceProperties::computeCardinality(TypeNode type)

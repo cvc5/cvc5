@@ -869,6 +869,10 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
   {
     ret = nm->mkConstInt(1);
   }
+  else if (sk == STRING_UNIT)
+  {
+    ret = nm->mkConstInt(1);
+  }
   else if (sk == STRING_CONCAT)
   {
     Rational sum(0);

@@ -478,21 +478,37 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node t[2];
     for (size_t i = 0; i < 2; i++)
     {
-      if (children[0][i].getKind() == SEQ_UNIT)
+      Node c = children[0][i];
+      Kind k = c.getKind();
+      if (k == SEQ_UNIT || k == STRING_UNIT)
       {
-        t[i] = children[0][i][0];
+        t[i] = c[0];
       }
-      else if (children[0][i].isConst())
+      else if (c.isConst())
       {
-        // notice that Word::getChars is not the right call here, since it
-        // gets a vector of sequences of length one. We actually need to
-        // extract the character, which is a sequence-specific operation.
-        const Sequence& sx = children[0][i].getConst<Sequence>();
-        const std::vector<Node>& vec = sx.getVec();
-        if (vec.size() == 1)
+        TypeNode ctn = c.getType();
+        if (ctn.isSequence())
         {
-          // the character of the single character sequence
-          t[i] = vec[0];
+          // notice that Word::getChars is not the right call here, since it
+          // gets a vector of sequences of length one. We actually need to
+          // extract the character, which is a sequence-specific operation.
+          const Sequence& sx = c.getConst<Sequence>();
+          const std::vector<Node>& vec = sx.getVec();
+          if (vec.size() == 1)
+          {
+            // the character of the single character sequence
+            t[i] = vec[0];
+          }
+        }
+        else if (ctn.isString())
+        {
+          const String& sx = c.getConst<String>();
+          const std::vector<unsigned>& vec = sx.getVec();
+          if (vec.size()==1)
+          {
+            // the character of the single character string
+            t[i] = nm->mkConstInt(vec[0]);
+          }
         }
       }
       if (t[i].isNull())

@@ -17,6 +17,7 @@
 #include "theory/strings/base_solver.h"
 
 #include "expr/sequence.h"
+#include "util/string.h"
 #include "options/quantifiers_options.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
@@ -100,14 +101,20 @@ void BaseSolver::checkInit()
             else
             {
               // should not have two constants in the same equivalence class
-              Assert(cval.getType().isSequence());
               std::vector<Node> cchars = Word::getChars(cval);
               if (cchars.size() == 1)
               {
                 Node oval = prev.isConst() ? n : prev;
-                Assert(oval.getKind() == SEQ_UNIT);
+                Assert (oval.getKind() == SEQ_UNIT || oval.getKind()==STRING_UNIT);
                 s = oval[0];
-                t = cchars[0].getConst<Sequence>().getVec()[0];
+                if (oval.getKind() == SEQ_UNIT)
+                {
+                  t = cchars[0].getConst<Sequence>().getVec()[0];
+                }
+                else
+                {
+                  t = NodeManager::currentNM()->mkConstInt(cchars[0].getConst<String>().getVec()[0]);
+                }
                 // oval is congruent (ignored) in this context
                 d_congruent.insert(oval);
               }

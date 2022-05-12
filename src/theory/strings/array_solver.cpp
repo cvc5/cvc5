@@ -118,7 +118,7 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet)
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     if (k == STRING_UPDATE)
     {
-      if (!d_termReg.isHandledUpdate(t))
+      if (!d_termReg.isHandledUpdateOrSubstr(t))
       {
         // not handled by procedure
         Trace("seq-array-debug") << "...unhandled" << std::endl;
@@ -192,7 +192,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
       // to handle this differently from STRINGS_ARRAY_UPDATE_CONCAT /
       // STRINGS_ARRAY_NTH_CONCAT. Otherwise we would conclude a trivial
       // equality when update/nth is applied to a constant of length one.
-      if (ck == SEQ_UNIT
+      if (ck == SEQ_UNIT || ck == STRING_UNIT
           || (ck == CONST_SEQUENCE && Word::getLength(nf.d_nf[0]) == 1))
       {
         Trace("seq-array-debug") << "...unit case" << std::endl;

@@ -143,7 +143,6 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_UNIT, eagerEval);
   // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
-  d_equalityEngine->addFunctionKind(kind::STRING_NTH, false);
   // extended functions
   d_equalityEngine->addFunctionKind(kind::STRING_CONTAINS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
@@ -449,15 +448,16 @@ bool TheoryStrings::collectModelInfoType(
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
-      if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+      if (nfe.d_nf[0].getKind() == SEQ_UNIT || nfe.d_nf[0].getKind()==STRING_UNIT)
       {
-        Node argVal;
         if (nfe.d_nf[0][0].getType().isStringLike())
         {
           // By this point, we should have assigned model values for the
           // elements of this sequence type because of the check in the
           // beginning of this method
-          argVal = m->getRepresentative(nfe.d_nf[0][0]);
+          Node argVal = m->getRepresentative(nfe.d_nf[0][0]);
+          Assert (nfe.d_nf[0].getKind() == SEQ_UNIT);
+          assignedValue = rewrite(utils::mkUnit(eqc.getType(), argVal));
         }
         else
         {
@@ -465,11 +465,8 @@ bool TheoryStrings::collectModelInfoType(
           // value of this term, since it might not be available yet, as
           // it may belong to a theory that has not built its model yet.
           // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
-          argVal = nfe.d_nf[0][0];
+          assignedValue = nfe.d_nf[0][0];
         }
-        Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = rewrite(
-            nm->mkSeqUnit(eqc.getType().getSequenceElementType(), argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -495,7 +492,7 @@ bool TheoryStrings::collectModelInfoType(
       }
       else if (options().strings.seqArray != options::SeqArrayMode::NONE)
       {
-        TypeNode etype = eqc.getType().getSequenceElementType();
+        TypeNode eqcType = eqc.getType();
         // determine skeleton based on the write model, if it exists
         const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
         Trace("strings-model")
@@ -523,7 +520,7 @@ bool TheoryStrings::collectModelInfoType(
               continue;
             }
             usedWrites.insert(ivalue);
-            Node wsunit = nm->mkSeqUnit(etype, w.second);
+            Node wsunit = utils::mkUnit(eqcType, w.second);
             writes.emplace_back(ivalue, wsunit);
           }
           // sort based on index value
@@ -749,20 +746,26 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Assert(c.getKind() == CONST_SEQUENCE);
-  const Sequence& sn = c.getConst<Sequence>();
-  const std::vector<Node>& snvec = sn.getVec();
-  std::vector<Node> skChildren;
-  TypeNode etn = c.getType().getSequenceElementType();
-  for (const Node& snv : snvec)
+  TypeNode tn = c.getType();
+  if (tn.isSequence())
   {
-    Assert(snv.getType().isSubtypeOf(etn));
-    Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
-    // use a skolem, not a bound variable
-    Node kv = sm->mkPurifySkolem(v, "smv");
-    skChildren.push_back(nm->mkSeqUnit(etn, kv));
+    Assert(c.getKind() == CONST_SEQUENCE);
+    const Sequence& sn = c.getConst<Sequence>();
+    const std::vector<Node>& snvec = sn.getVec();
+    std::vector<Node> skChildren;
+    TypeNode etn = tn.getSequenceElementType();
+    for (const Node& snv : snvec)
+    {
+      Assert(snv.getType().isSubtypeOf(etn));
+      Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+      // use a skolem, not a bound variable
+      Node kv = sm->mkPurifySkolem(v, "smv");
+      skChildren.push_back(utils::mkUnit(tn, kv));
+    }
+    return utils::mkConcat(skChildren, c.getType());
   }
-  return utils::mkConcat(skChildren, c.getType());
+  // FIXME
+  return Node::null();
 }
 
 Node TheoryStrings::mkSkeletonFromBase(Node r,
@@ -770,22 +773,27 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
                                        size_t nextIndex)
 {
   Assert(!r.isNull());
-  Assert(r.getType().isSequence());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::vector<Node> cacheVals;
-  cacheVals.push_back(r);
-  std::vector<Node> skChildren;
-  TypeNode etn = r.getType().getSequenceElementType();
-  for (size_t i = currIndex; i < nextIndex; i++)
+  TypeNode tn = r.getType();
+  if (tn.isSequence())
   {
-    cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
-    Node kv = sm->mkSkolemFunction(
-        SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
-    skChildren.push_back(nm->mkSeqUnit(etn, kv));
-    cacheVals.pop_back();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(r);
+    std::vector<Node> skChildren;
+    TypeNode etn = tn.getSequenceElementType();
+    for (size_t i = currIndex; i < nextIndex; i++)
+    {
+      cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
+      Node kv = sm->mkSkolemFunction(
+          SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+      skChildren.push_back(utils::mkUnit(tn, kv));
+      cacheVals.pop_back();
+    }
+    return utils::mkConcat(skChildren, r.getType());
   }
-  return utils::mkConcat(skChildren, r.getType());
+  // FIXME
+  return Node::null();
 }
 
 /////////////////////////////////////////////////////////////////////////////
