@@ -151,8 +151,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
       return false;
     }
   }
-  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP || k == STRING_TO_CODE
-           || (k == STRING_CONTAINS && pol == 0))
+  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
+           || k == STRING_TO_CODE || (k == STRING_CONTAINS && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not

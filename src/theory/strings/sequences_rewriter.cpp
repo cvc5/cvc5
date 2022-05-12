@@ -1758,14 +1758,14 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       {
         size_t pos = posInt.toUnsignedInt();
         Node ret;
-        if (s.getKind()==CONST_SEQUENCE)
+        if (s.getKind() == CONST_SEQUENCE)
         {
           std::vector<Node> elements = s.getConst<Sequence>().getVec();
           ret = elements[pos];
         }
         else
         {
-          Assert (s.getKind()==CONST_STRING);
+          Assert(s.getKind() == CONST_STRING);
           std::vector<unsigned> elements = s.getConst<String>().getVec();
           ret = NodeManager::currentNM()->mkConstInt(elements[pos]);
         }
