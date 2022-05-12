@@ -16,7 +16,6 @@
 #include "expr/dtype.h"
 #include "test_api.h"
 #include "test_node.h"
-#include "theory/sets/singleton_op.h"
 #include "util/rational.h"
 
 using namespace cvc5;
