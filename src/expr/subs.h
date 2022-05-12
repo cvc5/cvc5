@@ -35,8 +35,8 @@ namespace cvc5::internal {
 class Subs
 {
  public:
-  Subs(){}
-  virtual ~Subs(){}
+  Subs() {}
+  virtual ~Subs() {}
   /** Is the substitution empty? */
   bool empty() const;
   /** The size of the substitution */

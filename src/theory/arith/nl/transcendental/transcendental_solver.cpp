@@ -20,10 +20,10 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
-#include "theory/arith/arith_subs.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
