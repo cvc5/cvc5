@@ -279,52 +279,6 @@ bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 // eliminated
 bool TypeNode::isRealOrInt() const { return isReal(); }
 
-bool TypeNode::isSubtypeOf(TypeNode t) const {
-  if(*this == t) {
-    return true;
-  }
-  if (isInteger())
-  {
-    return t.isReal();
-  }
-  if (isFunction() && t.isFunction())
-  {
-    if (!getRangeType().isSubtypeOf(t.getRangeType()))
-    {
-      // range is not subtype, return false
-      return false;
-    }
-    // must have equal arguments
-    std::vector<TypeNode> t0a = getArgTypes();
-    std::vector<TypeNode> t1a = t.getArgTypes();
-    if (t0a.size() != t1a.size())
-    {
-      // different arities
-      return false;
-    }
-    for (size_t i = 0, nargs = t0a.size(); i < nargs; i++)
-    {
-      if (t0a[i] != t1a[i])
-      {
-        // an argument is different
-        return false;
-      }
-    }
-    return true;
-  }
-  // this should only return true for types T1, T2 where we handle equalities between T1 and T2
-  // (more cases go here, if we want to support such cases)
-  return false;
-}
-
-bool TypeNode::isComparableTo(TypeNode t) const {
-  if (*this == t)
-  {
-    return true;
-  }
-  return isSubtypeOf(t) || t.isSubtypeOf(*this);
-}
-
 TypeNode TypeNode::getDatatypeTesterDomainType() const
 {
   Assert(isDatatypeTester());
@@ -335,14 +289,6 @@ TypeNode TypeNode::getSequenceElementType() const
 {
   Assert(isSequence());
   return (*this)[0];
-}
-
-TypeNode TypeNode::getBaseType() const {
-  TypeNode realt = NodeManager::currentNM()->realType();
-  if (isSubtypeOf(realt)) {
-    return realt;
-  }
-  return *this;
 }
 
 std::vector<TypeNode> TypeNode::getArgTypes() const {
@@ -489,22 +435,6 @@ bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
   const DType& dt = (*this)[0].getDType();
   Assert(n < dt.getNumParameters());
   return dt.getParameter(n) != (*this)[n + 1];
-}
-
-TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
-  if (t0 == t1)
-  {
-    return t0;
-  }
-  if (t0.isSubtypeOf(t1))
-  {
-    return t1;
-  }
-  else if (t1.isSubtypeOf(t0))
-  {
-    return t0;
-  }
-  return TypeNode();
 }
 
 /** Is this a sort kind */
