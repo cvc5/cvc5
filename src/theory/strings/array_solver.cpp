@@ -20,6 +20,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::context;
 using namespace cvc5::internal::kind;
@@ -187,13 +188,14 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
       Trace("seq-array-debug") << "...norm form size 1" << std::endl;
       // NOTE: could split on n=0 if needed, do not introduce ITE
       Kind ck = nf.d_nf[0].getKind();
+      bool cIsConst = nf.d_nf[0].isConst();
       // Note that (seq.unit c) is rewritten to CONST_SEQUENCE{c}, hence we
       // check two cases here. It is important for completeness of this schema
       // to handle this differently from STRINGS_ARRAY_UPDATE_CONCAT /
       // STRINGS_ARRAY_NTH_CONCAT. Otherwise we would conclude a trivial
       // equality when update/nth is applied to a constant of length one.
       if (ck == SEQ_UNIT || ck == STRING_UNIT
-          || (ck == CONST_SEQUENCE && Word::getLength(nf.d_nf[0]) == 1))
+          || (cIsConst && Word::getLength(nf.d_nf[0]) == 1))
       {
         Trace("seq-array-debug") << "...unit case" << std::endl;
         // do we know whether n = 0 ?
@@ -220,6 +222,11 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
             const Sequence& seq = nf.d_nf[0].getConst<Sequence>();
             val = seq.getVec()[0];
           }
+          else if (ck == CONST_STRING)
+          {
+            const String& str = nf.d_nf[0].getConst<String>();
+            val = nm->mkConstInt(str.getVec()[0]);
+          }
           else
           {
             val = nf.d_nf[0][0];
@@ -239,7 +246,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         }
         return;
       }
-      else if (ck != CONST_SEQUENCE)
+      else if (!cIsConst)
       {
         if (k == STRING_UPDATE)
         {
@@ -250,7 +257,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
           NormalForm& nfSelf = d_csolver.getNormalForm(rself);
           if (nfSelf.d_nf.size() == 1)
           {
-            // otherwise, if the normal form is not a constant sequence, and we
+            // otherwise, if the normal form is not a constant word, and we
             // are an atomic update term, then this term will be given to the
             // core array solver.
             d_currTerms[k].push_back(t);
@@ -260,7 +267,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
       }
       else
       {
-        // if the normal form is a constant sequence, it is treated as a
+        // if the normal form is a constant word, it is treated as a
         // concatenation. We split per character and case split on whether the
         // nth/update falls on each character below, which must have a size
         // greater than one.
@@ -317,6 +324,21 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         else
         {
           cc = seq.getVec()[0];
+        }
+      }
+    }
+    else if (c.getKind() == CONST_STRING)
+    {
+      const String& str = c.getConst<String>();
+      if (str.size() == 1)
+      {
+        if (k == STRING_UPDATE)
+        {
+          cc = nm->mkNode(ITE, t[1].eqNode(d_zero), t[2], c);
+        }
+        else
+        {
+          cc = nm->mkConstInt(str.getVec()[0]);
         }
       }
     }

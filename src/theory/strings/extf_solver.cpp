@@ -70,6 +70,7 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(kind::STRING_TO_LOWER);
   d_extt.addFunctionKind(kind::STRING_TO_UPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::STRING_UNIT);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
   d_extt.addFunctionKind(kind::SEQ_NTH);
 

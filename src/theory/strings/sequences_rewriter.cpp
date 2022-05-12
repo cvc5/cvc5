@@ -639,7 +639,7 @@ Node SequencesRewriter::rewriteLength(Node node)
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
   }
-  else if (nk0 == SEQ_UNIT)
+  else if (nk0 == SEQ_UNIT || nk0 == STRING_UNIT)
   {
     Node retNode = nm->mkConstInt(Rational(1));
     return returnRewrite(node, retNode, Rewrite::LEN_SEQ_UNIT);
@@ -1769,12 +1769,16 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   if ((i.isConst() && i.getConst<Rational>().isZero())
       || d_stringsEntail.stripSymbolicLength(suffix, prefix, 1, i, true))
   {
-    if (suffix.size() > 0 && suffix[0].getKind() == SEQ_UNIT)
+    if (suffix.size() > 0)
     {
-      // (seq.nth (seq.++ prefix (seq.unit x) suffix) n) ---> x
-      // if len(prefix) = n
-      Node ret = suffix[0][0];
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_SYM);
+      if (suffix[0].getKind() == SEQ_UNIT)
+      {
+        // (seq.nth (seq.++ prefix (seq.unit x) suffix) n) ---> x
+        // if len(prefix) = n
+        Node ret = suffix[0][0];
+        return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_SYM);
+      }
+      // TODO: STRING_UNIT?
     }
   }
 
