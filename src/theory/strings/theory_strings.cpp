@@ -750,25 +750,21 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   TypeNode tn = c.getType();
-  if (tn.isSequence())
+  Assert (tn.isSequence());
+  Assert(c.getKind() == CONST_SEQUENCE);
+  const Sequence& sn = c.getConst<Sequence>();
+  const std::vector<Node>& snvec = sn.getVec();
+  std::vector<Node> skChildren;
+  TypeNode etn = tn.getSequenceElementType();
+  for (const Node& snv : snvec)
   {
-    Assert(c.getKind() == CONST_SEQUENCE);
-    const Sequence& sn = c.getConst<Sequence>();
-    const std::vector<Node>& snvec = sn.getVec();
-    std::vector<Node> skChildren;
-    TypeNode etn = tn.getSequenceElementType();
-    for (const Node& snv : snvec)
-    {
-      Assert(snv.getType().isSubtypeOf(etn));
-      Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
-      // use a skolem, not a bound variable
-      Node kv = sm->mkPurifySkolem(v, "smv");
-      skChildren.push_back(utils::mkUnit(tn, kv));
-    }
-    return utils::mkConcat(skChildren, c.getType());
+    Assert(snv.getType().isSubtypeOf(etn));
+    Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+    // use a skolem, not a bound variable
+    Node kv = sm->mkPurifySkolem(v, "smv");
+    skChildren.push_back(utils::mkUnit(tn, kv));
   }
-  // FIXME
-  return Node::null();
+  return utils::mkConcat(skChildren, c.getType());
 }
 
 Node TheoryStrings::mkSkeletonFromBase(Node r,
@@ -795,6 +791,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     }
     return utils::mkConcat(skChildren, tn);
   }
+  Unreachable();
   // FIXME
   return Node::null();
 }
