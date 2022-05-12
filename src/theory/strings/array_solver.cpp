@@ -217,15 +217,9 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         {
           Assert(k == SEQ_NTH);
           Node val;
-          if (ck == CONST_SEQUENCE)
+          if (cIsConst)
           {
-            const Sequence& seq = nf.d_nf[0].getConst<Sequence>();
-            val = seq.getVec()[0];
-          }
-          else if (ck == CONST_STRING)
-          {
-            const String& str = nf.d_nf[0].getConst<String>();
-            val = nm->mkConstInt(str.getVec()[0]);
+            val = Word::getNth(nf.d_nf[0], 0);
           }
           else
           {
@@ -312,10 +306,9 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     // an optimization to short cut introducing terms like
     // (seq.nth (seq.unit c) i), which by construction is only relevant in
     // the context where i = 0, hence we replace by c here.
-    else if (c.getKind() == CONST_SEQUENCE)
+    else if (c.isConst())
     {
-      const Sequence& seq = c.getConst<Sequence>();
-      if (seq.size() == 1)
+      if (Word::getLength(c) == 1)
       {
         if (k == STRING_UPDATE)
         {
@@ -323,22 +316,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         }
         else
         {
-          cc = seq.getVec()[0];
-        }
-      }
-    }
-    else if (c.getKind() == CONST_STRING)
-    {
-      const String& str = c.getConst<String>();
-      if (str.size() == 1)
-      {
-        if (k == STRING_UPDATE)
-        {
-          cc = nm->mkNode(ITE, t[1].eqNode(d_zero), t[2], c);
-        }
-        else
-        {
-          cc = nm->mkConstInt(str.getVec()[0]);
+          cc = Word::getNth(c, 0);
         }
       }
     }
