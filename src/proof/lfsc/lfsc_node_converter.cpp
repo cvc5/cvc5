@@ -1202,15 +1202,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
-    // We take the base type, so that e.g. arithmetic operators are over
-    // real. This avoids issues with subtyping when currying during proof
-    // postprocessing
-    TypeNode baseType = nc.getType();
-    if (baseType.isInteger())
-    {
-      baseType = nm->realType();
-    }
-    argTypes.push_back(baseType);
+    argTypes.push_back(nc.getType());
   }
   // we only use binary operators
   if (NodeManager::isNAryKind(k))
