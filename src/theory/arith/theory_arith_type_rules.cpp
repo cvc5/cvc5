@@ -110,17 +110,14 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     Assert(n.getNumChildren() == 2);
-    TypeNode t1 = n[0].getType(check);
-    if (!t1.isRealOrInt())
+    for (size_t i=0; i<2; i++)
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "expecting an arithmetic term for arithmetic relation");
-    }
-    TypeNode t2 = n[1].getType(check);
-    if (!t1.isComparableTo(t2))
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "expecting arithmetic terms of comparable type");
+      TypeNode t = n[i].getType(check);
+      if (!t.isRealOrInt())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an arithmetic term for arithmetic relation");
+      }
     }
   }
   return nodeManager->booleanType();

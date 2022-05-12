@@ -78,11 +78,8 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
     TypeNode secondSetType = n[1].getType(check);
     if (secondSetType != setType)
     {
-      if (!setType.isComparableTo(secondSetType))
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "set subset operating on sets of different types");
-      }
+          throw TypeCheckingExceptionPrivate(
+          n, "set subset operating on sets of different types");
     }
   }
   return nodeManager->booleanType();
@@ -129,13 +126,12 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TypeNode type2 = n[0].getType(check);
-    TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
     // the type of the element should be a subtype of the type of the operator
     // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
-    if (leastCommonType.isNull() || leastCommonType != type1)
+    if (type1!=type2)
     {
       std::stringstream ss;
-      ss << "The type '" << type2 << "' of the element is not a subtype of '"
+      ss << "The type '" << type2 << "' of the element is not a type of '"
          << type1 << "' in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }

@@ -88,11 +88,8 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
     TypeNode secondBagType = n[1].getType(check);
     if (secondBagType != bagType)
     {
-      if (!bagType.isComparableTo(secondBagType))
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "BAG_SUBBAG operating on bags of different types");
-      }
+      throw TypeCheckingExceptionPrivate(
+          n, "BAG_SUBBAG operating on bags of different types");
     }
   }
   return nodeManager->booleanType();
