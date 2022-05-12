@@ -19,16 +19,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-Node apply(Node n) const
-{
-}
+Node apply(Node n) const {}
 
-void checkSubs(const Node& v, const Node& s)
-{
-  
-}
+void checkSubs(const Node& v, const Node& s) {}
 
-}
-}
+}  // namespace arith
+}  // namespace theory
 }  // namespace cvc5::internal
-

@@ -76,7 +76,8 @@ class Subs
   /** The data */
   std::vector<Node> d_vars;
   std::vector<Node> d_subs;
-protected:
+
+ protected:
   /** check if the substitution v -> s is permitted by this class */
   virtual void checkSubs(const Node& v, const Node& s);
 };

@@ -1371,7 +1371,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
             largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
         hnv = rewrite(hnv);
       }
-      Assert(hnv.getType()==curr.getType());
+      Assert(hnv.getType() == curr.getType());
       curr = NodeManager::currentNM()->mkNode(kind::ITE, hni, hnv, curr);
     }
   }
