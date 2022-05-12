@@ -71,6 +71,7 @@ runs:
           pkgconfig \
           flex \
           gnu-sed
+        brew uninstall gmp
         python3 -m pip install pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
