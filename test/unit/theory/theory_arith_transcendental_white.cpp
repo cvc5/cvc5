@@ -23,7 +23,8 @@
 namespace cvc5 {
 namespace test {
 
-using namespace theory::arith::nl::transcendental;
+using namespace cvc5::internal::theory::arith::nl::transcendental;
+using namespace cvc5::internal;
 
 class TestTheoryWhiteArithTranscendental : public TestSmt
 {
