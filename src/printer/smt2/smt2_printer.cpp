@@ -66,11 +66,11 @@ namespace smt2 {
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
-                             bool decimal,
+                             bool isReal,
                              Variant v)
 {
   bool neg = r.sgn() < 0;
-  // Print the rational, possibly as decimal.
+  // Print the rational, possibly as a real.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
   if (r.isIntegral())
@@ -83,7 +83,7 @@ static void toStreamRational(std::ostream& out,
     {
       out << r;
     }
-    if (decimal)
+    if (isReal)
     {
       out << ".0";
     }
@@ -94,6 +94,7 @@ static void toStreamRational(std::ostream& out,
   }
   else
   {
+    Assert (isReal);
     out << "(/ ";
     if (neg)
     {
