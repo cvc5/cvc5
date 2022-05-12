@@ -38,7 +38,7 @@ runs:
         cd build-shared/ && pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
         
-        make -j${{ env.num_proc }} VERBOSE=1
+        make -j${{ env.num_proc }}
 
         echo "::set-output name=build-dir::$pwd"
         echo "::endgroup::"
