@@ -865,11 +865,7 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
     size_t len = Word::getLength(s);
     ret = nm->mkConstInt(Rational(len));
   }
-  else if (sk == SEQ_UNIT)
-  {
-    ret = nm->mkConstInt(1);
-  }
-  else if (sk == STRING_UNIT)
+  else if (sk == SEQ_UNIT || sk == STRING_UNIT)
   {
     ret = nm->mkConstInt(1);
   }
