@@ -750,7 +750,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   TypeNode tn = c.getType();
-  Assert (tn.isSequence());
+  Assert(tn.isSequence());
   Assert(c.getKind() == CONST_SEQUENCE);
   const Sequence& sn = c.getConst<Sequence>();
   const std::vector<Node>& snvec = sn.getVec();
