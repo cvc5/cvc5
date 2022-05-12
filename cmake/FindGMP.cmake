@@ -81,7 +81,7 @@ if(NOT GMP_FOUND_SYSTEM)
     set(CONFIGURE_OPTS --host=${TOOLCHAIN_PREFIX} --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
   endif()
   if (CMAKE_CROSSCOMPILING_MACOS)
-    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E env CFLAGS=--target=${TOOLCHAIN_PREFIX} env LDFLAGS=-arch\ ${CMAKE_SYSTEM_PROCESSOR})
+    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E env CFLAGS=--target=${TOOLCHAIN_PREFIX} env LDFLAGS=-arch\ ${CMAKE_OSX_ARCHITECTURES})
   endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
