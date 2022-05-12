@@ -7349,6 +7349,11 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
                               value)
       << "'sat', 'unsat' or 'unknown'";
   //////// all checks before this line
+  if (keyword == "filename")
+  {
+    // only the Solver object has non-const access to the original options
+    d_originalOptions->writeDriver().filename = value;
+  }
   d_slv->setInfo(keyword, value);
   ////////
   CVC5_API_TRY_CATCH_END;
