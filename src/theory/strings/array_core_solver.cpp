@@ -69,7 +69,7 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
     if (d_termReg.isHandledUpdateOrSubstr(n))
     {
       // (seq.extract A i l) in terms:
-      // IF (<= 0 i) ^ (< i (str.len A)) 
+      // IF (<= 0 i) ^ (< i (str.len A))
       // THEN (seq.extract A i l) = (seq.unit (seq.nth A i))
       // ELSE (seq.extract A i l) = empty
       std::vector<Node> exp;

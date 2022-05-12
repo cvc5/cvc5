@@ -504,7 +504,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         {
           const String& sx = c.getConst<String>();
           const std::vector<unsigned>& vec = sx.getVec();
-          if (vec.size()==1)
+          if (vec.size() == 1)
           {
             // the character of the single character string
             t[i] = nm->mkConstInt(vec[0]);

@@ -448,7 +448,8 @@ bool TheoryStrings::collectModelInfoType(
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
-      if (nfe.d_nf[0].getKind() == SEQ_UNIT || nfe.d_nf[0].getKind()==STRING_UNIT)
+      if (nfe.d_nf[0].getKind() == SEQ_UNIT
+          || nfe.d_nf[0].getKind() == STRING_UNIT)
       {
         if (nfe.d_nf[0][0].getType().isStringLike())
         {
@@ -456,7 +457,7 @@ bool TheoryStrings::collectModelInfoType(
           // elements of this sequence type because of the check in the
           // beginning of this method
           Node argVal = m->getRepresentative(nfe.d_nf[0][0]);
-          Assert (nfe.d_nf[0].getKind() == SEQ_UNIT);
+          Assert(nfe.d_nf[0].getKind() == SEQ_UNIT);
           assignedValue = rewrite(utils::mkUnit(eqc.getType(), argVal));
         }
         else

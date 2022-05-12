@@ -3642,7 +3642,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
 
 Node SequencesRewriter::rewriteSeqUnit(Node node)
 {
-  Assert (node.getKind()==SEQ_UNIT);
+  Assert(node.getKind() == SEQ_UNIT);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {

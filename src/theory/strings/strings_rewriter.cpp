@@ -332,7 +332,7 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
 
 Node StringsRewriter::rewriteStringUnit(Node n)
 {
-  Assert (n.getKind()==STRING_UNIT);
+  Assert(n.getKind() == STRING_UNIT);
   NodeManager* nm = NodeManager::currentNM();
   if (n[0].isConst())
   {

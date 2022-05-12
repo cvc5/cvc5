@@ -161,7 +161,7 @@ Node mkUnit(TypeNode tn, Node n)
   {
     return nm->mkNode(STRING_UNIT, n);
   }
-  Assert (tn.isSequence());
+  Assert(tn.isSequence());
   TypeNode etn = tn.getSequenceElementType();
   return nm->mkSeqUnit(etn, n);
 }
@@ -271,7 +271,10 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
-bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT || n.getKind() == STRING_UNIT; }
+bool isConstantLike(Node n)
+{
+  return n.isConst() || n.getKind() == SEQ_UNIT || n.getKind() == STRING_UNIT;
+}
 
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {

@@ -17,13 +17,13 @@
 #include "theory/strings/base_solver.h"
 
 #include "expr/sequence.h"
-#include "util/string.h"
 #include "options/quantifiers_options.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -105,7 +105,8 @@ void BaseSolver::checkInit()
               if (cchars.size() == 1)
               {
                 Node oval = prev.isConst() ? n : prev;
-                Assert (oval.getKind() == SEQ_UNIT || oval.getKind()==STRING_UNIT);
+                Assert(oval.getKind() == SEQ_UNIT
+                       || oval.getKind() == STRING_UNIT);
                 s = oval[0];
                 if (oval.getKind() == SEQ_UNIT)
                 {
@@ -113,7 +114,8 @@ void BaseSolver::checkInit()
                 }
                 else
                 {
-                  t = NodeManager::currentNM()->mkConstInt(cchars[0].getConst<String>().getVec()[0]);
+                  t = NodeManager::currentNM()->mkConstInt(
+                      cchars[0].getConst<String>().getVec()[0]);
                 }
                 // oval is congruent (ignored) in this context
                 d_congruent.insert(oval);

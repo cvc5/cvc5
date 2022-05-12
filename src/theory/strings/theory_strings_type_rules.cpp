@@ -369,7 +369,7 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   {
     return t.getSequenceElementType();
   }
-  Assert (t.isString());
+  Assert(t.isString());
   return nodeManager->integerType();
 }
 
