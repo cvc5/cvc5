@@ -18,6 +18,7 @@
 #include "base/check.h"
 
 namespace cvc5 {
+namespace internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -55,4 +56,5 @@ void ApproximatePi::refine()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
+}  // namespace internal
 }  // namespace cvc5
