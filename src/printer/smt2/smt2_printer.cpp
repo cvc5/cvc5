@@ -1299,6 +1299,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
+  case kind::STRING_UNIT: return "str.unit";
+  case kind::STRING_NTH: return "str.nth";
   case kind::REGEXP_NONE: return "re.none";
   case kind::REGEXP_ALL: return "re.all";
   case kind::REGEXP_ALLCHAR: return "re.allchar";

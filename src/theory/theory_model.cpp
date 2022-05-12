@@ -62,6 +62,7 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
+  d_equalityEngine->addFunctionKind(kind::STRING_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {

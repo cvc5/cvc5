@@ -140,8 +140,10 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_IN_REGEXP, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TO_CODE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::SEQ_UNIT, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_UNIT, eagerEval);
   // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
+  d_equalityEngine->addFunctionKind(kind::STRING_NTH, false);
   // extended functions
   d_equalityEngine->addFunctionKind(kind::STRING_CONTAINS, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_LEQ, eagerEval);
