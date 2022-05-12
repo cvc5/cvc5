@@ -1587,7 +1587,7 @@ def checkSimpleSeparationConstraints(slv):
     heap = slv.mkTerm(Kind.SEP_PTO, p, x)
     slv.assertFormula(heap)
     nil = slv.mkSepNil(integer)
-    slv.assertFormula(nil.eqTerm(slv.mkReal(5)))
+    slv.assertFormula(nil.eqTerm(slv.mkInteger(5)))
     slv.checkSat()
 
 

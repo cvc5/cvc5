@@ -177,13 +177,13 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
 
 void OptionsHandler::decreaseVerbosity(const std::string& flag, bool value)
 {
-  d_options->base.verbosity -= 1;
+  d_options->writeBase().verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
 void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
 {
-  d_options->base.verbosity += 1;
+  d_options->writeBase().verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
@@ -201,9 +201,9 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
 #endif /* CVC5_STATISTICS_ON */
   if (!value)
   {
-    d_options->base.statisticsAll = false;
-    d_options->base.statisticsEveryQuery = false;
-    d_options->base.statisticsInternal = false;
+    d_options->writeBase().statisticsAll = false;
+    d_options->writeBase().statisticsEveryQuery = false;
+    d_options->writeBase().statisticsInternal = false;
   }
 }
 
@@ -221,7 +221,7 @@ void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
 #endif /* CVC5_STATISTICS_ON */
   if (value)
   {
-    d_options->base.statistics = true;
+    d_options->writeBase().statistics = true;
   }
 }
 
@@ -237,7 +237,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   {
     if (optarg == "help")
     {
-      d_options->driver.showTraceTags = true;
+      d_options->writeDriver().showTraceTags = true;
       showTraceTags("", true);
       return;
     }
@@ -268,7 +268,7 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
   {
     if (optarg == "help")
     {
-      d_options->driver.showDebugTags = true;
+      d_options->writeDriver().showDebugTags = true;
       showDebugTags("", true);
       return;
     }
@@ -288,7 +288,7 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
   size_t tagid = static_cast<size_t>(optarg);
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
-  d_options->base.outputTagHolder.set(tagid);
+  d_options->writeBase().outputTagHolder.set(tagid);
 }
 
 void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
@@ -301,7 +301,7 @@ void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 void OptionsHandler::setResourceWeight(const std::string& flag,
                                        const std::string& optarg)
 {
-  d_options->base.resourceWeightHolder.emplace_back(optarg);
+  d_options->writeBase().resourceWeightHolder.emplace_back(optarg);
 }
 
 void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
@@ -352,7 +352,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
     }
     if (!d_options->bv.bitvectorToBoolWasSetByUser)
     {
-      d_options->bv.bitvectorToBool = true;
+      d_options->writeBv().bitvectorToBool = true;
     }
   }
 }

@@ -1390,51 +1390,60 @@ class CVC5_EXPORT Term
   int32_t getRealOrIntegerValueSign() const;
   /**
    * @return True if the term is an integer value that fits within int32_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integer value.
    */
   bool isInt32Value() const;
   /**
-   * Get the `int32_t` representation of  this integer value.
+   * Get the `int32_t` representation of this integral value.
    * @note Asserts isInt32Value().
    * @return This integer value as a `int32_t`.
    */
   int32_t getInt32Value() const;
   /**
    * @return True if the term is an integer value that fits within uint32_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integral value.
    */
   bool isUInt32Value() const;
   /**
-   * Get the `uint32_t` representation of this integer value.
+   * Get the `uint32_t` representation of this integral value.
    * @note Asserts isUInt32Value().
    * @return This integer value as a `uint32_t`.
    */
   uint32_t getUInt32Value() const;
   /**
    * @return True if the term is an integer value that fits within int64_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integral value.
    */
   bool isInt64Value() const;
   /**
-   * Get the `int64_t` representation of this integer value.
+   * Get the `int64_t` representation of this integral value.
    * @note Asserts isInt64Value().
    * @return This integer value as a `int64_t`.
    */
   int64_t getInt64Value() const;
   /**
    * @return True if the term is an integer value that fits within uint64_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integral value.
    */
   bool isUInt64Value() const;
   /**
-   * Get the `uint64_t` representation of this integer value.
+   * Get the `uint64_t` representation of this integral value.
    * @note Asserts isUInt64Value().
    * @return This integer value as a `uint64_t`.
    */
   uint64_t getUInt64Value() const;
   /**
-   * @return True if the term is an integer value.
+   * @return True if the term is an integer constant or a real constant that
+   * has an integral value.
    */
   bool isIntegerValue() const;
   /**
    * @note Asserts isIntegerValue().
-   * @return The integer term in (decimal) string representation.
+   * @return The integral term in (decimal) string representation.
    */
   std::string getIntegerValue() const;
 

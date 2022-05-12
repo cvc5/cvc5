@@ -147,7 +147,7 @@ protected:
                              std::vector< Node > & cond, std::vector<Node> & val );
   int isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
   bool doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
-  Node mkCond( std::vector< Node > & cond );
+  Node mkCond(const std::vector<Node>& cond);
   Node mkCondDefault( FirstOrderModelFmc * fm, Node f );
   void mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond );
   void mkCondVec( Node n, std::vector< Node > & cond );
