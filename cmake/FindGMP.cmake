@@ -40,6 +40,16 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   )
 
   check_system_version("GMP")
+
+  TRY_COMPILE(DOES_WORK "${DEPS_BASE}/try_compile/GMP-EP"
+    "${CMAKE_CURRENT_LIST_DIR}/deps-utils/gmp-test.cpp"
+    CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    LINK_LIBRARIES gmpxx gmp
+  )
+  if(NOT ${DOES_WORK})
+    message(VERBOSE "System version for ${name} does not work in the selected configuration. Maybe we are cross-compiling?")
+    set(GMP_FOUND_SYSTEM FALSE)
+  endif()
 endif()
 
 if(NOT GMP_FOUND_SYSTEM)
