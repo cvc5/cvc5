@@ -458,7 +458,7 @@ bool TheoryStrings::collectModelInfoType(
           // beginning of this method
           Node argVal = m->getRepresentative(nfe.d_nf[0][0]);
           Assert(nfe.d_nf[0].getKind() == SEQ_UNIT);
-          assignedValue = rewrite(utils::mkUnit(eqc.getType(), argVal));
+          assignedValue = utils::mkUnit(eqc.getType(), argVal);
         }
         else
         {
@@ -468,6 +468,7 @@ bool TheoryStrings::collectModelInfoType(
           // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
           assignedValue = nfe.d_nf[0][0];
         }
+        assignedValue = rewrite(assignedValue);
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -791,7 +792,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
       skChildren.push_back(utils::mkUnit(tn, kv));
       cacheVals.pop_back();
     }
-    return utils::mkConcat(skChildren, r.getType());
+    return utils::mkConcat(skChildren, tn);
   }
   // FIXME
   return Node::null();
