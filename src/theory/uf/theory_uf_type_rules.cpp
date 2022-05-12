@@ -133,6 +133,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
     TypeNode aType = n[1].getType(check);
     if (aType != fType[0])
     {
+      Assert (false);
       throw TypeCheckingExceptionPrivate(
           n, "argument does not match function type");
     }
