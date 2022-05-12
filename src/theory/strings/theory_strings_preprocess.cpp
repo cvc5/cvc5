@@ -953,7 +953,7 @@ Node StringsPreprocess::reduce(Node t,
       Node ta = t[r];
       Node tb = t[1 - r];
       substr[r] = nm->mkNode(STRING_SUBSTR, ta, zero, k);
-      code[r] = mkCodePointAtIndex(ta, k);
+      code[r] = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, ta, k, one));
       conj.push_back(nm->mkNode(LEQ, k, nm->mkNode(STRING_LENGTH, ta)));
     }
     conj.push_back(substr[0].eqNode(substr[1]));
@@ -1064,7 +1064,7 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  //return nm->mkNode(SEQ_NTH, x, i);
+  return nm->mkNode(SEQ_NTH, x, i);
   Node subs = nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(1));
   return nm->mkNode(STRING_TO_CODE, subs);
 }

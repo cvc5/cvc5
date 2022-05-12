@@ -163,6 +163,7 @@ void TheoryStrings::finishInit()
 
   // memberships are not relevant for model building
   d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
+  d_valuation.setIrrelevantKind(kind::STRING_LEQ);
   // seq nth doesn't always evaluate
   d_valuation.setUnevaluatedKind(SEQ_NTH);
 }
@@ -1163,7 +1164,8 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  if (atom.getKind() == EQUAL)
+  Kind ak = atom.getKind();
+  if (ak == EQUAL)
   {
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
@@ -1172,7 +1174,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
   }
-  if (atom.getKind() == STRING_FROM_CODE)
+  if (ak == STRING_FROM_CODE)
   {
     // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
@@ -1189,10 +1191,20 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     lems.push_back(SkolemLemma(tnk, k));
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
+  else if (ak == STRING_TO_CODE)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node t = atom[0];
+    Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
+    Node ret = nm->mkNode(
+        ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+  }
+  
   TrustNode ret;
   Node atomRet = atom;
   if (options().strings.regExpElim != options::RegExpElimMode::OFF
-      && atom.getKind() == STRING_IN_REGEXP)
+      && ak == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
     ret = d_regexp_elim.eliminateTrusted(atomRet);
