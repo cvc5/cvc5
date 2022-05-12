@@ -67,18 +67,14 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
       d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->integerType()));
   Node singletonReal =
       d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->realType()));
-  Node intConstant = d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1));
+  Node intConstant = d_nodeManager->mkConstReal(Rational(1));
   Node realConstant =
-      d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1, 5));
+      d_nodeManager->mkConstReal(Rational(1, 5));
   // (singleton (singleton_op Real) 1)
   ASSERT_NO_THROW(
-      d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant));
-  // (singleton (singleton_op Int) (/ 1 5))
-  ASSERT_DEATH(
-      d_nodeManager->mkSingleton(d_nodeManager->integerType(), realConstant),
-      "Invalid operands for mkSingleton");
+      d_nodeManager->mkNode(SET_SINGLETON, intConstant));
 
-  Node n = d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant);
+  Node n = d_nodeManager->mkNode(SET_SINGLETON, intConstant);
   // the type of (singleton (singleton_op Real) 1) is (Set Real)
   ASSERT_TRUE(n.getType()
               == d_nodeManager->mkSetType(d_nodeManager->realType()));
