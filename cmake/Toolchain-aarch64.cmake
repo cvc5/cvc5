@@ -15,8 +15,6 @@
 # Use: cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake
 ##
 
-message(STATUS "Doing arm64 Toolchain for ${CMAKE_SYSTEM_NAME}")
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 	SET(CMAKE_SYSTEM_NAME Linux)
@@ -39,15 +37,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-	message(STATUS "Doing arm64 Toolchain for ${CMAKE_SYSTEM_NAME} on macos")
-
 	SET(CMAKE_CROSSCOMPILING_MACOS TRUE)
-	SET(CMAKE_SYSTEM_NAME Darwin CACHE INTERNAL "")
-	SET(CMAKE_SYSTEM_PROCESSOR arm64 CACHE INTERNAL "")
+	SET(CMAKE_SYSTEM_NAME Darwin)
+	SET(CMAKE_SYSTEM_PROCESSOR arm64)
 
-	set(CMAKE_OSX_ARCHITECTURES arm64 CACHE INTERNAL "")
-  	set(TOOLCHAIN_PREFIX arm64-apple-darwin CACHE INTERNAL "")
+	set(CMAKE_OSX_ARCHITECTURES arm64)
+  	set(TOOLCHAIN_PREFIX aarch64-apple-darwin)
 
 endif()
-
-message(STATUS "Are we crosscompiling now? ${CMAKE_CROSSCOMPILING_MACOS}")
