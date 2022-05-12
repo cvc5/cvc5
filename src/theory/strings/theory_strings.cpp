@@ -550,6 +550,7 @@ bool TheoryStrings::collectModelInfoType(
             }
             if (nextIndex > currIndex)
             {
+              Trace("strings-model") << "Make skeleton from " << currIndex << " ... " << nextIndex << std::endl;
               // allocate arbitrary value to fill gap
               Assert(conSeq != nullptr);
               Node base = eqc;
@@ -771,15 +772,16 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
                                        size_t currIndex,
                                        size_t nextIndex)
 {
+  Assert (nextIndex>currIndex);
   Assert(!r.isNull());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode tn = r.getType();
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(r);
+  std::vector<Node> skChildren;
   if (tn.isSequence())
   {
-    std::vector<Node> cacheVals;
-    cacheVals.push_back(r);
-    std::vector<Node> skChildren;
     TypeNode etn = tn.getSequenceElementType();
     for (size_t i = currIndex; i < nextIndex; i++)
     {
@@ -789,11 +791,20 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
       skChildren.push_back(utils::mkUnit(tn, kv));
       cacheVals.pop_back();
     }
-    return utils::mkConcat(skChildren, tn);
   }
-  Unreachable();
-  // FIXME
-  return Node::null();
+  else
+  {
+    TypeNode intType = nm->integerType();
+    for (size_t i = currIndex; i < nextIndex; i++)
+    {
+      cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
+      Node kv = sm->mkSkolemFunction(
+          SkolemFunId::SEQ_MODEL_BASE_ELEMENT, intType, cacheVals);
+      skChildren.push_back(utils::mkUnit(tn, kv));
+      cacheVals.pop_back();
+    }
+  }
+  return utils::mkConcat(skChildren, tn);
 }
 
 /////////////////////////////////////////////////////////////////////////////
