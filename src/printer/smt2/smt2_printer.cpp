@@ -94,7 +94,7 @@ static void toStreamRational(std::ostream& out,
   }
   else
   {
-    Assert (isReal);
+    Assert(isReal);
     out << "(/ ";
     if (neg)
     {
