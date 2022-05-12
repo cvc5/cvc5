@@ -15,6 +15,8 @@
 # Use: cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake
 ##
 
+message(STATUS "Doing arm64 Toolchain for ${CMAKE_SYSTEM_NAME}")
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 	SET(CMAKE_SYSTEM_NAME Linux)
@@ -36,6 +38,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+
+	message(STATUS "Doing arm64 Toolchain for ${CMAKE_SYSTEM_NAME} on macos")
 
 	SET(CMAKE_SYSTEM_NAME Darwin)
 	SET(CMAKE_SYSTEM_PROCESSOR arm64)
