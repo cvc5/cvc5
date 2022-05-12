@@ -293,8 +293,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    // maps to constant of comparable type
-    Assert(p.first.getType().isComparableTo(p.second.getType()));
+    // maps to constant of same type
+    Assert(p.first.getType() == p.second.getType());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -395,8 +395,7 @@ bool TheoryArith::sanityCheckIntegerModel()
   {
     for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      // will change to strict type equal
-      Assert(p.second.getType().isSubtypeOf(p.second.getType()));
+      Assert(p.first.getType() == p.second.getType());
     }
   }
   bool addedLemma = false;
