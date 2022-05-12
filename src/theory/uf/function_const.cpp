@@ -79,11 +79,8 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
             a[2], bvl, bvlIndex + 1, visited);
         if (!val.isNull())
         {
-          Assert(!TypeNode::leastCommonTypeNode(a[1].getType(),
-                                                bvl[bvlIndex].getType())
-                      .isNull());
-          Assert(!TypeNode::leastCommonTypeNode(val.getType(), body.getType())
-                      .isNull());
+          Assert(a[1].getType()==bvl[bvlIndex].getType());
+          Assert(val.getType()==body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
           ret = NodeManager::currentNM()->mkNode(kind::ITE, cond, val, body);
         }
