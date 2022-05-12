@@ -17,8 +17,8 @@
 
 #include <sstream>
 
-#include "expr/skolem_manager.h"
 #include "base/configuration.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 

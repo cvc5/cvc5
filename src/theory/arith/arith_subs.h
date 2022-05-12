@@ -41,6 +41,7 @@ class ArithSubs : public Subs
  public:
   /** Return the result of this substitution on n */
   Node apply(const Node& n) const override;
+
  protected:
   /** check if the substitution v -> s is permitted by this class */
   void checkSubs(const Node& v, const Node& s) override;

@@ -22,8 +22,8 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/arith_subs.h"
 #include "smt/env_obj.h"
+#include "theory/arith/arith_subs.h"
 
 namespace cvc5::context {
 class Context;
