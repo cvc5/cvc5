@@ -119,7 +119,7 @@ Node NodeConverter::convert(Node n)
         Node cret = postConvert(ret);
         if (!cret.isNull() && ret != cret)
         {
-          AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
+          AlwaysAssert(cret.getType()==ret.getType())
               << "Converting " << ret << " to " << cret << " changes type";
           Trace("nconv-debug2") << "..post-rewrite changed " << ret << " into "
                                 << cret << std::endl;
