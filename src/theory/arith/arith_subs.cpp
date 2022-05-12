@@ -21,9 +21,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-Node ArithSubs::apply(Node n) const 
+Node ArithSubs::apply(Node n) const
 {
-
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::vector<TNode> visit;
@@ -98,9 +97,10 @@ Node ArithSubs::apply(Node n) const
   return visited[n];
 }
 
-void ArithSubs::checkSubs(const Node& v, const Node& s) {
-  Assert (v.getType().isRealOrInt());
-  Assert (s.getType().isRealOrInt());
+void ArithSubs::checkSubs(const Node& v, const Node& s)
+{
+  Assert(v.getType().isRealOrInt());
+  Assert(s.getType().isRealOrInt());
 }
 
 }  // namespace arith
