@@ -95,7 +95,7 @@ if(NOT GMP_FOUND_SYSTEM)
     URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
-      ${CMAKE_COMMAND} -E env CC_FOR_BUILD=cc
+      ${CMAKE_COMMAND} -E env ${CONFIGURE_ENV}
         <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
