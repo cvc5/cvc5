@@ -13,7 +13,7 @@
  * Implementation of common functions for dealing with nodes.
  */
 
-#include "arith_utilities.h"
+#include "theory/arith/arith_utilities.h"
 
 #include <cmath>
 
