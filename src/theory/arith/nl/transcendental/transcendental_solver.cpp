@@ -20,6 +20,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "theory/arith/arith_subs.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_state.h"
@@ -96,7 +97,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
-  Subs subs;
+  ArithSubs subs;
   for (const auto& sub : d_tstate.d_trPurify)
   {
     subs.add(sub.first, sub.second);
@@ -110,7 +111,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     Node pa = a;
     if (!subs.empty())
     {
-      pa = arithSubstitute(pa, subs);
+      pa = subs.apply(pa);
       pa = rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
