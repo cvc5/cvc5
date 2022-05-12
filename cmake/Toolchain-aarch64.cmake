@@ -42,6 +42,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	SET(CMAKE_SYSTEM_PROCESSOR arm64)
 
 	set(CMAKE_OSX_ARCHITECTURES arm64)
-  	set(TOOLCHAIN_PREFIX aarch64-apple-darwin)
+  	set(TOOLCHAIN_PREFIX arm64-apple-darwin)
 
 endif()
