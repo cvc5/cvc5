@@ -313,8 +313,7 @@ Node LfscNodeConverter::postConvert(Node n)
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      Node u = nm->mkSeqUnit(tn.getSequenceElementType(),
-                             postConvert(charVec[size - (i + 1)]));
+      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size - (i + 1)]));
       if (size == 1)
       {
         // singleton case

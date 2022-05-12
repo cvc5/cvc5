@@ -467,7 +467,7 @@ bool TheoryStrings::collectModelInfoType(
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
         assignedValue = rewrite(
-            nm->mkSeqUnit(eqc.getType().getSequenceElementType(), argVal));
+            nm->mkNode(SEQ_UNIT, argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -521,7 +521,7 @@ bool TheoryStrings::collectModelInfoType(
               continue;
             }
             usedWrites.insert(ivalue);
-            Node wsunit = nm->mkSeqUnit(etype, w.second);
+            Node wsunit = nm->mkNode(SEQ_UNIT, w.second);
             writes.emplace_back(ivalue, wsunit);
           }
           // sort based on index value
@@ -758,7 +758,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v, "smv");
-    skChildren.push_back(nm->mkSeqUnit(etn, kv));
+    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
   }
   return utils::mkConcat(skChildren, c.getType());
 }
@@ -780,7 +780,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
     Node kv = sm->mkSkolemFunction(
         SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
-    skChildren.push_back(nm->mkSeqUnit(etn, kv));
+    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
     cacheVals.pop_back();
   }
   return utils::mkConcat(skChildren, r.getType());

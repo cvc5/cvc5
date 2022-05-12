@@ -1145,36 +1145,6 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   }
 }
 
-Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node sunit = mkNode(kind::SEQ_UNIT, n);
-  return sunit;
-}
-
-Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkSingleton. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node singleton = mkNode(kind::SET_SINGLETON, n);
-  return singleton;
-}
-
-Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkBag. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node bag = mkNode(kind::BAG_MAKE, n, m);
-  return bag;
-}
-
 bool NodeManager::hasOperator(Kind k)
 {
   switch (kind::MetaKind mk = kind::metaKindOf(k))
