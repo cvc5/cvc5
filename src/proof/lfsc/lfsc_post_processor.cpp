@@ -258,14 +258,14 @@ bool LfscProofPostprocessCallback::update(Node res,
           size_t ii = (nchildren - 1) - i;
           Trace("lfsc-pp-cong") << "Process child " << ii << std::endl;
           Node uop = op;
-          // special case: each bv concat in the chain has a different type,
+          // special case: applications of the following kinds in the chain may have a different type,
           // so remake the operator here.
-          if (k == kind::BITVECTOR_CONCAT)
+          if (k == kind::BITVECTOR_CONCAT || k == ADD || k == MULT || k == NONLINEAR_MULT)
           {
             // we get the operator of the next argument concatenated with the
             // current accumulated remainder.
             Node currApp =
-                nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
+                nm->mkNode(k, children[ii][0], currEq[0]);
             uop = d_tproc.getOperatorOfTerm(currApp);
           }
           Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0]
