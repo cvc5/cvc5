@@ -1196,11 +1196,10 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     NodeManager* nm = NodeManager::currentNM();
     Node t = atom[0];
     Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
-    Node ret = nm->mkNode(
-        ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
+    Node ret = nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
-  
+
   TrustNode ret;
   Node atomRet = atom;
   if (options().strings.regExpElim != options::RegExpElimMode::OFF

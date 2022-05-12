@@ -130,13 +130,13 @@ Node Word::getNth(TNode x, size_t n)
   if (k == CONST_STRING)
   {
     const std::vector<unsigned>& vec = x.getConst<String>().getVec();
-    Assert (n<vec.size());
+    Assert(n < vec.size());
     return NodeManager::currentNM()->mkConstInt(vec[n]);
   }
   else if (k == CONST_SEQUENCE)
   {
     const std::vector<Node>& vec = x.getConst<Sequence>().getVec();
-    Assert (n<vec.size());
+    Assert(n < vec.size());
     return vec[n];
   }
   Unimplemented();
