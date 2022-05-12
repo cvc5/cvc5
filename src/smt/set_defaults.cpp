@@ -470,8 +470,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
-      opts.writeSmt().simplificationMode = qf_sat ? options::SimplificationMode::NONE
-                                           : options::SimplificationMode::BATCH;
+      opts.writeSmt().simplificationMode =
+          qf_sat ? options::SimplificationMode::NONE
+                 : options::SimplificationMode::BATCH;
     }
   }
 
@@ -523,7 +524,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
              && !logic.isQuantified()))
     {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
-      opts.writeTheory().theoryOfMode = options::TheoryOfMode::THEORY_OF_TERM_BASED;
+      opts.writeTheory().theoryOfMode =
+          options::TheoryOfMode::THEORY_OF_TERM_BASED;
     }
   }
 
@@ -760,7 +762,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
                     "--strings-fmf enabled"
                  << std::endl;
-    opts.writeStrings().stringProcessLoopMode = options::ProcessLoopMode::SIMPLE;
+    opts.writeStrings().stringProcessLoopMode =
+        options::ProcessLoopMode::SIMPLE;
   }
 
   // !!! All options that require disabling models go here
@@ -1470,7 +1473,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // apply conservative quantifiers splitting
     if (!opts.quantifiers.quantDynamicSplitWasSetByUser)
     {
-      opts.writeQuantifiers().quantDynamicSplit = options::QuantDSplitMode::DEFAULT;
+      opts.writeQuantifiers().quantDynamicSplit =
+          options::QuantDSplitMode::DEFAULT;
     }
     if (!opts.quantifiers.eMatchingWasSetByUser)
     {
@@ -1670,7 +1674,8 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   // counterexample-guided instantiation for sygus
   if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
   {
-    opts.writeQuantifiers().cegqiSingleInvMode = options::CegqiSingleInvMode::USE;
+    opts.writeQuantifiers().cegqiSingleInvMode =
+        options::CegqiSingleInvMode::USE;
   }
   if (!opts.quantifiers.conflictBasedInstWasSetByUser)
   {
@@ -1709,7 +1714,8 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // if doing abduction, we should filter strong solutions
     if (!opts.quantifiers.sygusFilterSolModeWasSetByUser)
     {
-      opts.writeQuantifiers().sygusFilterSolMode = options::SygusFilterSolMode::STRONG;
+      opts.writeQuantifiers().sygusFilterSolMode =
+          options::SygusFilterSolMode::STRONG;
     }
     // we must use basic sygus algorithms, since e.g. we require checking
     // a sygus side condition for consistency with axioms.
@@ -1740,11 +1746,13 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     }
     if (!opts.quantifiers.sygusInvTemplModeWasSetByUser)
     {
-      opts.writeQuantifiers().sygusInvTemplMode = options::SygusInvTemplMode::NONE;
+      opts.writeQuantifiers().sygusInvTemplMode =
+          options::SygusInvTemplMode::NONE;
     }
     if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
     {
-      opts.writeQuantifiers().cegqiSingleInvMode = options::CegqiSingleInvMode::NONE;
+      opts.writeQuantifiers().cegqiSingleInvMode =
+          options::CegqiSingleInvMode::NONE;
     }
   }
   // do not miniscope
