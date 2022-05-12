@@ -63,17 +63,18 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
 
   switch (litType)
   {
-    case decision: 
+    case DECISION:
     {
       unfilteredLiterals = d_propEngine->getPropDecisions();
       break;
     }
-    case heap:
+    case HEAP:
     { 
       unfilteredLiterals = d_propEngine->getPropOrderHeap(); 
       break;
     }
-    case zll: {
+    case ZLL:
+    {
       unfilteredLiterals = d_propEngine->getLearnedZeroLevelLiterals(
           modes::LearnedLitType::INPUT);
       break;
@@ -81,7 +82,7 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
     default: return filteredLiterals;
   }
 
-  if (litType == heap || litType == decision)
+  if (litType == HEAP || litType == DECISION)
   {
     for (const Node& n : unfilteredLiterals)
     {
@@ -161,7 +162,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
   // If we're not at the last cube
   if (d_numPartitionsSoFar < d_numPartitions - 1)
   {
-    std::vector<Node> literals = collectLiterals(decision);
+    std::vector<Node> literals = collectLiterals(DECISION);
 
     // Make sure we have enough literals.
     // Conflict size can be set through options, but the default is log base 2
@@ -320,7 +321,7 @@ TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, b
       Node conj = NodeManager::currentNM()->mkAnd(row);
       if (emitZLL)
       {
-        std::vector<Node> zllLiterals = collectLiterals(zll);
+        std::vector<Node> zllLiterals = collectLiterals(ZLL);
         zllLiterals.push_back(conj);
         Node zllConj = NodeManager::currentNM()->mkAnd(zllLiterals); 
         emitCube(zllConj);
@@ -361,9 +362,9 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
   switch (options().parallel.partitionStrategy)
   {
     case options::PartitionMode::HEAP_TRAIL:
-      return makeFullTrailPartitions(/*litType=*/heap, emitZLL);
+      return makeFullTrailPartitions(/*litType=*/HEAP, emitZLL);
     case options::PartitionMode::DECISION_TRAIL:
-      return makeFullTrailPartitions(/*litType=*/decision, emitZLL);
+      return makeFullTrailPartitions(/*litType=*/DECISION, emitZLL);
     case options::PartitionMode::STRICT_CUBE:
       return makeRevisedPartitions(/*strict=*/true, emitZLL);
     case options::PartitionMode::REVISED:
