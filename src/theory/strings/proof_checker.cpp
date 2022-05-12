@@ -487,29 +487,10 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       else if (c.isConst())
       {
         TypeNode ctn = c.getType();
-        if (ctn.isSequence())
-        {
-          // notice that Word::getChars is not the right call here, since it
-          // gets a vector of sequences of length one. We actually need to
-          // extract the character, which is a sequence-specific operation.
-          const Sequence& sx = c.getConst<Sequence>();
-          const std::vector<Node>& vec = sx.getVec();
-          if (vec.size() == 1)
-          {
-            // the character of the single character sequence
-            t[i] = vec[0];
-          }
-        }
-        else if (ctn.isString())
-        {
-          const String& sx = c.getConst<String>();
-          const std::vector<unsigned>& vec = sx.getVec();
-          if (vec.size() == 1)
-          {
-            // the character of the single character string
-            t[i] = nm->mkConstInt(vec[0]);
-          }
-        }
+        // notice that Word::getChars is not the right call here, since it
+        // gets a vector of sequences of length one. We actually need to
+        // extract the character.
+        t[i] = Word::getNth(c, 0);
       }
       if (t[i].isNull())
       {

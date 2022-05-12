@@ -2011,15 +2011,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           break;
         }
         // get the element of the character
-        if (vchars[0].getKind() == CONST_SEQUENCE)
-        {
-          vc = vchars[0].getConst<Sequence>().getVec()[0];
-        }
-        else
-        {
-          Assert(vchars[0].getKind() == CONST_STRING);
-          vc = nm->mkConstInt(vchars[0].getConst<String>().getVec()[0]);
-        }
+        vc = Word::getNth(vchars[0], 0);
       }
       else
       {

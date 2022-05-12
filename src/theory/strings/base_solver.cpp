@@ -108,15 +108,7 @@ void BaseSolver::checkInit()
                 Assert(oval.getKind() == SEQ_UNIT
                        || oval.getKind() == STRING_UNIT);
                 s = oval[0];
-                if (oval.getKind() == SEQ_UNIT)
-                {
-                  t = cchars[0].getConst<Sequence>().getVec()[0];
-                }
-                else
-                {
-                  t = NodeManager::currentNM()->mkConstInt(
-                      cchars[0].getConst<String>().getVec()[0]);
-                }
+                t = Word::getNth(cchars[0], 0);
                 // oval is congruent (ignored) in this context
                 d_congruent.insert(oval);
               }
