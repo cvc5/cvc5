@@ -310,16 +310,16 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     }
   }
   ArithSubs tmp;
-  tmp.add(v, s);
+  tmp.addArith(v, s);
   for (auto& sub : d_substitutions.d_subs)
   {
-    Node ms = tmp.apply(sub);
+    Node ms = tmp.applyArith(sub);
     if (ms != sub)
     {
       sub = rewrite(ms);
     }
   }
-  d_substitutions.add(v, s);
+  d_substitutions.addArith(v, s);
   return true;
 }
 
@@ -677,7 +677,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Assert(boundn[0].getConst<Rational>()
                <= boundn[1].getConst<Rational>());
         Node s;
-        qsub.add(v, Node());
+        qsub.addArith(v, Node());
         if (cmp[0] != cmp[1])
         {
           Assert(!cmp[0] && cmp[1]);
@@ -695,7 +695,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
             for (unsigned r = 0; r < 2; r++)
             {
               qsub.d_subs.back() = boundn[r];
-              Node ts = qsub.apply(t);
+              Node ts = qsub.applyArith(t);
               tcmpn[r] = rewrite(ts);
             }
             Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
@@ -734,7 +734,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   }
   if (!qsub.empty())
   {
-    Node slit = qsub.apply(lit);
+    Node slit = qsub.applyArith(lit);
     slit = rewrite(slit);
     return simpleCheckModelLit(slit);
   }
@@ -1129,7 +1129,7 @@ Node NlModel::getSubstitutedForm(TNode s) const
     // no substitutions, just return s
     return s;
   }
-  return rewrite(d_substitutions.apply(s));
+  return rewrite(d_substitutions.applyArith(s));
 }
 
 }  // namespace nl

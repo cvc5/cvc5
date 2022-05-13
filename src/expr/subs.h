@@ -60,7 +60,7 @@ class Subs
   /** Append the substitution s to this */
   void append(Subs& s);
   /** Return the result of this substitution on n */
-  virtual Node apply(const Node& n) const;
+  Node apply(const Node& n) const;
   /** Return the result of the reverse of this substitution on n */
   Node rapply(Node n) const;
   /** Apply this substitution to all nodes in the range of s */
@@ -78,10 +78,6 @@ class Subs
   /** The data */
   std::vector<Node> d_vars;
   std::vector<Node> d_subs;
-
- protected:
-  /** check if the substitution v -> s is permitted by this class */
-  virtual void checkSubs(const Node& v, const Node& s);
 };
 
 /**

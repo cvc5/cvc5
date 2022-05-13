@@ -100,7 +100,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
   ArithSubs subs;
   for (const auto& sub : d_tstate.d_trPurify)
   {
-    subs.add(sub.first, sub.second);
+    subs.addArith(sub.first, sub.second);
   }
 
   // initialize representation of assertions
@@ -111,7 +111,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     Node pa = a;
     if (!subs.empty())
     {
-      pa = subs.apply(pa);
+      pa = subs.applyArith(pa);
       pa = rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
