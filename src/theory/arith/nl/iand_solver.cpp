@@ -71,9 +71,8 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
     }
     size_t bsize = a.getOperator().getConst<IntAnd>().d_size;
     d_iands[bsize].push_back(a);
+    Trace("iand-mv") << "- " << a << std::endl;
   }
-
-  Trace("iand") << "We have " << d_iands.size() << " IAND terms." << std::endl;
 }
 
 void IAndSolver::checkInitialRefine()
