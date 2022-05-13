@@ -237,13 +237,7 @@ uint64_t DotPrinter::printInternal(
 
     // Search if the current hash is in the vector
     std::reverse_iterator<std::vector<size_t>::iterator> it;
-    for (it = ancestorHashs.rbegin(); it != ancestorHashs.rend(); ++it)
-    {
-      if (*it == currentHash)
-      {
-        break;
-      }
-    }
+    it = std::find(ancestorHashs.rbegin(), ancestorHashs.rend(), currentHash);
 
     // Register the current proof node hash in the ancestor vector
     ancestorHashs.push_back(currentHash);
