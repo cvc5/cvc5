@@ -2670,6 +2670,8 @@ set(regress_1_tests
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
   regress1/strings/tolower-find.smt2
+  regress1/strings/to_upper_12.smt2
+  regress1/strings/to_upper_over_concat.smt2
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
