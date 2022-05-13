@@ -274,6 +274,16 @@ class TheorySep : public Theory {
   std::map< Node, Node > d_tmodel;
   std::map< Node, Node > d_pto_model;
 
+  /**
+   * A heap assert info is maintained per set equivalence class. It is
+   * used to ensure that list of positive and negative pto constraints for
+   * all label sets that are equal to a given one are satisfied.
+   *
+   * Note that sets referring to subsets of different heaps may become equated,
+   * e.g. if wand constraints are present. Thus, we keep a list of pto
+   * constraints, which track their labels. In the checkPto method, we
+   * distinguish whether the pto constraints refer to the same heap.
+   */
   class HeapAssertInfo {
   public:
    HeapAssertInfo(context::Context* c);
@@ -330,7 +340,20 @@ class TheorySep : public Theory {
   std::map< Node, std::vector< Node > > d_heap_locs_nptos;
 
   void debugPrintHeap( HeapInfo& heap, const char * c );
-  bool checkPto(HeapAssertInfo* ei, Node p, bool polarity);
+  /**
+   * This checks the impact of adding the pto assertion p to heap assert info e,
+   * where p has been asserted with the given polarity.
+   *
+   * This method implements two propagation schemes for pairs of 
+   * positive/positive and positive/negative pto constraints.
+   * 
+   * @param e The heap assert info
+   * @param p The (label) pto constraint
+   * @param polarity Its asserted polarity
+   * @return true if p should be added to the list of constraints in e, false
+   * if the constraint was redundant.
+   */
+  bool checkPto(HeapAssertInfo* e, Node p, bool polarity);
   void computeLabelModel( Node lbl );
   Node instantiateLabel(Node n,
                         Node o_lbl,
