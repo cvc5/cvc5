@@ -100,6 +100,7 @@ class PartitionGenerator : protected EnvObj
  * Returns the d_cubes, the cubes that have been created for partitioning the
  * original problem.
  */
+
 std::vector<Node> getPartitions() const { return d_cubes; }
 
 /**
