@@ -249,8 +249,10 @@ Node IAndSolver::valueBasedLemma(Node i)
   Node ym = nm->mkNode(kind::INTS_MODULUS, y, twok);
 
   // (=>
-  //   (and (= (mod x n) (mod c1 n)) (= (mod y n) (mod c2 n)))
-  //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 n) (mod c2 n))))
+  //   (and (= (mod x 2^n) (mod c1 2^n)) (= (mod y 2^n) (mod c2 2^n)))
+  //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 2^n) (mod c2 2^n))))
+  // Note we use mod above since it ensures the the set of possible literals
+  // introduced is finite, since there are finitely many values mod 2^n.
   Node lem = nm->mkNode(IMPLIES,
                         nm->mkNode(AND, xm.eqNode(valX), ym.eqNode(valY)),
                         i.eqNode(valC));
