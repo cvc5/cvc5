@@ -50,7 +50,17 @@ class PartitionGenerator : protected EnvObj
   TrustNode check(Theory::Effort e);
 
  private:
-  enum LiteralListType { heap, decision, zll};
+  /* LiteralListType is used to specify where to pull literals from when calling
+   * collectLiterals. HEAP for the order_heap in the SAT solver, DECISION for
+   * the decision trail in the SAT solver, and ZLL for the zero-level learned
+   * literals.
+   */
+  enum LiteralListType
+  {
+    HEAP,
+    DECISION,
+    ZLL
+  };
   /**
    * Increment d_numPartitionsSoFar and print the cube to 
    * the output file specified by --write-partitions-to. 
