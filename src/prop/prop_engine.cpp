@@ -341,6 +341,11 @@ std::vector<Node> PropEngine::getPropDecisions() const
   return decisions;
 }
 
+std::vector<Node> PropEngine::getPropOrderHeap() const
+{
+  return d_satSolver->getOrderHeap();
+}
+
 int32_t PropEngine::getDecisionLevel(Node lit) const
 {
   Assert(isSatLiteral(lit));
@@ -715,6 +720,11 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
 std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
 {
   return d_theoryProxy->getLearnedZeroLevelLiteralsForRestart();
+}
+
+modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
+{
+  return d_theoryProxy->getLiteralType(lit);
 }
 
 }  // namespace prop
