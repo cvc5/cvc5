@@ -206,14 +206,6 @@ void TheoryDatatypes::postCheck(Effort level)
       {
         return;
       }
-      Trace("datatypes-proc") << "Check instantiate..." << std::endl;
-      checkInstantiate();
-      Trace("datatypes-proc") << "...finish check instantiate" << std::endl;
-      d_im.process();
-      if (d_state.isInConflict() || d_im.hasSentLemma())
-      {
-        return;
-      }
     } while (d_im.hasSentFact());
 
     //check for splits
@@ -368,7 +360,8 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = NodeManager::currentNM()->mkAnd(rew);
+      nn = rew.size()==0 ? d_true :
+                ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
     }
     if (in != nn)
     {
@@ -427,7 +420,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
     return;
   }
   Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
-  Assert(d_equalityEngine->areEqual(t1, t2));
+  Assert(areEqual(t1, t2));
   TNode trep1 = t1;
   TNode trep2 = t2;
   EqcInfo* eqc2 = getOrMakeEqcInfo(t2);
@@ -470,11 +463,11 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       }
       else
       {
-        Assert(d_equalityEngine->areEqual(cons1, cons2));
+        Assert(areEqual(cons1, cons2));
         // do unification
         for (size_t i = 0, nchild = cons1.getNumChildren(); i < nchild; i++)
         {
-          if (!d_equalityEngine->areEqual(cons1[i], cons2[i]))
+          if (!areEqual(cons1[i], cons2[i]))
           {
             Node eq = cons1[i].eqNode(cons2[i]);
             d_im.addPendingInference(eq, InferenceId::DATATYPES_UNIF, unifEq);
@@ -555,7 +548,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
                   eqc2->d_constructor.get().isNull());
     }
   }
-  if (checkInst && !options().datatypes.dtLazyInst)
+  if (checkInst)
   {
     Trace("datatypes-debug") << "  checking instantiate" << std::endl;
     instantiate(eqc1, t1);
@@ -726,10 +719,7 @@ void TheoryDatatypes::addTester(
       const DType& dt = t_arg.getType().getDType();
       Trace("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
-        if (!options().datatypes.dtLazyInst)
-        {
-          instantiate(eqc, n);
-        }
+        instantiate(eqc, n);
         // We could propagate is-C1(x) => not is-C2(x) here for all other
         // constructors, but empirically this hurts performance.
       }else{
@@ -1225,22 +1215,14 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   const DType& dt = ttn.getDType();
   // instantiate this equivalence class
   eqc->d_inst = true;
-  // TODO: check if necessary based on existing selectors!!!
   Node tt_cons = getInstantiateCons(tt, dt, index);
+  Node eq;
   if (tt == tt_cons)
   {
     // not necessary
     return false;
   }
-  std::vector<Node> concs;
-  if (tt.getKind() == APPLY_CONSTRUCTOR)
-  {
-    utils::checkClash(tt, tt_cons, concs);
-  }
-  else
-  {
-    concs.push_back(tt.eqNode(tt_cons));
-  }
+  eq = tt.eqNode(tt_cons);
   // Determine if the equality must be sent out as a lemma. Notice that
   // we  keep new equalities from the instantiate rule internal
   // as long as they are for datatype constructors that have no arguments that
@@ -1259,14 +1241,11 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   {
     forceLemma = dt.involvesExternalType();
   }
-  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << concs
+  Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
-  Trace("datatypes-infer") << "DtInfer : instantiate : " << concs << " by "
-                           << exp << std::endl;
-  for (const Node& eq : concs)
-  {
-    d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
-  }
+  Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
+                           << std::endl;
+  d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
   return true;
 }
 
@@ -1358,45 +1337,6 @@ void TheoryDatatypes::checkCycles() {
         }
       }
     }
-  }
-}
-
-void TheoryDatatypes::checkInstantiate()
-{
-  if (!options().datatypes.dtLazyInst)
-  {
-    // not using lazy instantiate
-    return;
-  }
-  std::set<Node> termSetReps;
-  /*
-  std::set<Node> termSet;
-  collectAssertedTerms(termSet);
-  for (const Node& t : termSet)
-  {
-    if (!t.getType().isDatatype())
-    {
-      continue;
-    }
-    Node tr = d_equalityEngine->getRepresentative(t);
-    termSetReps.insert(tr);
-  }
-  */
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
-  while (!eqcs_i.isFinished())
-  {
-    Node eqc = (*eqcs_i);
-    ++eqcs_i;
-    if (eqc.getType().isDatatype())
-    {
-      termSetReps.insert(eqc);
-    }
-  }
-  for (const Node& eqc : termSetReps)
-  {
-    Trace("datatypes-infer") << "Look at " << eqc << std::endl;
-    EqcInfo* ei = getOrMakeEqcInfo(eqc);
-    instantiate(ei, eqc);
   }
 }
 
@@ -1599,19 +1539,6 @@ void TheoryDatatypes::checkSplit()
       termSetReps.insert(eqc);
     }
   }
-  /*
-  std::set<Node> termSet;
-  collectAssertedTerms(termSet);
-  for (const Node& t : termSet)
-  {
-    if (!t.getType().isDatatype())
-    {
-      continue;
-    }
-    Node tr = d_equalityEngine->getRepresentative(t);
-    termSetReps.insert(tr);
-  }
-  */
   std::map<TypeNode, Node> rec_singletons;
   for (const Node& n : termSetReps)
   {
@@ -1783,12 +1710,35 @@ void TheoryDatatypes::checkSplit()
   }
 }
 
-TNode TheoryDatatypes::getRepresentative( TNode a ){
-  if (d_equalityEngine->hasTerm(a))
-  {
-    return d_equalityEngine->getRepresentative(a);
+bool TheoryDatatypes::hasTerm(TNode a) { return d_equalityEngine->hasTerm(a); }
+
+bool TheoryDatatypes::areEqual( TNode a, TNode b ){
+  if( a==b ){
+    return true;
+  }else if( hasTerm( a ) && hasTerm( b ) ){
+    return d_equalityEngine->areEqual(a, b);
+  }else{
+    return false;
   }
-  return a;
+}
+
+bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
+  if( a==b ){
+    return false;
+  }else if( hasTerm( a ) && hasTerm( b ) ){
+    return d_equalityEngine->areDisequal(a, b, false);
+  }else{
+    //TODO : constants here?
+    return false;
+  }
+}
+
+TNode TheoryDatatypes::getRepresentative( TNode a ){
+  if( hasTerm( a ) ){
+    return d_equalityEngine->getRepresentative(a);
+  }else{
+    return a;
+  }
 }
 
 void TheoryDatatypes::printModelDebug( const char* c ){
@@ -1881,8 +1831,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
   bool pol = lit.getKind()!=NOT;
   if( atom.getKind()==APPLY_TESTER ){
     Node n = atom[0];
-    if (d_equalityEngine->hasTerm(n))
-    {
+    if( hasTerm( n ) ){
       Node r = d_equalityEngine->getRepresentative(n);
       EqcInfo * ei = getOrMakeEqcInfo( r, false );
       int l_index = getLabelIndex( ei, r );
@@ -1897,7 +1846,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
           Node lbl = getLabel( n );
           Assert(!lbl.isNull());
           exp_c.push_back( lbl );
-          Assert(d_equalityEngine->areEqual(n, lbl[0]));
+          Assert(areEqual(n, lbl[0]));
           eqToExplain = n.eqNode(lbl[0]);
         }
         d_equalityEngine->explainLit(eqToExplain, exp_c);
