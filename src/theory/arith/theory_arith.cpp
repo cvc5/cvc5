@@ -16,19 +16,19 @@
 #include "theory/arith/theory_arith.h"
 
 #include "options/smt_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
-#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/linear/theory_arith_private.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "smt/logic_exception.h"
-#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -116,11 +116,11 @@ void TheoryArith::preRegisterTerm(TNode n)
   bool isTransKind = isTranscendentalKind(k);
   if (isTransKind || k == IAND || k == POW2 || k == NONLINEAR_MULT)
   {
-    if (d_nonlinearExtension==nullptr)
+    if (d_nonlinearExtension == nullptr)
     {
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-        << " requires the logic to include non-linear arithmetic";
+         << " requires the logic to include non-linear arithmetic";
       throw LogicException(ss.str());
     }
     if (isTransKind)
@@ -129,7 +129,7 @@ void TheoryArith::preRegisterTerm(TNode n)
       {
         std::stringstream ss;
         ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-          << " requires nl-ext mode to be set to value 'full'";
+           << " requires nl-ext mode to be set to value 'full'";
         throw LogicException(ss.str());
       }
     }
@@ -139,8 +139,10 @@ void TheoryArith::preRegisterTerm(TNode n)
       {
         std::stringstream ss;
         ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-          << " is not compatible with using the coverings-based solver. If you know what you are doing, "
-            "you can try --nl-cov-force, but expect crashes or incorrect results.";
+           << " is not compatible with using the coverings-based solver. If "
+              "you know what you are doing, "
+              "you can try --nl-cov-force, but expect crashes or incorrect "
+              "results.";
         throw LogicException(ss.str());
       }
     }
