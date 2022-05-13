@@ -27,22 +27,22 @@ namespace theory {
 namespace arith {
 
 /**
- * This computes the substitution n { subs }, but with the caveat
+ * applyArith computes the substitution n { subs }, but with the caveat
  * that subterms of n that belong to a theory other than arithmetic are
  * not traversed. In other words, terms that belong to other theories are
  * treated as atomic variables. For example:
  *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
  *
  * Note that in contrast to the ordinary substitution class, this class allows
- * mixing integers and reals.
+ * mixing integers and reals via addArith.
  */
 class ArithSubs : public Subs
 {
  public:
   /** Add v -> s to the substitution */
-  void add(const Node& v, const Node& s) override;
+  void addArith(const Node& v, const Node& s);
   /** Return the result of this substitution on n */
-  Node apply(const Node& n) const override;
+  Node applyArith(const Node& n) const;
 };
 
 }  // namespace arith

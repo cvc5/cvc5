@@ -52,7 +52,7 @@ class Subs
   /** Add v -> k for fresh skolem of the same type as v for each v in vs */
   void add(const std::vector<Node>& vs);
   /** Add v -> s to the substitution */
-  virtual void add(const Node& v, const Node& s);
+  void add(const Node& v, const Node& s);
   /** Add vs -> ss to the substitution */
   void add(const std::vector<Node>& vs, const std::vector<Node>& ss);
   /** Add eq[0] -> eq[1] to the substitution */
@@ -60,7 +60,7 @@ class Subs
   /** Append the substitution s to this */
   void append(Subs& s);
   /** Return the result of this substitution on n */
-  virtual Node apply(const Node& n) const;
+  Node apply(const Node& n) const;
   /** Return the result of the reverse of this substitution on n */
   Node rapply(Node n) const;
   /** Apply this substitution to all nodes in the range of s */
