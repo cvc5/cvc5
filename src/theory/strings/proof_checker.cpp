@@ -486,11 +486,13 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       }
       else if (c.isConst())
       {
-        TypeNode ctn = c.getType();
         // notice that Word::getChars is not the right call here, since it
         // gets a vector of sequences of length one. We actually need to
         // extract the character.
-        t[i] = Word::getNth(c, 0);
+        if (Word::getLength(c)==1)
+        {
+          t[i] = Word::getNth(c, 0);
+        }
       }
       if (t[i].isNull())
       {
