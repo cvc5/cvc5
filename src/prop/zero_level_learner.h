@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+
 #include "expr/subs.h"
 #include "prop/learned_db.h"
 #include "smt/env_obj.h"

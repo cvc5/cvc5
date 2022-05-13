@@ -22,6 +22,7 @@
 
 #include "context/cdlist.h"
 #include "context/context.h"
+
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_node_manager.h"

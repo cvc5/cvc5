@@ -25,6 +25,7 @@
 #include "prop/zero_level_learner.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_id.h"
+
 #include "theory/theory_traits.h"
 
 using namespace std;
