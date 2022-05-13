@@ -103,6 +103,11 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         unset(64bit)
     endif()
 
+  set(CONFIGURE_ENV "")
+  if (CMAKE_CROSSCOMPILING_MACOS)
+    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E env "CFLAGS=--target=${TOOLCHAIN_PREFIX}" env "CXXFLAGS=--target=${TOOLCHAIN_PREFIX}" env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+  endif()
+
     # Download, build and install antlr3 runtime
     ExternalProject_Add(
         ANTLR3-EP-runtime
@@ -117,17 +122,19 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} -E copy
           <INSTALL_DIR>/share/config.sub
           <SOURCE_DIR>/config.sub
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure
-            --with-pic
-            --disable-antlrdebug
-            --disable-abiflags
-            --prefix=<INSTALL_DIR>
-            --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
-            --srcdir=<SOURCE_DIR>
-            --enable-shared
-            --enable-static
-            ${64bit}
-            --host=${TOOLCHAIN_PREFIX}
+        CONFIGURE_COMMAND
+          ${CONFIGURE_ENV}
+            <SOURCE_DIR>/configure
+              --with-pic
+              --disable-antlrdebug
+              --disable-abiflags
+              --prefix=<INSTALL_DIR>
+              --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
+              --srcdir=<SOURCE_DIR>
+              --enable-shared
+              --enable-static
+              ${64bit}
+              --host=${TOOLCHAIN_PREFIX}
         BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a
                          <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
