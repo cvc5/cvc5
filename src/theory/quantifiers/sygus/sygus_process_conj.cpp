@@ -63,7 +63,7 @@ bool SynthConjectureProcessFun::checkMatch(
   {
     Assert(it->first < d_arg_vars.size());
     Assert(
-        it->second.getType().isComparableTo(d_arg_vars[it->first].getType()));
+        it->second.getType()==d_arg_vars[it->first].getType());
     vars.push_back(d_arg_vars[it->first]);
     subs.push_back(it->second);
   }

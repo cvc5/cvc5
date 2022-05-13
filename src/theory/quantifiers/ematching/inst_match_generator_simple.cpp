@@ -166,7 +166,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
       {
         Node t = tt.first;
         // using representatives, just check if equal
-        Assert(t.getType().isComparableTo(d_match_pattern_arg_types[argIndex]));
+        Assert(t.getType()==d_match_pattern_arg_types[argIndex]);
         bool wasSet = !m.get(v).isNull();
         if (!m.set(v, t))
         {

@@ -177,7 +177,7 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      if (n[0].getType().isComparableTo(d_match_pattern_type)
+      if (n[0].getType()==d_match_pattern_type
           && isLegalCandidate(n))
       {
         //found an iff or equality, try to match it
@@ -212,7 +212,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
     TNode n = (*d_eq);
     ++d_eq;
-    if( n.getType().isComparableTo( d_match_pattern_type ) ){
+    if( n.getType()== d_match_pattern_type ){
       TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
         if (options::instMaxLevel() != -1)

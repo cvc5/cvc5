@@ -499,7 +499,7 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   if (formals.size() > 0)
   {
     TypeNode rangeType = funcType.getRangeType();
-    if (!formulaType.isComparableTo(rangeType))
+    if (formulaType!=rangeType)
     {
       stringstream ss;
       ss << "Type of defined function does not match its declaration\n"
@@ -512,7 +512,7 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
   else
   {
-    if (!formulaType.isComparableTo(funcType))
+    if (formulaType!=funcType)
     {
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
@@ -1046,7 +1046,7 @@ Node SolverEngine::getValue(const Node& ex) const
   // Notice that lambdas have function type, which does not respect the subtype
   // relation, so we ignore them here.
   Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
-         || resultNode.getType().isSubtypeOf(expectedType))
+         || resultNode.getType()==expectedType)
       << "Run with -t smt for details.";
 
   // Ensure it's a value (constant or const-ish like real algebraic

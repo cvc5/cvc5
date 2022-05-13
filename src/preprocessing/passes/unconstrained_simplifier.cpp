@@ -255,7 +255,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0].getType() != parent[1].getType())
           {
             TNode other = (parent[0] == current) ? parent[1] : parent[0];
-            if (current.getType().isSubtypeOf(other.getType()))
+            if (current.getType()==other.getType())
             {
               break;
             }

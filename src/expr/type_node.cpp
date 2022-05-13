@@ -279,21 +279,6 @@ bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 // eliminated
 bool TypeNode::isRealOrInt() const { return isReal(); }
 
-bool TypeNode::isSubtypeOf(TypeNode t) const {
-  if(*this == t) {
-    return true;
-  }
-  return false;
-}
-
-bool TypeNode::isComparableTo(TypeNode t) const {
-  if (*this == t)
-  {
-    return true;
-  }
-  return false;
-}
-
 TypeNode TypeNode::getDatatypeTesterDomainType() const
 {
   Assert(isDatatypeTester());

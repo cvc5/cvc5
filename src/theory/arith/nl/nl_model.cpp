@@ -325,8 +325,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
 
 bool NlModel::addBound(TNode v, TNode l, TNode u)
 {
-  Assert(l.getType().isSubtypeOf(v.getType()));
-  Assert(u.getType().isSubtypeOf(v.getType()));
+  Assert(l.getType()==v.getType());
+  Assert(u.getType()==v.getType());
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " "
                         << u << "]" << std::endl;
   if (l == u)
@@ -467,7 +467,7 @@ bool NlModel::solveEqualitySimple(Node eq,
           // We also ensure types are correct here, which avoids substituting
           // a term of non-integer type for a variable of integer type.
           if (veqc.isNull() && !expr::hasSubterm(slv, uv)
-              && slv.getType().isSubtypeOf(uv.getType()))
+              && slv.getType()==uv.getType())
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
