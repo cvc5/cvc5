@@ -29,6 +29,14 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: macos:production-arm64
+            os: macos-11
+            config: production --auto-download --python-bindings --editline --arm64
+            cache-key: production-arm64
+            strip-bin: strip
+            python-bindings: true
+            binary-name: cvc5-macOS-arm64
+
           - name: win64:production
             os: ubuntu-latest
             config: production --auto-download --win64
@@ -38,14 +46,30 @@ jobs:
             binary-name: cvc5-Win64.exe
             binary-ext: .exe
 
-          - name: macos:production-arm64
-            os: macos-11
-            config: production --auto-download --python-bindings --editline --arm64
-            cache-key: production-arm64
-            strip-bin: strip
-            python-bindings: true
+          - name: ubuntu:production-clang
+            os: ubuntu-18.04
+            env: CC=clang CXX=clang++
+            config: production --auto-download
+            cache-key: productionclang
             check-examples: true
-            binary-name: cvc5-macOS-arm64
+            exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
+
+          - name: ubuntu:production-dbg
+            os: ubuntu-18.04
+            config: production --auto-download --assertions --tracing --unit-testing --editline
+            cache-key: dbg
+            check-units: true
+            exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores
+
+          - name: ubuntu:production-dbg-clang
+            os: ubuntu-latest
+            env: CC=clang CXX=clang++
+            config: production --auto-download --assertions --tracing --cln --gpl
+            cache-key: dbgclang
+            exclude_regress: 3-4
+            run_regression_args: --no-check-proofs
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}

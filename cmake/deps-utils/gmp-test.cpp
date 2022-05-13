@@ -2,6 +2,6 @@
 
 int main()
 {
-    mpz_class i = 0;
-    return 0;
+  mpz_class i = 0;
+  return 0;
 }
