@@ -273,11 +273,19 @@ bool TypeNode::isWellFounded() const {
   return kind::isWellFounded(*this);
 }
 
+bool TypeNode::isInteger() const {
+  return
+    getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE;
+}
+
+bool TypeNode::isReal() const {
+  return
+    getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE;
+}
+
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
-// !!! Note that this will change to isReal() || isInteger() when subtyping is
-// eliminated
-bool TypeNode::isRealOrInt() const { return isReal(); }
+bool TypeNode::isRealOrInt() const { return isReal() || isInteger(); }
 
 TypeNode TypeNode::getDatatypeTesterDomainType() const
 {
