@@ -600,7 +600,7 @@ EvalResult Evaluator::evalInternal(
           Integer i = results[currNode[1]].d_rat.getNumerator();
           if (i.strictlyNegative() || i >= s_len)
           {
-            results[currNode] = EvalResult(s);
+            results[currNode] = EvalResult(Rational(-1));
           }
           else
           {

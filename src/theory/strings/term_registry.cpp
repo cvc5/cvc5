@@ -114,9 +114,10 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
       Node cond = nm->mkNode(AND, c1, c2);
       Node code_range = mkCodeRange(t, alphaCard);
       // the lemma for `seq.nth`
-      lemma = nm->mkNode(IMPLIES, cond, code_range);
-      // n >=0 AND n < len( s )
-      // IMPLIES: 0 <= (seq.nth s n) < |A|
+      lemma = nm->mkNode(ITE, cond, code_range, t.eqNode(nm->mkConstInt(Rational(-1))));
+      // IF: n >=0 AND n < len( s )
+      // THEN: 0 <= (seq.nth s n) < |A|
+      // ELSE: (seq.nth s n) = -1
     }
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
