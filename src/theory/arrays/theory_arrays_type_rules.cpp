@@ -65,12 +65,12 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       TypeNode indexType = n[1].getType(check);
       TypeNode valueType = n[2].getType(check);
-      if (indexType!=arrayType.getArrayIndexType())
+      if (indexType != arrayType.getArrayIndexType())
       {
         throw TypeCheckingExceptionPrivate(
             n, "array store not indexed with correct type for array");
       }
-      if (valueType!=arrayType.getArrayConstituentType())
+      if (valueType != arrayType.getArrayConstituentType())
       {
         Trace("array-types")
             << "array type: " << arrayType.getArrayConstituentType()
@@ -306,12 +306,12 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
     TypeNode indexType = n0_type.getArrayIndexType();
     TypeNode indexRangeType1 = n[2].getType(check);
     TypeNode indexRangeType2 = n[3].getType(check);
-    if (indexRangeType1!=indexType)
+    if (indexRangeType1 != indexType)
     {
       throw TypeCheckingExceptionPrivate(
           n, "eqrange lower index type does not match array index type");
     }
-    if (indexRangeType2!=indexType)
+    if (indexRangeType2 != indexType)
     {
       throw TypeCheckingExceptionPrivate(
           n, "eqrange upper index type does not match array index type");

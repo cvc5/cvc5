@@ -97,7 +97,7 @@ void RepSet::add( TypeNode tn, Node n ){
     }
   }
   Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
-  Assert(n.getType()==tn);
+  Assert(n.getType() == tn);
   d_tmap[ n ] = (int)d_type_reps[tn].size();
   d_type_reps[tn].push_back( n );
 }

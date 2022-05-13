@@ -1150,10 +1150,10 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
 
 Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
 {
-  Assert(n.getType()==t)
-      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
+  Assert(n.getType() == t) << "Invalid operands for mkSeqUnit. The type '"
+                           << n.getType() << "' of node '" << n
+                           << "' is not a subtype of '" << t << "'."
+                           << std::endl;
   Node op = mkConst(SeqUnitOp(t));
   Node sunit = mkNode(kind::SEQ_UNIT, op, n);
   return sunit;
@@ -1161,10 +1161,10 @@ Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
 
 Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 {
-  Assert(n.getType()==t)
-      << "Invalid operands for mkSingleton. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
+  Assert(n.getType() == t) << "Invalid operands for mkSingleton. The type '"
+                           << n.getType() << "' of node '" << n
+                           << "' is not a subtype of '" << t << "'."
+                           << std::endl;
   Node op = mkConst(SetSingletonOp(t));
   Node singleton = mkNode(kind::SET_SINGLETON, op, n);
   return singleton;
@@ -1172,10 +1172,10 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 
 Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
 {
-  Assert(n.getType()==t)
-      << "Invalid operands for mkBag. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
+  Assert(n.getType() == t) << "Invalid operands for mkBag. The type '"
+                           << n.getType() << "' of node '" << n
+                           << "' is not a subtype of '" << t << "'."
+                           << std::endl;
   Node op = mkConst(BagMakeOp(t));
   Node bag = mkNode(kind::BAG_MAKE, op, n, m);
   return bag;

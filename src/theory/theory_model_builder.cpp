@@ -1167,7 +1167,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       Node n = *eqc_i;
       static int repCheckInstance = 0;
       ++repCheckInstance;
-      AlwaysAssert(rep.getType()==n.getType())
+      AlwaysAssert(rep.getType() == n.getType())
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
           << n.getType() << ")";
@@ -1351,7 +1351,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Node hni = m->getRepresentative(hn[1]);
       Trace("model-builder-debug2") << "      get rep : " << hn[0]
                                     << " returned " << hni << std::endl;
-      Assert(hni.getType()==args[0].getType());
+      Assert(hni.getType() == args[0].getType());
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn

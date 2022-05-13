@@ -273,14 +273,16 @@ bool TypeNode::isWellFounded() const {
   return kind::isWellFounded(*this);
 }
 
-bool TypeNode::isInteger() const {
-  return
-    getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE;
+bool TypeNode::isInteger() const
+{
+  return getKind() == kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == INTEGER_TYPE;
 }
 
-bool TypeNode::isReal() const {
-  return
-    getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE;
+bool TypeNode::isReal() const
+{
+  return getKind() == kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == REAL_TYPE;
 }
 
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }

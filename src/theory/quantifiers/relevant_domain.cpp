@@ -173,7 +173,7 @@ void RelevantDomain::compute(){
             TypeNode expectedType = d.first[0][dd.first].getType();
             for (const Node& t : r->d_terms)
             {
-              if (t.getType()!=expectedType)
+              if (t.getType() != expectedType)
               {
                 Unhandled() << "Relevant domain: bad type " << t.getType()
                             << ", expected " << expectedType;

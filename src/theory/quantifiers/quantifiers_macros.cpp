@@ -274,7 +274,7 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   }
   TNode op = n.getOperator();
   TNode fdeft = fdef;
-  Assert(op.getType()==fdef.getType());
+  Assert(op.getType() == fdef.getType());
   return op.eqNode(fdef);
 }
 

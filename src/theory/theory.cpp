@@ -320,9 +320,10 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (val.getType()!=x.getType())
+  if (val.getType() != x.getType())
   {
-    Assert (false) << "isLegalElimination for disequal typed terms " << x << " -> " << val;
+    Assert(false) << "isLegalElimination for disequal typed terms " << x
+                  << " -> " << val;
     return false;
   }
   if (!options().smt.produceModels || options().smt.modelVarElimUneval)
