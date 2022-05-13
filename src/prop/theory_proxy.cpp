@@ -22,7 +22,6 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
-
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"

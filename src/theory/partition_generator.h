@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "proof/trust_node.h"
-
 #include "smt/env_obj.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"

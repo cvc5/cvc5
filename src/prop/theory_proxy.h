@@ -23,7 +23,6 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
-
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
