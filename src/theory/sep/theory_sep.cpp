@@ -1797,6 +1797,8 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       Assert(q.getKind() == SEP_LABEL && q[0].getKind() == SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
+      // We use instantiated labels where labels are set to singletons. We
+      // assume these always share a root label.
       if (qlbl.getKind() != SET_SINGLETON && plbl.getKind() != SET_SINGLETON
           && !sharesRootLabel(plbl, qlbl))
       {
