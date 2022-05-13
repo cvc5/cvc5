@@ -113,8 +113,8 @@ void TheoryArith::preRegisterTerm(TNode n)
   // logic exceptions based on the configuration of nl-ext: if we are a
   // transcendental function, we require nl-ext=full.
   Kind k = n.getKind();
-  bool isTransc = isTranscendentalKind(k);
-  if (isTransc || k == Kind::IAND || k == Kind::POW2)
+  bool isTransKind = isTranscendentalKind(k);
+  if (isTransKind || k == IAND || k == POW2 || k == NONLINEAR_MULT)
   {
     if (d_nonlinearExtension==nullptr)
     {
@@ -123,7 +123,7 @@ void TheoryArith::preRegisterTerm(TNode n)
         << " requires the logic to include non-linear arithmetic";
       throw LogicException(ss.str());
     }
-    if (isTransc)
+    if (isTransKind)
     {
       if (options().arith.nlExt != options::NlExtMode::FULL)
       {
@@ -133,13 +133,16 @@ void TheoryArith::preRegisterTerm(TNode n)
         throw LogicException(ss.str());
       }
     }
-    if (options().arith.nlCov && !options().arith.nlCovForce)
+    if (k != NONLINEAR_MULT)
     {
-      std::stringstream ss;
-      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-         << " is not compatible with using the coverings-based solver. If you know what you are doing, "
-          "you can try --nl-cov-force, but expect crashes or incorrect results.";
-      throw LogicException(ss.str());
+      if (options().arith.nlCov && !options().arith.nlCovForce)
+      {
+        std::stringstream ss;
+        ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+          << " is not compatible with using the coverings-based solver. If you know what you are doing, "
+            "you can try --nl-cov-force, but expect crashes or incorrect results.";
+        throw LogicException(ss.str());
+      }
     }
   }
   if (d_nonlinearExtension != nullptr)
