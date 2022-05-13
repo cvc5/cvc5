@@ -27,6 +27,8 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "smt/logic_exception.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -108,6 +110,38 @@ void TheoryArith::finishInit()
 
 void TheoryArith::preRegisterTerm(TNode n)
 {
+  // logic exceptions based on the configuration of nl-ext: if we are a
+  // transcendental function, we require nl-ext=full.
+  Kind k = n.getKind();
+  bool isTransc = isTranscendentalKind(k);
+  if (isTransc || k == Kind::IAND || k == Kind::POW2)
+  {
+    if (d_nonlinearExtension==nullptr)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+        << " requires the logic to include non-linear arithmetic";
+      throw LogicException(ss.str());
+    }
+    if (isTransc)
+    {
+      if (options().arith.nlExt != options::NlExtMode::FULL)
+      {
+        std::stringstream ss;
+        ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+          << " requires nl-ext mode to be set to value 'full'";
+        throw LogicException(ss.str());
+      }
+    }
+    if (options().arith.nlCov && !options().arith.nlCovForce)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " is not compatible with using the coverings-based solver. If you know what you are doing, "
+          "you can try --nl-cov-force, but expect crashes or incorrect results.";
+      throw LogicException(ss.str());
+    }
+  }
   if (d_nonlinearExtension != nullptr)
   {
     d_nonlinearExtension->preRegisterTerm(n);
