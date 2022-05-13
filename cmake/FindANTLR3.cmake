@@ -105,7 +105,11 @@ if(NOT ANTLR3_FOUND_SYSTEM)
 
   set(compilers "")
   if (CMAKE_CROSSCOMPILING_MACOS)
-    set(compilers "CC=${CMAKE_C_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}" "CXX=${CMAKE_CXX_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}")
+    # We set the CC and CXX flags as suggested in
+    # https://github.com/antlr/antlr3/blob/5c2a916a10139cdb5c7c8851ee592ed9c3b3d4ff/runtime/C/INSTALL#L133-L135.
+    set(compilers
+      "CC=${CMAKE_C_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}"
+      "CXX=${CMAKE_CXX_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}")
   endif()
 
     # Download, build and install antlr3 runtime
