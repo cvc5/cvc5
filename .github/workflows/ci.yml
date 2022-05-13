@@ -49,19 +49,20 @@ jobs:
           - name: ubuntu:production-clang
             os: ubuntu-18.04
             env: CC=clang CXX=clang++
-            config: production --auto-download
+            config: production --auto-download --no-poly
             cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
-            config: production --auto-download --assertions --tracing --unit-testing --editline
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline
             cache-key: dbg
             check-units: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
+            python-bindings: true
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
@@ -69,7 +70,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
