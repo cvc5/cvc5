@@ -235,9 +235,10 @@ uint64_t DotPrinter::printInternal(
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
 
+    std::vector<size_t>::iterator oldEnd = ancestorHashs.end();
     // Search if the current hash is in the vector
-    std::reverse_iterator<std::vector<size_t>::iterator> it;
-    it = std::find(ancestorHashs.rbegin(), ancestorHashs.rend(), currentHash);
+    std::vector<size_t>::iterator it =
+        std::find(ancestorHashs.begin(), ancestorHashs.end(), currentHash);
 
     // Register the current proof node hash in the ancestor vector
     ancestorHashs.push_back(currentHash);
@@ -247,7 +248,7 @@ uint64_t DotPrinter::printInternal(
     // same hash (this can happen since our hash computation only takes into
     // account the immediate descendants of a proof node, the limit of hash
     // representation notwithstanding)
-    if (it == ancestorHashs.rend())
+    if (it == oldEnd)
     {
       auto openProofIt = pfLetOpen.find(currentHash);
 
