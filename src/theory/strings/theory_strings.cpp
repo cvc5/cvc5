@@ -89,6 +89,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_stringsFmf(env, valuation, d_termReg),
       d_strat(d_env),
       d_absModelCounter(0),
+      d_strGapModelCounter(0),
       d_cpacb(*this)
 {
   d_termReg.finishInit(&d_im);
@@ -211,6 +212,8 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
+  d_absModelCounter = 0;
+  d_strGapModelCounter = 0;
   if (TraceIsOn("strings-debug-model"))
   {
     Trace("strings-debug-model")
@@ -777,11 +780,11 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode tn = r.getType();
-  std::vector<Node> cacheVals;
-  cacheVals.push_back(r);
   std::vector<Node> skChildren;
   if (tn.isSequence())
   {
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(r);
     TypeNode etn = tn.getSequenceElementType();
     for (size_t i = currIndex; i < nextIndex; i++)
     {
@@ -794,15 +797,11 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   }
   else
   {
-    TypeNode intType = nm->integerType();
-    for (size_t i = currIndex; i < nextIndex; i++)
-    {
-      cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
-      Node kv = sm->mkSkolemFunction(
-          SkolemFunId::SEQ_MODEL_BASE_ELEMENT, intType, cacheVals);
-      skChildren.push_back(utils::mkUnit(tn, kv));
-      cacheVals.pop_back();
-    }
+    // allocate a unique symbolic (unspecified) string of length one, and
+    // repreat it (nextIndex-currIndex times.
+    d_strGapModelCounter++;
+    Node symChar = utils::mkUnit(tn, nm->mkConstInt(-Rational(d_strGapModelCounter)));
+    skChildren.resize(nextIndex-currIndex, symChar);
   }
   return utils::mkConcat(skChildren, tn);
 }
