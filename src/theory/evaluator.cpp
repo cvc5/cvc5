@@ -169,19 +169,24 @@ Node Evaluator::eval(TNode n,
   Node ret =
       evalInternal(n, args, vals, evalAsNode, results).toNode(n.getType());
   // if we failed to evaluate
-  if (ret.isNull() && d_rr != nullptr)
+  if (d_rr != nullptr)
   {
-    // should be stored in the evaluation-as-node map
-    std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
-    Assert(itn != evalAsNode.end());
-    ret = d_rr->rewrite(itn->second);
+    if (ret.isNull())
+    {
+      // should be stored in the evaluation-as-node map
+      std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
+      Assert(itn != evalAsNode.end());
+      ret = itn->second;
+    }
+    // always rewrite, which can change if the evaluation was not a constant
+    ret = d_rr->rewrite(ret);
   }
   // should be the same as substitution + rewriting, or possibly null if
-  // d_rr is nullptr
-  Assert((ret.isNull() && d_rr == nullptr)
+  // d_rr is nullptr or non-constant
+  Assert(((ret.isNull() || !ret.isConst()) && d_rr == nullptr)
          || ret
                 == d_rr->rewrite(n.substitute(
-                    args.begin(), args.end(), vals.begin(), vals.end())));
+                       args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
 
@@ -583,6 +588,23 @@ EvalResult Evaluator::evalInternal(
           {
             results[currNode] =
                 EvalResult(s.substr(i.toUnsignedInt(), j.toUnsignedInt()));
+          }
+          break;
+        }
+        case kind::SEQ_NTH:
+        {
+          // only strings evaluate
+          Assert (currNode[0].getType().isString());
+          const String& s = results[currNode[0]].d_str;
+          Integer s_len(s.size());
+          Integer i = results[currNode[1]].d_rat.getNumerator();
+          if (i.strictlyNegative() || i >= s_len)
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
           }
           break;
         }

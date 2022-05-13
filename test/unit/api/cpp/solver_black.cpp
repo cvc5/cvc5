@@ -2128,7 +2128,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   Term heap = solver->mkTerm(cvc5::Kind::SEP_PTO, {p, x});
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
-  solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
+  solver->assertFormula(nil.eqTerm(solver->mkInteger(5)));
   solver->checkSat();
 }
 }  // namespace
@@ -2338,6 +2338,24 @@ TEST_F(TestApiBlackSolver, blockModelValues5)
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.blockModelValues({x}));
+}
+
+TEST_F(TestApiBlackSolver, getInstantiations)
+{
+  Sort iSort = d_solver.getIntegerSort();
+  Sort boolSort = d_solver.getBooleanSort();
+  Term p = d_solver.declareFun("p", {iSort}, boolSort);
+  Term x = d_solver.mkVar(iSort, "x");
+  Term bvl = d_solver.mkTerm(VARIABLE_LIST, {x});
+  Term app = d_solver.mkTerm(APPLY_UF, {p, x});
+  Term q = d_solver.mkTerm(FORALL, {bvl, app});
+  d_solver.assertFormula(q);
+  Term five = d_solver.mkInteger(5);
+  Term app2 = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {p, five})});
+  d_solver.assertFormula(app2);
+  ASSERT_THROW(d_solver.getInstantiations(), CVC5ApiException);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getInstantiations());
 }
 
 TEST_F(TestApiBlackSolver, setInfo)

@@ -162,6 +162,8 @@ void TheoryStrings::finishInit()
 
   // memberships are not relevant for model building
   d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
+  // seq nth doesn't always evaluate
+  d_valuation.setUnevaluatedKind(SEQ_NTH);
 }
 
 std::string TheoryStrings::identify() const

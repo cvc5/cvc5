@@ -614,6 +614,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
+      Assert(ret.getType()==tn);
       return ret;
     }
   }
@@ -627,12 +628,9 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       Rational rr = r.getConst<Rational>();
       if (rr.sgn() == 0)
       {
-        return s;
+        return nm->mkConstReal(s.getConst<Rational>());
       }
-      else
-      {
-        return nm->mkConstReal(sr / rr);
-      }
+      return nm->mkConstReal(sr / rr);
     }
   }
   // default: use type enumerator

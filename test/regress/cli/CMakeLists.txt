@@ -486,6 +486,7 @@ set(regress_0_tests
   regress0/cores/issue5238.smt2
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
+  regress0/cores/issue8705-bool-ppassert.smt2
   regress0/cvc-rerror-print.cvc.smt2
   regress0/cvc3-bug15.cvc.smt2
   regress0/cvc3.userdoc.01.cvc.smt2
@@ -522,6 +523,7 @@ set(regress_0_tests
   regress0/datatypes/datatype2.cvc.smt2
   regress0/datatypes/datatype3.cvc.smt2
   regress0/datatypes/datatype4.cvc.smt2
+  regress0/datatypes/dd.pair-real-bool-const-conf.smt2
   regress0/datatypes/dt-2.6.smt2
   regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
@@ -779,6 +781,7 @@ set(regress_0_tests
   regress0/nl/coeff-sat.smt2
   regress0/nl/combined-uf.smt2
   regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
+  regress0/nl/dd.iand-wrong-0513-pp.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -813,6 +816,10 @@ set(regress_0_tests
   regress0/nl/issue8691-3-msum-subtypes.smt2
   regress0/nl/issue8692-idem-flatten.smt2
   regress0/nl/issue8712-div-toreal-rew.smt2
+  regress0/nl/issue8744-int.smt2
+  regress0/nl/issue8744-real.smt2
+  regress0/nl/issue8744-real-cov.smt2
+  regress0/nl/issue8755-nl-logic-exception.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1409,6 +1416,7 @@ set(regress_0_tests
   regress0/strings/issue8346-idof-max.smt2
   regress0/strings/issue8481.smt2
   regress0/strings/issue8481-2.smt2
+  regress0/strings/issue8722-learned-rew.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1832,6 +1840,7 @@ set(regress_1_tests
   regress1/bv/bv2nat-simp-range-sat.smt2
   regress1/bv/bv2nat-types.smt2
   regress1/bv/cmu-rdk-3.smt2
+  regress1/bv/dd.iand-wrong-0513.smt2
   regress1/bv/decision-weight00.smt2
   regress1/bv/divtest.smt2
   regress1/bv/fuzz18.smtv1.smt2
@@ -2948,6 +2957,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/dd.trust-subs.smt2
   regress2/strings/issue3203.smt2
   regress2/strings/issue5381.smt2
   regress2/strings/issue6483.smt2
