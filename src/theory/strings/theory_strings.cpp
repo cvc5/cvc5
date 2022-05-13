@@ -553,7 +553,8 @@ bool TheoryStrings::collectModelInfoType(
             }
             if (nextIndex > currIndex)
             {
-              Trace("strings-model") << "Make skeleton from " << currIndex << " ... " << nextIndex << std::endl;
+              Trace("strings-model") << "Make skeleton from " << currIndex
+                                     << " ... " << nextIndex << std::endl;
               // allocate arbitrary value to fill gap
               Assert(conSeq != nullptr);
               Node base = eqc;
@@ -775,7 +776,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
                                        size_t currIndex,
                                        size_t nextIndex)
 {
-  Assert (nextIndex>currIndex);
+  Assert(nextIndex > currIndex);
   Assert(!r.isNull());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -800,8 +801,9 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     // allocate a unique symbolic (unspecified) string of length one, and
     // repreat it (nextIndex-currIndex times.
     d_strGapModelCounter++;
-    Node symChar = utils::mkUnit(tn, nm->mkConstInt(-Rational(d_strGapModelCounter)));
-    skChildren.resize(nextIndex-currIndex, symChar);
+    Node symChar =
+        utils::mkUnit(tn, nm->mkConstInt(-Rational(d_strGapModelCounter)));
+    skChildren.resize(nextIndex - currIndex, symChar);
   }
   return utils::mkConcat(skChildren, tn);
 }
