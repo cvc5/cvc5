@@ -110,8 +110,7 @@ void TheoryArith::finishInit()
 
 void TheoryArith::preRegisterTerm(TNode n)
 {
-  // logic exceptions based on the configuration of nl-ext: if we are a
-  // transcendental function, we require nl-ext=full.
+  // handle logic exceptions
   Kind k = n.getKind();
   bool isTransKind = isTranscendentalKind(k);
   if (isTransKind || k == IAND || k == POW2 || k == NONLINEAR_MULT)
@@ -123,6 +122,8 @@ void TheoryArith::preRegisterTerm(TNode n)
          << " requires the logic to include non-linear arithmetic";
       throw LogicException(ss.str());
     }
+    // logic exceptions based on the configuration of nl-ext: if we are a
+    // transcendental function, we require nl-ext=full.
     if (isTransKind)
     {
       if (options().arith.nlExt != options::NlExtMode::FULL)
