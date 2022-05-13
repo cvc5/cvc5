@@ -1304,7 +1304,6 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
-    //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(refType));
     Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "sep label");
     d_label_map[atom][lbl][child] = n_lbl;
     return n_lbl;
@@ -1312,6 +1311,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     return (*it).second;
   }
 }
+
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {

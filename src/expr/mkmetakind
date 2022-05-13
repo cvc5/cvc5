@@ -265,8 +265,8 @@ $2 ${class};"
 
 template <>
 ${class} const& NodeValue::getConst< ${class} >() const {
-  AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
-                 \"Improper kind for getConst<${class}>()\");
+  //AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
+  //               \"Improper kind for getConst<${class}>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
   // pool), we must check d_nchildren here.

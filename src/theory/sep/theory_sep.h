@@ -246,6 +246,7 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
+
   /**
    * Maps label sets to their direct parents. A set may have multiple parents
    * if sep.wand constraints are present.

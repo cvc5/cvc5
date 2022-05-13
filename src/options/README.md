@@ -16,6 +16,8 @@ After parsing, a module is extended to have the following attributes:
 
 * `id`: lower-case version of the parsed `id`
 * `id_cap`: upper-case version of `id` (used for the `Holder{id_cap}` class)
+* `id_capitalized`: `id` with first letter upper-cased (used for the
+  `write{id_capitalized}()` method)
 * `filename`: base filename for generated files (`"{id}_options"`)
 * `header`: generated header name (`"options/{filename}.h"`)
 
@@ -166,8 +168,10 @@ consists of the following components:
 
 The `Options` class is the central entry point for regular usage of options. It
 holds a `std::unique_ptr` to an "option holder" for every option module, that
-can be accessed using references `{module}` (either as `const&` or `&`). These
-holders hold the actual option data for the specific module.
+can be accessed using references `const {module}&`. These holders hold the actual
+option data for the specific module. For non-const accesses, there are methods
+`write{module}()` which can only be used from a non-const handle to the `Options`
+object.
 
 The holder types are forward declared and can thus only be accessed if one also
 includes the appropriate `{module}_options.h`, which contains the proper
