@@ -59,7 +59,6 @@ jobs:
             os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline
             cache-key: dbg
-            check-units: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
             python-bindings: true
