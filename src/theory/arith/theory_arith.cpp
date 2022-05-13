@@ -141,7 +141,7 @@ void TheoryArith::preRegisterTerm(TNode n)
     {
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-          << " is not compatible with using the coverings-based solver. If "
+         << " is not compatible with using the coverings-based solver. If "
             "you know what you are doing, "
             "you can try --nl-cov-force, but expect crashes or incorrect "
             "results.";
