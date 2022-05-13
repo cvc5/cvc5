@@ -344,9 +344,9 @@ class TheorySep : public Theory {
    * This checks the impact of adding the pto assertion p to heap assert info e,
    * where p has been asserted with the given polarity.
    *
-   * This method implements two propagation schemes for pairs of 
+   * This method implements two propagation schemes for pairs of
    * positive/positive and positive/negative pto constraints.
-   * 
+   *
    * @param e The heap assert info
    * @param p The (label) pto constraint
    * @param polarity Its asserted polarity

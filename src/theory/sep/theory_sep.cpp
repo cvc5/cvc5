@@ -399,7 +399,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       else
       {
-        Assert (satom.getKind()==SEP_WAND);
+        Assert(satom.getKind() == SEP_WAND);
         // nil does not occur in labels[0]
         Node nr = getNilRef(tn);
         Node nrlem = nm->mkNode(SET_MEMBER, nr, labels[0]).negate();
@@ -1311,7 +1311,6 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     return (*it).second;
   }
 }
-
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
