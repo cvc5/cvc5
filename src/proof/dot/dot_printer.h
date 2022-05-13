@@ -184,8 +184,8 @@ class DotPrinter
    */
   inline bool isSCOPE(const PfRule& rule);
 
-  /** Verify if the rule is in the theory lemma range (open interval between CNF_ITE_NEG3
-   * and LFSC_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
+  /** Verify if the rule is in the theory lemma range (open interval between
+   * CNF_ITE_NEG3 and LFSC_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
    * @param rule The rule to be verified.
    * @return The bool indicating whether the rule is for a theory lemma
    * range.
