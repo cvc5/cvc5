@@ -52,7 +52,7 @@ class Subs
   /** Add v -> k for fresh skolem of the same type as v for each v in vs */
   void add(const std::vector<Node>& vs);
   /** Add v -> s to the substitution */
-  void add(const Node& v, const Node& s);
+  virtual void add(const Node& v, const Node& s);
   /** Add vs -> ss to the substitution */
   void add(const std::vector<Node>& vs, const std::vector<Node>& ss);
   /** Add eq[0] -> eq[1] to the substitution */
@@ -78,10 +78,6 @@ class Subs
   /** The data */
   std::vector<Node> d_vars;
   std::vector<Node> d_subs;
-
- protected:
-  /** check if the substitution v -> s is permitted by this class */
-  virtual void checkSubs(const Node& v, const Node& s);
 };
 
 /**

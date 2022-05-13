@@ -21,6 +21,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+void ArithSubs::add(const Node& v, const Node& s)
+{
+  Assert(v.getType().isRealOrInt());
+  Assert(s.getType().isRealOrInt());
+  d_vars.push_back(v);
+  d_subs.push_back(s);
+}
+
 Node ArithSubs::apply(const Node& n) const
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -95,12 +103,6 @@ Node ArithSubs::apply(const Node& n) const
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
-}
-
-void ArithSubs::checkSubs(const Node& v, const Node& s)
-{
-  Assert(v.getType().isRealOrInt());
-  Assert(s.getType().isRealOrInt());
 }
 
 }  // namespace arith

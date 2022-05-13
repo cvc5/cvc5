@@ -17,7 +17,6 @@
 
 #include <sstream>
 
-#include "base/configuration.h"
 #include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
@@ -72,17 +71,9 @@ void Subs::add(const std::vector<Node>& vs)
 
 void Subs::add(const Node& v, const Node& s)
 {
-  if (Configuration::isAssertionBuild())
-  {
-    checkSubs(v, s);
-  }
+  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
   d_vars.push_back(v);
   d_subs.push_back(s);
-}
-
-void Subs::checkSubs(const Node& v, const Node& s)
-{
-  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
 }
 
 void Subs::add(const std::vector<Node>& vs, const std::vector<Node>& ss)
