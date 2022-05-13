@@ -239,20 +239,21 @@ Node IAndSolver::valueBasedLemma(Node i)
   Node twok = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
   Node valX = d_model.computeConcreteModelValue(x);
   Node valY = d_model.computeConcreteModelValue(y);
-  valX = nm->mkNode(kind::INTS_MODULUS, valX, twok); 
-  valY = nm->mkNode(kind::INTS_MODULUS, valY, twok); 
+  valX = nm->mkNode(kind::INTS_MODULUS, valX, twok);
+  valY = nm->mkNode(kind::INTS_MODULUS, valY, twok);
 
   Node valC = nm->mkNode(IAND, i.getOperator(), valX, valY);
   valC = rewrite(valC);
-  
+
   Node xm = nm->mkNode(kind::INTS_MODULUS, x, twok);
   Node ym = nm->mkNode(kind::INTS_MODULUS, y, twok);
 
-  // (=> 
-  //   (and (= (mod x n) (mod c1 n)) (= (mod y n) (mod c2 n))) 
+  // (=>
+  //   (and (= (mod x n) (mod c1 n)) (= (mod y n) (mod c2 n)))
   //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 n) (mod c2 n))))
-  Node lem = nm->mkNode(
-      IMPLIES, nm->mkNode(AND, xm.eqNode(valX), ym.eqNode(valY)), i.eqNode(valC));
+  Node lem = nm->mkNode(IMPLIES,
+                        nm->mkNode(AND, xm.eqNode(valX), ym.eqNode(valY)),
+                        i.eqNode(valC));
   return lem;
 }
 

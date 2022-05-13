@@ -368,7 +368,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = NodeManager::currentNM()->mkAnd(rew );
+      nn = NodeManager::currentNM()->mkAnd(rew);
     }
     if (in != nn)
     {
@@ -1233,7 +1233,7 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
     return false;
   }
   std::vector<Node> concs;
-  if (tt.getKind()==APPLY_CONSTRUCTOR)
+  if (tt.getKind() == APPLY_CONSTRUCTOR)
   {
     utils::checkClash(tt, tt_cons, concs);
   }
@@ -1261,8 +1261,8 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << concs
                                  << " forceLemma = " << forceLemma << std::endl;
-  Trace("datatypes-infer") << "DtInfer : instantiate : " << concs << " by " << exp
-                           << std::endl;
+  Trace("datatypes-infer") << "DtInfer : instantiate : " << concs << " by "
+                           << exp << std::endl;
   for (const Node& eq : concs)
   {
     d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
