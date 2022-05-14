@@ -198,7 +198,7 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.from_set (singleton x)) = (bag x 1)
+   *  - (bag.from_set (set.singleton x)) = (bag x 1)
    */
   BagsRewriteResponse rewriteFromSet(const TNode& n) const;
 
