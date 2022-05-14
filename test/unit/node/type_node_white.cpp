@@ -87,12 +87,6 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   ASSERT_FALSE(bvType.isComparableTo(realType));
   ASSERT_FALSE(bvType.isComparableTo(arrayType));
   ASSERT_TRUE(bvType.isComparableTo(bvType));
-
-  ASSERT_TRUE(realType.getBaseType() == realType);
-  ASSERT_TRUE(integerType.getBaseType() == realType);
-  ASSERT_TRUE(booleanType.getBaseType() == booleanType);
-  ASSERT_TRUE(arrayType.getBaseType() == arrayType);
-  ASSERT_TRUE(bvType.getBaseType() == bvType);
 }
 }  // namespace test
 }  // namespace cvc5::internal

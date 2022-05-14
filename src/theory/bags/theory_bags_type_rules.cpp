@@ -88,11 +88,8 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
     TypeNode secondBagType = n[1].getType(check);
     if (secondBagType != bagType)
     {
-      if (!bagType.isComparableTo(secondBagType))
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "BAG_SUBBAG operating on bags of different types");
-      }
+      throw TypeCheckingExceptionPrivate(
+          n, "BAG_SUBBAG operating on bags of different types");
     }
   }
   return nodeManager->booleanType();
@@ -114,12 +111,12 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (bag.count 1 (bag (BagMakeOp Real) 1.0 3))) is 3 whereas
     // (bag.count 1.0 (bag (BagMakeOp Int) 1 3)) throws a typing error
-    if (!elementType.isSubtypeOf(bagType.getBagElementType()))
+    if (elementType != bagType.getBagElementType())
     {
       std::stringstream ss;
       ss << "member operating on bags of different types:\n"
          << "child type:  " << elementType << "\n"
-         << "not subtype: " << bagType.getBagElementType() << "\n"
+         << "not type: " << bagType.getBagElementType() << "\n"
          << "in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -143,12 +140,12 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (bag.member 1 (bag 1.0 1)) is true whereas
     // (bag.member 1.0 (bag 1 1)) throws a typing error
-    if (!elementType.isSubtypeOf(bagType.getBagElementType()))
+    if (elementType != bagType.getBagElementType())
     {
       std::stringstream ss;
       ss << "member operating on bags of different types:\n"
          << "child type:  " << elementType << "\n"
-         << "not subtype: " << bagType.getBagElementType() << "\n"
+         << "not type: " << bagType.getBagElementType() << "\n"
          << "in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -201,11 +198,11 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     TypeNode actualElementType = n[0].getType(check);
     // the type of the element should be a subtype of the type of the operator
     // e.g. (bag (bag_op Real) 1 1) where 1 is an Int
-    if (!actualElementType.isSubtypeOf(expectedElementType))
+    if (actualElementType != expectedElementType)
     {
       std::stringstream ss;
       ss << "The type '" << actualElementType
-         << "' of the element is not a subtype of '" << expectedElementType
+         << "' of the element is not type of '" << expectedElementType
          << "' in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -486,9 +483,8 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
-    if (!(argTypes.size() == 2 && elementType.isSubtypeOf(argTypes[0])
-          && elementType.isSubtypeOf(argTypes[1])
-          && rangeType == nm->booleanType()))
+    if (!(argTypes.size() == 2 && elementType == argTypes[0]
+          && elementType == argTypes[1] && rangeType == nm->booleanType()))
     {
       std::stringstream ss;
       ss << "Operator " << n.getKind() << " expects a function of type  (-> "
