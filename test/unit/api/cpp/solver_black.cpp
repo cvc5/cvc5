@@ -951,7 +951,7 @@ TEST_F(TestApiBlackSolver, mkTuple)
                                    {d_solver.mkBitVector(3, "101", 2)}));
   ASSERT_THROW(
       d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}),
-               CVC5ApiException);
+      CVC5ApiException);
 
   ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector(3, "101", 2)}),
                CVC5ApiException);
