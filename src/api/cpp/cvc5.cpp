@@ -6080,6 +6080,10 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
       << "Expected the same number of sorts and elements";
   CVC5_API_SOLVER_CHECK_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  {
+    CVC5_API_CHECK(terms[i].getSort()==sorts[i]) << "Type mismatch in mkTuple";
+  }
   //////// all checks before this line
   std::vector<internal::Node> args;
   for (size_t i = 0, size = sorts.size(); i < size; i++)
