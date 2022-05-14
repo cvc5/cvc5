@@ -1428,6 +1428,8 @@ def test_get_unsat_assumptions3(solver):
 
 def test_get_unsat_core1(solver):
     solver.setOption("incremental", "false")
+    # only needed on proof-new
+    solver.setOption("produce-proofs", "false")
     solver.assertFormula(solver.mkFalse())
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -1437,6 +1439,8 @@ def test_get_unsat_core1(solver):
 def test_get_unsat_core2(solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-unsat-cores", "false")
+    # only needed on proof-new
+    solver.setOption("produce-proofs", "false")
     solver.assertFormula(solver.mkFalse())
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -1587,7 +1591,7 @@ def checkSimpleSeparationConstraints(slv):
     heap = slv.mkTerm(Kind.SEP_PTO, p, x)
     slv.assertFormula(heap)
     nil = slv.mkSepNil(integer)
-    slv.assertFormula(nil.eqTerm(slv.mkInteger(5)))
+    slv.assertFormula(nil.eqTerm(slv.mkReal(5)))
     slv.checkSat()
 
 
