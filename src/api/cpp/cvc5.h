@@ -5070,18 +5070,6 @@ class CVC5_EXPORT Solver
   bool isValidInteger(const std::string& s) const;
 
   /**
-   * If needed, convert this term to a given sort.
-   * 
-   * The sort of the term must be convertible into the target sort.
-   * Currently only Int to Real conversions are supported.
-   *
-   * @param t The term.
-   * @param s The target sort.
-   * @return The term wrapped into a sort conversion if needed.
-   */
-  Term ensureTermSort(const Term& t, const Sort& s) const;
-
-  /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *

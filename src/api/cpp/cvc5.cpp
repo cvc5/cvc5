@@ -5210,38 +5210,6 @@ Term Solver::synthFunHelper(const std::string& symbol,
   return Term(this, fun);
 }
 
-Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
-{
-  // Note: Term and sort are checked in the caller to avoid double checks
-  CVC5_API_CHECK(term.getSort() == sort
-                 || (term.getSort().isInteger() && sort.isReal()))
-      << "Expected conversion from Int to Real";
-  //////// all checks before this line
-
-  Sort t = term.getSort();
-  if (term.getSort() == sort)
-  {
-    return term;
-  }
-
-  // Integers are reals, too
-  Assert(t.d_type->isReal());
-  Term res = term;
-  if (t.isInteger())
-  {
-    // Must cast to Real to ensure correct type is passed to parametric type
-    // constructors. We do this cast using division with 1. This has the
-    // advantage wrt using TO_REAL since (constant) division is always included
-    // in the theory.
-    res = Term(this,
-               d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                                 *res.d_node,
-                                 d_nodeMgr->mkConstInt(internal::Rational(1))));
-  }
-  Assert(res.getSort() == sort);
-  return res;
-}
-
 Term Solver::ensureRealSort(const Term& t) const
 {
   Assert(this == t.d_solver);
@@ -6116,7 +6084,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   std::vector<internal::Node> args;
   for (size_t i = 0, size = sorts.size(); i < size; i++)
   {
-    args.push_back(*(ensureTermSort(terms[i], sorts[i])).d_node);
+    args.push_back(*terms[i]->d_node);
   }
 
   Sort s = mkTupleSortHelper(sorts);
