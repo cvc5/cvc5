@@ -204,7 +204,7 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (singleton x)
+   *  - (bag.to_set (bag x n)) = (set.singleton x)
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;
