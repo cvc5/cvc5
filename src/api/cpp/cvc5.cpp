@@ -6088,7 +6088,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   std::vector<internal::Node> args;
   for (size_t i = 0, size = sorts.size(); i < size; i++)
   {
-    args.push_back(*terms[i]->d_node);
+    args.push_back(*terms[i].d_node);
   }
 
   Sort s = mkTupleSortHelper(sorts);
