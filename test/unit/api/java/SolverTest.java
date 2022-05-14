@@ -913,8 +913,8 @@ class SolverTest
     assertDoesNotThrow(()
                            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
                                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(new Sort[] {d_solver.getRealSort()},
+    assertThrows(CVC5ApiException.class,
+        () -> d_solver.mkTuple(new Sort[] {d_solver.getRealSort()},
                                new Term[] {d_solver.mkInteger("5")}));
 
     assertThrows(CVC5ApiException.class,
