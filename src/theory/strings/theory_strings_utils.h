@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,6 +69,12 @@ Node mkPrefix(Node t, Node n);
  * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
  */
 Node mkSuffix(Node t, Node n);
+
+/**
+ * Make a unit, returns either (str.unit n) or (seq.unit n) depending
+ * on if tn is a string or a sequence.
+ */
+Node mkUnit(TypeNode tn, Node n);
 
 /**
  * Get constant component. Returns the string constant represented by the

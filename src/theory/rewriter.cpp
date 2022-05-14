@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
+ *   Andrew Reynolds, Dejan Jovanovic, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -219,6 +219,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           TheoryId newTheory = theoryOf(newNode);
           rewriteStackTop.d_node = newNode;
           rewriteStackTop.d_theoryId = newTheory;
+          Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+              << "Pre-rewriting " << rewriteStackTop.d_node << " to " << newNode
+              << " does not preserve type";
           // In the pre-rewrite, if changing theories, we just call the other
           // theories pre-rewrite. If the kind of the node was changed, then we
           // pre-rewrite again.
@@ -306,6 +309,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // We continue with the response we got
         TNode newNode = response.d_node;
         TheoryId newTheoryId = theoryOf(newNode);
+        Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+            << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
+            << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
             || response.d_status == REWRITE_AGAIN_FULL)
         {
@@ -396,8 +402,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
     if (rewriteStack.size() == 1) {
       Assert(!isEquality || rewriteStackTop.d_node.getKind() == kind::EQUAL
              || rewriteStackTop.d_node.isConst());
-      Assert(rewriteStackTop.d_node.getType().isSubtypeOf(node.getType()))
-          << "Rewriting " << node << " does not preserve type";
+      Assert(rewriteStackTop.d_node.getType() == node.getType())
+          << "Rewriting " << node << " to " << rewriteStackTop.d_node
+          << " does not preserve type";
       return rewriteStackTop.d_node;
     }
 
@@ -472,15 +479,6 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     }
   }
   return RewriteResponse(tresponse.d_status, trn.getNode());
-}
-
-void Rewriter::clearCaches()
-{
-#ifdef CVC5_ASSERTIONS
-  d_rewriteStack.reset(nullptr);
-#endif
-
-  clearCachesInternal();
 }
 
 bool Rewriter::hasRewrittenWithProofs(TNode n) const

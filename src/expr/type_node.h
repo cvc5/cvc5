@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -672,6 +672,9 @@ private:
   /** Get sort constructor arity. */
   uint64_t getUninterpretedSortConstructorArity() const;
 
+  /** Is this an unresolved datatype? */
+  bool isUnresolvedDatatype() const;
+
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
    */
@@ -685,19 +688,14 @@ private:
    */
   TypeNode getUninterpretedSortConstructor() const;
 
-  /** Get the most general base type of the type */
-  TypeNode getBaseType() const;
-
   /**
    * Returns the leastUpperBound in the extended type lattice of the two types.
    * If this is \top, i.e. there is no inhabited type that contains both,
    * a TypeNode such that isNull() is true is returned.
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
-  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
 private:
-  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Indents the given stream a given amount of spaces.

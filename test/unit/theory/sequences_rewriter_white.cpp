@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *   Andres Noetzli, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,11 +94,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_length_one)
   Node b = d_nodeManager->mkConst(String("B"));
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
-  Node negOne = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
-  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
+  Node negOne = d_nodeManager->mkConstInt(Rational(-1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
+  Node three = d_nodeManager->mkConstInt(Rational(3));
   Node i = d_nodeManager->mkVar("i", intType);
 
   ASSERT_TRUE(se.checkLengthOne(a));
@@ -129,7 +129,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_arith)
 
   Node z = d_nodeManager->mkVar("z", strType);
   Node n = d_nodeManager->mkVar("n", intType);
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
 
   // 1 >= (str.len (str.substr z n 1)) ---> true
   Node substr_z = d_nodeManager->mkNode(
@@ -151,8 +151,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   Node y = d_nodeManager->mkVar("y", strType);
   Node z = d_nodeManager->mkVar("z", intType);
 
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
 
   Node empty = d_nodeManager->mkConst(String(""));
   Node a = d_nodeManager->mkConst(String("A"));
@@ -185,8 +185,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   ASSERT_TRUE(ae.checkWithAssumption(
       x_plus_slen_y_plus_slen_y_eq_zero, zero, x, false));
 
-  Node five = d_nodeManager->mkConst(CONST_RATIONAL, Rational(5));
-  Node six = d_nodeManager->mkConst(CONST_RATIONAL, Rational(6));
+  Node five = d_nodeManager->mkConstInt(Rational(5));
+  Node six = d_nodeManager->mkConstInt(Rational(6));
   Node x_plus_five = d_nodeManager->mkNode(kind::ADD, x, five);
   Node x_plus_five_lt_six =
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, six));
@@ -292,11 +292,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
   Node a = d_nodeManager->mkConst(String("A"));
   Node b = d_nodeManager->mkConst(String("B"));
   Node abcd = d_nodeManager->mkConst(String("ABCD"));
-  Node negone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
-  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
+  Node negone = d_nodeManager->mkConstInt(Rational(-1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
+  Node three = d_nodeManager->mkConstInt(Rational(3));
 
   Node s = d_nodeManager->mkVar("s", strType);
   Node s2 = d_nodeManager->mkVar("s2", strType);
@@ -313,7 +313,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       kind::STRING_SUBSTR,
       a,
       d_nodeManager->mkNode(
-          kind::ADD, x, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1))),
+          kind::ADD, x, d_nodeManager->mkConstInt(Rational(1))),
       x);
   sameNormalForm(n, empty);
 
@@ -532,8 +532,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
 
   Node empty = d_nodeManager->mkConst(String(""));
   Node a = d_nodeManager->mkConst(String("A"));
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node three = d_nodeManager->mkConstInt(Rational(3));
 
   Node i = d_nodeManager->mkVar("i", intType);
   Node s = d_nodeManager->mkVar("s", strType);
@@ -639,11 +639,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
   Node ccc = d_nodeManager->mkConst(String("CCC"));
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
-  Node negOne = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
-  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
+  Node negOne = d_nodeManager->mkConstInt(Rational(-1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
+  Node three = d_nodeManager->mkConstInt(Rational(3));
   Node i = d_nodeManager->mkVar("i", intType);
   Node j = d_nodeManager->mkVar("j", intType);
 
@@ -720,8 +720,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace)
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
   Node z = d_nodeManager->mkVar("z", strType);
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   Node n = d_nodeManager->mkVar("n", intType);
 
   // (str.replace (str.replace x "B" x) x "A") -->
@@ -1141,10 +1141,10 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
   Node z = d_nodeManager->mkVar("z", strType);
   Node n = d_nodeManager->mkVar("n", intType);
   Node m = d_nodeManager->mkVar("m", intType);
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
-  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
-  Node four = d_nodeManager->mkConst(CONST_RATIONAL, Rational(4));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
+  Node three = d_nodeManager->mkConstInt(Rational(3));
+  Node four = d_nodeManager->mkConstInt(Rational(4));
   Node t = d_nodeManager->mkConst(true);
   Node f = d_nodeManager->mkConst(false);
 
@@ -1567,9 +1567,9 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
   Node xxa = d_nodeManager->mkNode(kind::STRING_CONCAT, x, x, a);
   Node f = d_nodeManager->mkConst(false);
   Node n = d_nodeManager->mkVar("n", intType);
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node three = d_nodeManager->mkConstInt(Rational(3));
 
   // Same normal form for:
   //

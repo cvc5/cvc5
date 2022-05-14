@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -190,9 +190,6 @@ class NonlinearExtension : EnvObj
                    const std::vector<Node>& xts);
 
   /** commonly used terms */
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;

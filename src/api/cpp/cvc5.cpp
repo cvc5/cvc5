@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
+ *   Aina Niemetz, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,6 +69,7 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
@@ -167,6 +168,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(ARCCOTANGENT, internal::Kind::ARCCOTANGENT),
         KIND_ENUM(SQRT, internal::Kind::SQRT),
         KIND_ENUM(CONST_RATIONAL, internal::Kind::CONST_RATIONAL),
+        KIND_ENUM(CONST_INTEGER, internal::Kind::CONST_INTEGER),
         KIND_ENUM(LT, internal::Kind::LT),
         KIND_ENUM(LEQ, internal::Kind::LEQ),
         KIND_ENUM(GT, internal::Kind::GT),
@@ -327,7 +329,11 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BAG_MAP, internal::Kind::BAG_MAP),
         KIND_ENUM(BAG_FILTER, internal::Kind::BAG_FILTER),
         KIND_ENUM(BAG_FOLD, internal::Kind::BAG_FOLD),
+        KIND_ENUM(BAG_PARTITION, internal::Kind::BAG_PARTITION),
         KIND_ENUM(TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
+        KIND_ENUM(TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
+        KIND_ENUM(TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),
+        KIND_ENUM(TABLE_JOIN, internal::Kind::TABLE_JOIN),
         /* Strings ---------------------------------------------------------- */
         KIND_ENUM(STRING_CONCAT, internal::Kind::STRING_CONCAT),
         KIND_ENUM(STRING_IN_REGEXP, internal::Kind::STRING_IN_REGEXP),
@@ -460,6 +466,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SQRT, SQRT},
         {internal::Kind::DIVISIBLE_OP, DIVISIBLE},
         {internal::Kind::CONST_RATIONAL, CONST_RATIONAL},
+        {internal::Kind::CONST_INTEGER, CONST_INTEGER},
         {internal::Kind::LT, LT},
         {internal::Kind::LEQ, LEQ},
         {internal::Kind::GT, GT},
@@ -642,7 +649,14 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BAG_MAP, BAG_MAP},
         {internal::Kind::BAG_FILTER, BAG_FILTER},
         {internal::Kind::BAG_FOLD, BAG_FOLD},
+        {internal::Kind::BAG_PARTITION, BAG_PARTITION},
         {internal::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
+        {internal::Kind::TABLE_PROJECT, TABLE_PROJECT},
+        {internal::Kind::TABLE_PROJECT_OP, TABLE_PROJECT},
+        {internal::Kind::TABLE_AGGREGATE_OP, TABLE_AGGREGATE},
+        {internal::Kind::TABLE_AGGREGATE, TABLE_AGGREGATE},
+        {internal::Kind::TABLE_JOIN_OP, TABLE_JOIN},
+        {internal::Kind::TABLE_JOIN, TABLE_JOIN},
         /* Strings --------------------------------------------------------- */
         {internal::Kind::STRING_CONCAT, STRING_CONCAT},
         {internal::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -1032,7 +1046,7 @@ bool SynthResult::isUnknown() const
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
 
-std::ostream& operator<<(std::ostream& out, const internal::SynthResult& sr)
+std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
 {
   out << sr.toString();
   return out;
@@ -1055,17 +1069,6 @@ Sort::~Sort()
   {
     d_type.reset();
   }
-}
-
-std::set<internal::TypeNode> Sort::sortSetToTypeNodes(
-    const std::set<Sort>& sorts)
-{
-  std::set<internal::TypeNode> types;
-  for (const Sort& s : sorts)
-  {
-    types.insert(s.getTypeNode());
-  }
-  return types;
 }
 
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
@@ -1909,6 +1912,9 @@ size_t Op::getNumIndicesHelper() const
     case TUPLE_PROJECT:
       size = d_node->getConst<internal::TupleProjectOp>().getIndices().size();
       break;
+    case TABLE_PROJECT:
+      size = d_node->getConst<internal::TableProjectOp>().getIndices().size();
+      break;
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
   return size;
@@ -2599,6 +2605,7 @@ const internal::Rational& getRational(const internal::Node& node)
   {
     case internal::Kind::CAST_TO_REAL:
       return node[0].getConst<internal::Rational>();
+    case internal::Kind::CONST_INTEGER:
     case internal::Kind::CONST_RATIONAL:
       return node.getConst<internal::Rational>();
     default:
@@ -2630,6 +2637,7 @@ bool checkReal64Bounds(const internal::Rational& r)
 bool isReal(const internal::Node& node)
 {
   return node.getKind() == internal::Kind::CONST_RATIONAL
+         || node.getKind() == internal::Kind::CONST_INTEGER
          || node.getKind() == internal::Kind::CAST_TO_REAL;
 }
 bool isReal32(const internal::Node& node)
@@ -2643,7 +2651,8 @@ bool isReal64(const internal::Node& node)
 
 bool isInteger(const internal::Node& node)
 {
-  return node.getKind() == internal::Kind::CONST_RATIONAL
+  return (node.getKind() == internal::Kind::CONST_RATIONAL
+          || node.getKind() == internal::Kind::CONST_INTEGER)
          && node.getConst<internal::Rational>().isIntegral();
 }
 bool isInt32(const internal::Node& node)
@@ -3396,6 +3405,20 @@ void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
+void DatatypeConstructorDecl::addSelectorUnresolved(
+    const std::string& name, const std::string& unresDataypeName)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  // make the unresolved sort with the given name
+  internal::TypeNode usort =
+      d_solver->getNodeManager()->mkUnresolvedDatatypeSort(unresDataypeName);
+  d_ctor->addArg(name, usort);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool DatatypeConstructorDecl::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -3408,6 +3431,7 @@ bool DatatypeConstructorDecl::isNull() const
 std::string DatatypeConstructorDecl::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   std::stringstream ss;
   ss << *d_ctor;
@@ -3445,16 +3469,6 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
     : d_solver(slv), d_dtype(new internal::DType(name, isCoDatatype))
-{
-}
-
-DatatypeDecl::DatatypeDecl(const Solver* slv,
-                           const std::string& name,
-                           const Sort& param,
-                           bool isCoDatatype)
-    : d_solver(slv),
-      d_dtype(new internal::DType(
-          name, std::vector<internal::TypeNode>{*param.d_type}, isCoDatatype))
 {
 }
 
@@ -3579,7 +3593,7 @@ std::string DatatypeSelector::getName() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeSelector::getSelectorTerm() const
+Term DatatypeSelector::getTerm() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3620,6 +3634,7 @@ bool DatatypeSelector::isNull() const
 std::string DatatypeSelector::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   std::stringstream ss;
   ss << *d_stor;
@@ -3668,7 +3683,7 @@ std::string DatatypeConstructor::getName() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeConstructor::getConstructorTerm() const
+Term DatatypeConstructor::getTerm() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3678,8 +3693,7 @@ Term DatatypeConstructor::getConstructorTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeConstructor::getInstantiatedConstructorTerm(
-    const Sort& retSort) const
+Term DatatypeConstructor::getInstantiatedTerm(const Sort& retSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3744,16 +3758,6 @@ DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return getSelectorForName(name);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return getSelector(name).getSelectorTerm();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3939,16 +3943,6 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return getConstructorForName(name);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Datatype::getConstructorTerm(const std::string& name) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return getConstructorForName(name).getConstructorTerm();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4208,6 +4202,11 @@ bool Datatype::const_iterator::operator!=(
 
 bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
 
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
+{
+  return out << dtype.toString();
+}
+
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -4419,11 +4418,12 @@ Sort Grammar::resolve()
     // make the unresolved type, used for referencing the final version of
     // the ntsymbol's datatype
     ntsToUnres[ntsymbol] =
-        Sort(d_solver, d_solver->getNodeManager()->mkSort(ntsymbol.toString()));
+        Sort(d_solver,
+             d_solver->getNodeManager()->mkUnresolvedDatatypeSort(
+                 ntsymbol.toString()));
   }
 
   std::vector<internal::DType> datatypes;
-  std::set<internal::TypeNode> unresTypes;
 
   datatypes.reserve(d_ntSyms.size());
 
@@ -4455,14 +4455,10 @@ Sort Grammar::resolve()
         << " produced an empty rule list";
 
     datatypes.push_back(*dtDecl.d_dtype);
-    unresTypes.insert(*ntsToUnres[ntSym].d_type);
   }
 
   std::vector<internal::TypeNode> datatypeTypes =
-      d_solver->getNodeManager()->mkMutualDatatypeTypes(
-          datatypes,
-          unresTypes,
-          internal::NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      d_solver->getNodeManager()->mkMutualDatatypeTypes(datatypes);
 
   // return is the first datatype
   return Sort(d_solver, datatypeTypes[0]);
@@ -4653,15 +4649,21 @@ Stat::Stat() {}
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
     : d_internal(s.d_internal),
-      d_default(s.d_default),
-      d_data(std::make_unique<StatData>(s.d_data->data))
+      d_default(s.d_default)
 {
+  if (s.d_data)
+  {
+    d_data = std::make_unique<StatData>(s.d_data->data);
+  }
 }
 Stat& Stat::operator=(const Stat& s)
 {
   d_internal = s.d_internal;
   d_default = s.d_default;
-  d_data = std::make_unique<StatData>(s.d_data->data);
+  if (s.d_data)
+  {
+    d_data = std::make_unique<StatData>(s.d_data->data);
+  }
   return *this;
 }
 
@@ -5059,7 +5061,10 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   if (echildren.size() > 2)
   {
     if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
-        || kind == HO_APPLY || kind == REGEXP_DIFF)
+        || kind == HO_APPLY || kind == REGEXP_DIFF || kind == SET_UNION
+        || kind == SET_INTER || kind == SET_MINUS || kind == BAG_INTER_MIN
+        || kind == BAG_UNION_MAX || kind == BAG_UNION_DISJOINT
+        || kind == BAG_DIFFERENCE_REMOVE || kind == BAG_DIFFERENCE_SUBTRACT)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);
@@ -5164,28 +5169,6 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   return Term(this, res);
 }
 
-std::vector<Sort> Solver::mkDatatypeSortsInternal(
-    const std::vector<DatatypeDecl>& dtypedecls,
-    const std::set<Sort>& unresolvedSorts) const
-{
-  // Note: dtypedecls and unresolvedSorts are checked in the caller to avoid
-  //       double checks
-  //////// all checks before this line
-
-  std::vector<internal::DType> datatypes;
-  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
-  {
-    datatypes.push_back(dtypedecls[i].getDatatype());
-  }
-
-  std::set<internal::TypeNode> utypes =
-      Sort::sortSetToTypeNodes(unresolvedSorts);
-  std::vector<internal::TypeNode> dtypes =
-      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
-  std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
-  return retTypes;
-}
-
 Term Solver::synthFunHelper(const std::string& symbol,
                             const std::vector<Term>& boundVars,
                             const Sort& sort,
@@ -5250,12 +5233,10 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
     // constructors. We do this cast using division with 1. This has the
     // advantage wrt using TO_REAL since (constant) division is always included
     // in the theory.
-    res = Term(
-        this,
-        d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                          *res.d_node,
-                          d_nodeMgr->mkConst(internal::kind::CONST_RATIONAL,
-                                             internal::Rational(1))));
+    res = Term(this,
+               d_nodeMgr->mkNode(extToIntKind(DIVISION),
+                                 *res.d_node,
+                                 d_nodeMgr->mkConstInt(internal::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
@@ -5504,32 +5485,15 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   CVC5_API_SOLVER_CHECK_DTDECLS(dtypedecls);
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return mkDatatypeSortsInternal(dtypedecls, {});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-std::vector<Sort> Solver::mkDatatypeSorts(
-    const std::vector<DatatypeDecl>& dtypedecls,
-    const std::set<Sort>& unresolvedSorts) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_DTDECLS(dtypedecls);
-  CVC5_API_SOLVER_CHECK_SORTS(unresolvedSorts);
-  //////// all checks before this line
-  return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_DOMAIN_SORT(domain);
-  CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(codomain);
-  //////// all checks before this line
-  return Sort(
-      this, getNodeManager()->mkFunctionType(*domain.d_type, *codomain.d_type));
+  std::vector<internal::DType> datatypes;
+  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
+  {
+    datatypes.push_back(dtypedecls[i].getDatatype());
+  }
+  std::vector<internal::TypeNode> dtypes =
+      getNodeManager()->mkMutualDatatypeTypes(datatypes);
+  std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
+  return retTypes;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5550,13 +5514,13 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkParamSort(const std::string& symbol) const
+Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this,
-              getNodeManager()->mkSort(
-                  symbol, internal::NodeManager::SORT_FLAG_PLACEHOLDER));
+  internal::TypeNode tn =
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
+  return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5626,35 +5590,38 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUninterpretedSort(const std::string& symbol) const
+Sort Solver::mkUninterpretedSort(const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  internal::TypeNode tn =
+      symbol ? getNodeManager()->mkSort(*symbol) : getNodeManager()->mkSort();
+  return Sort(this, tn);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
+Sort Solver::mkUnresolvedDatatypeSort(const std::string& symbol,
+                                      size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity)
-  {
-    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-  }
-  return Sort(this, getNodeManager()->mkSort(symbol));
+  return Sort(this, getNodeManager()->mkUnresolvedDatatypeSort(symbol, arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkUninterpretedSortConstructorSort(const std::string& symbol,
-                                                size_t arity) const
+Sort Solver::mkUninterpretedSortConstructorSort(
+    size_t arity, const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   //////// all checks before this line
-  return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
+  if (symbol)
+  {
+    return Sort(this, getNodeManager()->mkSortConstructor(*symbol, arity));
+  }
+  return Sort(this, getNodeManager()->mkSortConstructor("", arity));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6042,25 +6009,14 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
 /* Create constants                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
+Term Solver::mkConst(const Sort& sort,
+                     const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkVar(symbol, *sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  increment_vars_consts_stats(sort, false);
-  return Term(this, res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkConst(const Sort& sort) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(sort);
-  //////// all checks before this line
-  internal::Node res = d_nodeMgr->mkVar(*sort.d_type);
+  internal::Node res = symbol ? d_nodeMgr->mkVar(*symbol, *sort.d_type)
+                              : d_nodeMgr->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(this, res);
@@ -6071,14 +6027,14 @@ Term Solver::mkConst(const Sort& sort) const
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
+Term Solver::mkVar(const Sort& sort,
+                   const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = symbol.empty()
-                           ? d_nodeMgr->mkBoundVar(*sort.d_type)
-                           : d_nodeMgr->mkBoundVar(symbol, *sort.d_type);
+  internal::Node res = symbol ? d_nodeMgr->mkBoundVar(*symbol, *sort.d_type)
+                              : d_nodeMgr->mkBoundVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, true);
   return Term(this, res);
@@ -6107,18 +6063,6 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return DatatypeDecl(this, name, isCoDatatype);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
-                                    const Sort& param,
-                                    bool isCoDatatype)
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(param);
-  //////// all checks before this line
-  return DatatypeDecl(this, name, param, isCoDatatype);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6178,7 +6122,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   Sort s = mkTupleSortHelper(sorts);
   Datatype dt = s.getDatatype();
   internal::NodeBuilder nb(extToIntKind(APPLY_CONSTRUCTOR));
-  nb << *dt[0].getConstructorTerm().d_node;
+  nb << *dt[0].getTerm().d_node;
   nb.append(args);
   internal::Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */
@@ -6278,6 +6222,15 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case TUPLE_PROJECT:
       res = mkOpHelper(kind, internal::TupleProjectOp(args));
+      break;
+    case TABLE_PROJECT:
+      res = mkOpHelper(kind, internal::TableProjectOp(args));
+      break;
+    case TABLE_AGGREGATE:
+      res = mkOpHelper(kind, internal::TableAggregateOp(args));
+      break;
+    case TABLE_JOIN:
+      res = mkOpHelper(kind, internal::TableJoinOp(args));
       break;
     default:
       if (nargs == 0)
@@ -6466,7 +6419,12 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_CHECK(term.getSort() == sort)
+  // We are permissive with subtypes so that integers are allowed to define
+  // the body of a function whose codomain is real. This is to accomodate
+  // SMT-LIB inputs in the Reals theory, where NUMERAL can be used to specify
+  // reals. Instead of making our parser for numerals dependent on the logic,
+  // we instead allow integers here in this case.
+  CVC5_API_CHECK(term.d_node->getType().isSubtypeOf(*sort.d_type))
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6510,7 +6468,8 @@ Term Solver::defineFunRec(const std::string& symbol,
 
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
-  CVC5_API_CHECK(sort == term.getSort())
+  // we are permissive with subtypes, similar to defineFun
+  CVC5_API_CHECK(term.d_node->getType().isSubtypeOf(*sort.d_type))
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6559,7 +6518,8 @@ Term Solver::defineFunRec(const Term& fun,
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
     Sort codomain = fun.getSort().getFunctionCodomainSort();
-    CVC5_API_CHECK(codomain == term.getSort())
+    // we are permissive with subtypes, similar to defineFun
+    CVC5_API_CHECK(codomain.d_type->isSubtypeOf(term.d_node->getType()))
         << "Invalid sort of function body '" << term << "', expected '"
         << codomain << "'";
   }
@@ -7295,7 +7255,7 @@ Term Solver::getAbductNext() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::blockModel() const
+void Solver::blockModel(modes::BlockModelsMode mode) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
@@ -7304,7 +7264,7 @@ void Solver::blockModel() const
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model after SAT or UNKNOWN response.";
   //////// all checks before this line
-  d_slv->blockModel();
+  d_slv->blockModel(mode);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7330,6 +7290,12 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
 std::string Solver::getInstantiations() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT
+                             || d_slv->getSmtMode() == internal::SmtMode::SAT
+                             || d_slv->getSmtMode()
+                                    == internal::SmtMode::SAT_UNKNOWN)
+      << "Cannot get instantiations unless after a UNSAT, SAT or UNKNOWN "
+         "response.";
   //////// all checks before this line
   std::stringstream ss;
   d_slv->printInstantiations(ss);
@@ -7383,6 +7349,11 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
                               value)
       << "'sat', 'unsat' or 'unknown'";
   //////// all checks before this line
+  if (keyword == "filename")
+  {
+    // only the Solver object has non-const access to the original options
+    d_originalOptions->writeDriver().filename = value;
+  }
   d_slv->setInfo(keyword, value);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7427,7 +7398,7 @@ void Solver::setOption(const std::string& option,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::declareSygusVar(const Sort& sort, const std::string& symbol) const
+Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
@@ -7444,8 +7415,8 @@ Term Solver::declareSygusVar(const Sort& sort, const std::string& symbol) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
-                               const std::vector<Term>& ntSymbols) const
+Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
+                          const std::vector<Term>& ntSymbols) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)

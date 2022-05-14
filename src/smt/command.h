@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Tim King, Andrew Reynolds
+ *   Mathias Preiner, Tim King, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -370,6 +370,8 @@ class CVC5_EXPORT AssertCommand : public Command
 class CVC5_EXPORT PushCommand : public Command
 {
  public:
+  PushCommand(uint32_t nscopes);
+
   void invoke(cvc5::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -378,11 +380,16 @@ class CVC5_EXPORT PushCommand : public Command
                 size_t dag = 1,
                 internal::Language language =
                     internal::Language::LANG_AUTO) const override;
+
+ private:
+  uint32_t d_nscopes;
 }; /* class PushCommand */
 
 class CVC5_EXPORT PopCommand : public Command
 {
  public:
+  PopCommand(uint32_t nscopes);
+
   void invoke(cvc5::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
   std::string getCommandName() const override;
@@ -391,6 +398,9 @@ class CVC5_EXPORT PopCommand : public Command
                 size_t dag = 1,
                 internal::Language language =
                     internal::Language::LANG_AUTO) const override;
+
+ private:
+  uint32_t d_nscopes;
 }; /* class PopCommand */
 
 class CVC5_EXPORT DeclarationDefinitionCommand : public Command
@@ -453,6 +463,30 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
                 internal::Language language =
                     internal::Language::LANG_AUTO) const override;
 }; /* class DeclarePoolCommand */
+
+class CVC5_EXPORT DeclareOracleFunCommand : public Command
+{
+ public:
+  DeclareOracleFunCommand(Term func);
+  DeclareOracleFunCommand(Term func, const std::string& binName);
+  Term getFunction() const;
+  const std::string& getBinaryName() const;
+
+  void invoke(Solver* solver, SymbolManager* sm) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
+
+ protected:
+  /** The oracle function */
+  Term d_func;
+  /** The binary name, or "" if none is provided */
+  std::string d_binName;
+};
 
 class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
@@ -969,7 +1003,7 @@ class CVC5_EXPORT GetModelCommand : public Command
 class CVC5_EXPORT BlockModelCommand : public Command
 {
  public:
-  BlockModelCommand();
+  BlockModelCommand(modes::BlockModelsMode mode);
 
   void invoke(cvc5::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -979,6 +1013,10 @@ class CVC5_EXPORT BlockModelCommand : public Command
                 size_t dag = 1,
                 internal::Language language =
                     internal::Language::LANG_AUTO) const override;
+
+ private:
+  /** The mode to use for blocking. */
+  modes::BlockModelsMode d_mode;
 }; /* class BlockModelCommand */
 
 /** The command to block model values. */

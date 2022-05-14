@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -530,7 +530,8 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test = other.eqNode(nm->mkConstReal(Rational(0)));
+              Node test = other.eqNode(
+                  nm->mkConstRealOrInt(other.getType(), Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;

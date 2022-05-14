@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *   Andrew Reynolds, Dejan Jovanovic, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -440,6 +440,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
                                         TrustSubstitutionMap& outSubstitutions)
 {
+  Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
@@ -458,30 +459,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
-    }
-    if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        return PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
-  }
-  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
-           && in[0][0].getType().isBoolean())
-  {
-    TNode eq = in[0];
-    if (eq[0].isVar())
-    {
-      Node res = eq[0].eqNode(eq[1].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
-    else if (eq[1].isVar())
-    {
-      Node res = eq[1].eqNode(eq[0].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
     }
   }
 

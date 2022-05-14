@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -268,6 +268,24 @@ cvc5::Term Tptp::isTptpDeclared(const std::string& name)
   return cvc5::Term();
 }
 
+Term Tptp::makeApplyUf(std::vector<Term>& args)
+{
+  std::vector<Sort> argSorts = args[0].getSort().getFunctionDomainSorts();
+  if (argSorts.size() + 1 != args.size())
+  {
+    // arity mismatch
+    parseError("Applying function to wrong number of arguments");
+  }
+  for (size_t i = 0, nargs = argSorts.size(); i < nargs; i++)
+  {
+    if (argSorts[i].isReal() && args[i + 1].getSort().isInteger())
+    {
+      args[i + 1] = d_solver->mkTerm(TO_REAL, {args[i + 1]});
+    }
+  }
+  return d_solver->mkTerm(APPLY_UF, args);
+}
+
 cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 {
   if (TraceIsOn("parser"))
@@ -286,7 +304,7 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     // this happens with some arithmetic kinds, which are wrapped around
     // lambdas.
     args.insert(args.begin(), p.d_expr);
-    return d_solver->mkTerm(cvc5::APPLY_UF, args);
+    return makeApplyUf(args);
   }
   bool isBuiltinKind = false;
   // the builtin kind of the overall return expression
@@ -330,15 +348,37 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!hol() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
+    if (kind == cvc5::EQUAL || kind == cvc5::DISTINCT)
     {
-      // need hol if these operators are applied over function args
-      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
-           ++i)
+      std::vector<Sort> sorts;
+      size_t nargs = args.size();
+      for (size_t i = 0; i < nargs; i++)
       {
-        if ((*i).getSort().isFunction())
+        Sort s = args[i].getSort();
+        if (s.isFunction())
         {
-          parseError("Cannot apply equalty to functions unless THF.");
+          // need hol if these operators are applied over function args
+          if (!hol())
+          {
+            parseError("Cannot apply equalty to functions unless THF.");
+          }
+        }
+        sorts.push_back(s);
+      }
+      // TPTP assumes Int/Real subtyping, but the cvc5 API does not
+      for (size_t i = 0; i < nargs; i++)
+      {
+        if (sorts[i].isReal())
+        {
+          // cast all Integer arguments to Real
+          for (size_t j = 0; j < nargs; j++)
+          {
+            if (j != i && sorts[j].isInteger())
+            {
+              args[j] = d_solver->mkTerm(TO_REAL, {args[j]});
+            }
+          }
+          break;
         }
       }
     }
@@ -385,6 +425,11 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
         Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
         return d_solver->mkTerm(cvc5::HO_APPLY, args);
+      }
+      else if (kind == APPLY_UF)
+      {
+        // ensure subtyping is not used
+        return makeApplyUf(args);
       }
     }
   }
@@ -487,20 +532,26 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
   if (d_rtu_op.isNull()) {
     cvc5::Sort t;
     // Conversion from rational to unsorted
-    t = d_solver->mkFunctionSort(d_solver->getRealSort(), d_unsorted);
+    t = d_solver->mkFunctionSort({d_solver->getRealSort()}, d_unsorted);
     d_rtu_op = d_solver->mkConst(t, "$$rtu");
     preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
     // Conversion from unsorted to rational
-    t = d_solver->mkFunctionSort(d_unsorted, d_solver->getRealSort());
+    t = d_solver->mkFunctionSort({d_unsorted}, d_solver->getRealSort());
     d_utr_op = d_solver->mkConst(t, "$$utr");
     preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
   // rational
-  cvc5::Term ret = d_solver->mkTerm(cvc5::APPLY_UF, {d_rtu_op, expr});
+  std::vector<Term> args = {d_rtu_op, expr};
+  Term ret = makeApplyUf(args);
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
+    if (expr.getSort().isInteger())
+    {
+      // ensure the equality below is between reals
+      expr = d_solver->mkTerm(TO_REAL, {expr});
+    }
     cvc5::Term eq = d_solver->mkTerm(
         cvc5::EQUAL, {expr, d_solver->mkTerm(cvc5::APPLY_UF, {d_utr_op, ret})});
     preemptCommand(new AssertCommand(eq));

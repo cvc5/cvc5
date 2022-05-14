@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Makai Mann, Gereon Kremer
+ *   Yoni Zohar, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -159,7 +159,7 @@ void Pow2Solver::checkFullRefine()
     if (x < 0 && pow2x != 0)
     {
       Node assumption = nm->mkNode(LT, n[0], d_zero);
-      Node conclusion = nm->mkNode(EQUAL, n, d_zero);
+      Node conclusion = nm->mkNode(EQUAL, n, mkZero(n.getType()));
       Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
       d_im.addPendingLemma(
           lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);

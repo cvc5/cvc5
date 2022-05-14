@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +68,14 @@ class TermUtil
   static size_t getVariableNum(Node q, Node v);
 
   static Node getInstConstAttr( Node n );
-  static bool hasInstConstAttr( Node n );
+  /**
+   * Does n (or its original form) contain instantiation constants? This method
+   * is used for determining when a term is ineligible for instantiation.
+   *
+   * @param n the node to check.
+   * @return true if n has instantiation constants.
+   */
+  static bool hasInstConstAttr(Node n);
   static Node getBoundVarAttr( Node n );
   static bool hasBoundVarAttr( Node n );
   

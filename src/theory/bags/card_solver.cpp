@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@ namespace theory {
 namespace bags {
 
 CardSolver::CardSolver(Env& env, SolverState& s, InferenceManager& im)
-    : EnvObj(env), d_state(s), d_ig(&s, &im), d_im(im), d_bagReduction(env)
+    : EnvObj(env), d_state(s), d_ig(&s, &im), d_im(im)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -238,7 +238,7 @@ void CardSolver::addChildren(const Node& premise,
 
       Node card = d_nm->mkNode(BAG_CARD, parent);
       std::vector<Node> asserts;
-      Node reduced = d_bagReduction.reduceCardOperator(card, asserts);
+      Node reduced = BagReduction::reduceCardOperator(card, asserts);
       asserts.push_back(card.eqNode(reduced));
       InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       inferInfo.d_premises.push_back(premise);

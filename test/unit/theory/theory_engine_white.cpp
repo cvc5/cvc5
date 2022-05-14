@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,7 +80,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
 
   // make the expression (ADD x y (MULT z 0))
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node zero = d_nodeManager->mkConstInt(Rational("0"));
   Node zTimesZero = d_nodeManager->mkNode(MULT, z, zero);
   Node n = d_nodeManager->mkNode(ADD, x, y, zTimesZero);
 
@@ -111,8 +111,8 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
       "g",
       d_nodeManager->mkFunctionType(d_nodeManager->realType(),
                                     d_nodeManager->integerType()));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational("1"));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational("2"));
+  Node one = d_nodeManager->mkConstInt(Rational("1"));
+  Node two = d_nodeManager->mkConstInt(Rational("2"));
 
   Node f1 = d_nodeManager->mkNode(APPLY_UF, f, one);
   Node f2 = d_nodeManager->mkNode(APPLY_UF, f, two);

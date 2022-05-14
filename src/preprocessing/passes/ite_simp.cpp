@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -202,24 +202,6 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
     if (options().smt.compressItes)
     {
       result = d_iteUtilities.compress(assertionsToPreprocess);
-    }
-
-    if (result)
-    {
-      // if false, don't bother to reclaim memory here.
-      NodeManager* nm = NodeManager::currentNM();
-      if (nm->poolSize() >= zombieHuntThreshold)
-      {
-        verbose(2) << "..ite simplifier did quite a bit of work.. "
-               << nm->poolSize() << endl;
-        verbose(2) << "....node manager contains " << nm->poolSize()
-               << " nodes before cleanup" << endl;
-        d_iteUtilities.clear();
-        d_env.getRewriter()->clearCaches();
-        nm->reclaimZombiesUntil(zombieHuntThreshold);
-        verbose(2) << "....node manager contains " << nm->poolSize()
-               << " nodes after cleanup" << endl;
-      }
     }
   }
 

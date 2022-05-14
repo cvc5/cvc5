@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Andrew Reynolds
+ *   Aina Niemetz, Dejan Jovanovic, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -140,7 +140,7 @@ TEST_F(TestNodeBlackNodeManager, mkConst_bool)
 TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 {
   Rational r("3/2");
-  Node n = d_nodeManager->mkConst(CONST_RATIONAL, r);
+  Node n = d_nodeManager->mkConstReal(r);
   ASSERT_EQ(n.getConst<Rational>(), r);
 }
 

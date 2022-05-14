@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mudathir Mohamed
+ *   Mudathir Mohamed, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,19 +20,34 @@ import java.math.BigInteger;
 /**
  * Holds some description about a particular option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
- * concerning its value. The `valueInfo` member holds any of the following
+ * concerning its value. The {@code valueInfo} member holds any of the following
  * alternatives:
- * - VoidInfo if the option holds no value (or the value has no native type)
- * - ValueInfo if the option is of type boolean or String, holds the
- *   current value and the default value.
- * - NumberInfo if the option is of type BigInteger or double, holds
- *   the current and default value, as well as the minimum and maximum.
- * - ModeInfo if the option is a mode option, holds the current and default
- *   values, as well as a list of valid modes.
+ * <ul>
+ *   <li>
+ *     {@link OptionInfo.VoidInfo} if the option holds no value (or the value
+ *     has no native type)
+ *   </li>
+ *   <li>
+ *     {@link OptionInfo.ValueInfo} if the option is of type boolean or String,
+ *     holds the current value and the default value.
+ *   </li>
+ *   <li>
+ *     {@link OptionInfo.NumberInfo} if the option is of type BigInteger or
+ *     double, holds the current and default value, as well as the minimum and
+ *     maximum.
+ *   </li>
+ *   <li>
+ *     {@link OptionInfo.ModeInfo} if the option is a mode option, holds the
+ *     current and default values, as well as a list of valid modes.
+ *   </li>
+ * </ul>
+ *
  * Additionally, this class provides convenience functions to obtain the
- * current value of an option in a type-safe manner using boolValue(),
- * stringValue(), intValue(), and doubleValue(). They assert that
- * the option has the respective type and return the current value.
+ * current value of an option in a type-safe manner using
+ * {@link OptionInfo#booleanValue()}, {@link OptionInfo#stringValue()},
+ * {@link OptionInfo#intValue()}, and {@link OptionInfo#doubleValue()}.
+ * They assert that the option has the respective type and return the current
+ * value.
  */
 public class OptionInfo extends AbstractPointer
 {
@@ -59,7 +74,7 @@ public class OptionInfo extends AbstractPointer
   }
 
   /**
-   * @return a string representation of this optionInfo.
+   * @return A string representation of this OptionInfo.
    */
   protected native String toString(long pointer);
 

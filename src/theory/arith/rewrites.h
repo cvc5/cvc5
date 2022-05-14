@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +59,9 @@ enum class Rewrite : uint32_t
   // (to_int t) --> t, (is_int t) ---> true if t is int
   INT_EXT_INT,
   // (to_int real.pi) --> 3, (is_int real.pi) ---> false
-  INT_EXT_PI
+  INT_EXT_PI,
+  // (to_int (to_real x)) --> (to_int x), (is_int (to_real x)) --> (is_int x)
+  INT_EXT_TO_REAL
 };
 
 /**

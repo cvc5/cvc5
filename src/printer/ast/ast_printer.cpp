@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -187,13 +187,14 @@ void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "Assert(" << n << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdPush(std::ostream& out) const
+void AstPrinter::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "Push()" << std::endl;
+  out << "Push(" << nscopes << ")" << std::endl;
 }
 
-void AstPrinter::toStreamCmdPop(std::ostream& out) const {
-  out << "Pop()" << std::endl;
+void AstPrinter::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
+{
+  out << "Pop(" << nscopes << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -645,7 +646,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
-    if (options().quantifiers.mbqiMode == options::MbqiMode::NONE)
+    if (options().quantifiers.fmfMbqiMode == options::FmfMbqiMode::NONE)
     {
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
@@ -745,11 +746,9 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       // just add the instance
       d_triedLemmas++;
-      if (instq->addInstantiation(f,
-                                  inst,
-                                  InferenceId::QUANTIFIERS_INST_FMF_FMC,
-                                  Node::null(),
-                                  true))
+      instq->processInstantiationRep(f, inst);
+      if (instq->addInstantiation(
+              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, Node::null()))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -836,7 +835,7 @@ class RepBoundFmcEntry : public QRepBoundExt
   ~RepBoundFmcEntry() {}
   /** set bound */
   virtual RsiEnumType setBound(Node owner,
-                               unsigned i,
+                               size_t i,
                                std::vector<Node>& elements) override
   {
     if (!d_fm->isStar(d_entry[i]))
@@ -898,11 +897,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
+        ie->processInstantiationRep(f, inst);
         if (ie->addInstantiation(f,
                                  inst,
                                  InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH,
-                                 Node::null(),
-                                 true))
+                                 Node::null()))
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
@@ -1302,7 +1301,8 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   return true;
 }
 
-Node FullModelChecker::mkCond( std::vector< Node > & cond ) {
+Node FullModelChecker::mkCond(const std::vector<Node>& cond)
+{
   return NodeManager::currentNM()->mkNode(APPLY_UF, cond);
 }
 

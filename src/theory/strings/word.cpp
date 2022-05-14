@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,6 +122,25 @@ std::vector<Node> Word::getChars(TNode x)
   }
   Unimplemented();
   return ret;
+}
+
+Node Word::getNth(TNode x, size_t n)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    const std::vector<unsigned>& vec = x.getConst<String>().getVec();
+    Assert(n < vec.size());
+    return NodeManager::currentNM()->mkConstInt(vec[n]);
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    const std::vector<Node>& vec = x.getConst<Sequence>().getVec();
+    Assert(n < vec.size());
+    return vec[n];
+  }
+  Unimplemented();
+  return Node::null();
 }
 
 bool Word::isEmpty(TNode x) { return x.isConst() && getLength(x) == 0; }

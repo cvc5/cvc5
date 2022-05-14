@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -198,8 +198,6 @@ void TheorySetsPrivate::fullEffortReset()
   Assert(d_equalityEngine->consistent());
   d_fullCheckIncomplete = false;
   d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
-  d_most_common_type.clear();
-  d_most_common_type_term.clear();
   d_card_enabled = false;
   d_rels_enabled = false;
   // reset the state object
@@ -227,19 +225,9 @@ void TheorySetsPrivate::fullEffortCheck()
     while (!eqcs_i.isFinished())
     {
       Node eqc = (*eqcs_i);
-      bool isSet = false;
       TypeNode tn = eqc.getType();
       d_state.registerEqc(tn, eqc);
       eqcTypeCount[tn]++;
-      // common type node and term
-      TypeNode tnc;
-      Node tnct;
-      if (tn.isSet())
-      {
-        isSet = true;
-        tnc = tn.getSetElementType();
-        tnct = eqc;
-      }
       Trace("sets-eqc") << "[" << eqc << "] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
       while (!eqc_i.isFinished())
@@ -257,18 +245,6 @@ void TheorySetsPrivate::fullEffortCheck()
           }
         }
         TypeNode tnn = n.getType();
-        if (isSet)
-        {
-          Assert(tnn.isSet());
-          TypeNode tnnel = tnn.getSetElementType();
-          tnc = TypeNode::mostCommonTypeNode(tnc, tnnel);
-          Assert(!tnc.isNull());
-          // update the common type term
-          if (tnc == tnnel)
-          {
-            tnct = n;
-          }
-        }
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
         Kind nk = n.getKind();
@@ -311,12 +287,6 @@ void TheorySetsPrivate::fullEffortCheck()
           d_rels_enabled = true;
         }
         ++eqc_i;
-      }
-      if (isSet)
-      {
-        Assert(tnct.getType().getSetElementType() == tnc);
-        d_most_common_type[eqc] = tnc;
-        d_most_common_type_term[eqc] = tnct;
       }
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
@@ -740,6 +710,7 @@ void TheorySetsPrivate::checkDisequalities()
 void TheorySetsPrivate::checkReduceComprehensions()
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& comps = d_state.getComprehensionSets();
   for (const Node& n : comps)
   {
@@ -763,9 +734,12 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
     body = nm->mkNode(EXISTS, bvl, body);
-    Node mem = nm->mkNode(SET_MEMBER, v, n);
-    Node lem =
-        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
+    Node k = sm->mkPurifySkolem(n, "kcomp");
+    Node mem = nm->mkNode(SET_MEMBER, v, k);
+    Node lem = nm->mkNode(
+        AND,
+        k.eqNode(n),
+        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem)));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);

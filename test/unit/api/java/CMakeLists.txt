@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed
+#   Mudathir Mohamed, Gereon Kremer, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -67,4 +67,7 @@ cvc5_add_java_api_test(OpTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
+cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
+
+cvc5_add_unit_test_white(UncoveredTest api/java)

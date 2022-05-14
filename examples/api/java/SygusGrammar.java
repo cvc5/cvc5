@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Mudathir Mohamed, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +48,7 @@ public class SygusGrammar
       Term plus = slv.mkTerm(ADD, x, start);
 
       // create the grammar object
-      Grammar g1 = slv.mkSygusGrammar(new Term[] {x}, new Term[] {start});
+      Grammar g1 = slv.mkGrammar(new Term[] {x}, new Term[] {start});
 
       // bind each non-terminal to its rules
       g1.addRules(start, new Term[] {neg_x, plus});
@@ -72,7 +72,7 @@ public class SygusGrammar
       Term id4 = slv.synthFun("id4", new Term[] {x}, integer, g1);
 
       // declare universal variables.
-      Term varX = slv.declareSygusVar(integer, "x");
+      Term varX = slv.declareSygusVar("x", integer);
 
       Term id1_x = slv.mkTerm(APPLY_UF, id1, varX);
       Term id2_x = slv.mkTerm(APPLY_UF, id2, varX);

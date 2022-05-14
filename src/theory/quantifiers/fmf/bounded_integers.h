@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -193,7 +193,7 @@ private:
    * bound, z has a finite bound assuming x has a finite bound, and y does not
    * have a finite bound.
    */
-  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
+  void getBoundVarIndices(Node q, std::vector<size_t>& indices) const;
   /**
    * Get bound elements
    *

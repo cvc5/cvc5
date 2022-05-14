@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -636,7 +636,11 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
-
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
+                                           d_currPropagationProccessed);
+  // Reset
   d_currPropagationProccessed = Node::null();
 }
 
@@ -654,6 +658,9 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
       d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
   Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
 }
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)

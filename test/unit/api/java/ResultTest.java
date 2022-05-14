@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,15 +56,17 @@ class ResultTest
   @Test
   void eq()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
+    Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
-    Result res;
+    Result res = null;
     Result res2 = d_solver.checkSat();
     Result res3 = d_solver.checkSat();
+    assertTrue(res != res2);
     res = res2;
     assertEquals(res, res2);
     assertEquals(res3, res2);
+    assertEquals(res.toString(), "sat");
   }
 
   @Test
@@ -81,7 +83,7 @@ class ResultTest
   @Test
   void isUnsat()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
+    Sort u_sort = d_solver.mkUninterpretedSort();
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
@@ -101,5 +103,8 @@ class ResultTest
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
     assertTrue(res.isUnknown());
+    UnknownExplanation ue = res.getUnknownExplanation();
+    assertEquals(ue, UnknownExplanation.UNKNOWN_REASON);
+    assertEquals(ue.toString(), "UNKNOWN_REASON");
   }
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -336,10 +336,10 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
     TypeNode argType = n[0].getType(check);
     // the type of the element should be a subtype of the type of the operator
     // e.g. (seq.unit (SeqUnitOp Real) 1) where 1 is an Int
-    if (!argType.isSubtypeOf(otype))
+    if (argType != otype)
     {
       std::stringstream ss;
-      ss << "The type '" << argType << "' of the element is not a subtype of '"
+      ss << "The type '" << argType << "' of the element is not the type of '"
          << otype << "' in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }

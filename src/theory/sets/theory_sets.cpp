@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -189,13 +189,6 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
       }
     }
   }

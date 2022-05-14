@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Haniel Barbosa
+ *   Mudathir Mohamed, Aina Niemetz, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,9 +129,6 @@ class TheoryBags : public Theory
 
   /** the main solver for bags */
   CardSolver d_cardSolver;
-
-  /** bag reduction */
-  BagReduction d_bagReduction;
 
   /** The representation of the strategy */
   Strategy d_strat;

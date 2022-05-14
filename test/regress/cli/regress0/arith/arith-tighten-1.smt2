@@ -11,8 +11,8 @@
 
 (assert (= x y))
 (assert (= x (- 2.5 y)))
-(assert (>= (+ i j) x))
-(assert (<= j (+ x 0.5)))
+(assert (>= (to_real (+ i j)) x))
+(assert (<= (to_real j) (+ x 0.5)))
 (assert (<= i 0))
 
 (check-sat)

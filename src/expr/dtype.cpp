@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,6 +141,52 @@ size_t DType::cindexOfInternal(Node item)
   }
   Assert(item.hasAttribute(DTypeConsIndexAttr()));
   return item.getAttribute(DTypeConsIndexAttr());
+}
+
+void DType::collectUnresolvedDatatypeTypes(std::set<TypeNode>& unresTypes) const
+{
+  // Scan the arguments of all constructors and collect their types. To be
+  // robust to datatypes with nested recursion, we collect the *component*
+  // types of all subfield types and store them in csfTypes. In other words, we
+  // search for unresolved datatypes that occur possibly as parameters to
+  // other parametric types.
+  std::unordered_set<TypeNode> csfTypes;
+  for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
+  {
+    for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
+    {
+      Node sel = (*ctor)[i].d_selector;
+      if (sel.isNull())
+      {
+        // we currently permit null selector for representing self selectors,
+        // skip these.
+        continue;
+      }
+      // The selector has *not* been initialized to a variable of selector type,
+      // which is done during resolve. Instead, we get the raw type of sel
+      // and compute its component types.
+      expr::getComponentTypes(sel.getType(), csfTypes);
+    }
+  }
+  // Now, process each component type
+  for (const TypeNode& arg : csfTypes)
+  {
+    if (arg.isUnresolvedDatatype())
+    {
+      // it is an unresolved datatype
+      unresTypes.insert(arg);
+    }
+    else if (arg.isInstantiatedUninterpretedSort())
+    {
+      // it might be an instantiated sort constructor corresponding to a
+      // unresolved parametric datatype, in which case we extract its operator
+      TypeNode argc = arg.getUninterpretedSortConstructor();
+      if (argc.isUnresolvedDatatype())
+      {
+        unresTypes.insert(argc);
+      }
+    }
+  }
 }
 
 bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
@@ -943,12 +989,6 @@ void DType::toStream(std::ostream& out) const
     out << *ctor;
   }
   out << " END;" << std::endl;
-}
-
-DTypeIndexConstant::DTypeIndexConstant(size_t index) : d_index(index) {}
-std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
-{
-  return out << "index_" << dic.getIndex();
 }
 
 }  // namespace cvc5::internal

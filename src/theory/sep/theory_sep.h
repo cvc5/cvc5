@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,15 +80,6 @@ class TheorySep : public Theory {
   TheorySep(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySep();
 
-  /**
-   * Declare heap. For smt2 inputs, this is called when the command
-   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
-   * location type and dataT is the data type for the heap. This command can be
-   * executed once only, and must be invoked before solving separation logic
-   * inputs.
-   */
-  void declareSepHeap(TypeNode locT, TypeNode dataT) override;
-
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
@@ -108,38 +99,26 @@ class TheorySep : public Theory {
 
   std::string identify() const override { return std::string("TheorySep"); }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // PREPROCESSING
-  /////////////////////////////////////////////////////////////////////////////
-
- public:
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
-  /////////////////////////////////////////////////////////////////////////////
-  // T-PROPAGATION / REGISTRATION
-  /////////////////////////////////////////////////////////////////////////////
+
+  TrustNode explain(TNode n) override;
+
+  void computeCareGraph() override;
+
+  void postProcessModel(TheoryModel* m) override;
 
  private:
+  /**
+   * Initialize heap. For smt2 inputs, this will initialize the heap types
+   * based on if a command (declare-heap (locT datat)) was used. This command
+   * can be executed once only, and must be invoked before solving separation
+   * logic inputs, which is controlled by the solver engine.
+   */
+  void initializeHeapTypes();
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
-
- public:
-  TrustNode explain(TNode n) override;
-
- public:
-  void computeCareGraph() override;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // MODEL GENERATION
-  /////////////////////////////////////////////////////////////////////////////
-
- public:
-  void postProcessModel(TheoryModel* m) override;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTIFICATIONS
-  /////////////////////////////////////////////////////////////////////////////
 
  public:
 
@@ -267,7 +246,29 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
-  std::map< Node, Node > d_label_map_parent;
+
+  /**
+   * Maps label sets to their direct parents. A set may have multiple parents
+   * if sep.wand constraints are present.
+   */
+  std::map<Node, std::vector<Node> > d_parentMap;
+
+  /**
+   * This sends the lemmas:
+   *   parent = (set.union children)
+   *   (set.inter children_i children_j) = empty, for each i != j
+   * It also stores these relationships in d_parentMap.
+   */
+  void makeDisjointHeap(Node parent, const std::vector<Node>& children);
+  /**
+   * Get the sets that are parents of p and are roots in the graph induced
+   * by d_parentMap.
+   */
+  std::vector<Node> getRootLabels(Node p) const;
+  /**
+   * Do p and q have a root label in common?
+   */
+  bool sharesRootLabel(Node p, Node q) const;
 
   //term model
   std::map< Node, Node > d_tmodel;
@@ -305,6 +306,9 @@ class TheorySep : public Theory {
   Node getNilRef( TypeNode tn );
   void setNilRef( TypeNode tn, Node n );
   Node getLabel( Node atom, int child, Node lbl );
+  /**
+   * Apply label lbl to all top-level spatial assertions, recursively, in n.
+   */
   Node applyLabel( Node n, Node lbl, std::map< Node, Node >& visited );
   void getLabelChildren( Node atom, Node lbl, std::vector< Node >& children, std::vector< Node >& labels );
 
@@ -341,7 +345,6 @@ class TheorySep : public Theory {
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );
 
- private:
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
@@ -350,8 +353,6 @@ class TheorySep : public Theory {
 
   void sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer = false );
   void doPending();
-
- public:
 
   void initializeBounds();
 };/* class TheorySep */

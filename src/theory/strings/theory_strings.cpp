@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -162,6 +162,8 @@ void TheoryStrings::finishInit()
 
   // memberships are not relevant for model building
   d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
+  // seq nth doesn't always evaluate
+  d_valuation.setUnevaluatedKind(SEQ_NTH);
 }
 
 std::string TheoryStrings::identify() const
@@ -775,7 +777,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   TypeNode etn = r.getType().getSequenceElementType();
   for (size_t i = currIndex; i < nextIndex; i++)
   {
-    cacheVals.push_back(nm->mkConst(CONST_RATIONAL, Rational(currIndex)));
+    cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
     Node kv = sm->mkSkolemFunction(
         SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
     skChildren.push_back(nm->mkSeqUnit(etn, kv));

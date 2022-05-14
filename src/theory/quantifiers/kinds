@@ -17,6 +17,8 @@ operator EXISTS 2:3 "existentially quantified formula; first parameter is an BOU
 
 variable INST_CONSTANT "instantiation constant"
 
+variable ORACLE "oracle"
+
 sort BOUND_VAR_LIST_TYPE \
     Cardinality::INTEGERS \
     not-well-founded \
@@ -38,6 +40,8 @@ operator INST_ATTRIBUTE 1: "instantiation attribute"
 operator INST_POOL 1: "instantiation pool"
 operator INST_ADD_TO_POOL 2 "instantiation add to pool"
 operator SKOLEM_ADD_TO_POOL 2 "skolemization add to pool"
+# oracle formula generator is a pair (assumption generator, constraint generator)
+operator ORACLE_FORMULA_GEN 2 "oracle interface"
 
 sort INST_PATTERN_LIST_TYPE \
     Cardinality::INTEGERS \
@@ -51,6 +55,7 @@ typerule FORALL ::cvc5::internal::theory::quantifiers::QuantifierTypeRule
 typerule EXISTS ::cvc5::internal::theory::quantifiers::QuantifierTypeRule
 typerule BOUND_VAR_LIST ::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule
 typerule INST_PATTERN_LIST ::cvc5::internal::theory::quantifiers::QuantifierInstPatternListTypeRule
+typerule ORACLE_FORMULA_GEN ::cvc5::internal::theory::quantifiers::QuantifierOracleFormulaGenTypeRule
 
 typerule INST_PATTERN ::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule
 typerule INST_NO_PATTERN ::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule

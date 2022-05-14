@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,7 +109,7 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   TypeNode locType, dataType;
-  if (!d_preprocContext->getTheoryEngine()->getSepHeapTypes(locType, dataType))
+  if (!d_env.getSepHeapTypes(locType, dataType))
   {
     warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
                  "heap types during preprocessing"

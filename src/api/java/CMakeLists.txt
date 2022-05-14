@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Mathias Preiner, Aina Niemetz
+#   Mudathir Mohamed, Andres Noetzli, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -40,7 +40,7 @@ add_custom_command(
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
 set(JAVA_TYPES_FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/BlockModelsMode.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/RoundingMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/UnknownExplanation.java"
 )

@@ -31,14 +31,21 @@
 (program sc_concat_head_or_self ((s term) (s1 term) (rev flag) (u sort)) Ok
   (ifequal s s1
     ok
-    (let sh (sc_string_head (sc_string_rev s rev u))
+    (let ss (sc_string_rev s rev u)
+    (let sh (sc_string_head ss)
     (ifequal sh s1
       ok
-      ; otherwise we may be splitting a constant, we reverse the characters in sh
-      (ifequal (sc_string_is_prefix
-                 (sc_string_rev (sc_string_nary_intro s1 u) rev u)
-                 (sc_string_rev sh rev u) u)
-          tt ok (fail Ok)))))
+      ; otherwise we may be splitting a constant, get s1 in n-ary form
+      (let s1n (sc_string_rev (sc_string_nary_intro s1 u) rev u)
+      ; it may be that s itself is a constant, in which case we must consider
+      ; it as a whole, not just its head
+      (ifequal (sc_string_is_prefix s1n ss u) tt
+        ok
+        ; we are splitting a constant in the head of s1, notice we must reverse
+        ; its characters, since they were not reversed when computing ss
+        (ifequal (sc_string_is_prefix s1n (sc_string_rev sh rev u) u) tt
+          ok
+          (fail Ok))))))))
 )
 
 ; Computes whether the heads of the premise (= s t) match s1 and t1 for the
@@ -73,8 +80,8 @@
               ((char n)
                 (= thead
                 (ifequal rev ff
-                  (str.++ s12 (str.++ (sc_mk_skolem (sc_skolem_suffix_rem thead (int 1))) emptystr))
-                  (str.++ (sc_mk_skolem (sc_skolem_prefix thead (a.- (str.len thead) (int 1)))) (str.++ s12 emptystr)))))))))
+                  (str.++ s12 (str.++ (skolem (sc_skolem_suffix_rem thead (int 1))) emptystr))
+                  (str.++ (skolem (sc_skolem_prefix thead (a.- (str.len thead) (int 1)))) (str.++ s12 emptystr)))))))))
           (fail term))))
 )
 
@@ -110,6 +117,32 @@
                          (! p (holds (= s t))
                          (! r (^ (sc_concat_conflict s t rev u) ok)
                             (holds false))))))))
+
+; For sequences, we use a variant of the PfRule::CONCAT_CONFLICT rule where the
+; justification for the clashing characters is given in the form of a
+; disequality. This is due to the fact that check whether a term is value is
+; not a simple syntactic check for some types.
+(program sc_concat_conflict_deq ((s term) (t term) (sc term) (tc term) (rev flag) (u sort)) Ok
+  (match (sc_strip_prefix
+           (sc_string_to_flat_form s rev u)
+           (sc_string_to_flat_form t rev u) u)
+    ((pair ss ts)
+      (ifequal (sc_string_first_char_or_empty s u) sc
+        (ifequal (sc_string_first_char_or_empty t u) tc
+          ok
+          (fail Ok))
+        (fail Ok)))))
+
+(declare concat_conflict_deq (! s term
+                             (! t term
+                             (! sc term
+                             (! tc term
+                             (! rev flag
+                             (! u sort
+                             (! p (holds (= s t))
+                             (! pc (holds (not (= sc tc)))
+                             (! r (^ (sc_concat_conflict_deq s t sc tc rev u) ok)
+                                (holds false)))))))))))
 
 (program sc_string_length_pos ((t term) (u sort)) term
   (or (and (= (str.len t) (int 0)) (and (= t (sc_mk_emptystr u)) true)) (or (a.> (str.len t) (int 0)) false))

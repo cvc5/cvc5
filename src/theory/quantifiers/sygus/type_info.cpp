@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,7 +122,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         TypeNode ct = dt[i].getArgType(j);
         TypeNode cbt = tds->sygusToBuiltinType(ct);
         TypeNode lat = sop[0][j].getType();
-        AlwaysAssert(cbt.isSubtypeOf(lat))
+        AlwaysAssert(cbt == lat)
             << "In sygus datatype " << dt.getName()
             << ", argument to a lambda constructor is not " << lat << std::endl;
       }

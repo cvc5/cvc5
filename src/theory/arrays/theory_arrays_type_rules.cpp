@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Mathias Preiner
+ *   Aina Niemetz, Mathias Preiner, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +40,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                          "array select operating on non-array");
     }
     TypeNode indexType = n[1].getType(check);
-    if (!indexType.isSubtypeOf(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array select not indexed with correct type for array");
@@ -197,13 +197,13 @@ TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
                                          "array table fun arg 1 is non-array");
     }
     TypeNode indexType = n[2].getType(check);
-    if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 2 does not match type of array");
     }
     indexType = n[3].getType(check);
-    if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 3 does not match type of array");

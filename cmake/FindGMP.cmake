@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -65,15 +65,28 @@ if(NOT GMP_FOUND_SYSTEM)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
   endif()
 
+  set(CONFIGURE_OPTS "")
+  if(CMAKE_CROSSCOMPILING)
+    set(CONFIGURE_OPTS --host=${TOOLCHAIN_PREFIX} --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
+  endif()
 
+  # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
+  # that cross-compilation works (as suggested in the GMP documentation).
+  # Without the `--build` flag, `configure` may fail for cross-compilation
+  # builds for Windows if Wine is installed.
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
     URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
-      <SOURCE_DIR>/configure ${LINK_OPTS} --prefix=<INSTALL_DIR>
-      --with-pic --enable-cxx --host=${TOOLCHAIN_PREFIX}
+      ${CMAKE_COMMAND} -E env CC_FOR_BUILD=cc
+        <SOURCE_DIR>/configure
+          ${LINK_OPTS}
+          --prefix=<INSTALL_DIR>
+          --with-pic
+          --enable-cxx
+          ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()

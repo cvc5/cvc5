@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,6 +79,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE:
       return "ARITH_NL_T_SINE_BOUNDARY_REDUCE";
     case InferenceId::ARITH_NL_T_PURIFY_ARG: return "ARITH_NL_T_PURIFY_ARG";
+    case InferenceId::ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT:
+      return "ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT";
     case InferenceId::ARITH_NL_T_INIT_REFINE: return "ARITH_NL_T_INIT_REFINE";
     case InferenceId::ARITH_NL_T_PI_BOUND: return "ARITH_NL_T_PI_BOUND";
     case InferenceId::ARITH_NL_T_MONOTONICITY: return "ARITH_NL_T_MONOTONICITY";
@@ -138,6 +140,8 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_CARD_EMPTY: return "BAGS_CARD_EMPTY";
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
+    case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
+    case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -239,6 +243,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_CEGQI_VTS_UB_DELTA";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF:
       return "QUANTIFIERS_CEGQI_VTS_LB_INF";
+    case InferenceId::QUANTIFIERS_ORACLE_INTERFACE:
+      return "QUANTIFIERS_ORACLE_INTERFACE";
     case InferenceId::QUANTIFIERS_SYQI_CEX: return "QUANTIFIERS_SYQI_CEX";
     case InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD:
       return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
@@ -308,6 +314,7 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_LABEL_INTRO: return "SEP_LABEL_INTRO";
     case InferenceId::SEP_LABEL_DEF: return "SEP_LABEL_DEF";
     case InferenceId::SEP_EMP: return "SEP_EMP";
+    case InferenceId::SEP_POS_PTO_SINGLETON: return "SEP_POS_PTO_SINGLETON";
     case InferenceId::SEP_POS_REDUCTION: return "SEP_POS_REDUCTION";
     case InferenceId::SEP_NEG_REDUCTION: return "SEP_NEG_REDUCTION";
     case InferenceId::SEP_REFINEMENT: return "SEP_REFINEMENT";

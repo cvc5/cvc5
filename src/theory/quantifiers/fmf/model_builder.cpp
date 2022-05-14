@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,7 +54,7 @@ void QModelBuilder::finishInit()
 }
 
 bool QModelBuilder::optUseModel() {
-  return options().quantifiers.mbqiMode != options::MbqiMode::NONE
+  return options().quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE
          || options().quantifiers.fmfBound || options().strings.stringExp;
 }
 

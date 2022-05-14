@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,10 +52,10 @@ class AstPrinter : public cvc5::internal::Printer
   void toStreamCmdAssert(std::ostream& out, Node n) const override;
 
   /** Print push command */
-  void toStreamCmdPush(std::ostream& out) const override;
+  void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print pop command */
-  void toStreamCmdPop(std::ostream& out) const override;
+  void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,

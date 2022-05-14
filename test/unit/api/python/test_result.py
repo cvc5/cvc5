@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Yoni Zohar, Andrew Reynolds, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -45,9 +45,12 @@ def test_eq(solver):
     solver.assertFormula(x.eqTerm(x))
     res2 = solver.checkSat()
     res3 = solver.checkSat()
+    res = Result()
+    assert res != res2
     res = res2
     assert res == res2
     assert res3 == res2
+    assert str(res) == "sat"
 
 
 def test_is_sat(solver):
@@ -78,3 +81,6 @@ def test_is_sat_unknown(solver):
     res = solver.checkSat()
     assert not res.isSat()
     assert res.isUnknown()
+    ue = res.getUnknownExplanation()
+    assert ue == UnknownExplanation.UNKNOWN_REASON
+    assert str(ue) == "UnknownExplanation.UNKNOWN_REASON"

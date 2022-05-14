@@ -2,6 +2,7 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
+; DISABLE-TESTER: lfsc
 (set-logic LRA)
 (set-info :status unsat)
 (assert (not (exists ((?X Real)) (>= (/ (- 13) 4) ?X))))

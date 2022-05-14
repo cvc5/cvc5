@@ -16,6 +16,14 @@
     (emptystr tt)
     (default ff)))
 
+;;-------------------- Skolem terms
+; The following side conditions are used for computing terms that define
+; Skolems, which are used in reductions. Notice that Skolem terms may use
+; terms that are not in original form, meaning that the definitions of Skolems
+; may themselves contain Skolems. This is to avoid the use of a side condition
+; for computing the original form of a term in the LFSC signature, which
+; naively is exponential.
+
 ; Get the term corresponding to the prefix of term s of fixed length n.
 (program sc_skolem_prefix ((s term) (n term)) term 
   (str.substr s (int 0) n)
@@ -34,9 +42,11 @@
 ; Get the term corresponding to the suffix of s after the first occurrence of
 ; t in s.
 (program sc_skolem_first_ctn_post ((s term) (t term)) term 
-  (sc_skolem_suffix_rem s (a.+ (str.len (sc_skolem_first_ctn_pre s t)) (a.+ (str.len t) (int 0)))))
+  (sc_skolem_suffix_rem s (a.+ (str.len (skolem (sc_skolem_first_ctn_pre s t))) (a.+ (str.len t) (int 0)))))
 
-; Head and tail for string concatenation.
+;;-------------------- Utilities
+
+; Head and tail for string concatenation. Fails if not a concatentation term.
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
 (program sc_string_tail ((t term)) term (nary_tail f_str.++ t))
 
@@ -62,15 +72,17 @@
 ; Convert t into a str.++ application, if it is not already in n-ary form.
 (program sc_string_nary_intro ((t term) (u sort)) term (nary_intro f_str.++ t (sc_mk_emptystr u)))
 
+;;-------------------- Reductions
+
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string function in terms of (simpler) functions.
 
 ; Compute the reduction predicate for (str.substr x n m) of sort s.
 (program sc_string_reduction_substr ((x term) (n term) (m term) (u sort)) term
-  (let k (sc_mk_skolem (str.substr x n m))
+  (let k (skolem (str.substr x n m))
   (let npm (a.+ n (a.+ m (int 0)))
-  (let k1 (sc_mk_skolem (sc_skolem_prefix x n))
-  (let k2 (sc_mk_skolem (sc_skolem_suffix_rem x npm))
+  (let k1 (skolem (sc_skolem_prefix x n))
+  (let k2 (skolem (sc_skolem_suffix_rem x npm))
   (ite
     ; condition
     (and (a.>= n (int 0))
@@ -92,10 +104,10 @@
 
 ; Compute the reduction predicate for (str.indexof x y n) of sort s.
 (program sc_string_reduction_indexof ((x term) (y term) (n term) (u sort)) term
-  (let k (sc_mk_skolem (str.indexof x y n))
+  (let k (skolem (str.indexof x y n))
   (let xn (str.substr x n (a.- (str.len x) n))
-  (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre xn y))
-  (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post xn y))
+  (let k1 (skolem (sc_skolem_first_ctn_pre xn y))
+  (let k2 (skolem (sc_skolem_first_ctn_post xn y))
   (ite
     (or (not (str.contains xn y))
       (or (a.> n (str.len x))
@@ -144,7 +156,7 @@
 ; Returns the reduction predicate and purification equality for term t
 ; of sort s.
 (program sc_string_reduction ((t term) (u sort)) term
-  (and (sc_string_reduction_pred t u) (and (= t (sc_mk_skolem t)) true))
+  (and (sc_string_reduction_pred t u) (and (= t (skolem t)) true))
 )
 
 ; Compute the eager reduction predicate for (str.contains t r) where s
@@ -152,8 +164,8 @@
 ; This is the formula:
 ;    (ite (str.contains t r) (= t (str.++ sk1 r sk2)) (not (= t r)))
 (program sc_string_eager_reduction_contains ((t term) (r term) (u sort)) term
-  (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre t r))
-  (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post t r))
+  (let k1 (skolem (sc_skolem_first_ctn_pre t r))
+  (let k2 (skolem (sc_skolem_first_ctn_post t r))
   (ite
     (str.contains t r)
     (= t (str.++ k1 (str.++ r (str.++ k2 (sc_mk_emptystr u)))))
@@ -242,7 +254,8 @@
     ((apply t1 t2)
       (let t12 (getarg f_str.++ t1)
       (match t12
-        ((char n) t12))))
+        ((char n) t12)
+        ((apply t121 t122) (ifequal t121 f_seq.unit t12 (fail term))))))
     (default (ifequal t (sc_mk_emptystr u) t (fail term)))))
 
 ; Flatten constants in str.++ application s. Notice that the rewritten form

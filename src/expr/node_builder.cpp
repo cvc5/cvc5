@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -415,7 +415,7 @@ expr::NodeValue* NodeBuilder::constructNV()
     // reference counts in this case.
     nv->d_nchildren = 0;
     nv->d_kind = d_nv->d_kind;
-    nv->d_id = d_nm->next_id++;  // FIXME multithreading
+    nv->d_id = d_nm->d_nextId++;
     nv->d_rc = 0;
     setUsed();
     if (TraceIsOn("gc"))
@@ -497,7 +497,7 @@ expr::NodeValue* NodeBuilder::constructNV()
       }
       nv->d_nchildren = d_inlineNv.d_nchildren;
       nv->d_kind = d_inlineNv.d_kind;
-      nv->d_id = d_nm->next_id++;  // FIXME multithreading
+      nv->d_id = d_nm->d_nextId++;
       nv->d_rc = 0;
 
       std::copy(d_inlineNv.d_children,
@@ -557,7 +557,7 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       crop();
       expr::NodeValue* nv = d_nv;
-      nv->d_id = d_nm->next_id++;  // FIXME multithreading
+      nv->d_id = d_nm->d_nextId++;
       d_nv = &d_inlineNv;
       d_nvMaxChildren = default_nchild_thresh;
       setUsed();

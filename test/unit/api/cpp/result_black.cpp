@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,9 +45,16 @@ TEST_F(TestApiBlackResult, eq)
   cvc5::Result res;
   cvc5::Result res2 = d_solver.checkSat();
   cvc5::Result res3 = d_solver.checkSat();
+  ASSERT_NE(res, res2);
   res = res2;
   ASSERT_EQ(res, res2);
   ASSERT_EQ(res3, res2);
+  {
+    std::stringstream ss;
+    ss << res;
+    ASSERT_EQ(res.toString(), "sat");
+    ASSERT_EQ(res.toString(), ss.str());
+  }
 }
 
 TEST_F(TestApiBlackResult, isSat)
@@ -81,6 +88,13 @@ TEST_F(TestApiBlackResult, isUnknown)
   cvc5::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
   ASSERT_TRUE(res.isUnknown());
+  cvc5::UnknownExplanation ue = res.getUnknownExplanation();
+  ASSERT_EQ(ue, cvc5::UnknownExplanation::UNKNOWN_REASON);
+  {
+    std::stringstream ss;
+    ss << ue;
+    ASSERT_EQ(ss.str(), "UNKNOWN_REASON");
+  }
 }
 
 }  // namespace test
