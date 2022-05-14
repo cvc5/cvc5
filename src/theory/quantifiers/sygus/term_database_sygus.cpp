@@ -405,7 +405,7 @@ void TermDbSygus::registerEnumerator(Node e,
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
   // depending on if we are using symbolic constructors, introduce symmetry
-  // breaking lemma templates for each relevant subtype of the grammar
+  // breaking lemma templates for each relevant subfield type of the grammar
   SygusTypeInfo& eti = getTypeInfo(et);
   std::vector<TypeNode> sf_types;
   eti.getSubfieldTypes(sf_types);
