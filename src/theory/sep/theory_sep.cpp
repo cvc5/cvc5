@@ -377,56 +377,25 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     // make conclusion based on type of assertion
     if (satom.getKind() == SEP_STAR || satom.getKind() == SEP_WAND)
     {
-      std::vector<Node> children;
-      std::vector<Node> c_lems;
       TypeNode tn = getReferenceType();
       if (d_reference_bound_max.find(tn) != d_reference_bound_max.end())
       {
-        c_lems.push_back(
-            nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max[tn]));
+        Node blem = nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max[tn]);
+        d_im.lemma(blem, InferenceId::SEP_LABEL_DEF);
       }
+      std::vector<Node> children;
       std::vector<Node> labels;
       getLabelChildren(satom, slbl, children, labels);
       Node empSet = nm->mkConst(EmptySet(slbl.getType()));
       Assert(children.size() > 1);
       if (satom.getKind() == SEP_STAR)
       {
-        // reduction for heap : union, pairwise disjoint
-        Node ulem = nm->mkNode(SET_UNION, labels[0], labels[1]);
-        size_t lsize = labels.size();
-        for (size_t i = 2; i < lsize; i++)
-        {
-          ulem = nm->mkNode(SET_UNION, ulem, labels[i]);
-        }
-        ulem = slbl.eqNode(ulem);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : star reduction, union : " << ulem << std::endl;
-        c_lems.push_back(ulem);
-        for (size_t i = 0; i < lsize; i++)
-        {
-          for (size_t j = (i + 1); j < lsize; j++)
-          {
-            Node s = nm->mkNode(SET_INTER, labels[i], labels[j]);
-            Node ilem = s.eqNode(empSet);
-            Trace("sep-lemma-debug")
-                << "Sep::Lemma : star reduction, disjoint : " << ilem
-                << std::endl;
-            c_lems.push_back(ilem);
-          }
-        }
+        // make disjoint heap
+        makeDisjointHeap(slbl, labels);
       }
       else
       {
-        Node ulem = nm->mkNode(SET_UNION, slbl, labels[0]);
-        ulem = ulem.eqNode(labels[1]);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : wand reduction, union : " << ulem << std::endl;
-        c_lems.push_back(ulem);
-        Node s = nm->mkNode(SET_INTER, slbl, labels[0]);
-        Node ilem = s.eqNode(empSet);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : wand reduction, disjoint : " << ilem << std::endl;
-        c_lems.push_back(ilem);
+        Assert (satom.getKind()==SEP_WAND);
         // nil does not occur in labels[0]
         Node nr = getNilRef(tn);
         Node nrlem = nm->mkNode(SET_MEMBER, nr, labels[0]).negate();
@@ -434,12 +403,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
             << "Sep::Lemma: sep.nil not in wand antecedant heap : " << nrlem
             << std::endl;
         d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
-      }
-      // send out definitional lemmas for introduced sets
-      for (const Node& clem : c_lems)
-      {
-        Trace("sep-lemma") << "Sep::Lemma : definition : " << clem << std::endl;
-        d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
+        // make disjoint heap
+        makeDisjointHeap(labels[1], {slbl, labels[0]});
       }
       conc = nm->mkNode(AND, children);
     }
@@ -1334,14 +1299,99 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
-    //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(refType));
     Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "sep label");
     d_label_map[atom][lbl][child] = n_lbl;
-    d_label_map_parent[n_lbl] = lbl;
     return n_lbl;
   }else{
     return (*it).second;
   }
+}
+
+
+void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
+{
+  Assert(children.size() >= 2);
+  // remember parent relationships
+  for (const Node& c : children)
+  {
+    Assert(c.getType() == parent.getType());
+    d_parentMap[c].push_back(parent);
+  }
+  // make the disjointness constraints
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> lems;
+  Node ulem = nm->mkNode(SET_UNION, children[0], children[1]);
+  size_t lsize = children.size();
+  for (size_t i = 2; i < lsize; i++)
+  {
+    ulem = nm->mkNode(SET_UNION, ulem, children[i]);
+  }
+  ulem = parent.eqNode(ulem);
+  lems.push_back(ulem);
+  Node empSet = nm->mkConst(EmptySet(parent.getType()));
+  for (size_t i = 0; i < lsize; i++)
+  {
+    for (size_t j = (i + 1); j < lsize; j++)
+    {
+      Node s = nm->mkNode(SET_INTER, children[i], children[j]);
+      Node ilem = s.eqNode(empSet);
+      lems.push_back(ilem);
+    }
+  }
+  // send out definitional lemmas for introduced sets
+  for (const Node& clem : lems)
+  {
+    d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
+  }
+}
+
+std::vector<Node> TheorySep::getRootLabels(Node p) const
+{
+  std::vector<Node> roots;
+  std::unordered_set<Node> visited;
+  std::unordered_set<Node>::iterator it;
+  std::vector<Node> visit;
+  std::map<Node, std::vector<Node> >::const_iterator itp;
+  Node cur;
+  visit.push_back(p);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      itp = d_parentMap.find(cur);
+      if (itp == d_parentMap.end())
+      {
+        roots.push_back(cur);
+      }
+      else
+      {
+        visit.insert(visit.end(), itp->second.begin(), itp->second.end());
+      }
+    }
+  } while (!visit.empty());
+  return roots;
+}
+
+bool TheorySep::sharesRootLabel(Node p, Node q) const
+{
+  if (p == q)
+  {
+    return true;
+  }
+  std::vector<Node> rp = getRootLabels(p);
+  std::vector<Node> rq = getRootLabels(q);
+  for (const Node& r : rp)
+  {
+    if (std::find(rq.begin(), rq.end(), r) != rq.end())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) {

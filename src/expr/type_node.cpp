@@ -337,14 +337,6 @@ TypeNode TypeNode::getSequenceElementType() const
   return (*this)[0];
 }
 
-TypeNode TypeNode::getBaseType() const {
-  TypeNode realt = NodeManager::currentNM()->realType();
-  if (isSubtypeOf(realt)) {
-    return realt;
-  }
-  return *this;
-}
-
 std::vector<TypeNode> TypeNode::getArgTypes() const {
   vector<TypeNode> args;
   if (isDatatypeTester())

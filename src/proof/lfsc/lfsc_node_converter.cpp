@@ -460,31 +460,33 @@ Node LfscNodeConverter::postConvert(Node n)
       // must convert recursively, since nullTerm may have subterms.
       ret = convert(nullTerm);
     }
-    // the kind to chain
-    Kind ck = k;
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
-    Node opc;
-    if (k == ADD || k == MULT || k == NONLINEAR_MULT)
+    bool isArithOp = (k == ADD || k == MULT || k == NONLINEAR_MULT);
+    std::stringstream arithOpName;
+    if (isArithOp)
     {
-      std::stringstream opName;
       // currently allow subtyping
-      opName << "a.";
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
-      TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
-      opc = getSymbolInternal(k, ftype, opName.str());
-      ck = APPLY_UF;
+      arithOpName << "a.";
+      arithOpName << printer::smt2::Smt2Printer::smtKindString(k);
     }
     // now, iterate over children and make binary conversion
     for (size_t i = istart, npchild = children.size(); i < npchild; i++)
     {
-      if (!opc.isNull())
+      if (isArithOp)
       {
-        ret = nm->mkNode(ck, opc, children[i], ret);
+        // Arithmetic operators must deal with permissive type rules for
+        // ADD, MULT, NONLINEAR_MULT. We use the properly typed operator to
+        // avoid debug failures.
+        TypeNode tn1 = children[i].getType();
+        TypeNode tn2 = ret.getType();
+        TypeNode ftype = nm->mkFunctionType({tn1, tn2}, tn);
+        Node opc = getSymbolInternal(k, ftype, arithOpName.str());
+        ret = nm->mkNode(APPLY_UF, opc, children[i], ret);
       }
       else
       {
-        ret = nm->mkNode(ck, children[i], ret);
+        ret = nm->mkNode(k, children[i], ret);
       }
     }
     Trace("lfsc-term-process-debug")
@@ -1201,10 +1203,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
-    // We take the base type, so that e.g. arithmetic operators are over
-    // real. This avoids issues with subtyping when currying during proof
-    // postprocessing
-    argTypes.push_back(nc.getType().getBaseType());
+    argTypes.push_back(nc.getType());
   }
   // we only use binary operators
   if (NodeManager::isNAryKind(k))

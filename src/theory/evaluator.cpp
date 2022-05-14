@@ -591,6 +591,23 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
+        case kind::SEQ_NTH:
+        {
+          // only strings evaluate
+          Assert (currNode[0].getType().isString());
+          const String& s = results[currNode[0]].d_str;
+          Integer s_len(s.size());
+          Integer i = results[currNode[1]].d_rat.getNumerator();
+          if (i.strictlyNegative() || i >= s_len)
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
+          }
+          break;
+        }
 
         case kind::STRING_UPDATE:
         {

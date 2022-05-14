@@ -13,7 +13,7 @@
  * Implementation of common functions for dealing with nodes.
  */
 
-#include "arith_utilities.h"
+#include "theory/arith/arith_utilities.h"
 
 #include <cmath>
 
@@ -217,82 +217,6 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
   {
     Trace(c) << " [0,10^" << prec << "])";
   }
-}
-
-Node arithSubstitute(Node n, const Subs& sub)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
-  std::vector<TNode> visit;
-  visit.push_back(n);
-  do
-  {
-    TNode cur = visit.back();
-    visit.pop_back();
-    auto it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      Kind ck = cur.getKind();
-      auto s = sub.find(cur);
-      if (s)
-      {
-        visited[cur] = *s;
-      }
-      else if (cur.getNumChildren() == 0)
-      {
-        visited[cur] = cur;
-      }
-      else
-      {
-        TheoryId ctid = theory::kindToTheoryId(ck);
-        if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
-             && ctid != THEORY_BUILTIN)
-            || isTranscendentalKind(ck))
-        {
-          // Do not traverse beneath applications that belong to another theory
-          // besides (core) arithmetic. Notice that transcendental function
-          // applications are also not traversed here.
-          visited[cur] = cur;
-        }
-        else
-        {
-          visit.push_back(cur);
-          for (const Node& cn : cur)
-          {
-            visit.push_back(cn);
-          }
-        }
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
 }
 
 Node mkBounded(Node l, Node a, Node u)
