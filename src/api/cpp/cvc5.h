@@ -3449,8 +3449,7 @@ class CVC5_EXPORT Solver
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
-   * Create a tuple term. Terms are automatically converted if sorts are
-   * compatible.
+   * Create a tuple term, where terms have the provided sorts.
    * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
