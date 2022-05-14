@@ -1043,10 +1043,7 @@ Node SolverEngine::getValue(const Node& ex) const
   Trace("smt") << "--- expected type " << expectedType << endl;
 
   // type-check the result we got
-  // Notice that lambdas have function type, which does not respect the subtype
-  // relation, so we ignore them here.
-  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
-         || resultNode.getType() == expectedType)
+  Assert(resultNode.isNull() || resultNode.getType() == expectedType)
       << "Run with -t smt for details.";
 
   // Ensure it's a value (constant or const-ish like real algebraic
