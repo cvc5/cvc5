@@ -2345,6 +2345,17 @@ def test_get_interpolant(solver):
     output = solver.getInterpolant(conj)
     assert output.getSort().isBoolean()
 
+    boolean = solver.getBooleanSort()
+    truen = solver.mkBoolean(True)
+    start = solver.mkVar(boolean)
+    output2 = cvc5.Term(solver)
+    g = solver.mkGrammar([], [start])
+    conj2 = solver.mkTerm(Kind.EQUAL, zero, zero)
+    g.addRule(start, truen)
+    output2 = solver.getInterpolant(conj2, g)
+    assert output2 == truen
+
+
 def test_get_interpolant_next(solver):
     solver.setLogic("QF_LIA")
     solver.setOption("produce-interpolants", "true")
