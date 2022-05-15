@@ -57,10 +57,10 @@ TEST_F(TestUtilWhiteArrayStoreAll, type_errors)
                                                d_nodeManager->mkSort("U")),
                     d_nodeManager->mkConstReal(Rational(9, 2))),
       IllegalArgumentException);
-  ASSERT_THROW(
-      ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
-                                           d_nodeManager->realType()),
-                d_nodeManager->mkConstInt(Rational(0))));
+  ASSERT_THROW(ArrayStoreAll(
+      d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
+                                 d_nodeManager->realType()),
+      d_nodeManager->mkConstInt(Rational(0))));
 }
 
 TEST_F(TestUtilWhiteArrayStoreAll, const_error)
