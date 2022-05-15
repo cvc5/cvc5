@@ -30,9 +30,6 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
-#include "theory/bags/bag_make_op.h"
-#include "theory/sets/singleton_op.h"
-#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -1146,39 +1143,6 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   {
     return it->second;
   }
-}
-
-Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType() == t) << "Invalid operands for mkSeqUnit. The type '"
-                           << n.getType() << "' of node '" << n
-                           << "' is not a subtype of '" << t << "'."
-                           << std::endl;
-  Node op = mkConst(SeqUnitOp(t));
-  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
-  return sunit;
-}
-
-Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType() == t) << "Invalid operands for mkSingleton. The type '"
-                           << n.getType() << "' of node '" << n
-                           << "' is not a subtype of '" << t << "'."
-                           << std::endl;
-  Node op = mkConst(SetSingletonOp(t));
-  Node singleton = mkNode(kind::SET_SINGLETON, op, n);
-  return singleton;
-}
-
-Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
-{
-  Assert(n.getType() == t) << "Invalid operands for mkBag. The type '"
-                           << n.getType() << "' of node '" << n
-                           << "' is not a subtype of '" << t << "'."
-                           << std::endl;
-  Node op = mkConst(BagMakeOp(t));
-  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
-  return bag;
 }
 
 bool NodeManager::hasOperator(Kind k)
