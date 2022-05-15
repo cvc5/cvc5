@@ -34,11 +34,12 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == GEQ)
+  else if (k == GEQ || k == GT || k == LEQ || k == LT)
   {
     convertToRealChildren =
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
   }
+  // note that EQUAL is strictly typed so we don't need to handle it here
   if (convertToRealChildren)
   {
     NodeManager* nm = NodeManager::currentNM();
