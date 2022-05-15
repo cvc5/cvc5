@@ -1468,12 +1468,11 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Sort boolean = d_solver.getBooleanSort();
   Term truen = d_solver.mkBoolean(true);
   Term start = d_solver.mkVar(boolean);
-  Term output2;
   Grammar g = d_solver.mkGrammar({}, {start});
   Term conj2 = d_solver.mkTerm(EQUAL, {zero, zero});
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the interpolation api, while the resulting interpolant is the output
-  output2 = d_solver.getInterpolant(conj2, g);
+  Term output2 = d_solver.getInterpolant(conj2, g);
   // interpolant must be true
   ASSERT_EQ(output2, truen);
 }

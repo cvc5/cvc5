@@ -2348,7 +2348,6 @@ def test_get_interpolant(solver):
     boolean = solver.getBooleanSort()
     truen = solver.mkBoolean(True)
     start = solver.mkVar(boolean)
-    output2 = cvc5.Term(solver)
     g = solver.mkGrammar([], [start])
     conj2 = solver.mkTerm(Kind.EQUAL, zero, zero)
     g.addRule(start, truen)
