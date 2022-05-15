@@ -637,15 +637,15 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // information from another class. Thus, rep may be non-null here.
       // Regardless, we assign constRep as the representative here.
       assignConstantRep(tm, eqc, constRep);
-      typeConstSet.add(eqct.getBaseType(), constRep);
+      typeConstSet.add(eqct, constRep);
       continue;
     }
     else if (!rep.isNull())
     {
       assertedReps[eqc] = rep;
-      typeRepSet.add(eqct.getBaseType(), eqc);
+      typeRepSet.add(eqct, eqc);
       std::unordered_set<TypeNode> visiting;
-      addToTypeList(eqct.getBaseType(), type_list, visiting);
+      addToTypeList(eqct, type_list, visiting);
     }
     else
     {
@@ -758,7 +758,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       for (type_it = type_list.begin(); type_it != type_list.end(); ++type_it)
       {
         TypeNode t = *type_it;
-        TypeNode tb = t.getBaseType();
+        TypeNode tb = t;
         set<Node>* noRepSet = typeNoRepSet.getSet(t);
 
         // 1. Try to evaluate the EC's in this type
@@ -908,7 +908,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       }
 #endif
 
-      TypeNode tb = t.getBaseType();
+      TypeNode tb = t;
       if (!assignOne)
       {
         set<Node>* repSet = typeRepSet.getSet(tb);
@@ -991,7 +991,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             {
               Trace("model-builder-debug") << "Enumerate term of type " << t
                                            << std::endl;
-              n = typeConstSet.nextTypeEnum(t, true);
+              n = typeConstSet.nextTypeEnum(t);
               //--- AJR: this code checks whether n is a legal value
               Assert(!n.isNull());
               success = true;

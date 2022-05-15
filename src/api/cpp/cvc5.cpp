@@ -5072,42 +5072,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    if (kind == SET_SINGLETON)
-    {
-      // the type of the term is the same as the type of the internal node
-      // see Term::getSort()
-      internal::TypeNode type = children[0].d_node->getType();
-      // Internally NodeManager::mkSingleton needs a type argument
-      // to construct a singleton, since there is no difference between
-      // integers and reals (both are Rationals).
-      // At the API, mkReal and mkInteger are different and therefore the
-      // element type can be used safely here.
-      res = getNodeManager()->mkSingleton(type, *children[0].d_node);
-    }
-    else if (kind == BAG_MAKE)
-    {
-      // the type of the term is the same as the type of the internal node
-      // see Term::getSort()
-      internal::TypeNode type = children[0].d_node->getType();
-      // Internally NodeManager::mkBag needs a type argument
-      // to construct a bag, since there is no difference between
-      // integers and reals (both are Rationals).
-      // At the API, mkReal and mkInteger are different and therefore the
-      // element type can be used safely here.
-      res = getNodeManager()->mkBag(
-          type, *children[0].d_node, *children[1].d_node);
-    }
-    else if (kind == SEQ_UNIT)
-    {
-      // the type of the term is the same as the type of the internal node
-      // see Term::getSort()
-      internal::TypeNode type = children[0].d_node->getType();
-      res = getNodeManager()->mkSeqUnit(type, *children[0].d_node);
-    }
-    else
-    {
-      res = d_nodeMgr->mkNode(k, echildren);
-    }
+    // make the term
+    res = d_nodeMgr->mkNode(k, echildren);
   }
 
   (void)res.getType(true); /* kick off type checking */

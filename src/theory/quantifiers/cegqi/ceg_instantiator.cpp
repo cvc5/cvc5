@@ -686,7 +686,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                                              Node pv)
 {
   TypeNode pvtn = pv.getType();
-  TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   if (ee->hasTerm(pv))
@@ -783,7 +782,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
     Trace("cegqi-inst-debug")
         << "[2] try based on solving equalities." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
-    std::vector<Node>& cteqc = d_curr_type_eqc[pvtnb];
+    std::vector<Node>& cteqc = d_curr_type_eqc[pvtn];
 
     for (const Node& r : cteqc)
     {
@@ -1416,10 +1415,6 @@ void CegInstantiator::processAssertions() {
     TheoryId tid = d_env.theoryOf(rtn);
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
-      if (rtn.isRealOrInt())
-      {
-        rtn = rtn.getBaseType();
-      }
       Trace("cegqi-proc-debug") << "...type eqc: " << r << std::endl;
       d_curr_type_eqc[rtn].push_back( r );
       if( d_curr_eqc.find( r )==d_curr_eqc.end() ){
