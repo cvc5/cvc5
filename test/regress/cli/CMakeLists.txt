@@ -781,6 +781,7 @@ set(regress_0_tests
   regress0/nl/coeff-sat.smt2
   regress0/nl/combined-uf.smt2
   regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
+  regress0/nl/dd.iand-wrong-0513-pp.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -1839,6 +1840,7 @@ set(regress_1_tests
   regress1/bv/bv2nat-simp-range-sat.smt2
   regress1/bv/bv2nat-types.smt2
   regress1/bv/cmu-rdk-3.smt2
+  regress1/bv/dd.iand-wrong-0513.smt2
   regress1/bv/decision-weight00.smt2
   regress1/bv/divtest.smt2
   regress1/bv/fuzz18.smtv1.smt2

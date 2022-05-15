@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "theory/sets/normal_form.h"
-#include "theory/sets/singleton_op.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -118,24 +117,8 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
                                         bool check)
 {
-  Assert(n.getKind() == kind::SET_SINGLETON && n.hasOperator()
-         && n.getOperator().getKind() == kind::SET_SINGLETON_OP);
-
-  const SetSingletonOp& op = n.getOperator().getConst<SetSingletonOp>();
-  TypeNode type1 = op.getType();
-  if (check)
-  {
-    TypeNode type2 = n[0].getType(check);
-    // the type of the element should be a subtype of the type of the operator
-    // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
-    if (type1 != type2)
-    {
-      std::stringstream ss;
-      ss << "The type '" << type2 << "' of the element is not a type of '"
-         << type1 << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-  }
+  Assert(n.getKind() == kind::SET_SINGLETON);
+  TypeNode type1 = n[0].getType(check);
   return nodeManager->mkSetType(type1);
 }
 
