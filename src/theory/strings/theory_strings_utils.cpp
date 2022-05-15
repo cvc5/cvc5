@@ -162,8 +162,7 @@ Node mkUnit(TypeNode tn, Node n)
     return nm->mkNode(STRING_UNIT, n);
   }
   Assert(tn.isSequence());
-  TypeNode etn = tn.getSequenceElementType();
-  return nm->mkSeqUnit(etn, n);
+  return nm->mkNode(SEQ_UNIT, n);
 }
 
 Node getConstantComponent(Node t)
