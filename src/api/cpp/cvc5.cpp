@@ -2212,10 +2212,6 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
-  if (isCastedReal())
-  {
-    return 0;
-  }
   return d_node->getNumChildren();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -2603,8 +2599,6 @@ const internal::Rational& getRational(const internal::Node& node)
 {
   switch (node.getKind())
   {
-    case internal::Kind::CAST_TO_REAL:
-      return node[0].getConst<internal::Rational>();
     case internal::Kind::CONST_INTEGER:
     case internal::Kind::CONST_RATIONAL:
       return node.getConst<internal::Rational>();
@@ -2637,8 +2631,7 @@ bool checkReal64Bounds(const internal::Rational& r)
 bool isReal(const internal::Node& node)
 {
   return node.getKind() == internal::Kind::CONST_RATIONAL
-         || node.getKind() == internal::Kind::CONST_INTEGER
-         || node.getKind() == internal::Kind::CAST_TO_REAL;
+         || node.getKind() == internal::Kind::CONST_INTEGER;
 }
 bool isReal32(const internal::Node& node)
 {
@@ -3341,20 +3334,7 @@ Kind Term::getKindHelper() const
   }
   // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
   // INTERNAL_KIND.
-  if (isCastedReal())
-  {
-    return CONST_RATIONAL;
-  }
   return intToExtKind(d_node->getKind());
-}
-
-bool Term::isCastedReal() const
-{
-  if (d_node->getKind() == internal::kind::CAST_TO_REAL)
-  {
-    return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
-  }
-  return false;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4923,13 +4903,7 @@ Term Solver::mkRationalValHelper(const internal::Rational& r, bool isInt) const
   internal::NodeManager* nm = getNodeManager();
   internal::Node res = isInt ? nm->mkConstInt(r) : nm->mkConstReal(r);
   (void)res.getType(true); /* kick off type checking */
-  Term t = Term(this, res);
-  // NOTE: this block will be eliminated when arithmetic subtyping is eliminated
-  if (!isInt)
-  {
-    t = ensureRealSort(t);
-  }
-  return t;
+  return Term(this, res);
 }
 
 Term Solver::mkRealOrIntegerFromStrHelper(const std::string& s,
@@ -5000,12 +4974,7 @@ Term Solver::getValueHelper(const Term& term) const
   //////// all checks before this line
   internal::Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
-  // May need to wrap in real cast so that user know this is a real.
-  internal::TypeNode tn = (*term.d_node).getType();
-  if (!tn.isInteger() && value.getType().isInteger())
-  {
-    return ensureRealSort(res);
-  }
+  Assert(res.getSort() == term.getSort());
   return res;
 }
 
@@ -5174,23 +5143,6 @@ Term Solver::synthFunHelper(const std::string& symbol,
       bvns);
 
   return Term(this, fun);
-}
-
-Term Solver::ensureRealSort(const Term& t) const
-{
-  Assert(this == t.d_solver);
-  CVC5_API_ARG_CHECK_EXPECTED(
-      t.getSort() == getIntegerSort() || t.getSort() == getRealSort(),
-      " an integer or real term");
-  // Note: Term is checked in the caller to avoid double checks
-  //////// all checks before this line
-  if (t.getSort() == getIntegerSort())
-  {
-    internal::Node n =
-        getNodeManager()->mkNode(internal::kind::CAST_TO_REAL, *t.d_node);
-    return Term(this, n);
-  }
-  return t;
 }
 
 bool Solver::isValidInteger(const std::string& s) const
@@ -5830,14 +5782,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_CHECK(val.getSort() == sort.getArrayElementSort())
       << "Value does not match element sort";
   //////// all checks before this line
-
-  // handle the special case of (CAST_TO_REAL n) where n is an integer
   internal::Node n = *val.d_node;
-  if (val.isCastedReal())
-  {
-    // this is safe because the constant array stores its type
-    n = n[0];
-  }
   Term res = mkValHelper(internal::ArrayStoreAll(*sort.d_type, n));
   return res;
   ////////
