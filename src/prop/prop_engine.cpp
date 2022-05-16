@@ -175,6 +175,7 @@ void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
     Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
     output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
   }
+  Assert(lhs.getType() == rhs.getType());
 }
 
 void PropEngine::assertInputFormulas(
@@ -338,6 +339,11 @@ std::vector<Node> PropEngine::getPropDecisions() const
     decisions.push_back(d_cnfStream->getNode(d));
   }
   return decisions;
+}
+
+std::vector<Node> PropEngine::getPropOrderHeap() const
+{
+  return d_satSolver->getOrderHeap();
 }
 
 int32_t PropEngine::getDecisionLevel(Node lit) const
@@ -714,6 +720,11 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
 std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
 {
   return d_theoryProxy->getLearnedZeroLevelLiteralsForRestart();
+}
+
+modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
+{
+  return d_theoryProxy->getLiteralType(lit);
 }
 
 }  // namespace prop

@@ -2137,7 +2137,7 @@ class SolverTest
     Term heap = solver.mkTerm(SEP_PTO, p, x);
     solver.assertFormula(heap);
     Term nil = solver.mkSepNil(integer);
-    solver.assertFormula(nil.eqTerm(solver.mkReal(5)));
+    solver.assertFormula(nil.eqTerm(solver.mkInteger(5)));
     solver.checkSat();
   }
 

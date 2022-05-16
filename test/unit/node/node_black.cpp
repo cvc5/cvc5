@@ -68,8 +68,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.base.outputLanguage = Language::LANG_AST;
-    opts.base.outputLanguageWasSetByUser = true;
+    opts.writeBase().outputLanguage = Language::LANG_AST;
+    opts.writeBase().outputLanguageWasSetByUser = true;
     d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
   }
 

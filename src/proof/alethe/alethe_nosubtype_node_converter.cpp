@@ -65,7 +65,7 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
         continue;
       }
       childChanged = true;
-      children.push_back(nm->mkNode(kind::CAST_TO_REAL, n[i]));
+      children.push_back(nm->mkNode(kind::TO_REAL, n[i]));
     }
     if (childChanged)
     {

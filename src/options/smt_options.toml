@@ -353,7 +353,7 @@ name   = "SMT Layer"
   help = "Do not translate bit-vectors to integers"
 [[option.mode.SUM]]
   name = "sum"
-  help = "Generate a sum expression for each bvand instance, based on the value in --solbv-bv-as-int-granularity"
+  help = "Generate a sum expression for each bvand instance, based on the value in --solve-bv-as-int-granularity"
 [[option.mode.IAND]]
   name = "iand"
   help = "Translate bvand to the iand operator (experimental)"

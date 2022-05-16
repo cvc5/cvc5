@@ -346,8 +346,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->d_options.driver.filename = value;
-    d_env->d_originalOptions->driver.filename = value;
+    d_env->d_options.writeDriver().filename = value;
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
@@ -360,12 +359,12 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().base.inputLanguage = Language::LANG_SMTLIB_V2_6;
+    getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
     if (!getOptions().base.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().base.outputLanguageWasSetByUser = false;
+      getOptions().writeBase().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -1397,11 +1396,11 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     std::unique_ptr<SolverEngine> coreChecker;
     initializeSubsolver(coreChecker, *d_env.get());
     coreChecker->setLogic(getLogicInfo());
-    coreChecker->getOptions().smt.checkUnsatCores = false;
+    coreChecker->getOptions().writeSmt().checkUnsatCores = false;
     // disable all proof options
-    coreChecker->getOptions().smt.produceProofs = false;
-    coreChecker->getOptions().smt.checkProofs = false;
-    coreChecker->getOptions().proof.proofReq = false;
+    coreChecker->getOptions().writeSmt().produceProofs = false;
+    coreChecker->getOptions().writeSmt().checkProofs = false;
+    coreChecker->getOptions().writeProof().proofReq = false;
 
     for (const Node& ucAssertion : core)
     {
@@ -1465,11 +1464,11 @@ void SolverEngine::checkUnsatCore()
   // initialize the core checker
   std::unique_ptr<SolverEngine> coreChecker;
   initializeSubsolver(coreChecker, *d_env.get());
-  coreChecker->getOptions().smt.checkUnsatCores = false;
+  coreChecker->getOptions().writeSmt().checkUnsatCores = false;
   // disable all proof options
-  coreChecker->getOptions().smt.produceProofs = false;
-  coreChecker->getOptions().proof.proofReq = false;
-  coreChecker->getOptions().smt.checkProofs = false;
+  coreChecker->getOptions().writeSmt().produceProofs = false;
+  coreChecker->getOptions().writeSmt().checkProofs = false;
+  coreChecker->getOptions().writeProof().proofReq = false;
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1918,16 +1917,16 @@ void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
-    d_env->d_options.base.cumulativeResourceLimit = units;
+    d_env->d_options.writeBase().cumulativeResourceLimit = units;
   }
   else
   {
-    d_env->d_options.base.perCallResourceLimit = units;
+    d_env->d_options.writeBase().perCallResourceLimit = units;
   }
 }
 void SolverEngine::setTimeLimit(uint64_t millis)
 {
-  d_env->d_options.base.perCallMillisecondLimit = millis;
+  d_env->d_options.writeBase().perCallMillisecondLimit = millis;
 }
 
 unsigned long SolverEngine::getResourceUsage() const
