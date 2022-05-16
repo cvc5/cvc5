@@ -117,9 +117,10 @@ TEST_F(TestTheoryWhiteArith, int_normal_form)
   ASSERT_EQ(Rewriter::rewrite(absX), absX);
 
   // (exp (+ 2 + x)) --> (* (exp x) (exp 1) (exp 1))
+  Node cr0 = d_nodeManager->mkConstReal(d_zero);
   Node t =
       d_nodeManager->mkNode(EXPONENTIAL, d_nodeManager->mkNode(ADD, c2, xr))
-          .eqNode(c0);
+          .eqNode(cr0);
   ASSERT_EQ(Rewriter::rewrite(Rewriter::rewrite(t)), Rewriter::rewrite(t));
 }
 }  // namespace test

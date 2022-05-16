@@ -38,7 +38,7 @@ ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
       type.toString().c_str());
 
   PrettyCheckArgument(
-      value.getType().isComparableTo(type.getArrayConstituentType()),
+      value.getType() == type.getArrayConstituentType(),
       value,
       "expr type `%s' does not match constituent type of array type `%s'",
       value.getType().toString().c_str(),
