@@ -759,14 +759,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   if (opts.strings.stringFMF && !opts.strings.stringProcessLoopModeWasSetByUser)
   {
-    notifyModifyOption("stringProcessLoopMode", "simple", "stringsFmf");
+    Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
+                    "--strings-fmf enabled"
+                 << std::endl;
     opts.writeStrings().stringProcessLoopMode =
         options::ProcessLoopMode::SIMPLE;
-  }
-  if (options().strings.seqArray != options::SeqArrayMode::NONE && options().strings.stringsDeqExtWasSetByUser)
-  {
-    notifyModifyOption("stringsDeqExt", "true", "seqArray");
-    opts.writeStrings().stringsDeqExt = true;
   }
 
   // !!! All options that require disabling models go here
