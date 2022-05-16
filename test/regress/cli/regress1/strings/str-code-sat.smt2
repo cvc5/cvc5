@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-code-point
+; COMMAND-LINE: --no-strings-code-elim
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (set-info :status sat)
