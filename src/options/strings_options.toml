@@ -252,9 +252,9 @@ name   = "Strings Theory"
   help       = "The maximum size of string values in models"
 
 [[option]]
-  name       = "stringsCodePoint"
+  name       = "stringsCodeElim"
   category   = "expert"
-  long       = "strings-code-point-solver"
+  long       = "strings-code-elim"
   type       = "bool"
-  default    = "false"
-  help       = "use code point solver"
+  default    = "true"
+  help       = "eliminate code points during preprocessing"

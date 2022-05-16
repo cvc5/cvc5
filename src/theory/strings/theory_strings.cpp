@@ -1200,8 +1200,9 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     lems.push_back(SkolemLemma(tnk, k));
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
-  else if (ak == STRING_TO_CODE && !options().strings.stringsCodePoint)
+  else if (ak == STRING_TO_CODE && options().strings.stringsCodeElim)
   {
+    // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
     NodeManager* nm = NodeManager::currentNM();
     Node t = atom[0];
     Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
