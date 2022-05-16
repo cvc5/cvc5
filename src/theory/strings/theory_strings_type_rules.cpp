@@ -338,7 +338,8 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   TypeNode t = n[0].getType(check);
   if (check && !t.isStringLike())
   {
-    throw TypeCheckingExceptionPrivate(n, "expecting a string-like term in nth");
+    throw TypeCheckingExceptionPrivate(n,
+                                       "expecting a string-like term in nth");
   }
   if (check)
   {
