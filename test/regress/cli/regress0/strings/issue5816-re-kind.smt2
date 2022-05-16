@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-code-point-solver
+; COMMAND-LINE: --no-strings-code-elim
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
