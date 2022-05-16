@@ -20,6 +20,7 @@
 #include "proof/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/indexed_root_predicate.h"
+#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::internal::kind;
 
@@ -155,7 +156,7 @@ void CoveringsProofGenerator::addDirect(Node var,
     // Excludes a single point only
     auto ids = getRootIDs(roots, get_lower(interval));
     Assert(ids.first == ids.second);
-    res.emplace_back(mkIRP(var, Kind::EQUAL, d_zero, ids.first, poly, vm));
+    res.emplace_back(mkIRP(var, Kind::EQUAL, mkZero(var.getType()), ids.first, poly, vm));
   }
   else
   {
