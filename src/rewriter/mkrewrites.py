@@ -110,7 +110,7 @@ def gen_mk_node(defns, expr):
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
         if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.NEG):
-          return f'nm->mkConst(CONST_RATIONAL, {gen_mk_const(expr)})'
+          return f'nm->mkConstRealOrInt({gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
