@@ -1103,13 +1103,16 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
 
+  // Get the ids
+  EqualityNodeId t1Id = getNodeId(t1);
+  EqualityNodeId t2Id = getNodeId(t2);
+
+  Trace("pf::ee") << "Ids: " << t1Id << ", " << t2Id << "\n";
+
   if (TraceIsOn("equality::internal"))
   {
     debugPrintGraph();
   }
-  // Get the ids
-  EqualityNodeId t1Id = getNodeId(t1);
-  EqualityNodeId t2Id = getNodeId(t2);
 
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   if (polarity) {
