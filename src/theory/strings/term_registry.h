@@ -164,7 +164,7 @@ class TermRegistry : protected EnvObj
    * @return true if any seq.nth or seq.update terms have been preregistered
    */
   bool hasSeqUpdate() const;
-  /** is handled update */
+  /** is handled update or substring */
   bool isHandledUpdateOrSubstr(Node n);
   /** get base */
   Node getUpdateBase(Node n);
