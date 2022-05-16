@@ -36,10 +36,10 @@ QueryCache::QueryCache(Env& env, bool checkUnsat, const Options* optr)
     d_subOptions.copyValues(*optr);
   }
   // disable proofs no matter what
-  d_subOptions.smt.produceProofs = false;
-  d_subOptions.smt.checkProofs = false;
-  d_subOptions.smt.unsatCores = false;
-  d_subOptions.smt.checkUnsatCores = false;
+  d_subOptions.writeSmt().produceProofs = false;
+  d_subOptions.writeSmt().checkProofs = false;
+  d_subOptions.writeSmt().unsatCores = false;
+  d_subOptions.writeSmt().checkUnsatCores = false;
 }
 
 void QueryCache::initialize(const std::vector<Node>& vars, SygusSampler* ss)

@@ -181,14 +181,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
       // different on proof-new we silently disable
-      opts.smt.unsatCores = false;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
+      opts.writeSmt().unsatCores = false;
+      opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::OFF;
       notifyModifyOption(
           "produceProofs and unsatCores", "false", reasonNoProofs.str());
-      opts.smt.produceProofs = false;
-      opts.proof.proofReq = false;
-      opts.smt.checkProofs = false;
-      opts.smt.proofMode = options::ProofMode::OFF;
+      opts.writeSmt().produceProofs = false;
+      opts.writeProof().proofReq = false;
+      opts.writeSmt().checkProofs = false;
+      opts.writeSmt().proofMode = options::ProofMode::OFF;
     }
   }
   if (d_isInternalSubsolver)

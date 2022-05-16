@@ -1,3 +1,4 @@
+; COMMAND-LINE: --no-produce-proofs
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 ; DISABLE-TESTER: lfsc
