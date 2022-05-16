@@ -2579,8 +2579,7 @@ void CoreSolver::checkNormalFormsDeq()
     // This is required for model soundness currently, although we could
     // investigate determining cases where the disequality is already
     // satisfied (for optimization).
-    if (options().strings.stringsDeqExt
-        || options().strings.seqArray != options::SeqArrayMode::NONE)
+    if (options().strings.stringsDeqExt)
     {
       processDeqExtensionality(eq[0], eq[1]);
       continue;
