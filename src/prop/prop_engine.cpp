@@ -288,26 +288,16 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // We assert to the SAT solver first, which may trigger preregistration
-  // of literals to theory solvers.
+  // Assert to decision engine first.
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
   // by default by the decision engine. In particular, sending to the SAT
   // solver first means that lemmas sent during preregistration in response to
-  // the current lemma are processed before that lemma. This is important
-  // e.g. for string reduction lemmas, where preregistration lemmas should be
-  // processed first for skolems that appear in reductions.
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
-  // Now, notify the decision engine, which also notifies the skolem definition
-  // manager. The skolem definitions will be activated when a subsequent
-  // literal is asserted that contains that skolem.
+  // the current lemma are processed after that lemma. This makes a difference
+  // e.g. for string reduction lemmas, where preregistration lemmas are
+  // introduced for skolems that appear in reductions. Moving this
+  // block after the one below has mixed (trending negative) performance on
+  // SMT-LIB strings logics.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -320,6 +310,14 @@ void PropEngine::assertLemmasInternal(
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
+  }
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
 }
 

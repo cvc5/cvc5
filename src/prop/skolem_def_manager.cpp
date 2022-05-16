@@ -99,11 +99,21 @@ bool SkolemDefManager::hasSkolems(TNode n)
       {
         visit.pop_back();
         Kind ck = cur.getKind();
-        // We have skolems if we have one of these kinds. We do not make this
-        // test depend on whether the skolem has a definition, since that is
-        // prone to change.
-        d_hasSkolems[cur] =
-            (ck == kind::SKOLEM || ck == kind::BOOLEAN_TERM_VARIABLE);
+        // We have skolems if we are a skolem that has a definition, or
+        // we are a Boolean term variable. For Boolean term variables, we do
+        // not make this test depend on whether the skolem has a definition,
+        // since that is prone to change if the Boolean term variable was
+        // introduced in a lemma prior to its definition being introduced.
+        // This is for example the case in strings reduction for Booleans,
+        // ground term purification for E-matching, etc.
+        if (ck == kind::SKOLEM)
+        {
+          d_hasSkolems[cur] = (d_skDefs.find(cur)!=d_skDefs.end());
+        }
+        else
+        {
+          d_hasSkolems[cur] = (ck == kind::BOOLEAN_TERM_VARIABLE);
+        }
       }
       else
       {
