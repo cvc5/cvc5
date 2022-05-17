@@ -56,7 +56,7 @@ class FunctionConstant
   std::unique_ptr<TypeNode> d_type;
 };
 
-// std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc);
+std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc);
 
 /** Hash function for the FunctionConstant constants. */
 struct FunctionConstantHashFunction

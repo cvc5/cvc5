@@ -19,6 +19,7 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
+#include "expr/function_const.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -231,26 +232,11 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   if (!anode.isNull() && anode.isConst())
   {
     Assert(anode.getType().isArray());
-    // must get the standard bound variable list
-    Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType(
-        node.getType());
-    Node retNode =
-        FunctionConst::getLambdaForArrayRepresentation(anode, varList);
-    if (!retNode.isNull() && retNode != node)
-    {
-      Trace("builtin-rewrite") << "Rewrote lambda : " << std::endl;
-      Trace("builtin-rewrite") << "     input  : " << node << std::endl;
-      Trace("builtin-rewrite")
-          << "     output : " << retNode << ", constant = " << retNode.isConst()
-          << std::endl;
-      Trace("builtin-rewrite")
-          << "  array rep : " << anode << ", constant = " << anode.isConst()
-          << std::endl;
-      Assert(anode.isConst() == retNode.isConst());
-      Assert(retNode.getType() == node.getType());
-      Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
-      return retNode;
-    }
+    Node retNode = NodeManager::currentNM()->mkConst(FunctionConstant(anode));
+    Assert(anode.isConst() == retNode.isConst());
+    Assert(retNode.getType() == node.getType());
+    Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
+    return retNode;
   }
   else
   {

@@ -176,53 +176,6 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
-{
-  Assert(n.getKind() == kind::LAMBDA);
-  // get array representation of this function, if possible
-  Node na = FunctionConst::getArrayRepresentationForLambda(n);
-  if (!na.isNull())
-  {
-    Assert(na.getType().isArray());
-    Trace("lambda-const") << "Array representation for " << n << " is " << na
-                          << " " << na.getType() << std::endl;
-    // must have the standard bound variable list
-    Node bvl =
-        NodeManager::currentNM()->getBoundVarListForFunctionType(n.getType());
-    if (bvl == n[0])
-    {
-      // array must be constant
-      if (na.isConst())
-      {
-        Trace("lambda-const") << "*** Constant lambda : " << n;
-        Trace("lambda-const") << " since its array representation : " << na
-                              << " is constant." << std::endl;
-        return true;
-      }
-      else
-      {
-        Trace("lambda-const") << "Non-constant lambda : " << n
-                              << " since array is not constant." << std::endl;
-      }
-    }
-    else
-    {
-      Trace("lambda-const")
-          << "Non-constant lambda : " << n
-          << " since its varlist is not standard." << std::endl;
-      Trace("lambda-const") << "  standard : " << bvl << std::endl;
-      Trace("lambda-const") << "   current : " << n[0] << std::endl;
-    }
-  }
-  else
-  {
-    Trace("lambda-const") << "Non-constant lambda : " << n
-                          << " since it has no array representation."
-                          << std::endl;
-  }
-  return false;
-}
-
 TypeNode FunctionConstTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
@@ -265,6 +218,7 @@ bool FunctionProperties::isWellFounded(TypeNode type)
 
 Node FunctionProperties::mkGroundTerm(TypeNode type)
 {
+  // TODO: change to function constant?
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->getBoundVarListForFunctionType(type);
   Node ret = nm->mkGroundTerm(type.getRangeType());

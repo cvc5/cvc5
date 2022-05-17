@@ -16,6 +16,7 @@
 #include "theory/uf/type_enumerator.h"
 
 #include "theory/uf/function_const.h"
+#include "expr/function_const.h"
 
 namespace cvc5::internal {
 namespace theory {

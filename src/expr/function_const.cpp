@@ -21,6 +21,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
+using namespace std;
+
 namespace cvc5::internal {
 
 FunctionConstant::FunctionConstant(const Node& avalue) : d_avalue(), d_type()
@@ -88,9 +90,10 @@ bool FunctionConstant::operator>=(const FunctionConstant& fc) const
   return !(*this < fc);
 }
 
-// std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
-//  return out << "__function_const"; //(" << fc.getArrayValue() << ')';
-//}
+std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
+  return out << "__array_store_all__(" << fc.getType() << ", "
+             << fc.getArrayValue() << ')';
+}
 
 size_t FunctionConstantHashFunction::operator()(
     const FunctionConstant& fc) const

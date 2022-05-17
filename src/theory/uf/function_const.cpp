@@ -43,20 +43,21 @@ Node FunctionConst::getLambdaFor(const Node& n)
     const FunctionConstant& fc = n.getConst<FunctionConstant>();
     Node avalue = fc.getArrayValue();
     // associate a unique bound variable list with the value
-    ArrayToLambaAttribute fcba;
-    if (avalue.hasAttribute(fcba))
+    ArrayToLambaAttribute atla;
+    if (avalue.hasAttribute(atla))
     {
-      return avalue.getAttribute(fcba);
+      return avalue.getAttribute(atla);
     }
     TypeNode tn = fc.getType();
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector<Node> bvs;
     for (const TypeNode& arg : argTypes)
     {
+      // TODO: make canonical via bvm
       bvs.push_back(nm->mkBoundVar(arg));
     }
     Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);
-    avalue.setAttribute(fcba, bvl);
+    avalue.setAttribute(atla, bvl);
     return getLambdaForArrayRepresentation(avalue, bvl);
   }
   return Node::null();
@@ -309,13 +310,6 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
             << "  ...non-equality condition." << std::endl;
         return Node::null();
       }
-    }
-    else if (Rewriter::rewrite(index_eq) != index_eq)
-    {
-      // equality must be oriented correctly based on rewriter
-      Trace("builtin-rewrite-debug2")
-          << "  ...equality not oriented properly." << std::endl;
-      return Node::null();
     }
 
     // [3] We ensure that "index_eq" is an equality that is equivalent to
