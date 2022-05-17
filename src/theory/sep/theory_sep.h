@@ -65,8 +65,6 @@ class TheorySep : public Theory {
   /** A buffered inference manager */
   InferenceManagerBuffered d_im;
 
-  Node mkAnd( std::vector< TNode >& assumptions );
-
   int processAssertion(
       Node n,
       std::map<int, std::map<Node, int> >& visited,
@@ -239,7 +237,7 @@ class TheorySep : public Theory {
   std::vector<Node> d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
   std::vector<Node> d_type_references_all;
-  unsigned d_card_max;
+  size_t d_card_max;
   //for empty argument
   Node d_emp_arg;
   //map from ( atom, label, child index ) -> label

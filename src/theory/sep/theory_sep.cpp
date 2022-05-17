@@ -123,21 +123,6 @@ void TheorySep::preRegisterTerm(TNode n)
   }
 }
 
-Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
-  if( assumptions.empty() ){
-    return d_true;
-  }else if( assumptions.size()==1 ){
-    return assumptions[0];
-  }else{
-    return NodeManager::currentNM()->mkNode(AND, assumptions);
-  }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-// T-PROPAGATION / REGISTRATION
-/////////////////////////////////////////////////////////////////////////////
-
 bool TheorySep::propagateLit(TNode literal)
 {
   return d_im.propagateLit(literal);
@@ -1129,7 +1114,7 @@ void TheorySep::initializeBounds() {
   SkolemManager* sm = nm->getSkolemManager();
   Trace("sep-bound") << "Initialize bounds for " << d_type_ref << "..."
                      << std::endl;
-  unsigned n_emp = 0;
+  size_t n_emp = 0;
   if (d_bound_kind != bound_invalid)
   {
     n_emp = d_card_max;
@@ -1145,7 +1130,7 @@ void TheorySep::initializeBounds() {
                      << std::endl;
   Trace("sep-bound") << "Constructing " << n_emp << " cardinality constants."
                      << std::endl;
-  for (unsigned r = 0; r < n_emp; r++)
+  for (size_t r = 0; r < n_emp; r++)
   {
     Node e = sm->mkDummySkolem(
         "e", d_type_ref, "cardinality bound element for seplog");
