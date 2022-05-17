@@ -115,7 +115,6 @@ Node FunctionConst::getLambdaForArrayRepresentation(TNode a, TNode bvl)
   Node body = getLambdaForArrayRepresentationRec(a, bvl, 0, visited);
   if (!body.isNull())
   {
-    body = Rewriter::rewrite(body);
     Trace("builtin-rewrite-debug")
         << "...got lambda body " << body << std::endl;
     return NodeManager::currentNM()->mkNode(kind::LAMBDA, bvl, body);
