@@ -43,7 +43,7 @@ class TestTheoryWhiteSetsRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsRewriter, map)
 {
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   TypeNode stringType = d_nodeManager->stringType();
   TypeNode integerType = d_nodeManager->integerType();
   Node emptysetInteger =
@@ -63,8 +63,8 @@ TEST_F(TestTheoryWhiteSetsRewriter, map)
 
   Node a = d_nodeManager->mkConst(String("a"));
   Node b = d_nodeManager->mkConst(String("b"));
-  Node A = d_nodeManager->mkSingleton(d_nodeManager->stringType(), a);
-  Node B = d_nodeManager->mkSingleton(d_nodeManager->stringType(), b);
+  Node A = d_nodeManager->mkNode(SET_SINGLETON, a);
+  Node B = d_nodeManager->mkNode(SET_SINGLETON, b);
   Node unionAB = d_nodeManager->mkNode(SET_UNION, A, B);
 
   // (set.map
@@ -72,7 +72,7 @@ TEST_F(TestTheoryWhiteSetsRewriter, map)
   //   (set.union (set.singleton "a") (set.singleton "b"))) = (set.singleton 1))
   Node n2 = d_nodeManager->mkNode(SET_MAP, lambda, unionAB);
   Node rewritten2 = Rewriter::rewrite(n2);
-  Node bag = d_nodeManager->mkSingleton(d_nodeManager->integerType(), one);
+  Node bag = d_nodeManager->mkNode(SET_SINGLETON, one);
   ASSERT_TRUE(rewritten2 == bag);
 
   //  - (set.map f (set.union K1 K2)) =

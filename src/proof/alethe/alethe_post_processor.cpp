@@ -2222,9 +2222,9 @@ bool AletheProofPostprocessNoSubtypeCallback::updatePost(
         // AlwaysAssert(!links[0][1].getType().isInteger()
         //              || links[1][0].getType().isInteger());
         // We test which is the "int link" by the heuristic that the it's the
-        // one without CAST_TO_REAL / TO_REAL
+        // one without TO_REAL
         size_t intLink = !expr::hasSubtermKinds(
-                             {kind::CAST_TO_REAL, kind::TO_REAL}, links[0][1])
+                             {kind::TO_REAL}, links[0][1])
                              ? 0
                              : 1;
         // size_t intLink = links[0][1].getType().isInteger() ? 0 : 1;
@@ -2343,7 +2343,7 @@ bool AletheProofPostprocessNoSubtypeCallback::updatePost(
           // find the difference (i.e. t vs t'), check how they differ, and
           // determine whether the premise is the "integer one".
           bool updateChild = !expr::hasSubtermKinds(
-              {kind::CAST_TO_REAL, kind::TO_REAL},
+              {kind::TO_REAL},
               differ[0] == size ? childConclusion[1] : childConclusion[0]);
           // bool updateChild = childConclusion[0].getType().isInteger();
           if (updateChild)

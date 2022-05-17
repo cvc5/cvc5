@@ -65,7 +65,7 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
         continue;
       }
       childChanged = true;
-      children.push_back(nm->mkNode(kind::CAST_TO_REAL, n[i]));
+      children.push_back(nm->mkNode(kind::TO_REAL, n[i]));
     }
     if (childChanged)
     {
@@ -132,7 +132,7 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
           continue;
         }
         childChanged = true;
-        children[i] = nm->mkNode(kind::CAST_TO_REAL, n[i]);
+        children[i] = nm->mkNode(kind::TO_REAL, n[i]);
         break;
       }
     }
@@ -159,7 +159,7 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
     Trace("alethe-proof-subtyping-convert")
         << "traverseAndConvertAllConsts: convert " << cur << "\n";
     if (cur.getMetaKind() == kind::metakind::PARAMETERIZED
-        || cur.getKind() == kind::CAST_TO_REAL)
+        || cur.getKind() == kind::TO_REAL)
     {
       visited[cur] = cur;
       Trace("alethe-proof-subtyping-convert")
@@ -173,7 +173,7 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
       if (cur.isConst() && cur.getType().isInteger())
       {
         Trace("alethe-proof-subtyping-convert") << "..cast int conts to real\n";
-        visited[cur] = nm->mkNode(kind::CAST_TO_REAL, cur);
+        visited[cur] = nm->mkNode(kind::TO_REAL, cur);
         continue;
       }
       if (cur.getNumChildren() > 0)

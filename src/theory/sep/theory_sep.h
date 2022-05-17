@@ -246,7 +246,29 @@ class TheorySep : public Theory {
   std::map< TypeNode, Node > d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
-  std::map< Node, Node > d_label_map_parent;
+
+  /**
+   * Maps label sets to their direct parents. A set may have multiple parents
+   * if sep.wand constraints are present.
+   */
+  std::map<Node, std::vector<Node> > d_parentMap;
+
+  /**
+   * This sends the lemmas:
+   *   parent = (set.union children)
+   *   (set.inter children_i children_j) = empty, for each i != j
+   * It also stores these relationships in d_parentMap.
+   */
+  void makeDisjointHeap(Node parent, const std::vector<Node>& children);
+  /**
+   * Get the sets that are parents of p and are roots in the graph induced
+   * by d_parentMap.
+   */
+  std::vector<Node> getRootLabels(Node p) const;
+  /**
+   * Do p and q have a root label in common?
+   */
+  bool sharesRootLabel(Node p, Node q) const;
 
   //term model
   std::map< Node, Node > d_tmodel;
@@ -284,6 +306,9 @@ class TheorySep : public Theory {
   Node getNilRef( TypeNode tn );
   void setNilRef( TypeNode tn, Node n );
   Node getLabel( Node atom, int child, Node lbl );
+  /**
+   * Apply label lbl to all top-level spatial assertions, recursively, in n.
+   */
   Node applyLabel( Node n, Node lbl, std::map< Node, Node >& visited );
   void getLabelChildren( Node atom, Node lbl, std::vector< Node >& children, std::vector< Node >& labels );
 

@@ -710,6 +710,7 @@ void TheorySetsPrivate::checkDisequalities()
 void TheorySetsPrivate::checkReduceComprehensions()
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& comps = d_state.getComprehensionSets();
   for (const Node& n : comps)
   {
@@ -733,9 +734,12 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
     body = nm->mkNode(EXISTS, bvl, body);
-    Node mem = nm->mkNode(SET_MEMBER, v, n);
-    Node lem =
-        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
+    Node k = sm->mkPurifySkolem(n, "kcomp");
+    Node mem = nm->mkNode(SET_MEMBER, v, k);
+    Node lem = nm->mkNode(
+        AND,
+        k.eqNode(n),
+        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem)));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);
@@ -962,13 +966,12 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
         {
-          TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
             // when we have y -> (set.member x S) where rep(x)=y, we use x
             // in the model here. Using y may not be legal with respect to
             // subtyping, since y may be real where x is an int.
-            Node t = nm->mkSingleton(elementType, itmm.second[0]);
+            Node t = nm->mkNode(SET_SINGLETON, itmm.second[0]);
             els.push_back(t);
           }
         }
@@ -1242,7 +1245,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   TypeNode setType = set.getType();
   ensureFirstClassSetType(setType);
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
+  Node singleton = nm->mkNode(SET_SINGLETON, boundVar);
   Node equal = set.eqNode(singleton);
   std::vector<Node> variables = {boundVar};
   Node boundVars = nm->mkNode(BOUND_VAR_LIST, variables);

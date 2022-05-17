@@ -192,6 +192,16 @@ class SortTest
   }
 
   @Test
+  void isDatatypeUpdater() throws CVC5ApiException
+  {
+    Sort dt_sort = create_datatype_sort();
+    Datatype dt = dt_sort.getDatatype();
+    Sort updater_sort = dt.getConstructor(0).getSelector(0).getUpdaterTerm().getSort();
+    assertTrue(updater_sort.isDatatypeUpdater());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeUpdater());
+  }
+
+  @Test
   void isFunction()
   {
     Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(), d_solver.getIntegerSort());

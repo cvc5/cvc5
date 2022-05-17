@@ -1125,7 +1125,8 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT)
+  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
+           || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN)
   {
     cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
@@ -1341,10 +1342,7 @@ cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
 
 bool Smt2::isConstInt(const cvc5::Term& t)
 {
-  cvc5::Kind k = t.getKind();
-  // !!! Note when arithmetic subtyping is eliminated, this will update to
-  // CONST_INTEGER.
-  return k == cvc5::CONST_RATIONAL && t.getSort().isInteger();
+  return t.getKind() == cvc5::CONST_INTEGER;
 }
 
 }  // namespace parser

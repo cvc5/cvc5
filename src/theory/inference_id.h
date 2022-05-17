@@ -206,6 +206,8 @@ enum class InferenceId
   BAGS_CARD_EMPTY,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
+  TABLES_JOIN_UP,
+  TABLES_JOIN_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -449,6 +451,8 @@ enum class InferenceId
   SEP_LABEL_DEF,
   // lemma for sep.emp
   SEP_EMP,
+  // lemma for positive labelled PTO
+  SEP_POS_PTO_SINGLETON,
   // positive reduction for sep constraint
   SEP_POS_REDUCTION,
   // negative reduction for sep constraint

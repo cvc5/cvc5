@@ -28,6 +28,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
@@ -560,7 +561,7 @@ BoundVarType BoundedIntegers::getBoundVarType(Node q, Node v) const
 }
 
 void BoundedIntegers::getBoundVarIndices(Node q,
-                                         std::vector<unsigned>& indices) const
+                                         std::vector<size_t>& indices) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_set.find(q);
   if (it != d_set.end())
@@ -700,7 +701,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
-    Node sChoiceI = nm->mkSingleton(choice_i.getType(), choice_i);
+    Node sChoiceI = nm->mkNode(SET_SINGLETON, choice_i);
     if (nsr.isNull())
     {
       nsr = sChoiceI;

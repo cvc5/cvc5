@@ -23,11 +23,14 @@
 namespace cvc5::internal {
 
 /**
+ * \internal
+ * This documentation is target for the online documentation that can
+ * be found at https://cvc5.github.io/docs/latest/proofs/proof_rules.html
+ * \endinternal
+ *
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects.
- * This documentation is target for the online documentation that can be found
- * at https://cvc5.github.io/docs/main/proofs/proof_rules.html.
  *
  * All proof rules are given as inference rules, presented in the following
  * form:
@@ -1333,7 +1336,7 @@ enum class PfRule : uint32_t
    *
    *   \inferrule{-\mid k}{k = t}
    *
-   * where :math:`t` is the original form of skolem :math:`k`.
+   * where :math:`t` is the unpurified form of skolem :math:`k`.
    * \endverbatim
    */
   SKOLEM_INTRO,

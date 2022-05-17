@@ -50,7 +50,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
     {
       TypeNode currentArgument = (*argument_it).getType();
       TypeNode currentArgumentType = *argument_type_it;
-      if (!currentArgument.isSubtypeOf(currentArgumentType))
+      if (currentArgument != currentArgumentType)
       {
         std::stringstream ss;
         ss << "argument type is not a subtype of the function's argument "
@@ -131,7 +131,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TypeNode aType = n[1].getType(check);
-    if (!aType.isSubtypeOf(fType[0]))
+    if (aType != fType[0])
     {
       throw TypeCheckingExceptionPrivate(
           n, "argument does not match function type");

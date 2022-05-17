@@ -326,7 +326,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   else if (id == DslPfRule::ARITH_POLY_NORM)
   {
-    if (!target[0].getType().isReal())
+    if (!target[0].getType().isRealOrInt())
     {
       return false;
     }

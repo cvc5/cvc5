@@ -1,8 +1,9 @@
-; COMMAND-LINE: --incremental -q --produce-unsat-cores
+; COMMAND-LINE: --incremental --produce-unsat-cores
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
+(set-logic ALL)
 (declare-const v1 Bool)
 (declare-const v2 Bool)
 (declare-const v3 Bool)

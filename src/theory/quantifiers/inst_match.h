@@ -21,12 +21,14 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 class QuantifiersState;
+class TermRegistry;
 
 /** Inst match
  *
@@ -37,50 +39,51 @@ class QuantifiersState;
  * The values of d_vals may be null, which indicate that the field has
  * yet to be initialized.
  */
-class InstMatch {
-public:
-  InstMatch(){}
-  explicit InstMatch(TNode q);
-  InstMatch( InstMatch* m );
-  /* map from variable to ground terms */
-  std::vector<Node> d_vals;
-  /** add match m
-   *
-   * This adds the initialized fields of m to this match for each field that is
-   * not already initialized in this match.
-   */
-  void add(InstMatch& m);
+class InstMatch : protected EnvObj
+{
+ public:
+  InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q);
   /** is this complete, i.e. are all fields non-null? */
-  bool isComplete();
+  bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */
-  bool empty();
-  /** clear the instantiation, i.e. set all fields to the null node */
-  void clear();
+  bool empty() const;
+  /**
+   * Clear the instantiation, i.e. set all fields to the null node.
+   */
+  void resetAll();
   /** debug print method */
   void debugPrint(const char* c);
   /** to stream */
-  inline void toStream(std::ostream& out) const {
-    out << "INST_MATCH( ";
-    bool printed = false;
-    for( unsigned i=0; i<d_vals.size(); i++ ){
-      if( !d_vals[i].isNull() ){
-        if( printed ){ out << ", "; }
-        out << i << " -> " << d_vals[i];
-        printed = true;
-      }
-    }
-    out << " )";
-  }
+  void toStream(std::ostream& out) const;
   /** get the i^th term in the instantiation */
   Node get(size_t i) const;
-  /** set/overwrites the i^th field in the instantiation with n */
-  void setValue(size_t i, TNode n);
   /** set the i^th term in the instantiation to n
    *
-   * This method returns true if the i^th field was previously uninitialized,
-   * or is equivalent to n modulo the equalities given by q.
+   * If the d_vals[i] is not null, then this return true iff it is equal to
+   * n based on the quantifiers state.
+   *
+   * If the d_vals[i] is null, then this sets d_vals[i] to n.
    */
-  bool set(QuantifiersState& qs, size_t i, TNode n);
+  bool set(size_t i, TNode n);
+  /**
+   * Resets index i, which sets d_vals[i] to null.
+   */
+  void reset(size_t i);
+  /** Get the values */
+  const std::vector<Node>& get() const;
+
+ private:
+  /** Reference to the state */
+  QuantifiersState& d_qs;
+  /** Reference to the term registry */
+  TermRegistry& d_tr;
+  /**
+   * Ground terms for each variable of the quantified formula, in order.
+   * Null nodes indicate the variable has not been set.
+   */
+  std::vector<Node> d_vals;
+  /** The quantified formula */
+  Node d_quant;
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {

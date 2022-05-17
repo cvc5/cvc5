@@ -297,41 +297,31 @@ bool EntailmentCheck::isEntailed2(TNode n,
   Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol
                           << std::endl;
   Assert(n.getType().isBoolean());
-  if (n.getKind() == EQUAL && !n[0].getType().isBoolean())
+  Kind k = n.getKind();
+  if (k == EQUAL && !n[0].getType().isBoolean())
   {
-    TNode n1 = getEntailedTerm2(n[0], subs, subsRep);
+    TNode n1 = n[0].isConst() ? n[0] : getEntailedTerm2(n[0], subs, subsRep);
     if (!n1.isNull())
     {
-      TNode n2 = getEntailedTerm2(n[1], subs, subsRep);
+      TNode n2 = n[1].isConst() ? n[1] : getEntailedTerm2(n[1], subs, subsRep);
       if (!n2.isNull())
       {
-        if (n1 == n2)
+        if (pol)
         {
-          return pol;
+          // must check for equality here
+          return d_qstate.areEqual(n1, n2);
         }
-        else
-        {
-          Assert(d_qstate.hasTerm(n1));
-          Assert(d_qstate.hasTerm(n2));
-          if (pol)
-          {
-            return d_qstate.areEqual(n1, n2);
-          }
-          else
-          {
-            return d_qstate.areDisequal(n1, n2);
-          }
-        }
+        return d_qstate.areDisequal(n1, n2);
       }
     }
   }
-  else if (n.getKind() == NOT)
+  else if (k == NOT)
   {
     return isEntailed2(n[0], subs, subsRep, !pol);
   }
-  else if (n.getKind() == OR || n.getKind() == AND)
+  else if (k == OR || k == AND)
   {
-    bool simPol = (pol && n.getKind() == OR) || (!pol && n.getKind() == AND);
+    bool simPol = (pol && k == OR) || (!pol && k == AND);
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       if (isEntailed2(n[i], subs, subsRep, pol))
@@ -352,41 +342,39 @@ bool EntailmentCheck::isEntailed2(TNode n,
     return !simPol;
     // Boolean equality here
   }
-  else if (n.getKind() == EQUAL || n.getKind() == ITE)
+  else if (k == EQUAL || k == ITE)
   {
+    Assert(n[0].getType().isBoolean());
     for (size_t i = 0; i < 2; i++)
     {
       if (isEntailed2(n[0], subs, subsRep, i == 0))
       {
-        size_t ch = (n.getKind() == EQUAL || i == 0) ? 1 : 2;
-        bool reqPol = (n.getKind() == ITE || i == 0) ? pol : !pol;
+        size_t ch = (k == EQUAL || i == 0) ? 1 : 2;
+        bool reqPol = (k == ITE || i == 0) ? pol : !pol;
         return isEntailed2(n[ch], subs, subsRep, reqPol);
       }
     }
   }
-  else if (n.getKind() == APPLY_UF)
+  else if (k == FORALL)
   {
+    if (!pol)
+    {
+      return isEntailed2(n[1], subs, subsRep, pol);
+    }
+  }
+  else if (k == BOUND_VARIABLE || k == APPLY_UF)
+  {
+    // handles APPLY_UF, Boolean variable cases
     TNode n1 = getEntailedTerm2(n, subs, subsRep);
     if (!n1.isNull())
     {
       Assert(d_qstate.hasTerm(n1));
-      if (n1 == d_true)
+      n1 = d_qstate.getRepresentative(n1);
+      if (n1.isConst())
       {
-        return pol;
-      }
-      else if (n1 == d_false)
-      {
-        return !pol;
-      }
-      else
-      {
-        return d_qstate.getRepresentative(n1) == (pol ? d_true : d_false);
+        return n1.getConst<bool>() == pol;
       }
     }
-  }
-  else if (n.getKind() == FORALL && !pol)
-  {
-    return isEntailed2(n[1], subs, subsRep, pol);
   }
   return false;
 }

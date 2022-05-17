@@ -688,9 +688,6 @@ private:
    */
   TypeNode getUninterpretedSortConstructor() const;
 
-  /** Get the most general base type of the type */
-  TypeNode getBaseType() const;
-
   /**
    * Returns the leastUpperBound in the extended type lattice of the two types.
    * If this is \top, i.e. there is no inhabited type that contains both,

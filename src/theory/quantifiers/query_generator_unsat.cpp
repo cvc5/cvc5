@@ -32,11 +32,11 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(d_env.getOriginalOptions());
-  d_subOptions.quantifiers.sygus = false;
-  d_subOptions.smt.produceProofs = true;
-  d_subOptions.smt.checkProofs = true;
-  d_subOptions.smt.produceModels = true;
-  d_subOptions.smt.checkModels = true;
+  d_subOptions.writeQuantifiers().sygus = false;
+  d_subOptions.writeSmt().produceProofs = true;
+  d_subOptions.writeSmt().checkProofs = true;
+  d_subOptions.writeSmt().produceModels = true;
+  d_subOptions.writeSmt().checkModels = true;
 }
 
 bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
