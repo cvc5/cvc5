@@ -71,9 +71,8 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
     }
     size_t bsize = a.getOperator().getConst<IntAnd>().d_size;
     d_iands[bsize].push_back(a);
+    Trace("iand-mv") << "- " << a << std::endl;
   }
-
-  Trace("iand") << "We have " << d_iands.size() << " IAND terms." << std::endl;
 }
 
 void IAndSolver::checkInitialRefine()
@@ -231,19 +230,32 @@ Node IAndSolver::mkINot(unsigned k, Node x) const
 
 Node IAndSolver::valueBasedLemma(Node i)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Assert(i.getKind() == IAND);
   Node x = i[0];
   Node y = i[1];
 
+  size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
+  Node twok = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
   Node valX = d_model.computeConcreteModelValue(x);
   Node valY = d_model.computeConcreteModelValue(y);
+  valX = nm->mkNode(kind::INTS_MODULUS, valX, twok);
+  valY = nm->mkNode(kind::INTS_MODULUS, valY, twok);
 
-  NodeManager* nm = NodeManager::currentNM();
   Node valC = nm->mkNode(IAND, i.getOperator(), valX, valY);
   valC = rewrite(valC);
 
-  Node lem = nm->mkNode(
-      IMPLIES, nm->mkNode(AND, x.eqNode(valX), y.eqNode(valY)), i.eqNode(valC));
+  Node xm = nm->mkNode(kind::INTS_MODULUS, x, twok);
+  Node ym = nm->mkNode(kind::INTS_MODULUS, y, twok);
+
+  // (=>
+  //   (and (= (mod x 2^n) (mod c1 2^n)) (= (mod y 2^n) (mod c2 2^n)))
+  //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 2^n) (mod c2 2^n))))
+  // Note we use mod above since it ensures the the set of possible literals
+  // introduced is finite, since there are finitely many values mod 2^n.
+  Node lem = nm->mkNode(IMPLIES,
+                        nm->mkNode(AND, xm.eqNode(valX), ym.eqNode(valY)),
+                        i.eqNode(valC));
   return lem;
 }
 

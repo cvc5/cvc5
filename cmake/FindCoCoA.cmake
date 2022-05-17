@@ -41,7 +41,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(CoCoA_VERSION "0.99712")
+  set(CoCoA_VERSION "0.99800")
 
   if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
     # use $(MAKE) instead of "make" to allow for parallel builds
@@ -54,12 +54,8 @@ if(NOT CoCoA_FOUND_SYSTEM)
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
-    URL "http://cocoa.dima.unige.it/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz"
-    URL_HASH SHA1=873d0b60800cd3852939816ce0aa2e7f72dac4ce
-    # CoCoA requires C++14, but the check does not work with compilers that
-    # default to C++17 or newer. The patch fixes the check.
-    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
-        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoA-patch-0.99712.patch
+    URL "https://cocoa.dima.unige.it/cocoa/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz"
+    URL_HASH SHA1=f4fd9ea846b245adb3ee955dd8af9aaf192a9df3
     BUILD_IN_SOURCE YES
     CONFIGURE_COMMAND ./configure --prefix=<INSTALL_DIR>
     BUILD_COMMAND ${make_cmd} library

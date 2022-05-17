@@ -65,7 +65,7 @@ std::set<Node>* TypeSet::getSet(TypeNode t) const
   return (*it).second;
 }
 
-Node TypeSet::nextTypeEnum(TypeNode t, bool useBaseType)
+Node TypeSet::nextTypeEnum(TypeNode t)
 {
   TypeEnumerator* te;
   TypeToTypeEnumMap::iterator it = d_teMap.find(t);
@@ -81,11 +81,6 @@ Node TypeSet::nextTypeEnum(TypeNode t, bool useBaseType)
   if (te->isFinished())
   {
     return Node();
-  }
-
-  if (useBaseType)
-  {
-    t = t.getBaseType();
   }
   iterator itSet = d_typeSet.find(t);
   std::set<Node>* s;

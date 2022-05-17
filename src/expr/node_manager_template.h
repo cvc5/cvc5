@@ -628,34 +628,6 @@ class NodeManager
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
-   * Create a sequence unit from the given element n.
-   * @param t the element type of the returned sequence.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the sequence.
-   * @return a sequence unit constructed from the element n.
-   */
-  Node mkSeqUnit(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a singleton set from the given element n.
-   * @param t the element type of the returned set.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the singleton.
-   * @return a singleton set constructed from the element n.
-   */
-  Node mkSingleton(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a bag from the given element n along with its multiplicity m.
-   * @param t the element type of the returned bag.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the element that is used to to construct the bag
-   * @param m the multiplicity of the element n
-   * @return a bag that contains m occurrences of n.
-   */
-  Node mkBag(const TypeNode& t, const TNode n, const TNode m);
-
-  /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.
    */

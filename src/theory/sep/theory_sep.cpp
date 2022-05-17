@@ -291,7 +291,7 @@ bool TheorySep::preNotifyFact(
     {
       NodeManager* nm = NodeManager::currentNM();
       // (SEP_LABEL (sep.pto x y) L) => L = (set.singleton x)
-      Node s = nm->mkSingleton(slbl.getType().getSetElementType(), satom[0]);
+      Node s = nm->mkNode(SET_SINGLETON, satom[0]);
       Node eq = slbl.eqNode(s);
       TrustNode trn =
           d_im.mkLemmaExp(eq, PfRule::THEORY_INFERENCE, {fact}, {fact}, {eq});
@@ -414,8 +414,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     }
     else if (satom.getKind() == SEP_PTO)
     {
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node ss = nm->mkSingleton(satom[0].getType(), satom[0]);
+      Node ss = nm->mkNode(SET_SINGLETON, satom[0]);
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
@@ -1284,7 +1283,7 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
       Assert(!s.isNull());
-      s = NodeManager::currentNM()->mkSingleton(tn, s);
+      s = NodeManager::currentNM()->mkNode(SET_SINGLETON, s);
       if( u.isNull() ){
         u = s;
       }else{
@@ -1455,6 +1454,7 @@ Node TheorySep::instantiateLabel(Node n,
                                  std::map<Node, bool>& active_lbl,
                                  unsigned ind)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sep-inst-debug") << "Instantiate label " << n << " " << lbl << " " << lbl_v << std::endl;
   if (options().sep.sepMinimalRefine && lbl != o_lbl
       && active_lbl.find(lbl) != active_lbl.end())
@@ -1555,14 +1555,12 @@ Node TheorySep::instantiateLabel(Node n,
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node svr = NodeManager::currentNM()->mkSingleton(vr.getType(), vr);
+      Node svr = nm->mkNode(SET_SINGLETON, vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
       std::vector< Node > children;
       if( inBaseHeap ){
-        // TODO(project##230): Find a safe type for the singleton operator
-        Node s = NodeManager::currentNM()->mkSingleton(n[0].getType(),  n[0]);
+        Node s = nm->mkNode(SET_SINGLETON, n[0]);
         children.push_back( NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, n[0], n[1] ), s ) );
       }else{
         //look up value of data
@@ -1575,8 +1573,7 @@ Node TheorySep::instantiateLabel(Node n,
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
         }
       }
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node singleton = NodeManager::currentNM()->mkSingleton(n[0].getType(), n[0]);
+      Node singleton = nm->mkNode(SET_SINGLETON, n[0]);
       children.push_back(singleton.eqNode(lbl_v));
       Node ret = children.empty() ? NodeManager::currentNM()->mkConst( true ) : ( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children ) );
       Trace("sep-inst-debug") << "Return " << ret << std::endl;
@@ -1661,7 +1658,7 @@ void TheorySep::getLabelChildren(Node satom,
 void TheorySep::computeLabelModel( Node lbl ) {
   if( !d_label_model[lbl].d_computed ){
     d_label_model[lbl].d_computed = true;
-
+    NodeManager* nm = NodeManager::currentNM();
     //we must get the value of lbl from the model: this is being run at last call, after the model is constructed
     //Assert(...); TODO
     Node v_val = d_valuation.getModel()->getRepresentative( lbl );
@@ -1703,8 +1700,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
       }else{
         tt = itm->second;
       }
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node stt = NodeManager::currentNM()->mkSingleton(tt.getType(), tt);
+      Node stt = nm->mkNode(SET_SINGLETON, tt);
       Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
     }

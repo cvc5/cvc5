@@ -73,15 +73,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, empty_bag_normal_form)
 TEST_F(TestTheoryWhiteBagsNormalForm, mkBag_constant_element)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node negative = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       elements[0],
-                                       d_nodeManager->mkConstInt(Rational(-1)));
-  Node zero = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                   elements[0],
-                                   d_nodeManager->mkConstInt(Rational(0)));
-  Node positive = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       elements[0],
-                                       d_nodeManager->mkConstInt(Rational(1)));
+  Node negative = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(-1)));
+  Node zero = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(0)));
+  Node positive = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(1)));
   Node emptybag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
 
@@ -109,12 +106,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_count)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_5 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(5)));
-  Node z_5 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), z, d_nodeManager->mkConstInt(Rational(5)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node y_5 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(5)));
+  Node z_5 = d_nodeManager->mkNode(
+      BAG_MAKE, z, d_nodeManager->mkConstInt(Rational(5)));
 
   Node input1 = d_nodeManager->mkNode(BAG_COUNT, x, empty);
   Node output1 = zero;
@@ -158,15 +155,15 @@ TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
 
-  Node x_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(1)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_1 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_5 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(5)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node y_5 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(5)));
 
   Node input2 = d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, x_4);
   Node output2 = x_1;
@@ -193,16 +190,16 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_max)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node x_3 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(3)));
-  Node x_7 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(7)));
-  Node z_2 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), z, d_nodeManager->mkConstInt(Rational(2)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node x_3 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(3)));
+  Node x_7 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(7)));
+  Node z_2 = d_nodeManager->mkNode(
+      BAG_MAKE, z, d_nodeManager->mkConstInt(Rational(2)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node A = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, z_2);
   Node B = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_3, y_1);
@@ -223,15 +220,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
   std::vector<Node> elements = getNStrings(3);
   Node emptybag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConstInt(Rational(2)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConstInt(Rational(3)));
-  Node C = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[2],
-                                d_nodeManager->mkConstInt(Rational(4)));
+  Node A = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(2)));
+  Node B = d_nodeManager->mkNode(
+      BAG_MAKE, elements[1], d_nodeManager->mkConstInt(Rational(3)));
+  Node C = d_nodeManager->mkNode(
+      BAG_MAKE, elements[2], d_nodeManager->mkConstInt(Rational(4)));
 
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
   // unionDisjointAB is already in a normal form
@@ -254,9 +248,8 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
   ASSERT_EQ(unionDisjointA_BC, rewrite(unionDisjointAB_C));
 
   Node unionDisjointAA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, A);
-  Node AA = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                 elements[0],
-                                 d_nodeManager->mkConstInt(Rational(4)));
+  Node AA = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(4)));
   ASSERT_FALSE(unionDisjointAA.isConst());
   ASSERT_TRUE(AA.isConst());
   ASSERT_EQ(AA, rewrite(unionDisjointAA));
@@ -277,16 +270,16 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint2)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node x_3 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(3)));
-  Node x_7 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(7)));
-  Node z_2 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), z, d_nodeManager->mkConstInt(Rational(2)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node x_3 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(3)));
+  Node x_7 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(7)));
+  Node z_2 = d_nodeManager->mkNode(
+      BAG_MAKE, z, d_nodeManager->mkConstInt(Rational(2)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node A = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, z_2);
   Node B = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_3, y_1);
@@ -315,16 +308,16 @@ TEST_F(TestTheoryWhiteBagsNormalForm, intersection_min)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node x_3 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(3)));
-  Node x_7 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(7)));
-  Node z_2 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), z, d_nodeManager->mkConstInt(Rational(2)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node x_3 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(3)));
+  Node x_7 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(7)));
+  Node z_2 = d_nodeManager->mkNode(
+      BAG_MAKE, z, d_nodeManager->mkConstInt(Rational(2)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node A = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, z_2);
   Node B = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_3, y_1);
@@ -350,18 +343,18 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_subtract)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(1)));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node x_3 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(3)));
-  Node x_7 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(7)));
-  Node z_2 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), z, d_nodeManager->mkConstInt(Rational(2)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_1 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node x_3 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(3)));
+  Node x_7 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(7)));
+  Node z_2 = d_nodeManager->mkNode(
+      BAG_MAKE, z, d_nodeManager->mkConstInt(Rational(2)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node A = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, z_2);
   Node B = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_3, y_1);
@@ -387,18 +380,18 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_remove)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(1)));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node x_3 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(3)));
-  Node x_7 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(7)));
-  Node z_2 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), z, d_nodeManager->mkConstInt(Rational(2)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_1 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node x_3 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(3)));
+  Node x_7 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(7)));
+  Node z_2 = d_nodeManager->mkNode(
+      BAG_MAKE, z, d_nodeManager->mkConstInt(Rational(2)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node A = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, z_2);
   Node B = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_3, y_1);
@@ -423,10 +416,10 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node input1 = d_nodeManager->mkNode(BAG_CARD, empty);
   Node output1 = d_nodeManager->mkConstInt(Rational(0));
@@ -459,12 +452,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, is_singleton)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
   Node z = d_nodeManager->mkConst(String("z"));
-  Node x_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(1)));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_1 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node input1 = d_nodeManager->mkNode(BAG_IS_SINGLETON, empty);
   Node output1 = falseNode;
@@ -504,13 +497,13 @@ TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
 
-  Node xSingleton = d_nodeManager->mkSingleton(d_nodeManager->stringType(), x);
-  Node ySingleton = d_nodeManager->mkSingleton(d_nodeManager->stringType(), y);
+  Node xSingleton = d_nodeManager->mkNode(SET_SINGLETON, x);
+  Node ySingleton = d_nodeManager->mkNode(SET_SINGLETON, y);
 
-  Node x_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(1)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(1)));
+  Node x_1 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
+  Node y_1 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
 
   Node input2 = d_nodeManager->mkNode(BAG_FROM_SET, xSingleton);
   Node output2 = x_1;
@@ -543,13 +536,13 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
 
-  Node xSingleton = d_nodeManager->mkSingleton(d_nodeManager->stringType(), x);
-  Node ySingleton = d_nodeManager->mkSingleton(d_nodeManager->stringType(), y);
+  Node xSingleton = d_nodeManager->mkNode(SET_SINGLETON, x);
+  Node ySingleton = d_nodeManager->mkNode(SET_SINGLETON, y);
 
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_5 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConstInt(Rational(5)));
+  Node x_4 = d_nodeManager->mkNode(
+      BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
+  Node y_5 = d_nodeManager->mkNode(
+      BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(5)));
 
   Node input2 = d_nodeManager->mkNode(BAG_TO_SET, x_4);
   Node output2 = xSingleton;

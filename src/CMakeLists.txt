@@ -363,6 +363,8 @@ libcvc5_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_state.cpp
   theory/arith/arith_state.h
+  theory/arith/arith_subs.cpp
+  theory/arith/arith_subs.h
   theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
   theory/arith/bound_inference.cpp
@@ -545,8 +547,6 @@ libcvc5_add_sources(
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
-  theory/bags/bag_make_op.cpp
-  theory/bags/bag_make_op.h
   theory/bags/bags_rewriter.cpp
   theory/bags/bags_rewriter.h
   theory/bags/bag_solver.cpp
@@ -1016,8 +1016,6 @@ libcvc5_add_sources(
   theory/sets/normal_form.h
   theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
-  theory/sets/singleton_op.cpp
-  theory/sets/singleton_op.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
@@ -1088,8 +1086,6 @@ libcvc5_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/rewrites.cpp
   theory/strings/rewrites.h
-  theory/strings/seq_unit_op.cpp
-  theory/strings/seq_unit_op.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp
