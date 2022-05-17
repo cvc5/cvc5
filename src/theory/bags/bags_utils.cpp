@@ -988,7 +988,7 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
   if (A.getKind() == BAG_EMPTY)
   {
     // return a nonempty partition
-    return nm->mkBag(bagType, A, nm->mkConstInt(Rational(1)));
+    return nm->mkNode(BAG_MAKE, A, nm->mkConstInt(Rational(1)));
   }
 
   std::vector<uint32_t> indices =
@@ -1041,8 +1041,7 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
     std::vector<Node> bags;
     for (const Node& node : eqc)
     {
-      Node bag = nm->mkBag(
-          bagType.getBagElementType(), node, nm->mkConstInt(elements[node]));
+      Node bag = nm->mkNode(BAG_MAKE, node, nm->mkConstInt(elements[node]));
       bags.push_back(bag);
     }
     Node part = computeDisjointUnion(bagType, bags);
