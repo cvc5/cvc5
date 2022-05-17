@@ -18,6 +18,7 @@
 #ifndef CVC5__API__CVC5_H
 #define CVC5__API__CVC5_H
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -4435,6 +4436,36 @@ class CVC5_EXPORT Solver
   Term declarePool(const std::string& symbol,
                    const Sort& sort,
                    const std::vector<Term>& initValue) const;
+  /**
+   * Declare an oracle function with reference to an implementation.
+   *
+   * Oracle functions have a different semantics with respect to ordinary
+   * declared functions. In particular, for an input to be satisfiable,
+   * its oracle functions are implicitly universally quantified.
+   *
+   * This method is used in part for implementing this command:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
+   * \endverbatim
+   *
+   * In particular, the above command is implemented by constructing a
+   * function over terms that wraps a call to binary sym via a text interface.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @param symbol The name of the pool
+   * @param sorts The sorts of the parameters to this function
+   * @param sort The sort of the return value of this function
+   * @param fn The function that implements the oracle function.
+   * @return The oracle function
+   */
+  Term declareOracleFun(const std::string& symbol,
+                        const std::vector<Sort>& sorts,
+                        const Sort& sort,
+                        std::function<Term(const std::vector<Term>&)> fn) const;
   /**
    * Pop (a) level(s) from the assertion stack.
    *

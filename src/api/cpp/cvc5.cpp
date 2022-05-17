@@ -62,8 +62,8 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
-#include "options/smt_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -7029,6 +7029,37 @@ Term Solver::declarePool(const std::string& symbol,
   std::vector<internal::Node> initv = Term::termVectorToNodes(initValue);
   d_slv->declarePool(pool, initv);
   return Term(this, pool);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::declareOracleFun(
+    const std::string& symbol,
+    const std::vector<Sort>& sorts,
+    const Sort& sort,
+    std::function<Term(const std::vector<Term>&)> fn) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
+  CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
+  //////// all checks before this line
+  internal::TypeNode type = *sort.d_type;
+  if (!sorts.empty())
+  {
+    std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
+    type = d_nodeMgr->mkFunctionType(types, type);
+  }
+  internal::Node fun = d_nodeMgr->mkVar(symbol, type);
+  // Wrap the terms-to-term function so that it is nodes-to-nodes. Note we
+  // make the method return a vector of size one to conform to the interface
+  // at the SolverEngine level.
+  d_slv->declareOracleFun(
+      fun, [&, fn](const std::vector<internal::Node> nodes) {
+        std::vector<Term> terms = Term::nodeVectorToTerms(this, nodes);
+        Term output = fn(terms);
+        return Term::termVectorToNodes({output});
+      });
+  return Term(this, fun);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

@@ -3439,5 +3439,45 @@ TEST_F(TestApiBlackSolver, projIssue337)
   ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
+TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
+{
+  d_solver.setOption("oracles", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input.isUInt32Value())
+        {
+          return d_solver.mkInteger(input.getUInt32Value() + 1);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term three = d_solver.mkInteger(3);
+  Term five = d_solver.mkInteger(5);
+  Term eq = d_solver.mkTerm(EQUAL, d_solver.mkTerm(APPLY_UF, f, three), five);
+  d_solver.assertFormula(eq);
+  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunSat)
+{
+  d_solver.setOption("oracles", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input.isUInt32Value())
+        {
+          return d_solver.mkInteger(input.getUInt32Value() + 1);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term three = d_solver.mkInteger(1);
+  Term five = d_solver.mkInteger(0);
+  Term eq = d_solver.mkTerm(GEQ, d_solver.mkTerm(APPLY_UF, f, three), five);
+  d_solver.assertFormula(eq);
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
