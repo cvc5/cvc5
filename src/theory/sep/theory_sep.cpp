@@ -50,7 +50,9 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
       d_im(env, *this, d_state, "theory::sep::"),
       d_notify(*this),
       d_reduce(userContext()),
-      d_spatial_assertions(context())
+      d_spatial_assertions(context()),
+      d_bound_kind(bound_invalid),
+      d_card_max(0)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -605,11 +607,8 @@ void TheorySep::postCheck(Effort level)
     }
   }
   // set up model information based on active assertions
-  for (NodeList::const_iterator i = d_spatial_assertions.begin();
-       i != d_spatial_assertions.end();
-       ++i)
+  for (const Node& fact : d_spatial_assertions)
   {
-    Node fact = (*i);
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     TNode satom = atom[0];
@@ -623,8 +622,7 @@ void TheorySep::postCheck(Effort level)
   if (TraceIsOn("sep-process"))
   {
     Trace("sep-process") << "--- Current spatial assertions : " << std::endl;
-    for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
-      Node fact = (*i);
+    for (const Node& fact : d_spatial_assertions) {
       Trace("sep-process") << "  " << fact;
       if (!assert_active[fact])
       {
@@ -647,11 +645,8 @@ void TheorySep::postCheck(Effort level)
   std::map<Node, bool> active_lbl;
   if (options().sep.sepMinimalRefine)
   {
-    for (NodeList::const_iterator i = d_spatial_assertions.begin();
-         i != d_spatial_assertions.end();
-         ++i)
+    for (const Node& fact : d_spatial_assertions)
     {
-      Node fact = (*i);
       bool polarity = fact.getKind() != NOT;
       TNode atom = polarity ? fact : fact[0];
       TNode satom = atom[0];
@@ -675,11 +670,8 @@ void TheorySep::postCheck(Effort level)
   }
 
   // process spatial assertions
-  for (NodeList::const_iterator i = d_spatial_assertions.begin();
-       i != d_spatial_assertions.end();
-       ++i)
+  for (const Node& fact : d_spatial_assertions)
   {
-    Node fact = (*i);
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     TNode satom = atom[0];
