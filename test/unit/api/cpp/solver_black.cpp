@@ -3446,9 +3446,9 @@ TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
   // f is the function implementing (lambda ((x Int)) (+ x 1))
   Term f = d_solver.declareOracleFun(
       "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
-        if (input.isUInt32Value())
+        if (input[0].isUInt32Value())
         {
-          return d_solver.mkInteger(input.getUInt32Value() + 1);
+          return d_solver.mkInteger(input[0].getUInt32Value() + 1);
         }
         return d_solver.mkInteger(0);
       });
@@ -3467,9 +3467,9 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
   // f is the function implementing (lambda ((x Int)) (x%10))
   Term f = d_solver.declareOracleFun(
       "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
-        if (input.isUInt32Value())
+        if (input[0].isUInt32Value())
         {
-          return d_solver.mkInteger(input.getUInt32Value()%10);
+          return d_solver.mkInteger(input[0].getUInt32Value()%10);
         }
         return d_solver.mkInteger(0);
       });
@@ -3485,6 +3485,27 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
   Term xval = d_solver.getValue(x);
   ASSERT_TRUE(xval.isUInt32Value());
   ASSERT_TRUE(xval.getUInt32Value()%10==7);
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunSat2)
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  Sort bSort = d_solver.getBooleanSort();
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  Term eq = d_solver.declareOracleFun(
+      "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkBoolean(t[0]==t[1]);
+      });
+  Term x = d_solver.mkVar("x", iSort);
+  Term y = d_solver.mkVar("y", iSort);
+  Term p = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
+  d_solver.assertFormula(p);
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  Term yval = d_solver.getValue(y);
+  ASSERT_TRUE(xval!=yval);
 }
 
 }  // namespace test
