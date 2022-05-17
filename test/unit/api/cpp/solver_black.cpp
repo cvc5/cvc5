@@ -3456,6 +3456,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
   Term five = d_solver.mkInteger(5);
   Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
   d_solver.assertFormula(eq);
+  // (f 3) = 5
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 }
 
@@ -3481,6 +3482,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
   d_solver.assertFormula(ub);
   Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, x}), seven});
   d_solver.assertFormula(eq);
+  // x >= 0 ^ x <= 100 ^ (f x) = 7
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
   ASSERT_TRUE(xval.isUInt32Value());
@@ -3500,8 +3502,9 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
       });
   Term x = d_solver.mkVar("x", iSort);
   Term y = d_solver.mkVar("y", iSort);
-  Term p = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
-  d_solver.assertFormula(p);
+  Term neq = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
+  d_solver.assertFormula(pneq);
+  // (not (eq x y))
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
   Term yval = d_solver.getValue(y);
