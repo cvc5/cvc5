@@ -121,7 +121,9 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
     case AletheRule::REORDERING: return "reordering";
-    case AletheRule::BV_BITBLAST_STEP: return "bv_bitblast_step";
+    case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
+    case AletheRule::BV_BITBLAST_STEP_BVULE: return "bv_bitblast_step_bvule";
+    case AletheRule::BV_BITBLAST_STEP_BVULT: return "bv_bitblast_step_bvult";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";

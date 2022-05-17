@@ -408,7 +408,9 @@ enum class AletheRule : uint32_t
   // literals in C2 is the same of that of C1.
   REORDERING,
   // ======== bitvector
-  BV_BITBLAST_STEP,
+  BV_BITBLAST_STEP_VAR,
+  BV_BITBLAST_STEP_BVULE,
+  BV_BITBLAST_STEP_BVULT,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
