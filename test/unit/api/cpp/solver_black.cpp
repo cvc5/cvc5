@@ -3454,7 +3454,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
       });
   Term three = d_solver.mkInteger(3);
   Term five = d_solver.mkInteger(5);
-  Term eq = d_solver.mkTerm(EQUAL, d_solver.mkTerm(APPLY_UF, f, three), five);
+  Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
   d_solver.assertFormula(eq);
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 }
@@ -3475,11 +3475,11 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
       });
   Term seven = d_solver.mkInteger(7);
   Term x = d_solver.mkVar("x", iSort);
-  Term lb = d_solver.mkTerm(GEQ, x, d_solver.mkInteger(0));
+  Term lb = d_solver.mkTerm(GEQ, {x, d_solver.mkInteger(0)});
   d_solver.assertFormula(lb);
-  Term ub = d_solver.mkTerm(LEQ, x, d_solver.mkInteger(100));
+  Term ub = d_solver.mkTerm(LEQ, {x, d_solver.mkInteger(100)});
   d_solver.assertFormula(ub);
-  Term eq = d_solver.mkTerm(EQUAL, d_solver.mkTerm(APPLY_UF, f, x), seven);
+  Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, x}), seven});
   d_solver.assertFormula(eq);
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
