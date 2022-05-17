@@ -25,6 +25,7 @@
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
 #include "util/uninterpreted_sort_value.h"
+#include "theory/uf/function_const.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -1359,7 +1360,8 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Assert(hnv.isConst());
       if (!apply_args.empty())
       {
-        Assert(hnv.getKind() == kind::LAMBDA
+        hnv = uf::FunctionConst::getLambdaFor(hnv);
+        Assert(!hnv.isNull() && hnv.getKind() == kind::LAMBDA
                && hnv[0].getNumChildren() + 1 == args.size());
         std::vector<TNode> largs;
         for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
