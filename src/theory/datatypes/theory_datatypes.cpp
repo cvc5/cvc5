@@ -360,11 +360,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = rew.size() == 0
-               ? d_true
-               : (rew.size() == 1
-                      ? rew[0]
-                      : NodeManager::currentNM()->mkNode(kind::AND, rew));
+      nn = NodeManager::currentNM()->mkAnd(rew);
     }
     if (in != nn)
     {
@@ -423,7 +419,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
     return;
   }
   Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
-  Assert(areEqual(t1, t2));
+  Assert(d_equalityEngine->areEqual(t1, t2));
   TNode trep1 = t1;
   TNode trep2 = t2;
   EqcInfo* eqc2 = getOrMakeEqcInfo(t2);
@@ -466,11 +462,11 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       }
       else
       {
-        Assert(areEqual(cons1, cons2));
+        Assert(d_equalityEngine->areEqual(cons1, cons2));
         // do unification
         for (size_t i = 0, nchild = cons1.getNumChildren(); i < nchild; i++)
         {
-          if (!areEqual(cons1[i], cons2[i]))
+          if (!d_equalityEngine->areEqual(cons1[i], cons2[i]))
           {
             Node eq = cons1[i].eqNode(cons2[i]);
             d_im.addPendingInference(eq, InferenceId::DATATYPES_UNIF, unifEq);
@@ -1219,13 +1215,12 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   // instantiate this equivalence class
   eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
-  Node eq;
   if (tt == tt_cons)
   {
     // not necessary
     return false;
   }
-  eq = tt.eqNode(tt_cons);
+  Node eq = tt.eqNode(tt_cons);
   // Determine if the equality must be sent out as a lemma. Notice that
   // we  keep new equalities from the instantiate rule internal
   // as long as they are for datatype constructors that have no arguments that
@@ -1713,50 +1708,13 @@ void TheoryDatatypes::checkSplit()
   }
 }
 
-bool TheoryDatatypes::hasTerm(TNode a) { return d_equalityEngine->hasTerm(a); }
-
-bool TheoryDatatypes::areEqual(TNode a, TNode b)
-{
-  if (a == b)
-  {
-    return true;
-  }
-  else if (hasTerm(a) && hasTerm(b))
-  {
-    return d_equalityEngine->areEqual(a, b);
-  }
-  else
-  {
-    return false;
-  }
-}
-
-bool TheoryDatatypes::areDisequal(TNode a, TNode b)
-{
-  if (a == b)
-  {
-    return false;
-  }
-  else if (hasTerm(a) && hasTerm(b))
-  {
-    return d_equalityEngine->areDisequal(a, b, false);
-  }
-  else
-  {
-    // TODO : constants here?
-    return false;
-  }
-}
 
 TNode TheoryDatatypes::getRepresentative( TNode a ){
-  if (hasTerm(a))
+  if (d_equalityEngine->hasTerm(a))
   {
     return d_equalityEngine->getRepresentative(a);
   }
-  else
-  {
-    return a;
-  }
+  return a;
 }
 
 void TheoryDatatypes::printModelDebug( const char* c ){
@@ -1849,7 +1807,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
   bool pol = lit.getKind()!=NOT;
   if( atom.getKind()==APPLY_TESTER ){
     Node n = atom[0];
-    if (hasTerm(n))
+    if (d_equalityEngine->hasTerm(n))
     {
       Node r = d_equalityEngine->getRepresentative(n);
       EqcInfo * ei = getOrMakeEqcInfo( r, false );
@@ -1865,7 +1823,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
           Node lbl = getLabel( n );
           Assert(!lbl.isNull());
           exp_c.push_back( lbl );
-          Assert(areEqual(n, lbl[0]));
+          Assert(d_equalityEngine->areEqual(n, lbl[0]));
           eqToExplain = n.eqNode(lbl[0]);
         }
         d_equalityEngine->explainLit(eqToExplain, exp_c);

@@ -276,9 +276,12 @@ private:
 
  private:
   //equality queries
+<<<<<<< HEAD
   bool hasTerm(TNode a);
   bool areEqual(TNode a, TNode b);
   bool areDisequal(TNode a, TNode b);
+=======
+>>>>>>> 6620e38d71051f8a4b40b2fae507749c7e7a2684
   TNode getRepresentative( TNode a );
 
   /** Collect model values in m based on the relevant terms given by termSet */
