@@ -3476,7 +3476,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
         return d_solver.mkInteger(0);
       });
   Term seven = d_solver.mkInteger(7);
-  Term x = d_solver.mkVar("x", iSort);
+  Term x = d_solver.mkVar(iSort, "x");
   Term lb = d_solver.mkTerm(GEQ, {x, d_solver.mkInteger(0)});
   d_solver.assertFormula(lb);
   Term ub = d_solver.mkTerm(LEQ, {x, d_solver.mkInteger(100)});
@@ -3501,8 +3501,8 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
       "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
         return d_solver.mkBoolean(input[0] == input[1]);
       });
-  Term x = d_solver.mkVar("x", iSort);
-  Term y = d_solver.mkVar("y", iSort);
+  Term x = d_solver.mkVar(iSort, "x");
+  Term y = d_solver.mkVar(iSort, "y");
   Term neq = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
   d_solver.assertFormula(neq);
   // (not (eq x y))
