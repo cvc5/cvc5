@@ -221,29 +221,27 @@ class TheorySep : public Theory {
   //data,ref type (globally fixed)
   TypeNode d_type_ref;
   TypeNode d_type_data;
-  //currently fix one data type for each location type, throw error if using more than one
-  std::map< TypeNode, TypeNode > d_loc_to_data_type;
   //information about types
-  std::map< TypeNode, Node > d_base_label;
-  std::map< TypeNode, Node > d_nil_ref;
+  Node d_base_label;
+  Node d_nil_ref;
   //reference bound
-  std::map< TypeNode, Node > d_reference_bound;
-  std::map< TypeNode, Node > d_reference_bound_max;
-  std::map< TypeNode, std::vector< Node > > d_type_references;
+   Node  d_reference_bound;
+  Node  d_reference_bound_max;
+  std::vector< Node >  d_type_references;
   //kind of bound for reference types
   enum {
     bound_strict,
     bound_default,
     bound_invalid,
   };
-  std::map< TypeNode, unsigned > d_bound_kind;
+  unsigned  d_bound_kind;
 
-  std::map< TypeNode, std::vector< Node > > d_type_references_card;
+ std::vector< Node >  d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
-  std::map< TypeNode, std::vector< Node > > d_type_references_all;
-  std::map< TypeNode, unsigned > d_card_max;
+  std::vector< Node > d_type_references_all;
+  unsigned  d_card_max;
   //for empty argument
-  std::map< TypeNode, Node > d_emp_arg;
+   Node  d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
 
