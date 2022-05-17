@@ -37,7 +37,7 @@ Node FunctionEnumerator::operator*()
     throw NoMoreValuesException(getType());
   }
   Node a = *d_arrayEnum;
-  return NodeManager::currentNM()->mkConst(FunctionConstant(a));
+  return NodeManager::currentNM()->mkConst(FunctionConstant(getType(), a));
 }
 
 FunctionEnumerator& FunctionEnumerator::operator++()

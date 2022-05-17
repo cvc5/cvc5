@@ -25,34 +25,27 @@ using namespace std;
 
 namespace cvc5::internal {
 
-FunctionConstant::FunctionConstant(const Node& avalue) : d_avalue(), d_type()
+FunctionConstant::FunctionConstant(const TypeNode& type, const Node& avalue)
+    : d_type(), d_avalue()
 {
-  Assert(avalue.isConst());
-  d_avalue.reset(new Node(avalue));
+  // TODO: checks
 
-  TypeNode tn = avalue.getType();
-  Assert(tn.isArray());
-  std::vector<TypeNode> argTypes;
-  while (tn.isArray())
-  {
-    argTypes.push_back(tn.getArrayIndexType());
-    tn = tn.getArrayConstituentType();
-  }
-  TypeNode type = NodeManager::currentNM()->mkFunctionType(argTypes, tn);
+  // Delay allocation until the checks above have been performed. If these
+  // fail, the memory for d_type and d_avalue should not leak. The alternative
+  // is catch, delete and re-throw.
   d_type.reset(new TypeNode(type));
+  d_avalue.reset(new Node(avalue));
 }
 
 FunctionConstant::FunctionConstant(const FunctionConstant& other)
-    : d_avalue(new Node(other.getArrayValue())),
-      d_type(new TypeNode(other.getType()))
+    : d_type(new TypeNode(other.getType())), d_avalue(new Node(other.getArrayValue()))
 {
 }
 
 FunctionConstant::~FunctionConstant() {}
-FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other)
-{
-  (*d_avalue) = other.getArrayValue();
+FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other) {
   (*d_type) = other.getType();
+  (*d_avalue) = other.getArrayValue();
   return *this;
 }
 
@@ -62,7 +55,7 @@ const Node& FunctionConstant::getArrayValue() const { return *d_avalue; }
 
 bool FunctionConstant::operator==(const FunctionConstant& fc) const
 {
-  return getArrayValue() == fc.getArrayValue();
+  return getType() == fc.getType() && getArrayValue() == fc.getArrayValue();
 }
 
 bool FunctionConstant::operator!=(const FunctionConstant& fc) const
@@ -72,12 +65,14 @@ bool FunctionConstant::operator!=(const FunctionConstant& fc) const
 
 bool FunctionConstant::operator<(const FunctionConstant& fc) const
 {
-  return getArrayValue() < fc.getArrayValue();
+  return (getType() < fc.getType())
+         || (getType() == fc.getType() && getArrayValue() < fc.getArrayValue());
 }
 
 bool FunctionConstant::operator<=(const FunctionConstant& fc) const
 {
-  return getArrayValue() <= fc.getArrayValue();
+  return (getType() < fc.getType())
+         || (getType() == fc.getType() && getArrayValue() <= fc.getArrayValue());
 }
 
 bool FunctionConstant::operator>(const FunctionConstant& fc) const
@@ -95,10 +90,9 @@ std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
              << fc.getArrayValue() << ')';
 }
 
-size_t FunctionConstantHashFunction::operator()(
-    const FunctionConstant& fc) const
-{
-  return std::hash<Node>()(fc.getArrayValue());
+size_t FunctionConstantHashFunction::operator()(const FunctionConstant& fc) const {
+  return std::hash<TypeNode>()(fc.getType())
+         * std::hash<Node>()(fc.getArrayValue());
 }
 
 }  // namespace cvc5::internal

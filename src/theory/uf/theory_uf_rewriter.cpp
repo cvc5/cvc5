@@ -232,7 +232,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   if (!anode.isNull() && anode.isConst())
   {
     Assert(anode.getType().isArray());
-    Node retNode = NodeManager::currentNM()->mkConst(FunctionConstant(anode));
+    Node retNode = NodeManager::currentNM()->mkConst(FunctionConstant(node.getType(), anode));
     Assert(anode.isConst() == retNode.isConst());
     Assert(retNode.getType() == node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
