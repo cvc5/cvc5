@@ -22,7 +22,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "table_project_op.h"
-#include "theory/bags/bag_make_op.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -174,10 +173,8 @@ TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
-  Assert(n.getKind() == kind::BAG_MAKE && n.hasOperator()
-         && n.getOperator().getKind() == kind::BAG_MAKE_OP);
-  BagMakeOp op = n.getOperator().getConst<BagMakeOp>();
-  TypeNode expectedElementType = op.getType();
+  Assert(n.getKind() == kind::BAG_MAKE);
+  TypeNode actualElementType = n[0].getType(check);
   if (check)
   {
     if (n.getNumChildren() != 2)
@@ -194,21 +191,9 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
       ss << "BAG_MAKE expects an integer for " << n[1] << ". Found" << type1;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
-
-    TypeNode actualElementType = n[0].getType(check);
-    // the type of the element should be a subtype of the type of the operator
-    // e.g. (bag (bag_op Real) 1 1) where 1 is an Int
-    if (actualElementType != expectedElementType)
-    {
-      std::stringstream ss;
-      ss << "The type '" << actualElementType
-         << "' of the element is not type of '" << expectedElementType
-         << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
   }
 
-  return nm->mkBagType(expectedElementType);
+  return nm->mkBagType(actualElementType);
 }
 
 bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)

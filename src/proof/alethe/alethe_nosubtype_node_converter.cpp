@@ -42,7 +42,7 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
           << "\t\t..arg " << i << " is integer constant " << n[i]
           << " in real position.\n";
       childChanged = true;
-      children.push_back(nm->mkNode(kind::CAST_TO_REAL, n[i]));
+      children.push_back(nm->mkNode(kind::TO_REAL, n[i]));
     }
     if (childChanged)
     {

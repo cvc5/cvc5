@@ -934,12 +934,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
         std::vector<TypeNode> cargsSeqUnit;
         cargsSeqUnit.push_back(unresElemType);
-        // lambda x . (seq.unit (seq_unit_op T) x) where T = x.getType()
-        Node x = nm->mkBoundVar(etype);
-        Node vars = nm->mkNode(BOUND_VAR_LIST, x);
-        Node seqUnit = nm->mkSeqUnit(etype, x);
-        Node lambda = nm->mkNode(LAMBDA, vars, seqUnit);
-        sdts[i].addConstructor(lambda, "seq.unit", cargsSeqUnit);
+        sdts[i].addConstructor(SEQ_UNIT, cargsSeqUnit);
       }
     }
     else if (types[i].isArray())
@@ -985,13 +980,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
       std::vector<TypeNode> cargsSingleton;
       cargsSingleton.push_back(unresElemType);
-
-      // lambda x . (singleton (singleton_op T) x) where T = x.getType()
-      Node x = nm->mkBoundVar(etype);
-      Node vars = nm->mkNode(BOUND_VAR_LIST, x);
-      Node singleton = nm->mkSingleton(etype, x);
-      Node lambda = nm->mkNode(LAMBDA,vars, singleton);
-      sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
+      sdts[i].addConstructor(SET_SINGLETON, cargsSingleton);
 
       // add for union, difference, intersection
       std::vector<Kind> bin_kinds = {SET_UNION, SET_INTER, SET_MINUS};

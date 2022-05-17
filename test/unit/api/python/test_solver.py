@@ -908,7 +908,8 @@ def test_mk_true(solver):
 def test_mk_tuple(solver):
     solver.mkTuple([solver.mkBitVectorSort(3)],
                    [solver.mkBitVector(3, "101", 2)])
-    solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
+    with pytest.raises(RuntimeError):
+      solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
 
     with pytest.raises(RuntimeError):
         solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])

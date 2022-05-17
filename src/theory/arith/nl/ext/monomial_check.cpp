@@ -720,7 +720,7 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
 Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(a.getType().isComparableTo(b.getType()));
+  Assert(a.getType().isRealOrInt() && b.getType().isRealOrInt());
   if (status == 0)
   {
     Node a_eq_b = mkEquality(a, b);

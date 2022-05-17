@@ -102,7 +102,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
       combine_i.eqNode(nm->mkNode(APPLY_UF, f, uf_i, combine_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
-  Node singleton = nm->mkBag(elementType, uf_i, one);
+  Node singleton = nm->mkNode(BAG_MAKE, uf_i, one);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
       nm->mkNode(BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
@@ -171,7 +171,7 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(ADD, uf_i_multiplicity, cardinality_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
-  Node bag = nm->mkBag(elementType, uf_i, uf_i_multiplicity);
+  Node bag = nm->mkNode(BAG_MAKE, uf_i, uf_i_multiplicity);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
       nm->mkNode(BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));

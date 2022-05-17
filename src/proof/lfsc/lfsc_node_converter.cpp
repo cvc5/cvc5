@@ -214,18 +214,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
-  else if (k == CONST_RATIONAL || k == CONST_INTEGER || k == CAST_TO_REAL)
+  else if (k == CONST_RATIONAL || k == CONST_INTEGER)
   {
-    if (k == CAST_TO_REAL)
-    {
-      // already converted
-      do
-      {
-        n = n[0];
-        Assert(n.getKind() == APPLY_UF || n.getKind() == CONST_RATIONAL
-               || n.getKind() == CONST_INTEGER);
-      } while (n.getKind() != CONST_RATIONAL && n.getKind() != CONST_INTEGER);
-    }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
     Node rconstf;
     Node arg;
@@ -313,8 +303,7 @@ Node LfscNodeConverter::postConvert(Node n)
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      Node u = nm->mkSeqUnit(tn.getSequenceElementType(),
-                             postConvert(charVec[size - (i + 1)]));
+      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size - (i + 1)]));
       if (size == 1)
       {
         // singleton case
