@@ -56,6 +56,7 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry& registry,
   {
     res->setTimeLimit(resmgr);
   }
+  res->setResourceLimit(resmgr);
   return res;
 }
 

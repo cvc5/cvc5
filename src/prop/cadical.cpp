@@ -96,9 +96,34 @@ class TimeLimitTerminator : public CaDiCaL::Terminator
   ResourceManager& d_resmgr;
 };
 
+/**
+ * Terminator class that notifies CaDiCaL to terminate when the resource limit
+ * is reached (used for resource limits specified via --rlimit).
+ */
+class ResourceLimitTerminator : public CaDiCaL::Terminator
+{
+ public:
+  ResourceLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr){};
+
+  bool terminate() override
+  {
+    d_resmgr.spendResource(Resource::BvSatStep);
+    return d_resmgr.outOfResources();
+  }
+
+ private:
+  ResourceManager& d_resmgr;
+};
+
 void CadicalSolver::setTimeLimit(ResourceManager* resmgr)
 {
   d_terminator.reset(new TimeLimitTerminator(*resmgr));
+  d_solver->connect_terminator(d_terminator.get());
+}
+
+void CadicalSolver::setResourceLimit(ResourceManager* resmgr)
+{
+  d_terminator.reset(new ResourceLimitTerminator(*resmgr));
   d_solver->connect_terminator(d_terminator.get());
 }
 
