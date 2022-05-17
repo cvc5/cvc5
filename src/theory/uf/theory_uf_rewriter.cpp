@@ -54,11 +54,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   }
   if (node.getKind() == kind::APPLY_UF)
   {
-    if (node.getOperator().getKind() == kind::LAMBDA)
+    Node lambda = FunctionConst::getLambdaFor(node.getOperator());
+    if (!lambda.isNull())
     {
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : " << node
                           << "\n";
-      TNode lambda = node.getOperator();
       Node ret;
       // build capture-avoiding substitution since in HOL shadowing may have
       // been introduced
@@ -103,17 +103,18 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   }
   else if (node.getKind() == kind::HO_APPLY)
   {
-    if (node[0].getKind() == kind::LAMBDA)
+    Node lambda = FunctionConst::getLambdaFor(node[0]);
+    if (!lambda.isNull())
     {
       // resolve one argument of the lambda
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing one argument of : "
-                          << node[0] << " with " << node[1] << "\n";
+                          << lambda << " with " << node[1] << "\n";
 
       // reconstruct the lambda first to avoid variable shadowing
-      Node new_body = node[0][1];
-      if (node[0][0].getNumChildren() > 1)
+      Node new_body = lambda[1];
+      if (lambda[0].getNumChildren() > 1)
       {
-        std::vector<Node> new_vars(node[0][0].begin() + 1, node[0][0].end());
+        std::vector<Node> new_vars(lambda[0].begin() + 1, lambda[0].end());
         std::vector<Node> largs;
         largs.push_back(
             NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, new_vars));
@@ -128,13 +129,13 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       if (d_isHigherOrder)
       {
         Node arg = node[1];
-        Node var = node[0][0][0];
+        Node var = lambda[0][0];
         new_body = expr::substituteCaptureAvoiding(new_body, var, arg);
       }
       else
       {
         TNode arg = node[1];
-        TNode var = node[0][0][0];
+        TNode var = lambda[0][0];
         new_body = new_body.substitute(var, arg);
       }
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";

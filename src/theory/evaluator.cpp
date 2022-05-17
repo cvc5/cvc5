@@ -20,6 +20,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "util/integer.h"
+#include "theory/uf/function_const.h"
 
 using namespace cvc5::internal::kind;
 
@@ -334,7 +335,8 @@ EvalResult Evaluator::evalInternal(
           // no function can be a valid EvalResult
           op = evalAsNode[op];
           Trace("evaluator") << "Operator evaluated to " << op << std::endl;
-          if (op.getKind() != kind::LAMBDA)
+          Node lambda = uf::FunctionConst::getLambdaFor(op);
+          if (lambda.isNull())
           {
             // this node is not evaluatable due to operator, must add to
             // evalAsNode
@@ -349,7 +351,7 @@ EvalResult Evaluator::evalInternal(
           // Add the values for the arguments of the lambda as substitutions at
           // the beginning of the vector to shadow variables from outer scopes
           // with the same name
-          for (const auto& lambdaArg : op[0])
+          for (const auto& lambdaArg : lambda[0])
           {
             lambdaArgs.insert(lambdaArgs.begin(), lambdaArg);
           }
@@ -362,21 +364,21 @@ EvalResult Evaluator::evalInternal(
 
           // Lambdas are evaluated in a recursive fashion because each
           // evaluation requires different substitutions. We use a fresh cache
-          // since the evaluation of op[1] is under a new substitution and thus
+          // since the evaluation of lambda[1] is under a new substitution and thus
           // should not be cached. We could alternatively copy evalAsNode to
           // evalAsNodeC but favor avoiding this copy for performance reasons.
           std::unordered_map<TNode, Node> evalAsNodeC;
           std::unordered_map<TNode, EvalResult> resultsC;
           results[currNode] = evalInternal(
-              op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
+              lambda[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
           Trace("evaluator") << "Evaluated via arguments to "
                              << results[currNode].d_tag << std::endl;
           if (results[currNode].d_tag == EvalResult::INVALID)
           {
             // evaluation was invalid, we take the node of op[1] as the result
-            evalAsNode[currNode] = evalAsNodeC[op[1]];
+            evalAsNode[currNode] = evalAsNodeC[lambda[1]];
             Trace("evaluator")
-                << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
+                << "Take node evaluation: " << evalAsNodeC[lambda[1]] << std::endl;
           }
         }
         break;

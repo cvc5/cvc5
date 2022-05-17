@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
+#include "theory/uf/function_const.h"
 #include "smt/env.h"
 
 using namespace cvc5::internal::kind;
@@ -102,21 +103,21 @@ Node LambdaLift::getAssertionFor(TNode node)
   {
     return Node::null();
   }
-  Kind k = node.getKind();
   Node assertion;
-  if (k == LAMBDA)
+  Node lambda = FunctionConst::getLambdaFor(node);
+  if (!lambda.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
     // The new assertion
     std::vector<Node> children;
     // bound variable list
-    children.push_back(node[0]);
+    children.push_back(lambda[0]);
     // body
     std::vector<Node> skolem_app_c;
     skolem_app_c.push_back(skolem);
-    skolem_app_c.insert(skolem_app_c.end(), node[0].begin(), node[0].end());
+    skolem_app_c.insert(skolem_app_c.end(), lambda[0].begin(), lambda[0].end());
     Node skolem_app = nm->mkNode(APPLY_UF, skolem_app_c);
-    skolem_app_c[0] = node;
+    skolem_app_c[0] = lambda;
     Node rhs = nm->mkNode(APPLY_UF, skolem_app_c);
     // For the sake of proofs, we use
     // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is instead of
