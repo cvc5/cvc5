@@ -242,6 +242,7 @@ int ArithMSum::isolate(
       }
       // note that conversely this utility will never use a real value as
       // the solution for an integer, thus the types should match now
+      Assert(val.getType() == vc.getType());
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
   }

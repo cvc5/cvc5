@@ -146,7 +146,7 @@ void TermProperties::composeProperty(TermProperties& p)
 // push the substitution pv_prop.getModifiedTerm(pv) -> n
 void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
 {
-  Assert(n.getType().isSubtypeOf(pv.getType()));
+  Assert(n.getType() == pv.getType());
   d_vars.push_back(pv);
   d_subs.push_back(n);
   d_props.push_back(pv_prop);
@@ -686,7 +686,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                                              Node pv)
 {
   TypeNode pvtn = pv.getType();
-  TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   if (ee->hasTerm(pv))
@@ -783,7 +782,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
     Trace("cegqi-inst-debug")
         << "[2] try based on solving equalities." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
-    std::vector<Node>& cteqc = d_curr_type_eqc[pvtnb];
+    std::vector<Node>& cteqc = d_curr_type_eqc[pvtn];
 
     for (const Node& r : cteqc)
     {
@@ -945,7 +944,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                                                 SolvedForm& sf,
                                                 bool revertOnSuccess)
 {
-  Assert(n.getType().isSubtypeOf(pv.getType()));
+  Assert(n.getType() == pv.getType());
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -957,7 +956,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
       Trace("cegqi-inst-debug") << mod_pv << " -> " << n << std::endl;
-      Assert(n.getType().isSubtypeOf(pv.getType()));
+      Assert(n.getType() == pv.getType());
     }
     //must ensure variables have been computed for n
     computeProgVars( n );
@@ -1416,10 +1415,6 @@ void CegInstantiator::processAssertions() {
     TheoryId tid = d_env.theoryOf(rtn);
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
-      if (rtn.isRealOrInt())
-      {
-        rtn = rtn.getBaseType();
-      }
       Trace("cegqi-proc-debug") << "...type eqc: " << r << std::endl;
       d_curr_type_eqc[rtn].push_back( r );
       if( d_curr_eqc.find( r )==d_curr_eqc.end() ){

@@ -75,15 +75,13 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
     if (!d_match[index].isNull())
     {
       Trace("typecheck-idt")
-          << "check subtype " << tn << " " << d_match[index] << std::endl;
-      TypeNode tnn = TypeNode::leastCommonTypeNode(tn, d_match[index]);
-      // recognize subtype relation
-      if (!tnn.isNull())
+          << "check types " << tn << " " << d_match[index] << std::endl;
+      if (tn != d_match[index])
       {
-        d_match[index] = tnn;
-        return true;
+        return false;
       }
-      return false;
+      d_match[index] = tn;
+      return true;
     }
     d_match[index] = tn;
     return true;

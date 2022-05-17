@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "theory/sets/normal_form.h"
-#include "theory/sets/singleton_op.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -78,11 +77,8 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
     TypeNode secondSetType = n[1].getType(check);
     if (secondSetType != setType)
     {
-      if (!setType.isComparableTo(secondSetType))
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "set subset operating on sets of different types");
-      }
+      throw TypeCheckingExceptionPrivate(
+          n, "set subset operating on sets of different types");
     }
   }
   return nodeManager->booleanType();
@@ -104,12 +100,12 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (member 1 (singleton 1.0)) is true whereas
     // (member 1.0 (singleton 1)) throws a typing error
-    if (!elementType.isSubtypeOf(setType.getSetElementType()))
+    if (elementType != setType.getSetElementType())
     {
       std::stringstream ss;
       ss << "member operating on sets of different types:\n"
          << "child type:  " << elementType << "\n"
-         << "not subtype: " << setType.getSetElementType() << "\n"
+         << "not type: " << setType.getSetElementType() << "\n"
          << "in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -121,25 +117,8 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
                                         bool check)
 {
-  Assert(n.getKind() == kind::SET_SINGLETON && n.hasOperator()
-         && n.getOperator().getKind() == kind::SET_SINGLETON_OP);
-
-  const SetSingletonOp& op = n.getOperator().getConst<SetSingletonOp>();
-  TypeNode type1 = op.getType();
-  if (check)
-  {
-    TypeNode type2 = n[0].getType(check);
-    TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
-    // the type of the element should be a subtype of the type of the operator
-    // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
-    if (leastCommonType.isNull() || leastCommonType != type1)
-    {
-      std::stringstream ss;
-      ss << "The type '" << type2 << "' of the element is not a subtype of '"
-         << type1 << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-  }
+  Assert(n.getKind() == kind::SET_SINGLETON);
+  TypeNode type1 = n[0].getType(check);
   return nodeManager->mkSetType(type1);
 }
 

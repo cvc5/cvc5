@@ -701,7 +701,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
-    Node sChoiceI = nm->mkSingleton(choice_i.getType(), choice_i);
+    Node sChoiceI = nm->mkNode(SET_SINGLETON, choice_i);
     if (nsr.isNull())
     {
       nsr = sChoiceI;
