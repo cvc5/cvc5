@@ -3496,7 +3496,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
   Term eq = d_solver.declareOracleFun(
       "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
-        return d_solver.mkBoolean(t[0]==t[1]);
+        return d_solver.mkBoolean(input[0]==input[1]);
       });
   Term x = d_solver.mkVar("x", iSort);
   Term y = d_solver.mkVar("y", iSort);
