@@ -665,8 +665,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
             // add the DSL proof rule we used
             pfArgs[cur].push_back(
-                nm->mkConst(CONST_RATIONAL,
-                            Rational(static_cast<uint32_t>(itd->second.d_id))));
+                nm->mkConstInt(Rational(static_cast<uint32_t>(itd->second.d_id))));
             // compute premises based on the used substitution
             // build the substitution context
             const std::vector<Node>& vs = rpr.getVarList();
