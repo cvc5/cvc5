@@ -83,9 +83,9 @@ TEST_F(TestTheoryWhiteArith, int_normal_form)
 {
   Node x = d_nodeManager->mkVar(*d_intType);
   Node xr = d_nodeManager->mkVar(*d_realType);
-  Node c0 = d_nodeManager->mkConstReal(d_zero);
-  Node c1 = d_nodeManager->mkConstReal(d_one);
-  Node c2 = d_nodeManager->mkConstReal(Rational(2));
+  Node c0 = d_nodeManager->mkConstInt(d_zero);
+  Node c1 = d_nodeManager->mkConstInt(d_one);
+  Node c2 = d_nodeManager->mkConstInt(Rational(2));
 
   Node geq0 = d_nodeManager->mkNode(GEQ, x, c0);
   Node geq1 = d_nodeManager->mkNode(GEQ, x, c1);
@@ -117,9 +117,10 @@ TEST_F(TestTheoryWhiteArith, int_normal_form)
   ASSERT_EQ(Rewriter::rewrite(absX), absX);
 
   // (exp (+ 2 + x)) --> (* (exp x) (exp 1) (exp 1))
+  Node cr0 = d_nodeManager->mkConstReal(d_zero);
   Node t =
       d_nodeManager->mkNode(EXPONENTIAL, d_nodeManager->mkNode(ADD, c2, xr))
-          .eqNode(c0);
+          .eqNode(cr0);
   ASSERT_EQ(Rewriter::rewrite(Rewriter::rewrite(t)), Rewriter::rewrite(t));
 }
 }  // namespace test

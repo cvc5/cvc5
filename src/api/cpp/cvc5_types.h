@@ -183,7 +183,9 @@ enum LearnedLitType
    */
   CONSTANT_PROP,
   /** Any internal literal that does not fall into the above categories. */
-  INTERNAL
+  INTERNAL,
+  /** Special case for when produce-learned-literals is not set.  */
+  UNKNOWN
 };
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);

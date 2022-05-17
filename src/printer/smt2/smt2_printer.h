@@ -298,15 +298,7 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamDeclareType(std::ostream& out, TypeNode tn) const;
   /** To stream type node, which ensures tn is printed in smt2 format */
   void toStreamType(std::ostream& out, TypeNode tn) const;
-  /**
-   * To stream, with a forced type. This method is used in some corner cases
-   * to force a node n to be printed as if it had type tn. This is used e.g.
-   * for the body of define-fun commands and arguments of singleton terms.
-   */
-  void toStreamCastToType(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          TypeNode tn) const;
+  /** To stream datatype */
   void toStream(std::ostream& out, const DType& dt) const;
   /**
    * To stream model sort. This prints the appropriate output for type

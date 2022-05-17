@@ -95,19 +95,6 @@ Node TermRegistry::getUnivSet(TypeNode tn)
   return n;
 }
 
-Node TermRegistry::getTypeConstraintSkolem(Node n, TypeNode tn)
-{
-  std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
-  if (it == d_tc_skolem[n].end())
-  {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-    Node k = sm->mkDummySkolem("tc_k", tn);
-    d_tc_skolem[n][tn] = k;
-    return k;
-  }
-  return it->second;
-}
-
 void TermRegistry::debugPrintSet(Node s, const char* c) const
 {
   if (s.getNumChildren() == 0)

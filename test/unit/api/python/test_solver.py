@@ -908,7 +908,8 @@ def test_mk_true(solver):
 def test_mk_tuple(solver):
     solver.mkTuple([solver.mkBitVectorSort(3)],
                    [solver.mkBitVector(3, "101", 2)])
-    solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
+    with pytest.raises(RuntimeError):
+      solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
 
     with pytest.raises(RuntimeError):
         solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
@@ -1587,7 +1588,7 @@ def checkSimpleSeparationConstraints(slv):
     heap = slv.mkTerm(Kind.SEP_PTO, p, x)
     slv.assertFormula(heap)
     nil = slv.mkSepNil(integer)
-    slv.assertFormula(nil.eqTerm(slv.mkReal(5)))
+    slv.assertFormula(nil.eqTerm(slv.mkInteger(5)))
     slv.checkSat()
 
 
@@ -2344,6 +2345,16 @@ def test_get_interpolant(solver):
             solver.mkTerm(Kind.LT, z, zero))
     output = solver.getInterpolant(conj)
     assert output.getSort().isBoolean()
+
+    boolean = solver.getBooleanSort()
+    truen = solver.mkBoolean(True)
+    start = solver.mkVar(boolean)
+    g = solver.mkGrammar([], [start])
+    conj2 = solver.mkTerm(Kind.EQUAL, zero, zero)
+    g.addRule(start, truen)
+    output2 = solver.getInterpolant(conj2, g)
+    assert output2 == truen
+
 
 def test_get_interpolant_next(solver):
     solver.setLogic("QF_LIA")
