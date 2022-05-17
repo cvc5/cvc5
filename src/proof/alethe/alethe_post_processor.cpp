@@ -1231,7 +1231,22 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case PfRule::BV_BITBLAST_STEP:
     {
-      return addAletheStep(AletheRule::BV_BITBLAST_STEP, res, nm->mkNode(kind::SEXPR,d_cl,res),children,args,*cdp);
+      switch (res[0].getKind())
+      {
+	case kind::BITVECTOR_ULT:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVULT, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::VARIABLE:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_VAR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	default:
+	{
+  	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_VAR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+      }
+
     }
     //================================================= Quantifiers rules
     // ======== Skolem intro
