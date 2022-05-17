@@ -288,6 +288,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pic.d_id = id;
     // if all children rewrite to a constant, try proving equalities
     // on those children
+    std::vector<Node> rchildren;
     for (size_t i = 0; i < nchild; i++)
     {
       Node rr = theory::Rewriter::rewrite(target[0][i]);
@@ -298,6 +299,20 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       Node eq = target[0][i].eqNode(rr);
       vcs.push_back(eq);
       pic.d_vars.push_back(eq);
+      rchildren.push_back(rr);
+    }
+    // must check if it truly evaluates. This can fail if the evaluator does
+    // not support constant folding for the operator in question, which is the
+    // case e.g. for operators that return regular expressions, datatypes,
+    // sequences, sets.
+    if (target[0].getMetaKind()==metakind::PARAMETERIZED)
+    {
+      rchildren.insert(rchildren.begin(), target[0].getOperator());
+    }
+    Node tappc = nm->mkNode(target[0].getKind(), rchildren);
+    if (doEvaluate(tappc)!=target[1])
+    {
+      return false;
     }
   }
   else if (id == DslPfRule::TRUE_ELIM)
