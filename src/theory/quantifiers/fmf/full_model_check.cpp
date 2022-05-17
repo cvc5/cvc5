@@ -954,11 +954,6 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     doCheck( fm, f, d, n[0] );
     doNegate( d );
   }
-  else if (n.getKind() == kind::TO_REAL)
-  {
-    // no-op
-    doCheck(fm, f, d, n[0]);
-  }
   else if( n.getKind() == kind::FORALL ){
     d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }
@@ -1306,7 +1301,8 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   return true;
 }
 
-Node FullModelChecker::mkCond( std::vector< Node > & cond ) {
+Node FullModelChecker::mkCond(const std::vector<Node>& cond)
+{
   return NodeManager::currentNM()->mkNode(APPLY_UF, cond);
 }
 

@@ -258,14 +258,14 @@ bool LfscProofPostprocessCallback::update(Node res,
           size_t ii = (nchildren - 1) - i;
           Trace("lfsc-pp-cong") << "Process child " << ii << std::endl;
           Node uop = op;
-          // special case: each bv concat in the chain has a different type,
-          // so remake the operator here.
-          if (k == kind::BITVECTOR_CONCAT)
+          // special case: applications of the following kinds in the chain may
+          // have a different type, so remake the operator here.
+          if (k == kind::BITVECTOR_CONCAT || k == ADD || k == MULT
+              || k == NONLINEAR_MULT)
           {
             // we get the operator of the next argument concatenated with the
             // current accumulated remainder.
-            Node currApp =
-                nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
+            Node currApp = nm->mkNode(k, children[ii][0], currEq[0]);
             uop = d_tproc.getOperatorOfTerm(currApp);
           }
           Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0]
@@ -366,34 +366,17 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::CONCAT_CONFLICT:
     {
-      Assert(children.size() == 1);
-      Assert(children[0].getKind() == EQUAL);
-      if (children[0][0].getType().isString())
+      if (children.size() == 1)
       {
         // no need to change
         return false;
       }
-      bool isRev = args[0].getConst<bool>();
-      std::vector<Node> tvec;
-      std::vector<Node> svec;
-      theory::strings::utils::getConcat(children[0][0], tvec);
-      theory::strings::utils::getConcat(children[0][1], svec);
-      Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
-      Node s0 = svec[isRev ? svec.size() - 1 : 0];
-      Assert(t0.isConst() && s0.isConst());
-      // We introduce an explicit disequality for the constants:
-      // ------------------- EVALUATE
-      // (= (= c1 c2) false)
-      // ------------------- FALSE_ELIM
-      // (not (= c1 c2))
+      Assert(children.size() == 2);
+      Assert(children[0].getKind() == EQUAL);
+      Assert(children[0][0].getType().isSequence());
+      // must use the sequences version of the rule
       Node falsen = nm->mkConst(false);
-      Node eq = t0.eqNode(s0);
-      Node eqEqFalse = eq.eqNode(falsen);
-      cdp->addStep(eqEqFalse, PfRule::EVALUATE, {}, {eq});
-      Node deq = eq.notNode();
-      cdp->addStep(deq, PfRule::FALSE_ELIM, {eqEqFalse}, {});
-      addLfscRule(
-          cdp, falsen, {children[0], deq}, LfscRule::CONCAT_CONFLICT_DEQ, args);
+      addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
     default: return false; break;

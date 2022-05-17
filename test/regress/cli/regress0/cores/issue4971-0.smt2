@@ -1,9 +1,10 @@
-; COMMAND-LINE: --incremental -q --cegqi-full --produce-unsat-cores
+; COMMAND-LINE: --incremental --cegqi-full --produce-unsat-cores
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: (
 ; EXPECT: IP_1
 ; EXPECT: )
+(set-logic ALL)
 (declare-const v1 Bool)
 (declare-const v9 Bool)
 (declare-const v14 Bool)

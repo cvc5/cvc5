@@ -51,6 +51,10 @@ def create_param_datatype_sort(solver):
     return paramDtypeSort
 
 
+def test_hash(solver):
+    hash(solver.getIntegerSort())
+
+
 def test_operators_comparison(solver):
     solver.getIntegerSort() == Sort(solver)
     solver.getIntegerSort() != Sort(solver)

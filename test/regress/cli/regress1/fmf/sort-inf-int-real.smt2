@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --finite-model-find --sort-inference
-; EXPECT: sat
+; EXPECT: unknown
 (set-logic UFLIRA)
 (set-info :status sat)
 (declare-fun f (Int) Int)
@@ -11,5 +11,5 @@
 (assert (= (to_real (f 4)) (g 8)))
 (assert (= (to_real (h 5.0)) 0.0))
 ; Sort inference fails to infer that x can be uninterpreted in this example,
-; however, fmf is able to reason that all instances are sat.
+; fmf is unable to show sat due to use of to_real.
 (check-sat)

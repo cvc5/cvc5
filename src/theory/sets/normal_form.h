@@ -45,12 +45,11 @@ class NormalForm {
     }
     else
     {
-      TypeNode elementType = setType.getSetElementType();
       ElementsIterator it = elements.begin();
-      Node cur = nm->mkSingleton(elementType, *it);
+      Node cur = nm->mkNode(kind::SET_SINGLETON, *it);
       while (++it != elements.end())
       {
-        Node singleton = nm->mkSingleton(elementType, *it);
+        Node singleton = nm->mkNode(kind::SET_SINGLETON, *it);
         cur = nm->mkNode(kind::SET_UNION, singleton, cur);
       }
       return cur;
