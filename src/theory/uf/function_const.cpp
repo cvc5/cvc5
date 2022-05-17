@@ -58,8 +58,9 @@ Node FunctionConst::getLambdaFor(const Node& n)
       bvs.push_back(nm->mkBoundVar(arg));
     }
     Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);
-    avalue.setAttribute(atla, bvl);
-    return getLambdaForArrayRepresentation(avalue, bvl);
+    Node lam = getLambdaForArrayRepresentation(avalue, bvl);
+    avalue.setAttribute(atla, lam);
+    return lam;
   }
   return Node::null();
 }

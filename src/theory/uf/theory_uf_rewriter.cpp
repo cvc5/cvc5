@@ -57,7 +57,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node lambda = FunctionConst::getLambdaFor(node.getOperator());
     if (!lambda.isNull())
     {
-      Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : " << node
+      Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : " << lambda << " for " << node
                           << "\n";
       Node ret;
       // build capture-avoiding substitution since in HOL shadowing may have

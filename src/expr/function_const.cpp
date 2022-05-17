@@ -86,7 +86,7 @@ bool FunctionConstant::operator>=(const FunctionConstant& fc) const
 }
 
 std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
-  return out << "__array_store_all__(" << fc.getType() << ", "
+  return out << "__function_constant(" << fc.getType() << ", "
              << fc.getArrayValue() << ')';
 }
 
