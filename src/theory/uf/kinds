@@ -70,7 +70,4 @@ constant FUNCTION_CONST \
   "the function constant; payload is an instance of the cvc5::internal::FunctionConst class"
 typerule FUNCTION_CONST ::cvc5::internal::theory::uf::FunctionConstTypeRule
 
-# function constant expressions that are isomorphic to array constants can be considered constants
-construle FUNCTION_CONST ::cvc5::internal::theory::uf::FunctionConstTypeRule
-
 endtheory
