@@ -225,23 +225,23 @@ class TheorySep : public Theory {
   Node d_base_label;
   Node d_nil_ref;
   //reference bound
-   Node  d_reference_bound;
-  Node  d_reference_bound_max;
-  std::vector< Node >  d_type_references;
+  Node d_reference_bound;
+  Node d_reference_bound_max;
+  std::vector<Node> d_type_references;
   //kind of bound for reference types
   enum {
     bound_strict,
     bound_default,
     bound_invalid,
   };
-  unsigned  d_bound_kind;
+  unsigned d_bound_kind;
 
- std::vector< Node >  d_type_references_card;
+  std::vector<Node> d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
-  std::vector< Node > d_type_references_all;
-  unsigned  d_card_max;
+  std::vector<Node> d_type_references_all;
+  unsigned d_card_max;
   //for empty argument
-   Node  d_emp_arg;
+  Node d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
 
