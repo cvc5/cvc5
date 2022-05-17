@@ -3454,7 +3454,8 @@ TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
       });
   Term three = d_solver.mkInteger(3);
   Term five = d_solver.mkInteger(5);
-  Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  Term eq =
+      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
   d_solver.assertFormula(eq);
   // (f 3) = 5
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
@@ -3470,7 +3471,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
       "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
         if (input[0].isUInt32Value())
         {
-          return d_solver.mkInteger(input[0].getUInt32Value()%10);
+          return d_solver.mkInteger(input[0].getUInt32Value() % 10);
         }
         return d_solver.mkInteger(0);
       });
@@ -3486,7 +3487,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
   ASSERT_TRUE(xval.isUInt32Value());
-  ASSERT_TRUE(xval.getUInt32Value()%10==7);
+  ASSERT_TRUE(xval.getUInt32Value() % 10 == 7);
 }
 
 TEST_F(TestApiBlackSolver, declareOracleFunSat2)
@@ -3498,7 +3499,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
   Term eq = d_solver.declareOracleFun(
       "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
-        return d_solver.mkBoolean(input[0]==input[1]);
+        return d_solver.mkBoolean(input[0] == input[1]);
       });
   Term x = d_solver.mkVar("x", iSort);
   Term y = d_solver.mkVar("y", iSort);
@@ -3508,7 +3509,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
   Term yval = d_solver.getValue(y);
-  ASSERT_TRUE(xval!=yval);
+  ASSERT_TRUE(xval != yval);
 }
 
 }  // namespace test
