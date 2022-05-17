@@ -24,7 +24,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(Rewriter * rr, bool isHigherOrder)
+TheoryUfRewriter::TheoryUfRewriter(Rewriter* rr, bool isHigherOrder)
     : d_rr(rr), d_isHigherOrder(isHigherOrder)
 {
 }

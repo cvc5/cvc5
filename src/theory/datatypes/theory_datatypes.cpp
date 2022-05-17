@@ -360,8 +360,11 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = rew.size()==0 ? d_true :
-                ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
+      nn = rew.size() == 0
+               ? d_true
+               : (rew.size() == 1
+                      ? rew[0]
+                      : NodeManager::currentNM()->mkNode(kind::AND, rew));
     }
     if (in != nn)
     {
@@ -1712,31 +1715,46 @@ void TheoryDatatypes::checkSplit()
 
 bool TheoryDatatypes::hasTerm(TNode a) { return d_equalityEngine->hasTerm(a); }
 
-bool TheoryDatatypes::areEqual( TNode a, TNode b ){
-  if( a==b ){
+bool TheoryDatatypes::areEqual(TNode a, TNode b)
+{
+  if (a == b)
+  {
     return true;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
+  }
+  else if (hasTerm(a) && hasTerm(b))
+  {
     return d_equalityEngine->areEqual(a, b);
-  }else{
+  }
+  else
+  {
     return false;
   }
 }
 
-bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
-  if( a==b ){
+bool TheoryDatatypes::areDisequal(TNode a, TNode b)
+{
+  if (a == b)
+  {
     return false;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
+  }
+  else if (hasTerm(a) && hasTerm(b))
+  {
     return d_equalityEngine->areDisequal(a, b, false);
-  }else{
-    //TODO : constants here?
+  }
+  else
+  {
+    // TODO : constants here?
     return false;
   }
 }
 
 TNode TheoryDatatypes::getRepresentative( TNode a ){
-  if( hasTerm( a ) ){
+  if (hasTerm(a))
+  {
     return d_equalityEngine->getRepresentative(a);
-  }else{
+  }
+  else
+  {
     return a;
   }
 }
@@ -1831,7 +1849,8 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
   bool pol = lit.getKind()!=NOT;
   if( atom.getKind()==APPLY_TESTER ){
     Node n = atom[0];
-    if( hasTerm( n ) ){
+    if (hasTerm(n))
+    {
       Node r = d_equalityEngine->getRepresentative(n);
       EqcInfo * ei = getOrMakeEqcInfo( r, false );
       int l_index = getLabelIndex( ei, r );

@@ -23,14 +23,13 @@
 
 namespace cvc5::internal {
 
-FunctionConstant::FunctionConstant(const Node& avalue)
-    :  d_avalue(), d_type()
+FunctionConstant::FunctionConstant(const Node& avalue) : d_avalue(), d_type()
 {
-  Assert (avalue.isConst());
+  Assert(avalue.isConst());
   d_avalue.reset(new Node(avalue));
-  
+
   TypeNode tn = avalue.getType();
-  Assert (tn.isArray());
+  Assert(tn.isArray());
   std::vector<TypeNode> argTypes;
   while (tn.isArray())
   {
@@ -42,20 +41,20 @@ FunctionConstant::FunctionConstant(const Node& avalue)
 }
 
 FunctionConstant::FunctionConstant(const FunctionConstant& other)
-    : d_avalue(new Node(other.getArrayValue())), d_type(new TypeNode(other.getType()))
+    : d_avalue(new Node(other.getArrayValue())),
+      d_type(new TypeNode(other.getType()))
 {
 }
 
 FunctionConstant::~FunctionConstant() {}
-FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other) {
+FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other)
+{
   (*d_avalue) = other.getArrayValue();
   (*d_type) = other.getType();
   return *this;
 }
 
-const TypeNode& FunctionConstant::getType() const { 
-  return *d_type;
-}
+const TypeNode& FunctionConstant::getType() const { return *d_type; }
 
 const Node& FunctionConstant::getArrayValue() const { return *d_avalue; }
 
@@ -89,11 +88,13 @@ bool FunctionConstant::operator>=(const FunctionConstant& fc) const
   return !(*this < fc);
 }
 
-//std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
+// std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
 //  return out << "__function_const"; //(" << fc.getArrayValue() << ')';
 //}
 
-size_t FunctionConstantHashFunction::operator()(const FunctionConstant& fc) const {
+size_t FunctionConstantHashFunction::operator()(
+    const FunctionConstant& fc) const
+{
   return std::hash<Node>()(fc.getArrayValue());
 }
 

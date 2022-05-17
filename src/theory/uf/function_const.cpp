@@ -16,15 +16,15 @@
 #include "theory/uf/function_const.h"
 
 #include "expr/array_store_all.h"
+#include "expr/attribute.h"
+#include "expr/function_const.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
-#include "expr/function_const.h"
-#include "expr/attribute.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
-  
+
 struct ArrayToLambaAttributeId
 {
 };
@@ -33,13 +33,13 @@ using ArrayToLambaAttribute = expr::Attribute<ArrayToLambaAttributeId, Node>;
 Node FunctionConst::getLambdaFor(const Node& n)
 {
   Kind nk = n.getKind();
-  if (nk==kind::LAMBDA)
+  if (nk == kind::LAMBDA)
   {
     return n;
   }
-  else if (nk==kind::FUNCTION_CONST)
+  else if (nk == kind::FUNCTION_CONST)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     const FunctionConstant& fc = n.getConst<FunctionConstant>();
     Node avalue = fc.getArrayValue();
     // associate a unique bound variable list with the value
