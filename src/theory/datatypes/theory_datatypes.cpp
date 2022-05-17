@@ -1708,7 +1708,6 @@ void TheoryDatatypes::checkSplit()
   }
 }
 
-
 TNode TheoryDatatypes::getRepresentative( TNode a ){
   if (d_equalityEngine->hasTerm(a))
   {
