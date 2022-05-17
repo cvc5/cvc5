@@ -1815,13 +1815,15 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           std::vector<Node> exp;
           if (plbl != qlbl)
           {
+            // the labels are equal since we are tracking the sets of pto
+            // constraints modulo equality on their labels
             Assert(areEqual(plbl, qlbl));
             exp.push_back(plbl.eqNode(qlbl));
           }
           exp.push_back(p);
           exp.push_back(q);
           // enforces injectiveness of pto
-          //  (pto x y) ^ (pto y w) ^ x = y => y = w
+          //  (label (pto x y) A) ^ (label (pto z w) B) ^ A = B => y = w
           Node concn = pval.eqNode(qval);
           Trace("sep-pto") << "prop pos/pos: " << concn << " by " << exp
                            << std::endl;
@@ -1842,6 +1844,8 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           std::vector<Node> exp;
           if (plbl != qlbl)
           {
+            // the labels are equal since we are tracking the sets of pto
+            // constraints modulo equality on their labels
             Assert(areEqual(plbl, qlbl));
             exp.push_back(plbl.eqNode(qlbl));
           }
@@ -1857,8 +1861,8 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           Node concn = nm->mkOr(conc);
           Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp
                            << std::endl;
-          // propagation (pto x y) ^ ~(pto z w) ^ x = z => y != w
-          // or (pto x y) ^ ~(pto z y) ^ x = z => false
+          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B => y != w
+          // or (label (pto x y) A) ^ ~(label (pto z y) B) ^ A = B => false
           sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
         }
       }
