@@ -38,12 +38,14 @@ FunctionConstant::FunctionConstant(const TypeNode& type, const Node& avalue)
 }
 
 FunctionConstant::FunctionConstant(const FunctionConstant& other)
-    : d_type(new TypeNode(other.getType())), d_avalue(new Node(other.getArrayValue()))
+    : d_type(new TypeNode(other.getType())),
+      d_avalue(new Node(other.getArrayValue()))
 {
 }
 
 FunctionConstant::~FunctionConstant() {}
-FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other) {
+FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other)
+{
   (*d_type) = other.getType();
   (*d_avalue) = other.getArrayValue();
   return *this;
@@ -72,7 +74,8 @@ bool FunctionConstant::operator<(const FunctionConstant& fc) const
 bool FunctionConstant::operator<=(const FunctionConstant& fc) const
 {
   return (getType() < fc.getType())
-         || (getType() == fc.getType() && getArrayValue() <= fc.getArrayValue());
+         || (getType() == fc.getType()
+             && getArrayValue() <= fc.getArrayValue());
 }
 
 bool FunctionConstant::operator>(const FunctionConstant& fc) const
@@ -85,12 +88,15 @@ bool FunctionConstant::operator>=(const FunctionConstant& fc) const
   return !(*this < fc);
 }
 
-std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc) {
+std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc)
+{
   return out << "__function_constant(" << fc.getType() << ", "
              << fc.getArrayValue() << ')';
 }
 
-size_t FunctionConstantHashFunction::operator()(const FunctionConstant& fc) const {
+size_t FunctionConstantHashFunction::operator()(
+    const FunctionConstant& fc) const
+{
   return std::hash<TypeNode>()(fc.getType())
          * std::hash<Node>()(fc.getArrayValue());
 }

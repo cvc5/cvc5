@@ -15,11 +15,11 @@
 
 #include "theory/uf/theory_uf_rewriter.h"
 
+#include "expr/function_const.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
-#include "expr/function_const.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -57,8 +57,8 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node lambda = FunctionConst::getLambdaFor(node.getOperator());
     if (!lambda.isNull())
     {
-      Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : " << lambda << " for " << node
-                          << "\n";
+      Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
+                          << lambda << " for " << node << "\n";
       Node ret;
       // build capture-avoiding substitution since in HOL shadowing may have
       // been introduced
@@ -233,7 +233,8 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   if (!anode.isNull() && anode.isConst())
   {
     Assert(anode.getType().isArray());
-    Node retNode = NodeManager::currentNM()->mkConst(FunctionConstant(node.getType(), anode));
+    Node retNode = NodeManager::currentNM()->mkConst(
+        FunctionConstant(node.getType(), anode));
     Assert(anode.isConst() == retNode.isConst());
     Assert(retNode.getType() == node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));

@@ -49,7 +49,7 @@ Node FunctionConst::getLambdaFor(const Node& n)
       return avalue.getAttribute(atla);
     }
     TypeNode tn = fc.getType();
-    Assert (tn.isFunction());
+    Assert(tn.isFunction());
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector<Node> bvs;
     for (const TypeNode& arg : argTypes)

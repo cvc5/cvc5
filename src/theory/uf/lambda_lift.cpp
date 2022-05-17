@@ -18,8 +18,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
-#include "theory/uf/function_const.h"
 #include "smt/env.h"
+#include "theory/uf/function_const.h"
 
 using namespace cvc5::internal::kind;
 

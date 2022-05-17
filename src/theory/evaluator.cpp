@@ -19,8 +19,8 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
-#include "util/integer.h"
 #include "theory/uf/function_const.h"
+#include "util/integer.h"
 
 using namespace cvc5::internal::kind;
 
@@ -364,9 +364,10 @@ EvalResult Evaluator::evalInternal(
 
           // Lambdas are evaluated in a recursive fashion because each
           // evaluation requires different substitutions. We use a fresh cache
-          // since the evaluation of lambda[1] is under a new substitution and thus
-          // should not be cached. We could alternatively copy evalAsNode to
-          // evalAsNodeC but favor avoiding this copy for performance reasons.
+          // since the evaluation of lambda[1] is under a new substitution and
+          // thus should not be cached. We could alternatively copy evalAsNode
+          // to evalAsNodeC but favor avoiding this copy for performance
+          // reasons.
           std::unordered_map<TNode, Node> evalAsNodeC;
           std::unordered_map<TNode, EvalResult> resultsC;
           results[currNode] = evalInternal(
@@ -378,7 +379,8 @@ EvalResult Evaluator::evalInternal(
             // evaluation was invalid, we take the node of op[1] as the result
             evalAsNode[currNode] = evalAsNodeC[lambda[1]];
             Trace("evaluator")
-                << "Take node evaluation: " << evalAsNodeC[lambda[1]] << std::endl;
+                << "Take node evaluation: " << evalAsNodeC[lambda[1]]
+                << std::endl;
           }
         }
         break;
