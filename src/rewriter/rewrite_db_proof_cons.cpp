@@ -309,6 +309,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     {
       rchildren.insert(rchildren.begin(), target[0].getOperator());
     }
+    NodeManager * nm = NodeManager::currentNM();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
     if (doEvaluate(tappc)!=target[1])
     {
