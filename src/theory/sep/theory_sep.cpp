@@ -1546,8 +1546,7 @@ Node TheorySep::instantiateLabel(Node n,
         std::map< Node, Node >::iterator it = pto_model.find( vr );
         if( it!=pto_model.end() ){
           if( n[1]!=it->second ){
-            children.push_back(
-                nm->mkNode(EQUAL, n[1], it->second));
+            children.push_back(nm->mkNode(EQUAL, n[1], it->second));
           }
         }else{
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
