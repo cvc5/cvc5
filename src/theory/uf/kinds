@@ -64,10 +64,10 @@ typerule COMBINED_CARDINALITY_CONSTRAINT ::cvc5::internal::theory::uf::CombinedC
 
 constant FUNCTION_CONST \
   class \
-  FunctionConst \
-  ::cvc5::internal::FunctionConstHashFunction \
+  FunctionConstant \
+  ::cvc5::internal::FunctionConstantHashFunction \
   "expr/function_const.h" \
-  "the function constant; payload is an instance of the cvc5::internal::FunctionConst class"
+  "the function constant; payload is an instance of the cvc5::internal::FunctionConstant class"
 typerule FUNCTION_CONST ::cvc5::internal::theory::uf::FunctionConstTypeRule
 
 endtheory

@@ -30,6 +30,8 @@ namespace uf {
 class FunctionConst
 {
  public:
+  /** Get lambda for */
+  static Node getLambdaFor(const Node& n);
   /** Get function type for array type
    *
    * This returns the function type of terms returned by the function

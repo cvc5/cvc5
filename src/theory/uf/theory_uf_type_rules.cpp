@@ -226,7 +226,7 @@ bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 TypeNode FunctionConstTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 {
   Assert (n.getKind() == kind::FUNCTION_CONST);
-  const FunctionConst& fc = n.getConst<FunctionConst>();
+  const FunctionConstant& fc = n.getConst<FunctionConstant>();
   return fc.getType();
 }
 

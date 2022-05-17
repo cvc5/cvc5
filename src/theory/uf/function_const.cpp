@@ -18,10 +18,49 @@
 #include "expr/array_store_all.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
+#include "expr/function_const.h"
+#include "expr/attribute.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
+  
+struct ArrayToLambaAttributeId
+{
+};
+using ArrayToLambaAttribute = expr::Attribute<ArrayToLambaAttributeId, Node>;
+
+Node FunctionConst::getLambdaFor(const Node& n)
+{
+  Kind nk = n.getKind();
+  if (nk==kind::LAMBDA)
+  {
+    return n;
+  }
+  else if (nk==kind::FUNCTION_CONST)
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    const FunctionConstant& fc = n.getConst<FunctionConstant>();
+    Node avalue = fc.getArrayValue();
+    // associate a unique bound variable list with the value
+    ArrayToLambaAttribute fcba;
+    if (avalue.hasAttribute(fcba))
+    {
+      return avalue.getAttribute(fcba);
+    }
+    TypeNode tn = fc.getType();
+    std::vector<TypeNode> argTypes = tn.getArgTypes();
+    std::vector<Node> bvs;
+    for (const TypeNode& arg : argTypes)
+    {
+      bvs.push_back(nm->mkBoundVar(arg));
+    }
+    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);
+    avalue.setAttribute(fcba, bvl);
+    return getLambdaForArrayRepresentation(avalue, bvl);
+  }
+  return Node::null();
+}
 
 TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)
 {

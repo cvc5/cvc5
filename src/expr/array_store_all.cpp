@@ -22,8 +22,6 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-using namespace std;
-
 namespace cvc5::internal {
 
 ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)

@@ -28,38 +28,40 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
-class FunctionConst
+class FunctionConstant
 {
  public:
   /**
    */
-  FunctionConst(const Node& value);
-  ~FunctionConst();
+  FunctionConstant(const Node& avalue);
+  ~FunctionConstant();
 
-  FunctionConst(const FunctionConst& other);
-  FunctionConst& operator=(const FunctionConst& other);
+  FunctionConstant(const FunctionConstant& other);
+  FunctionConstant& operator=(const FunctionConstant& other);
 
   const TypeNode& getType() const;
-  const Node& getValue() const;
+  const Node& getArrayValue() const;
 
-  bool operator==(const FunctionConst& fc) const;
-  bool operator!=(const FunctionConst& fc) const;
-  bool operator<(const FunctionConst& fc) const;
-  bool operator<=(const FunctionConst& fc) const;
-  bool operator>(const FunctionConst& fc) const;
-  bool operator>=(const FunctionConst& fc) const;
+  bool operator==(const FunctionConstant& fc) const;
+  bool operator!=(const FunctionConstant& fc) const;
+  bool operator<(const FunctionConstant& fc) const;
+  bool operator<=(const FunctionConstant& fc) const;
+  bool operator>(const FunctionConstant& fc) const;
+  bool operator>=(const FunctionConstant& fc) const;
 
  private:
-  /** The value */
-  std::unique_ptr<Node> d_value;
+  /** The value, which has type (Array T1 (Array T2 .. (Array Tn T))) */
+  std::unique_ptr<Node> d_avalue;
+  /** The (function) type (-> T1 T2 ... Tn T) */
+  std::unique_ptr<TypeNode> d_type;
 };
 
-std::ostream& operator<<(std::ostream& out, const FunctionConst& fc);
+//std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc);
 
-/** Hash function for the FunctionConst constants. */
-struct FunctionConstHashFunction
+/** Hash function for the FunctionConstant constants. */
+struct FunctionConstantHashFunction
 {
-  size_t operator()(const FunctionConst& fc) const;
+  size_t operator()(const FunctionConstant& fc) const;
 };
 
 }  // namespace cvc5::internal

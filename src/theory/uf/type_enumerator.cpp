@@ -27,7 +27,6 @@ FunctionEnumerator::FunctionEnumerator(TypeNode type,
       d_arrayEnum(FunctionConst::getArrayTypeForFunctionType(type), tep)
 {
   Assert(type.getKind() == kind::FUNCTION_TYPE);
-  d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType(type);
 }
 
 Node FunctionEnumerator::operator*()
@@ -37,7 +36,7 @@ Node FunctionEnumerator::operator*()
     throw NoMoreValuesException(getType());
   }
   Node a = *d_arrayEnum;
-  return FunctionConst::getLambdaForArrayRepresentation(a, d_bvl);
+  return NodeManager::currentNM()->mkConst(FunctionConstant(a));
 }
 
 FunctionEnumerator& FunctionEnumerator::operator++()
