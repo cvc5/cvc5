@@ -368,11 +368,14 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
   /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type T
    * @return an inference that represents:
-   * (distinct
-   *   ((_ table.group n1 ... nk) A)
-   *   (as bag.empty (Bag (Table T)))
+   * (=>
+   *   (= A (as bag.empty T))
+   *   (=
+   *     ((_ table.group n1 ... nk) A)
+   *     (bag (as bag.empty T) 1)
+   *   )
    * )
    */
   InferInfo groupNotEmpty(Node n);

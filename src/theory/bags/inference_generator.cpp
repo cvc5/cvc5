@@ -723,10 +723,13 @@ InferInfo InferenceGenerator::groupNotEmpty(Node n)
   Assert(n.getKind() == TABLE_GROUP);
 
   TypeNode bagType = n.getType();
-  Node empty = d_nm->mkConst(EmptyBag(bagType));
+  Node A = n[0];
+  Node empty = d_nm->mkConst(EmptyBag(A.getType()));
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_NOT_EMPTY);
-  inferInfo.d_conclusion = skolem.eqNode(empty).notNode();
+  inferInfo.d_premises.push_back(A.eqNode(empty));
+  Node partition = d_nm->mkNode(BAG_MAKE, empty, d_one);
+  inferInfo.d_conclusion = skolem.eqNode(partition);
   return inferInfo;
 }
 
