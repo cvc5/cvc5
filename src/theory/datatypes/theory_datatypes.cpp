@@ -360,7 +360,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = NodeManager::currentNM()->mkAnd(rew );
+      nn = NodeManager::currentNM()->mkAnd(rew);
     }
     if (in != nn)
     {
