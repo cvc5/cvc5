@@ -50,9 +50,8 @@ class TestTheoryWhiteBagsTypeRule : public TestSmt
 TEST_F(TestTheoryWhiteBagsTypeRule, count_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                  elements[0],
-                                  d_nodeManager->mkConstInt(Rational(100)));
+  Node bag = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(100)));
 
   Node count = d_nodeManager->mkNode(BAG_COUNT, elements[0], bag);
   Node node = d_nodeManager->mkConstInt(Rational(10));
@@ -65,9 +64,8 @@ TEST_F(TestTheoryWhiteBagsTypeRule, count_operator)
 TEST_F(TestTheoryWhiteBagsTypeRule, duplicate_removal_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                  elements[0],
-                                  d_nodeManager->mkConstInt(Rational(10)));
+  Node bag = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
   ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag));
   ASSERT_EQ(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag).getType(),
             bag.getType());
@@ -76,15 +74,12 @@ TEST_F(TestTheoryWhiteBagsTypeRule, duplicate_removal_operator)
 TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node negative = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       elements[0],
-                                       d_nodeManager->mkConstInt(Rational(-1)));
-  Node zero = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                   elements[0],
-                                   d_nodeManager->mkConstInt(Rational(0)));
-  Node positive = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       elements[0],
-                                       d_nodeManager->mkConstInt(Rational(1)));
+  Node negative = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(-1)));
+  Node zero = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(0)));
+  Node positive = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(1)));
 
   // only positive multiplicity are constants
   ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, negative));
@@ -95,8 +90,7 @@ TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
 TEST_F(TestTheoryWhiteBagsTypeRule, from_set_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node set =
-      d_nodeManager->mkSingleton(d_nodeManager->stringType(), elements[0]);
+  Node set = d_nodeManager->mkNode(SET_SINGLETON, elements[0]);
   ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_FROM_SET, set));
   ASSERT_TRUE(d_nodeManager->mkNode(BAG_FROM_SET, set).getType().isBag());
 }
@@ -104,9 +98,8 @@ TEST_F(TestTheoryWhiteBagsTypeRule, from_set_operator)
 TEST_F(TestTheoryWhiteBagsTypeRule, to_set_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                  elements[0],
-                                  d_nodeManager->mkConstInt(Rational(10)));
+  Node bag = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
   ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_TO_SET, bag));
   ASSERT_TRUE(d_nodeManager->mkNode(BAG_TO_SET, bag).getType().isSet());
 }
@@ -114,11 +107,9 @@ TEST_F(TestTheoryWhiteBagsTypeRule, to_set_operator)
 TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                  elements[0],
-                                  d_nodeManager->mkConstInt(Rational(10)));
-  Node set =
-      d_nodeManager->mkSingleton(d_nodeManager->stringType(), elements[0]);
+  Node bag = d_nodeManager->mkNode(
+      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
+  Node set = d_nodeManager->mkNode(SET_SINGLETON, elements[0]);
 
   Node x1 = d_nodeManager->mkBoundVar("x", d_nodeManager->stringType());
   Node length = d_nodeManager->mkNode(STRING_LENGTH, x1);

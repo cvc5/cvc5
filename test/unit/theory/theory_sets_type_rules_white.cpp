@@ -16,7 +16,6 @@
 #include "expr/dtype.h"
 #include "test_api.h"
 #include "test_node.h"
-#include "theory/sets/singleton_op.h"
 #include "util/rational.h"
 
 using namespace cvc5;
@@ -63,22 +62,12 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
 
 TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
 {
-  Node singletonInt =
-      d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->integerType()));
-  Node singletonReal =
-      d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->realType()));
-  Node intConstant = d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1));
-  Node realConstant =
-      d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1, 5));
+  Node intConstant = d_nodeManager->mkConstReal(Rational(1));
+  Node realConstant = d_nodeManager->mkConstReal(Rational(1, 5));
   // (singleton (singleton_op Real) 1)
-  ASSERT_NO_THROW(
-      d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant));
-  // (singleton (singleton_op Int) (/ 1 5))
-  ASSERT_DEATH(
-      d_nodeManager->mkSingleton(d_nodeManager->integerType(), realConstant),
-      "Invalid operands for mkSingleton");
+  ASSERT_NO_THROW(d_nodeManager->mkNode(kind::SET_SINGLETON, intConstant));
 
-  Node n = d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant);
+  Node n = d_nodeManager->mkNode(kind::SET_SINGLETON, intConstant);
   // the type of (singleton (singleton_op Real) 1) is (Set Real)
   ASSERT_TRUE(n.getType()
               == d_nodeManager->mkSetType(d_nodeManager->realType()));

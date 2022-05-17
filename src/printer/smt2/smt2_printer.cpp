@@ -287,7 +287,7 @@ void Smt2Printer::toStream(std::ostream& out,
         for (const Node& snvc : snvec)
         {
           out << " (seq.unit ";
-          toStreamCastToType(out, snvc, toDepth, elemType);
+          toStream(out, snvc, toDepth);
           out << ")";
         }
         out << ")";
@@ -295,7 +295,7 @@ void Smt2Printer::toStream(std::ostream& out,
       else
       {
         out << "(seq.unit ";
-        toStreamCastToType(out, snvec[0], toDepth, elemType);
+        toStream(out, snvec[0], toDepth);
         out << ")";
       }
       break;
@@ -306,10 +306,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "((as const ";
       toStreamType(out, asa.getType());
       out << ") ";
-      toStreamCastToType(out,
-                         asa.getValue(),
-                         toDepth < 0 ? toDepth : toDepth - 1,
-                         asa.getType().getArrayConstituentType());
+      toStream(out, asa.getValue(), toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
       break;
     }
@@ -499,11 +496,6 @@ void Smt2Printer::toStream(std::ostream& out,
   if (k == kind::APPLY_TYPE_ASCRIPTION)
   {
     force_nt = n.getOperator().getConst<AscriptionType>().getType();
-    type_asc_arg = n[0];
-  }
-  else if (k == kind::CAST_TO_REAL)
-  {
-    force_nt = nm->realType();
     type_asc_arg = n[0];
   }
   if (!type_asc_arg.isNull())
@@ -729,9 +721,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEQ_UNIT:
   {
     out << smtKindString(k, d_variant) << " ";
-    TypeNode elemType = n.getType().getSequenceElementType();
-    toStreamCastToType(
-        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << ")";
     return;
   }
@@ -741,9 +731,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_SINGLETON:
   {
     out << smtKindString(k, d_variant) << " ";
-    TypeNode elemType = n.getType().getSetElementType();
-    toStreamCastToType(
-        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << ")";
     return;
   }
@@ -755,9 +743,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
     out << smtKindString(k, d_variant) << " ";
-    TypeNode elemType = n.getType().getBagElementType();
-    toStreamCastToType(
-        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << " " << n[1] << ")";
     return;
   }
@@ -1040,25 +1026,6 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     out << parens.str() << ')';
   }
-}
-
-void Smt2Printer::toStreamCastToType(std::ostream& out,
-                                     TNode n,
-                                     int toDepth,
-                                     TypeNode tn) const
-{
-  Node nasc;
-  if (n.getType().isInteger() && !tn.isInteger())
-  {
-    Assert(tn.isReal());
-    // probably due to subtyping integers and reals, cast it
-    nasc = NodeManager::currentNM()->mkNode(kind::CAST_TO_REAL, n);
-  }
-  else
-  {
-    nasc = n;
-  }
-  toStream(out, nasc, toDepth);
 }
 
 std::string Smt2Printer::smtKindString(Kind k, Variant v)
@@ -1530,14 +1497,14 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
     TypeNode rangeType = n.getType().getRangeType();
     out << "(define-fun " << n << " " << value[0] << " " << rangeType << " ";
     // call toStream and force its type to be proper
-    toStreamCastToType(out, value[1], -1, rangeType);
+    toStream(out, value[1], -1);
     out << ")" << endl;
   }
   else
   {
     out << "(define-fun " << n << " () " << n.getType() << " ";
     // call toStream and force its type to be proper
-    toStreamCastToType(out, value, -1, n.getType());
+    toStream(out, value, -1);
     out << ")" << endl;
   }
 }
