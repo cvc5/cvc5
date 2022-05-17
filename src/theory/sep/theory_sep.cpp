@@ -1206,18 +1206,19 @@ Node TheorySep::getBaseLabel()
     d_im.lemma(slem, InferenceId::SEP_REF_BOUND);
 
     // symmetry breaking
-    if (d_type_references_card.size() > 1)
+    size_t trcSize = d_type_references_card.size();
+    if (trcSize > 1)
     {
-      std::map<unsigned, Node> lit_mem_map;
-      for (unsigned i = 0; i < d_type_references_card.size(); i++)
+      std::map<size_t, Node> lit_mem_map;
+      for (size_t i = 0; i < trcSize; i++)
       {
         lit_mem_map[i] = nm->mkNode(
             SET_MEMBER, d_type_references_card[i], d_reference_bound_max);
       }
-      for (unsigned i = 0; i < (d_type_references_card.size() - 1); i++)
+      for (size_t i = 0; i < (trcSize - 1); i++)
       {
         std::vector<Node> children;
-        for (unsigned j = (i + 1); j < d_type_references_card.size(); j++)
+        for (size_t j = (i + 1); j < trcSize; j++)
         {
           children.push_back(lit_mem_map[j].negate());
         }
@@ -1546,7 +1547,7 @@ Node TheorySep::instantiateLabel(Node n,
         if( it!=pto_model.end() ){
           if( n[1]!=it->second ){
             children.push_back(
-                NodeManager::currentNM()->mkNode(EQUAL, n[1], it->second));
+                nm->mkNode(EQUAL, n[1], it->second));
           }
         }else{
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
@@ -1554,18 +1555,12 @@ Node TheorySep::instantiateLabel(Node n,
       }
       Node singleton = nm->mkNode(SET_SINGLETON, n[0]);
       children.push_back(singleton.eqNode(lbl_v));
-      Node ret = children.empty()
-                     ? NodeManager::currentNM()->mkConst(true)
-                     : (children.size() == 1
-                            ? children[0]
-                            : NodeManager::currentNM()->mkNode(AND, children));
+      Node ret = nm->mkAnd(children);
       Trace("sep-inst-debug") << "Return " << ret << std::endl;
       return ret;
     }
     else if (n.getKind() == SEP_EMP)
     {
-      // return NodeManager::currentNM()->mkConst(
-      // lbl_v.getKind()==SET_EMPTY );
       return lbl_v.eqNode(
           NodeManager::currentNM()->mkConst(EmptySet(lbl_v.getType())));
     }else{
@@ -1679,9 +1674,6 @@ void TheorySep::computeLabelModel( Node lbl ) {
     std::map<Node, Node>::iterator itm = d_tmodel.find(u);
     if (itm == d_tmodel.end())
     {
-      // Trace("sep-process") << "WARNING: could not find symbolic term in model
-      // for " << u << std::endl; Assert( false ); tt = u; TypeNode tn =
-      // u.getType().getRefConstituentType();
       TypeNode tn = u.getType();
       Trace("sep-process")
           << "WARNING: could not find symbolic term in model for " << u
