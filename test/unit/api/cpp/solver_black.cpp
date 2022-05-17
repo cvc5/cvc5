@@ -3503,7 +3503,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   Term x = d_solver.mkVar("x", iSort);
   Term y = d_solver.mkVar("y", iSort);
   Term neq = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
-  d_solver.assertFormula(pneq);
+  d_solver.assertFormula(neq);
   // (not (eq x y))
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
