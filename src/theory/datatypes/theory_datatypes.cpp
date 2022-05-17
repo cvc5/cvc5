@@ -718,10 +718,6 @@ void TheoryDatatypes::addTester(
       const DType& dt = t_arg.getType().getDType();
       Trace("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
-        if (!options().datatypes.dtLazyInst)
-        {
-          instantiate(eqc, n);
-        }
         // We could propagate is-C1(x) => not is-C2(x) here for all other
         // constructors, but empirically this hurts performance.
       }else{
