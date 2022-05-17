@@ -299,9 +299,6 @@ class TheorySep : public Theory {
    * non-null, and compatible with separation logic constraint atom.
    */
   void ensureHeapTypesFor(Node atom) const;
-  // get global reference/data type
-  TypeNode getReferenceType() const;
-  TypeNode getDataType() const;
   /**
    * This is called either when:
    * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
@@ -312,9 +309,7 @@ class TheorySep : public Theory {
   void registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom);
   //get location/data type
   //get the base label for the spatial assertion
-  Node getBaseLabel( TypeNode tn );
-  Node getNilRef( TypeNode tn );
-  void setNilRef( TypeNode tn, Node n );
+  Node getBaseLabel();
   Node getLabel( Node atom, int child, Node lbl );
   /**
    * Apply label lbl to all top-level spatial assertions, recursively, in n.
@@ -336,8 +331,6 @@ class TheorySep : public Theory {
   std::map< Node, HeapInfo > d_label_model;
   // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
   std::map< Node, std::vector< Node > > d_heap_locs_nptos;
-
-  void debugPrintHeap( HeapInfo& heap, const char * c );
   /**
    * This checks the impact of adding the pto assertion p to heap assert info e,
    * where p has been asserted with the given polarity.
