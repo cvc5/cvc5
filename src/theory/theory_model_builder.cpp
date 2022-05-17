@@ -23,9 +23,9 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "theory/rewriter.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_model.h"
 #include "util/uninterpreted_sort_value.h"
-#include "theory/uf/function_const.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
