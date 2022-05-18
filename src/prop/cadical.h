@@ -75,11 +75,6 @@ class CadicalSolver : public SatSolver
   void init();
 
   /**
-   * Set time limit per solve() call.
-   */
-  void setTimeLimit(ResourceManager* resmgr);
-
-  /**
    * Set resource limit.
    */
   void setResourceLimit(ResourceManager* resmgr);
