@@ -3444,8 +3444,7 @@ class CVC5_EXPORT Solver
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
-   * Create a tuple term. Terms are automatically converted if sorts are
-   * compatible.
+   * Create a tuple term, where terms have the provided sorts.
    * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
@@ -5055,18 +5054,6 @@ class CVC5_EXPORT Solver
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
-
-  /**
-   * If needed, convert this term to a given sort.
-   * 
-   * The sort of the term must be convertible into the target sort.
-   * Currently only Int to Real conversions are supported.
-   *
-   * @param t The term.
-   * @param s The target sort.
-   * @return The term wrapped into a sort conversion if needed.
-   */
-  Term ensureTermSort(const Term& t, const Sort& s) const;
 
   /**
    * Check that the given term is a valid closed term, which can be used as an

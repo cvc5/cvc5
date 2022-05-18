@@ -605,9 +605,12 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // if no sort was inferred for this node, return original
-  if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
+  if (tn.isNull() || tn == old.getType())
+  {
     return old;
-  }else if( old.isConst() ){
+  }
+  else if (old.isConst())
+  {
     //must make constant of type tn
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
@@ -618,7 +621,9 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
           "constant created during sort inference");  // use mkConst???
     }
     return d_const_map[tn][ old ];
-  }else if( old.getKind()==kind::BOUND_VARIABLE ){
+  }
+  else if (old.getKind() == kind::BOUND_VARIABLE)
+  {
     std::stringstream ss;
     ss << "b_" << old;
     return nm->mkBoundVar(ss.str(), tn);
@@ -714,7 +719,8 @@ Node SortInference::simplifyNode(
     }else if( n.getKind()==kind::EQUAL ){
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
-      if( !tn1.isComparableTo( tn2 ) ){
+      if (tn1 != tn2)
+      {
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);
@@ -756,7 +762,7 @@ Node SortInference::simplifyNode(
       {
         TypeNode tn = children[i+1].getType();
         TypeNode tna = getTypeForId( d_op_arg_types[op][i] );
-        if (!tn.isSubtypeOf(tna))
+        if (tn != tna)
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
           Assert(false);

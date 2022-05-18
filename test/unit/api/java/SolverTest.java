@@ -913,9 +913,10 @@ class SolverTest
     assertDoesNotThrow(()
                            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
                                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(new Sort[] {d_solver.getRealSort()},
-                               new Term[] {d_solver.mkInteger("5")}));
+    assertThrows(CVC5ApiException.class,
+        ()
+            -> d_solver.mkTuple(new Sort[] {d_solver.getRealSort()},
+                new Term[] {d_solver.mkInteger("5")}));
 
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
@@ -1503,6 +1504,18 @@ class SolverTest
 
     // We expect the resulting output to be a boolean formula
     assertTrue(output.getSort().isBoolean());
+
+    // try with a grammar, a simple grammar admitting true
+    Sort bsort = d_solver.getBooleanSort();
+    Term truen = d_solver.mkBoolean(true);
+    Term start = d_solver.mkVar(bsort);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term conj2 = d_solver.mkTerm(EQUAL, zero, zero);
+    assertDoesNotThrow(() -> g.addRule(start, truen));
+    // Call the interpolation api, while the resulting interpolant is the output
+    Term output2 = d_solver.getInterpolant(conj2, g);
+    // interpolant must be true
+    assertEquals(output2, truen);
   }
 
   @Test

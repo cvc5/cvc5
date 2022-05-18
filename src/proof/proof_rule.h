@@ -1456,7 +1456,20 @@ enum class PfRule : uint32_t
    * where :math:`b` indicates if the direction is reversed, :math:`c_1,\,c_2`
    * are constants such that :math:`\texttt{Word::splitConstant}(c_1,c_2,
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
-   * other.
+   * other. Note it may be the case that one side of the equality denotes the
+   * empty string.
+   *
+   * Alternatively, if the equality is between sequences, this rule has the
+   * form:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
+   *
+   * where t_1 and s_1 are constants of length one, or otherwise one side
+   * of the equality is the empty sequence and t_1 or s_1 corresponding to
+   * that side is the empty sequence.
+   *
    * \endverbatim
    */
   CONCAT_CONFLICT,

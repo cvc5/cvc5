@@ -519,7 +519,7 @@ int InstMatchGenerator::getNextMatch(InstMatch& m)
     //if t not null, try to fit it into match m
     if( !t.isNull() ){
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
-        Assert(t.getType().isComparableTo(d_match_pattern_type));
+        Assert(t.getType() == d_match_pattern_type);
         Trace("matching-summary") << "Try " << d_match_pattern << " : " << t << std::endl;
         success = getMatch(t, m);
         if( d_independent_gen && success<0 ){

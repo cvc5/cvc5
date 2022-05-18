@@ -131,7 +131,7 @@ void SygusExplain::getExplanationForEquality(Node n,
 {
   // since builtin types occur in grammar, types are comparable but not
   // necessarily equal
-  Assert(n.getType().isComparableTo(n.getType()));
+  Assert(n.getType() == vn.getType());
   if (n == vn)
   {
     return;
@@ -189,7 +189,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      int& sz)
 {
   Assert(vnr.isNull() || vn != vnr);
-  Assert(n.getType().isComparableTo(vn.getType()));
+  Assert(n.getType() == vn.getType());
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {

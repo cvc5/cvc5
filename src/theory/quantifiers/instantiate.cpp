@@ -760,7 +760,6 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
 {
   Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
   TypeNode ntn = n.getType();
-  Assert(ntn.isComparableTo(tn));
   if (ntn == tn)
   {
     return n;

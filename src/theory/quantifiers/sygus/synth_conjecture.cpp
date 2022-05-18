@@ -953,12 +953,12 @@ bool SynthConjecture::getSynthSolutions(
       // since we don't have function subtyping, this assertion should only
       // check the return type
       Assert(fvar.getType().isFunction());
-      Assert(fvar.getType().getRangeType().isComparableTo(bsol.getType()));
+      Assert(fvar.getType().getRangeType() == bsol.getType());
       bsol = nm->mkNode(LAMBDA, bvl, bsol);
     }
     else
     {
-      Assert(fvar.getType().isComparableTo(bsol.getType()));
+      Assert(fvar.getType() == bsol.getType());
     }
     // store in map
     smc[fvar] = bsol;
