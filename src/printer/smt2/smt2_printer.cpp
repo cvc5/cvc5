@@ -47,6 +47,7 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/uf/function_const.h"
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
@@ -309,6 +310,12 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ") ";
       toStream(out, asa.getValue(), toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
+      break;
+    }
+    case kind::FUNCTION_CONST: {
+      // prints as its lambda
+      Node lam = theory::uf::FunctionConst::getLambdaFor(n);
+      toStream(out, lam, toDepth);
       break;
     }
 
