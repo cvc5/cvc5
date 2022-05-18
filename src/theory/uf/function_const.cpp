@@ -27,17 +27,24 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
+/**
+ * Attribute for constructing a unique bound variable list for the lambda
+ * corresponding to an array constant.
+ */
 struct FunctionBoundVarListTag
 {
 };
 using FunctionBoundVarListAttribute =
     expr::Attribute<FunctionBoundVarListTag, Node>;
-struct ArrayToLambaTag
+/**
+ * An attribute to cache the conversion between array constants and lambdas.
+ */
+struct ArrayToLambdaTag
 {
 };
-using ArrayToLambaAttribute = expr::Attribute<ArrayToLambaTag, Node>;
+using ArrayToLambdaAttribute = expr::Attribute<ArrayToLambdaTag, Node>;
 
-Node FunctionConst::toLambda(Node n)
+Node FunctionConst::toLambda(TNode n)
 {
   Kind nk = n.getKind();
   if (nk == kind::LAMBDA)
@@ -46,8 +53,7 @@ Node FunctionConst::toLambda(Node n)
   }
   else if (nk == kind::FUNCTION_ARRAY_CONST)
   {
-    // associate a unique bound variable list with the value
-    ArrayToLambaAttribute atla;
+    ArrayToLambdaAttribute atla;
     if (n.hasAttribute(atla))
     {
       return n.getAttribute(atla);
@@ -60,6 +66,7 @@ Node FunctionConst::toLambda(Node n)
     std::vector<Node> bvs;
     NodeManager* nm = NodeManager::currentNM();
     BoundVarManager* bvm = nm->getBoundVarManager();
+    // associate a unique bound variable list with the value
     for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
     {
       Node cacheVal =
@@ -442,11 +449,20 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
 
 Node FunctionConst::toArrayConst(TNode n)
 {
-  Assert(n.getKind() == kind::LAMBDA);
-  // must carry the overall return type to deal with cases like (lambda ((x Int)
-  // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
-  // case above should be (arraystoreall (Array Int Real) 0.0)
-  return getArrayRepresentationForLambdaRec(n, n[1].getType());
+  Kind nk = n.getKind();
+  if (nk == kind::FUNCTION_ARRAY_CONST)
+  {
+    const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
+    return fc.getArrayValue();
+  }
+  else if (nk == kind::LAMBDA)
+  {
+    // must carry the overall return type to deal with cases like (lambda ((x Int)
+    // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
+    // case above should be (arraystoreall (Array Int Real) 0.0)
+    return getArrayRepresentationForLambdaRec(n, n[1].getType());
+  }
+  return Node::null();
 }
 
 }  // namespace uf

@@ -61,12 +61,16 @@ class FunctionConst
    * for constant array functions. For details, see the method
    * getLambdaForArrayRepresentation.
    */
-  static Node toLambda(Node n);
+  static Node toLambda(TNode n);
   /**
    * toArrayConst
    *
+   * Given a function array constant, this extracts the array constant from its
+   * payload.
+   *
    * Given a lambda expression n, returns an array term that corresponds to n.
-   * This does the opposite direction of the examples described above.
+   * This does the opposite direction of the examples described above the
+   * method getLambdaForArrayRepresentation.
    *
    * We limit the return values of this method to be almost constant functions,
    * that is, arrays of the form:
