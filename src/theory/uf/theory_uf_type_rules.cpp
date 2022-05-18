@@ -177,8 +177,8 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
-                                            TNode n,
-                                            bool check)
+                                                 TNode n,
+                                                 bool check)
 {
   Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
   const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();

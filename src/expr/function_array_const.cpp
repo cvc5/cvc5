@@ -28,9 +28,9 @@ namespace cvc5::internal {
 FunctionArrayConst::FunctionArrayConst(const TypeNode& type, const Node& avalue)
     : d_type(), d_avalue()
 {
-  Assert (avalue.isConst());
-  Assert (avalue.getType().isArray());
-  
+  Assert(avalue.isConst());
+  Assert(avalue.getType().isArray());
+
   d_type.reset(new TypeNode(type));
   d_avalue.reset(new Node(avalue));
 }
@@ -42,7 +42,8 @@ FunctionArrayConst::FunctionArrayConst(const FunctionArrayConst& other)
 }
 
 FunctionArrayConst::~FunctionArrayConst() {}
-FunctionArrayConst& FunctionArrayConst::operator=(const FunctionArrayConst& other)
+FunctionArrayConst& FunctionArrayConst::operator=(
+    const FunctionArrayConst& other)
 {
   (*d_type) = other.getType();
   (*d_avalue) = other.getArrayValue();
