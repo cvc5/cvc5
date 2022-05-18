@@ -65,9 +65,9 @@ class TheorySep : public Theory {
   /** A buffered inference manager */
   InferenceManagerBuffered d_im;
 
-  int processAssertion(
+  size_t processAssertion(
       Node n,
-      std::map<int, std::map<Node, int> >& visited,
+      std::map<int, std::map<Node, size_t> >& visited,
       std::map<int, std::map<Node, std::vector<Node> > >& references,
       std::map<int, std::map<Node, bool> >& references_strict,
       bool pol,

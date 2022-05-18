@@ -907,7 +907,7 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 // Must process assertions at preprocess so that quantified assertions are
 // processed properly.
 void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
-  std::map<int, std::map<Node, int> > visited;
+  std::map<int, std::map<Node, size_t> > visited;
   std::map<int, std::map<Node, std::vector<Node> > > references;
   std::map<int, std::map<Node, bool> > references_strict;
   for (unsigned i = 0; i < assertions.size(); i++) {
@@ -918,9 +918,9 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
 }
 
 //return cardinality
-int TheorySep::processAssertion(
+size_t TheorySep::processAssertion(
     Node n,
-    std::map<int, std::map<Node, int> >& visited,
+    std::map<int, std::map<Node, size_t> >& visited,
     std::map<int, std::map<Node, std::vector<Node> > >& references,
     std::map<int, std::map<Node, bool> >& references_strict,
     bool pol,
@@ -928,8 +928,8 @@ int TheorySep::processAssertion(
     bool underSpatial)
 {
   int index = hasPol ? ( pol ? 1 : -1 ) : 0;
-  int card = 0;
-  std::map< Node, int >::iterator it = visited[index].find( n );
+  size_t card = 0;
+  std::map< Node, size_t >::iterator it = visited[index].find( n );
   if( it==visited[index].end() ){
     Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
     if (n.getKind() == SEP_EMP)
@@ -971,7 +971,7 @@ int TheorySep::processAssertion(
         bool newHasPol, newPol;
         QuantPhaseReq::getEntailPolarity( n, i, hasPol, pol, newHasPol, newPol );
         int newIndex = newHasPol ? ( newPol ? 1 : -1 ) : 0;
-        int ccard = processAssertion( n[i], visited, references, references_strict, newPol, newHasPol, newUnderSpatial );
+        size_t ccard = processAssertion( n[i], visited, references, references_strict, newPol, newHasPol, newUnderSpatial );
         //update cardinality
         if (n.getKind() == SEP_STAR)
         {
@@ -1053,7 +1053,7 @@ int TheorySep::processAssertion(
     }
     if( add ){
       //add max cardinality
-      if (card > (int)d_card_max)
+      if (card > d_card_max)
       {
         d_card_max = card;
       }
