@@ -929,7 +929,7 @@ size_t TheorySep::processAssertion(
 {
   int index = hasPol ? ( pol ? 1 : -1 ) : 0;
   size_t card = 0;
-  std::map< Node, size_t >::iterator it = visited[index].find( n );
+  std::map<Node, size_t>::iterator it = visited[index].find(n);
   if( it==visited[index].end() ){
     Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
     if (n.getKind() == SEP_EMP)
@@ -971,7 +971,13 @@ size_t TheorySep::processAssertion(
         bool newHasPol, newPol;
         QuantPhaseReq::getEntailPolarity( n, i, hasPol, pol, newHasPol, newPol );
         int newIndex = newHasPol ? ( newPol ? 1 : -1 ) : 0;
-        size_t ccard = processAssertion( n[i], visited, references, references_strict, newPol, newHasPol, newUnderSpatial );
+        size_t ccard = processAssertion(n[i],
+                                        visited,
+                                        references,
+                                        references_strict,
+                                        newPol,
+                                        newHasPol,
+                                        newUnderSpatial);
         //update cardinality
         if (n.getKind() == SEP_STAR)
         {
