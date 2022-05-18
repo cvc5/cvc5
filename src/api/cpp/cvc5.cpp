@@ -7042,6 +7042,8 @@ Term Solver::declareOracleFun(
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.oracles)
+      << "Cannot call declareOracleFun unless oracles is enabled (use --oracles)";
   //////// all checks before this line
   internal::TypeNode type = *sort.d_type;
   if (!sorts.empty())

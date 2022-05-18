@@ -3439,6 +3439,23 @@ TEST_F(TestApiBlackSolver, projIssue337)
   ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
+TEST_F(TestApiBlackSolver, declareOracleFunError)
+{
+  Sort iSort = d_solver.getIntegerSort();
+  // cannot declare without option
+  ASSERT_THROW(d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkInteger(0);
+      });, CVC5ApiException);
+  d_solver.setOption("oracles", "true");
+  Sort nullSort;
+  // bad sort
+  ASSERT_THROW(d_solver.declareOracleFun(
+      "f", {nullSort}, iSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkInteger(0);
+      });, CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
 {
   d_solver.setOption("oracles", "true");
