@@ -52,7 +52,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 
     if (it == d_visited.end())
     {
-      Node lam = theory::uf::FunctionConst::getLambdaFor(cur);
+      Node lam = theory::uf::FunctionConst::toLambda(cur);
       if (!lam.isNull())
       {
         Trace("ho-elim-ll") << "Lambda lift: " << lam << std::endl;

@@ -32,6 +32,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
@@ -368,6 +369,13 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // notice that intentionally we drop annotations here
     return ret;
+  }
+  else if (k == FUNCTION_ARRAY_CONST)
+  {
+    // must convert to lambda and then run the conversion
+    Node lam = theory::uf::FunctionConst::toLambda(n);
+    Assert (!lam.isNull());
+    return convert(lam);
   }
   else if (k == REGEXP_LOOP)
   {

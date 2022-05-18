@@ -314,8 +314,8 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::FUNCTION_ARRAY_CONST:
     {
-      // prints as its lambda
-      Node lam = theory::uf::FunctionConst::getLambdaFor(n);
+      // prints as the equivalent lambda
+      Node lam = theory::uf::FunctionConst::toLambda(n);
       toStream(out, lam, toDepth);
       break;
     }
