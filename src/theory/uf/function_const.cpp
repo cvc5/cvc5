@@ -17,8 +17,8 @@
 
 #include "expr/array_store_all.h"
 #include "expr/attribute.h"
-#include "expr/function_const.h"
 #include "expr/bound_var_manager.h"
+#include "expr/function_const.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
@@ -30,7 +30,8 @@ namespace uf {
 struct FunctionBoundVarListTag
 {
 };
-using FunctionBoundVarListAttribute = expr::Attribute<FunctionBoundVarListTag, Node>;
+using FunctionBoundVarListAttribute =
+    expr::Attribute<FunctionBoundVarListTag, Node>;
 struct ArrayToLambaTag
 {
 };
@@ -59,10 +60,12 @@ Node FunctionConst::getLambdaFor(Node n)
     std::vector<Node> bvs;
     NodeManager* nm = NodeManager::currentNM();
     BoundVarManager* bvm = nm->getBoundVarManager();
-    for (size_t i=0, nargs = argTypes.size(); i<nargs; i++)
+    for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
     {
-      Node cacheVal = BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
-      Node v = bvm->mkBoundVar<FunctionBoundVarListAttribute>(cacheVal, argTypes[i]);
+      Node cacheVal =
+          BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
+      Node v =
+          bvm->mkBoundVar<FunctionBoundVarListAttribute>(cacheVal, argTypes[i]);
       bvs.push_back(v);
     }
     Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);

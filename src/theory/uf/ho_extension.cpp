@@ -19,9 +19,9 @@
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/function_const.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
