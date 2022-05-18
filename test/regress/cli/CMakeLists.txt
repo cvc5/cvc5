@@ -277,6 +277,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5281.smt2
   regress0/bv/bv_to_int_5293_1.smt2
   regress0/bv/bv_to_int_5293_2.smt2
+  regress0/bv/bv_to_int_8412.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
@@ -1192,6 +1193,7 @@ set(regress_0_tests
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
+  regress0/sep/issue8659-wand-diff-heaps.smt2
   regress0/sep/nemp.smt2
   regress0/sep/nil-no-elim.smt2
   regress0/sep/nspatial-simp.smt2
