@@ -23,9 +23,7 @@ namespace cvc5::internal {
 namespace smt {
 
 AbstractValues::AbstractValues()
-    : d_fakeContext(),
-      d_abstractValueMap(&d_fakeContext),
-      d_abstractValues()
+    : d_fakeContext(), d_abstractValueMap(&d_fakeContext), d_abstractValues()
 {
 }
 AbstractValues::~AbstractValues() {}

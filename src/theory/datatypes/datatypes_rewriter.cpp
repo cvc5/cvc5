@@ -784,8 +784,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool useSharedSel)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
-  if (!useSharedSel
-      || !selector.hasAttribute(DTypeConsIndexAttr()))
+  if (!useSharedSel || !selector.hasAttribute(DTypeConsIndexAttr()))
   {
     return n;
   }

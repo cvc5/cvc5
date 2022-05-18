@@ -18,10 +18,10 @@
 #include "options/proof_options.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
-#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -31,7 +31,7 @@ namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(Env& env)
     : EnvObj(env),
-    d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
+      d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
       d_instRuleIds(
           smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
@@ -62,8 +62,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                       bool& continueUpdate)
 {
   PfRule r = pn->getRule();
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
-  Assert (pnm!=nullptr);
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
   // if not doing eager pedantic checking, fail if below threshold
   if (options().proof.proofCheck != options::ProofCheckMode::EAGER)
   {

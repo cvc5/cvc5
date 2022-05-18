@@ -243,8 +243,10 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
    * @param useSharedSel Whether we should convert the selector into a shared
    * selector
    */
-  CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr, Node mpat,
-                                                       bool useSharedSel);
+  CandidateGeneratorSelector(QuantifiersState& qs,
+                             TermRegistry& tr,
+                             Node mpat,
+                             bool useSharedSel);
   /** reset */
   void reset(Node eqc) override;
   /**

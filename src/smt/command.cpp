@@ -781,8 +781,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     d_solution.clear();
     // check whether we should print the status
     std::string sygusOut = solver->getOption("sygus-out");
-    if (!d_result.hasSolution()
-        || sygusOut == "status-and-def"
+    if (!d_result.hasSolution() || sygusOut == "status-and-def"
         || sygusOut == "status")
     {
       if (d_result.hasSolution())
@@ -799,8 +798,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
       }
     }
     // check whether we should print the solution
-    if (d_result.hasSolution()
-        && sygusOut != "status")
+    if (d_result.hasSolution() && sygusOut != "status")
     {
       std::vector<cvc5::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
@@ -2447,7 +2445,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out) const
   }
   else
   {
-    if (d_solver->getOption("print-unsat-cores-full")=="true")
+    if (d_solver->getOption("print-unsat-cores-full") == "true")
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));

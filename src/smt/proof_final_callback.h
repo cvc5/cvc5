@@ -22,8 +22,8 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "smt/env_obj.h"
 #include "proof/proof_node_updater.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 

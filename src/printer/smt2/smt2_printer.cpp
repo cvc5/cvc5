@@ -600,9 +600,7 @@ void Smt2Printer::toStream(std::ostream& out,
     // uf theory
     case kind::APPLY_UF: break;
     // higher-order
-    case kind::HO_APPLY:
-      out << smtKindString(k, d_variant) << ' ';
-      break;
+    case kind::HO_APPLY: out << smtKindString(k, d_variant) << ' '; break;
     case kind::MATCH:
       out << smtKindString(k, d_variant) << " ";
       toStream(out, n[0], toDepth, lbind);
