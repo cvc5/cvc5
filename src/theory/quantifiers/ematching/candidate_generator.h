@@ -239,7 +239,12 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 class CandidateGeneratorSelector : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr, Node mpat);
+  /**
+   * @param useSharedSel Whether we should convert the selector into a shared
+   * selector
+   */
+  CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr, Node mpat,
+                                                       bool useSharedSel);
   /** reset */
   void reset(Node eqc) override;
   /**

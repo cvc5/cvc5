@@ -1269,7 +1269,7 @@ ProofPostproccess::ProofPostproccess(Env& env,
       // the update merges subproofs
       d_updater(
           env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
-      d_finalCb(env.getProofNodeManager()),
+      d_finalCb(env),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
 }

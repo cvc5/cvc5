@@ -21,6 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -28,8 +29,9 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace smt {
 
-ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
+ProofFinalCallback::ProofFinalCallback(Env& env)
+    : EnvObj(env),
+    d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
       d_instRuleIds(
           smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
@@ -43,7 +45,6 @@ ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
           smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
       d_numFinalProofs(
           smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pnm(pnm),
       d_pedanticFailure(false)
 {
   d_minPedanticLevel += 10;
@@ -61,23 +62,25 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                       bool& continueUpdate)
 {
   PfRule r = pn->getRule();
+  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  Assert (pnm!=nullptr);
   // if not doing eager pedantic checking, fail if below threshold
-  if (options::proofCheck() != options::ProofCheckMode::EAGER)
+  if (options().proof.proofCheck != options::ProofCheckMode::EAGER)
   {
     if (!d_pedanticFailure)
     {
       Assert(d_pedanticFailureOut.str().empty());
-      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
+      if (pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
       {
         d_pedanticFailure = true;
       }
     }
   }
-  if (options::proofCheck() != options::ProofCheckMode::NONE)
+  if (options().proof.proofCheck != options::ProofCheckMode::NONE)
   {
-    d_pnm->ensureChecked(pn.get());
+    pnm->ensureChecked(pn.get());
   }
-  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
+  uint32_t plevel = pnm->getChecker()->getPedanticLevel(r);
   if (plevel != 0)
   {
     d_minPedanticLevel.minAssign(plevel);
