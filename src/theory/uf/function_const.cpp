@@ -18,19 +18,25 @@
 #include "expr/array_store_all.h"
 #include "expr/attribute.h"
 #include "expr/function_const.h"
+#include "expr/bound_var_manager.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-struct ArrayToLambaAttributeId
+struct FunctionBoundVarListTag
 {
 };
-using ArrayToLambaAttribute = expr::Attribute<ArrayToLambaAttributeId, Node>;
+using FunctionBoundVarListAttribute = expr::Attribute<FunctionBoundVarListTag, Node>;
+struct ArrayToLambaTag
+{
+};
+using ArrayToLambaAttribute = expr::Attribute<ArrayToLambaTag, Node>;
 
-Node FunctionConst::getLambdaFor(const Node& n)
+Node FunctionConst::getLambdaFor(Node n)
 {
   Kind nk = n.getKind();
   if (nk == kind::LAMBDA)
@@ -39,27 +45,29 @@ Node FunctionConst::getLambdaFor(const Node& n)
   }
   else if (nk == kind::FUNCTION_CONST)
   {
-    NodeManager* nm = NodeManager::currentNM();
-    const FunctionConstant& fc = n.getConst<FunctionConstant>();
-    Node avalue = fc.getArrayValue();
     // associate a unique bound variable list with the value
     ArrayToLambaAttribute atla;
-    if (avalue.hasAttribute(atla))
+    if (n.hasAttribute(atla))
     {
-      return avalue.getAttribute(atla);
+      return n.getAttribute(atla);
     }
+    const FunctionConstant& fc = n.getConst<FunctionConstant>();
+    Node avalue = fc.getArrayValue();
     TypeNode tn = fc.getType();
     Assert(tn.isFunction());
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector<Node> bvs;
-    for (const TypeNode& arg : argTypes)
+    NodeManager* nm = NodeManager::currentNM();
+    BoundVarManager* bvm = nm->getBoundVarManager();
+    for (size_t i=0, nargs = argTypes.size(); i<nargs; i++)
     {
-      // TODO: make canonical via bvm
-      bvs.push_back(nm->mkBoundVar(arg));
+      Node cacheVal = BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
+      Node v = bvm->mkBoundVar<FunctionBoundVarListAttribute>(cacheVal, argTypes[i]);
+      bvs.push_back(v);
     }
     Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);
     Node lam = getLambdaForArrayRepresentation(avalue, bvl);
-    avalue.setAttribute(atla, lam);
+    n.setAttribute(atla, lam);
     return lam;
   }
   return Node::null();

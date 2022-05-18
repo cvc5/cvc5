@@ -60,15 +60,16 @@ TrustNode LambdaLift::lift(Node node)
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
-  TNode skolem = getSkolemFor(node);
+  Node lam = FunctionConst::getLambdaFor(node);
+  TNode skolem = getSkolemFor(lam);
   if (skolem.isNull())
   {
     return TrustNode::null();
   }
-  d_lambdaMap[skolem] = node;
+  d_lambdaMap[skolem] = lam;
   if (!options().uf.ufHoLazyLambdaLift)
   {
-    TrustNode trn = lift(node);
+    TrustNode trn = lift(lam);
     lems.push_back(SkolemLemma(trn, skolem));
   }
   // if no proofs, return lemma with no generator
