@@ -186,7 +186,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& subs)
 {
   Assert(d_target.getKind() == EQUAL);
-  Assert(s.getType().isComparableTo(n.getType()));
+  Assert(s.getType()==n.getType());
   Assert(vars.size() == subs.size());
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
@@ -263,7 +263,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pic.d_id = id;
     for (size_t i = 0; i < nchild; i++)
     {
-      if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
+      if (target[0][i].getType()!=target[1][i].getType())
       {
         // type error on children (required for certain polymorphic operators)
         return false;
@@ -276,12 +276,14 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   else if (id == DslPfRule::CONG_EVAL)
   {
     size_t nchild = target[0].getNumChildren();
-    if (nchild == 0 || !target[1].isConst())
+    // evaluate the right hand side
+    Node r2 = doEvaluate(target[1]);
+    if (nchild == 0 || r2.isNull())
     {
       return false;
     }
     Node r = theory::Rewriter::rewrite(target[0]);
-    if (r != target[1])
+    if (r != r2)
     {
       return false;
     }
@@ -311,7 +313,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     }
     NodeManager * nm = NodeManager::currentNM();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
-    if (doEvaluate(tappc)!=target[1])
+    if (doEvaluate(tappc)!=r2)
     {
       return false;
     }
@@ -749,12 +751,19 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           lhsTgtc.push_back(eq[1]);
         }
         Node lhsTgt = nm->mkNode(cur[0].getKind(), lhsTgtc);
-        Node rhs = cur[1];
+        Node rhs = doEvaluate(cur[1]);
+        Assert (!rhs.isNull());
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
+        std::vector<Node> transChildren = {eq1, eq2};
         cdp->addStep(eq1, PfRule::CONG, ps, pfArgs[cur]);
         cdp->addStep(eq2, PfRule::EVALUATE, {}, {lhsTgt});
-        cdp->addStep(cur, PfRule::TRANS, {eq1, eq2}, {});
+        if (rhs!=cur[1])
+        {
+          cdp->addStep(cur[1].eqNode(rhs), PfRule::EVALUATE, {}, {cur[1]});
+          transChildren.push_back(rhs.eqNode(cur[1]));
+        }
+        cdp->addStep(cur, PfRule::TRANS, transChildren, {});
       }
       else if (itd->second.d_id == DslPfRule::TRUE_ELIM)
       {
