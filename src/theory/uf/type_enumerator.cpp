@@ -15,7 +15,7 @@
 
 #include "theory/uf/type_enumerator.h"
 
-#include "expr/function_const.h"
+#include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
 
 namespace cvc5::internal {
@@ -37,7 +37,7 @@ Node FunctionEnumerator::operator*()
     throw NoMoreValuesException(getType());
   }
   Node a = *d_arrayEnum;
-  return NodeManager::currentNM()->mkConst(FunctionConstant(getType(), a));
+  return NodeManager::currentNM()->mkConst(FunctionArrayConst(getType(), a));
 }
 
 FunctionEnumerator& FunctionEnumerator::operator++()

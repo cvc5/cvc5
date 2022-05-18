@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__EXPR__FUNCTION_CONST_H
-#define CVC5__EXPR__FUNCTION_CONST_H
+#ifndef CVC5__EXPR__FUNCTION_ARRAY_CONST_H
+#define CVC5__EXPR__FUNCTION_ARRAY_CONST_H
 
 #include <iosfwd>
 #include <memory>
@@ -28,26 +28,26 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
-class FunctionConstant
+class FunctionArrayConst
 {
  public:
   /**
    */
-  FunctionConstant(const TypeNode& type, const Node& avalue);
-  ~FunctionConstant();
+  FunctionArrayConst(const TypeNode& type, const Node& avalue);
+  ~FunctionArrayConst();
 
-  FunctionConstant(const FunctionConstant& other);
-  FunctionConstant& operator=(const FunctionConstant& other);
+  FunctionArrayConst(const FunctionArrayConst& other);
+  FunctionArrayConst& operator=(const FunctionArrayConst& other);
 
   const TypeNode& getType() const;
   const Node& getArrayValue() const;
 
-  bool operator==(const FunctionConstant& fc) const;
-  bool operator!=(const FunctionConstant& fc) const;
-  bool operator<(const FunctionConstant& fc) const;
-  bool operator<=(const FunctionConstant& fc) const;
-  bool operator>(const FunctionConstant& fc) const;
-  bool operator>=(const FunctionConstant& fc) const;
+  bool operator==(const FunctionArrayConst& fc) const;
+  bool operator!=(const FunctionArrayConst& fc) const;
+  bool operator<(const FunctionArrayConst& fc) const;
+  bool operator<=(const FunctionArrayConst& fc) const;
+  bool operator>(const FunctionArrayConst& fc) const;
+  bool operator>=(const FunctionArrayConst& fc) const;
 
  private:
   /** The (function) type (-> T1 T2 ... Tn T) */
@@ -56,14 +56,14 @@ class FunctionConstant
   std::unique_ptr<Node> d_avalue;
 };
 
-std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc);
+std::ostream& operator<<(std::ostream& out, const FunctionArrayConst& fc);
 
-/** Hash function for the FunctionConstant constants. */
-struct FunctionConstantHashFunction
+/** Hash function for the FunctionArrayConst constants. */
+struct FunctionArrayConstHashFunction
 {
-  size_t operator()(const FunctionConstant& fc) const;
+  size_t operator()(const FunctionArrayConst& fc) const;
 };
 
 }  // namespace cvc5::internal
 
-#endif /* CVC5__EXPR__FUNCTION_CONST_H */
+#endif /* CVC5__EXPR__FUNCTION_ARRAY_CONST_H */

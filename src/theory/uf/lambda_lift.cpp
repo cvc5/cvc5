@@ -60,7 +60,7 @@ TrustNode LambdaLift::lift(Node node)
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
-  Node lam = FunctionConst::getLambdaFor(node);
+  Node lam = FunctionConst::toLambda(node);
   TNode skolem = getSkolemFor(lam);
   if (skolem.isNull())
   {
@@ -105,7 +105,7 @@ Node LambdaLift::getAssertionFor(TNode node)
     return Node::null();
   }
   Node assertion;
-  Node lambda = FunctionConst::getLambdaFor(node);
+  Node lambda = FunctionConst::toLambda(node);
   if (!lambda.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();

@@ -101,9 +101,10 @@ class LambdaTypeRule
 }; /* class LambdaTypeRule */
 
 /**
- * Type rule for function constants.
+ * Type rule for function array constants. Returns the function type stored
+ * in the FUNCTION_ARRAY_CONST payload of the node.
  */
-class FunctionConstTypeRule
+class FunctionArrayConstTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);

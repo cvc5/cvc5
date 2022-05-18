@@ -331,11 +331,11 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Evaluate " << currNode << std::endl;
           TNode op = currNode.getOperator();
-          if (op.getKind() == kind::FUNCTION_CONST)
+          if (op.getKind() == kind::FUNCTION_ARRAY_CONST)
           {
             // If we have a function constant as the operator, it was not
             // processed. We require converting to a lambda now.
-            op = uf::FunctionConst::getLambdaFor(op);
+            op = uf::FunctionConst::toLambda(op);
           }
           else
           {

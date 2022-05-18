@@ -37,7 +37,7 @@ class FunctionConst
    * This is the identity function for lambda terms and runs the conversion
    * for constant array functions.
    */
-  static Node getLambdaFor(Node n);
+  static Node toLambda(Node n);
   /** Get function type for array type
    *
    * This returns the function type of terms returned by the function
@@ -115,4 +115,4 @@ class FunctionConst
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__UF__FUNCTION_CONST_H */
+#endif /* CVC5__THEORY__UF__FUNCTION_ARRAY_CONST_H */

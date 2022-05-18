@@ -18,7 +18,7 @@
 #include "expr/array_store_all.h"
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
-#include "expr/function_const.h"
+#include "expr/function_array_const.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
@@ -37,14 +37,14 @@ struct ArrayToLambaTag
 };
 using ArrayToLambaAttribute = expr::Attribute<ArrayToLambaTag, Node>;
 
-Node FunctionConst::getLambdaFor(Node n)
+Node FunctionConst::toLambda(Node n)
 {
   Kind nk = n.getKind();
   if (nk == kind::LAMBDA)
   {
     return n;
   }
-  else if (nk == kind::FUNCTION_CONST)
+  else if (nk == kind::FUNCTION_ARRAY_CONST)
   {
     // associate a unique bound variable list with the value
     ArrayToLambaAttribute atla;
@@ -52,7 +52,7 @@ Node FunctionConst::getLambdaFor(Node n)
     {
       return n.getAttribute(atla);
     }
-    const FunctionConstant& fc = n.getConst<FunctionConstant>();
+    const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
     Node avalue = fc.getArrayValue();
     TypeNode tn = fc.getType();
     Assert(tn.isFunction());

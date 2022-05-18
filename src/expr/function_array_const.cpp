@@ -13,7 +13,7 @@
  * Representation of an almost constant function
  */
 
-#include "expr/function_const.h"
+#include "expr/function_array_const.h"
 
 #include <iostream>
 
@@ -25,7 +25,7 @@ using namespace std;
 
 namespace cvc5::internal {
 
-FunctionConstant::FunctionConstant(const TypeNode& type, const Node& avalue)
+FunctionArrayConst::FunctionArrayConst(const TypeNode& type, const Node& avalue)
     : d_type(), d_avalue()
 {
   // TODO: checks
@@ -37,65 +37,65 @@ FunctionConstant::FunctionConstant(const TypeNode& type, const Node& avalue)
   d_avalue.reset(new Node(avalue));
 }
 
-FunctionConstant::FunctionConstant(const FunctionConstant& other)
+FunctionArrayConst::FunctionArrayConst(const FunctionArrayConst& other)
     : d_type(new TypeNode(other.getType())),
       d_avalue(new Node(other.getArrayValue()))
 {
 }
 
-FunctionConstant::~FunctionConstant() {}
-FunctionConstant& FunctionConstant::operator=(const FunctionConstant& other)
+FunctionArrayConst::~FunctionArrayConst() {}
+FunctionArrayConst& FunctionArrayConst::operator=(const FunctionArrayConst& other)
 {
   (*d_type) = other.getType();
   (*d_avalue) = other.getArrayValue();
   return *this;
 }
 
-const TypeNode& FunctionConstant::getType() const { return *d_type; }
+const TypeNode& FunctionArrayConst::getType() const { return *d_type; }
 
-const Node& FunctionConstant::getArrayValue() const { return *d_avalue; }
+const Node& FunctionArrayConst::getArrayValue() const { return *d_avalue; }
 
-bool FunctionConstant::operator==(const FunctionConstant& fc) const
+bool FunctionArrayConst::operator==(const FunctionArrayConst& fc) const
 {
   return getType() == fc.getType() && getArrayValue() == fc.getArrayValue();
 }
 
-bool FunctionConstant::operator!=(const FunctionConstant& fc) const
+bool FunctionArrayConst::operator!=(const FunctionArrayConst& fc) const
 {
   return !(*this == fc);
 }
 
-bool FunctionConstant::operator<(const FunctionConstant& fc) const
+bool FunctionArrayConst::operator<(const FunctionArrayConst& fc) const
 {
   return (getType() < fc.getType())
          || (getType() == fc.getType() && getArrayValue() < fc.getArrayValue());
 }
 
-bool FunctionConstant::operator<=(const FunctionConstant& fc) const
+bool FunctionArrayConst::operator<=(const FunctionArrayConst& fc) const
 {
   return (getType() < fc.getType())
          || (getType() == fc.getType()
              && getArrayValue() <= fc.getArrayValue());
 }
 
-bool FunctionConstant::operator>(const FunctionConstant& fc) const
+bool FunctionArrayConst::operator>(const FunctionArrayConst& fc) const
 {
   return !(*this <= fc);
 }
 
-bool FunctionConstant::operator>=(const FunctionConstant& fc) const
+bool FunctionArrayConst::operator>=(const FunctionArrayConst& fc) const
 {
   return !(*this < fc);
 }
 
-std::ostream& operator<<(std::ostream& out, const FunctionConstant& fc)
+std::ostream& operator<<(std::ostream& out, const FunctionArrayConst& fc)
 {
   return out << "__function_constant(" << fc.getType() << ", "
              << fc.getArrayValue() << ')';
 }
 
-size_t FunctionConstantHashFunction::operator()(
-    const FunctionConstant& fc) const
+size_t FunctionArrayConstHashFunction::operator()(
+    const FunctionArrayConst& fc) const
 {
   return std::hash<TypeNode>()(fc.getType())
          * std::hash<Node>()(fc.getArrayValue());

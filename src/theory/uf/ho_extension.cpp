@@ -101,7 +101,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       }
     }
   }
-  else if (k == kind::LAMBDA || k == kind::FUNCTION_CONST)
+  else if (k == kind::LAMBDA || k == kind::FUNCTION_ARRAY_CONST)
   {
     Trace("uf-lazy-ll") << "Preprocess lambda: " << node << std::endl;
     TrustNode skTrn = d_ll.ppRewrite(node, lems);

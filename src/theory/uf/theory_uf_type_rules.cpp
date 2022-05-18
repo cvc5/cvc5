@@ -19,7 +19,7 @@
 #include <sstream>
 
 #include "expr/cardinality_constraint.h"
-#include "expr/function_const.h"
+#include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
@@ -176,12 +176,12 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-TypeNode FunctionConstTypeRule::computeType(NodeManager* nodeManager,
+TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
 {
-  Assert(n.getKind() == kind::FUNCTION_CONST);
-  const FunctionConstant& fc = n.getConst<FunctionConstant>();
+  Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
+  const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
   return fc.getType();
 }
 

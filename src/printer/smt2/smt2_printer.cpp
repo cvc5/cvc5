@@ -29,7 +29,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
-#include "expr/function_const.h"
+#include "expr/function_array_const.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -312,7 +312,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")";
       break;
     }
-    case kind::FUNCTION_CONST:
+    case kind::FUNCTION_ARRAY_CONST:
     {
       // prints as its lambda
       Node lam = theory::uf::FunctionConst::getLambdaFor(n);

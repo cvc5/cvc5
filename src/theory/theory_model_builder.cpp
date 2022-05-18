@@ -1361,7 +1361,9 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Assert(hnv.isConst());
       if (!apply_args.empty())
       {
-        hnv = uf::FunctionConst::getLambdaFor(hnv);
+        // Convert to lambda, which is necessary if hnv is a function array
+        // constant.
+        hnv = uf::FunctionConst::toLambda(hnv);
         Assert(!hnv.isNull() && hnv.getKind() == kind::LAMBDA
                && hnv[0].getNumChildren() + 1 == args.size());
         std::vector<TNode> largs;

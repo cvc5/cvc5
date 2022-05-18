@@ -15,7 +15,7 @@
 
 #include "theory/uf/theory_uf_rewriter.h"
 
-#include "expr/function_const.h"
+#include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
@@ -54,7 +54,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   }
   if (node.getKind() == kind::APPLY_UF)
   {
-    Node lambda = FunctionConst::getLambdaFor(node.getOperator());
+    Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
     {
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
@@ -103,7 +103,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   }
   else if (node.getKind() == kind::HO_APPLY)
   {
-    Node lambda = FunctionConst::getLambdaFor(node[0]);
+    Node lambda = FunctionConst::toLambda(node[0]);
     if (!lambda.isNull())
     {
       // resolve one argument of the lambda
@@ -234,7 +234,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   {
     Assert(anode.getType().isArray());
     Node retNode = NodeManager::currentNM()->mkConst(
-        FunctionConstant(node.getType(), anode));
+        FunctionArrayConst(node.getType(), anode));
     Assert(anode.isConst() == retNode.isConst());
     Assert(retNode.getType() == node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
