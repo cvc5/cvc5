@@ -25,11 +25,31 @@ using namespace std;
 
 namespace cvc5::internal {
 
+bool isFunctionCompatibleWithArray(const TypeNode& ftype, const TypeNode& atype)
+{
+  if (!ftype.isFunction())
+  {
+    return false;
+  }
+  std::vector<TypeNode> argTypes = ftype.getArgTypes();
+  TypeNode atc = atype;
+  for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
+  {
+    if (!atc.isArray() || argTypes[i] != atc.getArrayIndexType())
+    {
+      return false;
+    }
+    atc = atc.getArrayConstituentType();
+  }
+  return true;
+}
+
 FunctionArrayConst::FunctionArrayConst(const TypeNode& type, const Node& avalue)
     : d_type(), d_avalue()
 {
   Assert(avalue.isConst());
   Assert(avalue.getType().isArray());
+  Assert(isFunctionCompatibleWithArray(type, avalue.getType()));
 
   d_type.reset(new TypeNode(type));
   d_avalue.reset(new Node(avalue));
