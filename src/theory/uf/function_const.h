@@ -30,7 +30,13 @@ namespace uf {
 class FunctionConst
 {
  public:
-  /** Get lambda for */
+  /**
+   * Lambda of
+   *
+   * Returns a node of kind LAMBDA that is equivalent to n, or null otherwise.
+   * This is the identity function for lambda terms and runs the conversion
+   * for constant array functions.
+   */
   static Node getLambdaFor(const Node& n);
   /** Get function type for array type
    *
