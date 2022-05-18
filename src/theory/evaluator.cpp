@@ -331,7 +331,7 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Evaluate " << currNode << std::endl;
           TNode op = currNode.getOperator();
-          if (op.getKind()==kind::FUNCTION_CONST)
+          if (op.getKind() == kind::FUNCTION_CONST)
           {
             // If we have a function constant as the operator, it was not
             // processed. We require converting to a lambda now.
@@ -387,8 +387,7 @@ EvalResult Evaluator::evalInternal(
             // evaluation was invalid, we take the node of op[1] as the result
             evalAsNode[currNode] = evalAsNodeC[op[1]];
             Trace("evaluator")
-                << "Take node evaluation: " << evalAsNodeC[op[1]]
-                << std::endl;
+                << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
           }
         }
         break;
