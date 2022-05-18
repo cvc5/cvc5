@@ -22,9 +22,8 @@
 namespace cvc5::internal {
 namespace smt {
 
-AbstractValues::AbstractValues(NodeManager* nm)
-    : d_nm(nm),
-      d_fakeContext(),
+AbstractValues::AbstractValues()
+    : d_fakeContext(),
       d_abstractValueMap(&d_fakeContext),
       d_abstractValues()
 {
@@ -45,7 +44,7 @@ Node AbstractValues::mkAbstractValue(TNode n)
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
-    val = d_nm->getSkolemManager()->mkDummySkolem(
+    val = NodeManager::currentNM()->getSkolemManager()->mkDummySkolem(
         "a",
         n.getType(),
         "an abstract value",

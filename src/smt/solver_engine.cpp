@@ -86,7 +86,7 @@ namespace cvc5::internal {
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
-      d_absValues(new AbstractValues(getNodeManager())),
+      d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_smtSolver(nullptr),

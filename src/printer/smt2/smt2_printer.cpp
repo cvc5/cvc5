@@ -601,34 +601,8 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::APPLY_UF: break;
     // higher-order
     case kind::HO_APPLY:
-      if (!options::flattenHOChains())
-      {
-        out << smtKindString(k, d_variant) << ' ';
-        break;
-      }
-      // collapse "@" chains, i.e.
-      //
-      // ((a b) c) --> (a b c)
-      //
-      // (((a b) ((c d) e)) f) --> (a b (c d e) f)
-      {
-        Node head = n;
-        std::vector<Node> args;
-        while (head.getKind() == kind::HO_APPLY)
-        {
-          args.insert(args.begin(), head[1]);
-          head = head[0];
-        }
-        toStream(out, head, toDepth, lbind);
-        for (unsigned i = 0, size = args.size(); i < size; ++i)
-        {
-          out << " ";
-          toStream(out, args[i], toDepth, lbind);
-        }
-        out << ")";
-      }
-      return;
-
+      out << smtKindString(k, d_variant) << ' ';
+      break;
     case kind::MATCH:
       out << smtKindString(k, d_variant) << " ";
       toStream(out, n[0], toDepth, lbind);
