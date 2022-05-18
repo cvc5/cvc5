@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Representation of an almost constant function
+ * Function array constant, which is an almost constant function
  */
 
 #include "expr/function_array_const.h"
@@ -28,11 +28,9 @@ namespace cvc5::internal {
 FunctionArrayConst::FunctionArrayConst(const TypeNode& type, const Node& avalue)
     : d_type(), d_avalue()
 {
-  // TODO: checks
-
-  // Delay allocation until the checks above have been performed. If these
-  // fail, the memory for d_type and d_avalue should not leak. The alternative
-  // is catch, delete and re-throw.
+  Assert (avalue.isConst());
+  Assert (avalue.getType().isArray());
+  
   d_type.reset(new TypeNode(type));
   d_avalue.reset(new Node(avalue));
 }

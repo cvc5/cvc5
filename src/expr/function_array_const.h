@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Representation of an almost constant function
+ * Function array constant, which is an almost constant function
  */
 
 #include "cvc5_public.h"
@@ -28,10 +28,26 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
+/**
+  * A function array constant is the canonical form of an almost constant
+  * function. It relies on the fact that array constants have a canonical
+  * form.
+  */
 class FunctionArrayConst
 {
  public:
   /**
+   * Constructor
+   *
+   * @param type The function type of this function array constant
+   * @param avalue The array value of this function array constant
+   * 
+   * It should be the case that avalue is a constant array. It further
+   * more should be the case that if avalue has type
+   *    (Array T1 (Array T2 .. (Array Tn T)))
+   * and type should be
+   *    (-> T1 T2 ... Tn T)
+   * Note that T may itself be an array, e.g. for functions returning arrays.
    */
   FunctionArrayConst(const TypeNode& type, const Node& avalue);
   ~FunctionArrayConst();
