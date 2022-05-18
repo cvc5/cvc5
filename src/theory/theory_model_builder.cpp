@@ -1172,23 +1172,24 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
           << n.getType() << ")";
-      Node val = tm->getValue(*eqc_i);
+      Node val = tm->getValue(n);
       if (val != rep)
       {
         std::stringstream err;
         err << "Failed representative check:" << std::endl
             << "( " << repCheckInstance << ") "
-            << "n: " << n << endl
-            << "getValue(n): " << tm->getValue(n) << std::endl
+            << "n: " << n << std::endl
+            << "getValue(n): " << val << std::endl
             << "rep: " << rep << std::endl;
         if (val.isConst() && rep.isConst())
         {
           AlwaysAssert(val == rep) << err.str();
         }
-        else
+        else if (rewrite(val)!=rewrite(rep))
         {
           // if it does not evaluate, it is just a warning, which may be the
-          // case for non-constant values, e.g. lambdas.
+          // case for non-constant values, e.g. lambdas. Furthermore we only
+          // throw this warning if rewriting cannot show they are equal.
           warning() << err.str();
         }
       }
