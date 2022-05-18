@@ -457,9 +457,9 @@ Node FunctionConst::toArrayConst(TNode n)
   }
   else if (nk == kind::LAMBDA)
   {
-    // must carry the overall return type to deal with cases like (lambda ((x Int)
-    // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
-    // case above should be (arraystoreall (Array Int Real) 0.0)
+    // must carry the overall return type to deal with cases like (lambda ((x
+    // Int) (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for
+    // the else case above should be (arraystoreall (Array Int Real) 0.0)
     return getArrayRepresentationForLambdaRec(n, n[1].getType());
   }
   return Node::null();

@@ -33,9 +33,9 @@ bool isFunctionCompatibleWithArray(const TypeNode& ftype, const TypeNode& atype)
   }
   std::vector<TypeNode> argTypes = ftype.getArgTypes();
   TypeNode atc = atype;
-  for (size_t i=0, nargs = argTypes.size(); i<nargs; i++)
+  for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
-    if (!atc.isArray() ||argTypes[i]!=atc.getArrayIndexType())
+    if (!atc.isArray() || argTypes[i] != atc.getArrayIndexType())
     {
       return false;
     }
