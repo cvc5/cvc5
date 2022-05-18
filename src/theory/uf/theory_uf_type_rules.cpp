@@ -54,11 +54,11 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
       if (currentArgument != currentArgumentType)
       {
         std::stringstream ss;
-        ss << "argument type is not a subtype of the function's argument "
+        ss << "argument type is not the type of the function's argument "
            << "type:\n"
            << "argument:  " << *argument_it << "\n"
            << "has type:  " << (*argument_it).getType() << "\n"
-           << "not subtype: " << *argument_type_it << "\n"
+           << "not type: " << *argument_type_it << "\n"
            << "in term : " << n;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }

@@ -1597,11 +1597,12 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
 }
 
 void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
-                                              Node fun,
+                                              const std::string& id,
+                                              TypeNode type,
                                               const std::string& binName) const
 {
-  out << "(declare-oracle-fun " << fun << " ";
-  toStreamDeclareType(out, fun.getType());
+  out << "(declare-oracle-fun " << cvc5::internal::quoteSymbol(id) << " ";
+  toStreamDeclareType(out, type);
   out << " " << binName << ")" << std::endl;
 }
 
