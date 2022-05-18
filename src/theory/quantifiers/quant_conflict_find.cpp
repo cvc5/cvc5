@@ -1946,7 +1946,7 @@ bool MatchGen::doMatching()
           {
             d_qni.push_back(it);
             // set the match
-            if (it->first.getType().isComparableTo(d_qi->d_var_types[repVar])
+            if (it->first.getType() == d_qi->d_var_types[repVar]
                 && d_qi->setMatch(d_qni_bound[index], it->first, true, true))
             {
               Trace("qcf-match-debug")

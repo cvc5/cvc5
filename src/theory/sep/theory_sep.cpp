@@ -1103,8 +1103,8 @@ void TheorySep::ensureHeapTypesFor(Node atom) const
       TypeNode tn1 = atom[0].getType();
       TypeNode tn2 = atom[1].getType();
       // already declared, ensure compatible
-      if ((!tn1.isNull() && !tn1.isComparableTo(d_type_ref))
-          || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
+      if ((!tn1.isNull() && tn1 != d_type_ref)
+          || (!tn2.isNull() && tn2 != d_type_data))
       {
         std::stringstream ss;
         ss << "ERROR: the separation logic heap type has already been set to "
