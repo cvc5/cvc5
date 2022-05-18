@@ -223,7 +223,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   // normalization on array constants, and then converting the array constant
   // back to a lambda.
   Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
-  Node anode = FunctionConst::getArrayRepresentationForLambda(node);
+  Node anode = FunctionConst::toArrayConst(node);
   // Only rewrite constant array nodes, since these are the only cases
   // where we require canonicalization of lambdas. Moreover, applying the
   // below code is not correct if the arguments to the lambda occur

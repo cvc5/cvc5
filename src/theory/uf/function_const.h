@@ -30,14 +30,6 @@ namespace uf {
 class FunctionConst
 {
  public:
-  /**
-   * Lambda of
-   *
-   * Returns a node of kind LAMBDA that is equivalent to n, or null otherwise.
-   * This is the identity function for lambda terms and runs the conversion
-   * for constant array functions.
-   */
-  static Node toLambda(Node n);
   /** Get function type for array type
    *
    * This returns the function type of terms returned by the function
@@ -62,6 +54,34 @@ class FunctionConst
    */
   static TypeNode getArrayTypeForFunctionType(TypeNode ftn);
   /**
+   * toLambda
+   *
+   * Returns a node of kind LAMBDA that is equivalent to n, or null otherwise.
+   * This is the identity function for lambda terms and runs the conversion
+   * for constant array functions. For details, see the method
+   * getLambdaForArrayRepresentation.
+   */
+  static Node toLambda(Node n);
+  /**
+   * toArrayConst
+   *
+   * Given a lambda expression n, returns an array term that corresponds to n.
+   * This does the opposite direction of the examples described above.
+   *
+   * We limit the return values of this method to be almost constant functions,
+   * that is, arrays of the form:
+   *   (store ... (store (storeall _ b) i1 e1) ... in en)
+   * where b, i1, e1, ..., in, en are constants.
+   * Notice however that the return value of this form need not be a (canonical)
+   * array constant.
+   *
+   * If it is not possible to construct an array of this form that corresponds
+   * to n, this method returns null.
+   */
+  static Node toArrayConst(TNode n);
+
+ private:
+  /**
    * Given an array constant a, returns a lambda expression that it corresponds
    * to, with bound variable list bvl.
    * Examples:
@@ -84,30 +104,13 @@ class FunctionConst
    * (lambda x. (ite (= x 1) true (= x 2)))
    */
   static Node getLambdaForArrayRepresentation(TNode a, TNode bvl);
-  /**
-   * Given a lambda expression n, returns an array term that corresponds to n.
-   * This does the opposite direction of the examples described above.
-   *
-   * We limit the return values of this method to be almost constant functions,
-   * that is, arrays of the form:
-   *   (store ... (store (storeall _ b) i1 e1) ... in en)
-   * where b, i1, e1, ..., in, en are constants.
-   * Notice however that the return value of this form need not be a (canonical)
-   * array constant.
-   *
-   * If it is not possible to construct an array of this form that corresponds
-   * to n, this method returns null.
-   */
-  static Node getArrayRepresentationForLambda(TNode n);
-
- private:
   /** recursive helper for getLambdaForArrayRepresentation */
   static Node getLambdaForArrayRepresentationRec(
       TNode a,
       TNode bvl,
       unsigned bvlIndex,
       std::unordered_map<TNode, Node>& visited);
-  /** recursive helper for getArrayRepresentationForLambda */
+  /** recursive helper for toArrayConst */
   static Node getArrayRepresentationForLambdaRec(TNode n, TypeNode retType);
 };
 

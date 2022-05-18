@@ -440,7 +440,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
   return Node::null();
 }
 
-Node FunctionConst::getArrayRepresentationForLambda(TNode n)
+Node FunctionConst::toArrayConst(TNode n)
 {
   Assert(n.getKind() == kind::LAMBDA);
   // must carry the overall return type to deal with cases like (lambda ((x Int)
