@@ -160,7 +160,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 {
   Assert(tn.isDatatype());
   Assert(tn.getDType().isSygus());
-  Assert(tn.getDType().getSygusType().isComparableTo(c.getType()));
+  Assert(tn.getDType().getSygusType() == c.getType());
 
   std::map<Node, Node>::iterator it = d_proxy_vars[tn].find(c);
   if (it == d_proxy_vars[tn].end())
@@ -291,7 +291,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   }
   Trace("sygus-db-canon") << "  ...normalized " << n << " --> " << ret
                           << std::endl;
-  Assert(ret.getType().isComparableTo(n.getType()));
+  Assert(ret.getType() == n.getType());
   return ret;
 }
 
@@ -308,7 +308,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     // if its a constant, we use the datatype utility version
     return datatypes::utils::sygusToBuiltin(n);
   }
-  Assert(n.getType().isComparableTo(tn));
+  Assert(n.getType() == tn);
   if (!tn.isDatatype())
   {
     return n;
@@ -405,7 +405,7 @@ void TermDbSygus::registerEnumerator(Node e,
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
   // depending on if we are using symbolic constructors, introduce symmetry
-  // breaking lemma templates for each relevant subtype of the grammar
+  // breaking lemma templates for each relevant subfield type of the grammar
   SygusTypeInfo& eti = getTypeInfo(et);
   std::vector<TypeNode> sf_types;
   eti.getSubfieldTypes(sf_types);
