@@ -42,14 +42,7 @@ operator SET_MINUS          2  "set subtraction"
 operator SET_SUBSET         2  "subset predicate; first parameter a subset of second"
 operator SET_MEMBER         2  "set membership predicate; first parameter a member of second"
 
-constant SET_SINGLETON_OP \
-  class \
-  SetSingletonOp \
-  ::cvc5::internal::SetSingletonOpHashFunction \
-  "theory/sets/singleton_op.h" \
-  "operator for singletons; payload is an instance of the cvc5::internal::SingletonOp class"
-parameterized SET_SINGLETON SET_SINGLETON_OP 1  \
-"constructs a set of a single element. First parameter is a SingletonOp. Second is a term"
+operator SET_SINGLETON 1 "constructs a set of a single element. First parameter is a term"
 
 operator SET_INSERT         2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
 operator SET_CARD           1  "set cardinality operator"
@@ -96,7 +89,6 @@ typerule SET_INTER   ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
 typerule SET_MINUS          ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
 typerule SET_SUBSET         ::cvc5::internal::theory::sets::SubsetTypeRule
 typerule SET_MEMBER         ::cvc5::internal::theory::sets::MemberTypeRule
-typerule SET_SINGLETON_OP   "SimpleTypeRule<RBuiltinOperator>"
 typerule SET_SINGLETON      ::cvc5::internal::theory::sets::SingletonTypeRule
 typerule SET_EMPTY          ::cvc5::internal::theory::sets::EmptySetTypeRule
 typerule SET_INSERT         ::cvc5::internal::theory::sets::InsertTypeRule

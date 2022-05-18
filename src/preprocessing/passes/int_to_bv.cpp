@@ -49,7 +49,8 @@ bool childrenTypesChanged(Node n, NodeMap& cache) {
   for (Node child : n) {
     TypeNode originalType = child.getType();
     TypeNode newType = cache[child].getType();
-    if (! newType.isSubtypeOf(originalType)) {
+    if (newType != originalType)
+    {
       return true;
     }
   }

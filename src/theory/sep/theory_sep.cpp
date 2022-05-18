@@ -291,7 +291,7 @@ bool TheorySep::preNotifyFact(
     {
       NodeManager* nm = NodeManager::currentNM();
       // (SEP_LABEL (sep.pto x y) L) => L = (set.singleton x)
-      Node s = nm->mkSingleton(slbl.getType().getSetElementType(), satom[0]);
+      Node s = nm->mkNode(SET_SINGLETON, satom[0]);
       Node eq = slbl.eqNode(s);
       TrustNode trn =
           d_im.mkLemmaExp(eq, PfRule::THEORY_INFERENCE, {fact}, {fact}, {eq});
@@ -322,8 +322,12 @@ void TheorySep::notifyFact(TNode atom,
   {
     // associate the equivalence class of the lhs with this pto
     Node r = getRepresentative(atom[1]);
-    HeapAssertInfo* ei = getOrMakeEqcInfo(r, true);
-    addPto(ei, r, atom, polarity);
+    HeapAssertInfo* e = getOrMakeEqcInfo(r, true);
+    if (checkPto(e, atom, polarity))
+    {
+      NodeList& elist = polarity ? e->d_posPto : e->d_negPto;
+      elist.push_back(atom);
+    }
   }
   // maybe propagate
   doPending();
@@ -377,56 +381,25 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     // make conclusion based on type of assertion
     if (satom.getKind() == SEP_STAR || satom.getKind() == SEP_WAND)
     {
-      std::vector<Node> children;
-      std::vector<Node> c_lems;
       TypeNode tn = getReferenceType();
       if (d_reference_bound_max.find(tn) != d_reference_bound_max.end())
       {
-        c_lems.push_back(
-            nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max[tn]));
+        Node blem = nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max[tn]);
+        d_im.lemma(blem, InferenceId::SEP_LABEL_DEF);
       }
+      std::vector<Node> children;
       std::vector<Node> labels;
       getLabelChildren(satom, slbl, children, labels);
       Node empSet = nm->mkConst(EmptySet(slbl.getType()));
       Assert(children.size() > 1);
       if (satom.getKind() == SEP_STAR)
       {
-        // reduction for heap : union, pairwise disjoint
-        Node ulem = nm->mkNode(SET_UNION, labels[0], labels[1]);
-        size_t lsize = labels.size();
-        for (size_t i = 2; i < lsize; i++)
-        {
-          ulem = nm->mkNode(SET_UNION, ulem, labels[i]);
-        }
-        ulem = slbl.eqNode(ulem);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : star reduction, union : " << ulem << std::endl;
-        c_lems.push_back(ulem);
-        for (size_t i = 0; i < lsize; i++)
-        {
-          for (size_t j = (i + 1); j < lsize; j++)
-          {
-            Node s = nm->mkNode(SET_INTER, labels[i], labels[j]);
-            Node ilem = s.eqNode(empSet);
-            Trace("sep-lemma-debug")
-                << "Sep::Lemma : star reduction, disjoint : " << ilem
-                << std::endl;
-            c_lems.push_back(ilem);
-          }
-        }
+        // make disjoint heap
+        makeDisjointHeap(slbl, labels);
       }
       else
       {
-        Node ulem = nm->mkNode(SET_UNION, slbl, labels[0]);
-        ulem = ulem.eqNode(labels[1]);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : wand reduction, union : " << ulem << std::endl;
-        c_lems.push_back(ulem);
-        Node s = nm->mkNode(SET_INTER, slbl, labels[0]);
-        Node ilem = s.eqNode(empSet);
-        Trace("sep-lemma-debug")
-            << "Sep::Lemma : wand reduction, disjoint : " << ilem << std::endl;
-        c_lems.push_back(ilem);
+        Assert(satom.getKind() == SEP_WAND);
         // nil does not occur in labels[0]
         Node nr = getNilRef(tn);
         Node nrlem = nm->mkNode(SET_MEMBER, nr, labels[0]).negate();
@@ -434,19 +407,14 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
             << "Sep::Lemma: sep.nil not in wand antecedant heap : " << nrlem
             << std::endl;
         d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
-      }
-      // send out definitional lemmas for introduced sets
-      for (const Node& clem : c_lems)
-      {
-        Trace("sep-lemma") << "Sep::Lemma : definition : " << clem << std::endl;
-        d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
+        // make disjoint heap
+        makeDisjointHeap(labels[1], {slbl, labels[0]});
       }
       conc = nm->mkNode(AND, children);
     }
     else if (satom.getKind() == SEP_PTO)
     {
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node ss = nm->mkSingleton(satom[0].getType(), satom[0]);
+      Node ss = nm->mkNode(SET_SINGLETON, satom[0]);
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
@@ -938,7 +906,7 @@ void TheorySep::conflict(TNode a, TNode b) {
 }
 
 TheorySep::HeapAssertInfo::HeapAssertInfo(context::Context* c)
-    : d_pto(c), d_has_neg_pto(c, false)
+    : d_posPto(c), d_negPto(c)
 {
 }
 
@@ -1135,8 +1103,8 @@ void TheorySep::ensureHeapTypesFor(Node atom) const
       TypeNode tn1 = atom[0].getType();
       TypeNode tn2 = atom[1].getType();
       // already declared, ensure compatible
-      if ((!tn1.isNull() && !tn1.isComparableTo(d_type_ref))
-          || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
+      if ((!tn1.isNull() && tn1 != d_type_ref)
+          || (!tn2.isNull() && tn2 != d_type_data))
       {
         std::stringstream ss;
         ss << "ERROR: the separation logic heap type has already been set to "
@@ -1315,7 +1283,7 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
       Assert(!s.isNull());
-      s = NodeManager::currentNM()->mkSingleton(tn, s);
+      s = NodeManager::currentNM()->mkNode(SET_SINGLETON, s);
       if( u.isNull() ){
         u = s;
       }else{
@@ -1335,14 +1303,98 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
-    //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(refType));
     Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "sep label");
     d_label_map[atom][lbl][child] = n_lbl;
-    d_label_map_parent[n_lbl] = lbl;
     return n_lbl;
   }else{
     return (*it).second;
   }
+}
+
+void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
+{
+  Assert(children.size() >= 2);
+  // remember parent relationships
+  for (const Node& c : children)
+  {
+    Assert(c.getType() == parent.getType());
+    d_parentMap[c].push_back(parent);
+  }
+  // make the disjointness constraints
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> lems;
+  Node ulem = nm->mkNode(SET_UNION, children[0], children[1]);
+  size_t lsize = children.size();
+  for (size_t i = 2; i < lsize; i++)
+  {
+    ulem = nm->mkNode(SET_UNION, ulem, children[i]);
+  }
+  ulem = parent.eqNode(ulem);
+  lems.push_back(ulem);
+  Node empSet = nm->mkConst(EmptySet(parent.getType()));
+  for (size_t i = 0; i < lsize; i++)
+  {
+    for (size_t j = (i + 1); j < lsize; j++)
+    {
+      Node s = nm->mkNode(SET_INTER, children[i], children[j]);
+      Node ilem = s.eqNode(empSet);
+      lems.push_back(ilem);
+    }
+  }
+  // send out definitional lemmas for introduced sets
+  for (const Node& clem : lems)
+  {
+    d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
+  }
+}
+
+std::vector<Node> TheorySep::getRootLabels(Node p) const
+{
+  std::vector<Node> roots;
+  std::unordered_set<Node> visited;
+  std::unordered_set<Node>::iterator it;
+  std::vector<Node> visit;
+  std::map<Node, std::vector<Node> >::const_iterator itp;
+  Node cur;
+  visit.push_back(p);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      itp = d_parentMap.find(cur);
+      if (itp == d_parentMap.end())
+      {
+        roots.push_back(cur);
+      }
+      else
+      {
+        visit.insert(visit.end(), itp->second.begin(), itp->second.end());
+      }
+    }
+  } while (!visit.empty());
+  return roots;
+}
+
+bool TheorySep::sharesRootLabel(Node p, Node q) const
+{
+  if (p == q)
+  {
+    return true;
+  }
+  std::vector<Node> rp = getRootLabels(p);
+  std::vector<Node> rq = getRootLabels(q);
+  for (const Node& r : rp)
+  {
+    if (std::find(rq.begin(), rq.end(), r) != rq.end())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) {
@@ -1402,6 +1454,7 @@ Node TheorySep::instantiateLabel(Node n,
                                  std::map<Node, bool>& active_lbl,
                                  unsigned ind)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sep-inst-debug") << "Instantiate label " << n << " " << lbl << " " << lbl_v << std::endl;
   if (options().sep.sepMinimalRefine && lbl != o_lbl
       && active_lbl.find(lbl) != active_lbl.end())
@@ -1502,14 +1555,12 @@ Node TheorySep::instantiateLabel(Node n,
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node svr = NodeManager::currentNM()->mkSingleton(vr.getType(), vr);
+      Node svr = nm->mkNode(SET_SINGLETON, vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
       std::vector< Node > children;
       if( inBaseHeap ){
-        // TODO(project##230): Find a safe type for the singleton operator
-        Node s = NodeManager::currentNM()->mkSingleton(n[0].getType(),  n[0]);
+        Node s = nm->mkNode(SET_SINGLETON, n[0]);
         children.push_back( NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, n[0], n[1] ), s ) );
       }else{
         //look up value of data
@@ -1522,8 +1573,7 @@ Node TheorySep::instantiateLabel(Node n,
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
         }
       }
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node singleton = NodeManager::currentNM()->mkSingleton(n[0].getType(), n[0]);
+      Node singleton = nm->mkNode(SET_SINGLETON, n[0]);
       children.push_back(singleton.eqNode(lbl_v));
       Node ret = children.empty() ? NodeManager::currentNM()->mkConst( true ) : ( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children ) );
       Trace("sep-inst-debug") << "Return " << ret << std::endl;
@@ -1608,7 +1658,7 @@ void TheorySep::getLabelChildren(Node satom,
 void TheorySep::computeLabelModel( Node lbl ) {
   if( !d_label_model[lbl].d_computed ){
     d_label_model[lbl].d_computed = true;
-
+    NodeManager* nm = NodeManager::currentNM();
     //we must get the value of lbl from the model: this is being run at last call, after the model is constructed
     //Assert(...); TODO
     Node v_val = d_valuation.getModel()->getRepresentative( lbl );
@@ -1650,8 +1700,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
       }else{
         tt = itm->second;
       }
-      // TODO(project##230): Find a safe type for the singleton operator
-      Node stt = NodeManager::currentNM()->mkSingleton(tt.getType(), tt);
+      Node stt = nm->mkNode(SET_SINGLETON, tt);
       Trace("sep-process-debug") << "...model : add " << tt << " for " << u << " in lbl " << lbl << std::endl;
       d_label_model[lbl].d_heap_locs.push_back( stt );
     }
@@ -1694,105 +1743,132 @@ bool TheorySep::areDisequal( Node a, Node b ){
 void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
 {
   HeapAssertInfo * e2 = getOrMakeEqcInfo( t2, false );
-  if( e2 && ( !e2->d_pto.get().isNull() || e2->d_has_neg_pto.get() ) ){
-    HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
-    if( !e2->d_pto.get().isNull() ){
-      if( !e1->d_pto.get().isNull() ){
-        Trace("sep-pto-debug") << "While merging " << t1 << " " << t2 << ", merge pto." << std::endl;
-        mergePto( e1->d_pto.get(), e2->d_pto.get() );
-      }else{
-        e1->d_pto.set( e2->d_pto.get() );
+  if (!e2 || (e2->d_posPto.empty() && e2->d_negPto.empty()))
+  {
+    return;
+  }
+  // allocate the heap assert info for e1
+  HeapAssertInfo* e1 = getOrMakeEqcInfo(t1, true);
+  std::vector<Node> toAdd[2];
+  for (size_t i = 0; i < 2; i++)
+  {
+    bool pol = i == 0;
+    NodeList& e2list = pol ? e2->d_posPto : e2->d_negPto;
+    for (const Node& p : e2list)
+    {
+      if (checkPto(e1, p, pol))
+      {
+        // add unless checkPto determined it was redundant
+        toAdd[i].push_back(p);
       }
     }
-    e1->d_has_neg_pto.set( e1->d_has_neg_pto.get() || e2->d_has_neg_pto.get() );
-    //validate
-    validatePto( e1, t1 );
+  }
+  // now that checks are complete, add them all now
+  for (size_t i = 0; i < 2; i++)
+  {
+    NodeList& e1list = i == 0 ? e1->d_posPto : e1->d_negPto;
+    for (const Node& p : toAdd[i])
+    {
+      e1list.push_back(p);
+    }
   }
 }
 
-void TheorySep::validatePto( HeapAssertInfo * ei, Node ei_n ) {
-  if( !ei->d_pto.get().isNull() && ei->d_has_neg_pto.get() ){
-    for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
-      Node fact = (*i);
-      if (fact.getKind() == kind::NOT)
+bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
+{
+  Assert(e != nullptr);
+  Assert(p.getKind() == SEP_LABEL && p[0].getKind() == SEP_PTO);
+  NodeManager* nm = NodeManager::currentNM();
+  Node plbl = p[1];
+  Node pval = p[0][1];
+  bool ret = true;
+  // check for inferences involving p with all pto constraints already
+  // contained in e.
+  for (size_t i = 0; i < 2; i++)
+  {
+    bool pol = i == 0;
+    NodeList& elist = pol ? e->d_posPto : e->d_negPto;
+    for (const Node& q : elist)
+    {
+      Assert(q.getKind() == SEP_LABEL && q[0].getKind() == SEP_PTO);
+      Node qlbl = q[1];
+      Node qval = q[0][1];
+      // We use instantiated labels where labels are set to singletons. We
+      // assume these always share a root label.
+      if (qlbl.getKind() != SET_SINGLETON && plbl.getKind() != SET_SINGLETON
+          && !sharesRootLabel(plbl, qlbl))
       {
-        TNode atom = fact[0];
-        Assert(atom.getKind() == kind::SEP_LABEL);
-        TNode satom = atom[0];
-        if (satom.getKind() == SEP_PTO)
+        Trace("sep-pto") << "Constraints " << p << " and " << q
+                         << " do not share a root label" << std::endl;
+        // if do not share a parent, skip
+        continue;
+      }
+      if (polarity && pol)
+      {
+        // two positive pto
+        if (!areEqual(pval, qval))
         {
-          if( areEqual( atom[1], ei_n ) ){
-            addPto( ei, ei_n, atom, false );
+          std::vector<Node> exp;
+          if (plbl != qlbl)
+          {
+            // the labels are equal since we are tracking the sets of pto
+            // constraints modulo equality on their labels
+            Assert(areEqual(plbl, qlbl));
+            exp.push_back(plbl.eqNode(qlbl));
+          }
+          exp.push_back(p);
+          exp.push_back(q);
+          // enforces injectiveness of pto
+          //  (label (pto x y) A) ^ (label (pto z w) B) ^ A = B => y = w
+          Node concn = pval.eqNode(qval);
+          Trace("sep-pto") << "prop pos/pos: " << concn << " by " << exp
+                           << std::endl;
+          sendLemma(exp, concn, InferenceId::SEP_PTO_PROP);
+          // Don't need to add this if the labels are identical. This is an
+          // optimization to minimize the size of the pto list
+          if (plbl == qlbl)
+          {
+            ret = false;
           }
         }
       }
-    }
-    //we have now processed all pending negated pto
-    ei->d_has_neg_pto.set( false );
-  }
-}
-
-void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) {
-  Trace("sep-pto") << "Add pto " << p << ", pol = " << polarity << " to eqc " << ei_n << std::endl;
-  if( !ei->d_pto.get().isNull() ){
-    if( polarity ){
-      Trace("sep-pto-debug") << "...eqc " << ei_n << " already has pto " << ei->d_pto.get() << ", merge." << std::endl;
-      mergePto( ei->d_pto.get(), p );
-    }else{
-      Node pb = ei->d_pto.get();
-      Trace("sep-pto") << "Process positive/negated pto " << " " << pb << " " << p << std::endl;
-      Assert(pb.getKind() == kind::SEP_LABEL
-             && pb[0].getKind() == kind::SEP_PTO);
-      Assert(p.getKind() == kind::SEP_LABEL && p[0].getKind() == kind::SEP_PTO);
-      Assert(areEqual(pb[1], p[1]));
-      std::vector< Node > exp;
-      if( pb[1]!=p[1] ){
-        // if( pb[1].getKind()==kind::SET_SINGLETON &&
-        // p[1].getKind()==kind::SET_SINGLETON ){
-        //  exp.push_back( pb[1][0].eqNode( p[1][0] ) );
-        //}else{
-        exp.push_back( pb[1].eqNode( p[1] ) );
-        //}
+      else if (polarity != pol)
+      {
+        // a positive and negative pto
+        if (!areDisequal(pval, qval))
+        {
+          std::vector<Node> exp;
+          if (plbl != qlbl)
+          {
+            // the labels are equal since we are tracking the sets of pto
+            // constraints modulo equality on their labels
+            Assert(areEqual(plbl, qlbl));
+            exp.push_back(plbl.eqNode(qlbl));
+          }
+          Node pos = polarity ? p : q;
+          Node neg = polarity ? q : p;
+          exp.push_back(pos);
+          exp.push_back(neg.notNode());
+          std::vector<Node> conc;
+          if (pval != qval)
+          {
+            conc.push_back(pval.eqNode(qval).notNode());
+          }
+          Node concn = nm->mkOr(conc);
+          Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp
+                           << std::endl;
+          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B => y != w
+          // or (label (pto x y) A) ^ ~(label (pto z y) B) ^ A = B => false
+          sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
+        }
       }
-      exp.push_back( pb );
-      exp.push_back( p.negate() );
-      std::vector< Node > conc;
-      if( pb[0][1]!=p[0][1] ){
-        conc.push_back( pb[0][1].eqNode( p[0][1] ).negate() );
+      else
+      {
+        // otherwise if both are disequal, do nothing
       }
-      //if( pb[1]!=p[1] ){
-      //  conc.push_back( pb[1].eqNode( p[1] ).negate() );
-      //}
-      Node n_conc = conc.empty() ? d_false : ( conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::OR, conc ) );
-      Trace("sep-pto")  << "Conclusion is " << n_conc << std::endl;
-      // propagation for (pto x y) ^ ~(pto z w) ^ x = z => y != w
-      sendLemma( exp, n_conc, InferenceId::SEP_PTO_NEG_PROP);
-    }
-  }else{
-    if( polarity ){
-      ei->d_pto.set( p );
-      validatePto( ei, ei_n );
-    }else{
-      ei->d_has_neg_pto.set( true );
     }
   }
-}
-
-void TheorySep::mergePto( Node p1, Node p2 ) {
-  Trace("sep-lemma-debug") << "Merge pto " << p1 << " " << p2 << std::endl;
-  Assert(p1.getKind() == kind::SEP_LABEL && p1[0].getKind() == kind::SEP_PTO);
-  Assert(p2.getKind() == kind::SEP_LABEL && p2[0].getKind() == kind::SEP_PTO);
-  if( !areEqual( p1[0][1], p2[0][1] ) ){
-    std::vector< Node > exp;
-    if( p1[1]!=p2[1] ){
-      Assert(areEqual(p1[1], p2[1]));
-      exp.push_back( p1[1].eqNode( p2[1] ) );
-    }
-    exp.push_back( p1 );
-    exp.push_back( p2 );
-    //enforces injectiveness of pto : (pto x y) ^ (pto y w) ^ x = y => y = w
-    sendLemma( exp, p1[0][1].eqNode( p2[0][1] ), InferenceId::SEP_PTO_PROP);
-  }
+  return ret;
 }
 
 void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer ) {

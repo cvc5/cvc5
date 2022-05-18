@@ -312,16 +312,6 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec);
 /** print rational approximation of cr with precision prec on trace c */
 void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
 
-/** Arithmetic substitute
- *
- * This computes the substitution n { subs }, but with the caveat
- * that subterms of n that belong to a theory other than arithmetic are
- * not traversed. In other words, terms that belong to other theories are
- * treated as atomic variables. For example:
- *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
- */
-Node arithSubstitute(Node n, const Subs& sub);
-
 /** Make the node u >= a ^ a >= l */
 Node mkBounded(Node l, Node a, Node u);
 

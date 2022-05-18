@@ -278,6 +278,11 @@ std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
   return decisions;
 }
 
+std::vector<Node> MinisatSatSolver::getOrderHeap() const
+{
+  return d_minisat->getMiniSatOrderHeap();
+}
+
 int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const
 {
   return d_minisat->level(v) + d_minisat->user_level(v);

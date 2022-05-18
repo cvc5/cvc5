@@ -787,7 +787,7 @@ class CVC5_EXPORT SolverEngine
    *
    * Note that the per-call timer only ticks away when one of the
    * SolverEngine's workhorse functions (things like assertFormula(),
-   * checkEntailed(), checkSat(), and simplify()) are running.
+   * checkSat(), and simplify()) are running.
    * Between calls, the timer is still.
    *
    * When an SolverEngine is first created, it has no time or resource

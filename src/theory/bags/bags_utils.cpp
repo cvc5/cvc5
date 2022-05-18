@@ -237,10 +237,10 @@ Node BagsUtils::constructConstantBagFromElements(
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Rational>::const_reverse_iterator it = elements.rbegin();
-  Node bag = nm->mkBag(elementType, it->first, nm->mkConstInt(it->second));
+  Node bag = nm->mkNode(BAG_MAKE, it->first, nm->mkConstInt(it->second));
   while (++it != elements.rend())
   {
-    Node n = nm->mkBag(elementType, it->first, nm->mkConstInt(it->second));
+    Node n = nm->mkNode(BAG_MAKE, it->first, nm->mkConstInt(it->second));
     bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
@@ -257,10 +257,10 @@ Node BagsUtils::constructBagFromElements(TypeNode t,
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Node>::const_reverse_iterator it = elements.rbegin();
-  Node bag = nm->mkBag(elementType, it->first, it->second);
+  Node bag = nm->mkNode(BAG_MAKE, it->first, it->second);
   while (++it != elements.rend())
   {
-    Node n = nm->mkBag(elementType, it->first, it->second);
+    Node n = nm->mkNode(BAG_MAKE, it->first, it->second);
     bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
@@ -745,7 +745,7 @@ Node BagsUtils::evaluateBagFilter(TNode n)
   for (const auto& [e, count] : elements)
   {
     Node multiplicity = nm->mkConstInt(count);
-    Node bag = nm->mkBag(bagType.getBagElementType(), e, multiplicity);
+    Node bag = nm->mkNode(BAG_MAKE, e, multiplicity);
     Node pOfe = nm->mkNode(APPLY_UF, P, e);
     Node ite = nm->mkNode(ITE, pOfe, bag, empty);
     bags.push_back(ite);
@@ -868,8 +868,7 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     std::vector<Node> bags;
     for (const Node& node : eqc)
     {
-      Node bag = nm->mkBag(
-          bagType.getBagElementType(), node, nm->mkConstInt(elements[node]));
+      Node bag = nm->mkNode(BAG_MAKE, node, nm->mkConstInt(elements[node]));
       bags.push_back(bag);
     }
     Node part = computeDisjointUnion(bagType, bags);
@@ -901,8 +900,8 @@ Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
   Node B = n[1];
   TypeNode typeA = A.getType().getBagElementType();
   TypeNode typeB = B.getType().getBagElementType();
-  Assert(e1.getType().isSubtypeOf(typeA));
-  Assert(e2.getType().isSubtypeOf(typeB));
+  Assert(e1.getType() == typeA);
+  Assert(e2.getType() == typeB);
 
   TypeNode productTupleType = n.getType().getBagElementType();
   Node tuple = TupleUtils::concatTuples(productTupleType, e1, e2);

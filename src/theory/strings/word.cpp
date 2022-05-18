@@ -124,6 +124,25 @@ std::vector<Node> Word::getChars(TNode x)
   return ret;
 }
 
+Node Word::getNth(TNode x, size_t n)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    const std::vector<unsigned>& vec = x.getConst<String>().getVec();
+    Assert(n < vec.size());
+    return NodeManager::currentNM()->mkConstInt(vec[n]);
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    const std::vector<Node>& vec = x.getConst<Sequence>().getVec();
+    Assert(n < vec.size());
+    return vec[n];
+  }
+  Unimplemented();
+  return Node::null();
+}
+
 bool Word::isEmpty(TNode x) { return x.isConst() && getLength(x) == 0; }
 
 bool Word::strncmp(TNode x, TNode y, std::size_t n)

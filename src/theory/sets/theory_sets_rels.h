@@ -180,7 +180,7 @@ class TheorySetsRels : protected EnvObj
 
   /** Helper functions */
   bool hasTerm( Node a );
-  void makeSharedTerm(Node, TypeNode t);
+  void makeSharedTerm(Node a);
   void reduceTupleVar( Node );
   bool hasMember( Node, Node );
   void computeTupleReps( Node );

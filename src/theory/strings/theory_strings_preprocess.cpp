@@ -513,7 +513,7 @@ Node StringsPreprocess::reduce(Node t,
     // nodes for the case where `seq.nth` is defined.
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
-    Node unit = nm->mkSeqUnit(t.getType(), skt);
+    Node unit = nm->mkNode(SEQ_UNIT, skt);
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
     // length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
