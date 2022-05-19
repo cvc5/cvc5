@@ -676,7 +676,8 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   }
   // compute the model core if necessary and not done so already
   const Options& opts = d_env->getOptions();
-  if (opts.smt.modelCoresMode != options::ModelCoresMode::NONE && !m->isUsingModelCore())
+  if (opts.smt.modelCoresMode != options::ModelCoresMode::NONE
+      && !m->isUsingModelCore())
   {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility. Notice that
