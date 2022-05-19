@@ -37,8 +37,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval)
-    : d_sygusEval(sygusEval)
+DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval, const Options& opts)
+    : d_sygusEval(sygusEval), d_opts(opts)
 {
 }
 
@@ -780,12 +780,11 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-Node DatatypesRewriter::expandApplySelector(Node n)
+Node DatatypesRewriter::expandApplySelector(Node n, bool useSharedSel)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
-  if (!options::dtSharedSelectors()
-      || !selector.hasAttribute(DTypeConsIndexAttr()))
+  if (!useSharedSel || !selector.hasAttribute(DTypeConsIndexAttr()))
   {
     return n;
   }
@@ -813,7 +812,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   {
     case kind::APPLY_SELECTOR:
     {
-      ret = expandApplySelector(n);
+      ret = expandApplySelector(n, d_opts.datatypes.dtSharedSelectors);
     }
     break;
     case APPLY_UPDATER:
