@@ -712,8 +712,8 @@ private:
   int getGuardStatus( Node g );
   /** Calls util::getSelector based on the value of options::dtShareSel */
   Node getSelectorInternal(TypeNode dtt,
-                   const DTypeConstructor& dc,
-                   size_t index) const;
+                           const DTypeConstructor& dc,
+                           size_t index) const;
 };
 
 }
