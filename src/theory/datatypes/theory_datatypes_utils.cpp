@@ -35,7 +35,7 @@ Node getSelector(TypeNode dtt,
   {
     return dc.getSharedSelector(dtt, index);
   }
-  return dc.getSelector(dtt, index);
+  return dc.getSelector(index);
 }
 
 Node applySelector(const DTypeConstructor& dc,

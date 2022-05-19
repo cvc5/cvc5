@@ -189,11 +189,9 @@ class DTypeConstructor
   /** get selector internal
    *
    * This gets the (unshared) selector for the index^th argument
-   * of this constructor. The type dtt is the datatype
-   * type whose datatype is the owner of this constructor,
-   * where this type may be an instantiated parametric datatype.
+   * of this constructor.
    */
-  Node getSelector(TypeNode dtt, size_t index) const;
+  Node getSelector(size_t index) const;
   /**
    * This returns a shared (constructor-agnotic) selector, which
    * in the terminology of "DTypes with Shared Selectors", is:

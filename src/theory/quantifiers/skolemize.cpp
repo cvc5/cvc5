@@ -166,7 +166,7 @@ void Skolemize::getSelfSel(const DType& dt,
       }
     }
     // do not use shared selectors
-    Node ss = nm->mkNode(APPLY_SELECTOR, dc.getSelector(n.getType(), j), n);
+    Node ss = nm->mkNode(APPLY_SELECTOR, dc.getSelector(j), n);
     if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
     {
       selfSel.push_back(ss);
