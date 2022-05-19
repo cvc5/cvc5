@@ -35,38 +35,6 @@ Constant Constant::mkConstant(const Rational& rat)
   return Constant(nm->mkConstRealOrInt(rat));
 }
 
-size_t Variable::getComplexity() const{
-  return 1u;
-}
-
-size_t VarList::getComplexity() const{
-  if(empty()){
-    return 1;
-  }else if(singleton()){
-    return 1;
-  }else{
-    return size() + 1;
-  }
-}
-
-size_t Monomial::getComplexity() const{
-  return getConstant().getComplexity() + getVarList().getComplexity();
-}
-
-size_t Polynomial::getComplexity() const{
-  size_t cmp = 0;
-  iterator i = begin(), e = end();
-  for(; i != e; ++i){
-    Monomial m = *i;
-    cmp += m.getComplexity();
-  }
-  return cmp;
-}
-
-size_t Constant::getComplexity() const{
-  return getValue().complexity();
-}
-
 bool Variable::isLeafMember(Node n){
   return (!isRelationOperator(n.getKind())) &&
     (Theory::isLeafOf(n, theory::THEORY_ARITH));
@@ -939,20 +907,6 @@ bool Comparison::rightIsConstant() const {
     k = getNode()[1].getKind();
   }
   return k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER;
-}
-
-size_t Comparison::getComplexity() const{
-  switch(comparisonKind()){
-  case kind::CONST_BOOLEAN: return 1;
-  case kind::LT:
-  case kind::LEQ:
-  case kind::DISTINCT:
-  case kind::EQUAL:
-  case kind::GT:
-  case kind::GEQ:
-    return getLeft().getComplexity() +  getRight().getComplexity();
-  default: Unhandled() << comparisonKind(); return -1;
-  }
 }
 
 Polynomial Comparison::getLeft() const {

@@ -58,19 +58,6 @@ std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream&, const CommandStatus&) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream&, const CommandStatus*) CVC5_EXPORT;
 
-/** The status an SMT benchmark can have */
-enum BenchmarkStatus
-{
-  /** Benchmark is satisfiable */
-  SMT_SATISFIABLE,
-  /** Benchmark is unsatisfiable */
-  SMT_UNSATISFIABLE,
-  /** The status of the benchmark is unknown */
-  SMT_UNKNOWN
-}; /* enum BenchmarkStatus */
-
-std::ostream& operator<<(std::ostream& out, BenchmarkStatus status) CVC5_EXPORT;
-
 /**
  * IOStream manipulator to print success messages or not.
  *

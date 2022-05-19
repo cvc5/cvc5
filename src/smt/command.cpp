@@ -124,21 +124,6 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   return out;
 }
 
-/* output stream insertion operator for benchmark statuses */
-std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
-{
-  switch (status)
-  {
-    case SMT_SATISFIABLE: return out << "sat";
-
-    case SMT_UNSATISFIABLE: return out << "unsat";
-
-    case SMT_UNKNOWN: return out << "unknown";
-
-    default: return out << "BenchmarkStatus::[UNKNOWNSTATUS!]";
-  }
-}
-
 /* -------------------------------------------------------------------------- */
 /* class CommandPrintSuccess                                                  */
 /* -------------------------------------------------------------------------- */

@@ -674,6 +674,20 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
           "check-sat was interrupted?";
     throw RecoverableModalException(ss.str().c_str());
   }
+  // compute the model core if necessary and not done so already
+  const Options& opts = d_env->getOptions();
+  if (opts.smt.modelCoresMode != options::ModelCoresMode::NONE
+      && !m->isUsingModelCore())
+  {
+    // If we enabled model cores, we compute a model core for m based on our
+    // (expanded) assertions using the model core builder utility. Notice that
+    // we get the assertions using the getAssertionsInternal, which does not
+    // impact whether we are in "sat" mode
+    std::vector<Node> asserts = getAssertionsInternal();
+    d_smtSolver->getPreprocessor()->expandDefinitions(asserts);
+    ModelCoreBuilder mcb(*d_env.get());
+    mcb.setModelCore(asserts, m, opts.smt.modelCoresMode);
+  }
 
   return m;
 }
@@ -1092,18 +1106,6 @@ bool SolverEngine::isModelCoreSymbol(Node n)
     return true;
   }
   TheoryModel* tm = getAvailableModel("isModelCoreSymbol");
-  // compute the model core if not done so already
-  if (!tm->isUsingModelCore())
-  {
-    // If we enabled model cores, we compute a model core for m based on our
-    // (expanded) assertions using the model core builder utility. Notice that
-    // we get the assertions using the getAssertionsInternal, which does not
-    // impact whether we are in "sat" mode
-    std::vector<Node> asserts = getAssertionsInternal();
-    d_smtSolver->getPreprocessor()->expandDefinitions(asserts);
-    ModelCoreBuilder mcb(*d_env.get());
-    mcb.setModelCore(asserts, tm, opts.smt.modelCoresMode);
-  }
   return tm->isModelCoreSymbol(n);
 }
 
@@ -1214,7 +1216,7 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
   return std::make_pair(heap, nil);
 }
 
-std::vector<Node> SolverEngine::getAssertionsInternal()
+std::vector<Node> SolverEngine::getAssertionsInternal() const
 {
   Assert(d_state->isFullyInited());
   const CDList<Node>& al = d_asserts->getAssertionList();
