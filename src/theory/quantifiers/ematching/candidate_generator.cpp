@@ -26,6 +26,8 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "options/datatypes_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -34,8 +36,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
-    : d_qs(qs), d_treg(tr)
+CandidateGenerator::CandidateGenerator(Env& env, QuantifiersState& qs, TermRegistry& tr)
+    : EnvObj(env), d_qs(qs), d_treg(tr)
 {
 }
 
@@ -44,10 +46,10 @@ bool CandidateGenerator::isLegalCandidate( Node n ){
          && !quantifiers::TermUtil::hasInstConstAttr(n);
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
+CandidateGeneratorQE::CandidateGeneratorQE(Env& env,QuantifiersState& qs,
                                            TermRegistry& tr,
                                            Node pat)
-    : CandidateGenerator(qs, tr),
+    : CandidateGenerator(env, qs, tr),
       d_termIter(0),
       d_termIterList(nullptr),
       d_mode(cand_term_none)
@@ -156,10 +158,10 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
   return Node::null();
 }
 
-CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(QuantifiersState& qs,
+CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(Env& env,QuantifiersState& qs,
                                                        TermRegistry& tr,
                                                        Node mpat)
-    : CandidateGenerator(qs, tr), d_match_pattern(mpat)
+    : CandidateGenerator(env, qs, tr), d_match_pattern(mpat)
 {
   Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
@@ -189,10 +191,10 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
   return Node::null();
 }
 
-CandidateGeneratorQEAll::CandidateGeneratorQEAll(QuantifiersState& qs,
+CandidateGeneratorQEAll::CandidateGeneratorQEAll(Env& env,QuantifiersState& qs,
                                                  TermRegistry& tr,
                                                  Node mpat)
-    : CandidateGenerator(qs, tr), d_match_pattern(mpat)
+    : CandidateGenerator(env, qs, tr), d_match_pattern(mpat)
 {
   d_match_pattern_type = mpat.getType();
   Assert(mpat.getKind() == INST_CONSTANT);
@@ -240,10 +242,10 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   return Node::null();
 }
 
-CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(QuantifiersState& qs,
+CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(Env& env,QuantifiersState& qs,
                                                            TermRegistry& tr,
                                                            Node mpat)
-    : CandidateGeneratorQE(qs, tr, mpat)
+    : CandidateGeneratorQE(env, qs, tr, mpat)
 {
   Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
   d_mpat_type = mpat.getType();
@@ -283,18 +285,10 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
     return curr;
   }
   // expand it
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   const DType& dt = d_mpat_type.getDType();
   Assert(dt.getNumConstructors() == 1);
-  children.push_back(d_op);
-  for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
-  {
-    Node sel = nm->mkNode(
-        APPLY_SELECTOR, dt[0].getSelectorInternal(d_mpat_type, i), curr);
-    children.push_back(sel);
-  }
-  return nm->mkNode(APPLY_CONSTRUCTOR, children);
+  return datatypes::utils::getInstCons(curr, dt, 0, options().datatypes.dtSharedSelectors);
 }
 
 bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
@@ -302,18 +296,17 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
   return isLegalCandidate(n);
 }
 
-CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
+CandidateGeneratorSelector::CandidateGeneratorSelector(Env& env,QuantifiersState& qs,
                                                        TermRegistry& tr,
-                                                       Node mpat,
-                                                       bool useSharedSel)
-    : CandidateGeneratorQE(qs, tr, mpat)
+                                                       Node mpat)
+    : CandidateGeneratorQE(env, qs, tr, mpat)
 {
   Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
   Assert(mpat.getKind() == APPLY_SELECTOR);
   // Get the expanded form of the selector, meaning that we will match on
   // the shared selector if shared selectors are enabled.
   Node mpatExp =
-      datatypes::DatatypesRewriter::expandApplySelector(mpat, useSharedSel);
+      datatypes::DatatypesRewriter::expandApplySelector(mpat, options().datatypes.dtSharedSelectors);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   Assert (mpatExp.getKind() == APPLY_SELECTOR);
   d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);

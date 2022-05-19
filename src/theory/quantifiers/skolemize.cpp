@@ -152,28 +152,26 @@ void Skolemize::getSelfSel(const DType& dt,
     {
       Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn
                             << std::endl;
-      if (tspec[j] == ntn)
+      if (tspec[j] != ntn)
       {
-        ssc.push_back(n);
+        continue;
       }
     }
     else
     {
       TypeNode tn = dc[j].getRangeType();
       Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
-      if (tn == ntn)
+      if (tn != ntn)
       {
-        ssc.push_back(n);
+        continue;
       }
     }
-    for (unsigned k = 0; k < ssc.size(); k++)
+    // do not use shared selectors
+    Node ss =
+        nm->mkNode(APPLY_SELECTOR, dc.getSelector(n.getType(), j), n);
+    if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
     {
-      Node ss =
-          nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(n.getType(), j), n);
-      if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
-      {
-        selfSel.push_back(ss);
-      }
+      selfSel.push_back(ss);
     }
   }
 }

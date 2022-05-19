@@ -52,7 +52,6 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
   Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
                           << std::endl;
   // look in equivalence class for a constructor
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned k = 0, size = eqc.size(); k < size; k++)
   {
     Node n = eqc[k];
@@ -145,15 +144,14 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
     }
     else
     {
-      NodeManager* nm = NodeManager::currentNM();
       unsigned cindex = DType::indexOf(a.getOperator());
       TypeNode tn = a.getType();
       const DType& dt = tn.getDType();
       bool shareSel = options().datatypes.dtSharedSelectors;
       Node val = datatypes::utils::getInstCons(sb, dt, cindex, shareSel);
-      for (const Node& nn : val)
+      for (size_t i=0, nchild = val.getNumChildren(); i<nchild; i++)
       {
-        Node s = solve_dt(v, a[i], Node::null(), sa[i], nn);
+        Node s = solve_dt(v, a[i], Node::null(), sa[i], val[i]);
         if (!s.isNull())
         {
           return s;

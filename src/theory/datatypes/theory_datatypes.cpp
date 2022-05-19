@@ -64,7 +64,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
-      d_checker(env.getOptions().datatypes.dtSharedSel),
+      d_checker(env.getOptions().datatypes.dtSharedSelectors),
       d_cpacb(*this)
 {
 
@@ -1007,7 +1007,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   std::map< TypeNode, int > typ_enum_map;
   std::vector< TypeEnumerator > typ_enum;
   size_t index = 0;
-  bool shareSel = options().datatypes.dtSharedSel;
+  bool shareSel = options().datatypes.dtSharedSelectors;
   while ( index<nodes.size() )
   {
     Node eqc = nodes[index];
@@ -1186,7 +1186,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   }
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
-  Node n_ic = utils::getInstCons(k, dt, index);
+  Node n_ic = utils::getInstCons(k, dt, index, options().datatypes.dtSharedSelectors);
   Assert (n_ic == rewrite(n_ic));
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
