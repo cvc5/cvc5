@@ -19,7 +19,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace cvc5::internal;
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -39,13 +38,22 @@ Node getSelector(TypeNode dtt,
   return dc.getSelector(dtt, index);
 }
 
+Node applySelector(const DTypeConstructor& dc,
+                 size_t index,
+                 bool shareSel,
+                 const Node& n)
+{
+  Node s = getSelector(n.getType(), dc, index, shareSel);
+  return NodeManager::currentNM()->mkNode(APPLY_SELECTOR, s, n);
+}
+
 Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
 {
   Assert(index < dt.getNumConstructors());
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
-  for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
+  for (size_t i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
     Node nc =
         nm->mkNode(APPLY_SELECTOR, getSelector(tn, dt[index], i, shareSel), n);

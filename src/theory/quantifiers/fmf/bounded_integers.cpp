@@ -781,7 +781,6 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    NodeManager* nm = NodeManager::currentNM();
     const DType& dt = datatypes::utils::datatypeOf(t.getOperator());
     unsigned index = datatypes::utils::indexOf(t.getOperator());
     bool sharedSel = options().datatypes.dtSharedSelectors;
@@ -790,9 +789,7 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node sel =
-            datatypes::utils::getSelector(e.getType(), dt[index], i, sharedSel);
-        Node se = nm->mkNode(APPLY_SELECTOR, sel, e);
+        Node se = datatypes::utils::applySelector(dt[index], i, sharedSel, e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){

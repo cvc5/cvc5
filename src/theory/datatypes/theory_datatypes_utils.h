@@ -37,6 +37,14 @@ Node getSelector(TypeNode dtt,
                  const DTypeConstructor& dc,
                  size_t index,
                  bool shareSel);
+/**
+ * Apply the indext^th selector of datatype constructor dc to term n. If
+ * shareSel is true, we use the shared selector of dc.
+ */
+Node applySelector(const DTypeConstructor& dc,
+                 size_t index,
+                 bool shareSel,
+                const Node& n);
 
 /** get instantiate cons
  *
