@@ -147,7 +147,6 @@ void Skolemize::getSelfSel(const DType& dt,
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
-    std::vector<Node> ssc;
     if (dt.isParametric())
     {
       Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn

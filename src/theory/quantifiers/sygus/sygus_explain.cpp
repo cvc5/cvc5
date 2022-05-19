@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "smt/logic_exception.h"
+#include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_invariance.h"
@@ -152,7 +153,7 @@ void SygusExplain::getExplanationForEquality(Node n,
   Node tst = datatypes::utils::mkTester(n, i, dt);
   exp.push_back(tst);
   bool shareSel = options().datatypes.dtSharedSelectors;
-  for (size_t j = 0, nvc = vn.getNumChildren(); j < vnc; j++)
+  for (size_t j = 0, vnc = vn.getNumChildren(); j < vnc; j++)
   {
     if (cexc.find(j) == cexc.end())
     {
