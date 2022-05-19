@@ -1,3 +1,5 @@
+; COMMAND-LINE: --use-soi
+; EXPECT: unsat
 (set-option :incremental false)
 (set-info :source "Fully parameterized specification and verification of a synchronizer   
 circuit modeling metastability at various levels of refinement.     
