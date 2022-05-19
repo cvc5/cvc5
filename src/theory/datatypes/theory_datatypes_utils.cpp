@@ -27,8 +27,17 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
+Node getSelector(TypeNode dtt, const DTypeConstructor& dc, size_t index, bool shareSel)
+{
+  if (shareSel)
+  {
+    return dc.getSharedSelector(dtt, index);
+  }
+  return dc.getSelector(dtt, index);
+}
+
 /** get instantiate cons */
-Node getInstCons(Node n, const DType& dt, size_t index)
+Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
 {
   Assert(index < dt.getNumConstructors());
   std::vector<Node> children;
@@ -37,12 +46,11 @@ Node getInstCons(Node n, const DType& dt, size_t index)
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
     Node nc =
-        nm->mkNode(APPLY_SELECTOR, dt[index].getSelectorInternal(tn, i), n);
+        nm->mkNode(APPLY_SELECTOR, getSelector(dt[index], tn, i, shareSel), n);
     children.push_back(nc);
   }
   Node n_ic = mkApplyCons(tn, dt, index, children);
   Assert(n_ic.getType() == tn);
-  Assert(static_cast<size_t>(isInstCons(n, n_ic, dt)) == index);
   return n_ic;
 }
 
@@ -66,26 +74,6 @@ Node mkApplyCons(TypeNode tn,
     cchildren[0] = dt[index].getInstantiatedConstructor(tn);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, cchildren);
-}
-
-int isInstCons(Node t, Node n, const DType& dt)
-{
-  if (n.getKind() == APPLY_CONSTRUCTOR)
-  {
-    int index = indexOf(n.getOperator());
-    const DTypeConstructor& c = dt[index];
-    TypeNode tn = n.getType();
-    for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
-    {
-      if (n[i].getKind() != APPLY_SELECTOR
-          || n[i].getOperator() != c.getSelectorInternal(tn, i) || n[i][0] != t)
-      {
-        return -1;
-      }
-    }
-    return index;
-  }
-  return -1;
 }
 
 int isTester(Node n, Node& a)

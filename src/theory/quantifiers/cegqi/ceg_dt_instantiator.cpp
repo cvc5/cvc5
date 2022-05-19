@@ -64,14 +64,12 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       const DType& dt = d_type.getDType();
       unsigned cindex = datatypes::utils::indexOf(n.getOperator());
       // now must solve for selectors applied to pv
-      for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
+      bool shareSel = options().datatypes.dtSharedSelectors;
+      Node val = datatypes::utils::getInstCons(pv, dt, cindex, shareSel);
+      for (const Node& c : val)
       {
-        Node c = nm->mkNode(
-            APPLY_SELECTOR, dt[cindex].getSelectorInternal(d_type, j), pv);
         ci->pushStackVariable(c);
-        children.push_back(c);
       }
-      Node val = nm->mkNode(kind::APPLY_CONSTRUCTOR, children);
       TermProperties pv_prop_dt;
       if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
       {
@@ -150,10 +148,10 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       unsigned cindex = DType::indexOf(a.getOperator());
       TypeNode tn = a.getType();
       const DType& dt = tn.getDType();
-      for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)
+      bool shareSel = options().datatypes.dtSharedSelectors;
+      Node val = datatypes::utils::getInstCons(sb, dt, cindex, shareSel);
+      for (const Node& nn : val)
       {
-        Node nn = nm->mkNode(
-            APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), sb);
         Node s = solve_dt(v, a[i], Node::null(), sa[i], nn);
         if (!s.isNull())
         {
