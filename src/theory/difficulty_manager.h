@@ -21,8 +21,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/valuation.h"
 #include "smt/env_obj.h"
+#include "theory/valuation.h"
 
 namespace cvc5::internal {
 namespace theory {

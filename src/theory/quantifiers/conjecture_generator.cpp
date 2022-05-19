@@ -916,7 +916,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
           Node lhs = d_waiting_conjectures_lhs[i];
           Node rhs = d_waiting_conjectures_rhs[i];
           if (getUniversalRepresentative(lhs) != lhs
-                  || getUniversalRepresentative(rhs) != rhs)
+              || getUniversalRepresentative(rhs) != rhs)
           {
             //skip
           }
@@ -1281,37 +1281,57 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
     Trace("sg-cconj-debug") << "  -> trivial." << std::endl;
     return -1;
   }
-  if( lhs.getKind()==APPLY_CONSTRUCTOR && rhs.getKind()==APPLY_CONSTRUCTOR ){
-    Trace("sg-cconj-debug") << "  -> irrelevant by syntactic analysis." << std::endl;
+  if (lhs.getKind() == APPLY_CONSTRUCTOR && rhs.getKind() == APPLY_CONSTRUCTOR)
+  {
+    Trace("sg-cconj-debug")
+        << "  -> irrelevant by syntactic analysis." << std::endl;
     return -1;
   }
-  //variables of LHS must subsume variables of RHS
-  for( std::pair< const TypeNode, unsigned >& p : d_pattern_var_id[rhs]){
-    std::map< TypeNode, unsigned >::iterator itl = d_pattern_var_id[lhs].find( p.first );
-    if( itl==d_pattern_var_id[lhs].end() ){
-      Trace("sg-cconj-debug") << "  -> has no variables of sort " << p.first << "." << std::endl;
+  // variables of LHS must subsume variables of RHS
+  for (std::pair<const TypeNode, unsigned>& p : d_pattern_var_id[rhs])
+  {
+    std::map<TypeNode, unsigned>::iterator itl =
+        d_pattern_var_id[lhs].find(p.first);
+    if (itl == d_pattern_var_id[lhs].end())
+    {
+      Trace("sg-cconj-debug")
+          << "  -> has no variables of sort " << p.first << "." << std::endl;
       return -1;
     }
-    if( itl->second<p.second ){
-      Trace("sg-cconj-debug") << "  -> variables of sort " << p.first << " are not subsumed." << std::endl;
+    if (itl->second < p.second)
+    {
+      Trace("sg-cconj-debug") << "  -> variables of sort " << p.first
+                              << " are not subsumed." << std::endl;
       return -1;
     }
-    Trace("sg-cconj-debug2") << "  variables of sort " << p.first << " are : " << itl->second << " vs " << p.second << std::endl;
+    Trace("sg-cconj-debug2")
+        << "  variables of sort " << p.first << " are : " << itl->second
+        << " vs " << p.second << std::endl;
   }
 
-  //currently active conjecture?
-  std::map< Node, std::vector< Node > >::iterator iteq = d_eq_conjectures.find( lhs );
-  if( iteq!=d_eq_conjectures.end() ){
-    if( std::find( iteq->second.begin(), iteq->second.end(), rhs )!=iteq->second.end() ){
-      Trace("sg-cconj-debug") << "  -> this conjecture is already active." << std::endl;
+  // currently active conjecture?
+  std::map<Node, std::vector<Node> >::iterator iteq =
+      d_eq_conjectures.find(lhs);
+  if (iteq != d_eq_conjectures.end())
+  {
+    if (std::find(iteq->second.begin(), iteq->second.end(), rhs)
+        != iteq->second.end())
+    {
+      Trace("sg-cconj-debug")
+          << "  -> this conjecture is already active." << std::endl;
       return -1;
     }
   }
-  //current a waiting conjecture?
-  std::map< Node, std::vector< Node > >::iterator itw = d_waiting_conjectures.find( lhs );
-  if( itw!=d_waiting_conjectures.end() ){
-    if( std::find( itw->second.begin(), itw->second.end(), rhs )!=itw->second.end() ){
-      Trace("sg-cconj-debug") << "  -> already are considering this conjecture." << std::endl;
+  // current a waiting conjecture?
+  std::map<Node, std::vector<Node> >::iterator itw =
+      d_waiting_conjectures.find(lhs);
+  if (itw != d_waiting_conjectures.end())
+  {
+    if (std::find(itw->second.begin(), itw->second.end(), rhs)
+        != itw->second.end())
+    {
+      Trace("sg-cconj-debug")
+          << "  -> already are considering this conjecture." << std::endl;
       return -1;
     }
   }
@@ -1319,41 +1339,55 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
   size_t score;
   bool scoreSet = false;
 
-  Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
-  //find witness for counterexample, if possible
+  Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs
+                    << " == " << rhs << "?" << std::endl;
+  // find witness for counterexample, if possible
   Assert(d_rel_pattern_var_sum.find(lhs) != d_rel_pattern_var_sum.end());
-  Trace("sg-cconj-debug") << "Notify substitutions over " << d_rel_pattern_var_sum[lhs] << " variables." << std::endl;
-  std::map< TNode, TNode > subs;
+  Trace("sg-cconj-debug") << "Notify substitutions over "
+                          << d_rel_pattern_var_sum[lhs] << " variables."
+                          << std::endl;
+  std::map<TNode, TNode> subs;
   d_subs_confirmCount = 0;
   d_subs_confirmWitnessRange.clear();
   d_subs_confirmWitnessDomain.clear();
   d_subs_unkCount = 0;
-  if( !d_rel_pattern_subs_index[lhs].notifySubstitutions( this, subs, rhs, d_rel_pattern_var_sum[lhs] ) ){
-    Trace("sg-cconj") << "  -> found witness that falsifies the conjecture." << std::endl;
+  if (!d_rel_pattern_subs_index[lhs].notifySubstitutions(
+          this, subs, rhs, d_rel_pattern_var_sum[lhs]))
+  {
+    Trace("sg-cconj") << "  -> found witness that falsifies the conjecture."
+                      << std::endl;
     return -1;
   }
-  //score is the minimum number of distinct substitutions for a variable
-  for( std::pair< const TNode, std::vector< TNode > >& w : d_subs_confirmWitnessDomain){
+  // score is the minimum number of distinct substitutions for a variable
+  for (std::pair<const TNode, std::vector<TNode> >& w :
+       d_subs_confirmWitnessDomain)
+  {
     size_t num = w.second.size();
-    if( !scoreSet || num<score ){
+    if (!scoreSet || num < score)
+    {
       score = num;
       scoreSet = true;
     }
   }
-  if( !scoreSet ){
+  if (!scoreSet)
+  {
     score = 0;
   }
   if (TraceIsOn("sg-cconj"))
   {
-    Trace("sg-cconj") << "     confirmed = " << d_subs_confirmCount << ", #witnesses range = " << d_subs_confirmWitnessRange.size() << "." << std::endl;
-    for( std::pair< const TNode, std::vector< TNode > >& w : d_subs_confirmWitnessDomain){
-      Trace("sg-cconj") << "     #witnesses for " << w.first << " : " << w.second.size() << std::endl;
+    Trace("sg-cconj") << "     confirmed = " << d_subs_confirmCount
+                      << ", #witnesses range = "
+                      << d_subs_confirmWitnessRange.size() << "." << std::endl;
+    for (std::pair<const TNode, std::vector<TNode> >& w :
+         d_subs_confirmWitnessDomain)
+    {
+      Trace("sg-cconj") << "     #witnesses for " << w.first << " : "
+                        << w.second.size() << std::endl;
     }
     Trace("sg-cconj") << "  -> SUCCESS." << std::endl;
     Trace("sg-cconj") << "     score : " << score << std::endl;
   }
   return static_cast<int>(score);
-
 }
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
@@ -2033,14 +2067,16 @@ bool TermGenEnv::considerCurrentTerm() {
       Trace("sg-gen-tg-debug") << std::endl;
     }
     // filter based active terms
-    if(d_ccand_eqc[0][i].empty() ){
+    if (d_ccand_eqc[0][i].empty())
+    {
       Trace("sg-gen-consider-term") << "Do not consider term of form ";
       d_tg_alloc[0].debugPrint( this, "sg-gen-consider-term", "sg-gen-consider-term-debug" );
       Trace("sg-gen-consider-term") << " since no relevant EQC matches it." << std::endl;
       return false;
     }
     // filter based on model
-    if(d_ccand_eqc[1][i].empty() ){
+    if (d_ccand_eqc[1][i].empty())
+    {
       Trace("sg-gen-consider-term") << "Do not consider term of form ";
       d_tg_alloc[0].debugPrint( this, "sg-gen-consider-term", "sg-gen-consider-term-debug" );
       Trace("sg-gen-consider-term") << " since no ground EQC matches it." << std::endl;
@@ -2073,14 +2109,14 @@ void TermGenEnv::changeContext( bool add ) {
 bool TermGenEnv::considerCurrentTermCanon( unsigned tg_id ){
   Assert(tg_id < d_tg_alloc.size());
   // filter based on canonical
-  //check based on a canonicity of the term (if there is one)
+  // check based on a canonicity of the term (if there is one)
   Trace("sg-gen-tg-debug") << "Consider term canon ";
-  d_tg_alloc[0].debugPrint( this, "sg-gen-tg-debug", "sg-gen-tg-debug" );
+  d_tg_alloc[0].debugPrint(this, "sg-gen-tg-debug", "sg-gen-tg-debug");
   Trace("sg-gen-tg-debug") << ", tg is [" << tg_id << "]..." << std::endl;
 
-  Node ln = d_tg_alloc[tg_id].getTerm( this );
+  Node ln = d_tg_alloc[tg_id].getTerm(this);
   Trace("sg-gen-tg-debug") << "Term is " << ln << std::endl;
-  return d_cg->considerTermCanon( ln, d_gen_relevant_terms );
+  return d_cg->considerTermCanon(ln, d_gen_relevant_terms);
 }
 
 bool TermGenEnv::isRelevantFunc( Node f ) {

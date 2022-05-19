@@ -26,9 +26,14 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-DifficultyManager::DifficultyManager(Env& env, RelevanceManager* rlv,
+DifficultyManager::DifficultyManager(Env& env,
+                                     RelevanceManager* rlv,
                                      Valuation val)
-    : EnvObj(env), d_rlv(rlv), d_input(userContext()), d_val(val), d_dfmap(userContext())
+    : EnvObj(env),
+      d_rlv(rlv),
+      d_input(userContext()),
+      d_val(val),
+      d_dfmap(userContext())
 {
 }
 
@@ -54,11 +59,13 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
   // compute if we should consider the lemma
   bool considerLemma = false;
-  if (options().smt.difficultyMode == options::DifficultyMode::LEMMA_LITERAL_ALL)
+  if (options().smt.difficultyMode
+      == options::DifficultyMode::LEMMA_LITERAL_ALL)
   {
     considerLemma = true;
   }
-  else if (options().smt.difficultyMode == options::DifficultyMode::LEMMA_LITERAL)
+  else if (options().smt.difficultyMode
+           == options::DifficultyMode::LEMMA_LITERAL)
   {
     considerLemma = inFullEffortCheck;
   }
