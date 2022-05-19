@@ -24,12 +24,11 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace cvc5::internal::kind;
-using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
+  
 void TermRecBuild::addTerm(Node n)
 {
   d_term.push_back(n);
@@ -116,6 +115,8 @@ Node TermRecBuild::build(unsigned d)
   return NodeManager::currentNM()->mkNode(d_kind[d], children);
 }
 
+SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb) {}
+
 void SygusExplain::getExplanationForEquality(Node n,
                                              Node vn,
                                              std::vector<Node>& exp)
@@ -148,12 +149,12 @@ void SygusExplain::getExplanationForEquality(Node n,
   int i = datatypes::utils::indexOf(vn.getOperator());
   Node tst = datatypes::utils::mkTester(n, i, dt);
   exp.push_back(tst);
-  for (unsigned j = 0; j < vn.getNumChildren(); j++)
+  bool shareSel = options().datatypes.dtSharedSelectors;
+  for (size_t j = 0, nvc = vn.getNumChildren(); j < vnc; j++)
   {
     if (cexc.find(j) == cexc.end())
     {
-      // FIXME
-      Node sel = datatypes::utils::applySelector(dt[i], j, false, n);
+      Node sel = datatypes::utils::applySelector(dt[i], j, shareSel, n);
       getExplanationForEquality(sel, vn[j], exp);
     }
   }
@@ -246,10 +247,10 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
       vnr_exp = NodeManager::currentNM()->mkConst(true);
     }
   }
-  for (size_t i = 0, vnchild = vn.getNumChildren(); i < vnchild; i++)
+  bool shareSel = options().datatypes.dtSharedSelectors;
+  for (size_t i = 0, vnc = vn.getNumChildren(); i < vnc; i++)
   {
-    // FIXME
-    Node sel = datatypes::utils::applySelector(dt[cindex], i, false, n);
+    Node sel = datatypes::utils::applySelector(dt[cindex], i, shareSel, n);
     Node vnr_c = vnr.isNull() ? vnr : (vn[i] == vnr[i] ? Node::null() : vnr[i]);
     if (cexc.find(i) == cexc.end())
     {

@@ -54,7 +54,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
     : EnvObj(env),
       d_qstate(qs),
-      d_syexp(new SygusExplain(this)),
+      d_syexp(new SygusExplain(env, this)),
       d_funDefEval(new FunDefEvaluator(env)),
       d_eval_unfold(new SygusEvalUnfold(env, this)),
       d_ochecker(oc)

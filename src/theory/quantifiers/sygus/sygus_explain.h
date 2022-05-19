@@ -140,10 +140,10 @@ class TermRecBuild
  *   [[exp]]_n = (plus w y)
  * where w is a fresh variable.
  */
-class SygusExplain
+class SygusExplain : protected EnvObj
 {
  public:
-  SygusExplain(TermDbSygus* tdb) : d_tdb(tdb) {}
+  SygusExplain(Env& env, TermDbSygus* tdb);
   ~SygusExplain() {}
   /** get explanation for equality
    *
