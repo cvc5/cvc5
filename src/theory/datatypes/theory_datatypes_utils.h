@@ -33,7 +33,10 @@ namespace utils {
  * Get the index^th selector of datatype constructor dc whose type is dtt. If
  * shareSel is true, this returns the shared selector of dc.
  */
-Node getSelector(TypeNode dtt, const DTypeConstructor& dc, size_t index, bool shareSel);
+Node getSelector(TypeNode dtt,
+                 const DTypeConstructor& dc,
+                 size_t index,
+                 bool shareSel);
 
 /** get instantiate cons
  *

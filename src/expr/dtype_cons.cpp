@@ -240,8 +240,7 @@ TypeNode DTypeConstructor::getArgType(size_t index) const
   return (*this)[index].getType().getDatatypeSelectorRangeType();
 }
 
-Node DTypeConstructor::getSelector(TypeNode domainType,
-                                           size_t index) const
+Node DTypeConstructor::getSelector(TypeNode domainType, size_t index) const
 {
   Assert(isResolved());
   Assert(index < getNumArgs());
@@ -249,7 +248,7 @@ Node DTypeConstructor::getSelector(TypeNode domainType,
 }
 
 Node DTypeConstructor::getSharedSelector(TypeNode domainType,
-                                           size_t index) const
+                                         size_t index) const
 {
   Assert(isResolved());
   Assert(index < getNumArgs());

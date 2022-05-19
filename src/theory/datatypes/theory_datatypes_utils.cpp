@@ -27,7 +27,10 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
-Node getSelector(TypeNode dtt, const DTypeConstructor& dc, size_t index, bool shareSel)
+Node getSelector(TypeNode dtt,
+                 const DTypeConstructor& dc,
+                 size_t index,
+                 bool shareSel)
 {
   if (shareSel)
   {
