@@ -42,9 +42,9 @@ Node getSelector(TypeNode dtt,
  * shareSel is true, we use the shared selector of dc.
  */
 Node applySelector(const DTypeConstructor& dc,
-                 size_t index,
-                 bool shareSel,
-                const Node& n);
+                   size_t index,
+                   bool shareSel,
+                   const Node& n);
 
 /** get instantiate cons
  *

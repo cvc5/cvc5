@@ -39,9 +39,9 @@ Node getSelector(TypeNode dtt,
 }
 
 Node applySelector(const DTypeConstructor& dc,
-                 size_t index,
-                 bool shareSel,
-                 const Node& n)
+                   size_t index,
+                   bool shareSel,
+                   const Node& n)
 {
   Node s = getSelector(n.getType(), dc, index, shareSel);
   return NodeManager::currentNM()->mkNode(APPLY_SELECTOR, s, n);
