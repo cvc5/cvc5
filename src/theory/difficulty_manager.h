@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -33,13 +34,13 @@ class RelevanceManager;
  * Difficulty manager, which tracks an estimate of the difficulty of each
  * preprocessed assertion during solving.
  */
-class DifficultyManager
+class DifficultyManager : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(RelevanceManager* rlv, context::Context* c, Valuation val);
+  DifficultyManager(Env& env, RelevanceManager* rlv, Valuation val);
   /** Notify input assertions */
   void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
