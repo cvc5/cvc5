@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --produce-models --model-cores=simple
-; COMMAND-LINE: --produce-models --model-core=non-implied
+; COMMAND-LINE: --produce-models --model-cores=non-implied
+; SCRUBBER: grep -E '\('
 ; EXPECT: sat
 (set-logic QF_UFLIA)
 (declare-fun x () Int)
@@ -9,3 +10,4 @@
 (assert (= (f x) 0))
 (assert (or (> z 5) (> y 5)))
 (check-sat)
+(get-model)
