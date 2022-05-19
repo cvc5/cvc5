@@ -28,7 +28,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-  
+
 void TermRecBuild::addTerm(Node n)
 {
   d_term.push_back(n);
@@ -115,7 +115,9 @@ Node TermRecBuild::build(unsigned d)
   return NodeManager::currentNM()->mkNode(d_kind[d], children);
 }
 
-SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb) {}
+SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb)
+{
+}
 
 void SygusExplain::getExplanationForEquality(Node n,
                                              Node vn,
