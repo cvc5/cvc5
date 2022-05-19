@@ -25,7 +25,8 @@
 #include "expr/node.h"
 
 namespace cvc5::internal {
-
+namespace preprocessing {
+  
 /**
  * A class to contain a number of useful functions for simple
  * simplification of nodes.  One never uses it as an object (and
@@ -221,6 +222,7 @@ class BooleanSimplification {
 
 };/* class BooleanSimplification */
 
+}
 }  // namespace cvc5::internal
 
 #endif /* CVC5__BOOLEAN_SIMPLIFICATION_H */
