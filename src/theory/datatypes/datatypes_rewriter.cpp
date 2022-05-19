@@ -780,7 +780,7 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-Node DatatypesRewriter::expandApplySelector(Node n, bool useSharedSel)
+Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
@@ -797,7 +797,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool useSharedSel)
   size_t selectorIndex = utils::indexOf(selector);
   Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
   Assert(selectorIndex < c.getNumArgs());
-  Node selector_use = c.getSelectorInternal(ndt, selectorIndex);
+  Node selector_use = utils::getSelector(c, ndt, selectorIndex, true);
   NodeManager* nm = NodeManager::currentNM();
   Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
   return sel;
@@ -844,7 +844,8 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
         else
         {
-          b << nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
+          Node sel = utils::getSelector(tn, dc, i, d_opts.datatypes.dtSharedSelectors);
+          b << nm->mkNode(APPLY_SELECTOR, sel, n[0]);
         }
       }
       ret = b;

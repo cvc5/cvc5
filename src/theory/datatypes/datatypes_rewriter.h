@@ -68,13 +68,13 @@ class DatatypesRewriter : public TheoryRewriter
    *   (APPLY_SELECTOR selC x)
    * its expanded form is
    *   (APPLY_SELECTOR selC' x)
-   * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
-   * internal selector function for selC (possibly a shared selector).
+   * where selC' is the internal selector function for selC (a shared selector
+   * if sharedSel is true).
    * Note that we do not introduce an uninterpreted function here, e.g. to
    * handle when the selector is misapplied. This is because it suffices to
    * reason about the original selector term e.g. via congruence.
    */
-  static Node expandApplySelector(Node n, bool useSharedSel);
+  static Node expandApplySelector(Node n, bool sharedSel);
   /**
    * Expand a match term into its definition.
    * For example
