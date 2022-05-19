@@ -13,7 +13,7 @@
  * Simple, commonly-used routines for Boolean simplification.
  */
 
-#include "smt_util/boolean_simplification.h"
+#include "preprocessing/util/boolean_simplification.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
