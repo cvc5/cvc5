@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --sygus-query-gen=unsat --sygus-abort-size=2
+; COMMAND-LINE: --sygus-query-gen=sample-sat --sygus-abort-size=2
+; COMMAND-LINE: --sygus-query-gen=basic --sygus-abort-size=2
 ; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(query)'
 ; EXIT: 1
