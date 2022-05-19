@@ -19,6 +19,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "options/datatypes_options.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

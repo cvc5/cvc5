@@ -39,7 +39,6 @@ Node getSelector(TypeNode dtt,
   return dc.getSelector(dtt, index);
 }
 
-/** get instantiate cons */
 Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
 {
   Assert(index < dt.getNumConstructors());
@@ -49,7 +48,7 @@ Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
     Node nc =
-        nm->mkNode(APPLY_SELECTOR, getSelector(dt[index], tn, i, shareSel), n);
+        nm->mkNode(APPLY_SELECTOR, getSelector(tn, dt[index], i, shareSel), n);
     children.push_back(nc);
   }
   Node n_ic = mkApplyCons(tn, dt, index, children);

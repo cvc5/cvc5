@@ -784,7 +784,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
-  if (!useSharedSel || !selector.hasAttribute(DTypeConsIndexAttr()))
+  if (!sharedSel || !selector.hasAttribute(DTypeConsIndexAttr()))
   {
     return n;
   }
@@ -797,7 +797,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
   size_t selectorIndex = utils::indexOf(selector);
   Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
   Assert(selectorIndex < c.getNumArgs());
-  Node selector_use = utils::getSelector(c, ndt, selectorIndex, true);
+  Node selector_use = utils::getSelector(ndt, c, selectorIndex, true);
   NodeManager* nm = NodeManager::currentNM();
   Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
   return sel;

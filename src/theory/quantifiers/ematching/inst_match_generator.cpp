@@ -16,6 +16,7 @@
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
 #include "expr/dtype_cons.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
@@ -211,8 +212,11 @@ void InstMatchGenerator::initialize(Node q,
   {
     // candidates for apply selector are a union of correctly and incorrectly
     // applied selectors
-    d_cg =
-        new inst::CandidateGeneratorSelector(d_qstate, d_treg, d_match_pattern);
+    d_cg = new inst::CandidateGeneratorSelector(
+        d_qstate,
+        d_treg,
+        d_match_pattern,
+        options().datatypes.dtSharedSelectors);
   }
   else if (TriggerTermInfo::isAtomicTriggerKind(mpk))
   {

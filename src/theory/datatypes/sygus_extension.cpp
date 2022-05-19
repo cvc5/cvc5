@@ -926,7 +926,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
       {
         // chainable
         Node child11 = nm->mkNode(
-            APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, 1), children[0]);
+            APPLY_SELECTOR, getSelector(tn, dt[tindex], 1), children[0]);
         Assert(child11.getType() == children[1].getType());
         Node order_pred_trans =
             nm->mkNode(OR,
@@ -1752,7 +1752,7 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
       Node sel = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, i), n);
+          APPLY_SELECTOR, getSelector(tn, dt[tindex], i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }
