@@ -798,7 +798,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
     }
   }
   else if (d_env->getOptions().proof.produceFinalProof
-           && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+           && r.getStatus() == Result::UNSAT)
   {
     PropEngine* pe = getPropEngine();
     Assert(pe->getProof() != nullptr);
