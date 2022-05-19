@@ -209,11 +209,9 @@ class Instantiate : public QuantifiersUtil
    *
    * Returns true if and only if the instantiation already was added or
    * recorded by this class.
-   *   modEq : whether to check for duplication modulo equality
    */
   bool existsInstantiation(Node q,
-                           const std::vector<Node>& terms,
-                           bool modEq = false);
+                           const std::vector<Node>& terms);
   //--------------------------------------general utilities
   /** get instantiation
    *
