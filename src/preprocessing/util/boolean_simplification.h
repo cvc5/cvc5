@@ -18,21 +18,22 @@
 #ifndef CVC5__BOOLEAN_SIMPLIFICATION_H
 #define CVC5__BOOLEAN_SIMPLIFICATION_H
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 #include "base/check.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
-  
+
 /**
  * A class to contain a number of useful functions for simple
  * simplification of nodes.  One never uses it as an object (and
  * it cannot be constructed).  It is used as a namespace.
  */
-class BooleanSimplification {
+class BooleanSimplification
+{
   // cannot construct one of these
   BooleanSimplification() = delete;
   BooleanSimplification(const BooleanSimplification&) = delete;
@@ -53,10 +54,11 @@ class BooleanSimplification {
    */
   static void removeDuplicates(std::vector<Node>& buffer)
   {
-    if(buffer.size() < DUPLICATE_REMOVAL_THRESHOLD) {
+    if (buffer.size() < DUPLICATE_REMOVAL_THRESHOLD)
+    {
       std::sort(buffer.begin(), buffer.end());
       std::vector<Node>::iterator new_end =
-        std::unique(buffer.begin(), buffer.end());
+          std::unique(buffer.begin(), buffer.end());
       buffer.erase(new_end, buffer.end());
     }
   }
@@ -77,7 +79,8 @@ class BooleanSimplification {
 
     removeDuplicates(buffer);
 
-    if(buffer.size() == 1) {
+    if (buffer.size() == 1)
+    {
       return buffer[0];
     }
 
@@ -103,7 +106,8 @@ class BooleanSimplification {
     removeDuplicates(buffer);
 
     Assert(buffer.size() > 0);
-    if(buffer.size() == 1) {
+    if (buffer.size() == 1)
+    {
       return buffer[0];
     }
 
@@ -161,17 +165,21 @@ class BooleanSimplification {
     AssertArgument(!n.isNull(), n);
     AssertArgument(k != kind::UNDEFINED_KIND && k != kind::NULL_EXPR, k);
     AssertArgument(notK != kind::NULL_EXPR, notK);
-    AssertArgument(n.getKind() == k, n,
-                   "expected node to have kind %s", kindToString(k).c_str());
+    AssertArgument(n.getKind() == k,
+                   n,
+                   "expected node to have kind %s",
+                   kindToString(k).c_str());
 
     bool b CVC5_UNUSED =
         push_back_associative_commute_recursive(n, buffer, k, notK, false);
 
-    if(buffer.size() == 0) {
+    if (buffer.size() == 0)
+    {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
-      buffer.push_back(NodeManager::currentNM()->mkConst(k == kind::AND ? true : false));
+      buffer.push_back(
+          NodeManager::currentNM()->mkConst(k == kind::AND ? true : false));
     }
-  }/* push_back_associative_commute() */
+  } /* push_back_associative_commute() */
 
   /**
    * Negates a node, doing all the double-negation elimination
@@ -185,16 +193,21 @@ class BooleanSimplification {
 
     bool polarity = true;
     TNode base = n;
-    while(base.getKind() == kind::NOT){
+    while (base.getKind() == kind::NOT)
+    {
       base = base[0];
       polarity = !polarity;
     }
-    if(n.isConst()) {
+    if (n.isConst())
+    {
       return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
     }
-    if(polarity){
+    if (polarity)
+    {
       return base.notNode();
-    }else{
+    }
+    else
+    {
       return base;
     }
   }
@@ -205,24 +218,21 @@ class BooleanSimplification {
    */
   inline static Node simplify(TNode n)
   {
-    switch(n.getKind()) {
-    case kind::AND:
-      return simplifyConflict(n);
+    switch (n.getKind())
+    {
+      case kind::AND: return simplifyConflict(n);
 
-    case kind::OR:
-      return simplifyClause(n);
+      case kind::OR: return simplifyClause(n);
 
-    case kind::IMPLIES:
-      return simplifyHornClause(n);
+      case kind::IMPLIES: return simplifyHornClause(n);
 
-    default:
-      return n;
+      default: return n;
     }
   }
 
-};/* class BooleanSimplification */
+}; /* class BooleanSimplification */
 
-}
+}  // namespace preprocessing
 }  // namespace cvc5::internal
 
 #endif /* CVC5__BOOLEAN_SIMPLIFICATION_H */
