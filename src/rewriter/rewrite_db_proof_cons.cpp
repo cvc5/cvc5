@@ -185,11 +185,11 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
+  Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
+                      << vars << " -> " << subs << std::endl;
   Assert(d_target.getKind() == EQUAL);
   Assert(s.getType()==n.getType());
   Assert(vars.size() == subs.size());
-  Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
-                      << vars << " -> " << subs << std::endl;
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
     Trace("rpc-debug2") << "Part of fixed point for rule " << d_currFixedPointId
