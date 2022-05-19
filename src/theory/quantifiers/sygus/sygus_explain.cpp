@@ -154,8 +154,7 @@ void SygusExplain::getExplanationForEquality(Node n,
     {
       // FIXME
       Node s = datatypes::utils::getSelector(tn, dt[i], j, false);
-      Node sel = NodeManager::currentNM()->mkNode(
-          kind::APPLY_SELECTOR, s, n);
+      Node sel = NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, s, n);
       getExplanationForEquality(sel, vn[j], exp);
     }
   }
@@ -251,8 +250,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   for (size_t i = 0, vnchild = vn.getNumChildren(); i < vnchild; i++)
   {
     Node s = datatypes::utils::getSelector(ntn, dt[cindex], i, false);
-    Node sel = NodeManager::currentNM()->mkNode(
-        kind::APPLY_SELECTOR,s, n);
+    Node sel = NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, s, n);
     Node vnr_c = vnr.isNull() ? vnr : (vn[i] == vnr[i] ? Node::null() : vnr[i]);
     if (cexc.find(i) == cexc.end())
     {

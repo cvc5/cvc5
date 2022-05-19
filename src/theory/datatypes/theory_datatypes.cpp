@@ -1008,7 +1008,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   std::vector< TypeEnumerator > typ_enum;
   size_t index = 0;
   bool shareSel = options().datatypes.dtSharedSelectors;
-  while ( index<nodes.size() )
+  while (index < nodes.size())
   {
     Node eqc = nodes[index];
     Node neqc;
@@ -1029,9 +1029,11 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         Trace("dt-cmi") << pcons[i] << " ";
       }
       Trace("dt-cmi") << std::endl;
-      for( size_t r=0; r<2; r++ ){
+      for (size_t r = 0; r < 2; r++)
+      {
         if( neqc.isNull() ){
-          for( size_t i=0, psize = pcons.size(); i<psize; i++ ){
+          for (size_t i = 0, psize = pcons.size(); i < psize; i++)
+          {
             // must try the infinite ones first
             bool cfinite =
                 d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
@@ -1186,7 +1188,8 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   }
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
-  Node n_ic = utils::getInstCons(k, dt, index, options().datatypes.dtSharedSelectors);
+  Node n_ic =
+      utils::getInstCons(k, dt, index, options().datatypes.dtSharedSelectors);
   Assert (n_ic == rewrite(n_ic));
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;

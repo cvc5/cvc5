@@ -18,8 +18,8 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -149,7 +149,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       const DType& dt = tn.getDType();
       bool shareSel = options().datatypes.dtSharedSelectors;
       Node val = datatypes::utils::getInstCons(sb, dt, cindex, shareSel);
-      for (size_t i=0, nchild = val.getNumChildren(); i<nchild; i++)
+      for (size_t i = 0, nchild = val.getNumChildren(); i < nchild; i++)
       {
         Node s = solve_dt(v, a[i], Node::null(), sa[i], val[i]);
         if (!s.isNull())

@@ -17,8 +17,8 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
@@ -290,7 +290,9 @@ Node SygusEvalUnfold::unfold(Node en,
     {
       bool shareSel = options().datatypes.dtSharedSelectors;
       Node ret = nm->mkNode(
-          APPLY_SELECTOR, datatypes::utils::getSelector(headType, dt[i], 0, shareSel), en[0]);
+          APPLY_SELECTOR,
+          datatypes::utils::getSelector(headType, dt[i], 0, shareSel),
+          en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -314,8 +316,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node sel = datatypes::utils::getSelector(headType, dt[i], j, sharedSel);
-      s = nm->mkNode(
-          APPLY_SELECTOR, sel, en[0]);
+      s = nm->mkNode(APPLY_SELECTOR, sel, en[0]);
     }
     cc.push_back(s);
     if (track_exp)

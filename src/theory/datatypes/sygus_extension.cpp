@@ -613,7 +613,10 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
-      Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex, options().datatypes.dtSharedSelectors));
+      Node szr =
+          nm->mkNode(DT_SIZE,
+                     utils::getInstCons(
+                         n, dt, tindex, options().datatypes.dtSharedSelectors));
       szr = rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }

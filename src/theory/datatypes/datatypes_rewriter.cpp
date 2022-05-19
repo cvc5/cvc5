@@ -844,7 +844,8 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
         else
         {
-          Node sel = utils::getSelector(tn, dc, i, d_opts.datatypes.dtSharedSelectors);
+          Node sel =
+              utils::getSelector(tn, dc, i, d_opts.datatypes.dtSharedSelectors);
           b << nm->mkNode(APPLY_SELECTOR, sel, n[0]);
         }
       }

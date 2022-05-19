@@ -790,9 +790,9 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node sel = datatypes::utils::getSelector(e.getType(), dt[index], i, sharedSel);
-        Node se = nm->mkNode(
-            APPLY_SELECTOR, sel, e);
+        Node sel =
+            datatypes::utils::getSelector(e.getType(), dt[index], i, sharedSel);
+        Node se = nm->mkNode(APPLY_SELECTOR, sel, e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){
