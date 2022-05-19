@@ -304,16 +304,14 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
 
 CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
                                                        TermRegistry& tr,
-                                                       Node mpat,
-                                                       bool useSharedSel)
+                                                       Node mpat)
     : CandidateGeneratorQE(qs, tr, mpat)
 {
   Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
   Assert(mpat.getKind() == APPLY_SELECTOR);
   // Get the expanded form of the selector, meaning that we will match on
   // the shared selector if shared selectors are enabled.
-  Node mpatExp =
-      datatypes::DatatypesRewriter::expandApplySelector(mpat, useSharedSel);
+  Node mpatExp = datatypes::DatatypesRewriter::expandApplySelector(mpat);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   Assert (mpatExp.getKind() == APPLY_SELECTOR);
   d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);

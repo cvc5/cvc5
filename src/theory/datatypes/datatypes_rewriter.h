@@ -22,9 +22,6 @@
 #include "theory/theory_rewriter.h"
 
 namespace cvc5::internal {
-
-class Options;
-
 namespace theory {
 namespace datatypes {
 
@@ -41,7 +38,7 @@ namespace datatypes {
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
-  DatatypesRewriter(Evaluator* sygusEval, const Options& opts);
+  DatatypesRewriter(Evaluator* sygusEval);
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
 
@@ -74,7 +71,7 @@ class DatatypesRewriter : public TheoryRewriter
    * handle when the selector is misapplied. This is because it suffices to
    * reason about the original selector term e.g. via congruence.
    */
-  static Node expandApplySelector(Node n, bool useSharedSel);
+  static Node expandApplySelector(Node n);
   /**
    * Expand a match term into its definition.
    * For example
@@ -203,8 +200,6 @@ class DatatypesRewriter : public TheoryRewriter
   Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
   /** Pointer to the evaluator, used as an optimization for the above method */
   Evaluator* d_sygusEval;
-  /** Reference to the options */
-  const Options& d_opts;
 };
 
 }  // namespace datatypes
