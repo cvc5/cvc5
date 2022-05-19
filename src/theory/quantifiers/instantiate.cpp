@@ -522,8 +522,7 @@ void Instantiate::recordInstantiation(Node q,
   d_recordedInst[q].push_back(inst);
 }
 
-bool Instantiate::existsInstantiation(Node q,
-                                      const std::vector<Node>& terms)
+bool Instantiate::existsInstantiation(Node q, const std::vector<Node>& terms)
 {
   if (options().base.incrementalSolving)
   {

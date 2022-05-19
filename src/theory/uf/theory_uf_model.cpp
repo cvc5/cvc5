@@ -64,7 +64,8 @@ Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
   if(!d_data.empty()) {
     Node defaultValue = argDefaultValue;
     if(d_data.find(Node::null()) != d_data.end()) {
-      defaultValue = d_data[Node::null()].getFunctionValue(args, index + 1, argDefaultValue);
+      defaultValue = d_data[Node::null()].getFunctionValue(
+          args, index + 1, argDefaultValue);
     }
 
     std::vector<Node> caseArgs;
@@ -74,8 +75,7 @@ Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
     {
       if (!p.first.isNull())
       {
-        Node val =
-            p.second.getFunctionValue(args, index + 1, defaultValue);
+        Node val = p.second.getFunctionValue(args, index + 1, defaultValue);
         caseArgs.push_back(p.first);
         caseValues[p.first] = val;
       }
@@ -84,10 +84,13 @@ Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
     NodeManager* nm = NodeManager::currentNM();
     Node retNode = defaultValue;
     // condense function values
-    for (size_t i = 0, cargs = caseArgs.size(); i<cargs; i++)
+    for (size_t i = 0, cargs = caseArgs.size(); i < cargs; i++)
     {
-      size_t ii = cargs-i-1;
-      retNode = nm->mkNode(ITE, args[index].eqNode(caseArgs[ii]), caseValues[caseArgs[ii]], retNode);
+      size_t ii = cargs - i - 1;
+      retNode = nm->mkNode(ITE,
+                           args[index].eqNode(caseArgs[ii]),
+                           caseValues[caseArgs[ii]],
+                           retNode);
     }
     return retNode;
   }

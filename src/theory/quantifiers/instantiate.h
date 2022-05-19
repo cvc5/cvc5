@@ -210,8 +210,7 @@ class Instantiate : public QuantifiersUtil
    * Returns true if and only if the instantiation already was added or
    * recorded by this class.
    */
-  bool existsInstantiation(Node q,
-                           const std::vector<Node>& terms);
+  bool existsInstantiation(Node q, const std::vector<Node>& terms);
   //--------------------------------------general utilities
   /** get instantiation
    *

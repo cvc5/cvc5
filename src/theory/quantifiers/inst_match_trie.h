@@ -187,15 +187,13 @@ class InstMatchTrieOrdered
    * This method returns true if the match m was not previously added to this
    * class.
    */
-  bool addInstMatch(Node q,
-                    const std::vector<Node>& m);
+  bool addInstMatch(Node q, const std::vector<Node>& m);
   /** returns true if this trie contains m
    *
    * This method returns true if the match m exists in this
    * class.
    */
-  bool existsInstMatch(Node q,
-                       const std::vector<Node>& m);
+  bool existsInstMatch(Node q, const std::vector<Node>& m);
 
  private:
   /** the ordering */

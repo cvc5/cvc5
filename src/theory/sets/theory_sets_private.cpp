@@ -975,8 +975,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         m->assertSkeleton(el);
       }
 
-      Trace("sets-model") << "Set " << eqc << " = " << els
-                          << std::endl;
+      Trace("sets-model") << "Set " << eqc << " = " << els << std::endl;
     }
   }
 

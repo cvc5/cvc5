@@ -45,8 +45,7 @@ bool InstMatchTrie::addInstMatch(Node f,
   std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
   if (it != d_data.end())
   {
-    bool ret =
-        it->second.addInstMatch(f, m, imtio, onlyExist, index + 1);
+    bool ret = it->second.addInstMatch(f, m, imtio, onlyExist, index + 1);
     if (!onlyExist || !ret)
     {
       return ret;
@@ -189,8 +188,7 @@ bool CDInstMatchTrie::addInstMatch(context::Context* context,
   std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(n);
   if (it != d_data.end())
   {
-    bool ret =
-        it->second->addInstMatch(context, f, m, index + 1, onlyExist);
+    bool ret = it->second->addInstMatch(context, f, m, index + 1, onlyExist);
     if (!onlyExist || !ret)
     {
       return reset || ret;
@@ -291,14 +289,12 @@ void CDInstMatchTrie::print(std::ostream& out, Node q) const
   print(out, q, terms);
 }
 
-bool InstMatchTrieOrdered::addInstMatch(Node q,
-                                        const std::vector<Node>& m)
+bool InstMatchTrieOrdered::addInstMatch(Node q, const std::vector<Node>& m)
 {
   return d_imt.addInstMatch(q, m, d_imtio);
 }
 
-bool InstMatchTrieOrdered::existsInstMatch(Node q,
-                                           const std::vector<Node>& m)
+bool InstMatchTrieOrdered::existsInstMatch(Node q, const std::vector<Node>& m)
 {
   return d_imt.existsInstMatch(q, m, d_imtio);
 }
