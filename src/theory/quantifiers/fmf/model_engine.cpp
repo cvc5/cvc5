@@ -51,6 +51,8 @@ ModelEngine::~ModelEngine() {
 
 }
 
+std::string ModelEngine::identify() const { return "ModelEngine"; }
+ 
 bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }

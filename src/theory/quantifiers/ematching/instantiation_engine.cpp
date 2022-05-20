@@ -69,6 +69,8 @@ InstantiationEngine::InstantiationEngine(Env& env,
 
 InstantiationEngine::~InstantiationEngine() {}
 
+std::string InstantiationEngine::identify() const { return "InstEngine"; }
+  
 void InstantiationEngine::presolve() {
   for( unsigned i=0; i<d_instStrategies.size(); ++i ){
     d_instStrategies[i]->presolve();
