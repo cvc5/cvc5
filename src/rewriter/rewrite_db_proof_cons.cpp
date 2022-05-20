@@ -890,11 +890,19 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       pi.d_id = DslPfRule::TRANS;
       // store transEq in d_vars
       pi.d_vars = transEq;
+      // return the end of the chain, which will be used for constrained
+      // matching
+      return transEq.back()[1];
     }
-    // return the end of the chain, which will be used for constrained matching
-    return transEq.back()[1];
   }
-  return expr::narySubstitute(conc[1], vars, subs);
+
+  Node res = conc[1];
+  if (rpr.isFixedPoint())
+  {
+    Node context = rpr.getContext();
+    res = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
+  }
+  return expr::narySubstitute(res, vars, subs);
 }
 
 void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
