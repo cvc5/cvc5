@@ -166,26 +166,34 @@ class DotPrinter
   /** Verify if the rule is in the SAT range (i.e. a PfRule that is
    * CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION or
    * MACRO_RESOLUTION_TRUST).
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the SAT range.
    */
   inline bool isSat(const PfRule& rule);
 
   /** Verify if the rule is in the CNF range (between NOT_NOT_ELIM and
    * CNF_ITE_NEG3) in the PfRule enumeration.
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the CNF range.
    */
   inline bool isCNF(const PfRule& rule);
 
   /** Verify if the rule is a SCOPE
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not a SCOPE.
    */
   inline bool isSCOPE(const PfRule& rule);
 
+  /** Verify if the rule is in the theory lemma range (open interval between
+   * CNF_ITE_NEG3 and LFSC_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
+   * @param rule The rule to be verified.
+   * @return The bool indicating whether the rule is for a theory lemma
+   * range.
+   */
+  inline bool isTheoryLemma(const PfRule& rule);
+
   /** Verify if the rule is an ASSUME
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not an ASSUME.
    */
   inline bool isASSUME(const PfRule& rule);
