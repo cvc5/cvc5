@@ -18,6 +18,7 @@
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
 #include "util/string.h"
+#include "proof/proof_checker.h"
 
 using namespace cvc5::internal::kind;
 
@@ -72,6 +73,23 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule)
 {
   out << toString(drule);
   return out;
+}
+
+Node mkDslPfRuleNode(DslPfRule i)
+{
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(i)));
+}
+
+bool getDslPfRule(TNode n, DslPfRule& i)
+{
+  uint32_t index;
+  if (!ProofRuleChecker::getUInt32(n, index))
+  {
+    return false;
+  }
+  i = static_cast<DslPfRule>(index);
+  return true;
 }
 
 }  // namespace rewriter

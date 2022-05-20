@@ -63,6 +63,12 @@ const char* toString(DslPfRule drule);
  */
 std::ostream& operator<<(std::ostream& out, DslPfRule drule);
 
+/** Make node from DSL proof rule id */
+Node mkDslPfRuleNode(DslPfRule i);
+
+/** get a DSL proof rule identifier from a node, return false if we fail */
+bool getDslPfRule(TNode n, DslPfRule& i);
+
 }  // namespace rewriter
 }  // namespace cvc5::internal
 

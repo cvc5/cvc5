@@ -28,17 +28,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-bool getDslPfRule(TNode n, DslPfRule& id)
-{
-  uint32_t i;
-  if (ProofRuleChecker::getUInt32(n, i))
-  {
-    id = static_cast<DslPfRule>(i);
-    return true;
-  }
-  return false;
-}
-
 RewriteProofRule::RewriteProofRule()
     : d_id(DslPfRule::FAIL), d_isFlatForm(false)
 {
