@@ -980,6 +980,7 @@ set(regress_0_tests
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
   regress0/proofs/fixed-point-rew.smt2
+  regress0/proofs/fixed-point-rew-conc.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
