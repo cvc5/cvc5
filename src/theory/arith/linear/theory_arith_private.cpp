@@ -1797,11 +1797,6 @@ void TheoryArithPrivate::outputPropagate(TNode lit) {
   d_containing.d_im.propagateLit(lit);
 }
 
-void TheoryArithPrivate::outputRestart() {
-  Trace("arith::channel") << "Arith restart!" << std::endl;
-  (d_containing.d_out)->demandRestart();
-}
-
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
   int level = context()->getLevel();
   Trace("approx")

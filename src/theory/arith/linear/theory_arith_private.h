@@ -700,7 +700,6 @@ private:
   void outputTrustedConflict(TrustNode conf, InferenceId id);
   void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);
-  void outputRestart();
 
   inline bool isSatLiteral(TNode l) const {
     return (d_containing.d_valuation).isSatLiteral(l);

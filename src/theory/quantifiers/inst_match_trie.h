@@ -72,16 +72,6 @@ class InstMatchTrie
                     ImtIndexOrder* imtio = nullptr,
                     bool onlyExist = false,
                     unsigned index = 0);
-  /** remove inst match
-   *
-   * This removes (the suffix of) m starting at the given index from this trie.
-   * It returns true if and only if this entry existed in this trie.
-   * The domain of m is the bound variables of quantified formula q.
-   */
-  bool removeInstMatch(Node f,
-                       const std::vector<Node>& m,
-                       ImtIndexOrder* imtio = nullptr,
-                       unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
@@ -138,13 +128,6 @@ class CDInstMatchTrie
                     const std::vector<Node>& m,
                     unsigned index = 0,
                     bool onlyExist = false);
-  /** remove inst match
-   *
-   * This removes (the suffix of) m starting at the given index from this trie.
-   * It returns true if and only if this entry existed in this trie.
-   * The domain of m is the bound variables of quantified formula q.
-   */
-  bool removeInstMatch(Node q, const std::vector<Node>& m, unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */

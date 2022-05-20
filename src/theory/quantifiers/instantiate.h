@@ -297,8 +297,6 @@ class Instantiate : public QuantifiersUtil
  private:
   /** record instantiation, return true if it was not a duplicate */
   bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
-  /** remove instantiation from the cache */
-  bool removeInstantiationInternal(Node q, const std::vector<Node>& terms);
   /**
    * Ensure that n has type tn, return a term equivalent to it for that type
    * if possible.
