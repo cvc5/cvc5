@@ -123,7 +123,7 @@ void BaseSolver::checkInit()
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
-              Assert(s.getType().isComparableTo(t.getType()));
+              Assert(s.getType() == t.getType());
               d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }

@@ -2014,7 +2014,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
         Assert(v.getKind() == SEQ_UNIT);
         vc = v[0];
       }
-      Assert(u[0].getType().isComparableTo(vc.getType()));
+      Assert(u[0].getType() == vc.getType());
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {

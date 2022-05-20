@@ -65,11 +65,9 @@ class TheorySep : public Theory {
   /** A buffered inference manager */
   InferenceManagerBuffered d_im;
 
-  Node mkAnd( std::vector< TNode >& assumptions );
-
-  int processAssertion(
+  size_t processAssertion(
       Node n,
-      std::map<int, std::map<Node, int> >& visited,
+      std::map<int, std::map<Node, size_t> >& visited,
       std::map<int, std::map<Node, std::vector<Node> > >& references,
       std::map<int, std::map<Node, bool> >& references_strict,
       bool pol,
@@ -221,29 +219,27 @@ class TheorySep : public Theory {
   //data,ref type (globally fixed)
   TypeNode d_type_ref;
   TypeNode d_type_data;
-  //currently fix one data type for each location type, throw error if using more than one
-  std::map< TypeNode, TypeNode > d_loc_to_data_type;
   //information about types
-  std::map< TypeNode, Node > d_base_label;
-  std::map< TypeNode, Node > d_nil_ref;
+  Node d_base_label;
+  Node d_nil_ref;
   //reference bound
-  std::map< TypeNode, Node > d_reference_bound;
-  std::map< TypeNode, Node > d_reference_bound_max;
-  std::map< TypeNode, std::vector< Node > > d_type_references;
+  Node d_reference_bound;
+  Node d_reference_bound_max;
+  std::vector<Node> d_type_references;
   //kind of bound for reference types
   enum {
     bound_strict,
     bound_default,
     bound_invalid,
   };
-  std::map< TypeNode, unsigned > d_bound_kind;
+  unsigned d_bound_kind;
 
-  std::map< TypeNode, std::vector< Node > > d_type_references_card;
+  std::vector<Node> d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
-  std::map< TypeNode, std::vector< Node > > d_type_references_all;
-  std::map< TypeNode, unsigned > d_card_max;
+  std::vector<Node> d_type_references_all;
+  size_t d_card_max;
   //for empty argument
-  std::map< TypeNode, Node > d_emp_arg;
+  Node d_emp_arg;
   //map from ( atom, label, child index ) -> label
   std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
 
@@ -274,12 +270,24 @@ class TheorySep : public Theory {
   std::map< Node, Node > d_tmodel;
   std::map< Node, Node > d_pto_model;
 
+  /**
+   * A heap assert info is maintained per set equivalence class. It is
+   * used to ensure that list of positive and negative pto constraints for
+   * all label sets that are equal to a given one are satisfied.
+   *
+   * Note that sets referring to subsets of different heaps may become equated,
+   * e.g. if wand constraints are present. Thus, we keep a list of pto
+   * constraints, which track their labels. In the checkPto method, we
+   * distinguish whether the pto constraints refer to the same heap.
+   */
   class HeapAssertInfo {
   public:
    HeapAssertInfo(context::Context* c);
    ~HeapAssertInfo() {}
-   context::CDO<Node> d_pto;
-   context::CDO<bool> d_has_neg_pto;
+   /** List of positive pto */
+   NodeList d_posPto;
+   /** List of negative pto */
+   NodeList d_negPto;
   };
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
@@ -289,9 +297,6 @@ class TheorySep : public Theory {
    * non-null, and compatible with separation logic constraint atom.
    */
   void ensureHeapTypesFor(Node atom) const;
-  // get global reference/data type
-  TypeNode getReferenceType() const;
-  TypeNode getDataType() const;
   /**
    * This is called either when:
    * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
@@ -302,9 +307,7 @@ class TheorySep : public Theory {
   void registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom);
   //get location/data type
   //get the base label for the spatial assertion
-  Node getBaseLabel( TypeNode tn );
-  Node getNilRef( TypeNode tn );
-  void setNilRef( TypeNode tn, Node n );
+  Node getBaseLabel();
   Node getLabel( Node atom, int child, Node lbl );
   /**
    * Apply label lbl to all top-level spatial assertions, recursively, in n.
@@ -326,11 +329,20 @@ class TheorySep : public Theory {
   std::map< Node, HeapInfo > d_label_model;
   // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
   std::map< Node, std::vector< Node > > d_heap_locs_nptos;
-
-  void debugPrintHeap( HeapInfo& heap, const char * c );
-  void validatePto( HeapAssertInfo * ei, Node ei_n );
-  void addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity );
-  void mergePto( Node p1, Node p2 );
+  /**
+   * This checks the impact of adding the pto assertion p to heap assert info e,
+   * where p has been asserted with the given polarity.
+   *
+   * This method implements two propagation schemes for pairs of
+   * positive/positive and positive/negative pto constraints.
+   *
+   * @param e The heap assert info
+   * @param p The (label) pto constraint
+   * @param polarity Its asserted polarity
+   * @return true if p should be added to the list of constraints in e, false
+   * if the constraint was redundant.
+   */
+  bool checkPto(HeapAssertInfo* e, Node p, bool polarity);
   void computeLabelModel( Node lbl );
   Node instantiateLabel(Node n,
                         Node o_lbl,

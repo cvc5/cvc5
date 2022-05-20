@@ -43,7 +43,7 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
 {
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
-  Assert(element.getType().isSubtypeOf(bag.getType().getBagElementType())
+  Assert(element.getType() == bag.getType().getBagElementType()
          && element == getRepresentative(element));
   Assert(skolem.isVar() && skolem.getType().isInteger());
   std::pair<Node, Node> pair = std::make_pair(element, skolem);
