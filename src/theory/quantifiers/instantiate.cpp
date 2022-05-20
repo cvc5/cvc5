@@ -628,21 +628,6 @@ bool Instantiate::recordInstantiationInternal(Node q,
   return d_inst_match_trie[q].addInstMatch(q, terms);
 }
 
-bool Instantiate::removeInstantiationInternal(Node q,
-                                              const std::vector<Node>& terms)
-{
-  if (options().base.incrementalSolving)
-  {
-    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
-    if (it != d_c_inst_match_trie.end())
-    {
-      return it->second->removeInstMatch(q, terms);
-    }
-    return false;
-  }
-  return d_inst_match_trie[q].removeInstMatch(q, terms);
-}
-
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
 {
   for (NodeInstListMap::const_iterator it = d_insts.begin();
