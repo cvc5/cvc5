@@ -54,7 +54,7 @@ struct MemberTypeRule
 };
 
 /**
- * Type rule for (set.singleton (SetSingletonOp t) x) to check the sort of x
+ * Type rule for (set.singleton x) to check the sort of x
  * matches the sort t.
  */
 struct SingletonTypeRule

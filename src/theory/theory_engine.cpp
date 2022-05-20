@@ -737,6 +737,7 @@ bool TheoryEngine::isRelevant(Node lit) const
 theory::Theory::PPAssertStatus TheoryEngine::solve(
     TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
+  Assert(tliteral.getKind() == TrustNodeKind::LEMMA);
   // Reset the interrupt flag
   d_interrupted = false;
 
@@ -1076,8 +1077,9 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
-theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
-  Assert(a.getType().isComparableTo(b.getType()));
+theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
+{
+  Assert(a.getType() == b.getType());
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 

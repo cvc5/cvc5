@@ -383,8 +383,8 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 {
   Options opts;
   // enable proofs
-  opts.smt.proofMode = options::ProofMode::FULL;
-  opts.smt.produceProofs = true;
+  opts.writeSmt().proofMode = options::ProofMode::FULL;
+  opts.writeSmt().produceProofs = true;
   Env env(NodeManager::currentNM(), &opts);
   opts.handler().setDefaultDagThresh("--dag-thresh", 0);
   smt::PfManager pfm(env);

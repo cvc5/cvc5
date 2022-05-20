@@ -78,8 +78,11 @@ class OracleChecker : protected EnvObj, public NodeConverter
   bool hasOracles() const;
   /** Has oracle calls for oracle function symbol f. */
   bool hasOracleCalls(Node f) const;
-  /** Get the cached results for oracle function symbol f */
-  const std::map<Node, Node>& getOracleCalls(Node f) const;
+  /**
+   * Get the cached results for oracle function symbol f. Note the vectors
+   * in the range of this method are expected to have size 1.
+   */
+  const std::map<Node, std::vector<Node>>& getOracleCalls(Node f) const;
 
  private:
   /**

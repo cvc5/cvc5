@@ -220,7 +220,7 @@ class SolverEngineState : protected EnvObj
 
   /**
    * Whether or not a notifyCheckSat call has been made, which corresponds to
-   * when a checkEntailed() or checkSatisfiability() has already been
+   * when a checkSatisfiability() has already been
    * made through the SolverEngine.  If true, and incrementalSolving is false,
    * then attempting an additional checks for satisfiability will fail with
    * a ModalException during notifyCheckSat.
@@ -235,7 +235,7 @@ class SolverEngineState : protected EnvObj
   bool d_needPostsolve;
 
   /**
-   * Most recent result of last checkSatisfiability/checkEntailed in the
+   * Most recent result of last checkSatisfiability in the
    * SolverEngine.
    */
   Result d_status;

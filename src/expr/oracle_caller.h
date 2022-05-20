@@ -19,22 +19,21 @@
 #define CVC5__EXPR__ORACLE_CALLER_H
 
 #include "expr/node.h"
-#include "expr/node_trie.h"
+#include "expr/oracle.h"
 
 namespace cvc5::internal {
 
 /**
- * This class manages the calls to an (external) binary for a single oracle
- * function symbol or oracle interface quantified formula.
+ * This class manages the calls to an (externally implemented) oracle for a
+ * single oracle function symbol or oracle interface quantified formula.
  */
 class OracleCaller
 {
  public:
   /**
-   * @param oracleInterfaceNode The oracle function symbol or oracle interface
-   * quantified formula.
+   * @param n The oracle function or oracle interface quantified formula.
    */
-  OracleCaller(const Node& oracleInterfaceNode);
+  OracleCaller(const Node& n);
 
   ~OracleCaller() {}
 
@@ -43,37 +42,34 @@ class OracleCaller
    * fapp. Store in result res.
    *
    * Return true if the call was made, and false if it was already cached.
-   *
-   * If this method returns true, then runResult is set to the result returned
-   * from executing the binary.
    */
-  bool callOracle(const Node& fapp, Node& res, int& runResult);
-
-  /** Get the binary name for this oracle caller */
-  std::string getBinaryName() const;
+  bool callOracle(const Node& fapp, std::vector<Node>& res);
 
   /** Get cached results for this oracle caller */
-  const std::map<Node, Node>& getCachedResults() const;
-
-  /**
-   * Get binary from an oracle function, or an oracle interface quantified
-   * formula.
-   */
-  static std::string getBinaryNameFor(const Node& n);
+  const std::map<Node, std::vector<Node>>& getCachedResults() const;
 
   /** is f an oracle function? */
   static bool isOracleFunction(Node f);
   /** is n an oracle function application? */
   static bool isOracleFunctionApp(Node n);
 
+  /**
+   * Get oracle from an oracle function, or an oracle interface quantified
+   * formula. Returns a node of kind ORACLE if the associated oracle exists,
+   * or null otherwise.
+   */
+  static Node getOracleFor(const Node& n);
+
  private:
-  /** name of binary */
-  std::string d_binaryName;
+  /** The oracle node */
+  Node d_oracleNode;
+  /** The oracle */
+  const Oracle& d_oracle;
   /**
    * The cached results, mapping (APPLY_UF) applications of the oracle
    * function to the parsed output of the binary.
    */
-  std::map<Node, Node> d_cachedResults;
+  std::map<Node, std::vector<Node>> d_cachedResults;
 };
 
 }  // namespace cvc5::internal

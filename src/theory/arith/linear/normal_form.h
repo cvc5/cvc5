@@ -341,7 +341,6 @@ public:
 
   bool operator==(const Variable& v) const { return getNode() == v.getNode();}
 
-  size_t getComplexity() const;
 };/* class Variable */
 
 class Constant : public NodeWrapper {
@@ -428,8 +427,6 @@ public:
     Assert(isIntegral());
     return getValue().getNumerator().length();
   }
-
-  size_t getComplexity() const;
 
 };/* class Constant */
 
@@ -609,7 +606,6 @@ public:
     }
     return true;
   }
-  size_t getComplexity() const;
 
 private:
   bool isSorted(iterator start, iterator end);
@@ -788,7 +784,6 @@ public:
   void print() const;
   static void printList(const std::vector<Monomial>& list);
 
-  size_t getComplexity() const;
 };/* class Monomial */
 
 class SumPair;
@@ -911,7 +906,10 @@ public:
     }
   }
 
-  static Polynomial parsePolynomial(Node n) {
+  static Polynomial parsePolynomial(Node n)
+  {
+    // required to remove TO_REAL here since equalities may require casts
+    n = n.getKind() == kind::TO_REAL ? n[0] : n;
     return Polynomial(n);
   }
 
@@ -1126,8 +1124,6 @@ public:
     Assert(isVarList());
     return getHead().getVarList();
   }
-
-  size_t getComplexity() const;
 
   friend class SumPair;
   friend class Comparison;
@@ -1441,8 +1437,6 @@ public:
     Comparison parse = Comparison::parseNormalForm(n);
     return parse.isNormalForm();
   }
-
-  size_t getComplexity() const;
 
   SumPair toSumPair() const;
 

@@ -74,9 +74,8 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       Node cond1 = nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), n[1]);
       Node cond2 = nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]));
       Node cond = nm->mkNode(AND, cond1, cond2);
-      TypeNode etn = n.getType().getSequenceElementType();
       Node body1 = nm->mkNode(
-          EQUAL, n, nm->mkSeqUnit(etn, nm->mkNode(SEQ_NTH, n[0], n[1])));
+          EQUAL, n, nm->mkNode(SEQ_UNIT, nm->mkNode(SEQ_NTH, n[0], n[1])));
       Node body2 = nm->mkNode(EQUAL, n, Word::mkEmptyWord(n.getType()));
       Node lem = nm->mkNode(ITE, cond, body1, body2);
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_EXTRACT);

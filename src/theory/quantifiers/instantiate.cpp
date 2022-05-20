@@ -522,16 +522,14 @@ void Instantiate::recordInstantiation(Node q,
   d_recordedInst[q].push_back(inst);
 }
 
-bool Instantiate::existsInstantiation(Node q,
-                                      const std::vector<Node>& terms,
-                                      bool modEq)
+bool Instantiate::existsInstantiation(Node q, const std::vector<Node>& terms)
 {
   if (options().base.incrementalSolving)
   {
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(userContext(), d_qstate, q, terms, modEq);
+      return it->second->existsInstMatch(userContext(), q, terms);
     }
   }
   else
@@ -539,7 +537,7 @@ bool Instantiate::existsInstantiation(Node q,
     std::map<Node, InstMatchTrie>::iterator it = d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
-      return it->second.existsInstMatch(d_qstate, q, terms, modEq);
+      return it->second.existsInstMatch(q, terms);
     }
   }
   return false;
@@ -624,10 +622,10 @@ bool Instantiate::recordInstantiationInternal(Node q,
       res.first->second = new CDInstMatchTrie(userContext());
     }
     d_c_inst_match_trie_dom.insert(q);
-    return res.first->second->addInstMatch(userContext(), d_qstate, q, terms);
+    return res.first->second->addInstMatch(userContext(), q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
+  return d_inst_match_trie[q].addInstMatch(q, terms);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q,
@@ -760,7 +758,6 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
 {
   Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
   TypeNode ntn = n.getType();
-  Assert(ntn.isComparableTo(tn));
   if (ntn == tn)
   {
     return n;

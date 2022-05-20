@@ -320,8 +320,10 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!val.getType().isSubtypeOf(x.getType()))
+  if (val.getType() != x.getType())
   {
+    Assert(false) << "isLegalElimination for disequal typed terms " << x
+                  << " -> " << val;
     return false;
   }
   if (!options().smt.produceModels || options().smt.modelVarElimUneval)
@@ -440,6 +442,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
                                         TrustSubstitutionMap& outSubstitutions)
 {
+  Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
@@ -458,23 +461,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
-    }
-  }
-  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
-           && in[0][0].getType().isBoolean())
-  {
-    TNode eq = in[0];
-    if (eq[0].isVar())
-    {
-      Node res = eq[0].eqNode(eq[1].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
-    else if (eq[1].isVar())
-    {
-      Node res = eq[1].eqNode(eq[0].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
     }
   }
 

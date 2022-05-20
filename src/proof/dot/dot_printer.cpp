@@ -375,7 +375,7 @@ ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
     return ProofNodeClusterType::FIRST_SCOPE;
   }
   // If the rule is in the SAT range and the last node was: FF or SAT
-  if (isSat(rule) && last <= ProofNodeClusterType::SAT)
+  if (last <= ProofNodeClusterType::SAT && isSat(rule))
   {
     return ProofNodeClusterType::SAT;
   }
@@ -396,8 +396,8 @@ ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
     {
       return ProofNodeClusterType::CNF;
     }
-    // If the first rule after a CNF is a scope
-    if (isSCOPE(rule))
+    // If the first rule after a CNF is in the TL range
+    if (isTheoryLemma(rule))
     {
       return ProofNodeClusterType::THEORY_LEMMA;
     }
@@ -458,6 +458,12 @@ inline bool DotPrinter::isCNF(const PfRule& rule)
 inline bool DotPrinter::isSCOPE(const PfRule& rule)
 {
   return PfRule::SCOPE == rule;
+}
+
+inline bool DotPrinter::isTheoryLemma(const PfRule& rule)
+{
+  return rule == PfRule::SCOPE || rule == PfRule::THEORY_LEMMA
+         || (PfRule::CNF_ITE_NEG3 < rule && rule < PfRule::LFSC_RULE);
 }
 
 inline bool DotPrinter::isASSUME(const PfRule& rule)

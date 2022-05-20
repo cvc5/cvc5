@@ -1,4 +1,3 @@
-; COMMAND-LINE: -q
 ; SCRUBBER: sed 's/(.*)/()/g'
 ; EXPECT: ()
 ; EXIT: 0

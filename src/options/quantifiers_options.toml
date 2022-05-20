@@ -602,10 +602,10 @@ name   = "Quantifiers"
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
-  name       = "mbqiMode"
+  name       = "fmfMbqiMode"
   category   = "expert"
-  long       = "mbqi=MODE"
-  type       = "MbqiMode"
+  long       = "fmf-mbqi=MODE"
+  type       = "FmfMbqiMode"
   default    = "FMC"
   help       = "choose mode for model-based quantifier instantiation"
   help_mode  = "Model-based quantifier instantiation modes."

@@ -159,7 +159,7 @@ void Pow2Solver::checkFullRefine()
     if (x < 0 && pow2x != 0)
     {
       Node assumption = nm->mkNode(LT, n[0], d_zero);
-      Node conclusion = nm->mkNode(EQUAL, n, d_zero);
+      Node conclusion = nm->mkNode(EQUAL, n, mkZero(n.getType()));
       Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
       d_im.addPendingLemma(
           lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);

@@ -47,28 +47,25 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
 TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 {
   TypeNode thenType = n[1].getType(check);
-  TypeNode elseType = n[2].getType(check);
-  TypeNode iteType = TypeNode::leastCommonTypeNode(thenType, elseType);
   if (check)
   {
-    TypeNode booleanType = nodeManager->booleanType();
-    if (n[0].getType(check) != booleanType)
-    {
-      throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
-    }
-    if (iteType.isNull())
+    TypeNode elseType = n[2].getType(check);
+    if (thenType != elseType)
     {
       std::stringstream ss;
-      ss << "Both branches of the ITE must be a subtype of a common type."
-         << std::endl
+      ss << "Branches of the ITE must have the same type." << std::endl
          << "then branch: " << n[1] << std::endl
          << "its type   : " << thenType << std::endl
          << "else branch: " << n[2] << std::endl
          << "its type   : " << elseType << std::endl;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
+    if (!n[0].getType(check).isBoolean())
+    {
+      throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
+    }
   }
-  return iteType;
+  return thenType;
 }
 
 }  // namespace boolean
