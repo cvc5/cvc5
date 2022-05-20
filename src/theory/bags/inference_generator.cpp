@@ -756,6 +756,36 @@ InferInfo InferenceGenerator::groupUp(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::groupUp2(Node n,
+                                       Node e,
+                                       Node part,
+                                       Node partitionCard)
+{
+  Assert(n.getKind() == TABLE_GROUP);
+  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+
+  Node A = n[0];
+  TypeNode bagType = A.getType();
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP);
+  Node count_e_A = getMultiplicityTerm(e, A);
+  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_e_A, d_one));
+
+  Node i = d_sm->mkSkolemFunction(
+      SkolemFunId::TABLES_GROUP_UP_PART, d_nm->integerType(), {n, e});
+
+  Node interval_i = d_nm->mkNode(
+      AND, d_nm->mkNode(GEQ, i, d_one), d_nm->mkNode(LEQ, i, partitionCard));
+
+  Node part_i = d_nm->mkNode(APPLY_UF, part, i);
+
+  Node count_e_part_i = getMultiplicityTerm(e, part_i);
+
+  Node sameMultiplicity = count_e_part_i.eqNode(count_e_A);
+  inferInfo.d_conclusion = d_nm->mkNode(AND, {interval_i, sameMultiplicity});
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x)
 {
   Assert(n.getKind() == TABLE_GROUP);
@@ -887,6 +917,81 @@ InferInfo InferenceGenerator::groupPartsDisjoint(Node n, Node B, Node C)
 
   inferInfo.d_conclusion = equal.orNode(disjoint);
   return inferInfo;
+}
+
+std::tuple<InferInfo, Node, Node> InferenceGenerator::groupPartsDisjoint2(
+    Node n)
+{
+  Assert(n.getKind() == TABLE_GROUP);
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PARTS_DISJOINT);
+
+  Node A = n[0];
+  // declare an uninterpreted function unionF: Int -> (Bag (Table T))
+  TypeNode unionFType = d_nm->mkFunctionType(d_nm->integerType(), n.getType());
+  Node unionF = d_sm->mkSkolemFunction(
+      SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_AGGREGATE, unionFType, {n});
+
+  // declare an uninterpreted function part: Int -> (Table T)
+  TypeNode partType = d_nm->mkFunctionType(d_nm->integerType(), A.getType());
+  Node part = d_sm->mkSkolemFunction(
+      SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_PART, partType, {n});
+
+  // (= (unionF 0) (as bag.empty (Bag (Table T)))
+  Node unionF_zero = d_nm->mkNode(APPLY_UF, unionF, d_zero);
+  Node emptyPartition = d_nm->mkConst(EmptyBag(n.getType()));
+  Node baseCase = d_nm->mkNode(EQUAL, unionF_zero, emptyPartition);
+
+  // guess the size of the partition
+  Node partitionCard = d_sm->mkSkolemFunction(
+      SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_CARD, d_nm->integerType(), {n});
+  // partitionCardinality >= 1
+  Node partitionCardConstraint = d_nm->mkNode(GEQ, partitionCard, d_one);
+
+  // (= (part partitionCard) skolem)
+  Node groupSkolem = registerAndAssertSkolemLemma(n, "skolem_bag");
+
+  Node unionAll = d_nm->mkNode(APPLY_UF, unionF, partitionCard);
+  Node unionAllConstraint = d_nm->mkNode(EQUAL, unionAll, groupSkolem);
+
+  BoundVarManager* bvm = d_nm->getBoundVarManager();
+  Node i = bvm->mkBoundVar<FirstIndexVarAttribute>(n, "i", d_nm->integerType());
+  Node j =
+      bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
+  Node iList = d_nm->mkNode(BOUND_VAR_LIST, i);
+  Node jList = d_nm->mkNode(BOUND_VAR_LIST, j);
+  Node iMinusOne = d_nm->mkNode(SUB, i, d_one);
+  Node part_i = d_nm->mkNode(APPLY_UF, part, i);
+  Node part_j = d_nm->mkNode(APPLY_UF, part, j);
+  Node interval_i = d_nm->mkNode(
+      AND, d_nm->mkNode(GEQ, i, d_one), d_nm->mkNode(LEQ, i, partitionCard));
+  Node part_i_count = d_nm->mkNode(BAG_COUNT, part_i, groupSkolem);
+  Node member = d_nm->mkNode(EQUAL, part_i_count, d_one);
+  Node unionF_i = d_nm->mkNode(APPLY_UF, unionF, i);
+  Node unionF_iMinusOne = d_nm->mkNode(APPLY_UF, unionF, iMinusOne);
+  Node part_i_bag = d_nm->mkNode(BAG_MAKE, part_i, d_one);
+  Node inductiveCase = d_nm->mkNode(
+      EQUAL,
+      unionF_i,
+      d_nm->mkNode(BAG_UNION_DISJOINT, unionF_iMinusOne, part_i_bag));
+
+  // i < j <= partitionCard
+  Node interval_j = d_nm->mkNode(
+      AND, d_nm->mkNode(LT, i, j), d_nm->mkNode(LEQ, j, partitionCard));
+  // intersection is empty
+  Node inter = d_nm->mkNode(BAG_INTER_MIN, part_i, part_j);
+  Node emptyPart = d_nm->mkConst(EmptyBag(A.getType()));
+  Node interEmpty = emptyPart.eqNode(inter);
+  Node body_j = d_nm->mkNode(OR, interval_j.negate(), interEmpty);
+  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node andNode = d_nm->mkNode(AND, {member, inductiveCase, forAll_j});
+  Node body_i = d_nm->mkNode(OR, interval_i.negate(), andNode);
+  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node conclusion = d_nm->mkNode(
+      AND, {baseCase, unionAllConstraint, partitionCardConstraint, forAll_i});
+  inferInfo.d_conclusion = conclusion;
+
+  return std::tuple(inferInfo, part, partitionCard);
 }
 
 }  // namespace bags

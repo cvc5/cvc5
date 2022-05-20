@@ -368,10 +368,14 @@ void BagSolver::checkGroup(Node n)
   InferInfo notEmpty = d_ig.groupNotEmpty(n);
   d_im.lemmaTheoryInference(&notEmpty);
 
+  auto [inferInfo, part, partitionCard] = d_ig.groupPartsDisjoint2(n);
+  d_im.lemmaTheoryInference(&inferInfo);
+
   const set<Node>& elementsA = d_state.getElements(n[0]);
   for (const Node& a : elementsA)
   {
-    InferInfo i = d_ig.groupUp(n, d_state.getRepresentative(a));
+    InferInfo i =
+        d_ig.groupUp2(n, d_state.getRepresentative(a), part, partitionCard);
     d_im.lemmaTheoryInference(&i);
   }
 
@@ -407,20 +411,10 @@ void BagSolver::checkGroup(Node n)
         if (x != y)
         {
           // x, y should have the same projection
-          InferInfo sameProjection = d_ig.groupSamePart(n, part1, x, y);
-          d_im.lemmaTheoryInference(&sameProjection);
+          InferInfo samePart = d_ig.groupSamePart(n, part1, x, y);
+          d_im.lemmaTheoryInference(&samePart);
         }
       }
-    }
-
-    std::set<Node>::iterator partIt2 = partIt1;
-    ++partIt2;
-    while (partIt2 != parts.end())
-    {
-      Node part2 = d_state.getRepresentative(*partIt2);
-      InferInfo disjoint = d_ig.groupPartsDisjoint(n, part1, part2);
-      d_im.lemmaTheoryInference(&disjoint);
-      ++partIt2;
     }
   }
 }

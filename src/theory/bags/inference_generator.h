@@ -397,6 +397,26 @@ class InferenceGenerator
   InferInfo groupUp(Node n, Node e);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param e an element of type T
+   * @param part a function of type Int -> (Table T)
+   * @param part the cardinality of the group
+   * @return an inference that represents:
+   * (=>
+   *   (bag.member e A)
+   *   (exists ((i Int))
+   *           (and
+   *             (>= i 1)
+   *             (<= i partitionCard)
+   *             (= (bag.count e A) (bag.count e (part i))
+   *           )
+   *   )
+   *)
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A) and B is
+   * a unique skolem for n, e that represents the part containing e.
+   */
+  InferInfo groupUp2(Node n, Node e, Node part, Node partitionCard);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)
    * @param x an element of type T
    * @return an inference that represents:
@@ -477,6 +497,34 @@ class InferenceGenerator
    * where skolem is a variable equals ((_ table.group n1 ... nk) A).
    */
   InferInfo groupPartsDisjoint(Node n, Node B, Node C);
+
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @return an inference that represents:
+   * (and
+   *   (= (unionF 0) (as bag.empty (Bag (Table T)))
+   *   (= (unionF partitionCard) skolem)
+   *   (>= partitionCard 1)
+   *   (forall ((i Int))
+   *          (=>
+   *           (and (>= i 1) (<= i partitionCard))
+   *           (and
+   *            (bag.member (part i) skolem)
+   *            (= (unionF i) (bag.union_disjoint 
+   *                            (unionF (- i 1)) 
+   *                            (bag (part i) 1)))
+   *               (forall ((j Int))
+   *                       (or
+   *                        (not (and (< i j) (<= j partitionCard)))
+   *                        (= (as bag.empty (Table T))
+   *                           (bag.inter_min (part i) (part j))))))))))
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A),
+   * part: Int -> (Table T) is a function from integers to parts in the
+   * partition, partitionCard is the cardinality of the partition (>= 1)
+   * unionF: Int -> (Bag (Table T)) is a function that aggregates the parts in
+   * the partition.
+   */
+  std::tuple<InferInfo, Node, Node> groupPartsDisjoint2(Node n);
 
  private:
   /**
