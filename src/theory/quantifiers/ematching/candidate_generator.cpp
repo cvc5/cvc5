@@ -222,7 +222,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     {
       TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
-        if (options::instMaxLevel() != -1)
+        if (options().quantifiers.instMaxLevel != -1)
         {
           nh = d_treg.getModel()->getInternalRepresentative(nh, d_f, d_index);
           //don't consider this if already the instantiation is ineligible
@@ -264,7 +264,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   {
     // generates too many instantiations at top-level when eqc is null, thus
     // set mode to none unless option is set.
-    if (options::consExpandTriggers())
+    if (options().quantifiers.consExpandTriggers)
     {
       d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
       d_mode = cand_term_db;
