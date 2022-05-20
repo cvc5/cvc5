@@ -73,7 +73,7 @@ void InferenceGenerator::registerCardinalityTerm(Node n)
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 {
   Assert(n.getType().isBag());
-  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(e.getType() == n.getType().getBagElementType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
   Node count = d_nm->mkNode(BAG_COUNT, e, n);
@@ -114,7 +114,7 @@ InferInfo InferenceGenerator::bagMake(Node n)
 InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
   Assert(n.getKind() == BAG_MAKE);
-  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(e.getType() == n.getType().getBagElementType());
 
   /*
    * (ite (and (= e x) (>= c 1))
@@ -191,7 +191,7 @@ Node InferenceGenerator::registerAndAssertSkolemLemma(Node& n,
 InferInfo InferenceGenerator::empty(Node n, Node e)
 {
   Assert(n.getKind() == BAG_EMPTY);
-  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(e.getType() == n.getType().getBagElementType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_EMPTY);
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
@@ -205,7 +205,7 @@ InferInfo InferenceGenerator::empty(Node n, Node e)
 InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 {
   Assert(n.getKind() == BAG_UNION_DISJOINT && n[0].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -227,7 +227,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 InferInfo InferenceGenerator::unionMax(Node n, Node e)
 {
   Assert(n.getKind() == BAG_UNION_MAX && n[0].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -250,7 +250,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
 InferInfo InferenceGenerator::intersection(Node n, Node e)
 {
   Assert(n.getKind() == BAG_INTER_MIN && n[0].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -271,7 +271,7 @@ InferInfo InferenceGenerator::intersection(Node n, Node e)
 InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT && n[0].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -293,7 +293,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_REMOVE && n[0].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -315,7 +315,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
 {
   Assert(n.getKind() == BAG_DUPLICATE_REMOVAL && n[0].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   InferInfo inferInfo(d_im, InferenceId::BAGS_DUPLICATE_REMOVAL);
@@ -536,7 +536,7 @@ InferInfo InferenceGenerator::mapUp(
 InferInfo InferenceGenerator::filterDownwards(Node n, Node e)
 {
   Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[1].getType().getBagElementType()));
+  Assert(e.getType() == n[1].getType().getBagElementType());
 
   Node P = n[0];
   Node A = n[1];
@@ -558,7 +558,7 @@ InferInfo InferenceGenerator::filterDownwards(Node n, Node e)
 InferInfo InferenceGenerator::filterUpwards(Node n, Node e)
 {
   Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
-  Assert(e.getType().isSubtypeOf(n[1].getType().getBagElementType()));
+  Assert(e.getType() == n[1].getType().getBagElementType());
 
   Node P = n[0];
   Node A = n[1];
@@ -606,7 +606,7 @@ InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
 InferInfo InferenceGenerator::productDown(Node n, Node e)
 {
   Assert(n.getKind() == TABLE_PRODUCT);
-  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(e.getType() == n.getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -676,7 +676,7 @@ InferInfo InferenceGenerator::joinUp(Node n, Node e1, Node e2)
 InferInfo InferenceGenerator::joinDown(Node n, Node e)
 {
   Assert(n.getKind() == TABLE_JOIN);
-  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(e.getType() == n.getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -715,177 +715,6 @@ InferInfo InferenceGenerator::joinDown(Node n, Node e)
   }
   inferInfo.d_conclusion = joinConstraints.andNode(multiplicityConstraint);
 
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupNotEmpty(Node n)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-
-  TypeNode bagType = n.getType();
-  Node A = n[0];
-  Node empty = d_nm->mkConst(EmptyBag(A.getType()));
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_NOT_EMPTY);
-  inferInfo.d_premises.push_back(A.eqNode(empty));
-  Node partition = d_nm->mkNode(BAG_MAKE, empty, d_one);
-  inferInfo.d_conclusion = skolem.eqNode(partition);
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupUp(Node n, Node e)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-
-  Node A = n[0];
-  TypeNode bagType = A.getType();
-  Node count_e_A = getMultiplicityTerm(e, A);
-  Node B = d_sm->mkSkolemFunction(
-      SkolemFunId::TABLES_GROUP_UP_PART, bagType, {n, e});
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP);
-  Node count_e_B = getMultiplicityTerm(e, B);
-
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_e_A, d_one));
-
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  Node count_B_n = getMultiplicityTerm(B, skolem);
-  Node member_B_n = count_B_n.eqNode(d_one);
-  Node sameMultiplicity = count_e_B.eqNode(count_e_A);
-  inferInfo.d_conclusion = member_B_n.andNode(sameMultiplicity);
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-
-  Node A = n[0];
-  TypeNode bagType = A.getType();
-
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_DOWN);
-  Node count_x_B = getMultiplicityTerm(x, B);
-
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  Node count_B_n = getMultiplicityTerm(B, skolem);
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_B_n, d_one));
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_x_B, d_one));
-  Node count_x_A = getMultiplicityTerm(x, A);
-  inferInfo.d_conclusion = count_x_B.eqNode(count_x_A);
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupPartCount(Node n, Node B)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-
-  Node A = n[0];
-  TypeNode bagType = A.getType();
-
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PART_COUNT);
-
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  Node count_B_n = getMultiplicityTerm(B, skolem);
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_B_n, d_one));
-  inferInfo.d_conclusion = count_B_n.eqNode(d_one);
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupSameProjection(Node n,
-                                                  Node B,
-                                                  Node x,
-                                                  Node y)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-  Assert(y.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-
-  Node A = n[0];
-  TypeNode bagType = A.getType();
-
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_SAME_PROJECTION);
-  Node count_x_B = getMultiplicityTerm(x, B);
-  Node count_y_B = getMultiplicityTerm(y, B);
-
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  Node count_B_n = getMultiplicityTerm(B, skolem);
-
-  // premises
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_B_n, d_one));
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_x_B, d_one));
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_y_B, d_one));
-  inferInfo.d_premises.push_back(x.eqNode(y).notNode());
-
-  const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
-
-  Node xProjection = TupleUtils::getTupleProjection(indices, x);
-  Node yProjection = TupleUtils::getTupleProjection(indices, y);
-  inferInfo.d_conclusion = xProjection.eqNode(yProjection);
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupSamePart(Node n, Node B, Node x, Node y)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-  Assert(y.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-
-  Node A = n[0];
-  TypeNode bagType = A.getType();
-
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_SAME_PART);
-  Node count_x_B = getMultiplicityTerm(x, B);
-  Node count_y_A = getMultiplicityTerm(y, A);
-  Node count_y_B = getMultiplicityTerm(y, B);
-
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  Node count_B_n = getMultiplicityTerm(B, skolem);
-  const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
-
-  Node xProjection = TupleUtils::getTupleProjection(indices, x);
-  Node yProjection = TupleUtils::getTupleProjection(indices, y);
-
-  // premises
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_B_n, d_one));
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_x_B, d_one));
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_y_A, d_one));
-  inferInfo.d_premises.push_back(x.eqNode(y).notNode());
-  inferInfo.d_premises.push_back(xProjection.eqNode(yProjection));
-
-  inferInfo.d_conclusion = count_y_B.eqNode(count_y_A);
-  return inferInfo;
-}
-
-InferInfo InferenceGenerator::groupPartsDisjoint(Node n, Node B, Node C)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(C.getType().isSubtypeOf(n.getType().getBagElementType()));
-
-  Node A = n[0];
-  TypeNode bagType = A.getType();
-  Node empty = d_nm->mkConst(EmptyBag(bagType));
-
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PARTS_DISJOINT);
-
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
-  Node count_B_n = getMultiplicityTerm(B, skolem);
-  Node count_C_n = getMultiplicityTerm(B, skolem);
-  // premises
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_B_n, d_one));
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_C_n, d_one));
-
-  Node equal = B.eqNode(C);
-  Node disjoint = d_nm->mkNode(BAG_INTER_MIN, B, C).eqNode(empty);
-
-  inferInfo.d_conclusion = equal.orNode(disjoint);
   return inferInfo;
 }
 

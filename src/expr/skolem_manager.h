@@ -169,9 +169,6 @@ enum class SkolemFunId
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
   BAGS_DEQ_DIFF,
-  /** Given an element e in a bag A, this is a skolem for a part
-   * in partition ((_ table.group n1 ... nk) A) that contains e */
-  TABLES_GROUP_UP_PART,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))

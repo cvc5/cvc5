@@ -80,7 +80,6 @@ void BagSolver::checkBasicOperations()
         case kind::BAG_MAP: checkMap(n); break;
         case kind::TABLE_PRODUCT: checkProduct(n); break;
         case kind::TABLE_JOIN: checkJoin(n); break;
-        case kind::TABLE_GROUP: checkGroup(n); break;
         default: break;
       }
       it++;
@@ -358,70 +357,6 @@ void BagSolver::checkJoin(Node n)
   {
     InferInfo i = d_ig.joinDown(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
-  }
-}
-
-void BagSolver::checkGroup(Node n)
-{
-  Assert(n.getKind() == TABLE_GROUP);
-
-  InferInfo notEmpty = d_ig.groupNotEmpty(n);
-  d_im.lemmaTheoryInference(&notEmpty);
-
-  const set<Node>& elementsA = d_state.getElements(n[0]);
-  for (const Node& a : elementsA)
-  {
-    InferInfo i = d_ig.groupUp(n, d_state.getRepresentative(a));
-    d_im.lemmaTheoryInference(&i);
-  }
-
-  std::set<Node> parts = d_state.getElements(n);
-  for (std::set<Node>::iterator partIt1 = parts.begin(); partIt1 != parts.end();
-       ++partIt1)
-  {
-    Node part1 = d_state.getRepresentative(*partIt1);
-    InferInfo partCardinality = d_ig.groupPartCount(n, part1);
-    d_im.lemmaTheoryInference(&partCardinality);
-    std::set<Node> partElements = d_state.getElements(part1);
-    for (std::set<Node>::iterator i = partElements.begin();
-         i != partElements.end();
-         ++i)
-    {
-      Node x = d_state.getRepresentative(*i);
-      InferInfo down = d_ig.groupDown(n, part1, x);
-      d_im.lemmaTheoryInference(&down);
-      std::set<Node>::iterator j = i;
-      ++j;
-      while (j != partElements.end())
-      {
-        Node y = d_state.getRepresentative(*j);
-        // x, y should have the same projection
-        InferInfo sameProjection = d_ig.groupSameProjection(n, part1, x, y);
-        d_im.lemmaTheoryInference(&sameProjection);
-        ++j;
-      }
-
-      for (const Node& a : elementsA)
-      {
-        Node y = d_state.getRepresentative(a);
-        if (x != y)
-        {
-          // x, y should have the same projection
-          InferInfo sameProjection = d_ig.groupSamePart(n, part1, x, y);
-          d_im.lemmaTheoryInference(&sameProjection);
-        }
-      }
-    }
-
-    std::set<Node>::iterator partIt2 = partIt1;
-    ++partIt2;
-    while (partIt2 != parts.end())
-    {
-      Node part2 = d_state.getRepresentative(*partIt2);
-      InferInfo disjoint = d_ig.groupPartsDisjoint(n, part1, part2);
-      d_im.lemmaTheoryInference(&disjoint);
-      ++partIt2;
-    }
   }
 }
 

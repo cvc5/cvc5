@@ -95,7 +95,6 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
     case SkolemFunId::BAGS_DEQ_DIFF: return "BAGS_DEQ_DIFF";
-    case SkolemFunId::TABLES_GROUP_UP_PART: return "TABLES_GROUP_UP_PART";
     case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
     case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
