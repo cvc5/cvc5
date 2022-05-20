@@ -168,6 +168,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(ARCCOTANGENT, internal::Kind::ARCCOTANGENT),
         KIND_ENUM(SQRT, internal::Kind::SQRT),
         KIND_ENUM(CONST_RATIONAL, internal::Kind::CONST_RATIONAL),
+        KIND_ENUM(CONST_INTEGER, internal::Kind::CONST_INTEGER),
         KIND_ENUM(LT, internal::Kind::LT),
         KIND_ENUM(LEQ, internal::Kind::LEQ),
         KIND_ENUM(GT, internal::Kind::GT),
@@ -465,6 +466,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SQRT, SQRT},
         {internal::Kind::DIVISIBLE_OP, DIVISIBLE},
         {internal::Kind::CONST_RATIONAL, CONST_RATIONAL},
+        {internal::Kind::CONST_INTEGER, CONST_INTEGER},
         {internal::Kind::LT, LT},
         {internal::Kind::LEQ, LEQ},
         {internal::Kind::GT, GT},
@@ -2210,10 +2212,6 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
-  if (isCastedReal())
-  {
-    return 0;
-  }
   return d_node->getNumChildren();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -2601,8 +2599,6 @@ const internal::Rational& getRational(const internal::Node& node)
 {
   switch (node.getKind())
   {
-    case internal::Kind::CAST_TO_REAL:
-      return node[0].getConst<internal::Rational>();
     case internal::Kind::CONST_INTEGER:
     case internal::Kind::CONST_RATIONAL:
       return node.getConst<internal::Rational>();
@@ -2635,8 +2631,7 @@ bool checkReal64Bounds(const internal::Rational& r)
 bool isReal(const internal::Node& node)
 {
   return node.getKind() == internal::Kind::CONST_RATIONAL
-         || node.getKind() == internal::Kind::CONST_INTEGER
-         || node.getKind() == internal::Kind::CAST_TO_REAL;
+         || node.getKind() == internal::Kind::CONST_INTEGER;
 }
 bool isReal32(const internal::Node& node)
 {
@@ -3339,20 +3334,7 @@ Kind Term::getKindHelper() const
   }
   // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
   // INTERNAL_KIND.
-  if (isCastedReal())
-  {
-    return CONST_RATIONAL;
-  }
   return intToExtKind(d_node->getKind());
-}
-
-bool Term::isCastedReal() const
-{
-  if (d_node->getKind() == internal::kind::CAST_TO_REAL)
-  {
-    return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
-  }
-  return false;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4921,13 +4903,7 @@ Term Solver::mkRationalValHelper(const internal::Rational& r, bool isInt) const
   internal::NodeManager* nm = getNodeManager();
   internal::Node res = isInt ? nm->mkConstInt(r) : nm->mkConstReal(r);
   (void)res.getType(true); /* kick off type checking */
-  Term t = Term(this, res);
-  // NOTE: this block will be eliminated when arithmetic subtyping is eliminated
-  if (!isInt)
-  {
-    t = ensureRealSort(t);
-  }
-  return t;
+  return Term(this, res);
 }
 
 Term Solver::mkRealOrIntegerFromStrHelper(const std::string& s,
@@ -4998,12 +4974,7 @@ Term Solver::getValueHelper(const Term& term) const
   //////// all checks before this line
   internal::Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
-  // May need to wrap in real cast so that user know this is a real.
-  internal::TypeNode tn = (*term.d_node).getType();
-  if (!tn.isInteger() && value.getType().isInteger())
-  {
-    return ensureRealSort(res);
-  }
+  Assert(res.getSort() == term.getSort());
   return res;
 }
 
@@ -5101,42 +5072,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    if (kind == SET_SINGLETON)
-    {
-      // the type of the term is the same as the type of the internal node
-      // see Term::getSort()
-      internal::TypeNode type = children[0].d_node->getType();
-      // Internally NodeManager::mkSingleton needs a type argument
-      // to construct a singleton, since there is no difference between
-      // integers and reals (both are Rationals).
-      // At the API, mkReal and mkInteger are different and therefore the
-      // element type can be used safely here.
-      res = getNodeManager()->mkSingleton(type, *children[0].d_node);
-    }
-    else if (kind == BAG_MAKE)
-    {
-      // the type of the term is the same as the type of the internal node
-      // see Term::getSort()
-      internal::TypeNode type = children[0].d_node->getType();
-      // Internally NodeManager::mkBag needs a type argument
-      // to construct a bag, since there is no difference between
-      // integers and reals (both are Rationals).
-      // At the API, mkReal and mkInteger are different and therefore the
-      // element type can be used safely here.
-      res = getNodeManager()->mkBag(
-          type, *children[0].d_node, *children[1].d_node);
-    }
-    else if (kind == SEQ_UNIT)
-    {
-      // the type of the term is the same as the type of the internal node
-      // see Term::getSort()
-      internal::TypeNode type = children[0].d_node->getType();
-      res = getNodeManager()->mkSeqUnit(type, *children[0].d_node);
-    }
-    else
-    {
-      res = d_nodeMgr->mkNode(k, echildren);
-    }
+    // make the term
+    res = d_nodeMgr->mkNode(k, echildren);
   }
 
   (void)res.getType(true); /* kick off type checking */
@@ -5206,55 +5143,6 @@ Term Solver::synthFunHelper(const std::string& symbol,
       bvns);
 
   return Term(this, fun);
-}
-
-Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
-{
-  // Note: Term and sort are checked in the caller to avoid double checks
-  CVC5_API_CHECK(term.getSort() == sort
-                 || (term.getSort().isInteger() && sort.isReal()))
-      << "Expected conversion from Int to Real";
-  //////// all checks before this line
-
-  Sort t = term.getSort();
-  if (term.getSort() == sort)
-  {
-    return term;
-  }
-
-  // Integers are reals, too
-  Assert(t.d_type->isReal());
-  Term res = term;
-  if (t.isInteger())
-  {
-    // Must cast to Real to ensure correct type is passed to parametric type
-    // constructors. We do this cast using division with 1. This has the
-    // advantage wrt using TO_REAL since (constant) division is always included
-    // in the theory.
-    res = Term(this,
-               d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                                 *res.d_node,
-                                 d_nodeMgr->mkConstInt(internal::Rational(1))));
-  }
-  Assert(res.getSort() == sort);
-  return res;
-}
-
-Term Solver::ensureRealSort(const Term& t) const
-{
-  Assert(this == t.d_solver);
-  CVC5_API_ARG_CHECK_EXPECTED(
-      t.getSort() == getIntegerSort() || t.getSort() == getRealSort(),
-      " an integer or real term");
-  // Note: Term is checked in the caller to avoid double checks
-  //////// all checks before this line
-  if (t.getSort() == getIntegerSort())
-  {
-    internal::Node n =
-        getNodeManager()->mkNode(internal::kind::CAST_TO_REAL, *t.d_node);
-    return Term(this, n);
-  }
-  return t;
 }
 
 bool Solver::isValidInteger(const std::string& s) const
@@ -5894,14 +5782,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_CHECK(val.getSort() == sort.getArrayElementSort())
       << "Value does not match element sort";
   //////// all checks before this line
-
-  // handle the special case of (CAST_TO_REAL n) where n is an integer
   internal::Node n = *val.d_node;
-  if (val.isCastedReal())
-  {
-    // this is safe because the constant array stores its type
-    n = n[0];
-  }
   Term res = mkValHelper(internal::ArrayStoreAll(*sort.d_type, n));
   return res;
   ////////
@@ -6110,11 +5991,16 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
       << "Expected the same number of sorts and elements";
   CVC5_API_SOLVER_CHECK_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  {
+    CVC5_API_CHECK(terms[i].getSort() == sorts[i])
+        << "Type mismatch in mkTuple";
+  }
   //////// all checks before this line
   std::vector<internal::Node> args;
   for (size_t i = 0, size = sorts.size(); i < size; i++)
   {
-    args.push_back(*(ensureTermSort(terms[i], sorts[i])).d_node);
+    args.push_back(*terms[i].d_node);
   }
 
   Sort s = mkTupleSortHelper(sorts);
@@ -6281,7 +6167,7 @@ Term Solver::simplify(const Term& term)
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
   Term res = Term(this, d_slv->simplify(*term.d_node));
-  Assert(res.getSort().d_type->isSubtypeOf(*term.getSort().d_type));
+  Assert(*res.getSort().d_type == *term.getSort().d_type);
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6417,12 +6303,8 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  // We are permissive with subtypes so that integers are allowed to define
-  // the body of a function whose codomain is real. This is to accomodate
-  // SMT-LIB inputs in the Reals theory, where NUMERAL can be used to specify
-  // reals. Instead of making our parser for numerals dependent on the logic,
-  // we instead allow integers here in this case.
-  CVC5_API_CHECK(term.d_node->getType().isSubtypeOf(*sort.d_type))
+  // the sort of the body must match the return sort
+  CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6466,8 +6348,7 @@ Term Solver::defineFunRec(const std::string& symbol,
 
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
-  // we are permissive with subtypes, similar to defineFun
-  CVC5_API_CHECK(term.d_node->getType().isSubtypeOf(*sort.d_type))
+  CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6516,8 +6397,7 @@ Term Solver::defineFunRec(const Term& fun,
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
     Sort codomain = fun.getSort().getFunctionCodomainSort();
-    // we are permissive with subtypes, similar to defineFun
-    CVC5_API_CHECK(codomain.d_type->isSubtypeOf(term.d_node->getType()))
+    CVC5_API_CHECK(*codomain.d_type == term.d_node->getType())
         << "Invalid sort of function body '" << term << "', expected '"
         << codomain << "'";
   }
@@ -7347,6 +7227,11 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
                               value)
       << "'sat', 'unsat' or 'unknown'";
   //////// all checks before this line
+  if (keyword == "filename")
+  {
+    // only the Solver object has non-const access to the original options
+    d_originalOptions->writeDriver().filename = value;
+  }
   d_slv->setInfo(keyword, value);
   ////////
   CVC5_API_TRY_CATCH_END;

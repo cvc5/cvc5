@@ -46,6 +46,12 @@ class Word
    * concatenation is equivalent to x.
    */
   static std::vector<Node> getChars(TNode x);
+  /**
+   * Get nth. If x is a string constant, this returns the constant integer
+   * corresponding to the code point of x at position n. If x is a sequence
+   * constant, then this returns the nth element of x.
+   */
+  static Node getNth(TNode x, size_t n);
 
   /** Return true if x is empty */
   static bool isEmpty(TNode x);

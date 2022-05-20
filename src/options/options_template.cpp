@@ -40,6 +40,10 @@ ${holder_ref_inits}$
 
   Options::~Options() {}
 
+// clang-format off
+${write_functions}$
+// clang-format on
+
   void Options::copyValues(const Options& options)
   {
     if (this != &options)

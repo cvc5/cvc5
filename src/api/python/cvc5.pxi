@@ -2069,7 +2069,7 @@ cdef class Solver:
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
 
-        if t is not None:
+        if isinstance(sym_or_fun, str):
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
@@ -2083,7 +2083,7 @@ cdef class Solver:
 
         return term
 
-    def defineFunsRec(self, funs, bound_vars, terms):
+    def defineFunsRec(self, funs, bound_vars, terms, glb = False):
         """
             Define recursive functions.
 
@@ -2098,9 +2098,8 @@ cdef class Solver:
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
             :param terms: The list of function bodies of the functions.
-            :param global: Determines whether this definition is global (i.e.
-                           persists when popping the context).
-            :return: The function.
+            :param glb: Determines whether this definition is global (i.e.
+                        persists when popping the context).
         """
         cdef vector[c_Term] vf
         cdef vector[vector[c_Term]] vbv
@@ -2117,7 +2116,9 @@ cdef class Solver:
             temp.clear()
 
         for t in terms:
-            vf.push_back((<Term?> t).cterm)
+            vt.push_back((<Term?> t).cterm)
+
+        self.csolver.defineFunsRec(vf, vbv, vt, glb)
 
     def getProof(self):
         """

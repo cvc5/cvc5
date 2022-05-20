@@ -126,7 +126,7 @@ bool EagerSolver::checkForMergeConflict(Node a,
                                         EqcInfo* eb)
 {
   Assert(eb != nullptr && ea != nullptr);
-  Assert(a.getType().isComparableTo(b.getType()))
+  Assert(a.getType() == b.getType())
       << "bad types for merge " << a << ", " << b;
   // usages of isRealOrInt are only due to subtyping, where seq.nth for
   // sequences of Real are merged to integer equivalence classes

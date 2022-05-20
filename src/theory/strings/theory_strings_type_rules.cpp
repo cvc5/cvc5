@@ -19,7 +19,6 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "options/strings_options.h"
-#include "theory/strings/seq_unit_op.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -326,25 +325,9 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check)
 {
-  Assert(n.getKind() == kind::SEQ_UNIT && n.hasOperator()
-         && n.getOperator().getKind() == kind::SEQ_UNIT_OP);
-
-  const SeqUnitOp& op = n.getOperator().getConst<SeqUnitOp>();
-  TypeNode otype = op.getType();
-  if (check)
-  {
-    TypeNode argType = n[0].getType(check);
-    // the type of the element should be a subtype of the type of the operator
-    // e.g. (seq.unit (SeqUnitOp Real) 1) where 1 is an Int
-    if (!argType.isSubtypeOf(otype))
-    {
-      std::stringstream ss;
-      ss << "The type '" << argType << "' of the element is not a subtype of '"
-         << otype << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-  }
-  return nodeManager->mkSequenceType(otype);
+  Assert(n.getKind() == kind::SEQ_UNIT);
+  TypeNode argType = n[0].getType(check);
+  return nodeManager->mkSequenceType(argType);
 }
 
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,

@@ -128,7 +128,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
   Trace("internal-rep-select")
       << "...Choose " << r_best << " with score " << r_best_score
       << " and type " << r_best.getType() << std::endl;
-  Assert(r_best.getType().isSubtypeOf(v_tn));
+  Assert(r_best.getType() == v_tn);
   v_int_rep[r] = r_best;
   if (TraceIsOn("internal-rep-debug"))
   {
@@ -172,7 +172,7 @@ int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
   {  // reject
     return -2;
   }
-  else if (!n.getType().isSubtypeOf(v_tn))
+  else if (n.getType() != v_tn)
   {  // reject if incorrect type
     return -2;
   }
