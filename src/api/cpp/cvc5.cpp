@@ -6309,11 +6309,7 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  // We are permissive with subtypes so that integers are allowed to define
-  // the body of a function whose codomain is real. This is to accomodate
-  // SMT-LIB inputs in the Reals theory, where NUMERAL can be used to specify
-  // reals. Instead of making our parser for numerals dependent on the logic,
-  // we instead allow integers here in this case.
+  // the sort of the body must match the return sort
   CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
@@ -6358,7 +6354,6 @@ Term Solver::defineFunRec(const std::string& symbol,
 
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
-  // we are permissive with subtypes, similar to defineFun
   CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
@@ -6408,7 +6403,6 @@ Term Solver::defineFunRec(const Term& fun,
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
     Sort codomain = fun.getSort().getFunctionCodomainSort();
-    // we are permissive with subtypes, similar to defineFun
     CVC5_API_CHECK(*codomain.d_type == term.d_node->getType())
         << "Invalid sort of function body '" << term << "', expected '"
         << codomain << "'";
