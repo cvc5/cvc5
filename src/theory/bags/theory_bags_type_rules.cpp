@@ -721,7 +721,7 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     if (!bagType.isBag())
     {
       std::stringstream ss;
-      ss << "TABLE_GROUP operator expects a table. Found '" << n[2]
+      ss << "TABLE_GROUP operator expects a table. Found '" << n[0]
          << "' of type '" << bagType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -730,7 +730,7 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "TABLE_GROUP operator expects a table. Found '" << n[2]
+      ss << "TABLE_GROUP operator expects a table. Found '" << n[0]
          << "' of type '" << bagType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
