@@ -29,6 +29,14 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: macos:production-arm64
+            os: macos-11
+            config: production --auto-download --python-bindings --editline --arm64
+            cache-key: production-arm64
+            strip-bin: strip
+            python-bindings: true
+            binary-name: cvc5-macOS-arm64
+
           - name: win64:production
             os: ubuntu-latest
             config: production --auto-download --win64

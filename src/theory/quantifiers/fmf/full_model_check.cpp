@@ -919,7 +919,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       Trace("fmc-exh-debug") << std::endl;
       int index = riter.increment();
       Trace("fmc-exh-debug") << "Incremented index " << index << std::endl;
-      if( !riter.isFinished() ){
+      if (!options().quantifiers.fmfBoundBlast && !riter.isFinished())
+      {
         if (index >= 0 && riter.d_index[index] > 0 && addedLemmas > 0
             && riter.d_enum_type[index] == ENUM_CUSTOM)
         {

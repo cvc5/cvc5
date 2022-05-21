@@ -1038,7 +1038,7 @@ class CVC5_EXPORT SolverEngine
    * or getExpandedAssertions, which may trigger initialization and SMT state
    * changes.
    */
-  std::vector<Node> getAssertionsInternal();
+  std::vector<Node> getAssertionsInternal() const;
 
   /**
    * Return a reference to options like for `EnvObj`.
