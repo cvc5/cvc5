@@ -989,7 +989,7 @@ Node SygusExtension::registerSearchValue(Node a,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
-  Assert(n.getType().isComparableTo(nv.getType()));
+  Assert(n.getType() == nv.getType());
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {

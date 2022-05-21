@@ -22,7 +22,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "table_project_op.h"
-#include "theory/bags/bag_make_op.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -88,11 +87,8 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
     TypeNode secondBagType = n[1].getType(check);
     if (secondBagType != bagType)
     {
-      if (!bagType.isComparableTo(secondBagType))
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "BAG_SUBBAG operating on bags of different types");
-      }
+      throw TypeCheckingExceptionPrivate(
+          n, "BAG_SUBBAG operating on bags of different types");
     }
   }
   return nodeManager->booleanType();
@@ -114,12 +110,12 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (bag.count 1 (bag (BagMakeOp Real) 1.0 3))) is 3 whereas
     // (bag.count 1.0 (bag (BagMakeOp Int) 1 3)) throws a typing error
-    if (!elementType.isSubtypeOf(bagType.getBagElementType()))
+    if (elementType != bagType.getBagElementType())
     {
       std::stringstream ss;
       ss << "member operating on bags of different types:\n"
          << "child type:  " << elementType << "\n"
-         << "not subtype: " << bagType.getBagElementType() << "\n"
+         << "not type: " << bagType.getBagElementType() << "\n"
          << "in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -143,12 +139,12 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (bag.member 1 (bag 1.0 1)) is true whereas
     // (bag.member 1.0 (bag 1 1)) throws a typing error
-    if (!elementType.isSubtypeOf(bagType.getBagElementType()))
+    if (elementType != bagType.getBagElementType())
     {
       std::stringstream ss;
       ss << "member operating on bags of different types:\n"
          << "child type:  " << elementType << "\n"
-         << "not subtype: " << bagType.getBagElementType() << "\n"
+         << "not type: " << bagType.getBagElementType() << "\n"
          << "in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -177,10 +173,8 @@ TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
-  Assert(n.getKind() == kind::BAG_MAKE && n.hasOperator()
-         && n.getOperator().getKind() == kind::BAG_MAKE_OP);
-  BagMakeOp op = n.getOperator().getConst<BagMakeOp>();
-  TypeNode expectedElementType = op.getType();
+  Assert(n.getKind() == kind::BAG_MAKE);
+  TypeNode actualElementType = n[0].getType(check);
   if (check)
   {
     if (n.getNumChildren() != 2)
@@ -197,21 +191,9 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
       ss << "BAG_MAKE expects an integer for " << n[1] << ". Found" << type1;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
-
-    TypeNode actualElementType = n[0].getType(check);
-    // the type of the element should be a subtype of the type of the operator
-    // e.g. (bag (bag_op Real) 1 1) where 1 is an Int
-    if (!actualElementType.isSubtypeOf(expectedElementType))
-    {
-      std::stringstream ss;
-      ss << "The type '" << actualElementType
-         << "' of the element is not a subtype of '" << expectedElementType
-         << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
   }
 
-  return nm->mkBagType(expectedElementType);
+  return nm->mkBagType(actualElementType);
 }
 
 bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
@@ -486,9 +468,8 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
-    if (!(argTypes.size() == 2 && elementType.isSubtypeOf(argTypes[0])
-          && elementType.isSubtypeOf(argTypes[1])
-          && rangeType == nm->booleanType()))
+    if (!(argTypes.size() == 2 && elementType == argTypes[0]
+          && elementType == argTypes[1] && rangeType == nm->booleanType()))
     {
       std::stringstream ss;
       ss << "Operator " << n.getKind() << " expects a function of type  (-> "

@@ -835,7 +835,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
 bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
   Assert(v.getKind() == BOUND_VARIABLE);
-  return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
+  return !expr::hasSubterm(s, v) && s.getType() == v.getType();
 }
 
 Node QuantifiersRewriter::getVarElimEq(Node lit,
@@ -1124,7 +1124,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           << "Variable eliminate based on theory-specific solving : " << var
           << " -> " << slv << std::endl;
       Assert(!expr::hasSubterm(slv, var));
-      Assert(slv.getType().isSubtypeOf(var.getType()));
+      Assert(slv.getType() == var.getType());
       vars.push_back(var);
       subs.push_back(slv);
       args.erase(ita);

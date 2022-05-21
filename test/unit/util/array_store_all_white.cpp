@@ -37,7 +37,7 @@ TEST_F(TestUtilWhiteArrayStoreAll, store_all)
                 d_nodeManager->mkConst(UninterpretedSortValue(usort, 0)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
                                            d_nodeManager->realType()),
-                d_nodeManager->mkConstInt(Rational(0)));
+                d_nodeManager->mkConstReal(Rational(0)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
                                            d_nodeManager->integerType()),
                 d_nodeManager->mkConstInt(Rational(0)));
@@ -56,6 +56,11 @@ TEST_F(TestUtilWhiteArrayStoreAll, type_errors)
       ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                d_nodeManager->mkSort("U")),
                     d_nodeManager->mkConstReal(Rational(9, 2))),
+      IllegalArgumentException);
+  ASSERT_THROW(ArrayStoreAll(
+      d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
+                                 d_nodeManager->realType()),
+      d_nodeManager->mkConstInt(Rational(0))),
       IllegalArgumentException);
 }
 

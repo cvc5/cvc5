@@ -209,11 +209,8 @@ class Instantiate : public QuantifiersUtil
    *
    * Returns true if and only if the instantiation already was added or
    * recorded by this class.
-   *   modEq : whether to check for duplication modulo equality
    */
-  bool existsInstantiation(Node q,
-                           const std::vector<Node>& terms,
-                           bool modEq = false);
+  bool existsInstantiation(Node q, const std::vector<Node>& terms);
   //--------------------------------------general utilities
   /** get instantiation
    *
@@ -300,8 +297,6 @@ class Instantiate : public QuantifiersUtil
  private:
   /** record instantiation, return true if it was not a duplicate */
   bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
-  /** remove instantiation from the cache */
-  bool removeInstantiationInternal(Node q, const std::vector<Node>& terms);
   /**
    * Ensure that n has type tn, return a term equivalent to it for that type
    * if possible.

@@ -17,6 +17,8 @@ cvc5 1.0.1
   integers and reals. Type rules for other operators like `APPLY_UF` now
   require their arguments to match the type of the function being applied, and
   do not assume integer/real subtyping.
+- The API method `mkTuple` no longer supports casting integers to reals when
+  constructing tuples.
 
 
 cvc5 1.0

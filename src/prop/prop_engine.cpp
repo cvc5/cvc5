@@ -289,11 +289,16 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // Assert to decision engine. Notice this must come before the calls to
-  // assertTrustedLemmaInternal below, since the decision engine requires
-  // setting up information about the relevance of skolems before literals
-  // are potentially asserted to the theory engine, which it listens to for
-  // tracking active skolem definitions.
+  // Assert to decision engine first.
+  // Note that this order is important for theories that send lemmas during
+  // preregistration, as it impacts the order in which lemmas are processed
+  // by default by the decision engine. In particular, sending to the SAT
+  // solver first means that lemmas sent during preregistration in response to
+  // the current lemma are processed after that lemma. This makes a difference
+  // e.g. for string reduction lemmas, where preregistration lemmas are
+  // introduced for skolems that appear in reductions. Moving this
+  // block after the one below has mixed (trending negative) performance on
+  // SMT-LIB strings logics.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -339,6 +344,11 @@ std::vector<Node> PropEngine::getPropDecisions() const
     decisions.push_back(d_cnfStream->getNode(d));
   }
   return decisions;
+}
+
+std::vector<Node> PropEngine::getPropOrderHeap() const
+{
+  return d_satSolver->getOrderHeap();
 }
 
 int32_t PropEngine::getDecisionLevel(Node lit) const
@@ -715,6 +725,11 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
 std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
 {
   return d_theoryProxy->getLearnedZeroLevelLiteralsForRestart();
+}
+
+modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
+{
+  return d_theoryProxy->getLiteralType(lit);
 }
 
 }  // namespace prop

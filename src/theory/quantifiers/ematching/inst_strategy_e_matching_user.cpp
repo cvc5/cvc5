@@ -38,29 +38,6 @@ InstStrategyUserPatterns::InstStrategyUserPatterns(
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
 
-size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
-{
-  std::map<Node, std::vector<Trigger*> >::const_iterator it =
-      d_user_gen.find(q);
-  if (it == d_user_gen.end())
-  {
-    return 0;
-  }
-  return it->second.size();
-}
-
-Trigger* InstStrategyUserPatterns::getUserGenerator(Node q, size_t i) const
-{
-  std::map<Node, std::vector<Trigger*> >::const_iterator it =
-      d_user_gen.find(q);
-  if (it == d_user_gen.end())
-  {
-    return nullptr;
-  }
-  Assert(i < it->second.size());
-  return it->second[i];
-}
-
 std::string InstStrategyUserPatterns::identify() const
 {
   return std::string("UserPatterns");
