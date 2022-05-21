@@ -44,7 +44,6 @@
 #include "proof/proof_rule.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/boolean_simplification.h"
 #include "theory/arith/linear/approx_simplex.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/linear/arith_static_learner.h"
