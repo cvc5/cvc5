@@ -56,13 +56,9 @@ class InstMatchTrie
    * This method considers the entry given by m, starting at the given index.
    * The domain of m is the bound variables of quantified formula q.
    * It returns true if (the suffix) of m exists in this trie.
-   * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the equality engine of qs.
    */
-  bool existsInstMatch(QuantifiersState& qs,
-                       Node q,
+  bool existsInstMatch(Node q,
                        const std::vector<Node>& m,
-                       bool modEq = false,
                        ImtIndexOrder* imtio = nullptr,
                        unsigned index = 0);
   /** add inst match
@@ -70,26 +66,12 @@ class InstMatchTrie
    * This method adds (the suffix of) m starting at the given index to this
    * trie, and returns true if and only if m did not already occur in this trie.
    * The domain of m is the bound variables of quantified formula q.
-   * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the equality engine of qs.
    */
-  bool addInstMatch(QuantifiersState& qs,
-                    Node f,
+  bool addInstMatch(Node f,
                     const std::vector<Node>& m,
-                    bool modEq = false,
                     ImtIndexOrder* imtio = nullptr,
                     bool onlyExist = false,
                     unsigned index = 0);
-  /** remove inst match
-   *
-   * This removes (the suffix of) m starting at the given index from this trie.
-   * It returns true if and only if this entry existed in this trie.
-   * The domain of m is the bound variables of quantified formula q.
-   */
-  bool removeInstMatch(Node f,
-                       const std::vector<Node>& m,
-                       ImtIndexOrder* imtio = nullptr,
-                       unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
@@ -128,39 +110,24 @@ class CDInstMatchTrie
    * This method considers the entry given by m, starting at the given index.
    * The domain of m is the bound variables of quantified formula q.
    * It returns true if (the suffix) of m exists in this trie.
-   * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
   bool existsInstMatch(context::Context* context,
-                       QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
-                       bool modEq = false,
                        unsigned index = 0);
   /** add inst match
    *
    * This method adds (the suffix of) m starting at the given index to this
    * trie, and returns true if and only if m did not already occur in this trie.
    * The domain of m is the bound variables of quantified formula q.
-   * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
   bool addInstMatch(context::Context* context,
-                    QuantifiersState& qs,
                     Node q,
                     const std::vector<Node>& m,
-                    bool modEq = false,
                     unsigned index = 0,
                     bool onlyExist = false);
-  /** remove inst match
-   *
-   * This removes (the suffix of) m starting at the given index from this trie.
-   * It returns true if and only if this entry existed in this trie.
-   * The domain of m is the bound variables of quantified formula q.
-   */
-  bool removeInstMatch(Node q, const std::vector<Node>& m, unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
@@ -201,23 +168,15 @@ class InstMatchTrieOrdered
   /** add match m for quantified formula q
    *
    * This method returns true if the match m was not previously added to this
-   * class. If modEq is true, we consider duplicates modulo the current
-   * equalities stored in the equality engine of qs.
+   * class.
    */
-  bool addInstMatch(QuantifiersState& qs,
-                    Node q,
-                    const std::vector<Node>& m,
-                    bool modEq = false);
+  bool addInstMatch(Node q, const std::vector<Node>& m);
   /** returns true if this trie contains m
    *
    * This method returns true if the match m exists in this
-   * class. If modEq is true, we consider duplicates modulo the current
-   * equalities stored in the equality engine of qs.
+   * class.
    */
-  bool existsInstMatch(QuantifiersState& qs,
-                       Node q,
-                       const std::vector<Node>& m,
-                       bool modEq = false);
+  bool existsInstMatch(Node q, const std::vector<Node>& m);
 
  private:
   /** the ordering */
