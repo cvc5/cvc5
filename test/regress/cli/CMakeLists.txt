@@ -775,6 +775,7 @@ set(regress_0_tests
   regress0/logops.04.cvc.smt2
   regress0/logops.05.cvc.smt2
   regress0/model-core.smt2
+  regress0/model-core-non-implied.smt2
   regress0/models-print-1.smt2
   regress0/models-print-2.smt2
   regress0/named-expr-use.smt2
@@ -1095,6 +1096,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/proj-issue152-2-non-std-nterm-ext-rew.smt2
+  regress0/quantifiers/proj-issue512-has-skolem.smt2
   regress0/quantifiers/pure_dt_cbqi.smt2
   regress0/quantifiers/qarray-sel-over-store.smt2
   regress0/quantifiers/qbv-inequality2.smt2
@@ -2595,6 +2597,7 @@ set(regress_1_tests
   regress1/strings/issue7677-test-const-rv.smt2
   regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/issue8094-witness-model.smt2
+  regress1/strings/issue8347-has-skolem.smt2
   regress1/strings/issue8434-nterm-str-rw.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
@@ -2716,6 +2719,7 @@ set(regress_1_tests
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_inv_eq_bvmul_4bit_withoutgrammar-v2.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
+  regress1/sygus/grammar_norm.sy
   regress1/sygus/ground-ite-free-constant-si.sy
   regress1/sygus/hd-01-d1-prog.sy
   regress1/sygus/hd-19-d1-prog-dup-op.sy

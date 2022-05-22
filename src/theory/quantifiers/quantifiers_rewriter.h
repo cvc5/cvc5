@@ -81,7 +81,7 @@ class QuantifiersRewriter : public TheoryRewriter
   //-------------------------------------variable elimination utilities
   /** is variable elimination
    *
-   * Returns true if v is not a subterm of s, and the type of s is a subtype of
+   * Returns true if v is not a subterm of s, and the type of s is the same as
    * the type of v.
    */
   static bool isVarElim(Node v, Node s);

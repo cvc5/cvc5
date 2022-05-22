@@ -40,6 +40,8 @@ SynthEngine::SynthEngine(Env& env,
 
 SynthEngine::~SynthEngine() {}
 
+std::string SynthEngine::identify() const { return "SynthEngine"; }
+
 void SynthEngine::presolve()
 {
   Trace("sygus-engine") << "SynthEngine::presolve" << std::endl;

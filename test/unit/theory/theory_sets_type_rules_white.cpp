@@ -30,16 +30,6 @@ class TestTheoryWhiteSetsTypeRuleInternal : public TestNode
 {
 };
 
-TEST_F(TestTheoryWhiteSetsTypeRuleInternal, is_comparable_to)
-{
-  TypeNode setRealType = d_nodeManager->mkSetType(d_nodeManager->realType());
-  TypeNode setIntType = d_nodeManager->mkSetType(d_nodeManager->integerType());
-  ASSERT_FALSE(setIntType.isComparableTo(setRealType));
-  ASSERT_FALSE(setIntType.isSubtypeOf(setRealType));
-  ASSERT_FALSE(setRealType.isComparableTo(setIntType));
-  ASSERT_FALSE(setRealType.isComparableTo(setIntType));
-}
-
 TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
 {
   Sort realSort = d_solver.getRealSort();

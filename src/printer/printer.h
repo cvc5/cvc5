@@ -99,7 +99,8 @@ class Printer
                                       const std::vector<Node>& initValue) const;
   /** Print declare-oracle-fun command */
   virtual void toStreamCmdDeclareOracleFun(std::ostream& out,
-                                           Node fun,
+                                           const std::string& id,
+                                           TypeNode type,
                                            const std::string& binName) const;
 
   /** Print declare-sort command */
