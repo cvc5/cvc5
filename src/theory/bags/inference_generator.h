@@ -416,7 +416,7 @@ class InferenceGenerator
    * @param e an element of type T
    * @param part a function of type T -> (Table T)
    * @return an inference that represents:
-   * (and 
+   * (and
    *   (= (bag.count e A) (bag.count e (part e))
    *   (= (bag.count (part e) skolem) 1)
    *   (= (= (bag.count e A) 0)
@@ -587,8 +587,8 @@ class InferenceGenerator
    *           (and (>= i 1) (<= i partitionCard))
    *           (and
    *            (bag.member (part i) skolem)
-   *            (= (unionF i) (bag.union_disjoint 
-   *                            (unionF (- i 1)) 
+   *            (= (unionF i) (bag.union_disjoint
+   *                            (unionF (- i 1))
    *                            (bag (part i) 1)))
    *               (forall ((j Int))
    *                       (or
