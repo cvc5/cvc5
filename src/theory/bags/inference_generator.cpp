@@ -942,7 +942,7 @@ InferInfo InferenceGenerator::groupSameProjection3(
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
   Node sameProjection = xProjection.eqNode(yProjection);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
-  Node part_y = d_nm->mkNode(APPLY_UF, part, x);
+  Node part_y = d_nm->mkNode(APPLY_UF, part, y);
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion =
@@ -983,7 +983,7 @@ InferInfo InferenceGenerator::groupSamePart3(
 
   Node sameMultiplicity = count_y_B.eqNode(count_y_A);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
-  Node part_y = d_nm->mkNode(APPLY_UF, part, x);
+  Node part_y = d_nm->mkNode(APPLY_UF, part, y);
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion =
