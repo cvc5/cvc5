@@ -370,12 +370,9 @@ class InferenceGenerator
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type T
    * @return an inference that represents:
-   * (=>
-   *   (= A (as bag.empty T))
-   *   (=
-   *     ((_ table.group n1 ... nk) A)
-   *     (bag (as bag.empty T) 1)
-   *   )
+   * (and
+   *  (= (= A (as bag.empty T)) (= skolem (as bag.empty (bag T) ))
+   *  (= 1 (bag.count (as bag.empty T) skolem)))
    * )
    */
   InferInfo groupNotEmpty(Node n);

@@ -724,12 +724,16 @@ InferInfo InferenceGenerator::groupNotEmpty(Node n)
 
   TypeNode bagType = n.getType();
   Node A = n[0];
-  Node empty = d_nm->mkConst(EmptyBag(A.getType()));
+  Node emptyPart = d_nm->mkConst(EmptyBag(A.getType()));
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_NOT_EMPTY);
-  inferInfo.d_premises.push_back(A.eqNode(empty));
-  Node partition = d_nm->mkNode(BAG_MAKE, empty, d_one);
-  inferInfo.d_conclusion = skolem.eqNode(partition);
+  Node count = getMultiplicityTerm(emptyPart, skolem);
+  Node member = count.eqNode(d_one);
+  Node A_isEmpty = A.eqNode(emptyPart);
+  Node singleton = d_nm->mkNode(BAG_MAKE, emptyPart, d_one);
+  Node groupIsSingleton = skolem.eqNode(singleton);
+  Node equivalence = A_isEmpty.eqNode(groupIsSingleton);
+  inferInfo.d_conclusion = d_nm->mkNode(AND, member, equivalence);
   return inferInfo;
 }
 
