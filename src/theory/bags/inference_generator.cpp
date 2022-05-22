@@ -796,7 +796,6 @@ InferInfo InferenceGenerator::groupUp3(Node n, Node e, Node part)
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP);
   Node count_e_A = getMultiplicityTerm(e, A);
-  inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_e_A, d_one));
 
   Node part_e = d_nm->mkNode(APPLY_UF, part, e);
 
