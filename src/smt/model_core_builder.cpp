@@ -86,7 +86,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   }
   else if (mode == options::ModelCoresMode::SIMPLE)
   {
-   sm.find(formula, truen, vars, subs, coreVars);
+    sm.find(formula, truen, vars, subs, coreVars);
   }
   else
   {
