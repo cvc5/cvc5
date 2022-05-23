@@ -27,23 +27,6 @@ class TestApiBlackSolver : public TestApi
 {
 };
 
-TEST_F(TestApiBlackSolver, proj_issue425)
-{
-  Solver slv;
-  slv.setOption("incremental", "false");
-  slv.setOption("solve-int-as-bv", "5524936381719514648");
-  Sort s1 = slv.getBooleanSort();
-  Term t1 = slv.mkConst(s1, "_x0");
-  Term t145 = slv.mkVar(s1, "_f11_0");
-  Term t146 = slv.mkVar(s1, "_f11_1");
-  Term t147 = slv.mkVar(s1, "_f11_2");
-  Term t148 = slv.mkVar(s1, "_f11_3");
-  Term t149 = slv.mkVar(s1, "_f11_4");
-  Term t175 = slv.defineFun("_f11", {t145, t146, t147, t148, t149}, t1.getSort(), t1);
-  slv.assertFormula({t1});
-  ASSERT_THROW(slv.simplify(t175), CVC%ApiException);
-}
-
 TEST_F(TestApiBlackSolver, proj_issue416)
 {
   Solver slv;
