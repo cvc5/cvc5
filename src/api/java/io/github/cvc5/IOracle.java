@@ -16,5 +16,5 @@
 package io.github.cvc5;
 
 public interface IOracle {
-  Term compute(Term[] terms);
+  Term compute(Term[] terms) throws CVC5ApiException;
 }

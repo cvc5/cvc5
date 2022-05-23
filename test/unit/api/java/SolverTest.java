@@ -3020,10 +3020,13 @@ class SolverTest
     Sort iSort = d_solver.getIntegerSort();
     // f is the function implementing (lambda ((x Int)) (+ x 1))
     IOracle oracle = new IOracle () {
-      public Term compute(Term [] terms)
+      public Term compute(Term [] input) throws CVC5ApiException
       {
-        System.out.println("I am here from Java:");
-        return d_solver.mkInteger(77);
+        if(input[0].isIntegerValue())
+        {
+          return d_solver.mkInteger(input[0].getIntegerValue().add(new BigInteger("1")).toString());
+        }
+        return d_solver.mkInteger(0);
       }
     };
     Term f = d_solver.declareOracleFun(
@@ -3036,5 +3039,4 @@ class SolverTest
     // (f 3) = 5
     assertTrue(d_solver.checkSat().isUnsat());
   }
-
 }
