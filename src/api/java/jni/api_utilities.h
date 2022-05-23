@@ -140,6 +140,11 @@ jobject getDoubleObject(JNIEnv* env, double value);
 jobject getBooleanObject(JNIEnv* env, bool value);
 
 /**
+ * a map from solver to global references that need to be freed
+ */
+inline std::map<jlong, std::vector<jobject> > globalReferences;
+
+/**
  * @param env jni environment
  * @param oracle an object of IOracle interface
  * @param terms a list of terms

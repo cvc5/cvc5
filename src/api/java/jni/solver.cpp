@@ -35,10 +35,16 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jobject)
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
                                                                 jclass,
                                                                 jlong pointer)
 {
+  const std::vector<jobject>& refs = globalReferences[pointer];
+  for (jobject ref : refs)
+  {
+    env->DeleteGlobalRef(ref);
+  }
+  globalReferences.erase(pointer);
   delete (reinterpret_cast<Solver*>(pointer));
 }
 
@@ -2171,9 +2177,9 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   jobject solverReference = env->NewGlobalRef(jSolver);
-
+  globalReferences[pointer].push_back(solverReference);
   jobject oracleReference = env->NewGlobalRef(oracle);
-
+  globalReferences[pointer].push_back(oracleReference);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
