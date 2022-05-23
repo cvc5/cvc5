@@ -106,7 +106,14 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
 
 Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
-  int size = options().smt.solveIntAsBV;
+  uint64_t option_size = options().smt.solveIntAsBV;
+  uint64_t max_bits = std::numeric_limits<uint32_t>::max();
+  if (option_size > max_bits) {
+    throw TypeCheckingExceptionPrivate(
+        n,
+        string("number of bits provided to `--solve-int-as-bv` should be a uint_32t."));
+  }
+  uint32_t size = static_cast<uint32_t>(option_size);
   AlwaysAssert(size > 0);
   AlwaysAssert(!options().base.incrementalSolving);
 
