@@ -15,34 +15,34 @@
 
 #ifndef CVC5__API_UTILITIES_H
 #define CVC5__API_UTILITIES_H
-
 #include <jni.h>
 
 #include <string>
 #include <vector>
 
+#include "api/cpp/cvc5.h"
+
 #define CVC5_JAVA_API_TRY_CATCH_BEGIN \
   try                                 \
   {
-#define CVC5_JAVA_API_TRY_CATCH_END(env)                                  \
-  }                                                                       \
-  catch (const CVC5ApiOptionException& e)                                 \
-  {                                                                       \
-    jclass exceptionClass =                                               \
-        env->FindClass("io/github/cvc5/CVC5ApiOptionException");      \
-    env->ThrowNew(exceptionClass, e.what());                              \
-  }                                                                       \
-  catch (const CVC5ApiRecoverableException& e)                            \
-  {                                                                       \
-    jclass exceptionClass =                                               \
-        env->FindClass("io/github/cvc5/CVC5ApiRecoverableException"); \
-    env->ThrowNew(exceptionClass, e.what());                              \
-  }                                                                       \
-  catch (const CVC5ApiException& e)                                       \
-  {                                                                       \
-    jclass exceptionClass =                                               \
-        env->FindClass("io/github/cvc5/CVC5ApiException");            \
-    env->ThrowNew(exceptionClass, e.what());                              \
+#define CVC5_JAVA_API_TRY_CATCH_END(env)                                       \
+  }                                                                            \
+  catch (const CVC5ApiOptionException& e)                                      \
+  {                                                                            \
+    jclass exceptionClass =                                                    \
+        env->FindClass("io/github/cvc5/CVC5ApiOptionException");               \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  catch (const CVC5ApiRecoverableException& e)                                 \
+  {                                                                            \
+    jclass exceptionClass =                                                    \
+        env->FindClass("io/github/cvc5/CVC5ApiRecoverableException");          \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  catch (const CVC5ApiException& e)                                            \
+  {                                                                            \
+    jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
+    env->ThrowNew(exceptionClass, e.what());                                   \
   }
 #define CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, returnValue) \
   CVC5_JAVA_API_TRY_CATCH_END(env)                           \
@@ -138,5 +138,16 @@ jobject getDoubleObject(JNIEnv* env, double value);
  * @return a Boolean object
  */
 jobject getBooleanObject(JNIEnv* env, bool value);
+
+/**
+ * @param env jni environment
+ * @param oracle an object of IOracle interface
+ * @param terms a list of terms
+ * @return the result of IOracle.compute(terms)
+ */
+cvc5::Term computeOracle(JNIEnv* env,
+                         jobject &jSolver,
+                         jobject &oracle,
+                         const std::vector<cvc5::Term> & terms);
 
 #endif  // CVC5__API_UTILITIES_H

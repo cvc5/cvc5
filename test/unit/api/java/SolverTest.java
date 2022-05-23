@@ -3012,4 +3012,29 @@ class SolverTest
             + "(set.singleton \"Z\")))",
         projection.toString());
   }
+
+  @Test
+  void declareOracleFunUnsat()  throws CVC5ApiException
+  {
+    d_solver.setOption("oracles", "true");
+    Sort iSort = d_solver.getIntegerSort();
+    // f is the function implementing (lambda ((x Int)) (+ x 1))
+    IOracle oracle = new IOracle () {
+      public Term compute(Term [] terms)
+      {
+        System.out.println("I am here from Java:");
+        return d_solver.mkInteger(0);
+      }
+    };
+    Term f = d_solver.declareOracleFun(
+        "f", new Sort[]{iSort}, iSort, oracle);
+    Term three = d_solver.mkInteger(3);
+    Term five = d_solver.mkInteger(5);
+    Term eq =
+        d_solver.mkTerm(EQUAL, new Term[]{d_solver.mkTerm(APPLY_UF, new Term[]{f, three}), five});
+    d_solver.assertFormula(eq);
+    // (f 3) = 5
+    assertTrue(d_solver.checkSat().isUnsat());
+  }
+
 }

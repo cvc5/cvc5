@@ -50,3 +50,39 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
   jobject ret = env->NewObject(booleanClass, booleanConstructor, jValue);
   return ret;
 }
+
+#include <iostream>
+
+cvc5::Term computeOracle(JNIEnv* env,
+                         jobject& jSolver,
+                         jobject& oracle,
+                         const std::vector<cvc5::Term>& terms)
+{
+  jclass termClass = env->FindClass("Lio/github/cvc5/Term;");
+  jmethodID termConstructor =
+      env->GetMethodID(termClass, "<init>", "(Lio/github/cvc5/Solver;J)V");
+
+  jobjectArray jTerms = env->NewObjectArray(terms.size(), termClass, NULL);
+
+  for (size_t i = 0; i < terms.size(); i++)
+  {
+    jlong termPointer = reinterpret_cast<jlong>(new cvc5::Term(terms[i]));
+    jobject jTerm =
+        env->NewObject(termClass, termConstructor, jSolver, termPointer);
+    env->SetObjectArrayElement(jTerms, i, jTerm);
+  }
+
+  jclass oracleClass = env->FindClass("Lio/github/cvc5/IOracle;");
+  jmethodID computeMethod = env->GetMethodID(
+      oracleClass, "compute", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
+  std::cout << "I am here 1: " << std::endl;
+  std::cout << "oracleClass: " << oracleClass << std::endl;
+  std::cout << "oracle: " << oracle << std::endl;
+  jobject jTerm = env->CallObjectMethod(oracle, computeMethod, jTerms);
+  std::cout << "I am here 2: " << std::endl;
+  jmethodID getPointerMethod =
+      env->GetMethodID(termClass, "getPointer", " ()J");
+  jlong termPointer = env->CallLongMethod(jTerm, getPointerMethod);
+  cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
+  return *term;
+}

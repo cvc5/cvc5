@@ -47,6 +47,9 @@ public class Solver implements IPointer, AutoCloseable
   // store pointers for terms, sorts, etc
   List<AbstractPointer> abstractPointers = new ArrayList<>();
 
+  // store IOracle objects
+    List<IOracle> oracles = new ArrayList<>();
+
   @Override
   public void close()
   {
@@ -2179,6 +2182,46 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long declarePool(
       long pointer, String symbol, long sortPointer, long[] termPointers);
+
+  /**
+     * Declare an oracle function with reference to an implementation.
+     *
+     * Oracle functions have a different semantics with respect to ordinary
+     * declared functions. In particular, for an input to be satisfiable,
+     * its oracle functions are implicitly universally quantified.
+     *
+     * This method is used in part for implementing this command:
+     *
+     * \verbatim embed:rst:leading-asterisk
+     * .. code:: smtlib
+     *
+     * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
+     * \endverbatim
+     *
+     * In particular, the above command is implemented by constructing a
+     * function over terms that wraps a call to binary sym via a text interface.
+     *
+     * @warning This method is experimental and may change in future versions.
+     *
+     * @param symbol The name of the pool
+     * @param sorts The sorts of the parameters to this function
+     * @param sort The sort of the return value of this function
+     * @param oracle An object that implements the oracle interface.
+     * @return The oracle function
+     */
+  public Term declareOracleFun(String symbol,
+                           Sort[] sorts,
+                           Sort sort,
+                           IOracle oracle)
+  {
+    oracles.add(oracle);
+    long[] sortPointers = Utils.getPointers(sorts);
+    long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), oracle);
+    return new Term(this, termPointer);
+  }
+
+  private native long declareOracleFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
 
   /**
    * Pop a level from the assertion stack.
