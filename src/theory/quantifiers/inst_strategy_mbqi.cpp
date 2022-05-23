@@ -446,7 +446,6 @@ Node InstStrategyMbqi::convertFromModel(
     if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      Assert(!cur.isVar());
       if (ck == UNINTERPRETED_SORT_VALUE)
       {
         Assert(cur.getType().isUninterpretedSort());
