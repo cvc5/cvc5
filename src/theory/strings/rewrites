@@ -13,11 +13,6 @@
   (str.++ xs (str.++ s ys) zs)
   (str.++ xs s ys zs))
 
-;(define-cond-rule str-concat-const-unflatten ((xs String :list) (s String) (c String) (ys String :list))
-;  (= (str.len c) 1)
-;  (str.++ xs s c ys)
-;  (str.++ xs (str.++ s c) ys))
-
 ; flips so that it can be applied to both sides easier
 (define-rule str-concat-flatten-eq ((x String) (x1 String :list) (x2 String :list) (y String))
   (= (str.++ (str.++ x x1) x2) y)
@@ -83,15 +78,6 @@
   (= (str.++ s3 (str.++ s2 s1)) (str.++ t3 (str.++ t2 t1)))
   false)
 
-;(define-cond-rule concat-clash-char2 ((s1 String) (s2 String :list) (t1 String) (t2 String :list) (t3 String :list))
-;  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
-;  (= (str.++ s1 s2) (str.++ (str.++ t1 t2) t3))
-;  false)
-;(define-cond-rule concat-clash-char3 ((s1 String) (t1 String) (t2 String :list) (t3 String :list))
-;  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
-;  (= s1 (str.++ (str.++ t1 t2) t3))
-;  false)
-
 (define-rule str-prefixof-elim ((s String) (t String))
   (str.prefixof s t)
   (= s (str.substr t 0 (str.len s))))
@@ -117,11 +103,6 @@
   (and (>= n 0) (>= (str.len s1) (+ n m)))
   (str.substr (str.++ s1 s2) n m)
   (str.substr s1 n m))
-
-;(define-cond-rule concat-clash-ss ((s String) (t String))
-;  (not (= (str.substr s 0 1) (str.substr t 0 1)))
-;  (= s t)
-;  false)
 
 (define-rule str-contains-refl ((x String)) (str.contains x x) true)
 
