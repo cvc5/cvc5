@@ -34,7 +34,7 @@ if(NOT GTest_FOUND_SYSTEM)
 
     set(GTest_VERSION "1.10.0")
 
-
+    # supress all warning on m1 mac
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       set(CARGS -w)
     endif()
