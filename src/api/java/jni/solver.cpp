@@ -2170,16 +2170,20 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  jobject solverReference = env->NewGlobalRef(jSolver);
+
+  jobject oracleReference = env->NewGlobalRef(oracle);
+
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
 
-  Term term = computeOracle(env, jSolver, oracle, {Term()});
+  Term term = computeOracle(env, solverReference, oracleReference, {Term()});
   std::function<Term(std::vector<Term>)> fn =
-      [env, &jSolver, &oracle](std::vector<Term> input) {
-        Term term = computeOracle(env, jSolver, oracle, input);
+      [env, solverReference, oracleReference](std::vector<Term> input) {
+        Term term = computeOracle(env, solverReference, oracleReference, input);
         return term;
       };
   Term* retPointer =

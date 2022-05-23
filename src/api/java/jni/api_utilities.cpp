@@ -54,8 +54,8 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
 #include <iostream>
 
 cvc5::Term computeOracle(JNIEnv* env,
-                         jobject& jSolver,
-                         jobject& oracle,
+                         jobject jSolver,
+                         jobject oracle,
                          const std::vector<cvc5::Term>& terms)
 {
   jclass termClass = env->FindClass("Lio/github/cvc5/Term;");

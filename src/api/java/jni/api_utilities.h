@@ -146,8 +146,8 @@ jobject getBooleanObject(JNIEnv* env, bool value);
  * @return the result of IOracle.compute(terms)
  */
 cvc5::Term computeOracle(JNIEnv* env,
-                         jobject &jSolver,
-                         jobject &oracle,
+                         jobject jSolver,
+                         jobject oracle,
                          const std::vector<cvc5::Term> & terms);
 
 #endif  // CVC5__API_UTILITIES_H
