@@ -34,6 +34,11 @@ if(NOT GTest_FOUND_SYSTEM)
 
     set(GTest_VERSION "1.10.0")
 
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(CARGS -w)
+    endif()
+
     ExternalProject_Add(
         GTest-EP
         ${COMMON_EP_CONFIG}
@@ -43,6 +48,7 @@ if(NOT GTest_FOUND_SYSTEM)
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+	  -DCMAKE_CXX_FLAGS=${CARGS}
         BUILD_COMMAND ${CMAKE_COMMAND} --build .
             --config ${CMAKE_BUILD_TYPE} --target gtest
         COMMAND ${CMAKE_COMMAND} --build .
