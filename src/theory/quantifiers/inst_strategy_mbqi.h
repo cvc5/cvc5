@@ -68,25 +68,31 @@ class InstStrategyMbqi : public QuantifiersModule
    */
   void process(Node q);
   /**
-   * Convert to and from the subsolver.
+   * Convert to query.
    *
-   * If toQuery is true, this converts term t that is the body of a quantified
+   * This converts term t that is the body of a quantified
    * formula into a term that can be sent to the subsolver. Its free constants
    * are replaced by their model values. The map freshVarType maintains fresh
    * variables that were introduced corresponding to values of uninterpreted
    * sort constants.
    *
-   * If toQuery is false, this converts a term t that was returned as a model
+   * cmap caches the results of the conversion.
+   */
+  Node convertToQuery(Node t,
+               std::unordered_map<Node, Node>& cmap,
+               std::map<TypeNode, std::unordered_set<Node> >& freshVarType);
+  /**
+   * Convert from model
+   *
+   * This converts a term t that was returned as a model
    * value by a subsolver. We use the mapping mvToFreshVar to convert
    * uninterpreted constants to the fresh variables that were used for
    * that value in the model from the subsolver.
    *
-   * In both cases, cmap caches the results of the conversion.
+   * cmap caches the results of the conversion.
    */
-  Node convert(Node t,
-               bool toQuery,
+  Node convertFromModel(Node t,
                std::unordered_map<Node, Node>& cmap,
-               std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
                const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;

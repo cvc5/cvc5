@@ -113,16 +113,16 @@ void InstStrategyMbqi::process(Node q)
   // for model values for functions
   Node skq = skolems.apply(q[1]);
   // convert to query
-  Node cbody = convert(skq, true, tmpConvertMap, freshVarType, mvToFreshVar);
+  Node cbody = convertToQuery(skq, tmpConvertMap, freshVarType);
   Trace("mbqi") << "- converted body: " << cbody << std::endl;
 
   // check if there are any bad kinds
-  if (expr::hasSubtermKinds(d_nonClosedKinds, cbody))
+  if (cbody.isNull())
   {
     Trace("mbqi") << "...failed to convert to query" << std::endl;
     return;
   }
-  Assert(mvToFreshVar.empty());
+  Assert (!expr::hasSubtermKinds(d_nonClosedKinds, cbody));
 
   std::vector<Node> constraints;
 
@@ -156,7 +156,7 @@ void InstStrategyMbqi::process(Node q)
       {
         Node rv = fm->getValue(r);
         Assert(rv.getKind() == kind::UNINTERPRETED_SORT_VALUE);
-        convert(rv, true, tmpConvertMap, freshVarType, mvToFreshVar);
+        convertToQuery(rv, tmpConvertMap, freshVarType);
       }
     }
   }
@@ -248,7 +248,7 @@ void InstStrategyMbqi::process(Node q)
   tmpConvertMap.clear();
   for (Node& v : terms)
   {
-    Node vc = convert(v, false, tmpConvertMap, freshVarType, mvToFreshVar);
+    Node vc = convertFromModel(v, tmpConvertMap, mvToFreshVar);
     Assert(!vc.isNull());
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
@@ -294,12 +294,10 @@ void InstStrategyMbqi::process(Node q)
   Trace("mbqi") << "...success, instantiated" << std::endl;
 }
 
-Node InstStrategyMbqi::convert(
+Node InstStrategyMbqi::convertToQuery(
     Node t,
-    bool toQuery,
     std::unordered_map<Node, Node>& cmap,
-    std::map<TypeNode, std::unordered_set<Node> >& freshVarType,
-    const std::map<Node, Node>& mvToFreshVar)
+    std::map<TypeNode, std::unordered_set<Node> >& freshVarType)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -315,7 +313,7 @@ Node InstStrategyMbqi::convert(
     cur = visit.back();
     visit.pop_back();
     it = cmap.find(cur);
-    Trace("mbqi-debug") << "Convert: " << cur << " " << cur.getKind() << " "
+    Trace("mbqi-debug") << "convertToQuery: " << cur << " " << cur.getKind() << " "
                         << cur.getType() << std::endl;
     if (it != cmap.end())
     {
@@ -332,25 +330,11 @@ Node InstStrategyMbqi::convert(
       else if (ck == UNINTERPRETED_SORT_VALUE)
       {
         Assert(cur.getType().isUninterpretedSort());
-        if (toQuery)
-        {
-          // return the fresh variable for this term
-          Node k = sm->mkPurifySkolem(cur, "mbk");
-          freshVarType[cur.getType()].insert(k);
-          cmap[cur] = k;
-          continue;
-        }
-        // converting from query, find the variable that it is equal to
-        std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
-        if (itmv != mvToFreshVar.end())
-        {
-          cmap[cur] = itmv->second;
-        }
-        else
-        {
-          // failed to find equal, keep the value
-          cmap[cur] = cur;
-        }
+        // return the fresh variable for this term
+        Node k = sm->mkPurifySkolem(cur, "mbk");
+        freshVarType[cur.getType()].insert(k);
+        cmap[cur] = k;
+        continue;
       }
       else if (cur.isVar())
       {
@@ -384,6 +368,98 @@ Node InstStrategyMbqi::convert(
                 << "Missing " << itm->second;
             cmap[cur] = cmap[itm->second];
           }
+        }
+      }
+      else if (cur.getNumChildren() == 0)
+      {
+        // if this is a bad kind, fail immediately
+        if (d_nonClosedKinds.find(ck)!=d_nonClosedKinds.end())
+        {
+          return Node::null();
+        }
+        cmap[cur] = cur;
+      }
+      else
+      {
+        processingChildren.insert(cur);
+        visit.push_back(cur);
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+      continue;
+    }
+    processingChildren.erase(cur);
+    bool childChanged = false;
+    std::vector<Node> children;
+    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      children.push_back(cur.getOperator());
+    }
+    children.insert(children.end(), cur.begin(), cur.end());
+    for (Node& cn : children)
+    {
+      it = cmap.find(cn);
+      Assert(it != cmap.end());
+      Assert(!it->second.isNull());
+      childChanged = childChanged || cn != it->second;
+      cn = it->second;
+    }
+    Node ret = cur;
+    if (childChanged)
+    {
+      ret = rewrite(nm->mkNode(cur.getKind(), children));
+    }
+    cmap[cur] = ret;
+  } while (!visit.empty());
+
+  Assert(cmap.find(cur) != cmap.end());
+  return cmap[cur];
+}
+
+Node InstStrategyMbqi::convertFromModel(
+    Node t,
+    std::unordered_map<Node, Node>& cmap,
+    const std::map<Node, Node>& mvToFreshVar)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<Node, Node>::iterator it;
+  std::map<Node, Node> modelValue;
+  std::unordered_set<Node> processingChildren;
+  std::vector<TNode> visit;
+  visit.push_back(t);
+  TNode cur;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = cmap.find(cur);
+    Trace("mbqi-debug") << "convertFromModel: " << cur << " " << cur.getKind() << " "
+                        << cur.getType() << std::endl;
+    if (it != cmap.end())
+    {
+      // already computed
+      continue;
+    }
+    if (processingChildren.find(cur) == processingChildren.end())
+    {
+      Kind ck = cur.getKind();
+      Assert (!cur.isVar());
+      if (ck == UNINTERPRETED_SORT_VALUE)
+      {
+        Assert(cur.getType().isUninterpretedSort());
+        // converting from query, find the variable that it is equal to
+        std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
+        if (itmv != mvToFreshVar.end())
+        {
+          cmap[cur] = itmv->second;
+        }
+        else
+        {
+          // failed to find equal, keep the value
+          cmap[cur] = cur;
         }
       }
       else if (cur.getNumChildren() == 0)

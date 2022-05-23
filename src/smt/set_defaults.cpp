@@ -1411,12 +1411,12 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     if (!opts.quantifiers.cegqiWasSetByUser)
     {
       notifyModifyOption("cegqi", "false", "mbqi");
-      opts.quantifiers.cegqi = false;
+      opts.writeQuantifiers().cegqi = false;
     }
     if (!opts.quantifiers.sygusInstWasSetByUser)
     {
       notifyModifyOption("sygusInst", "false", "mbqi");
-      opts.quantifiers.sygusInst = false;
+      opts.writeQuantifiers().sygusInst = false;
     }
   }
 
