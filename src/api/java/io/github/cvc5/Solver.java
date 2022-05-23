@@ -48,7 +48,7 @@ public class Solver implements IPointer, AutoCloseable
   List<AbstractPointer> abstractPointers = new ArrayList<>();
 
   // store IOracle objects
-    List<IOracle> oracles = new ArrayList<>();
+  List<IOracle> oracles = new ArrayList<>();
 
   @Override
   public void close()
@@ -2184,35 +2184,32 @@ public class Solver implements IPointer, AutoCloseable
       long pointer, String symbol, long sortPointer, long[] termPointers);
 
   /**
-     * Declare an oracle function with reference to an implementation.
-     *
-     * Oracle functions have a different semantics with respect to ordinary
-     * declared functions. In particular, for an input to be satisfiable,
-     * its oracle functions are implicitly universally quantified.
-     *
-     * This method is used in part for implementing this command:
-     *
-     * \verbatim embed:rst:leading-asterisk
-     * .. code:: smtlib
-     *
-     * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
-     * \endverbatim
-     *
-     * In particular, the above command is implemented by constructing a
-     * function over terms that wraps a call to binary sym via a text interface.
-     *
-     * @warning This method is experimental and may change in future versions.
-     *
-     * @param symbol The name of the pool
-     * @param sorts The sorts of the parameters to this function
-     * @param sort The sort of the return value of this function
-     * @param oracle An object that implements the oracle interface.
-     * @return The oracle function
-     */
-  public Term declareOracleFun(String symbol,
-                           Sort[] sorts,
-                           Sort sort,
-                           IOracle oracle)
+   * Declare an oracle function with reference to an implementation.
+   *
+   * Oracle functions have a different semantics with respect to ordinary
+   * declared functions. In particular, for an input to be satisfiable,
+   * its oracle functions are implicitly universally quantified.
+   *
+   * This method is used in part for implementing this command:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
+   * \endverbatim
+   *
+   * In particular, the above command is implemented by constructing a
+   * function over terms that wraps a call to binary sym via a text interface.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @param symbol The name of the pool
+   * @param sorts The sorts of the parameters to this function
+   * @param sort The sort of the return value of this function
+   * @param oracle An object that implements the oracle interface.
+   * @return The oracle function
+   */
+  public Term declareOracleFun(String symbol, Sort[] sorts, Sort sort, IOracle oracle)
   {
     oracles.add(oracle);
     long[] sortPointers = Utils.getPointers(sorts);
@@ -2612,16 +2609,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param ntSymbols The pre-declaration of the non-terminal symbols.
    * @return The grammar.
    */
-  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols) {
+  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols)
+  {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long grammarPointer =
-        mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
+    long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
     return new Grammar(this, grammarPointer);
   }
 
-  private native long mkGrammar(
-      long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
+  private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 
   /**
    * Synthesize n-ary function.
