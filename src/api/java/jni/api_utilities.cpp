@@ -51,8 +51,6 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
   return ret;
 }
 
-#include <iostream>
-
 cvc5::Term computeOracle(JNIEnv* env,
                          jobject jSolver,
                          jobject oracle,
@@ -72,25 +70,13 @@ cvc5::Term computeOracle(JNIEnv* env,
     env->SetObjectArrayElement(jTerms, i, jTerm);
   }
 
-  std::cout << "I am here 0: " << std::endl;
   jclass oracleClass = env->GetObjectClass(oracle);
-  std::cout << "I am here 0.5: " << std::endl;
   jmethodID computeMethod = env->GetMethodID(
       oracleClass, "compute", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
-  std::cout << "I am here 1: " << std::endl;
-  std::cout << "oracleClass: " << oracleClass << std::endl;
-  std::cout << "oracle: " << oracle << std::endl;
-  std::cout << "computeMethod: " << computeMethod << std::endl;
+
   jobject jTerm = env->CallObjectMethod(oracle, computeMethod, jTerms);
-  std::cout << "I am here 2: " << std::endl;
-//  jmethodID getPointerMethod =
-//      env->GetMethodID(termClass, "getPointer", " ()J");
-  std::cout << "I am here 3: " << std::endl;
   jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
   jlong termPointer = env->GetLongField(jTerm, pointer);
-  //jlong termPointer = env->CallLongMethod(jTerm, getPointerMethod);
-  std::cout << "I am here 4: " << termPointer<< std::endl;
   cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
-  std::cout << "Term is: " << * term << std::endl;
   return *term;
 }
