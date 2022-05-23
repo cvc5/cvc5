@@ -3487,7 +3487,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
   d_solver.setOption("oracles", "true");
   d_solver.setOption("produce-models", "true");
   Sort iSort = d_solver.getIntegerSort();
-  // f is the function implementing (lambda ((x Int)) (x%10))
+  // f is the function implementing (lambda ((x Int)) (% x 10))
   Term f = d_solver.declareOracleFun(
       "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
         if (input[0].isUInt32Value())
