@@ -122,7 +122,7 @@ void InstStrategyMbqi::process(Node q)
     Trace("mbqi") << "...failed to convert to query" << std::endl;
     return;
   }
-  Assert (!expr::hasSubtermKinds(d_nonClosedKinds, cbody));
+  Assert(!expr::hasSubtermKinds(d_nonClosedKinds, cbody));
 
   std::vector<Node> constraints;
 
@@ -313,8 +313,8 @@ Node InstStrategyMbqi::convertToQuery(
     cur = visit.back();
     visit.pop_back();
     it = cmap.find(cur);
-    Trace("mbqi-debug") << "convertToQuery: " << cur << " " << cur.getKind() << " "
-                        << cur.getType() << std::endl;
+    Trace("mbqi-debug") << "convertToQuery: " << cur << " " << cur.getKind()
+                        << " " << cur.getType() << std::endl;
     if (it != cmap.end())
     {
       // already computed
@@ -373,7 +373,7 @@ Node InstStrategyMbqi::convertToQuery(
       else if (cur.getNumChildren() == 0)
       {
         // if this is a bad kind, fail immediately
-        if (d_nonClosedKinds.find(ck)!=d_nonClosedKinds.end())
+        if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
         {
           return Node::null();
         }
@@ -436,8 +436,8 @@ Node InstStrategyMbqi::convertFromModel(
     cur = visit.back();
     visit.pop_back();
     it = cmap.find(cur);
-    Trace("mbqi-debug") << "convertFromModel: " << cur << " " << cur.getKind() << " "
-                        << cur.getType() << std::endl;
+    Trace("mbqi-debug") << "convertFromModel: " << cur << " " << cur.getKind()
+                        << " " << cur.getType() << std::endl;
     if (it != cmap.end())
     {
       // already computed
@@ -446,7 +446,7 @@ Node InstStrategyMbqi::convertFromModel(
     if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      Assert (!cur.isVar());
+      Assert(!cur.isVar());
       if (ck == UNINTERPRETED_SORT_VALUE)
       {
         Assert(cur.getType().isUninterpretedSort());

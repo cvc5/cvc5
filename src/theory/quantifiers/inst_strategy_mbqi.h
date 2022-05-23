@@ -78,9 +78,10 @@ class InstStrategyMbqi : public QuantifiersModule
    *
    * cmap caches the results of the conversion.
    */
-  Node convertToQuery(Node t,
-               std::unordered_map<Node, Node>& cmap,
-               std::map<TypeNode, std::unordered_set<Node> >& freshVarType);
+  Node convertToQuery(
+      Node t,
+      std::unordered_map<Node, Node>& cmap,
+      std::map<TypeNode, std::unordered_set<Node> >& freshVarType);
   /**
    * Convert from model
    *
@@ -92,8 +93,8 @@ class InstStrategyMbqi : public QuantifiersModule
    * cmap caches the results of the conversion.
    */
   Node convertFromModel(Node t,
-               std::unordered_map<Node, Node>& cmap,
-               const std::map<Node, Node>& mvToFreshVar);
+                        std::unordered_map<Node, Node>& cmap,
+                        const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
