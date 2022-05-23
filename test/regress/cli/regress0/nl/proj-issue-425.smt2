@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --solve-int-as-bv=5524936381719514648
-; EXPECT: (error "number of bits provided to `--solve-int-as-bv` should be a uint_32t.")
+; ERROR-SCRUBBER: sed -e '.*Error in option parsing.*/d'
 ; EXIT: 1
 (set-logic QF_NIA)
 (declare-fun x () Int)
