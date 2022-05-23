@@ -3023,7 +3023,7 @@ class SolverTest
       public Term compute(Term [] terms)
       {
         System.out.println("I am here from Java:");
-        return d_solver.mkInteger(0);
+        return d_solver.mkInteger(77);
       }
     };
     Term f = d_solver.declareOracleFun(
