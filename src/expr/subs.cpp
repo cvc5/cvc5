@@ -69,9 +69,9 @@ void Subs::add(const std::vector<Node>& vs)
   }
 }
 
-void Subs::add(Node v, Node s)
+void Subs::add(const Node& v, const Node& s)
 {
-  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
+  Assert(s.isNull() || v.getType() == s.getType());
   d_vars.push_back(v);
   d_subs.push_back(s);
 }
@@ -97,7 +97,7 @@ void Subs::append(Subs& s)
   add(s.d_vars, s.d_subs);
 }
 
-Node Subs::apply(Node n) const
+Node Subs::apply(const Node& n) const
 {
   if (d_vars.empty())
   {

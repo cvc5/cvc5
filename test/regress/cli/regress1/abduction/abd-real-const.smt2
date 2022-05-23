@@ -5,5 +5,5 @@
 (declare-const x Real)
 (declare-const y Real)
 (declare-const z Real)
-(assert (and (>= x 0) (< y 7)))
-(get-abduct A (>= y 5))
+(assert (and (>= x 0.0) (< y 7.0)))
+(get-abduct A (>= y 5.0))

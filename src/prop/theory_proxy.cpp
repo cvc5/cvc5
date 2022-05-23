@@ -22,6 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
+#include "options/parallel_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -56,7 +57,8 @@ TheoryProxy::TheoryProxy(Env& env,
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
-      || options().smt.produceLearnedLiterals;
+      || options().smt.produceLearnedLiterals
+      || options().parallel.computePartitions > 0;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -161,10 +163,13 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       // Assertion makes all skolems in assertion active,
       // which triggers their definitions to becoming active.
       std::vector<TNode> activeSkolemDefs;
-      d_skdm->notifyAsserted(assertion, activeSkolemDefs, true);
-      // notify the decision engine of the skolem definitions that have become
-      // active due to the assertion.
-      d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      d_skdm->notifyAsserted(assertion, activeSkolemDefs);
+      if (!activeSkolemDefs.empty())
+      {
+        // notify the decision engine of the skolem definitions that have become
+        // active due to the assertion.
+        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      }
     }
   }
   if (!d_stopSearch.get())
@@ -343,6 +348,15 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     return d_zll->getLearnedZeroLevelLiterals(ltype);
   }
   return {};
+}
+
+modes::LearnedLitType TheoryProxy::getLiteralType(const Node& lit) const
+{
+  if (d_zll != nullptr)
+  {
+    return d_zll->computeLearnedLiteralType(lit);
+  }
+  return modes::LearnedLitType::UNKNOWN;
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const

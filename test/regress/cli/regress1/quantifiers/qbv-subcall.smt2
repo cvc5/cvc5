@@ -1,4 +1,3 @@
-; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)

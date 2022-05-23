@@ -71,6 +71,12 @@ Node mkPrefix(Node t, Node n);
 Node mkSuffix(Node t, Node n);
 
 /**
+ * Make a unit, returns either (str.unit n) or (seq.unit n) depending
+ * on if tn is a string or a sequence.
+ */
+Node mkUnit(TypeNode tn, Node n);
+
+/**
  * Get constant component. Returns the string constant represented by the
  * string or regular expression t. For example:
  *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null

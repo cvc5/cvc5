@@ -130,9 +130,6 @@ class TheoryBags : public Theory
   /** the main solver for bags */
   CardSolver d_cardSolver;
 
-  /** bag reduction */
-  BagReduction d_bagReduction;
-
   /** The representation of the strategy */
   Strategy d_strat;
 
