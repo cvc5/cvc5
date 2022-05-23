@@ -3517,7 +3517,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   d_solver.setOption("produce-models", "true");
   Sort iSort = d_solver.getIntegerSort();
   Sort bSort = d_solver.getBooleanSort();
-  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  // eq is the function implementing (lambda ((x Int) (y Int)) (= x y))
   Term eq = d_solver.declareOracleFun(
       "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
         return d_solver.mkBoolean(input[0] == input[1]);

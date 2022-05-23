@@ -3014,19 +3014,17 @@ class SolverTest
   {
     Sort iSort = d_solver.getIntegerSort();
     // cannot declare without option
-    IOracle oracle = new IOracle() {
-      public Term compute(Term[] input) throws CVC5ApiException
-      {
-        return d_solver.mkInteger(0);
-      }
-    };
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, oracle));
+        ()
+            -> d_solver.declareOracleFun(
+                "f", new Sort[] {iSort}, iSort, (input) -> d_solver.mkInteger(0)));
     d_solver.setOption("oracles", "true");
     Sort nullSort = d_solver.getNullSort();
     // bad sort
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.declareOracleFun("f", new Sort[] {nullSort}, iSort, oracle));
+        ()
+            -> d_solver.declareOracleFun(
+                "f", new Sort[] {nullSort}, iSort, (input) -> d_solver.mkInteger(0)));
   }
 
   @Test
@@ -3035,17 +3033,13 @@ class SolverTest
     d_solver.setOption("oracles", "true");
     Sort iSort = d_solver.getIntegerSort();
     // f is the function implementing (lambda ((x Int)) (+ x 1))
-    IOracle oracle = new IOracle() {
-      public Term compute(Term[] input) throws CVC5ApiException
+    Term f = d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, (input) -> {
+      if (input[0].getIntegerValue().signum() > -1)
       {
-        if (input[0].getIntegerValue().signum() > -1)
-        {
-          return d_solver.mkInteger(input[0].getIntegerValue().add(new BigInteger("1")).toString());
-        }
-        return d_solver.mkInteger(0);
+        return d_solver.mkInteger(input[0].getIntegerValue().add(new BigInteger("1")).toString());
       }
-    };
-    Term f = d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, oracle);
+      return d_solver.mkInteger(0);
+    });
     Term three = d_solver.mkInteger(3);
     Term five = d_solver.mkInteger(5);
     Term eq =
@@ -3061,19 +3055,15 @@ class SolverTest
     d_solver.setOption("oracles", "true");
     d_solver.setOption("produce-models", "true");
     Sort iSort = d_solver.getIntegerSort();
+
     // f is the function implementing (lambda ((x Int)) (% x 10))
-    IOracle oracle = new IOracle() {
-      public Term compute(Term[] input) throws CVC5ApiException
+    Term f = d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, (input) -> {
+      if (input[0].getIntegerValue().signum() > -1)
       {
-        if (input[0].getIntegerValue().signum() > -1)
-        {
-          return d_solver.mkInteger(
-              input[0].getIntegerValue().mod(new BigInteger("10")).toString());
-        }
-        return d_solver.mkInteger(0);
+        return d_solver.mkInteger(input[0].getIntegerValue().mod(new BigInteger("10")).toString());
       }
-    };
-    Term f = d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, oracle);
+      return d_solver.mkInteger(0);
+    });
     Term seven = d_solver.mkInteger(7);
     Term x = d_solver.mkConst(iSort, "x");
     Term lb = d_solver.mkTerm(Kind.GEQ, new Term[] {x, d_solver.mkInteger(0)});
@@ -3097,15 +3087,10 @@ class SolverTest
     d_solver.setOption("produce-models", "true");
     Sort iSort = d_solver.getIntegerSort();
     Sort bSort = d_solver.getBooleanSort();
-    // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
-    IOracle oracle = new IOracle() {
-      public Term compute(Term[] input) throws CVC5ApiException
-      {
-        return d_solver.mkBoolean(input[0].equals(input[1]));
-      }
-    };
-
-    Term eq = d_solver.declareOracleFun("eq", new Sort[] {iSort, iSort}, bSort, oracle);
+    // eq is the function implementing (lambda ((x Int) (y Int)) (= x y))
+    Term eq = d_solver.declareOracleFun("eq", new Sort[] {iSort, iSort}, bSort, (input) -> {
+      return d_solver.mkBoolean(input[0].equals(input[1]));
+    });
     Term x = d_solver.mkConst(iSort, "x");
     Term y = d_solver.mkConst(iSort, "y");
     Term neq = d_solver.mkTerm(
