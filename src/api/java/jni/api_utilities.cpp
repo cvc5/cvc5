@@ -52,8 +52,8 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
 }
 
 cvc5::Term computeOracle(JNIEnv* env,
-                         jobject jSolver,
-                         jobject oracle,
+                         jobject solverRef,
+                         jobject oracleRef,
                          const std::vector<cvc5::Term>& terms)
 {
   jclass termClass = env->FindClass("Lio/github/cvc5/Term;");
@@ -66,15 +66,15 @@ cvc5::Term computeOracle(JNIEnv* env,
   {
     jlong termPointer = reinterpret_cast<jlong>(new cvc5::Term(terms[i]));
     jobject jTerm =
-        env->NewObject(termClass, termConstructor, jSolver, termPointer);
+        env->NewObject(termClass, termConstructor, solverRef, termPointer);
     env->SetObjectArrayElement(jTerms, i, jTerm);
   }
 
-  jclass oracleClass = env->GetObjectClass(oracle);
+  jclass oracleClass = env->GetObjectClass(oracleRef);
   jmethodID computeMethod = env->GetMethodID(
       oracleClass, "compute", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
 
-  jobject jTerm = env->CallObjectMethod(oracle, computeMethod, jTerms);
+  jobject jTerm = env->CallObjectMethod(oracleRef, computeMethod, jTerms);
   jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
   jlong termPointer = env->GetLongField(jTerm, pointer);
   cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
