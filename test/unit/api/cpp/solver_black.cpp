@@ -3530,7 +3530,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
   Term yval = d_solver.getValue(y);
-  ASSERT_TRUE(xval != yval);
+  ASSERT_FALSE(xval == yval);
 }
 
 }  // namespace test

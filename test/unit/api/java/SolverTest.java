@@ -3013,6 +3013,29 @@ class SolverTest
         projection.toString());
   }
 
+@Test
+void declareOracleFunError() throws CVC5ApiException
+{
+  Sort iSort = d_solver.getIntegerSort();
+  // cannot declare without option
+  IOracle oracle = new IOracle () {
+        public Term compute(Term [] input) throws CVC5ApiException
+        {
+          return d_solver.mkInteger(0);
+        }
+      };
+  assertThrows(CVC5ApiException.class,
+          () -> d_solver.declareOracleFun(
+                       "f", new Sort[]{iSort}, iSort, oracle)
+               );
+  d_solver.setOption("oracles", "true");
+  Sort nullSort = d_solver.getNullSort();
+  // bad sort
+  assertThrows(CVC5ApiException.class,
+            () -> d_solver.declareOracleFun(
+                                         "f", new Sort[]{nullSort}, iSort, oracle));
+}
+
   @Test
   void declareOracleFunUnsat()  throws CVC5ApiException
   {
@@ -3022,7 +3045,7 @@ class SolverTest
     IOracle oracle = new IOracle () {
       public Term compute(Term [] input) throws CVC5ApiException
       {
-        if(input[0].isIntegerValue())
+        if(input[0].getIntegerValue().signum() > -1)
         {
           return d_solver.mkInteger(input[0].getIntegerValue().add(new BigInteger("1")).toString());
         }
@@ -3039,4 +3062,69 @@ class SolverTest
     // (f 3) = 5
     assertTrue(d_solver.checkSat().isUnsat());
   }
+
+
+@Test
+void declareOracleFunSat()  throws CVC5ApiException
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (% x 10))
+   IOracle oracle = new IOracle () {
+        public Term compute(Term [] input) throws CVC5ApiException
+        {
+          if(input[0].getIntegerValue().signum() > -1)
+          {
+            return d_solver.mkInteger(input[0].getIntegerValue().mod(new BigInteger("10")).toString());
+          }
+          return d_solver.mkInteger(0);
+        }
+      };
+  Term f = d_solver.declareOracleFun(
+                   "f", new Sort[]{iSort}, iSort, oracle);
+  Term seven = d_solver.mkInteger(7);
+  Term x = d_solver.mkConst(iSort, "x");
+  Term lb = d_solver.mkTerm(Kind.GEQ, new Term[]{x, d_solver.mkInteger(0)});
+  d_solver.assertFormula(lb);
+  Term ub = d_solver.mkTerm(Kind.LEQ, new Term[]{x, d_solver.mkInteger(100)});
+  d_solver.assertFormula(ub);
+  Term eq = d_solver.mkTerm(Kind.EQUAL, new Term[]{d_solver.mkTerm(APPLY_UF, new Term[]{f, x}), seven});
+  d_solver.assertFormula(eq);
+  // x >= 0 ^ x <= 100 ^ (f x) = 7
+  assertTrue(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  assertTrue(xval.getIntegerValue().signum() > -1);
+  assertTrue(xval.getIntegerValue().mod(new BigInteger("10")).equals(new BigInteger("7")));
+}
+
+
+@Test
+void declareOracleFunSat2()  throws CVC5ApiException
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  Sort bSort = d_solver.getBooleanSort();
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+   IOracle oracle = new IOracle () {
+          public Term compute(Term [] input) throws CVC5ApiException
+          {
+            return d_solver.mkBoolean(input[0].equals(input[1]));
+          }
+        };
+         
+  Term eq = d_solver.declareOracleFun(
+                                       "eq", new Sort[]{iSort, iSort}, bSort, oracle);
+  Term x = d_solver.mkConst(iSort, "x");
+  Term y = d_solver.mkConst(iSort, "y");
+  Term neq = d_solver.mkTerm(Kind.NOT, new Term[]{d_solver.mkTerm(Kind.APPLY_UF, new Term[] {eq, x, y})});
+  d_solver.assertFormula(neq);
+  // (not (eq x y))
+  assertTrue(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  Term yval = d_solver.getValue(y);
+  assertFalse(xval.equals(yval));
+}
+
 }
