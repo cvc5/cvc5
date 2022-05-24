@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "expr/cardinality_constraint.h"
+#include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
@@ -220,6 +221,15 @@ bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
                           << std::endl;
   }
   return false;
+}
+
+TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
+                                                 TNode n,
+                                                 bool check)
+{
+  Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
+  const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
+  return fc.getType();
 }
 
 Cardinality FunctionProperties::computeCardinality(TypeNode type)
