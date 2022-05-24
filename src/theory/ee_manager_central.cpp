@@ -72,7 +72,7 @@ void EqEngineManagerCentral::initializeTheories()
   std::map<TheoryId, EeSetupInfo> esiMap;
   // set of theories that need equality engines
   std::unordered_set<TheoryId> eeTheories;
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& logicInfo = logicInfo();
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
        ++theoryId)
