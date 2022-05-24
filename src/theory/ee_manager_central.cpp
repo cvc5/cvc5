@@ -213,7 +213,9 @@ bool EqEngineManagerCentral::usesCentralEqualityEngine(TheoryId id) const
     // conditional on whether we are using the equality solver
     return options().arith.arithEqSolver;
   }
-  return Theory::usesCentralEqualityEngine(id);
+  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
+         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
+         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
 }
 
 void EqEngineManagerCentral::notifyBuildingModel() {}

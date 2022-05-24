@@ -672,16 +672,9 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-bool Theory::usesCentralEqualityEngine(TheoryId id)
-{
-  return id == THEORY_BUILTIN || id == THEORY_ARITH || id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
-         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
-}
-
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
 {
-  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
+  return id != THEORY_ARITH;
 }
 
 theory::Assertion Theory::get()
