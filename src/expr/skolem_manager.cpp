@@ -94,12 +94,12 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
-    case SkolemFunId::BAGS_DEQ_DIFF: return "BAGS_DEQ_DIFF";
+    case SkolemFunId::BAGS_DEQ_DIFF: return "e";
     case SkolemFunId::TABLES_GROUP_UP_PART: return "TABLES_GROUP_UP_PART";
     case SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_AGGREGATE:
       return "TABLES_GROUP_PARTS_DISJOINT_AGGREGATE";
     case SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_PART:
-      return "TABLES_GROUP_PARTS_DISJOINT_PART";
+      return "part";
     case SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_CARD:
       return "TABLES_GROUP_PARTS_DISJOINT_CARD";
     case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
