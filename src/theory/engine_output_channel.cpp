@@ -34,8 +34,6 @@ EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
                                                  + "lemmas")),
       requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
                                                        + "requirePhase")),
-      restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                         + "restartDemands")),
       trustedConflicts(smtStatisticsRegistry().registerInt(
           getStatsPrefix(theory) + "trustedConflicts")),
       trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
@@ -81,20 +79,6 @@ void EngineOutputChannel::conflict(TNode conflictNode)
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
   d_engine->conflict(tConf, d_theory);
-}
-
-void EngineOutputChannel::demandRestart()
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node restartVar = sm->mkDummySkolem(
-      "restartVar",
-      nm->booleanType(),
-      "A boolean variable asserted to be true to force a restart");
-  Trace("theory::restart") << "EngineOutputChannel<" << d_theory
-                           << ">::restart(" << restartVar << ")" << std::endl;
-  ++d_statistics.restartDemands;
-  lemma(restartVar, LemmaProperty::REMOVABLE);
 }
 
 void EngineOutputChannel::requirePhase(TNode n, bool phase)

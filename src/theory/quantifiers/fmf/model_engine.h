@@ -62,7 +62,7 @@ public:
  Node explain(TNode n) { return Node::null(); }
  void debugPrint(const char* c);
  /** Identify this module */
- std::string identify() const override { return "ModelEngine"; }
+ std::string identify() const override;
 
 private:
  /** Should we process quantified formula q? */

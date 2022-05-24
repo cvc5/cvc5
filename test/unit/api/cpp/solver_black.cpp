@@ -3487,7 +3487,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
   d_solver.setOption("oracles", "true");
   d_solver.setOption("produce-models", "true");
   Sort iSort = d_solver.getIntegerSort();
-  // f is the function implementing (lambda ((x Int)) (x%10))
+  // f is the function implementing (lambda ((x Int)) (% x 10))
   Term f = d_solver.declareOracleFun(
       "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
         if (input[0].isUInt32Value())
@@ -3517,7 +3517,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   d_solver.setOption("produce-models", "true");
   Sort iSort = d_solver.getIntegerSort();
   Sort bSort = d_solver.getBooleanSort();
-  // eq is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
   Term eq = d_solver.declareOracleFun(
       "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
         return d_solver.mkBoolean(input[0] == input[1]);
@@ -3530,7 +3530,7 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term xval = d_solver.getValue(x);
   Term yval = d_solver.getValue(y);
-  ASSERT_FALSE(xval == yval);
+  ASSERT_TRUE(xval != yval);
 }
 
 }  // namespace test

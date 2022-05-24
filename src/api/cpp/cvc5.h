@@ -4456,7 +4456,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @param symbol The name of the pool
+   * @param symbol The name of the oracle
    * @param sorts The sorts of the parameters to this function
    * @param sort The sort of the return value of this function
    * @param fn The function that implements the oracle function.

@@ -3,6 +3,10 @@ This file contains a summary of important user-visible changes.
 cvc5 1.0.1
 ==========
 
+**New Features**
+
+- Support for cross-compiling an ARM binary of cvc5 on x86 macOS.
+
 **Changes**
 
 - Removed support for non-standard `declare-funs`, `declare-consts`, and
@@ -20,7 +24,7 @@ cvc5 1.0.1
 
 - Support for declaring oracle functions in the API via the method
   `declareOracleFun`. This allows users to declare functions whose semantics
-  are associated with a provided C++ implementation.
+  are associated with a provided executable implementation.
 
 cvc5 1.0
 =========
