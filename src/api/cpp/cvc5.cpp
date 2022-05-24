@@ -334,6 +334,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
         KIND_ENUM(TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),
         KIND_ENUM(TABLE_JOIN, internal::Kind::TABLE_JOIN),
+        KIND_ENUM(TABLE_GROUP, internal::Kind::TABLE_GROUP),
         /* Strings ---------------------------------------------------------- */
         KIND_ENUM(STRING_CONCAT, internal::Kind::STRING_CONCAT),
         KIND_ENUM(STRING_IN_REGEXP, internal::Kind::STRING_IN_REGEXP),
@@ -657,6 +658,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::TABLE_AGGREGATE, TABLE_AGGREGATE},
         {internal::Kind::TABLE_JOIN_OP, TABLE_JOIN},
         {internal::Kind::TABLE_JOIN, TABLE_JOIN},
+        {internal::Kind::TABLE_GROUP_OP, TABLE_GROUP},
+        {internal::Kind::TABLE_GROUP, TABLE_GROUP},
         /* Strings --------------------------------------------------------- */
         {internal::Kind::STRING_CONCAT, STRING_CONCAT},
         {internal::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -6115,6 +6118,9 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case TABLE_JOIN:
       res = mkOpHelper(kind, internal::TableJoinOp(args));
+      break;
+    case TABLE_GROUP:
+      res = mkOpHelper(kind, internal::TableGroupOp(args));
       break;
     default:
       if (nargs == 0)
