@@ -786,6 +786,11 @@ class Theory : protected EnvObj
    * that E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
+
+  /** 
+   * Uses central equality engine in any configuration.
+   */
+  static bool usesCentralEqualityEngine(TheoryId id);
   /**
    * Return true if this theory explains and propagates via central equality
    * engine only when the theory uses the central equality engine.
