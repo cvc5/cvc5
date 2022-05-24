@@ -98,7 +98,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::TABLES_GROUP_UP_PART: return "TABLES_GROUP_UP_PART";
     case SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_AGGREGATE:
       return "TABLES_GROUP_PARTS_DISJOINT_AGGREGATE";
-    case SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_PART:
+    case SkolemFunId::TABLES_GROUP_PART:
       return "part";
     case SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_CARD:
       return "TABLES_GROUP_PARTS_DISJOINT_CARD";

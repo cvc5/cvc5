@@ -876,7 +876,19 @@ InferInfo InferenceGenerator::groupPartCount(Node n, Node B)
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count_B_n = getMultiplicityTerm(B, skolem);
   inferInfo.d_premises.push_back(d_nm->mkNode(GEQ, count_B_n, d_one));
-  inferInfo.d_conclusion = count_B_n.eqNode(d_one);
+
+  Node e = d_sm->mkSkolemFunction(
+      SkolemFunId::TABLES_GROUP_PART, bagType.getBagElementType(), {n, B});
+
+  Node count_e_A = getMultiplicityTerm(e, A);
+  Node count_e_B = getMultiplicityTerm(e, B);
+  Node sameMultiplicity = count_e_A.eqNode(count_e_B);
+  Node member = d_nm->mkNode(GEQ, count_e_B, d_one);
+  Node empty = d_nm->mkConst(EmptyBag(bagType));
+  Node notEmpty = B.eqNode(empty).notNode();
+  Node implies = notEmpty.impNode(sameMultiplicity.andNode(member));
+
+  inferInfo.d_conclusion = count_B_n.eqNode(d_one).andNode(implies);
   return inferInfo;
 }
 
@@ -1037,8 +1049,8 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::groupPartsDisjoint2(
 
   // declare an uninterpreted function part: Int -> (Table T)
   TypeNode partType = d_nm->mkFunctionType(d_nm->integerType(), A.getType());
-  Node part = d_sm->mkSkolemFunction(
-      SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_PART, partType, {n});
+  Node part =
+      d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART, partType, {n});
 
   // (= (unionF 0) (as bag.empty (Bag (Table T)))
   Node unionF_zero = d_nm->mkNode(APPLY_UF, unionF, d_zero);
@@ -1109,8 +1121,8 @@ Node InferenceGenerator::defineSkolemPartFunction(Node n)
 
   // declare an uninterpreted function part: T -> (Table T)
   TypeNode partType = d_nm->mkFunctionType(elementType, tableType);
-  Node part = d_sm->mkSkolemFunction(
-      SkolemFunId::TABLES_GROUP_PARTS_DISJOINT_PART, partType, {n});
+  Node part =
+      d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART, partType, {n});
   return part;
 }
 

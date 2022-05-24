@@ -2,8 +2,6 @@
 (set-logic HO_ALL)
 
 (set-info :status unsat)
-(set-option :fmf-bound true)
-(set-option :uf-lazy-ll true)
 
 (declare-fun data () (Table String String String))
 (declare-fun part1 () (Table String String String))
