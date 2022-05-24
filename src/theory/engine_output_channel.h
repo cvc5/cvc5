@@ -53,8 +53,6 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  void demandRestart() override;
-
   void requirePhase(TNode n, bool phase) override;
 
   void setIncomplete(IncompleteId id) override;
@@ -85,10 +83,9 @@ class EngineOutputChannel : public theory::OutputChannel
   {
    public:
     Statistics(theory::TheoryId theory);
-    /** Number of calls to conflict, propagate, lemma, requirePhase,
-     * restartDemands */
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands,
-        trustedConflicts, trustedLemmas;
+    /** Number of calls to conflict, propagate, lemma, requirePhase */
+    IntStat conflicts, propagations, lemmas, requirePhase, trustedConflicts,
+        trustedLemmas;
   };
   /** The theory engine we're communicating with. */
   TheoryEngine* d_engine;
