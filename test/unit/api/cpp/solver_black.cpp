@@ -3444,5 +3444,99 @@ TEST_F(TestApiBlackSolver, projIssue337)
   ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
+TEST_F(TestApiBlackSolver, declareOracleFunError)
+{
+  Sort iSort = d_solver.getIntegerSort();
+  // cannot declare without option
+  ASSERT_THROW(d_solver.declareOracleFun(
+      "f",
+      {iSort},
+      iSort,
+      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); });
+               , CVC5ApiException);
+  d_solver.setOption("oracles", "true");
+  Sort nullSort;
+  // bad sort
+  ASSERT_THROW(d_solver.declareOracleFun(
+      "f",
+      {nullSort},
+      iSort,
+      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); });
+               , CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
+{
+  d_solver.setOption("oracles", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_solver.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term three = d_solver.mkInteger(3);
+  Term five = d_solver.mkInteger(5);
+  Term eq =
+      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  d_solver.assertFormula(eq);
+  // (f 3) = 5
+  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunSat)
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (% x 10))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_solver.mkInteger(input[0].getUInt32Value() % 10);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term seven = d_solver.mkInteger(7);
+  Term x = d_solver.mkConst(iSort, "x");
+  Term lb = d_solver.mkTerm(GEQ, {x, d_solver.mkInteger(0)});
+  d_solver.assertFormula(lb);
+  Term ub = d_solver.mkTerm(LEQ, {x, d_solver.mkInteger(100)});
+  d_solver.assertFormula(ub);
+  Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, x}), seven});
+  d_solver.assertFormula(eq);
+  // x >= 0 ^ x <= 100 ^ (f x) = 7
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  ASSERT_TRUE(xval.isUInt32Value());
+  ASSERT_TRUE(xval.getUInt32Value() % 10 == 7);
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunSat2)
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  Sort bSort = d_solver.getBooleanSort();
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  Term eq = d_solver.declareOracleFun(
+      "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkBoolean(input[0] == input[1]);
+      });
+  Term x = d_solver.mkConst(iSort, "x");
+  Term y = d_solver.mkConst(iSort, "y");
+  Term neq = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
+  d_solver.assertFormula(neq);
+  // (not (eq x y))
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  Term yval = d_solver.getValue(y);
+  ASSERT_TRUE(xval != yval);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

@@ -35,6 +35,11 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   // equivalent up to purification
   if (d_skDefs.find(skolem) == d_skDefs.end())
   {
+    // should not have already computed whether the skolem has skolems or
+    // otherwise we should have marked that we have skolems, or else
+    // our computation of hasSkolems is wrong after adding this definition
+    Assert(d_hasSkolems.find(skolem) == d_hasSkolems.end()
+           || d_hasSkolems[skolem]);
     d_skDefs.insert(skolem, def);
   }
 }

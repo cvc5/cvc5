@@ -69,10 +69,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     AlwaysAssert(false) << "Fail due to --proof-req "
                         << opts.smt.produceProofsWasSetByUser;
   }
-  if (opts.quantifiers.oracles)
-  {
-    throw OptionException(std::string("Oracles not yet supported"));
-  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
