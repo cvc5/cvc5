@@ -1832,6 +1832,7 @@ set(regress_1_tests
   regress1/bags/table_group2.smt2
   regress1/bags/table_group3.smt2
   regress1/bags/table_group4.smt2
+  regress1/bags/table_group5.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
