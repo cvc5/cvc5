@@ -44,10 +44,6 @@ class InstStrategyUserPatterns : public InstStrategy
   ~InstStrategyUserPatterns();
   /** add pattern */
   void addUserPattern(Node q, Node pat);
-  /** get num patterns */
-  size_t getNumUserGenerators(Node q) const;
-  /** get user pattern */
-  inst::Trigger* getUserGenerator(Node q, size_t i) const;
   /** identify */
   std::string identify() const override;
 
