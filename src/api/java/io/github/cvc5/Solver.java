@@ -2194,16 +2194,15 @@ public class Solver implements IPointer, AutoCloseable
    *
    * This method is used in part for implementing this command:
    *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
+   * {@code
    * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
-   * \endverbatim
+   * }
+   *
    *
    * In particular, the above command is implemented by constructing a
    * function over terms that wraps a call to binary sym via a text interface.
    *
-   * @warning This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @param symbol The name of the pool
    * @param sorts The sorts of the parameters to this function
