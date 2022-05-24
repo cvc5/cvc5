@@ -163,12 +163,6 @@ class OutputChannel {
    */
   virtual void handleUserAttribute(const char* attr, Theory* t) {}
 
-  /** Demands that the search restart from sat search level 0.
-   * Using this leads to non-termination issues.
-   * It is appropriate for prototyping for theories.
-   */
-  virtual void demandRestart() {}
-
   //---------------------------- new proof
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method

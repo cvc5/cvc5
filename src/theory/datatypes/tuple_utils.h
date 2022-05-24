@@ -82,6 +82,18 @@ class TupleUtils
   static std::vector<Node> getTupleElements(Node tuple1, Node tuple2);
 
   /**
+   * @param indices a list of indices for projected elements n_1, ..., n_k
+   * @param tuple1 a constant tuple node
+   * @param tuple2 a constant tuple node
+   * @return a boolean representing the equality of
+   * ((_ tuple.projection n_1 ... n_k) tuple1) and
+   * ((_ tuple.projection n_1 ... n_k) tuple2).
+   */
+  static bool sameProjection(const std::vector<uint32_t>& indices,
+                             Node tuple1,
+                             Node tuple2);
+
+  /**
    * construct a tuple from a list of elements
    * @param tupleType the type of the returned tuple
    * @param elements the list of nodes

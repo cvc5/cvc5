@@ -41,7 +41,7 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt_util/boolean_simplification.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/bags/table_project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -498,52 +498,14 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  // determine if we are printing out a type ascription, store the argument of
-  // the type ascription into type_asc_arg.
-  Node type_asc_arg;
-  TypeNode force_nt;
+  // determine if we are printing out a type ascription
   if (k == kind::APPLY_TYPE_ASCRIPTION)
   {
-    force_nt = n.getOperator().getConst<AscriptionType>().getType();
-    type_asc_arg = n[0];
-  }
-  if (!type_asc_arg.isNull())
-  {
-    if (force_nt.isRealOrInt())
-    {
-      // we prefer using (/ x 1) instead of (to_real x) here.
-      // the reason is that (/ x 1) is SMT-LIB compliant when x is a constant
-      // or the logic is non-linear, whereas (to_real x) is compliant when
-      // the logic is mixed int/real. The former occurs more frequently.
-      bool is_int = force_nt.isInteger();
-      // If constant rational, print as special case
-      Kind ka = type_asc_arg.getKind();
-      if (ka == kind::CONST_RATIONAL || ka == kind::CONST_INTEGER)
-      {
-        const Rational& r = type_asc_arg.getConst<Rational>();
-        toStreamRational(out, r, !is_int, d_variant);
-      }
-      else
-      {
-        out << "("
-            << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
-                             d_variant)
-            << " ";
-        toStream(out, type_asc_arg, toDepth, lbind);
-        if (!is_int)
-        {
-          out << " 1";
-        }
-        out << ")";
-      }
-    }
-    else if (k != kind::UNINTERPRETED_SORT_VALUE)
-    {
-      // use type ascription
-      out << "(as ";
-      toStream(out, type_asc_arg, toDepth < 0 ? toDepth : toDepth - 1, lbind);
-      out << " " << force_nt << ")";
-    }
+    TypeNode typeAsc = n.getOperator().getConst<AscriptionType>().getType();
+    // use type ascription
+    out << "(as ";
+    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, lbind);
+    out << " " << typeAsc << ")";
     return;
   }
 
@@ -837,6 +799,21 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       // e.g. ((_ table.project 0 1 2 3) A B)
       out << "(_ table.join" << op << ") " << n[0] << " " << n[1] << ")";
+    }
+    return;
+  }
+  case kind::TABLE_GROUP:
+  {
+    TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.group A)
+      out << "table.group " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.group 0 1 2 3) A)
+      out << "(_ table.group" << op << ") " << n[0] << ")";
     }
     return;
   }
@@ -1203,6 +1180,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::TABLE_PROJECT: return "table.project";
   case kind::TABLE_AGGREGATE: return "table.aggr";
   case kind::TABLE_JOIN: return "table.join";
+  case kind::TABLE_GROUP: return "table.group";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

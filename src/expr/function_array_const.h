@@ -45,7 +45,7 @@ class FunctionArrayConst
    * It should be the case that avalue is a constant array. It further
    * more should be the case that if avalue has type
    *    (Array T1 (Array T2 .. (Array Tn T)))
-   * and type should be
+   * then type should be
    *    (-> T1 T2 ... Tn T)
    * Note that T may itself be an array, e.g. for functions returning arrays.
    */

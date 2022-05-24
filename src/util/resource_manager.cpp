@@ -76,11 +76,7 @@ const char* toString(Resource r)
     case Resource::ArithNlCoveringStep: return "ArithNlCoveringStep";
     case Resource::ArithNlLemmaStep: return "ArithNlLemmaStep";
     case Resource::BitblastStep: return "BitblastStep";
-    case Resource::BvEagerAssertStep: return "BvEagerAssertStep";
-    case Resource::BvPropagationStep: return "BvPropagationStep";
-    case Resource::BvSatConflictsStep: return "BvSatConflictsStep";
-    case Resource::BvSatPropagateStep: return "BvSatPropagateStep";
-    case Resource::BvSatSimplifyStep: return "BvSatSimplifyStep";
+    case Resource::BvSatStep: return "BvSatStep";
     case Resource::CnfStep: return "CnfStep";
     case Resource::DecisionStep: return "DecisionStep";
     case Resource::LemmaStep: return "LemmaStep";
