@@ -60,6 +60,8 @@ public class Solver implements IPointer, AutoCloseable
     }
     // delete the heap memory for this solver
     deletePointer();
+    // clear oracles
+    oracles.clear();
   }
 
   void addAbstractPointer(AbstractPointer abstractPointer)
