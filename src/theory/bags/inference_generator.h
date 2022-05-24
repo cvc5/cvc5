@@ -376,41 +376,6 @@ class InferenceGenerator
    * )
    */
   InferInfo groupNotEmpty(Node n);
-
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param e an element of type T
-   * @return an inference that represents:
-   * (=>
-   *   (bag.member e A)
-   *   (and
-   *     (= (bag.member B skolem) 1)
-   *     (= (bag.count e B) (bag.count e A)
-   *   )
-   * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A) and B is
-   * a unique skolem for n, e that represents the part containing e.
-   */
-  InferInfo groupUp(Node n, Node e);
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param e an element of type T
-   * @param part a function of type Int -> (Table T)
-   * @param partitionCard the cardinality of the group
-   * @return an inference that represents:
-   * (=>
-   *   (bag.member e A)
-   *   (exists ((i Int))
-   *           (and
-   *             (>= i 1)
-   *             (<= i partitionCard)
-   *             (= (bag.count e A) (bag.count e (part i))
-   *           )
-   *   )
-   *)
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
-   */
-  InferInfo groupUp2(Node n, Node e, Node part, Node partitionCard);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param e an element of type T
@@ -425,22 +390,7 @@ class InferenceGenerator
    *
    * where skolem is a variable equals ((_ table.group n1 ... nk) A)
    */
-  InferInfo groupUp3(Node n, Node e, Node part);
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param B an element of type (Table T)
-   * @param x an element of type T
-   * @return an inference that represents:
-   * (=>
-   *   (and
-   *     (bag.member B skolem)
-   *     (bag.member x B)
-   *   )
-   *   (= (bag.count x B) (bag.count x A))
-   * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
-   */
-  InferInfo groupDown(Node n, Node B, Node x);
+  InferInfo groupUp(Node n, Node e, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)
@@ -458,7 +408,7 @@ class InferenceGenerator
    * )
    * where skolem is a variable equals ((_ table.group n1 ... nk) A).
    */
-  InferInfo groupDown3(Node n, Node B, Node x, Node part);
+  InferInfo groupDown(Node n, Node B, Node x, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)
@@ -493,25 +443,6 @@ class InferenceGenerator
    *     (bag.member y B)
    *     (distinct x y)
    *   )
-   *   (= ((_ tuple.project n1 ... nk) x)
-   *      ((_ tuple.project n1 ... nk) y))
-   * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
-   */
-  InferInfo groupSameProjection(Node n, Node B, Node x, Node y);
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param B an element of type (Table T)
-   * @param x an element of type T
-   * @param y an element of type T
-   * @return an inference that represents:
-   * (=>
-   *   (and
-   *     (bag.member B skolem)
-   *     (bag.member x B)
-   *     (bag.member y B)
-   *     (distinct x y)
-   *   )
    *   (and
    *     (= ((_ tuple.project n1 ... nk) x)
    *        ((_ tuple.project n1 ... nk) y))
@@ -521,27 +452,7 @@ class InferenceGenerator
    * )
    * where skolem is a variable equals ((_ table.group n1 ... nk) A).
    */
-  InferInfo groupSameProjection3(Node n, Node B, Node x, Node y, Node part);
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param B an element of type (Table T)
-   * @param x an element of type T
-   * @param y an element of type T
-   * @return an inference that represents:
-   * (=>
-   *   (and
-   *     (bag.member B skolem)
-   *     (bag.member x B)
-   *     (bag.member y A)
-   *     (distinct x y)
-   *     (= ((_ tuple.project n1 ... nk) x)
-   *        ((_ tuple.project n1 ... nk) y))
-   *   )
-   *   (= (bag.count y B) (bag.count y A))
-   * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
-   */
-  InferInfo groupSamePart(Node n, Node B, Node x, Node y);
+  InferInfo groupSameProjection(Node n, Node B, Node x, Node y, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)
@@ -566,53 +477,7 @@ class InferenceGenerator
    * )
    * where skolem is a variable equals ((_ table.group n1 ... nk) A).
    */
-  InferInfo groupSamePart3(Node n, Node B, Node x, Node y, Node part);
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param B an element of type (Table T)
-   * @param C an element of type (Table T)
-   * @return an inference that represents:
-   * (=>
-   *   (and
-   *     (bag.member B skolem)
-   *     (bag.member C skolem)
-   *   )
-   *   (or (= B C)
-   *       (= (bag.inter_min B C) (as bag.empty (Table T)))
-   *   )
-   * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
-   */
-  InferInfo groupPartsDisjoint(Node n, Node B, Node C);
-
-  /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @return an inference that represents:
-   * (and
-   *   (= (unionF 0) (as bag.empty (Bag (Table T)))
-   *   (= (unionF partitionCard) skolem)
-   *   (>= partitionCard 1)
-   *   (forall ((i Int))
-   *          (=>
-   *           (and (>= i 1) (<= i partitionCard))
-   *           (and
-   *            (bag.member (part i) skolem)
-   *            (= (unionF i) (bag.union_disjoint
-   *                            (unionF (- i 1))
-   *                            (bag (part i) 1)))
-   *               (forall ((j Int))
-   *                       (or
-   *                        (not (and (< i j) (<= j partitionCard)))
-   *                        (= (as bag.empty (Table T))
-   *                           (bag.inter_min (part i) (part j))))))))))
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A),
-   * part: Int -> (Table T) is a function from integers to parts in the
-   * partition, partitionCard k = mkPurifySkolem( (BAG_CARD n) )
-   * unionF: Int -> (Bag (Table T)) is a function that aggregates the parts in
-   * the partition.
-   */
-  std::tuple<InferInfo, Node, Node> groupPartsDisjoint2(Node n);
-
+  InferInfo groupSamePart(Node n, Node B, Node x, Node y, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @return a function of type T -> (Table T) that maps elements T to a part in

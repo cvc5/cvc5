@@ -373,7 +373,7 @@ void BagSolver::checkGroup(Node n)
   const set<Node>& elementsA = d_state.getElements(n[0]);
   for (const Node& a : elementsA)
   {
-    InferInfo i = d_ig.groupUp3(n, d_state.getRepresentative(a), part);
+    InferInfo i = d_ig.groupUp(n, d_state.getRepresentative(a), part);
     d_im.lemmaTheoryInference(&i);
   }
 
@@ -390,7 +390,7 @@ void BagSolver::checkGroup(Node n)
          ++i)
     {
       Node x = d_state.getRepresentative(*i);
-      InferInfo down = d_ig.groupDown3(n, part1, x, part);
+      InferInfo down = d_ig.groupDown(n, part1, x, part);
       d_im.lemmaTheoryInference(&down);
       std::set<Node>::iterator j = i;
       ++j;
@@ -399,7 +399,7 @@ void BagSolver::checkGroup(Node n)
         Node y = d_state.getRepresentative(*j);
         // x, y should have the same projection
         InferInfo sameProjection =
-            d_ig.groupSameProjection3(n, part1, x, y, part);
+            d_ig.groupSameProjection(n, part1, x, y, part);
         d_im.lemmaTheoryInference(&sameProjection);
         ++j;
       }
@@ -410,7 +410,7 @@ void BagSolver::checkGroup(Node n)
         if (x != y)
         {
           // x, y should have the same projection
-          InferInfo samePart = d_ig.groupSamePart3(n, part1, x, y, part);
+          InferInfo samePart = d_ig.groupSamePart(n, part1, x, y, part);
           d_im.lemmaTheoryInference(&samePart);
         }
       }

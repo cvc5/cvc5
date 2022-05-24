@@ -169,12 +169,17 @@ enum class SkolemFunId
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
   BAGS_DEQ_DIFF,
-  /** Given an element e in a bag A, this is a skolem for a part
-   * in partition ((_ table.group n1 ... nk) A) that contains e */
-  TABLES_GROUP_UP_PART,
-  TABLES_GROUP_PARTS_DISJOINT_AGGREGATE,
+  /** Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Table T))
+   */
   TABLES_GROUP_PART,
-  TABLES_GROUP_PARTS_DISJOINT_CARD,
+  /**
+   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * and a part B of type (Table T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  TABLES_GROUP_PART_ELEMENT,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))
