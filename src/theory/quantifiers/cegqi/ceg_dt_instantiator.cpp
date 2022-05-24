@@ -64,8 +64,8 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       const DType& dt = d_type.getDType();
       unsigned cindex = datatypes::utils::indexOf(n.getOperator());
       // now must solve for selectors applied to pv
-      bool shareSel = options().datatypes.dtSharedSelectors;
-      Node val = datatypes::utils::getInstCons(pv, dt, cindex, shareSel);
+      Node val = datatypes::utils::getInstCons(
+          pv, dt, cindex, options().datatypes.dtSharedSelectors);
       for (const Node& c : val)
       {
         ci->pushStackVariable(c);

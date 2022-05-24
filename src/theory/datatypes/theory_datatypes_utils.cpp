@@ -31,11 +31,7 @@ Node getSelector(TypeNode dtt,
                  size_t index,
                  bool shareSel)
 {
-  if (shareSel)
-  {
-    return dc.getSharedSelector(dtt, index);
-  }
-  return dc.getSelector(index);
+  return shareSel ? dc.getSharedSelector(dtt, index) : dc.getSelector(index);
 }
 
 Node applySelector(const DTypeConstructor& dc,
