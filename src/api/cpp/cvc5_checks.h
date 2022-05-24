@@ -617,16 +617,19 @@ namespace cvc5 {
  * Check if given datatype declaration is not null and associated with the node
  * manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                               \
-  do                                                                     \
-  {                                                                      \
-    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                   \
-    CVC5_API_CHECK(d_nm == decl.d_nm)                                    \
-        << "Given datatype declaration is not associated with the node " \
-           "manager of this solver";                                     \
-    CVC5_API_ARG_CHECK_EXPECTED(                                         \
-        dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)     \
-        << "a datatype declaration with at least one constructor";       \
+#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                \
+  do                                                                      \
+  {                                                                       \
+    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                    \
+    CVC5_API_CHECK(d_nm == decl.d_nm)                                     \
+        << "Given datatype declaration is not associated with the node "  \
+           "manager of this solver";                                      \
+    CVC5_API_CHECK(!decl.isResolved())                                    \
+        << "Given datatype declaration is already resolved (has already " \
+        << "been used to create a datatype sort";                         \
+    CVC5_API_ARG_CHECK_EXPECTED(                                          \
+        dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)      \
+        << "a datatype declaration with at least one constructor";        \
   } while (0)
 
 /**

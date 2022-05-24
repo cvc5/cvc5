@@ -3562,6 +3562,11 @@ DatatypeDecl::~DatatypeDecl()
   }
 }
 
+bool DatatypeDecl::isResolved() const
+{
+  return d_dtype == nullptr || d_dtype->isResolved();
+}
+
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
   CVC5_API_TRY_CATCH_BEGIN;

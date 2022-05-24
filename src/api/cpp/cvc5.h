@@ -1951,6 +1951,12 @@ class CVC5_EXPORT DatatypeDecl
   bool isParametric() const;
 
   /**
+   * Is this datatype declaration resolved (i.e,. has it been used to declare
+   * a datatype already)?
+   */
+  bool isResolved() const;
+
+  /**
    * @return True if this DatatypeDecl is a null object.
    */
   bool isNull() const;
