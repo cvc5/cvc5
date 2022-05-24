@@ -885,7 +885,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   // determine the actual theory that will process/explain the fact, which is
   // THEORY_BUILTIN if the theory uses the central equality engine
-  TheoryId toTheoryIdProp = (Theory::expUsingCentralEqualityEngine(toTheoryId))
+  TheoryId toTheoryIdProp = (options().theory.eeMode == options::EqEngineMode::CENTRAL && Theory::expUsingCentralEqualityEngine(toTheoryId))
                                 ? THEORY_BUILTIN
                                 : toTheoryId;
   // If sending to the shared solver, it's also simple
