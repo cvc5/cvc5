@@ -608,7 +608,7 @@ class InferenceGenerator
    * @return a function of type T -> (Table T) that maps elements T to a part in
    * the partition
    */
-  Node groupPartsDisjoint3(Node n);
+  Node defineSkolemPartFunction(Node n);
 
  private:
   /**

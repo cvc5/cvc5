@@ -368,7 +368,7 @@ void BagSolver::checkGroup(Node n)
   InferInfo notEmpty = d_ig.groupNotEmpty(n);
   d_im.lemmaTheoryInference(&notEmpty);
 
-  Node part = d_ig.groupPartsDisjoint3(n);
+  Node part = d_ig.defineSkolemPartFunction(n);
 
   const set<Node>& elementsA = d_state.getElements(n[0]);
   for (const Node& a : elementsA)

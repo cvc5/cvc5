@@ -1097,7 +1097,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::groupPartsDisjoint2(
   return std::tuple(inferInfo, part, partitionCard);
 }
 
-Node InferenceGenerator::groupPartsDisjoint3(Node n)
+Node InferenceGenerator::defineSkolemPartFunction(Node n)
 {
   Assert(n.getKind() == TABLE_GROUP);
 
