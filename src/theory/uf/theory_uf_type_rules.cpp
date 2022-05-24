@@ -185,15 +185,6 @@ TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
   return fc.getType();
 }
 
-TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
-                                                 TNode n,
-                                                 bool check)
-{
-  Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
-  const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
-  return fc.getType();
-}
-
 Cardinality FunctionProperties::computeCardinality(TypeNode type)
 {
   // Don't assert this; allow other theories to use this cardinality
