@@ -140,7 +140,8 @@ jobject getDoubleObject(JNIEnv* env, double value);
 jobject getBooleanObject(JNIEnv* env, bool value);
 
 /**
- * a map from solver to global references that need to be freed
+ * a map from solver pointers to global references that need to be freed when
+ * the java Solver.close method is called
  */
 inline std::map<jlong, std::vector<jobject> > globalReferences;
 
