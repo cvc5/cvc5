@@ -25,6 +25,7 @@
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
+#include "theory/uf/function_const.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -138,7 +139,12 @@ Node TheoryModel::getValue(TNode n) const
   {
     return nn;
   }
-  else if (nn.getKind() == kind::LAMBDA)
+  if (nn.getKind() == kind::FUNCTION_ARRAY_CONST)
+  {
+    // return the lambda instead
+    nn = uf::FunctionConst::toLambda(nn);
+  }
+  if (nn.getKind() == kind::LAMBDA)
   {
     if (options().theory.condenseFunctionValues)
     {
