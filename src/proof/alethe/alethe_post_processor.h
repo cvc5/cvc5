@@ -148,7 +148,9 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocess
 {
  public:
-  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc, bool resPivots);
+  AletheProofPostprocess(ProofNodeManager* pnm,
+                         AletheNodeConverter& anc,
+                         bool resPivots);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
