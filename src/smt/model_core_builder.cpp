@@ -79,36 +79,27 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   Trace("model-core") << "Minimizing substitution..." << std::endl;
   std::vector<Node> coreVars;
   std::vector<Node> impliedVars;
-  bool minimized = false;
   theory::SubstitutionMinimize sm(d_env);
   if (mode == options::ModelCoresMode::NON_IMPLIED)
   {
-    minimized = sm.findWithImplied(formula, vars, subs, coreVars, impliedVars);
+    sm.findWithImplied(formula, vars, subs, coreVars, impliedVars);
   }
   else if (mode == options::ModelCoresMode::SIMPLE)
   {
-    minimized = sm.find(formula, truen, vars, subs, coreVars);
+    sm.find(formula, truen, vars, subs, coreVars);
   }
   else
   {
     Unreachable() << "Unknown model cores mode";
   }
-  Assert(minimized)
-      << "cannot compute model core, since model does not satisfy input!";
-  if (minimized)
-  {
-    m->setUsingModelCore();
-    Trace("model-core") << "...got core vars : " << coreVars << std::endl;
+  m->setUsingModelCore();
+  Trace("model-core") << "...got core vars : " << coreVars << std::endl;
 
-    for (const Node& cv : coreVars)
-    {
-      m->recordModelCoreSymbol(cv);
-    }
-    return true;
+  for (const Node& cv : coreVars)
+  {
+    m->recordModelCoreSymbol(cv);
   }
-  Trace("model-core") << "...failed, model does not satisfy input!"
-                      << std::endl;
-  return false;
+  return true;
 }
 
 }  // namespace cvc5::internal

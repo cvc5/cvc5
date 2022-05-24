@@ -258,6 +258,14 @@ bool SubstitutionMinimize::findInternal(Node n,
   if (value[n] != target)
   {
     Trace("subs-min") << "... not equal to target " << target << std::endl;
+    // depends on all variables
+    for (const std::pair<const TNode, Node>& v : value)
+    {
+      if (v.first.isVar())
+      {
+        reqVars.push_back(v.first);
+      }
+    }
     return false;
   }
 
