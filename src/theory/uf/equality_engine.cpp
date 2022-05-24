@@ -1233,7 +1233,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           if (!c1.isNull() && !c2.isNull())
           {
             simpTrans = false;
-            Assert(c1.getType().isComparableTo(c2.getType()));
+            Assert(c1.getType() == c2.getType());
             std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);

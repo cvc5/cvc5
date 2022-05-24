@@ -67,6 +67,7 @@ set(regress_0_tests
   regress0/arith/issue5761-ppr.smt2
   regress0/arith/issue8097-iid.smt2
   regress0/arith/issue8159-rewrite-intreal.smt2
+  regress0/arith/issue8805-mixed-var-elim.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -277,6 +278,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5281.smt2
   regress0/bv/bv_to_int_5293_1.smt2
   regress0/bv/bv_to_int_5293_2.smt2
+  regress0/bv/bv_to_int_8412.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
@@ -752,6 +754,7 @@ set(regress_0_tests
   regress0/issue6605-2-abd-triv.smt2
   regress0/issue6738.smt2
   regress0/issue6741.smt2
+  regress0/issue8807-model-core-partial.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -774,6 +777,7 @@ set(regress_0_tests
   regress0/logops.04.cvc.smt2
   regress0/logops.05.cvc.smt2
   regress0/model-core.smt2
+  regress0/model-core-non-implied.smt2
   regress0/models-print-1.smt2
   regress0/models-print-2.smt2
   regress0/named-expr-use.smt2
@@ -1094,6 +1098,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/proj-issue152-2-non-std-nterm-ext-rew.smt2
+  regress0/quantifiers/proj-issue512-has-skolem.smt2
   regress0/quantifiers/pure_dt_cbqi.smt2
   regress0/quantifiers/qarray-sel-over-store.smt2
   regress0/quantifiers/qbv-inequality2.smt2
@@ -1192,6 +1197,7 @@ set(regress_0_tests
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
+  regress0/sep/issue8659-wand-diff-heaps.smt2
   regress0/sep/nemp.smt2
   regress0/sep/nil-no-elim.smt2
   regress0/sep/nspatial-simp.smt2

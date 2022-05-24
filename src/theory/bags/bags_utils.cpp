@@ -901,8 +901,8 @@ Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
   Node B = n[1];
   TypeNode typeA = A.getType().getBagElementType();
   TypeNode typeB = B.getType().getBagElementType();
-  Assert(e1.getType().isSubtypeOf(typeA));
-  Assert(e2.getType().isSubtypeOf(typeB));
+  Assert(e1.getType() == typeA);
+  Assert(e2.getType() == typeB);
 
   TypeNode productTupleType = n.getType().getBagElementType();
   Node tuple = TupleUtils::concatTuples(productTupleType, e1, e2);

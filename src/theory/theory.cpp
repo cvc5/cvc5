@@ -320,7 +320,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!val.getType().isSubtypeOf(x.getType()))
+  if (val.getType() != x.getType())
   {
     return false;
   }
