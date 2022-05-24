@@ -740,7 +740,7 @@ InferInfo InferenceGenerator::groupNotEmpty(Node n)
 InferInfo InferenceGenerator::groupUp(Node n, Node e)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -766,7 +766,7 @@ InferInfo InferenceGenerator::groupUp2(Node n,
                                        Node partitionCard)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -793,7 +793,7 @@ InferInfo InferenceGenerator::groupUp2(Node n,
 InferInfo InferenceGenerator::groupUp3(Node n, Node e, Node part)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(e.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -821,8 +821,8 @@ InferInfo InferenceGenerator::groupUp3(Node n, Node e, Node part)
 InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
+  Assert(x.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -842,8 +842,8 @@ InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x)
 InferInfo InferenceGenerator::groupDown3(Node n, Node B, Node x, Node part)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
+  Assert(x.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -866,7 +866,7 @@ InferInfo InferenceGenerator::groupDown3(Node n, Node B, Node x, Node part)
 InferInfo InferenceGenerator::groupPartCount(Node n, Node B)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -886,9 +886,9 @@ InferInfo InferenceGenerator::groupSameProjection(Node n,
                                                   Node y)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-  Assert(y.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
+  Assert(x.getType() == n[0].getType().getBagElementType());
+  Assert(y.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -919,9 +919,9 @@ InferInfo InferenceGenerator::groupSameProjection3(
     Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-  Assert(y.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
+  Assert(x.getType() == n[0].getType().getBagElementType());
+  Assert(y.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -958,9 +958,9 @@ InferInfo InferenceGenerator::groupSamePart3(
     Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(x.getType().isSubtypeOf(n[0].getType().getBagElementType()));
-  Assert(y.getType().isSubtypeOf(n[0].getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
+  Assert(x.getType() == n[0].getType().getBagElementType());
+  Assert(y.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -999,8 +999,8 @@ InferInfo InferenceGenerator::groupSamePart3(
 InferInfo InferenceGenerator::groupPartsDisjoint(Node n, Node B, Node C)
 {
   Assert(n.getKind() == TABLE_GROUP);
-  Assert(B.getType().isSubtypeOf(n.getType().getBagElementType()));
-  Assert(C.getType().isSubtypeOf(n.getType().getBagElementType()));
+  Assert(B.getType() == n.getType().getBagElementType());
+  Assert(C.getType() == n.getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
