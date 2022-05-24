@@ -763,7 +763,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   TypeNode etn = tn.getSequenceElementType();
   for (const Node& snv : snvec)
   {
-    Assert(snv.getType().isSubtypeOf(etn));
+    Assert(snv.getType() == etn);
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v, "smv");
