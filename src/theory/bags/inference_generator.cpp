@@ -1006,7 +1006,7 @@ InferInfo InferenceGenerator::groupPartsDisjoint(Node n, Node B, Node C)
   TypeNode bagType = A.getType();
   Node empty = d_nm->mkConst(EmptyBag(bagType));
 
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PARTS_DISJOINT);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PART);
 
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count_B_n = getMultiplicityTerm(B, skolem);
@@ -1027,7 +1027,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::groupPartsDisjoint2(
 {
   Assert(n.getKind() == TABLE_GROUP);
 
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PARTS_DISJOINT);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PART);
 
   Node A = n[0];
   // declare an uninterpreted function unionF: Int -> (Bag (Table T))
@@ -1101,7 +1101,7 @@ Node InferenceGenerator::groupPartsDisjoint3(Node n)
 {
   Assert(n.getKind() == TABLE_GROUP);
 
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PARTS_DISJOINT);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PART);
 
   Node A = n[0];
   TypeNode tableType = A.getType();
