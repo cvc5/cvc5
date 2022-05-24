@@ -902,9 +902,6 @@ InferInfo InferenceGenerator::groupSamePart(
 Node InferenceGenerator::defineSkolemPartFunction(Node n)
 {
   Assert(n.getKind() == TABLE_GROUP);
-
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_PART);
-
   Node A = n[0];
   TypeNode tableType = A.getType();
   TypeNode elementType = tableType.getBagElementType();

@@ -150,7 +150,6 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_GROUP_SAME_PROJECTION:
       return "TABLES_GROUP_SAME_PROJECTION";
     case InferenceId::TABLES_GROUP_SAME_PART: return "TABLES_GROUP_SAME_PART";
-    case InferenceId::TABLES_GROUP_PART: return "TABLES_GROUP_PARTS";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
