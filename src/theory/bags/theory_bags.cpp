@@ -84,6 +84,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(TABLE_PROJECT);
   d_equalityEngine->addFunctionKind(TABLE_AGGREGATE);
   d_equalityEngine->addFunctionKind(TABLE_JOIN);
+  d_equalityEngine->addFunctionKind(TABLE_GROUP);
 }
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)

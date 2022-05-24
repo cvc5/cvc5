@@ -103,6 +103,15 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         unset(64bit)
     endif()
 
+  set(compilers "")
+  if (CMAKE_CROSSCOMPILING_MACOS)
+    # We set the CC and CXX flags as suggested in
+    # https://github.com/antlr/antlr3/blob/5c2a916a10139cdb5c7c8851ee592ed9c3b3d4ff/runtime/C/INSTALL#L133-L135.
+    set(compilers
+      "CC=${CMAKE_C_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}"
+      "CXX=${CMAKE_CXX_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}")
+  endif()
+
     # Download, build and install antlr3 runtime
     ExternalProject_Add(
         ANTLR3-EP-runtime
@@ -117,7 +126,9 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} -E copy
           <INSTALL_DIR>/share/config.sub
           <SOURCE_DIR>/config.sub
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure
+        CONFIGURE_COMMAND
+          <SOURCE_DIR>/configure
+            ${compilers}
             --with-pic
             --disable-antlrdebug
             --disable-abiflags
