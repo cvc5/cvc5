@@ -465,9 +465,19 @@ class InferenceGenerator
    * @return an inference that represents:
    * (=>
    *   (bag.member B skolem)
-   *   (= (bag.count B skolem) 1)
+   *   (and
+   *     (= (bag.count B skolem) 1)
+   *     (=>
+   *       (distinct B (as bag.empty (Table T)))
+   *       (and
+   *         (= (bag.count k_{n,B} B) (bag.count k_{n,B} A)
+   *         (>= (bag.count k_{n,B} B) 1)
+   *       )
+   *     )
+   *   )
    * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A), and
+   * k_{n, B} is a fresh skolem of type T.
    */
   InferInfo groupPartCount(Node n, Node B);
   /**
