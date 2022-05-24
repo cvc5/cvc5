@@ -985,12 +985,6 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
   TypeNode bagType = A.getType();
   TypeNode partitionType = n.getType();
 
-  if (A.getKind() == BAG_EMPTY)
-  {
-    // return a nonempty partition
-    return nm->mkNode(BAG_MAKE, A, nm->mkConstInt(Rational(1)));
-  }
-
   std::vector<uint32_t> indices =
       n.getOperator().getConst<TableGroupOp>().getIndices();
 
@@ -1031,6 +1025,9 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
 
   // construct the partition parts
   std::map<Node, Rational> parts;
+  // always add an empty part
+  Node emptyPart = nm->mkConst(EmptyBag(bagType));
+  parts[emptyPart] = Rational(1);
   for (std::pair<Node, std::set<Node>> pair : sets)
   {
     const std::set<Node>& eqc = pair.second;
