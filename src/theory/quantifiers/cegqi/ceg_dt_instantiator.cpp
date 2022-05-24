@@ -147,7 +147,8 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       unsigned cindex = DType::indexOf(a.getOperator());
       TypeNode tn = a.getType();
       const DType& dt = tn.getDType();
-      Node val = datatypes::utils::getInstCons(sb, dt, cindex, options().datatypes.dtSharedSelectors);
+      Node val = datatypes::utils::getInstCons(
+          sb, dt, cindex, options().datatypes.dtSharedSelectors);
       for (size_t i = 0, nchild = val.getNumChildren(); i < nchild; i++)
       {
         Node s = solve_dt(v, a[i], Node::null(), sa[i], val[i]);
