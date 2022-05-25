@@ -150,7 +150,7 @@ void RelevantDomain::compute(){
       }
     }
     // print debug and verify types are correct
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     for (std::pair<const Node, std::map<size_t, RDomain*> >& d : d_rel_doms)
     {
       Trace("rel-dom") << "Relevant domain for " << d.first << " : "
@@ -184,12 +184,11 @@ void RelevantDomain::compute(){
               else
               {
                 Assert(false) << "Relevant domain: bad type " << t.getType()
-                            << ", expected " << expectedType;
+                              << ", expected " << expectedType;
               }
             }
           }
         }
-        
       }
     }
   }
