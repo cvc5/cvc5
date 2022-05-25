@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "test_node.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace expr;
@@ -49,7 +49,7 @@ TEST_F(TestNodeWhiteNode, iterators)
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node x_plus_y = d_nodeManager->mkNode(ADD, x, y);
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
   Node x_times_2 = d_nodeManager->mkNode(MULT, x, two);
 
   Node n = d_nodeManager->mkNode(ADD, x_times_2, x_plus_y, y);
@@ -80,4 +80,4 @@ TEST_F(TestNodeWhiteNode, iterators)
   ASSERT_EQ(v[2], y);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "base/output.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 thread_local SolverEngine* s_slvEngine_current = nullptr;
@@ -48,13 +48,13 @@ SolverEngineScope::SolverEngineScope(const SolverEngine* smt)
 {
   Assert(smt != nullptr);
   s_slvEngine_current = const_cast<SolverEngine*>(smt);
-  Debug("current") << "smt scope: " << s_slvEngine_current << std::endl;
+  Trace("current") << "smt scope: " << s_slvEngine_current << std::endl;
 }
 
 SolverEngineScope::~SolverEngineScope()
 {
   s_slvEngine_current = d_oldSlvEngine;
-  Debug("current") << "smt scope: returning to " << s_slvEngine_current
+  Trace("current") << "smt scope: returning to " << s_slvEngine_current
                    << std::endl;
 }
 
@@ -65,4 +65,4 @@ StatisticsRegistry& SolverEngineScope::currentStatisticsRegistry()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang, Aina Niemetz
+ *   Yancheng Ou, Andrew Reynolds, Michael Chang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "smt/solver_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::omt;
-namespace cvc5 {
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::omt;
+namespace cvc5::internal {
 namespace smt {
 
 std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
@@ -42,10 +42,10 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
         << "Only the SMTLib2 language supports optimization right now";
   }
   out << "(" << result.getResult();
-  switch (result.getResult().isSat())
+  switch (result.getResult().getStatus())
   {
     case Result::SAT:
-    case Result::SAT_UNKNOWN:
+    case Result::UNKNOWN:
     {
       switch (result.isInfinity())
       {
@@ -169,7 +169,7 @@ Result OptimizationSolver::optimizeBox()
   // resets the optChecker
   d_optChecker = createOptCheckerWithTimeout(d_parent);
   OptimizationResult partialResult;
-  Result aggregatedResult(Result::Sat::SAT);
+  Result aggregatedResult(Result::SAT);
   std::unique_ptr<OMTOptimizer> optimizer;
   for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
   {
@@ -191,7 +191,7 @@ Result OptimizationSolver::optimizeBox()
     }
     // match the optimization result type, and aggregate the results of
     // subproblems
-    switch (partialResult.getResult().isSat())
+    switch (partialResult.getResult().getStatus())
     {
       case Result::SAT: break;
       case Result::UNSAT:
@@ -202,9 +202,7 @@ Result OptimizationSolver::optimizeBox()
         }
         d_optChecker.reset();
         return partialResult.getResult();
-      case Result::SAT_UNKNOWN:
-        aggregatedResult = partialResult.getResult();
-        break;
+      case Result::UNKNOWN: aggregatedResult = partialResult.getResult(); break;
       default: Unreachable();
     }
 
@@ -249,7 +247,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
     d_results[i] = partialResult;
 
     // checks the optimization result of the current objective
-    switch (partialResult.getResult().isSat())
+    switch (partialResult.getResult().getStatus())
     {
       case Result::SAT:
         // assert target[i] == value[i] and proceed
@@ -259,7 +257,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
       case Result::UNSAT:
         d_optChecker.reset();
         return partialResult.getResult();
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         d_optChecker.reset();
         return partialResult.getResult();
       default: Unreachable();
@@ -287,11 +285,11 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   // checks whether the current set of assertions are satisfied or not
   Result satResult = d_optChecker->checkSat();
 
-  switch (satResult.isSat())
+  switch (satResult.getStatus())
   {
-    case Result::Sat::UNSAT:
-    case Result::Sat::SAT_UNKNOWN: return satResult;
-    case Result::Sat::SAT:
+    case Result::UNSAT:
+    case Result::UNKNOWN: return satResult;
+    case Result::SAT:
     {
       // if satisfied, use d_results to store the initial results
       // they will be gradually updated and optimized
@@ -315,7 +313,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   std::vector<Node> someObjBetter;
   d_optChecker->push();
 
-  while (satResult.isSat() == Result::Sat::SAT)
+  while (satResult.getStatus() == Result::SAT)
   {
     noWorseObj.clear();
     someObjBetter.clear();
@@ -342,18 +340,18 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
     // checks if previous assertions + noWorseObj + someObjBetter are satisfied
     satResult = d_optChecker->checkSat();
 
-    switch (satResult.isSat())
+    switch (satResult.getStatus())
     {
-      case Result::Sat::UNSAT:
+      case Result::UNSAT:
         // if result is UNSAT, it means no more improvement could be made,
         // then the results stored in d_results are one of the Pareto optimal
         // results
         break;
-      case Result::Sat::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         // if result is UNKNOWN, abort the current session and return UNKNOWN
         d_optChecker.reset();
         return satResult;
-      case Result::Sat::SAT:
+      case Result::SAT:
       {
         lastSatResult = satResult;
         // if result is SAT, update d_results to the more optimal values
@@ -380,4 +378,4 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

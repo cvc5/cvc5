@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -40,6 +40,16 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   )
 
   check_system_version("GMP")
+
+  TRY_COMPILE(DOES_WORK "${DEPS_BASE}/try_compile/GMP-EP"
+    "${CMAKE_CURRENT_LIST_DIR}/deps-utils/gmp-test.cpp"
+    CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    LINK_LIBRARIES gmpxx gmp
+  )
+  if(NOT ${DOES_WORK})
+    message(VERBOSE "System version for ${name} does not work in the selected configuration. Maybe we are cross-compiling?")
+    set(GMP_FOUND_SYSTEM FALSE)
+  endif()
 endif()
 
 if(NOT GMP_FOUND_SYSTEM)
@@ -65,15 +75,36 @@ if(NOT GMP_FOUND_SYSTEM)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
   endif()
 
+  set(CONFIGURE_OPTS "")
+  set(CONFIGURE_ENV "")
+  if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
+    set(CONFIGURE_OPTS
+      --host=${TOOLCHAIN_PREFIX}
+      --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
+  endif()
+  if (CMAKE_CROSSCOMPILING_MACOS)
+    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
+      env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+      env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+  endif()
 
+  # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
+  # that cross-compilation works (as suggested in the GMP documentation).
+  # Without the `--build` flag, `configure` may fail for cross-compilation
+  # builds for Windows if Wine is installed.
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
     URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
-      <SOURCE_DIR>/configure ${LINK_OPTS} --prefix=<INSTALL_DIR>
-      --with-pic --enable-cxx --host=${TOOLCHAIN_PREFIX}
+      ${CONFIGURE_ENV}
+        <SOURCE_DIR>/configure
+          ${LINK_OPTS}
+          --prefix=<INSTALL_DIR>
+          --with-pic
+          --enable-cxx
+          ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()

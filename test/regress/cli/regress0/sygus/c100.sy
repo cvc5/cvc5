@@ -1,0 +1,18 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status
+
+(set-logic LIA)
+
+(synth-fun constant ((x Int)) Int
+    ((Start Int))
+    ((Start Int (0
+                 2
+                 3
+                 5
+                 (+ Start Start)
+                 (- Start Start)
+                 ))
+          ))
+(declare-var x Int)
+(constraint (= (constant x) 100))
+(check-synth)

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,15 +21,19 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
-DifficultyManager::DifficultyManager(RelevanceManager* rlv,
-                                     context::Context* c,
+DifficultyManager::DifficultyManager(Env& env,
+                                     RelevanceManager* rlv,
                                      Valuation val)
-    : d_rlv(rlv), d_input(c), d_val(val), d_dfmap(c)
+    : EnvObj(env),
+      d_rlv(rlv),
+      d_input(userContext()),
+      d_val(val),
+      d_dfmap(userContext())
 {
 }
 
@@ -55,11 +59,13 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
   // compute if we should consider the lemma
   bool considerLemma = false;
-  if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL_ALL)
+  if (options().smt.difficultyMode
+      == options::DifficultyMode::LEMMA_LITERAL_ALL)
   {
     considerLemma = true;
   }
-  else if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL)
+  else if (options().smt.difficultyMode
+           == options::DifficultyMode::LEMMA_LITERAL)
   {
     considerLemma = inFullEffortCheck;
   }
@@ -103,7 +109,7 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 
 void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
-  if (options::difficultyMode() != options::DifficultyMode::MODEL_CHECK)
+  if (options().smt.difficultyMode != options::DifficultyMode::MODEL_CHECK)
   {
     return;
   }
@@ -132,4 +138,4 @@ void DifficultyManager::incrementDifficulty(TNode a, uint64_t amount)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

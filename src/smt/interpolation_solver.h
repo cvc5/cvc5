@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Ying Sheng, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include "expr/type_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace theory {
 namespace quantifiers {
@@ -35,8 +35,8 @@ namespace smt {
 /**
  * A solver for interpolation queries.
  *
- * This class is responsible for responding to get-interpol commands. It spawns
- * a subsolver SolverEngine for a sygus conjecture that captures the
+ * This class is responsible for responding to get-interpolant commands. It
+ * spawns a subsolver SolverEngine for a sygus conjecture that captures the
  * interpolation query, and implements supporting utility methods such as
  * checkInterpol.
  */
@@ -96,6 +96,6 @@ class InterpolationSolver : protected EnvObj
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__INTERPOLATION_SOLVER_H */

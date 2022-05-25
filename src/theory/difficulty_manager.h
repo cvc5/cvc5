@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,10 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
@@ -33,13 +34,13 @@ class RelevanceManager;
  * Difficulty manager, which tracks an estimate of the difficulty of each
  * preprocessed assertion during solving.
  */
-class DifficultyManager
+class DifficultyManager : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(RelevanceManager* rlv, context::Context* c, Valuation val);
+  DifficultyManager(Env& env, RelevanceManager* rlv, Valuation val);
   /** Notify input assertions */
   void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
@@ -89,6 +90,6 @@ class DifficultyManager
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DIFFICULTY_MANAGER__H */

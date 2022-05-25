@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Francois Bobot, Morgan Deters, Andrew Reynolds
+ *   Francois Bobot, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,7 +64,7 @@ Command* TptpInput::parseCommand() {
   return d_pTptpParser->parseCommand(d_pTptpParser);
 }
 
-api::Term TptpInput::parseExpr()
+cvc5::Term TptpInput::parseExpr()
 {
   return d_pTptpParser->parseExpr(d_pTptpParser);
 }

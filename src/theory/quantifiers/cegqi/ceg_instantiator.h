@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Tim King
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -346,8 +346,11 @@ class CegInstantiator : protected EnvObj
    * returns CEG_PARTIALLY_HANDLED, then it may be worthwhile to handle the
    * quantified formula using cegqi, however other strategies should also be
    * tried.
+   *
+   * @param cegqiAll Whether we apply CEQGI to all quantifiers (option
+   * options::cegqiAll).
    */
-  static CegHandledStatus isCbqiQuant(Node q);
+  static CegHandledStatus isCbqiQuant(Node q, bool cegqiAll);
   //------------------------------------ end static queries
  private:
   /** The quantified formula of this instantiator */
@@ -823,6 +826,6 @@ class InstantiatorPreprocess
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

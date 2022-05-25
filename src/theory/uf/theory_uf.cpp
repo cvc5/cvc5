@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -55,7 +55,8 @@ TheoryUF::TheoryUF(Env& env,
       d_rewriter(logicInfo().isHigherOrder()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
-      d_notify(d_im, *this)
+      d_notify(d_im, *this),
+      d_cpacb(*this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   // indicate we are using the default theory state and inference managers
@@ -106,28 +107,6 @@ void TheoryUF::finishInit() {
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
 }
-
-static Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}/* mkAnd() */
 
 //--------------------------------- standard check
 
@@ -221,7 +200,15 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     if (!isHol)
     {
       std::stringstream ss;
-      ss << "Partial function applications are only supported with "
+      if (k == kind::HO_APPLY)
+      {
+        ss << "Partial function applications";
+      }
+      else
+      {
+        ss << "Function variables";
+      }
+      ss << " are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
@@ -255,7 +242,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 
 void TheoryUF::preRegisterTerm(TNode node)
 {
-  Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
+  Trace("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
 
   if (d_thss != nullptr)
   {
@@ -330,7 +317,7 @@ void TheoryUF::preRegisterTerm(TNode node)
 
 void TheoryUF::explain(TNode literal, Node& exp)
 {
-  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
+  Trace("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
@@ -344,7 +331,7 @@ void TheoryUF::explain(TNode literal, Node& exp)
   {
     d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-  exp = mkAnd(assumptions);
+  exp = NodeManager::currentNM()->mkAnd(assumptions);
 }
 
 TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
@@ -362,14 +349,14 @@ bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
     }
   }
 
-  Debug("uf") << "UF : finish collectModelInfo " << std::endl;
+  Trace("uf") << "UF : finish collectModelInfo " << std::endl;
   return true;
 }
 
 void TheoryUF::presolve() {
   // TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
-  Debug("uf") << "uf: begin presolve()" << endl;
+  Trace("uf") << "uf: begin presolve()" << endl;
   if (options().uf.ufSymmetryBreaker)
   {
     vector<Node> newClauses;
@@ -377,7 +364,7 @@ void TheoryUF::presolve() {
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
-      Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
+      Trace("uf") << "uf: generating a lemma: " << *i << std::endl;
       // no proof generator provided
       d_im.lemma(*i, InferenceId::UF_BREAK_SYMMETRY);
     }
@@ -385,7 +372,7 @@ void TheoryUF::presolve() {
   if( d_thss ){
     d_thss->presolve();
   }
-  Debug("uf") << "uf: end presolve()" << endl;
+  Trace("uf") << "uf: end presolve()" << endl;
 }
 
 void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
@@ -429,7 +416,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
 
     // == DIAMONDS ==
 
-    Debug("diamonds") << "===================== looking at" << endl
+    Trace("diamonds") << "===================== looking at" << endl
                       << n << endl;
 
     // binary OR of binary ANDs of EQUALities
@@ -442,7 +429,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
        (n[1][1].getKind() == kind::EQUAL)) {
       // now we have (a = b && c = d) || (e = f && g = h)
 
-      Debug("diamonds") << "has form of a diamond!" << endl;
+      Trace("diamonds") << "has form of a diamond!" << endl;
 
       TNode
         a = n[0][0][0], b = n[0][0][1],
@@ -465,11 +452,11 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
         d = c;
       } else {
         // condition not satisfied
-        Debug("diamonds") << "+ A fails" << endl;
+        Trace("diamonds") << "+ A fails" << endl;
         continue;
       }
 
-      Debug("diamonds") << "+ A holds" << endl;
+      Trace("diamonds") << "+ A holds" << endl;
 
       // same: one of {e, f} = one of {g, h}, and make "f" the
       // shared node (i.e. put in the form (e = f && f = h))
@@ -484,23 +471,23 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
         h = g;
       } else {
         // condition not satisfied
-        Debug("diamonds") << "+ B fails" << endl;
+        Trace("diamonds") << "+ B fails" << endl;
         continue;
       }
 
-      Debug("diamonds") << "+ B holds" << endl;
+      Trace("diamonds") << "+ B holds" << endl;
 
       // now we have (a = b && b = d) || (e = f && f = h)
       // test that {a, d} == {e, h}
       if( (a == e && d == h) ||
           (a == h && d == e) ) {
         // learn: n implies a == d
-        Debug("diamonds") << "+ C holds" << endl;
+        Trace("diamonds") << "+ C holds" << endl;
         Node newEquality = a.eqNode(d);
-        Debug("diamonds") << "  ==> " << newEquality << endl;
+        Trace("diamonds") << "  ==> " << newEquality << endl;
         learned << n.impNode(newEquality);
       } else {
-        Debug("diamonds") << "+ C fails" << endl;
+        Trace("diamonds") << "+ C fails" << endl;
       }
     }
   }
@@ -561,89 +548,15 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y)
   return false;
 }
 
-void TheoryUF::addCarePairs(const TNodeTrie* t1,
-                            const TNodeTrie* t2,
-                            unsigned arity,
-                            unsigned depth)
+void TheoryUF::processCarePairArgs(TNode a, TNode b)
 {
-  // Note we use d_state instead of d_equalityEngine in this method in several
-  // places to be robust to cases where the tries have terms that do not
-  // exist in the equality engine, which can be the case if higher order.
-  if( depth==arity ){
-    if( t2!=NULL ){
-      Node f1 = t1->getData();
-      Node f2 = t2->getData();
-      if (!d_state.areEqual(f1, f2))
-      {
-        Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
-        vector< pair<TNode, TNode> > currentPairs;
-        for (size_t k = 0, nchildren = f1.getNumChildren(); k < nchildren; ++k)
-        {
-          TNode x = f1[k];
-          TNode y = f2[k];
-          Assert(!d_state.areDisequal(x, y));
-          Assert(!areCareDisequal(x, y));
-          if (!d_state.areEqual(x, y))
-          {
-            if (d_equalityEngine->isTriggerTerm(x, THEORY_UF)
-                && d_equalityEngine->isTriggerTerm(y, THEORY_UF))
-            {
-              TNode x_shared =
-                  d_equalityEngine->getTriggerTermRepresentative(x, THEORY_UF);
-              TNode y_shared =
-                  d_equalityEngine->getTriggerTermRepresentative(y, THEORY_UF);
-              currentPairs.push_back(make_pair(x_shared, y_shared));
-            }
-          }
-        }
-        for (unsigned c = 0; c < currentPairs.size(); ++ c) {
-          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
-          addCarePair(currentPairs[c].first, currentPairs[c].second);
-        }
-      }
-    }
-  }else{
-    if( t2==NULL ){
-      if( depth<(arity-1) ){
-        //add care pairs internal to each child
-        for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
-        {
-          addCarePairs(&tt.second, NULL, arity, depth + 1);
-        }
-      }
-      //add care pairs based on each pair of non-disequal arguments
-      for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
-           it != t1->d_data.end();
-           ++it)
-      {
-        std::map<TNode, TNodeTrie>::const_iterator it2 = it;
-        ++it2;
-        for( ; it2 != t1->d_data.end(); ++it2 ){
-          if (!d_state.areDisequal(it->first, it2->first))
-          {
-            if( !areCareDisequal(it->first, it2->first) ){
-              addCarePairs( &it->second, &it2->second, arity, depth+1 );
-            }
-          }
-        }
-      }
-    }else{
-      //add care pairs based on product of indices, non-disequal arguments
-      for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
-      {
-        for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
-        {
-          if (!d_state.areDisequal(tt1.first, tt2.first))
-          {
-            if (!areCareDisequal(tt1.first, tt2.first))
-            {
-              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1);
-            }
-          }
-        }
-      }
-    }
+  // if a and b are already equal, we ignore this pair
+  if (d_state.areEqual(a, b))
+  {
+    return;
   }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
 }
 
 void TheoryUF::computeCareGraph() {
@@ -655,7 +568,7 @@ void TheoryUF::computeCareGraph() {
   // Use term indexing. We build separate indices for APPLY_UF and HO_APPLY.
   // We maintain indices per operator for the former, and indices per
   // function type for the latter.
-  Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
+  Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
@@ -712,19 +625,19 @@ void TheoryUF::computeCareGraph() {
   // for each index
   for (std::pair<const Node, TNodeTrie>& tt : index)
   {
-    Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
                          << tt.first << "..." << std::endl;
     Assert(arity.find(tt.first) != arity.end());
-    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+    nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
   for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
   {
-    Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    addCarePairs(&tt.second, nullptr, 2, 0);
+    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
   }
-  Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
+  Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
@@ -771,4 +684,4 @@ bool TheoryUF::isHigherOrderType(TypeNode tn)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

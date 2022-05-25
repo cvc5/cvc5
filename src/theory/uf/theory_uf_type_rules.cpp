@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,11 +19,12 @@
 #include <sstream>
 
 #include "expr/cardinality_constraint.h"
+#include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -50,14 +51,14 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
     {
       TypeNode currentArgument = (*argument_it).getType();
       TypeNode currentArgumentType = *argument_type_it;
-      if (!currentArgument.isSubtypeOf(currentArgumentType))
+      if (currentArgument != currentArgumentType)
       {
         std::stringstream ss;
-        ss << "argument type is not a subtype of the function's argument "
+        ss << "argument type is not the type of the function's argument "
            << "type:\n"
            << "argument:  " << *argument_it << "\n"
            << "has type:  " << (*argument_it).getType() << "\n"
-           << "not subtype: " << *argument_type_it << "\n"
+           << "not type: " << *argument_type_it << "\n"
            << "in term : " << n;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
@@ -73,7 +74,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
-    if (!cc.getType().isSort())
+    if (!cc.getType().isUninterpretedSort())
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must apply to uninterpreted sort");
@@ -84,7 +85,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
           n, "cardinality constraint must be positive");
     }
   }
-  return nodeManager->booleanType();
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
@@ -107,20 +108,13 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
           n, "combined cardinality constraint must be positive");
     }
   }
-  return nodeManager->booleanType();
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode CombinedCardinalityConstraintTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
 {
   return nodeManager->booleanType();
-}
-
-TypeNode PartialTypeRule::computeType(NodeManager* nodeManager,
-                                      TNode n,
-                                      bool check)
-{
-  return n.getOperator().getType().getRangeType();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
@@ -138,7 +132,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TypeNode aType = n[1].getType(check);
-    if (!aType.isSubtypeOf(fType[0]))
+    if (aType != fType[0])
     {
       throw TypeCheckingExceptionPrivate(
           n, "argument does not match function type");
@@ -229,6 +223,15 @@ bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   return false;
 }
 
+TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
+                                                 TNode n,
+                                                 bool check)
+{
+  Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
+  const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
+  return fc.getType();
+}
+
 Cardinality FunctionProperties::computeCardinality(TypeNode type)
 {
   // Don't assert this; allow other theories to use this cardinality
@@ -270,4 +273,4 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

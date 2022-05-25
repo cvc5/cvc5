@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Liana Hadarean
+ *   Mathias Preiner, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 
 #include <cadical.hpp>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class CadicalSolver : public SatSolver
@@ -75,9 +75,9 @@ class CadicalSolver : public SatSolver
   void init();
 
   /**
-   * Set time limit per solve() call.
+   * Set resource limit.
    */
-  void setTimeLimit(ResourceManager* resmgr);
+  void setResourceLimit(ResourceManager* resmgr);
 
   std::unique_ptr<CaDiCaL::Solver> d_solver;
   std::unique_ptr<CaDiCaL::Terminator> d_terminator;
@@ -106,6 +106,6 @@ class CadicalSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5__PROP__CADICAL_H

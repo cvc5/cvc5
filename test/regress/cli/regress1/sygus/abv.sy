@@ -1,0 +1,66 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ABV)
+
+(define-sort AddrSort () (_ BitVec 32))
+(define-sort ValSort () (_ BitVec 8))
+(define-sort MemSort () (Array AddrSort ValSort))
+
+; Write the value y to index x
+(define-fun WriteArr
+    ; Args
+    ((x AddrSort) (y ValSort) (arrIn MemSort))
+
+    ; Return value
+    MemSort
+
+    ; Function Body
+    (store arrIn x y)
+)
+
+; Read from index x
+(define-fun ReadArr
+    ; Args
+    ((x AddrSort) (arrIn MemSort))
+
+    ; Return value
+    ValSort
+
+    ; Function Body
+    (select arrIn x)
+)
+
+(define-fun letf ((m MemSort) (v1 AddrSort) (v2 AddrSort)) ValSort
+  (bvadd
+    (ReadArr v1 m)
+    (ReadArr v2 m)))
+
+(synth-fun f
+    ; Args
+    ((x0 ValSort) (x1 ValSort) (idx0 AddrSort) (idx1 AddrSort) (mem MemSort))
+
+    ; Return value
+    ValSort
+
+    ; Grammar
+    ((Start ValSort) (StartArray MemSort) (ASVar AddrSort) (VSVar ValSort))
+    (
+    (Start ValSort (
+        (letf StartArray ASVar ASVar)))
+
+    (StartArray MemSort (
+        (WriteArr ASVar VSVar StartArray)
+        (WriteArr ASVar VSVar mem)))
+
+    ; "Hack" to avoid parse errors in V2 format.
+    (ASVar AddrSort ((Variable AddrSort)))
+    (VSVar ValSort ((Variable ValSort)))
+))
+
+(declare-var a (_ BitVec 8))
+(declare-var b (_ BitVec 8))
+(declare-var c (_ BitVec 32))
+(declare-var d (_ BitVec 32))
+(declare-var e (Array (_ BitVec 32) (_ BitVec 8)))
+(constraint (=> (not (= c d)) (= (bvadd a b) (f a b c d e))))
+(check-synth)

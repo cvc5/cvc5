@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@
 #include "theory/sort_inference.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -147,33 +147,29 @@ void Skolemize::getSelfSel(const DType& dt,
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
-    std::vector<Node> ssc;
     if (dt.isParametric())
     {
       Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn
                             << std::endl;
-      if (tspec[j] == ntn)
+      if (tspec[j] != ntn)
       {
-        ssc.push_back(n);
+        continue;
       }
     }
     else
     {
       TypeNode tn = dc[j].getRangeType();
       Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
-      if (tn == ntn)
+      if (tn != ntn)
       {
-        ssc.push_back(n);
+        continue;
       }
     }
-    for (unsigned k = 0; k < ssc.size(); k++)
+    // do not use shared selectors
+    Node ss = nm->mkNode(APPLY_SELECTOR, dc.getSelector(j), n);
+    if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
     {
-      Node ss = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
-      if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
-      {
-        selfSel.push_back(ss);
-      }
+      selfSel.push_back(ss);
     }
   }
 }
@@ -403,4 +399,4 @@ bool Skolemize::isProofEnabled() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

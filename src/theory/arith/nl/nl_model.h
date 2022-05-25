@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,14 +22,14 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "expr/subs.h"
 #include "smt/env_obj.h"
+#include "theory/arith/arith_subs.h"
 
-namespace cvc5 {
-
-namespace context {
+namespace cvc5::context {
 class Context;
 }
+
+namespace cvc5::internal {
 
 namespace theory {
 
@@ -176,6 +176,9 @@ class NlModel : protected EnvObj
    */
   void getModelValueRepair(std::map<Node, Node>& arithModel);
 
+  /** Return the substituted form of s */
+  Node getSubstitutedForm(TNode s) const;
+
  private:
   /** Cache for concrete model values */
   std::map<Node, Node> d_concreteModelCache;
@@ -198,7 +201,7 @@ class NlModel : protected EnvObj
    * A substitution from variables that appear in assertions to a solved form
    * term.
    */
-  Subs d_substitutions;
+  ArithSubs d_substitutions;
 
   /** Get the model value of n from the model object above */
   Node getValueInternal(TNode n);
@@ -301,6 +304,6 @@ class NlModel : protected EnvObj
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

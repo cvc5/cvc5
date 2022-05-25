@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Christopher L. Conway, Mathias Preiner, Aina Niemetz
+ *   Christopher L. Conway, Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,7 +78,7 @@ class Smt2Input : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  api::Term parseExpr() override;
+  cvc5::Term parseExpr() override;
 
 };/* class Smt2Input */
 

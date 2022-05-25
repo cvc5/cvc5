@@ -1,0 +1,19 @@
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+;EXPECT: feasible
+(set-logic LIA)
+(synth-inv inv-f ((x Int) (y Int) (b Bool)))
+(define-fun pre-f ((x Int) (y Int) (b Bool)) Bool
+(and
+(and (>= x 5) (<= x 9))
+(and (>= y 1) (<= y 3))
+)
+)
+(define-fun trans-f ((x Int) (y Int) (b Bool) (x! Int) (y! Int) (b! Bool)) Bool
+(and
+(and (= b! b) (= y! x))
+(ite b (= x! (+ x 10)) (= x! (+ x 12)))
+)
+)
+(define-fun post-f ((x Int) (y Int) (b Bool)) Bool true)
+(inv-constraint inv-f pre-f trans-f post-f)
+(check-synth)

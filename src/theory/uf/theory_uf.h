@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #define CVC5__THEORY__UF__THEORY_UF_H
 
 #include "expr/node.h"
-#include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
@@ -29,7 +29,7 @@
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -49,21 +49,21 @@ class TheoryUF : public Theory {
 
     void eqNotifyNewClass(TNode t) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
+      Trace("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
                          << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+      Trace("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
                          << ")" << std::endl;
       d_uf.eqNotifyMerge(t1, t2);
     }
 
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
+      Trace("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
 
@@ -152,11 +152,14 @@ private:
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 
-  bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs(const TNodeTrie* t1,
-                    const TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth);
+  /** Overrides to ensure that pairs of lambdas are not considered disequal. */
+  bool areCareDisequal(TNode x, TNode y) override;
+  /**
+   * Overrides to use the theory state instead of the equality engine, since
+   * for higher-order, some terms that do not occur in the equality engine are
+   * considered.
+   */
+  void processCarePairArgs(TNode a, TNode b) override;
   /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking
@@ -174,10 +177,12 @@ private:
   NotifyClass d_notify;
   /** Cache for isHigherOrderType */
   std::map<TypeNode, bool> d_isHoType;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryUF */
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__UF__THEORY_UF_H */

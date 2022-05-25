@@ -1,0 +1,22 @@
+; EXPECT: sat
+(set-option :incremental false)
+(set-logic ALL)
+
+
+(declare-fun x () (Relation Int Int))
+(declare-fun y () (Relation Int Int))
+(declare-fun z () (Relation Int Int Int Int))
+(declare-fun z1 () (Relation Int Int))
+(declare-fun w1 () (Relation Int Int))
+(declare-fun z2 () (Relation Int Int))
+(declare-fun w2 () (Relation Int Int))
+(declare-fun P ((Relation Int Int Int Int)) Bool)
+(assert (= z (rel.product x y)))
+(assert (P z))
+(assert (not (P (set.singleton (tuple 0 1 2 3)))))
+(assert (set.member (tuple 0 1) z1))
+(assert (set.member (tuple 0 1) z2))
+(assert (set.member (tuple 2 3) w1))
+(assert (set.member (tuple 2 3) w2))
+(assert (or (and (= x z1) (= y w1)) (and (= x z2) (= y w2))))
+(check-sat)

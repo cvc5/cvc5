@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -274,7 +274,7 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   }
   TNode op = n.getOperator();
   TNode fdeft = fdef;
-  Assert(op.getType().isComparableTo(fdef.getType()));
+  Assert(op.getType() == fdef.getType());
   return op.eqNode(fdef);
 }
 
@@ -287,4 +287,4 @@ Node QuantifiersMacros::returnMacro(Node fdef, Node lit) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 #include "test.h"
 #include "util/bin_heap.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackBinaryHeap : public TestInternal
@@ -229,4 +229,4 @@ TEST_F(TestUtilBlackBinaryHeap, large_heap)
   ASSERT_TRUE(heap.empty());
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

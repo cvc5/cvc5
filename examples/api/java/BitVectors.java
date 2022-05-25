@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Liana Hadarean, Makai Mann
+ *   Mudathir Mohamed, Liana Hadarean, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
  *
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.util.*;
 
 public class BitVectors
@@ -86,9 +86,9 @@ public class BitVectors
       slv.assertFormula(assignment1);
       Term new_x_eq_new_x_ = slv.mkTerm(Kind.EQUAL, new_x, new_x_);
 
-      System.out.println(" Check entailment assuming: " + new_x_eq_new_x_);
-      System.out.println(" Expect ENTAILED. ");
-      System.out.println(" cvc5: " + slv.checkEntailed(new_x_eq_new_x_));
+      System.out.println(" Check sat assuming: " + new_x_eq_new_x_.notTerm());
+      System.out.println(" Expect UNSAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
       System.out.println(" Popping context. ");
       slv.pop();
 
@@ -102,15 +102,16 @@ public class BitVectors
       System.out.println("Asserting " + assignment2 + " to cvc5 ");
       slv.assertFormula(assignment2);
 
-      System.out.println(" Check entailment assuming: " + new_x_eq_new_x_);
-      System.out.println(" Expect ENTAILED. ");
-      System.out.println(" cvc5: " + slv.checkEntailed(new_x_eq_new_x_));
+      System.out.println(" Check sat assuming: " + new_x_eq_new_x_.notTerm());
+      System.out.println(" Expect UNSAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
 
       Term x_neq_x = slv.mkTerm(Kind.EQUAL, x, x).notTerm();
       Term[] v = new Term[] {new_x_eq_new_x_, x_neq_x};
-      System.out.println(" Check entailment assuming: " + v);
-      System.out.println(" Expect NOT_ENTAILED. ");
-      System.out.println(" cvc5: " + slv.checkEntailed(v));
+      Term query = slv.mkTerm(Kind.AND, v);
+      System.out.println(" Check sat assuming: " + query.notTerm());
+      System.out.println(" Expect SAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(query.notTerm()));
 
       // Assert that a is odd
       Op extract_op = slv.mkOp(Kind.BITVECTOR_EXTRACT, 0, 0);

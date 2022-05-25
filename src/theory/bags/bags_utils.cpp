@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +18,19 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
+#include "table_project_op.h"
+#include "theory/bags/bag_reduction.h"
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/equality_engine.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -115,7 +119,7 @@ bool BagsUtils::areChildrenConstants(TNode n)
   return std::all_of(n.begin(), n.end(), [](Node c) { return c.isConst(); });
 }
 
-Node BagsUtils::evaluate(TNode n)
+Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
 {
   Assert(areChildrenConstants(n));
   if (n.isConst())
@@ -141,6 +145,9 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
+    case TABLE_JOIN: return evaluateJoin(rewriter, n);
+    case TABLE_GROUP: return evaluateGroup(rewriter, n);
+    case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -231,10 +238,10 @@ Node BagsUtils::constructConstantBagFromElements(
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Rational>::const_reverse_iterator it = elements.rbegin();
-  Node bag = nm->mkBag(elementType, it->first, nm->mkConstInt(it->second));
+  Node bag = nm->mkNode(BAG_MAKE, it->first, nm->mkConstInt(it->second));
   while (++it != elements.rend())
   {
-    Node n = nm->mkBag(elementType, it->first, nm->mkConstInt(it->second));
+    Node n = nm->mkNode(BAG_MAKE, it->first, nm->mkConstInt(it->second));
     bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
@@ -251,10 +258,10 @@ Node BagsUtils::constructBagFromElements(TypeNode t,
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Node>::const_reverse_iterator it = elements.rbegin();
-  Node bag = nm->mkBag(elementType, it->first, it->second);
+  Node bag = nm->mkNode(BAG_MAKE, it->first, it->second);
   while (++it != elements.rend())
   {
-    Node n = nm->mkBag(elementType, it->first, it->second);
+    Node n = nm->mkNode(BAG_MAKE, it->first, it->second);
     bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
@@ -738,8 +745,8 @@ Node BagsUtils::evaluateBagFilter(TNode n)
 
   for (const auto& [e, count] : elements)
   {
-    Node multiplicity = nm->mkConst(CONST_RATIONAL, count);
-    Node bag = nm->mkBag(bagType.getBagElementType(), e, multiplicity);
+    Node multiplicity = nm->mkConstInt(count);
+    Node bag = nm->mkNode(BAG_MAKE, e, multiplicity);
     Node pOfe = nm->mkNode(APPLY_UF, P, e);
     Node ite = nm->mkNode(ITE, pOfe, bag, empty);
     bags.push_back(ite);
@@ -783,15 +790,119 @@ Node BagsUtils::evaluateBagFold(TNode n)
   return ret;
 }
 
+Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == BAG_PARTITION);
+  NodeManager* nm = NodeManager::currentNM();
+
+  // Examples
+  // --------
+  // minimum string
+  // - (bag.partition
+  //     ((lambda ((x Int) (y Int)) (= 0 (+ x y)))
+  //     (bag.union_disjoint
+  //       (bag 1 20) (bag (- 1) 50)
+  //       (bag 2 30) (bag (- 2) 60)
+  //       (bag 3 40) (bag (- 3) 70)
+  //       (bag 4 100)))
+  //   = (bag.union_disjoint
+  //       (bag (bag 4 100) 1)
+  //       (bag (bag.union_disjoint (bag 1 20) (bag (- 1) 50)) 1)
+  //       (bag (bag.union_disjoint (bag 2 30) (bag (- 2) 60)) 1)
+  //       (bag (bag.union_disjoint (bag 3 40) (bag (- 3) 70)) 1)))
+
+  Node r = n[0];  // equivalence relation
+  Node A = n[1];  // bag
+  TypeNode bagType = A.getType();
+  TypeNode partitionType = n.getType();
+  std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
+  Trace("bags-partition") << "elements: " << elements << std::endl;
+  // a simple map from elements to equivalent classes with this invariant:
+  // each key element must appear exactly once in one of the values.
+  std::map<Node, std::set<Node>> sets;
+  std::set<Node> emptyClass;
+  for (const auto& pair : elements)
+  {
+    // initially each singleton element is an equivalence class
+    sets[pair.first] = {pair.first};
+  }
+  for (std::map<Node, Rational>::iterator i = elements.begin();
+       i != elements.end();
+       ++i)
+  {
+    if (sets[i->first].empty())
+    {
+      // skip this element since its equivalent class has already been processed
+      continue;
+    }
+    std::map<Node, Rational>::iterator j = i;
+    ++j;
+    while (j != elements.end())
+    {
+      Node sameClass = nm->mkNode(APPLY_UF, r, i->first, j->first);
+      sameClass = rewriter->rewrite(sameClass);
+      if (!sameClass.isConst())
+      {
+        // we can not pursue further, so we return n itself
+        return n;
+      }
+      if (sameClass.getConst<bool>())
+      {
+        // add element j to the equivalent class
+        sets[i->first].insert(j->first);
+        // mark the equivalent class of j as processed
+        sets[j->first] = emptyClass;
+      }
+      ++j;
+    }
+  }
+
+  // construct the partition parts
+  std::map<Node, Rational> parts;
+  for (std::pair<Node, std::set<Node>> pair : sets)
+  {
+    const std::set<Node>& eqc = pair.second;
+    if (eqc.empty())
+    {
+      continue;
+    }
+    std::vector<Node> bags;
+    for (const Node& node : eqc)
+    {
+      Node bag = nm->mkNode(BAG_MAKE, node, nm->mkConstInt(elements[node]));
+      bags.push_back(bag);
+    }
+    Node part = computeDisjointUnion(bagType, bags);
+    // each part in the partitions has multiplicity one
+    parts[part] = Rational(1);
+  }
+  Node ret = constructConstantBagFromElements(partitionType, parts);
+  Trace("bags-partition") << "ret: " << ret << std::endl;
+  return ret;
+}
+
+Node BagsUtils::evaluateTableAggregate(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_AGGREGATE);
+  if (!(n[1].isConst() && n[2].isConst()))
+  {
+    // we can't proceed further.
+    return n;
+  }
+
+  Node reduction = BagReduction::reduceAggregateOperator(n);
+  return reduction;
+}
+
 Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
 {
-  Assert(n.getKind() == TABLE_PRODUCT);
+  Assert(n.getKind() == TABLE_PRODUCT || n.getKind() == TABLE_JOIN);
   Node A = n[0];
   Node B = n[1];
   TypeNode typeA = A.getType().getBagElementType();
   TypeNode typeB = B.getType().getBagElementType();
-  Assert(e1.getType().isSubtypeOf(typeA));
-  Assert(e2.getType().isSubtypeOf(typeB));
+  Assert(e1.getType() == typeA);
+  Assert(e2.getType() == typeB);
 
   TypeNode productTupleType = n.getType().getBagElementType();
   Node tuple = TupleUtils::concatTuples(productTupleType, e1, e2);
@@ -829,6 +940,167 @@ Node BagsUtils::evaluateProduct(TNode n)
   return ret;
 }
 
+Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_JOIN);
+
+  Node A = n[0];
+  Node B = n[1];
+  auto [aIndices, bIndices] = splitTableJoinIndices(n);
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
+
+  std::map<Node, Rational> elements;
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    Node aProjection = TupleUtils::getTupleProjection(aIndices, a);
+    aProjection = rewriter->rewrite(aProjection);
+    Assert(aProjection.isConst());
+    for (const auto& [b, countB] : elementsB)
+    {
+      Node bProjection = TupleUtils::getTupleProjection(bIndices, b);
+      bProjection = rewriter->rewrite(bProjection);
+      Assert(bProjection.isConst());
+      if (aProjection == bProjection)
+      {
+        Node element = constructProductTuple(n, a, b);
+        elements[element] = countA * countB;
+      }
+    }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
+Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
+{
+  Assert(n.getKind() == TABLE_GROUP);
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node A = n[0];
+  TypeNode bagType = A.getType();
+  TypeNode partitionType = n.getType();
+
+  if (A.getKind() == BAG_EMPTY)
+  {
+    // return a nonempty partition
+    return nm->mkNode(BAG_MAKE, A, nm->mkConstInt(Rational(1)));
+  }
+
+  std::vector<uint32_t> indices =
+      n.getOperator().getConst<TableGroupOp>().getIndices();
+
+  std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
+  Trace("bags-group") << "elements: " << elements << std::endl;
+  // a simple map from elements to equivalent classes with this invariant:
+  // each key element must appear exactly once in one of the values.
+  std::map<Node, std::set<Node>> sets;
+  std::set<Node> emptyClass;
+  for (const auto& pair : elements)
+  {
+    // initially each singleton element is an equivalence class
+    sets[pair.first] = {pair.first};
+  }
+  for (std::map<Node, Rational>::iterator i = elements.begin();
+       i != elements.end();
+       ++i)
+  {
+    if (sets[i->first].empty())
+    {
+      // skip this element since its equivalent class has already been processed
+      continue;
+    }
+    std::map<Node, Rational>::iterator j = i;
+    ++j;
+    while (j != elements.end())
+    {
+      if (TupleUtils::sameProjection(indices, i->first, j->first))
+      {
+        // add element j to the equivalent class
+        sets[i->first].insert(j->first);
+        // mark the equivalent class of j as processed
+        sets[j->first] = emptyClass;
+      }
+      ++j;
+    }
+  }
+
+  // construct the partition parts
+  std::map<Node, Rational> parts;
+  for (std::pair<Node, std::set<Node>> pair : sets)
+  {
+    const std::set<Node>& eqc = pair.second;
+    if (eqc.empty())
+    {
+      continue;
+    }
+    std::vector<Node> bags;
+    for (const Node& node : eqc)
+    {
+      Node bag = nm->mkNode(BAG_MAKE, node, nm->mkConstInt(elements[node]));
+      bags.push_back(bag);
+    }
+    Node part = computeDisjointUnion(bagType, bags);
+    // each part in the partitions has multiplicity one
+    parts[part] = Rational(1);
+  }
+  Node ret = constructConstantBagFromElements(partitionType, parts);
+  Trace("bags-partition") << "ret: " << ret << std::endl;
+  return ret;
+}
+
+Node BagsUtils::evaluateTableProject(TNode n)
+{
+  Assert(n.getKind() == TABLE_PROJECT);
+  // Examples
+  // --------
+  // - ((_ table.project 1) (bag (tuple true "a") 4)) = (bag (tuple "a") 4)
+  // - (table.project (bag.union_disjoint
+  //                    (bag (tuple "a") 4)
+  //                    (bag (tuple "b") 3))) = (bag tuple 7)
+
+  Node A = n[0];
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+
+  std::map<Node, Rational> elements;
+  std::vector<uint32_t> indices =
+      n.getOperator().getConst<TableProjectOp>().getIndices();
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    Node element = TupleUtils::getTupleProjection(indices, a);
+    // multiple elements could be projected to the same tuple.
+    // Zero is the default value for Rational values.
+    elements[element] += countA;
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  return ret;
+}
+
+std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+BagsUtils::splitTableJoinIndices(Node n)
+{
+  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
+  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  size_t joinSize = indices.size() / 2;
+  std::vector<uint32_t> indices1(joinSize), indices2(joinSize);
+
+  for (size_t i = 0, index = 0; i < joinSize; i += 2, ++index)
+  {
+    indices1[index] = indices[i];
+    indices2[index] = indices[i + 1];
+  }
+  return std::make_pair(indices1, indices2);
+}
+
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
@@ -22,9 +23,9 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -42,9 +43,9 @@ TranscendentalState::TranscendentalState(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConstReal(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(new CDProofSet<CDProof>(
@@ -72,19 +73,19 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   d_funcMap.clear();
   d_tf_region.clear();
 
+  Trace("nl-ext-trans-init") << "TranscendentalState::init" << std::endl;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
   NodeMap::const_iterator itp;
-  for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
+  for (const Node& a : xts)
   {
+    Kind ak = a.getKind();
     // Ignore if it is not a transcendental
-    if (!isTranscendentalKind(xts[i].getKind()))
+    if (!isTranscendentalKind(ak))
     {
       continue;
     }
-    Node a = xts[i];
-    Kind ak = a.getKind();
     bool consider = true;
     // if we've already assigned a purified term
     itp = d_trPurify.find(a);
@@ -101,26 +102,29 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
       else
       {
+        // for others, if all arguments are variables or constants, we don't
+        // have to purify
         for (const Node& ac : a)
         {
-          if (isTranscendentalKind(ac.getKind()))
+          if (!ac.isVar() && !ac.isConst())
           {
             consider = false;
             break;
           }
         }
       }
-      if (!consider)
-      {
-        // must assign a purified term
-        needsPurify.push_back(a);
-      }
-      else
+      if (consider)
       {
         // assume own purified
         d_trPurify[a] = a;
         d_trPurifies[a] = a;
       }
+    }
+    Trace("nl-ext-trans-init") << "extf: " << a << ", consider=" << consider << std::endl;
+    if (!consider)
+    {
+      // must assign a purified term
+      needsPurify.push_back(a);
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
     {
@@ -149,7 +153,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     getCurrentPiBounds();
   }
 
-  if (Trace.isOn("nl-ext-mv"))
+  if (TraceIsOn("nl-ext-mv"))
   {
     Trace("nl-ext-mv") << "Arguments of trancendental functions : "
                        << std::endl;
@@ -187,6 +191,7 @@ void TranscendentalState::ensureCongruence(TNode a,
     Assert(aa.getNumChildren() == a.getNumChildren());
     Node mvaa = d_model.computeAbstractModelValue(a);
     Node mvaaa = d_model.computeAbstractModelValue(aa);
+    Trace("nl-ext-trans-init") << "...congruent to " << aa << std::endl;
     if (mvaa != mvaaa)
     {
       std::vector<Node> exp;
@@ -197,12 +202,14 @@ void TranscendentalState::ensureCongruence(TNode a,
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       Node cong_lemma = expn.impNode(a.eqNode(aa));
       d_im.addPendingLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
+      Trace("nl-ext-trans-init") << "...needs lemma" << std::endl;
     }
   }
   else
   {
     // new representative of congruence class
     d_funcMap[a.getKind()].push_back(a);
+    Trace("nl-ext-trans-init") << "...new rep" << std::endl;
   }
   // add to congruence class
   d_funcCongClass[aa].push_back(a);
@@ -214,15 +221,9 @@ void TranscendentalState::mkPi()
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-    d_pi_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
-    d_pi_neg_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-    d_pi_neg =
-        rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
     // initialize bounds
-    d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
+    d_pi_bound[0] = nm->mkConstReal(getPiInitialLowerBound());
+    d_pi_bound[1] = nm->mkConstReal(getPiInitialUpperBound());
   }
 }
 
@@ -460,8 +461,90 @@ bool TranscendentalState::isPurified(TNode n) const
   return d_trPurifies.find(n) != d_trPurifies.end();
 }
 
+Node TranscendentalState::getPurifiedForm(TNode n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  NodeMap::const_iterator it = d_trPurify.find(n);
+  if (it != d_trPurify.end())
+  {
+    return it->second;
+  }
+  Kind k = n.getKind();
+  Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
+  Node y;
+  if (isSimplePurify(n))
+  {
+    y = sm->mkPurifySkolem(n[0], "transk");
+  }
+  else
+  {
+    y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  }
+  Node new_n = nm->mkNode(k, y);
+  d_trPurify[n] = new_n;
+  d_trPurify[new_n] = new_n;
+  d_trPurifies[new_n] = n;
+  d_trPurifyVars.insert(y);
+  return new_n;
+}
+
+bool TranscendentalState::isSimplePurify(TNode n)
+{
+  if (n.getKind() != kind::SINE)
+  {
+    return true;
+  }
+  if (!n[0].isConst())
+  {
+    return false;
+  }
+  Rational r = n[0].getConst<Rational>();
+  // use a fixed value of pi
+  Rational piLower = getPiInitialLowerBound();
+  return -piLower <= r && r <= piLower;
+}
+
+bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
+{
+  Assert(d_funcCongClass.find(n) != d_funcCongClass.end());
+  // for each function in the congruence classe
+  for (const Node& ctf : d_funcCongClass[n])
+  {
+    std::vector<Node> mset{ctf};
+    // if this purifies another term, we set a bound on the term it
+    // purifies as well
+    context::CDHashMap<Node, Node>::const_iterator itp = d_trPurifies.find(ctf);
+    if (itp != d_trPurifies.end() && itp->second != ctf)
+    {
+      mset.push_back(itp->second);
+    }
+    for (const Node& stf : mset)
+    {
+      Trace("nl-ext-cm") << "...bound for " << stf << " : [" << l << ", " << u
+                         << "]" << std::endl;
+      if (!d_model.addBound(stf, l, u))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+Rational TranscendentalState::getPiInitialLowerBound()
+{
+  return Rational(103993) / Rational(33102);
+}
+
+Rational TranscendentalState::getPiInitialUpperBound()
+{
+  return Rational(104348) / Rational(33215);
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

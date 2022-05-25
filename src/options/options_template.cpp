@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Andrew Reynolds
+ *   Gereon Kremer, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 ${headers_module}$
 // clang-format on
 
-namespace cvc5
+namespace cvc5::internal
 {
   thread_local Options* Options::s_current = nullptr;
 
@@ -40,6 +40,10 @@ ${holder_ref_inits}$
 
   Options::~Options() {}
 
+// clang-format off
+${write_functions}$
+// clang-format on
+
   void Options::copyValues(const Options& options)
   {
     if (this != &options)
@@ -50,5 +54,5 @@ ${holder_mem_copy}$
     }
   }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 

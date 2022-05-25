@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,11 +22,10 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator.h"
-#include "theory/quantifiers/query_generator_unsat.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -95,8 +94,6 @@ class ExpressionMinerManager : protected EnvObj
   void enableFilterWeakSolutions();
   /** whether we are doing rewrite synthesis */
   bool d_doRewSynth;
-  /** whether we are doing query generation */
-  bool d_doQueryGen;
   /** whether we are filtering solutions based on logical strength */
   bool d_doFilterLogicalStrength;
   /** the sygus function passed to initializeSygus, if any */
@@ -107,10 +104,8 @@ class ExpressionMinerManager : protected EnvObj
   TermDbSygus* d_tds;
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
-  /** query generator */
+  /** The query generator we are using */
   std::unique_ptr<QueryGenerator> d_qg;
-  /** query generator */
-  std::unique_ptr<QueryGeneratorUnsat> d_qgu;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
   /** sygus sampler object */
@@ -119,6 +114,6 @@ class ExpressionMinerManager : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */

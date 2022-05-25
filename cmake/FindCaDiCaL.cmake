@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner
+#   Gereon Kremer, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -53,6 +53,10 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   # scripts unnecessarily fails for cross compilation thus we do the bare
   # minimum from the configure script here
   set(CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
+  if(CMAKE_CROSSCOMPILING_MACOS)
+    set(CXXFLAGS "${CXXFLAGS} -arch ${CMAKE_OSX_ARCHITECTURES}")
+  endif()
+
   # check for getc_unlocked
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)

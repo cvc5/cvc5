@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include "base/check.h"
 #include "theory/arith/rewriter/node_utils.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace rewriter {
@@ -226,11 +226,13 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
   return {};
 }
 
-std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
+std::optional<bool> tryEvaluateRelationReflexive(Kind rel,
+                                                 TNode left,
+                                                 TNode right)
 {
-  if (atom.getNumChildren() == 2 && atom[0] == atom[1])
+  if (left == right)
   {
-    switch (atom.getKind())
+    switch (rel)
     {
       case Kind::LT: return false;
       case Kind::LEQ: return true;
@@ -259,7 +261,11 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
 
 Node buildIntegerEquality(Sum&& sum)
 {
+  Trace("arith-rewriter") << "building integer equality from " << sum
+                          << std::endl;
   normalizeGCDLCM(sum);
+
+  Trace("arith-rewriter::debug") << "\tnormalized to " << sum << std::endl;
 
   const auto& constant = *sum.begin();
   if (constant.first.isConst())
@@ -267,11 +273,15 @@ Node buildIntegerEquality(Sum&& sum)
     Assert(constant.second.isRational());
     if (!constant.second.toRational().isIntegral())
     {
+      Trace("arith-rewriter::debug")
+          << "\thas non-integer constant, thus false" << std::endl;
       return mkConst(false);
     }
   }
 
   auto minabscoeff = removeMinAbsCoeff(sum);
+  Trace("arith-rewriter::debug") << "\tremoved min abs coeff " << minabscoeff
+                                 << ", left with " << sum << std::endl;
   if (sgn(minabscoeff.second) < 0)
   {
     // move minabscoeff goes to the right and switch lhs and rhs
@@ -284,11 +294,18 @@ Node buildIntegerEquality(Sum&& sum)
   }
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
 
-  return buildRelation(Kind::EQUAL, left, collectSum(sum));
+  Trace("arith-rewriter::debug")
+      << "\tbuilding " << left << " = " << sum << std::endl;
+
+  Node rhs = collectSum(sum);
+  Assert(left.getType().isInteger());
+  Assert(rhs.getType().isInteger());
+  return buildRelation(Kind::EQUAL, left, rhs);
 }
 
 Node buildRealEquality(Sum&& sum)
 {
+  Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(sum);
   if (isZero(lterm.second))
   {
@@ -299,11 +316,21 @@ Node buildRealEquality(Sum&& sum)
   {
     s.second = s.second / lcoeff;
   }
-  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
+  // Must ensure real for both sides. This may change one but not both
+  // terms.
+  Node lhs = lterm.first;
+  lhs = ensureReal(lhs);
+  Node rhs = collectSum(sum);
+  rhs = ensureReal(rhs);
+  Assert(lhs.getType().isReal() && !lhs.getType().isInteger());
+  Assert(rhs.getType().isReal() && !rhs.getType().isInteger());
+  return buildRelation(Kind::EQUAL, lhs, rhs);
 }
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
 {
+  Trace("arith-rewriter") << "building integer inequality from " << sum
+                          << std::endl;
   bool negate = normalizeGCDLCM(sum, true);
 
   if (negate)
@@ -329,6 +356,7 @@ Node buildIntegerInequality(Sum&& sum, Kind k)
 
 Node buildRealInequality(Sum&& sum, Kind k)
 {
+  Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(-removeConstant(sum));
   return buildRelation(k, collectSum(sum), rhs);
@@ -337,4 +365,4 @@ Node buildRealInequality(Sum&& sum, Kind k)
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

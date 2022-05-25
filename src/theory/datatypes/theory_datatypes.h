@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +24,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/proof_checker.h"
@@ -34,7 +35,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -58,12 +59,12 @@ class TheoryDatatypes : public Theory {
    }
    void eqNotifyNewClass(TNode t) override
    {
-     Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+     Trace("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
      d_dt.eqNotifyNewClass(t);
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+      Trace("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
                   << std::endl;
       d_dt.eqNotifyMerge(t1, t2);
     }
@@ -77,14 +78,14 @@ private:
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    //whether we have instantiatied this eqc
-    context::CDO< bool > d_inst;
-    //constructor equal to this eqc
-    context::CDO< Node > d_constructor;
-    //all selectors whose argument is this eqc
-    context::CDO< bool > d_selectors;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // whether we have instantiatied this eqc
+   context::CDO<bool> d_inst;
+   // constructor equal to this eqc
+   context::CDO<Node> d_constructor;
+   // all selectors whose argument is this eqc
+   context::CDO<bool> d_selectors;
   };
   /** does eqc of n have a label (do we know its constructor)? */
   bool hasLabel( EqcInfo* eqc, Node n );
@@ -138,19 +139,12 @@ private:
   /** The conflict node */
   Node d_conflictNode;
   /**
-   * SAT-context dependent cache for which terms we have called
-   * collectTerms(...) on.
-   */
-  BoolMap d_collectTermsCache;
-  /**
    * User-context dependent cache for which terms we have called
-   * collectTerms(...) on.
+   * registerInitialLemmas(...) on.
    */
-  BoolMap d_collectTermsCacheU;
+  BoolMap d_initialLemmaCache;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionTerms;
-  /** counter for forcing assignments (ensures fairness) */
-  unsigned d_dtfCounter;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:
@@ -242,6 +236,11 @@ private:
   void merge( Node t1, Node t2 );
   /** collapse selector, s is of the form sel( n ) where n = c */
   void collapseSelector( Node s, Node c );
+  /** 
+   * Register initial lemmas. This adds pending lemmas on the inference manager
+   * corresponding to unit lemmas for e.g. dt.size.
+   */
+  void registerInitialLemmas(Node n);
   /** for checking if cycles exist */
   void checkCycles();
   Node searchForCycle(TNode n,
@@ -250,6 +249,14 @@ private:
                       std::map<TNode, bool>& proc,
                       std::vector<Node>& explanation,
                       bool firstTime = true);
+  /**
+   * Applying splitting.
+   *
+   * This checks if we should add a splitting inference for datatype terms
+   * currently in the equality engine. If so, we add pending lemmas on the
+   * inference manager.
+   */
+  void checkSplit();
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar(std::vector<Node>& part,
                          std::vector<std::vector<Node> >& part_out,
@@ -262,8 +269,6 @@ private:
   Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth );
   /** get singleton lemma */
   Node getSingletonLemma( TypeNode tn, bool pol );
-  /** collect terms */
-  void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate, return true if an inference was generated. */
@@ -271,10 +276,6 @@ private:
 
  private:
   //equality queries
-  bool hasTerm( TNode a );
-  bool areEqual( TNode a, TNode b );
-  bool areDisequal( TNode a, TNode b );
-  bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -300,10 +301,12 @@ private:
   NotifyClass d_notify;
   /** Proof checker for datatypes */
   DatatypesProofRuleChecker d_checker;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryDatatypes */
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H */

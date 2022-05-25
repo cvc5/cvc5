@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -28,7 +28,7 @@ void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
-  Debug(c) << ss.str();
+  Trace(c) << ss.str();
 }
 
 void EqProof::debug_print(std::ostream& os, unsigned tb) const
@@ -979,12 +979,27 @@ Node EqProof::addToProof(CDProof* p,
   // Equalities due to theory reasoning
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
-    Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
-           && d_node[1].isConst())
+    Assert(!d_node.isNull()
+           && ((d_node.getKind() == kind::EQUAL && d_node[1].isConst())
+               || (d_node.getKind() == kind::NOT
+                   && d_node[0].getKind() == kind::EQUAL
+                   && d_node[0][0].isConst() && d_node[0][1].isConst())))
         << ". Conclusion " << d_node << " from " << d_id
-        << " was expected to be (= (f t1 ... tn) c)\n";
+        << " was expected to be (= (f t1 ... tn) c) or (not (= c1 c2))\n";
     Assert(!assumptions.count(d_node))
         << "Conclusion " << d_node << " from " << d_id << " is an assumption\n";
+    // The step has the form (not (= c1 c2)). We conclude it via
+    // MACRO_SR_PRED_INTRO and turn it into an equality with false, so that the
+    // rest of the reconstruction works
+    if (d_children.empty())
+    {
+      Node conclusion =
+          d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+      p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, {}, {d_node});
+      p->addStep(conclusion, PfRule::FALSE_INTRO, {}, {d_node});
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // The step has the form
     //  [(= t1 c1)] ... [(= tn cn)]
     //  ------------------------
@@ -1319,7 +1334,7 @@ Node EqProof::addToProof(CDProof* p,
           << "EqProof::addToProof: New conclusion " << conclusion << "\n";
     }
   }
-  if (Trace.isOn("eqproof-conv"))
+  if (TraceIsOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong of " << conclusion
@@ -1452,4 +1467,4 @@ Node EqProof::addToProof(CDProof* p,
 
 }  // namespace eq
 }  // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

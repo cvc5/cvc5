@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 NodeBuilder::NodeBuilder()
     : d_nv(&d_inlineNv),
@@ -415,14 +415,14 @@ expr::NodeValue* NodeBuilder::constructNV()
     // reference counts in this case.
     nv->d_nchildren = 0;
     nv->d_kind = d_nv->d_kind;
-    nv->d_id = d_nm->next_id++;  // FIXME multithreading
+    nv->d_id = d_nm->d_nextId++;
     nv->d_rc = 0;
     setUsed();
-    if (Debug.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
-      Debug("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
-      nv->printAst(Debug("gc"));
-      Debug("gc") << std::endl;
+      Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
+      nv->printAst(Trace("gc"));
+      Trace("gc") << std::endl;
     }
     return nv;
   }
@@ -497,7 +497,7 @@ expr::NodeValue* NodeBuilder::constructNV()
       }
       nv->d_nchildren = d_inlineNv.d_nchildren;
       nv->d_kind = d_inlineNv.d_kind;
-      nv->d_id = d_nm->next_id++;  // FIXME multithreading
+      nv->d_id = d_nm->d_nextId++;
       nv->d_rc = 0;
 
       std::copy(d_inlineNv.d_children,
@@ -509,12 +509,12 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      if (Debug.isOn("gc"))
+      if (TraceIsOn("gc"))
       {
-        Debug("gc") << "creating node value " << nv << " [" << nv->d_id
+        Trace("gc") << "creating node value " << nv << " [" << nv->d_id
                     << "]: ";
-        nv->printAst(Debug("gc"));
-        Debug("gc") << std::endl;
+        nv->printAst(Trace("gc"));
+        Trace("gc") << std::endl;
       }
       return nv;
     }
@@ -557,14 +557,14 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       crop();
       expr::NodeValue* nv = d_nv;
-      nv->d_id = d_nm->next_id++;  // FIXME multithreading
+      nv->d_id = d_nm->d_nextId++;
       d_nv = &d_inlineNv;
       d_nvMaxChildren = default_nchild_thresh;
       setUsed();
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      Debug("gc") << "creating node value " << nv << " [" << nv->d_id
+      Trace("gc") << "creating node value " << nv << " [" << nv->d_id
                   << "]: " << *nv << "\n";
       return nv;
     }
@@ -709,4 +709,4 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb)
   return out << *nb.d_nv;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

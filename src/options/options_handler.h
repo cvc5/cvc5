@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Aina Niemetz
+ *   Gereon Kremer, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
 #include "options/option_exception.h"
 #include "options/quantifiers_options.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Options;
 
@@ -104,14 +104,8 @@ class OptionsHandler
 
   /******************************* bv options *******************************/
 
-  /** Check that abc is enabled */
-  void abcEnabledBuild(const std::string& flag, bool value);
-  /** Check that abc is enabled */
-  void abcEnabledBuild(const std::string& flag, const std::string& value);
   /** Check that the sat solver mode is compatible with other bv options */
   void checkBvSatSolver(const std::string& flag, SatSolverMode m);
-  /** Check that we use eager bitblasting for aig */
-  void setBitblastAig(const std::string& flag, bool arg);
 
   /******************************* expr options *******************************/
   /** Set ExprSetDepth on all output streams */
@@ -137,6 +131,6 @@ class OptionsHandler
 }; /* class OptionHandler */
 
 }  // namespace options
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /*  CVC5__OPTIONS__OPTIONS_HANDLER_H */

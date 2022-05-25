@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -90,10 +90,10 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
         Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
                                  << node[1][1 - i] << std::endl;
         // also must be a legal elimination: the other side of the equality
-        // cannot contain the variable, and it must be a subtype of the
+        // cannot contain the variable, and it must be the same type as the
         // variable
         if (!expr::hasSubterm(node[1][1 - i], node[0][0])
-            && node[1][i].getType().isSubtypeOf(node[0][0].getType()))
+            && node[1][i].getType() == node[0][0].getType())
         {
           return node[1][1 - i];
         }
@@ -115,4 +115,4 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

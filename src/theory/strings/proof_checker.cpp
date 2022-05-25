@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -181,7 +181,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::CONCAT_CONFLICT)
     {
-      Assert(children.size() == 1);
+      Assert(children.size() >= 1 && children.size() <= 2);
       if (!t0.isConst() || !s0.isConst())
       {
         // not constants
@@ -193,6 +193,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
         // versa.
+        return Node::null();
+      }
+      // if a disequality was provided, ensure that it is correct
+      if (children.size() == 2)
+      {
+        if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
+            || children[1][0][0] != t0 || children[1][0][1] != s0)
+        {
+          return Node::null();
+        }
+      }
+      else if (t0.getType().isSequence())
+      {
+        // we require the disequality for sequences
         return Node::null();
       }
       return nm->mkConst(false);
@@ -516,4 +530,4 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,9 @@
 
 #include <math.h>
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -161,7 +161,7 @@ Node SygusUnifRl::purifyLemma(Node n,
           << "Node " << n << " is parameterized\n";
       children.insert(children.begin(), n.getOperator());
     }
-    if (Trace.isOn("sygus-unif-rl-purify-debug"))
+    if (TraceIsOn("sygus-unif-rl-purify-debug"))
     {
       Trace("sygus-unif-rl-purify-debug")
           << "...rebuilding " << n << " with kind " << k << " and children:\n";
@@ -197,7 +197,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       // Maps new enumerator to its respective tuple of arguments
       d_hd_to_pt[new_f] =
           std::vector<Node>(children.begin() + 1, children.end());
-      if (Trace.isOn("sygus-unif-rl-purify-debug"))
+      if (TraceIsOn("sygus-unif-rl-purify-debug"))
       {
         Trace("sygus-unif-rl-purify-debug") << "...[" << new_f << "] --> ( ";
         for (const Node& pt_i : d_hd_to_pt[new_f])
@@ -409,7 +409,7 @@ void SygusUnifRl::registerStrategy(
     std::vector<Node>& enums,
     std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
-  if (Trace.isOn("sygus-unif-rl-strat"))
+  if (TraceIsOn("sygus-unif-rl-strat"))
   {
     Trace("sygus-unif-rl-strat")
         << "Strategy for " << f << " is : " << std::endl;
@@ -537,7 +537,7 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
   if (d_unif->usingConditionPool())
   {
     d_cond_mvs.insert(conds.begin(), conds.end());
-    if (Trace.isOn("sygus-unif-cond-pool"))
+    if (TraceIsOn("sygus-unif-cond-pool"))
     {
       for (const Node& condv : conds)
       {
@@ -715,7 +715,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       // add the head to the trie
       e = d_hds[hd_counter];
       hd_mv[e] = d_unif->d_parent->getModelValue(e);
-      if (Trace.isOn("sygus-unif-sol"))
+      if (TraceIsOn("sygus-unif-sol"))
       {
         std::stringstream ss;
         TermDbSygus::toStreamSygus(ss, hd_mv[e]);
@@ -767,7 +767,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     Node ce = d_enums[c_counter];
     Node cv = d_conds[c_counter];
     Assert(ce.getType() == cv.getType());
-    if (Trace.isOn("sygus-unif-sol"))
+    if (TraceIsOn("sygus-unif-sol"))
     {
       std::stringstream ss;
       TermDbSygus::toStreamSygus(ss, cv);
@@ -1183,7 +1183,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   Assert(d_dt->d_unif->d_hd_to_pt.find(hd) != d_dt->d_unif->d_hd_to_pt.end());
   std::vector<Node> pt = d_dt->d_unif->d_hd_to_pt[hd];
   // compute the result
-  if (Trace.isOn("sygus-unif-rl-sep"))
+  if (TraceIsOn("sygus-unif-rl-sep"))
   {
     Trace("sygus-unif-rl-sep")
         << "Evaluate cond " << builtin_cond << " on pt " << hd << " ( ";
@@ -1212,4 +1212,4 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

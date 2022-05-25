@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Clark Barrett
+ *   Morgan Deters, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,18 +21,18 @@
 #include "printer/printer.h"
 #include "smt/solver_engine_scope.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 UnsatCore::UnsatCore(const std::vector<Node>& core)
     : d_useNames(false), d_core(core), d_names()
 {
-  Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
+  Trace("core") << "UnsatCore size " << d_core.size() << std::endl;
 }
 
 UnsatCore::UnsatCore(std::vector<std::string>& names)
     : d_useNames(true), d_core(), d_names(names)
 {
-  Debug("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
+  Trace("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
 }
 
 const std::vector<Node>& UnsatCore::getCore() const { return d_core; }
@@ -61,4 +61,4 @@ std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,9 +31,9 @@
 #include "util/string.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -631,10 +631,10 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV
+  else if (nk0 == STRING_TO_LOWER || nk0 == STRING_TO_UPPER || nk0 == STRING_REV
            || nk0 == STRING_UPDATE)
   {
-    // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+    // len( f( x ) ) == len( x ) where f is to_lower, to_upper, or rev.
     // len( update( x, n, y ) ) = len( x )
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
@@ -755,6 +755,15 @@ Node SequencesRewriter::rewriteConcat(Node node)
     return returnRewrite(node, retNode, Rewrite::CONCAT_NORM);
   }
   return node;
+}
+
+Node SequencesRewriter::rewriteAllRegExp(TNode node)
+{
+  Assert(node.getKind() == kind::REGEXP_ALL);
+  NodeManager* nm = NodeManager::currentNM();
+  // re.all ----> (re.* re.allchar)
+  Node ret = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+  return returnRewrite(node, ret, Rewrite::RE_ALL_ELIM);
 }
 
 Node SequencesRewriter::rewriteConcatRegExp(TNode node)
@@ -948,6 +957,15 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   }
   else if (node[0].getKind() == REGEXP_UNION)
   {
+    for (const Node& nc : node[0])
+    {
+      if (nc.getKind() == REGEXP_ALLCHAR)
+      {
+        // (re.* (re.union ... re.allchar ...)) ---> (re.* re.allchar)
+        retNode = nm->mkNode(REGEXP_STAR, nc);
+        return returnRewrite(node, retNode, Rewrite::RE_STAR_UNION_CHAR);
+      }
+    }
     // simplification of unions under star
     if (RegExpEntail::hasEpsilonNode(node[0]))
     {
@@ -1064,7 +1082,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     for (const Node& c : constStrRe)
     {
       Assert(c.getKind() == STRING_TO_REGEXP && c[0].getKind() == CONST_STRING);
-      cvc5::String s = c[0].getConst<String>();
+      cvc5::internal::String s = c[0].getConst<String>();
       for (const Node& r : otherRe)
       {
         Trace("strings-rewrite-debug")
@@ -1314,7 +1332,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (x.isConst() && RegExpEntail::isConstRegExp(r))
   {
     // test whether x in node[1]
-    cvc5::String s = x.getConst<String>();
+    cvc5::internal::String s = x.getConst<String>();
     bool test = RegExpEntail::testConstStringInRegExp(s, 0, r);
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
@@ -1655,6 +1673,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteMembership(node);
   }
+  else if (nk == REGEXP_ALL)
+  {
+    retNode = rewriteAllRegExp(node);
+  }
   else if (nk == REGEXP_CONCAT)
   {
     retNode = rewriteConcatRegExp(node);
@@ -1695,7 +1717,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteSeqUnit(node);
   }
-  else if (nk == SEQ_NTH || nk == SEQ_NTH_TOTAL)
+  else if (nk == SEQ_NTH)
   {
     retNode = rewriteSeqNth(node);
   }
@@ -1721,33 +1743,9 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-TrustNode SequencesRewriter::expandDefinition(Node node)
-{
-  Trace("strings-exp-def") << "SequencesRewriter::expandDefinition : " << node
-                           << std::endl;
-
-  if (node.getKind() == kind::SEQ_NTH)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node s = node[0];
-    Node n = node[1];
-    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
-    Node cond = nm->mkNode(AND,
-                           nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), n),
-                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
-    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
-    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
-    Node u = nm->mkNode(APPLY_UF, uf, s, n);
-    Node ret = nm->mkNode(ITE, cond, ss, u);
-    Trace("strings-exp-def") << "...return " << ret << std::endl;
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 Node SequencesRewriter::rewriteSeqNth(Node node)
 {
-  Assert(node.getKind() == SEQ_NTH || node.getKind() == SEQ_NTH_TOTAL);
+  Assert(node.getKind() == SEQ_NTH);
   Node s = node[0];
   Node i = node[1];
   if (s.isConst() && i.isConst())
@@ -1763,13 +1761,6 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
         const Node& ret = elements[pos];
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
       }
-    }
-    if (node.getKind() == SEQ_NTH_TOTAL)
-    {
-      // return arbitrary term
-      NodeManager* nm = NodeManager::currentNM();
-      Node ret = nm->mkGroundValue(s.getType().getSequenceElementType());
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
   }
 
@@ -1815,7 +1806,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     if (node[1].isConst() && node[2].isConst())
     {
       Node s = node[0];
-      cvc5::Rational rMaxInt(String::maxSize());
+      cvc5::internal::Rational rMaxInt(String::maxSize());
       uint32_t start;
       if (node[1].getConst<Rational>() > rMaxInt)
       {
@@ -1872,7 +1863,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Node zero = nm->mkConstInt(cvc5::Rational(0));
+  Node zero = nm->mkConstInt(cvc5::internal::Rational(0));
 
   // if entailed non-positive length or negative start point
   if (d_arithEntail.check(zero, node[1], true))
@@ -2075,7 +2066,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     // rewriting for constant arguments
     if (node[1].isConst())
     {
-      cvc5::Rational rMaxInt(String::maxSize());
+      cvc5::internal::Rational rMaxInt(String::maxSize());
       if (node[1].getConst<Rational>() > rMaxInt)
       {
         // start beyond the maximum size of strings
@@ -2524,30 +2515,36 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   utils::getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    cvc5::Rational rMaxInt(cvc5::String::maxSize());
+    cvc5::internal::Rational rMaxInt(cvc5::internal::String::maxSize());
     if (node[2].getConst<Rational>() > rMaxInt)
     {
-      // We know that, due to limitations on the size of string constants
-      // in our implementation, that accessing a position greater than
-      // rMaxInt is guaranteed to be out of bounds.
-      Node negone = nm->mkConstInt(Rational(-1));
-      return returnRewrite(node, negone, Rewrite::IDOF_MAX);
+      if (node[0].isConst())
+      {
+        // We know that, due to limitations on the size of string constants
+        // in our implementation, that accessing a position greater than
+        // rMaxInt is guaranteed to be out of bounds.
+        Node negone = nm->mkConstInt(Rational(-1));
+        return returnRewrite(node, negone, Rewrite::IDOF_MAX);
+      }
     }
-    Assert(node[2].getConst<Rational>().sgn() >= 0);
-    Node s = children0[0];
-    Node t = node[1];
-    uint32_t start =
-        node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-    std::size_t ret = Word::find(s, t, start);
-    if (ret != std::string::npos)
+    else
     {
-      Node retv = nm->mkConstInt(Rational(static_cast<unsigned>(ret)));
-      return returnRewrite(node, retv, Rewrite::IDOF_FIND);
-    }
-    else if (children0.size() == 1)
-    {
-      Node negone = nm->mkConstInt(Rational(-1));
-      return returnRewrite(node, negone, Rewrite::IDOF_NFIND);
+      Assert(node[2].getConst<Rational>().sgn() >= 0);
+      Node s = children0[0];
+      Node t = node[1];
+      uint32_t start =
+          node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+      std::size_t ret = Word::find(s, t, start);
+      if (ret != std::string::npos)
+      {
+        Node retv = nm->mkConstInt(Rational(static_cast<unsigned>(ret)));
+        return returnRewrite(node, retv, Rewrite::IDOF_FIND);
+      }
+      else if (children0.size() == 1)
+      {
+        Node negone = nm->mkConstInt(Rational(-1));
+        return returnRewrite(node, negone, Rewrite::IDOF_NFIND);
+      }
     }
   }
 
@@ -2747,7 +2744,7 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
     if (s.isConst() && n.isConst())
     {
       Rational nrat = n.getConst<Rational>();
-      cvc5::Rational rMaxInt(cvc5::String::maxSize());
+      cvc5::internal::Rational rMaxInt(cvc5::internal::String::maxSize());
       if (nrat > rMaxInt)
       {
         // We know that, due to limitations on the size of string constants
@@ -3546,7 +3543,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node val;
   if (isPrefix)
   {
-    val = NodeManager::currentNM()->mkConstInt(::cvc5::Rational(0));
+    val = NodeManager::currentNM()->mkConstInt(cvc5::internal::Rational(0));
   }
   else
   {
@@ -3650,7 +3647,9 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   {
     std::vector<Node> seq;
     seq.push_back(node[0]);
-    TypeNode stype = node[0].getType();
+    // important to take the type according to the operator here, not the
+    // type of the argument
+    TypeNode stype = node.getType().getSequenceElementType();
     Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
@@ -3714,4 +3713,4 @@ Node SequencesRewriter::postProcessRewrite(Node node, Node ret)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

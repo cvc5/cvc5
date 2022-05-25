@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -105,7 +105,7 @@ Node OperatorElim::eliminateOperators(Node node,
       lems.push_back(mkSkolemLemma(lem, v));
       if (k == IS_INTEGER)
       {
-        return nm->mkNode(EQUAL, node[0], v);
+        return mkEquality(node[0], v);
       }
       Assert(k == TO_INTEGER);
       return v;
@@ -226,8 +226,8 @@ Node OperatorElim::eliminateOperators(Node node,
       Node v = sm->mkPurifySkolem(
           rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
-                            den.eqNode(nm->mkConstReal(Rational(0))).negate(),
-                            nm->mkNode(MULT, den, v).eqNode(num));
+                            den.eqNode(mkZero(den.getType())).negate(),
+                            mkEquality(nm->mkNode(MULT, den, v), num));
       lems.push_back(mkSkolemLemma(lem, v));
       return v;
       break;
@@ -241,7 +241,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConstReal(Rational(0)));
+        Node denEq0 = nm->mkNode(EQUAL, den, mkZero(den.getType()));
         ret = nm->mkNode(ITE, denEq0, divByZeroNum, ret);
       }
       return ret;
@@ -356,6 +356,20 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(LEQ, nm->mkConstReal(Rational(0)), var),
                             nm->mkNode(LT, var, pi));
         }
+        Node cond;
+        if (k == ARCSINE || k == ARCCOSINE || k == ARCSECANT
+            || k == ARCCOSECANT)
+        {
+          // -1 <= x <= 1
+          cond = nm->mkNode(
+              AND,
+              nm->mkNode(GEQ, node[0], nm->mkConstReal(Rational(-1))),
+              nm->mkNode(LEQ, node[0], nm->mkConstReal(Rational(1))));
+          if (k == ARCSECANT || k == ARCCOSECANT)
+          {
+            cond = cond.notNode();
+          }
+        }
 
         Kind rk =
             k == ARCSINE
@@ -369,6 +383,10 @@ Node OperatorElim::eliminateOperators(Node node,
                                      : (k == ARCSECANT ? SECANT : COTANGENT))));
         Node invTerm = nm->mkNode(rk, var);
         lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
+        if (!cond.isNull())
+        {
+          lem = nm->mkNode(IMPLIES, cond, lem);
+        }
       }
       Assert(!lem.isNull());
       lems.push_back(mkSkolemLemma(lem, var));
@@ -422,7 +440,15 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
   Node skolem = getArithSkolem(id);
   if (usePartialFunction(id))
   {
-    skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
+    NodeManager* nm = NodeManager::currentNM();
+    Assert(skolem.getType().isFunction()
+           && skolem.getType().getNumChildren() == 2);
+    TypeNode argType = skolem.getType()[0];
+    if (!argType.isInteger() && n.getType().isInteger())
+    {
+      n = nm->mkNode(TO_REAL, n);
+    }
+    skolem = nm->mkNode(APPLY_UF, skolem, n);
   }
   return skolem;
 }
@@ -449,4 +475,4 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

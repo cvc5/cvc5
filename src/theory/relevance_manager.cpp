@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "smt/env.h"
 #include "theory/relevance_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 RelevanceManager::RelevanceManager(Env& env, Valuation val)
@@ -44,7 +44,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options().smt.produceDifficulty)
   {
-    d_dman = std::make_unique<DifficultyManager>(this, userContext(), val);
+    d_dman = std::make_unique<DifficultyManager>(env, this, val);
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -171,7 +171,7 @@ void RelevanceManager::computeRelevance()
       return;
     }
   }
-  if (Trace.isOn("rel-manager"))
+  if (TraceIsOn("rel-manager"))
   {
     if (d_inFullEffortCheck)
     {
@@ -554,4 +554,4 @@ void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

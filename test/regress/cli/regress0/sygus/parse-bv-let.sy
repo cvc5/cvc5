@@ -1,0 +1,21 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic BV)
+
+(define-fun bit-reset ((x (_ BitVec 32)) (bit (_ BitVec 32))) (_ BitVec 32)
+  (let ((modulo-shift (bvand bit #x0000001f)))
+   (bvand modulo-shift x)))
+
+(synth-fun btr ((x (_ BitVec 32)) (bit (_ BitVec 32))) (_ BitVec 32)
+    ((Start (_ BitVec 32)))
+    ((Start (_ BitVec 32) (
+                         (Constant (_ BitVec 32))
+                         (Variable (_ BitVec 32))
+       (bvneg  Start) (bvnot  Start) (bvadd  Start Start) (bvand  Start Start) (bvlshr Start Start) (bvmul  Start Start) (bvor   Start Start) (bvshl  Start Start)
+                         ))))
+
+(declare-var x   (_ BitVec 32))
+(declare-var bit (_ BitVec 32))
+(constraint (= (btr x bit) #b00000000000000000000000000000000))
+
+(check-synth)

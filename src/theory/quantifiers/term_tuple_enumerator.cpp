@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   MikolasJanota, Andrew Reynolds
+ *   Mikolas Janota, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/index_trie.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_pools.h"
@@ -33,7 +34,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <typename T>
 static Cvc5ostream& operator<<(Cvc5ostream& out, const std::vector<T>& v)
@@ -166,9 +167,10 @@ class TermTupleEnumeratorBasic : public TermTupleEnumeratorBase
  public:
   TermTupleEnumeratorBasic(Node quantifier,
                            const TermTupleEnumeratorEnv* env,
-                           QuantifiersState& qs,
-                           TermDb* td)
-      : TermTupleEnumeratorBase(quantifier, env), d_qs(qs), d_tdb(td)
+                           QuantifiersState& qs)
+      : TermTupleEnumeratorBase(quantifier, env),
+        d_qs(qs),
+        d_tdb(env->d_tr->getTermDatabase())
   {
   }
 
@@ -269,11 +271,13 @@ bool TermTupleEnumeratorBase::hasNext()
 
 void TermTupleEnumeratorBase::failureReason(const std::vector<bool>& mask)
 {
-  if (Trace.isOn("inst-alg"))
+  if (TraceIsOn("inst-alg"))
   {
     traceMaskedVector("inst-alg", "failureReason", mask, d_termIndex);
   }
-  d_disabledCombinations.add(mask, d_termIndex);  // record failure
+  std::vector<Node> tti;
+  next(tti);
+  d_disabledCombinations.add(mask, tti);  // record failure
   // update change prefix accordingly
   for (d_changePrefix = mask.size();
        d_changePrefix && !mask[d_changePrefix - 1];
@@ -287,13 +291,14 @@ void TermTupleEnumeratorBase::next(/*out*/ std::vector<Node>& terms)
   terms.resize(d_variableCount);
   for (size_t variableIx = 0; variableIx < d_variableCount; variableIx++)
   {
-    const Node t = d_termsSizes[variableIx] == 0
-                       ? Node::null()
-                       : getTerm(variableIx, d_termIndex[variableIx]);
+    const Node t =
+        d_termsSizes[variableIx] == 0
+            ? d_env->d_tr->getTermForType(d_quantifier[0][variableIx].getType())
+            : getTerm(variableIx, d_termIndex[variableIx]);
     terms[variableIx] = t;
     Trace("inst-alg-rd") << t << "  ";
-    Assert(t.isNull()
-           || t.getType().isComparableTo(d_quantifier[0][variableIx].getType()))
+    Assert(!t.isNull());
+    Assert(t.getType() == d_quantifier[0][variableIx].getType())
         << "Bad type: " << t << " " << t.getType() << " "
         << d_quantifier[0][variableIx].getType();
   }
@@ -356,7 +361,9 @@ bool TermTupleEnumeratorBase::nextCombination()
     {
       return false;  // ran out of combinations
     }
-    if (!d_disabledCombinations.find(d_termIndex, d_changePrefix))
+    std::vector<Node> tti;
+    next(tti);
+    if (!d_disabledCombinations.find(tti, d_changePrefix))
     {
       return true;  // current combination vetted by disabled combinations
     }
@@ -469,7 +476,7 @@ size_t TermTupleEnumeratorBasic::prepareTerms(size_t variableIx)
     for (size_t j = 0; j < ground_terms_count; j++)
     {
       Node gt = d_tdb->getTypeGroundTerm(type_node, j);
-      if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
+      if (!quantifiers::TermUtil::hasInstConstAttr(gt))
       {
         Node rep = d_qs.getRepresentative(gt);
         if (repsFound.find(rep) == repsFound.end())
@@ -501,9 +508,10 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
  public:
   TermTupleEnumeratorPool(Node quantifier,
                           const TermTupleEnumeratorEnv* env,
-                          TermPools* tp,
                           Node pool)
-      : TermTupleEnumeratorBase(quantifier, env), d_tp(tp), d_pool(pool)
+      : TermTupleEnumeratorBase(quantifier, env),
+        d_tp(env->d_tr->getTermPools()),
+        d_pool(pool)
   {
     Assert(d_pool.getKind() == kind::INST_POOL);
   }
@@ -536,10 +544,10 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
 };
 
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs, TermDb* td)
+    Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-      new TermTupleEnumeratorBasic(q, env, qs, td));
+      new TermTupleEnumeratorBasic(q, env, qs));
 }
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
     Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
@@ -549,12 +557,12 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
 }
 
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
-    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node pool)
+    Node q, const TermTupleEnumeratorEnv* env, Node pool)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-      new TermTupleEnumeratorPool(q, env, tp, pool));
+      new TermTupleEnumeratorPool(q, env, pool));
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

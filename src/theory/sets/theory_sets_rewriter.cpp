@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ *   Aina Niemetz, Andrew Reynolds, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,10 +24,10 @@
 #include "theory/sets/rels_utils.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -608,12 +608,11 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   else if (k == kind::SET_INSERT)
   {
     size_t setNodeIndex =  node.getNumChildren()-1;
-    TypeNode elementType = node[setNodeIndex].getType().getSetElementType();
-    Node insertedElements = nm->mkSingleton(elementType, node[0]);
+    Node insertedElements = nm->mkNode(SET_SINGLETON, node[0]);
 
     for (size_t i = 1; i < setNodeIndex; ++i)
     {
-      Node singleton = nm->mkSingleton(elementType, node[i]);
+      Node singleton = nm->mkNode(SET_SINGLETON, node[i]);
       insertedElements =
           nm->mkNode(kind::SET_UNION, insertedElements, singleton);
     }
@@ -641,11 +640,11 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
   Assert(n.getKind() == kind::SET_MAP);
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n[1].getKind();
-  TypeNode rangeType = n[0].getType().getRangeType();
   switch (k)
   {
     case SET_EMPTY:
     {
+      TypeNode rangeType = n[0].getType().getRangeType();
       // (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
       Node ret = nm->mkConst(EmptySet(nm->mkSetType(rangeType)));
       return RewriteResponse(REWRITE_DONE, ret);
@@ -654,7 +653,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
     {
       // (set.map f (set.singleton x)) = (set.singleton (f x))
       Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret = nm->mkSingleton(rangeType, mappedElement);
+      Node ret = nm->mkNode(SET_SINGLETON, mappedElement);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     case SET_UNION:
@@ -672,4 +671,4 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

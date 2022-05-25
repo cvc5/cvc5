@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +19,10 @@
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory::quantifiers::inst;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::quantifiers::inst;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -37,29 +37,6 @@ InstStrategyUserPatterns::InstStrategyUserPatterns(
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
-
-size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
-{
-  std::map<Node, std::vector<Trigger*> >::const_iterator it =
-      d_user_gen.find(q);
-  if (it == d_user_gen.end())
-  {
-    return 0;
-  }
-  return it->second.size();
-}
-
-Trigger* InstStrategyUserPatterns::getUserGenerator(Node q, size_t i) const
-{
-  std::map<Node, std::vector<Trigger*> >::const_iterator it =
-      d_user_gen.find(q);
-  if (it == d_user_gen.end())
-  {
-    return nullptr;
-  }
-  Assert(i < it->second.size());
-  return it->second[i];
-}
 
 std::string InstStrategyUserPatterns::identify() const
 {
@@ -122,7 +99,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
   std::vector<Trigger*>& ug = d_user_gen[q];
   for (Trigger* t : ug)
   {
-    if (Trace.isOn("process-trigger"))
+    if (TraceIsOn("process-trigger"))
     {
       Trace("process-trigger") << "  Process (user) ";
       t->debugPrint("process-trigger");
@@ -182,4 +159,4 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

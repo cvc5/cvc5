@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Ying Sheng
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 SolverEngineState::SolverEngineState(Env& env, SolverEngine& slv)
@@ -45,6 +45,7 @@ void SolverEngineState::notifyExpectedStatus(const std::string& status)
       << "SolverEngineState::notifyExpectedStatus: unexpected status string "
       << status;
   d_expectedStatus = Result(status, options().driver.filename);
+  Assert(d_expectedStatus.getStatus() != Result::NONE);
 }
 
 void SolverEngineState::notifyResetAssertions()
@@ -83,7 +84,8 @@ void SolverEngineState::notifyCheckSat(bool hasAssumptions)
   }
 }
 
-void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
+void SolverEngineState::notifyCheckSatResult(bool hasAssumptions,
+                                             const Result& r)
 {
   d_needPostsolve = true;
 
@@ -95,17 +97,21 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
 
   // Remember the status
   d_status = r;
-  // Check against expected status
-  if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
-      && d_status != d_expectedStatus)
+  // Check against expected status, if it is set
+  if (d_expectedStatus.getStatus() != Result::NONE)
   {
-    CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
-                 << d_status;
+    // unknown results don't give an error
+    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
+        && d_status != d_expectedStatus)
+    {
+      CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
+                   << d_status;
+    }
   }
   // clear expected status
   d_expectedStatus = Result();
   // Update the SMT mode
-  switch (d_status.asSatisfiabilityResult().isSat())
+  switch (d_status.getStatus())
   {
     case Result::UNSAT: d_smtMode = SmtMode::UNSAT; break;
     case Result::SAT: d_smtMode = SmtMode::SAT; break;
@@ -113,9 +119,9 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   }
 }
 
-void SolverEngineState::notifyCheckSynthResult(Result r)
+void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 {
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     // successfully generated a synthesis solution, update to abduct state
     d_smtMode = SmtMode::SYNTH;
@@ -316,4 +322,4 @@ void SolverEngineState::doPendingPops()
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

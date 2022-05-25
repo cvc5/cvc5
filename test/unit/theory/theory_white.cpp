@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic
+ *   Aina Niemetz, Dejan Jovanovic, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace expr;
@@ -91,4 +91,4 @@ TEST_F(TestTheoryWhite, outputChannel)
   d_outputChannel.d_callHistory.clear();
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

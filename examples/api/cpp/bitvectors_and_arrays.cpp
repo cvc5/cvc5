@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Liana Hadarean
+ *   Liana Hadarean, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -59,30 +59,31 @@ int main()
   Term zero = slv.mkBitVector(index_size, 0u);
 
   // Asserting that current_array[0] > 0
-  Term current_array0 = slv.mkTerm(SELECT, current_array, zero);
-  Term current_array0_gt_0 = slv.mkTerm(
-      BITVECTOR_SGT, current_array0, slv.mkBitVector(32, 0u));
+  Term current_array0 = slv.mkTerm(SELECT, {current_array, zero});
+  Term current_array0_gt_0 =
+      slv.mkTerm(BITVECTOR_SGT, {current_array0, slv.mkBitVector(32, 0u)});
   slv.assertFormula(current_array0_gt_0);
 
   // Building the assertions in the loop unrolling
   Term index = slv.mkBitVector(index_size, 0u);
-  Term old_current = slv.mkTerm(SELECT, current_array, index);
+  Term old_current = slv.mkTerm(SELECT, {current_array, index});
   Term two = slv.mkBitVector(32, 2u);
 
   std::vector<Term> assertions;
   for (unsigned i = 1; i < k; ++i) {
     index = slv.mkBitVector(index_size, i);
-    Term new_current = slv.mkTerm(BITVECTOR_MULT, two, old_current);
+    Term new_current = slv.mkTerm(BITVECTOR_MULT, {two, old_current});
     // current[i] = 2 * current[i-1]
-    current_array = slv.mkTerm(STORE, current_array, index, new_current);
+    current_array = slv.mkTerm(STORE, {current_array, index, new_current});
     // current[i-1] < current [i]
-    Term current_slt_new_current = slv.mkTerm(BITVECTOR_SLT, old_current, new_current);
+    Term current_slt_new_current =
+        slv.mkTerm(BITVECTOR_SLT, {old_current, new_current});
     assertions.push_back(current_slt_new_current);
 
-    old_current = slv.mkTerm(SELECT, current_array, index);
+    old_current = slv.mkTerm(SELECT, {current_array, index});
   }
 
-  Term query = slv.mkTerm(NOT, slv.mkTerm(AND, assertions));
+  Term query = slv.mkTerm(NOT, {slv.mkTerm(AND, assertions)});
 
   cout << "Asserting " << query << " to cvc5 " << endl;
   slv.assertFormula(query);

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *   Andrew Reynolds, Dejan Jovanovic, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
@@ -270,7 +270,7 @@ void Theory::notifyInConflict()
 }
 
 void Theory::computeCareGraph() {
-  Debug("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
+  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
   for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
     TNode a = d_sharedTerms[i];
     TypeNode aType = a.getType();
@@ -304,8 +304,8 @@ void Theory::printFacts(std::ostream& os) const {
 }
 
 void Theory::debugPrintFacts() const{
-  DebugChannel.getStream() << "Theory::debugPrintFacts()" << endl;
-  printFacts(DebugChannel.getStream());
+  TraceChannel.getStream() << "Theory::debugPrintFacts()" << endl;
+  printFacts(TraceChannel.getStream());
 }
 
 bool Theory::isLegalElimination(TNode x, TNode val)
@@ -320,7 +320,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!val.getType().isSubtypeOf(x.getType()))
+  if (val.getType() != x.getType())
   {
     return false;
   }
@@ -440,6 +440,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
                                         TrustSubstitutionMap& outSubstitutions)
 {
+  Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
@@ -459,30 +460,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        return PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
-  }
-  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
-           && in[0][0].getType().isBoolean())
-  {
-    TNode eq = in[0];
-    if (eq[0].isVar())
-    {
-      Node res = eq[0].eqNode(eq[1].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
-    else if (eq[1].isVar())
-    {
-      Node res = eq[1].eqNode(eq[0].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
   }
 
   return PP_ASSERT_STATUS_UNSOLVED;
@@ -494,19 +471,71 @@ std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
-  if (d_careGraph) {
-    d_careGraph->insert(CarePair(t1, t2, d_id));
+  Assert(d_careGraph != nullptr);
+  Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1
+                   << " " << t2 << std::endl;
+  d_careGraph->insert(CarePair(t1, t2, d_id));
+}
+void Theory::addCarePairArgs(TNode a, TNode b)
+{
+  Assert(d_careGraph != nullptr);
+  Assert(d_equalityEngine != nullptr);
+  Assert(a.hasOperator() && b.hasOperator());
+  Assert(a.getOperator() == b.getOperator());
+  Assert(a.getNumChildren() == b.getNumChildren());
+  Trace("sharing") << "Theory::addCarePairArgs: checking function " << d_id
+                   << " " << a << " " << b << std::endl;
+  for (size_t k = 0, nchildren = a.getNumChildren(); k < nchildren; ++k)
+  {
+    TNode x = a[k];
+    TNode y = b[k];
+    if (d_equalityEngine->isTriggerTerm(x, d_id)
+        && d_equalityEngine->isTriggerTerm(y, d_id)
+        && !d_equalityEngine->areEqual(x, y))
+    {
+      TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
+      TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
+      addCarePair(x_shared, y_shared);
+    }
   }
 }
 
+void Theory::processCarePairArgs(TNode a, TNode b)
+{
+  // if a and b are already equal, we ignore this pair
+  if (d_theoryState->areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
+}
+
+bool Theory::areCareDisequal(TNode x, TNode y)
+{
+  Assert(d_equalityEngine != nullptr);
+  Assert(d_equalityEngine->hasTerm(x));
+  Assert(d_equalityEngine->hasTerm(y));
+  if (!d_equalityEngine->isTriggerTerm(x, d_id)
+      || !d_equalityEngine->isTriggerTerm(y, d_id))
+  {
+    return false;
+  }
+  TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
+  TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
+  EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+  return eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+         || eqStatus == EQUALITY_FALSE_IN_MODEL;
+}
+
 void Theory::getCareGraph(CareGraph* careGraph) {
-  Assert(careGraph != NULL);
+  Assert(careGraph != nullptr);
 
   Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
   TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
   d_careGraph = careGraph;
   computeCareGraph();
-  d_careGraph = NULL;
+  d_careGraph = nullptr;
 }
 
 bool Theory::proofsEnabled() const
@@ -623,9 +652,9 @@ void Theory::preRegisterTerm(TNode node) {}
 
 void Theory::addSharedTerm(TNode n)
 {
-  Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
+  Trace("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
                    << std::endl;
-  Debug("theory::assertions")
+  Trace("theory::assertions")
       << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
   d_sharedTerms.push_back(n);
   // now call theory-specific method notifySharedTerm
@@ -688,4 +717,4 @@ theory::Assertion Theory::get()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

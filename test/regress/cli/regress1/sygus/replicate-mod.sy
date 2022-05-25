@@ -1,0 +1,181 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-qe-preproc --sygus-si=all  --sygus-out=status
+(set-logic LIA)
+(synth-fun fr0 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr1 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr10 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr11 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr12 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr13 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr14 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr15 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr16 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr17 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr18 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr19 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr2 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr20 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr21 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr22 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr23 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr24 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr25 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr26 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr27 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr28 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr29 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr3 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr30 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr31 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr32 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr33 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr34 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr35 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr36 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr4 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr5 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr6 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr7 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr8 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun fr9 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m0 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m1 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m10 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m11 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m12 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m13 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m14 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m15 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m16 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m17 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m2 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m3 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m4 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m5 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m6 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m7 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m8 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun m9 ((_v Int) (n Int) (x Int)) Int
+       )
+(synth-fun p0 ((_v Int) (n Int) (x Int)) Int)
+(synth-fun p1 ((_v Int) (n Int) (x Int)) Int)
+(synth-fun p2 ((_v Int) (n Int) (x Int)) Int)
+(synth-fun p3 ((_v Int) (n Int) (x Int)) Int)
+(synth-fun p4 ((_v Int) (n Int) (x Int)) Int)
+(synth-fun p5 ((_v Int) (n Int) (x Int)) Int)
+(declare-var n Int)
+(declare-var x Int)
+(declare-var x10 Int)
+(declare-var x11 Int)
+(declare-var x14 Int)
+(declare-var x15 Int)
+(declare-var x2 Int)
+(declare-var x3 Int)
+(declare-var x6 Int)
+(declare-var x7 Int)
+(declare-var _v Int)
+(constraint (=> (>= n 0) (and (and (and (>= (m2 _v n x) 0) (>= (m4 _v n x) 0)) (>= (m5 _v n x) 0)) (= (m2 _v n x) (+ (m4 _v n x) (m5 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (>= (fr7 _v n x) 0) (>= (fr9 _v n x) 0)) (>= (fr10 _v n x) 0)) (= (fr7 _v n x) (+ (fr9 _v n x) (fr10 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (>= (fr5 _v n x) 0) (>= (fr7 _v n x) 0)) (>= (fr8 _v n x) 0)) (= (fr5 _v n x) (+ (fr7 _v n x) (fr8 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (>= (m0 _v n x) 0) (>= (m2 _v n x) 0)) (>= (m3 _v n x) 0)) (= (m0 _v n x) (+ (m2 _v n x) (m3 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (>= (fr3 _v n x) 0) (>= (fr5 _v n x) 0)) (>= (fr6 _v n x) 0)) (= (fr3 _v n x) (+ (fr5 _v n x) (fr6 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (>= (fr2 _v n x) 0) (>= (fr3 _v n x) 0)) (>= (fr4 _v n x) 0)) (= (fr2 _v n x) (+ (fr3 _v n x) (fr4 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (and (and (and (= (+ (+ (+ 0 (p0 _v n x)) (fr0 _v n x)) 0) (+ (+ (+ 0 0) (fr2 _v n x)) 0)) (>= (fr0 _v n x) 0)) (>= (fr2 _v n x) 0)) (>= 0 0)) (>= 0 0)) (>= 0 0)) (>= 0 0))))
+(constraint (=> (>= n 0) (and (and (and (>= 1 0) (>= (m0 _v n x) 0)) (>= (m1 _v n x) 0)) (= 1 (+ (m0 _v n x) (m1 _v n x))))))
+(constraint (=> (and (= _v x) (>= n 0)) (and (and (and (>= n 0) (>= (p0 _v n x) 0)) (>= (p1 _v n x) 0)) (= n (+ (p0 _v n x) (p1 _v n x))))))
+(constraint (=> (>= n 0) (and (and (and (>= 0 0) (>= (fr0 _v n x) 0)) (>= (fr1 _v n x) 0)) (= 0 (+ (fr0 _v n x) (fr1 _v n x))))))
+(constraint (=> (and (= _v n) (>= n 0)) (>= 0 (+ (p2 _v n x) (- (+ (fr8 _v n x) 0))))))
+(constraint (=> (>= n 0) (>= (p2 _v n x) 0)))
+(constraint (=> (and (= _v 0) (>= n 0)) (>= 0 (+ (p2 _v n x) (- (+ (fr4 _v n x) 0))))))
+(constraint (=> (and (= true (<= n 0)) (>= n 0)) (>= (p3 _v n x) 0)))
+(constraint (=> (and (= true (<= n 0)) (>= n 0)) (and (and (and (and (and (and (= (+ (+ (+ 0 (p1 _v n x)) (fr1 _v n x)) 0) (+ (+ (+ 0 0) (fr11 _v n x)) 0)) (>= (fr1 _v n x) 0)) (>= (fr11 _v n x) 0)) (>= 0 0)) (>= 0 0)) (>= 0 0)) (>= 0 0))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (>= (p4 _v n x) 0)))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (m6 _v n x) 0) (>= (m8 _v n x) 0)) (>= (m9 _v n x) 0)) (= (m6 _v n x) (+ (m8 _v n x) (m9 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr17 _v n x) 0) (>= (fr19 _v n x) 0)) (>= (fr20 _v n x) 0)) (= (fr17 _v n x) (+ (fr19 _v n x) (fr20 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr15 _v n x) 0) (>= (fr17 _v n x) 0)) (>= (fr18 _v n x) 0)) (= (fr15 _v n x) (+ (fr17 _v n x) (fr18 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (m1 _v n x) 0) (>= (m6 _v n x) 0)) (>= (m7 _v n x) 0)) (= (m1 _v n x) (+ (m6 _v n x) (m7 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr13 _v n x) 0) (>= (fr15 _v n x) 0)) (>= (fr16 _v n x) 0)) (= (fr13 _v n x) (+ (fr15 _v n x) (fr16 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr12 _v n x) 0) (>= (fr13 _v n x) 0)) (>= (fr14 _v n x) 0)) (= (fr12 _v n x) (+ (fr13 _v n x) (fr14 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (and (and (and (= (+ (+ (+ 0 (p1 _v n x)) (fr1 _v n x)) 0) (+ (+ (+ 0 0) (fr12 _v n x)) 0)) (>= (fr1 _v n x) 0)) (>= (fr12 _v n x) 0)) (>= 0 0)) (>= 0 0)) (>= 0 0)) (>= 0 0))))
+(constraint (=> (and (and (= false (<= n 0)) (= _v x)) (>= n 0)) (>= 0 (+ (p4 _v n x) (- (+ (fr18 _v n x) 0))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (>= 0 (- (+ (fr14 _v n x) 0)))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (>= (p5 _v n x) (p4 _v n x))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (>= (p5 _v n x) 0)))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (m10 _v n x) 0) (>= (m12 _v n x) 0)) (>= (m13 _v n x) 0)) (= (m10 _v n x) (+ (m12 _v n x) (m13 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr25 _v n x) 0) (>= (fr27 _v n x) 0)) (>= (fr28 _v n x) 0)) (= (fr25 _v n x) (+ (fr27 _v n x) (fr28 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr23 _v n x) 0) (>= (fr25 _v n x) 0)) (>= (fr26 _v n x) 0)) (= (fr23 _v n x) (+ (fr25 _v n x) (fr26 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (m7 _v n x) 0) (>= (m10 _v n x) 0)) (>= (m11 _v n x) 0)) (= (m7 _v n x) (+ (m10 _v n x) (m11 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr21 _v n x) 0) (>= (fr23 _v n x) 0)) (>= (fr24 _v n x) 0)) (= (fr21 _v n x) (+ (fr23 _v n x) (fr24 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (- (fr16 _v n x) 1) 0) (>= (fr21 _v n x) 0)) (>= (fr22 _v n x) 0)) (= (- (fr16 _v n x) 1) (+ (fr21 _v n x) (fr22 _v n x))))))
+(constraint (=> false (>= 0 (- (+ (fr26 _v n x) 0)))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (m14 _v n x) 0) (>= (m16 _v n x) 0)) (>= (m17 _v n x) 0)) (= (m14 _v n x) (+ (m16 _v n x) (m17 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr33 _v n x) 0) (>= (fr35 _v n x) 0)) (>= (fr36 _v n x) 0)) (= (fr33 _v n x) (+ (fr35 _v n x) (fr36 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr31 _v n x) 0) (>= (fr33 _v n x) 0)) (>= (fr34 _v n x) 0)) (= (fr31 _v n x) (+ (fr33 _v n x) (fr34 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (m13 _v n x) 0) (>= (m14 _v n x) 0)) (>= (m15 _v n x) 0)) (= (m13 _v n x) (+ (m14 _v n x) (m15 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr29 _v n x) 0) (>= (fr31 _v n x) 0)) (>= (fr32 _v n x) 0)) (= (fr29 _v n x) (+ (fr31 _v n x) (fr32 _v n x))))))
+(constraint (=> (and (= false (<= n 0)) (>= n 0)) (and (and (and (>= (fr28 _v n x) 0) (>= (fr29 _v n x) 0)) (>= (fr30 _v n x) 0)) (= (fr28 _v n x) (+ (fr29 _v n x) (fr30 _v n x))))))
+(constraint (=> (and (and (= false (<= n 0)) (= _v n)) (>= n 0)) (>= 0 (- (+ (fr34 _v n x) 0)))))
+(constraint (=> false (>= 0 (- (+ (fr26 _v n x) 0)))))
+(constraint (=> (and (and (= false (<= n 0)) (= _v 1)) (>= n 0)) (>= 0 (- (+ (fr30 _v n x) 0)))))
+(constraint (=> (and (and (= false (<= n 0)) (= _v (- n 1))) (>= n 0)) (>= 0 (- (+ (fr26 _v n x) 0)))))
+(constraint (=> (and (and (= false (<= n 0)) (= x10 (- n 1))) (>= n 0)) (>= 0 (- (+ (fr14 _v n x) 0)))))
+(constraint (=> (and (and (= false (<= n 0)) (= x10 (- n 1))) (>= n 0)) (>= (p5 _v n x) (p4 _v n x))))
+(constraint (=> (and (and (and (= false (<= n 0)) (= x10 (- n 1))) (= _v x)) (>= n 0)) (>= 0 (+ (p5 _v n x) (+ x10 (- (+ (fr22 _v n x) 0)))))))
+(constraint (=> (and (and (= false (<= n 0)) (= x10 (- n 1))) (>= n 0)) (>= 0 (- (+ (fr14 _v n x) 0)))))
+(constraint (=> (and (and (= false (<= n 0)) (= x10 (- n 1))) (>= n 0)) (>= (p5 _v n x) (p4 _v n x))))
+(constraint (=> true (and (and (and (>= 0 0) (>= 0 0)) (>= 0 0)) (= 0 (+ 0 0)))))
+(check-synth)

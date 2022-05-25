@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Aina Niemetz
+ *   Tim King, Andres Noetzli, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,15 +22,15 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace cvc5::theory;
-using namespace cvc5::theory::arith;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::arith;
 
 PseudoBooleanProcessor::PseudoBooleanProcessor(
     PreprocessingPassContext* preprocContext)
@@ -61,30 +61,30 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   }
   Assert(assertion.getKind() == kind::GEQ);
 
-  Debug("pbs::rewrites") << "decomposeAssertion" << assertion << std::endl;
+  Trace("pbs::rewrites") << "decomposeAssertion" << assertion << std::endl;
 
   Node l = assertion[0];
   Node r = assertion[1];
 
   if (!r.isConst())
   {
-    Debug("pbs::rewrites") << "not rhs constant" << assertion << std::endl;
+    Trace("pbs::rewrites") << "not rhs constant" << assertion << std::endl;
     return false;
   }
   // don't bother matching on anything other than + on the left hand side
   if (l.getKind() != kind::ADD)
   {
-    Debug("pbs::rewrites") << "not plus" << assertion << std::endl;
+    Trace("pbs::rewrites") << "not plus" << assertion << std::endl;
     return false;
   }
 
-  if (!Polynomial::isMember(l))
+  if (!linear::Polynomial::isMember(l))
   {
-    Debug("pbs::rewrites") << "not polynomial" << assertion << std::endl;
+    Trace("pbs::rewrites") << "not polynomial" << assertion << std::endl;
     return false;
   }
 
-  Polynomial p = Polynomial::parsePolynomial(l);
+  linear::Polynomial p = linear::Polynomial::parsePolynomial(l);
   clear();
   if (negated)
   {
@@ -112,9 +112,9 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   Assert(d_off.value().isIntegral());
 
   int adj = negated ? -1 : 1;
-  for (Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
+  for (linear::Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
   {
-    Monomial m = *i;
+    linear::Monomial m = *i;
     const Rational& coeff = m.getConstant().getValue();
     if (!(coeff.isOne() || coeff.isNegativeOne()))
     {
@@ -122,7 +122,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     }
     Assert(coeff.sgn() != 0);
 
-    const VarList& vl = m.getVarList();
+    const linear::VarList& vl = m.getVarList();
     Node v = vl.getNode();
 
     if (!isPseudoBoolean(v))
@@ -161,7 +161,7 @@ void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
   Assert(!exp.isNull());
   CDNode2PairMap::const_iterator ci = d_pbBounds.find(v);
 
-  Debug("pbs::rewrites") << "addGeqZero " << v << std::endl;
+  Trace("pbs::rewrites") << "addGeqZero " << v << std::endl;
 
   if (ci == d_pbBounds.end())
   {
@@ -174,7 +174,7 @@ void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
     {
       Assert(!p.second.isNull());
       d_pbBounds.insert(v, std::make_pair(exp, p.second));
-      Debug("pbs::rewrites") << "add pbs " << v << std::endl;
+      Trace("pbs::rewrites") << "add pbs " << v << std::endl;
       Assert(isPseudoBoolean(v));
       d_pbs = d_pbs + 1;
     }
@@ -185,7 +185,7 @@ void PseudoBooleanProcessor::addLeqOne(Node v, Node exp)
 {
   Assert(isIntVar(v));
   Assert(!exp.isNull());
-  Debug("pbs::rewrites") << "addLeqOne " << v << std::endl;
+  Trace("pbs::rewrites") << "addLeqOne " << v << std::endl;
   CDNode2PairMap::const_iterator ci = d_pbBounds.find(v);
   if (ci == d_pbBounds.end())
   {
@@ -198,7 +198,7 @@ void PseudoBooleanProcessor::addLeqOne(Node v, Node exp)
     {
       Assert(!p.first.isNull());
       d_pbBounds.insert(v, std::make_pair(p.first, exp));
-      Debug("pbs::rewrites") << "add pbs " << v << std::endl;
+      Trace("pbs::rewrites") << "add pbs " << v << std::endl;
       Assert(isPseudoBoolean(v));
       d_pbs = d_pbs + 1;
     }
@@ -332,7 +332,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
   bool success = decomposeAssertion(geq, negated);
   if (!success)
   {
-    Debug("pbs::rewrites") << "failed " << std::endl;
+    Trace("pbs::rewrites") << "failed " << std::endl;
     return;
   }
   Assert(d_off.value().isIntegral());
@@ -389,9 +389,9 @@ Node PseudoBooleanProcessor::applyReplacements(Node pre)
   Node assertion = rewrite(pre);
 
   Node result = d_subCache.apply(assertion);
-  if (Debug.isOn("pbs::rewrites") && result != assertion)
+  if (TraceIsOn("pbs::rewrites") && result != assertion)
   {
-    Debug("pbs::rewrites") << "applyReplacements" << assertion << "-> "
+    Trace("pbs::rewrites") << "applyReplacements" << assertion << "-> "
                            << result << std::endl;
   }
   return result;
@@ -419,4 +419,4 @@ void PseudoBooleanProcessor::clear()
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

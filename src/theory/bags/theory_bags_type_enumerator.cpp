@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "theory_bags_type_enumerator.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -61,7 +61,7 @@ BagEnumerator& BagEnumerator::operator++()
     // return (bag d_element 1)
     Node one = d_nodeManager->mkConstInt(Rational(1));
     TypeNode elementType = d_elementTypeEnumerator.getType();
-    Node singleton = d_nodeManager->mkBag(elementType, d_element, one);
+    Node singleton = d_nodeManager->mkNode(BAG_MAKE, d_element, one);
     d_currentBag = singleton;
   }
   else
@@ -89,4 +89,4 @@ bool BagEnumerator::isFinished()
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

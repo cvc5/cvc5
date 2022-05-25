@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,10 @@
 #include "theory/evaluator.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
+
+class Options;
+
 namespace theory {
 namespace datatypes {
 
@@ -38,7 +41,7 @@ namespace datatypes {
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
-  DatatypesRewriter(Evaluator* sygusEval);
+  DatatypesRewriter(Evaluator* sygusEval, const Options& opts);
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
 
@@ -64,13 +67,14 @@ class DatatypesRewriter : public TheoryRewriter
    * Expand an APPLY_SELECTOR term n, return its expanded form. If n is
    *   (APPLY_SELECTOR selC x)
    * its expanded form is
-   *   (ITE (APPLY_TESTER is-C x)
-   *     (APPLY_SELECTOR_TOTAL selC' x)
-   *     (f x))
-   * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
-   * internal selector function for selC (possibly a shared selector).
+   *   (APPLY_SELECTOR selC' x)
+   * where selC' is the internal selector function for selC (a shared selector
+   * if sharedSel is true).
+   * Note that we do not introduce an uninterpreted function here, e.g. to
+   * handle when the selector is misapplied. This is because it suffices to
+   * reason about the original selector term e.g. via congruence.
    */
-  static Node expandApplySelector(Node n);
+  static Node expandApplySelector(Node n, bool sharedSel);
   /**
    * Expand a match term into its definition.
    * For example
@@ -199,10 +203,12 @@ class DatatypesRewriter : public TheoryRewriter
   Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
   /** Pointer to the evaluator, used as an optimization for the above method */
   Evaluator* d_sygusEval;
+  /** Reference to the options */
+  const Options& d_opts;
 };
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H */

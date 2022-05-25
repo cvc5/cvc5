@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Ensure closed with respect to assumptions, internal version, which
@@ -42,19 +42,19 @@ void ensureClosedWrtInternal(Node proven,
     // proofs not enabled, do not do check
     return;
   }
-  bool isTraceDebug = Trace.isOn(c);
+  bool isTraceDebug = TraceIsOn(c);
   if (options::proofCheck() != options::ProofCheckMode::EAGER && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;
   }
   std::stringstream sdiag;
-  bool isTraceOn = Trace.isOn(c);
+  bool isTraceOn = TraceIsOn(c);
   if (!isTraceOn)
   {
     sdiag << ", use -t " << c << " for details";
   }
-  bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+  bool dumpProofTraceOn = TraceIsOn("dump-proof-error");
   if (!dumpProofTraceOn)
   {
     sdiag << ", use -t dump-proof-error for details on proof";
@@ -180,4 +180,4 @@ void pfnEnsureClosedWrt(ProofNode* pn,
   ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

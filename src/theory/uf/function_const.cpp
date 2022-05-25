@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,10 @@
 #include "theory/uf/function_const.h"
 
 #include "expr/array_store_all.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -78,11 +79,8 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
             a[2], bvl, bvlIndex + 1, visited);
         if (!val.isNull())
         {
-          Assert(!TypeNode::leastCommonTypeNode(a[1].getType(),
-                                                bvl[bvlIndex].getType())
-                      .isNull());
-          Assert(!TypeNode::leastCommonTypeNode(val.getType(), body.getType())
-                      .isNull());
+          Assert(a[1].getType() == bvl[bvlIndex].getType());
+          Assert(val.getType() == body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
           ret = NodeManager::currentNM()->mkNode(kind::ITE, cond, val, body);
         }
@@ -368,7 +366,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     Trace("builtin-rewrite-debug2")
         << "  make array store all " << curr.getType()
         << " annotated : " << array_type << std::endl;
-    Assert(curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
+    Assert(curr.getType() == array_type.getArrayConstituentType());
     curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must
@@ -381,8 +379,11 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     for (size_t i = 0, numCond = conds.size(); i < numCond; i++)
     {
       size_t ii = (numCond - 1) - i;
-      Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
+      Assert(conds[ii].getType() == first_arg.getType());
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
+      // normalize it using the array rewriter utility, which must be done at
+      // each iteration of this loop
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
@@ -400,15 +401,9 @@ Node FunctionConst::getArrayRepresentationForLambda(TNode n)
   // must carry the overall return type to deal with cases like (lambda ((x Int)
   // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
   // case above should be (arraystoreall (Array Int Real) 0.0)
-  Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());
-  if (anode.isNull())
-  {
-    return anode;
-  }
-  // must rewrite it to make canonical
-  return Rewriter::rewrite(anode);
+  return getArrayRepresentationForLambdaRec(n, n[1].getType());
 }
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

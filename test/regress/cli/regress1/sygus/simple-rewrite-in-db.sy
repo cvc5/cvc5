@@ -1,0 +1,15 @@
+; COMMAND-LINE: --sygus-si=all  --sygus-out=status
+; EXPECT: feasible
+
+(set-logic UF)
+
+(synth-fun f ((x Bool) (y Bool)) Bool
+  ((Start Bool))
+  ((Start Bool (true false x y (not Start) (= Start Start)))))
+
+(declare-var x Bool)
+(declare-var y Bool)
+
+(constraint (= (f x y) (xor x y)))
+
+(check-synth)

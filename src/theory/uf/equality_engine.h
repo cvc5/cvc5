@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -53,8 +53,8 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
-
+class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
+{
   friend class EqClassesIterator;
   friend class EqClassIterator;
 
@@ -858,6 +858,6 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
 
 } // Namespace eq
 } // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

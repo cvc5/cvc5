@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 #include "theory/theory_state.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -53,10 +53,11 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma)
 {
-  // if we are forcing the inference to be processed as a lemma, or if the
-  // inference must be sent as a lemma based on the policy in
-  // mustCommunicateFact.
-  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
+  // if we are forcing the inference to be processed as a lemma, if the
+  // dtInferAsLemmas option is set, or if the inference must be sent as a lemma
+  // based on the policy in mustCommunicateFact.
+  if (forceLemma || options().datatypes.dtInferAsLemmas
+      || DatatypesInference::mustCommunicateFact(conc, exp))
   {
     d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
@@ -177,4 +178,4 @@ Node InferenceManager::prepareDtInference(Node conc,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

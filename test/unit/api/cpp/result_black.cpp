@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,9 +15,7 @@
 
 #include "test_api.h"
 
-namespace cvc5 {
-
-using namespace api;
+namespace cvc5::internal {
 
 namespace test {
 
@@ -27,18 +25,15 @@ class TestApiBlackResult : public TestApi
 
 TEST_F(TestApiBlackResult, isNull)
 {
-  cvc5::api::Result res_null;
+  cvc5::Result res_null;
   ASSERT_TRUE(res_null.isNull());
   ASSERT_FALSE(res_null.isSat());
   ASSERT_FALSE(res_null.isUnsat());
-  ASSERT_FALSE(res_null.isSatUnknown());
-  ASSERT_FALSE(res_null.isEntailed());
-  ASSERT_FALSE(res_null.isNotEntailed());
-  ASSERT_FALSE(res_null.isEntailmentUnknown());
+  ASSERT_FALSE(res_null.isUnknown());
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
-  cvc5::api::Result res = d_solver.checkSat();
+  cvc5::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isNull());
 }
 
@@ -47,12 +42,19 @@ TEST_F(TestApiBlackResult, eq)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
-  cvc5::api::Result res;
-  cvc5::api::Result res2 = d_solver.checkSat();
-  cvc5::api::Result res3 = d_solver.checkSat();
+  cvc5::Result res;
+  cvc5::Result res2 = d_solver.checkSat();
+  cvc5::Result res3 = d_solver.checkSat();
+  ASSERT_NE(res, res2);
   res = res2;
   ASSERT_EQ(res, res2);
   ASSERT_EQ(res3, res2);
+  {
+    std::stringstream ss;
+    ss << res;
+    ASSERT_EQ(res.toString(), "sat");
+    ASSERT_EQ(res.toString(), ss.str());
+  }
 }
 
 TEST_F(TestApiBlackResult, isSat)
@@ -60,9 +62,9 @@ TEST_F(TestApiBlackResult, isSat)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
-  cvc5::api::Result res = d_solver.checkSat();
+  cvc5::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isSat());
-  ASSERT_FALSE(res.isSatUnknown());
+  ASSERT_FALSE(res.isUnknown());
 }
 
 TEST_F(TestApiBlackResult, isUnsat)
@@ -70,12 +72,12 @@ TEST_F(TestApiBlackResult, isUnsat)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
-  cvc5::api::Result res = d_solver.checkSat();
+  cvc5::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
-  ASSERT_FALSE(res.isSatUnknown());
+  ASSERT_FALSE(res.isUnknown());
 }
 
-TEST_F(TestApiBlackResult, isSatUnknown)
+TEST_F(TestApiBlackResult, isUnknown)
 {
   d_solver.setLogic("QF_NIA");
   d_solver.setOption("incremental", "false");
@@ -83,40 +85,17 @@ TEST_F(TestApiBlackResult, isSatUnknown)
   Sort int_sort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(int_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
-  cvc5::api::Result res = d_solver.checkSat();
+  cvc5::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
-  ASSERT_TRUE(res.isSatUnknown());
+  ASSERT_TRUE(res.isUnknown());
+  cvc5::UnknownExplanation ue = res.getUnknownExplanation();
+  ASSERT_EQ(ue, cvc5::UnknownExplanation::UNKNOWN_REASON);
+  {
+    std::stringstream ss;
+    ss << ue;
+    ASSERT_EQ(ss.str(), "UNKNOWN_REASON");
+  }
 }
 
-TEST_F(TestApiBlackResult, isEntailed)
-{
-  d_solver.setOption("incremental", "true");
-  Sort u_sort = d_solver.mkUninterpretedSort("u");
-  Term x = d_solver.mkConst(u_sort, "x");
-  Term y = d_solver.mkConst(u_sort, "y");
-  Term a = x.eqTerm(y).notTerm();
-  Term b = x.eqTerm(y);
-  d_solver.assertFormula(a);
-  cvc5::api::Result entailed = d_solver.checkEntailed(a);
-  ASSERT_TRUE(entailed.isEntailed());
-  ASSERT_FALSE(entailed.isEntailmentUnknown());
-  cvc5::api::Result not_entailed = d_solver.checkEntailed(b);
-  ASSERT_TRUE(not_entailed.isNotEntailed());
-  ASSERT_FALSE(not_entailed.isEntailmentUnknown());
-}
-
-TEST_F(TestApiBlackResult, isEntailmentUnknown)
-{
-  d_solver.setLogic("QF_NIA");
-  d_solver.setOption("incremental", "false");
-  d_solver.setOption("solve-int-as-bv", "32");
-  Sort int_sort = d_solver.getIntegerSort();
-  Term x = d_solver.mkConst(int_sort, "x");
-  d_solver.assertFormula(x.eqTerm(x).notTerm());
-  cvc5::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
-  ASSERT_FALSE(res.isEntailed());
-  ASSERT_TRUE(res.isEntailmentUnknown());
-  ASSERT_EQ(res.getUnknownExplanation(), api::Result::UNKNOWN_REASON);
-}
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +16,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 FloatingPointSize::FloatingPointSize(uint32_t exp_size, uint32_t sig_size)
     : d_exp_size(exp_size), d_sig_size(sig_size)
@@ -32,4 +32,4 @@ FloatingPointSize::FloatingPointSize(const FloatingPointSize& old)
   Assert(validSignificandSize(d_sig_size));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

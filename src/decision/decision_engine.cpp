@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Kshitij Bansal, Aina Niemetz, Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,13 +14,9 @@
  */
 #include "decision/decision_engine.h"
 
-#include "decision/decision_engine_old.h"
-#include "options/decision_options.h"
-#include "prop/sat_solver.h"
-#include "smt/env.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 DecisionEngine::DecisionEngine(Env& env)
@@ -28,7 +24,8 @@ DecisionEngine::DecisionEngine(Env& env)
 {
 }
 
-void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
+                                prop::CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;
@@ -50,8 +47,8 @@ void DecisionEngineEmpty::addSkolemDefinition(TNode lem,
 }
 prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
-  return undefSatLiteral;
+  return prop::undefSatLiteral;
 }
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,0 +1,103 @@
+name: Store binary
+description: Store cvc5 binary to the latest tag or the current release
+inputs:
+  binary:
+    description: file name of binary
+  binary-name:
+    description: target name of binary
+  github-token-latest:
+    description: token to upload binary to latest
+  github-token-release:
+    description: token to upload binary to release
+runs:
+  using: composite
+  steps:
+    - name: Rename binary
+      shell: bash
+      run: |
+        cp ${{ inputs.binary }} ${{ inputs.binary-name }}
+
+    - name: install pyGithub
+      shell: bash
+      run: |
+        python3 -m pip install pyGithub
+
+    - name: store to latest
+      if: github.ref == 'refs/heads/main'
+      shell: 'python3 {0}'
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token-latest }}
+        BINARY: ${{ inputs.binary-name }}
+      run: |
+        import datetime
+        import os
+        from github import Github
+
+        sha = os.getenv('GITHUB_SHA')
+
+        gh = Github(os.getenv('GITHUB_TOKEN'))
+        repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
+
+        try:
+          ref = repo.get_git_ref('tags/latest')
+          # update "latest" to current commit if sha changed
+          if ref.object.sha != sha:
+            ref.edit(sha)
+        except:
+          print('tag `latest` does not exist.')
+          exit
+
+        try:
+          rel = repo.get_release('latest')
+        except:
+          print('New `latest` release')
+          rel = repo.create_git_release('latest', 'latest', 'Latest builds')
+
+        # generate new filename
+        binary = os.getenv('BINARY')
+        name,ext = os.path.splitext(binary)
+        curtime = repo.get_git_commit(sha).committer.date.strftime('%Y-%m-%d')
+        samedayprefix = '{}-{}-'.format(name, curtime)
+        filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
+
+        # prune old commits
+        assets = list(rel.get_assets())
+        assets.sort(key=lambda x: x.created_at, reverse=True)
+
+        for cnt,asset in enumerate(assets):
+          delete = False
+          if cnt >= 30:
+            delete = True
+          if asset.name.startswith(samedayprefix):
+            delete = True
+          age = datetime.datetime.now() - asset.created_at
+          if age.days > 7:
+            delete = True
+          if delete:
+            asset.delete_asset()
+
+        # upload as asset with proper name
+        rel.upload_asset(binary, name=filename)
+
+    - name: store to release
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: 'python3 {0}'
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token-release }}
+        BINARY: ${{ inputs.binary-name }}
+      run: |
+        import os
+        from github import Github
+
+        refname = os.getenv('GITHUB_REF_NAME')
+        gh = Github(os.getenv('GITHUB_TOKEN'))
+        repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
+        try:
+          rel = repo.get_release(refname)
+        except:
+          print("New release from " + refname)
+          ref = repo.get_git_ref('tags/' + refname)
+          commit = repo.get_git_commit(ref.object.sha)
+          rel = repo.create_git_release(refname, refname, commit.message)
+        rel.upload_asset(os.getenv('BINARY'))
+

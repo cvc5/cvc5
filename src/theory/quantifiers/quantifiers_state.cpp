@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,10 @@
 #include "theory/quantifiers/quantifiers_state.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/uf/equality_engine.h"
 #include "theory/uf/equality_engine_iterator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -30,7 +31,7 @@ QuantifiersState::QuantifiersState(Env& env,
       d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
-  d_ierCounter = options().quantifiers.instWhenTcFirst ? 0 : 1;
+  d_ierCounter = 0;
   d_ierCounterc = d_ierCounter;
   d_ierCounterLc = 0;
   d_ierCounterLastLc = 0;
@@ -44,10 +45,8 @@ void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
 {
   if (e == Theory::EFFORT_FULL)
   {
-    // increment if a last call happened, we are not strictly enforcing
-    // interleaving, or already were in phase
+    // increment if a last call happened, or already were in phase
     if (d_ierCounterLastLc != d_ierCounterLc
-        || !options().quantifiers.instWhenStrictInterleave
         || d_ierCounter % d_instWhenPhase != 0)
     {
       d_ierCounter = d_ierCounter + 1;
@@ -112,7 +111,7 @@ uint64_t QuantifiersState::getInstRounds() const { return d_ierCounter; }
 
 void QuantifiersState::debugPrintEqualityEngine(const char* c) const
 {
-  bool traceEnabled = Trace.isOn(c);
+  bool traceEnabled = TraceIsOn(c);
   if (!traceEnabled)
   {
     return;
@@ -122,39 +121,10 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c) const
   std::map<TypeNode, uint64_t> tnum;
   while (!eqcs_i.isFinished())
   {
-    TNode r = (*eqcs_i);
-    TypeNode tr = r.getType();
-    if (tnum.find(tr) == tnum.end())
-    {
-      tnum[tr] = 0;
-    }
-    tnum[tr]++;
-    bool firstTime = true;
-    Trace(c) << "  " << r;
-    Trace(c) << " : { ";
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
-    while (!eqc_i.isFinished())
-    {
-      TNode n = (*eqc_i);
-      if (r != n)
-      {
-        if (firstTime)
-        {
-          Trace(c) << std::endl;
-          firstTime = false;
-        }
-        Trace(c) << "    " << n << std::endl;
-      }
-      ++eqc_i;
-    }
-    if (!firstTime)
-    {
-      Trace(c) << "  ";
-    }
-    Trace(c) << "}" << std::endl;
+    tnum[(*eqcs_i).getType()]++;
     ++eqcs_i;
   }
-  Trace(c) << std::endl;
+  Trace(c) << ee->debugPrintEqc() << std::endl;
   for (const std::pair<const TypeNode, uint64_t>& t : tnum)
   {
     Trace(c) << "# eqc for " << t.first << " : " << t.second << std::endl;
@@ -167,4 +137,4 @@ QuantifiersStatistics& QuantifiersState::getStats() { return d_statistics; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -74,7 +74,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node tester = utils::mkTester(t, i, dt);
-    Node ticons = utils::getInstCons(t, dt, i);
+    Node ticons = utils::getInstCons(t, dt, i, d_sharedSel);
     return tester.eqNode(t.eqNode(ticons));
   }
   else if (id == PfRule::DT_COLLAPSE)
@@ -82,7 +82,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = args[0];
-    if (t.getKind() != kind::APPLY_SELECTOR_TOTAL
+    if (t.getKind() != kind::APPLY_SELECTOR
         || t[0].getKind() != kind::APPLY_CONSTRUCTOR)
     {
       return Node::null();
@@ -126,4 +126,4 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

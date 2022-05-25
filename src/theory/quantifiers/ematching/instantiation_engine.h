@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -47,16 +47,13 @@ class InstantiationEngine : public QuantifiersModule {
   bool checkCompleteFor(Node q) override;
   void checkOwnership(Node q) override;
   void registerQuantifier(Node q) override;
-  Node explain(TNode n) { return Node::null(); }
   /** add user pattern */
   void addUserPattern(Node q, Node pat);
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
-  std::string identify() const override { return "InstEngine"; }
+  std::string identify() const override;
 
  private:
-  /** is the engine incomplete for this quantifier */
-  bool isIncomplete(Node q);
   /** do instantiation round */
   void doInstantiationRound(Theory::Effort effort);
   /** Return true if this module should process quantified formula q */
@@ -77,6 +74,6 @@ class InstantiationEngine : public QuantifiersModule {
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

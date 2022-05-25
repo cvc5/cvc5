@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,19 +17,19 @@
 
 #include "expr/node.h"
 #include "proof/proof.h"
-#include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
 SplitZeroCheck::SplitZeroCheck(Env& env, ExtState* data)
-    : EnvObj(env), d_data(data), d_zero_split(d_data->d_env.getUserContext())
+    : EnvObj(env), d_data(data), d_zero_split(userContext())
 {
 }
 
@@ -40,7 +40,7 @@ void SplitZeroCheck::check()
     Node v = d_data->d_ms_vars[i];
     if (d_zero_split.insert(v))
     {
-      Node eq = rewrite(v.eqNode(d_data->d_zero));
+      Node eq = rewrite(v.eqNode(mkZero(v.getType())));
       Node lem = eq.orNode(eq.negate());
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
@@ -58,4 +58,4 @@ void SplitZeroCheck::check()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

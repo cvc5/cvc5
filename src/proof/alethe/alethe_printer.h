@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include "proof/proof_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -69,14 +69,14 @@ class AletheProofPrinter
   std::string printInternal(
       std::ostream& out,
       std::shared_ptr<ProofNode> pfn,
-      const std::unordered_map<Node, std::string>& assumptions,
-      const std::unordered_map<Node, std::string>& steps,
+      std::unordered_map<Node, std::string>& assumptions,
+      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& steps,
       std::string current_prefix,
       uint32_t& current_step_id);
 };
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC4__PROOF__ALETHE_PROOF_PRINTER_H */

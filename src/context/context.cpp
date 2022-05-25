@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,7 @@
 #include "base/check.h"
 #include "context/context.h"
 
-namespace cvc5 {
-namespace context {
-
+namespace cvc5::context {
 
 Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
   // Create new memory manager
@@ -135,16 +133,8 @@ void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
 
 void ContextObj::update()
 {
-  Debug("context") << "before update(" << this << "):" << std::endl
-                   << "context is " << getContext() << std::endl
-                   << *getContext() << std::endl;
-
   // Call save() to save the information in the current object
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
-
-  Debug("context") << "in update(" << this << ") with restore "
-                   << pContextObjSaved << ": waypoint 1" << std::endl
-                   << *getContext() << std::endl;
 
   // Check that base class data was saved
   Assert((pContextObjSaved->d_pContextObjNext == d_pContextObjNext
@@ -155,27 +145,10 @@ void ContextObj::update()
 
   // Link the "saved" object in place of this ContextObj in the scope
   // we're moving it FROM.
-  Debug("context") << "in update(" << this
-                   << "): next() == " << next() << std::endl;
   if(next() != NULL) {
-    Debug("context") << "in update(" << this
-                     << "): next()->prev() == " << next()->prev() << std::endl;
     next()->prev() = &pContextObjSaved->next();
-    Debug("context") << "in update(" << this
-                     << "): next()->prev() is now "
-                     << next()->prev() << std::endl;
   }
-  Debug("context") << "in update(" << this
-                   << "): prev() == " << prev() << std::endl;
-  Debug("context") << "in update(" << this
-                   << "): *prev() == " << *prev() << std::endl;
   *prev() = pContextObjSaved;
-  Debug("context") << "in update(" << this
-                   << "): *prev() is now " << *prev() << std::endl;
-
-  Debug("context") << "in update(" << this << ") with restore "
-                   << pContextObjSaved << ": waypoint 3" << std::endl
-                   << *getContext() << std::endl;
 
   // Update Scope pointer to current top Scope
   d_pScope = d_pScope->getContext()->getTopScope();
@@ -186,10 +159,6 @@ void ContextObj::update()
   // Insert object into the list of objects that need to be restored when this
   // Scope is popped.
   d_pScope->addToChain(this);
-
-  Debug("context") << "after update(" << this << ") with restore "
-                   << pContextObjSaved << ":" << std::endl
-                   << *getContext() << std::endl;
 }
 
 ContextObj* ContextObj::restoreAndContinue()
@@ -205,7 +174,7 @@ ContextObj* ContextObj::restoreAndContinue()
     // Assert(d_pScope == d_pScope->getContext()->getBottomScope()) <<
     //        "Expected bottom scope";
 
-    Debug("context") << "NULL restore object! " << this << std::endl;
+    Trace("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
     d_pScope = nullptr;
 
@@ -244,7 +213,7 @@ void ContextObj::destroy()
   Assert(d_pScope != nullptr);
   /* Context can be big and complicated, so we only want to process this output
    * if we're really going to use it. (Same goes below.) */
-  Debug("context") << "before destroy " << this << " (level " << getLevel()
+  Trace("context") << "before destroy " << this << " (level " << getLevel()
                    << "):" << std::endl << *getContext() << std::endl;
 
   for (;;)
@@ -262,13 +231,9 @@ void ContextObj::destroy()
     {
       break;
     }
-    Debug("context") << "in destroy " << this << ", restore object is "
-                     << d_pContextObjRestore << " at level "
-                     << d_pContextObjRestore->getLevel() << ":" << std::endl
-                     << *getContext() << std::endl;
     restoreAndContinue();
   }
-  Debug("context") << "after destroy " << this << ":" << std::endl
+  Trace("context") << "after destroy " << this << ":" << std::endl
                    << *getContext() << std::endl;
 }
 
@@ -280,7 +245,7 @@ ContextObj::ContextObj(Context* pContext) :
   d_ppContextObjPrev(NULL) {
   Assert(pContext != NULL) << "NULL context pointer";
 
-  Debug("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
+  Trace("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
   d_pScope = pContext->getBottomScope();
   d_pScope->addToChain(this);
 }
@@ -293,7 +258,7 @@ ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
   d_ppContextObjPrev(NULL) {
   Assert(pContext != NULL) << "NULL context pointer";
 
-  Debug("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
+  Trace("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
   if(allocatedInCMM) {
     d_pScope = pContext->getTopScope();
   } else {
@@ -370,21 +335,14 @@ Scope::~Scope() {
     d_pContextObjList = d_pContextObjList->restoreAndContinue();
   }
 
-  if (d_garbage) {
-    while (!d_garbage->empty()) {
-      ContextObj* obj = d_garbage->back();
-      d_garbage->pop_back();
-      obj->deleteSelf();
-    }
+  for (ContextObj* obj : d_garbage)
+  {
+    obj->deleteSelf();
   }
 }
 
 void Scope::enqueueToGarbageCollect(ContextObj* obj) {
-  if (!d_garbage) {
-    d_garbage.reset(new std::vector<ContextObj*>);
-  }
-  d_garbage->push_back(obj);
+  d_garbage.push_back(obj);
 }
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context

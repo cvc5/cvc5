@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
@@ -96,7 +96,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   TrustNode tpp = theoryPreprocess(irNode, newLemmas);
   Node ppNode = tpp.getNode();
 
-  if (Trace.isOn("tpp-debug"))
+  if (TraceIsOn("tpp-debug"))
   {
     if (node != irNode)
     {
@@ -440,9 +440,11 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
     return term;
   }
   // call ppRewrite for the given theory
-  TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term, lems);
+  std::vector<SkolemLemma> newLems;
+  TrustNode trn = d_engine.ppRewrite(term, newLems);
   Trace("tpp-debug2") << "preprocessWithProof returned " << trn
-                      << ", #lems = " << lems.size() << std::endl;
+                      << ", #lems = " << newLems.size() << std::endl;
+  lems.insert(lems.end(), newLems.begin(), newLems.end());
   if (trn.isNull())
   {
     // no change, return
@@ -499,4 +501,4 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

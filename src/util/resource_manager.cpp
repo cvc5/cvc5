@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner, Liana Hadarean
+ *   Gereon Kremer, Liana Hadarean, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 bool WallClockTimer::on() const
 {
@@ -73,13 +73,10 @@ const char* toString(Resource r)
   switch (r)
   {
     case Resource::ArithPivotStep: return "ArithPivotStep";
+    case Resource::ArithNlCoveringStep: return "ArithNlCoveringStep";
     case Resource::ArithNlLemmaStep: return "ArithNlLemmaStep";
     case Resource::BitblastStep: return "BitblastStep";
-    case Resource::BvEagerAssertStep: return "BvEagerAssertStep";
-    case Resource::BvPropagationStep: return "BvPropagationStep";
-    case Resource::BvSatConflictsStep: return "BvSatConflictsStep";
-    case Resource::BvSatPropagateStep: return "BvSatPropagateStep";
-    case Resource::BvSatSimplifyStep: return "BvSatSimplifyStep";
+    case Resource::BvSatStep: return "BvSatStep";
     case Resource::CnfStep: return "CnfStep";
     case Resource::DecisionStep: return "DecisionStep";
     case Resource::LemmaStep: return "LemmaStep";
@@ -205,7 +202,7 @@ void ResourceManager::spendResource(uint64_t amount)
   ++d_statistics->d_spendResourceCalls;
   d_cumulativeResourceUsed += amount;
 
-  Debug("limit") << "ResourceManager::spendResource()" << std::endl;
+  Trace("limit") << "ResourceManager::spendResource()" << std::endl;
   d_thisCallResourceUsed += amount;
   if (out())
   {
@@ -308,4 +305,4 @@ void ResourceManager::registerListener(Listener* listener)
   return d_listeners.push_back(listener);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 RemoveTermFormulas::RemoveTermFormulas(Env& env)
     : EnvObj(env),
@@ -162,7 +162,7 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
       TrustNode newLem;
       bool inQuant, inTerm;
       RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
-      Debug("ite") << "removeITEs(" << node << ")"
+      Trace("ite") << "removeITEs(" << node << ")"
                    << " " << inQuant << " " << inTerm << std::endl;
       Assert(!inQuant);
       Node currt =
@@ -516,4 +516,4 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 
 bool RemoveTermFormulas::isProofEnabled() const { return d_tpg != nullptr; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

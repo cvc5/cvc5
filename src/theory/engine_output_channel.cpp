@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
@@ -34,8 +34,6 @@ EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
                                                  + "lemmas")),
       requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
                                                        + "requirePhase")),
-      restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                         + "restartDemands")),
       trustedConflicts(smtStatisticsRegistry().registerInt(
           getStatsPrefix(theory) + "trustedConflicts")),
       trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
@@ -81,20 +79,6 @@ void EngineOutputChannel::conflict(TNode conflictNode)
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
   d_engine->conflict(tConf, d_theory);
-}
-
-void EngineOutputChannel::demandRestart()
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node restartVar = sm->mkDummySkolem(
-      "restartVar",
-      nm->booleanType(),
-      "A boolean variable asserted to be true to force a restart");
-  Trace("theory::restart") << "EngineOutputChannel<" << d_theory
-                           << ">::restart(" << restartVar << ")" << std::endl;
-  ++d_statistics.restartDemands;
-  lemma(restartVar, LemmaProperty::REMOVABLE);
 }
 
 void EngineOutputChannel::requirePhase(TNode n, bool phase)
@@ -153,4 +137,4 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,10 +17,11 @@
 #include "expr/array_store_all.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -86,9 +87,12 @@ Node ArrayEnumerator::operator*()
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));
+    // Normalize the constant. We must do this every iteration of this loop,
+    // since this utility requires all children of n to be constant, which
+    // implies the first argument to STORE on the next iteration must be
+    // normalized.
+    n = TheoryArraysRewriter::normalizeConstant(n);
   }
-  Trace("array-type-enum") << "operator * prerewrite: " << n << std::endl;
-  n = Rewriter::rewrite(n);
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;
 }
@@ -156,4 +160,4 @@ bool ArrayEnumerator::isFinished()
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

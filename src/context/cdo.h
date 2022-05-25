@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Mathias Preiner
+ *   Morgan Deters, Clark Barrett, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +20,7 @@
 
 #include "context/context.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Most basic template for context-dependent objects.  Simply makes a copy
@@ -56,10 +55,7 @@ protected:
    */
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
-    Debug("context") << "save cdo " << this;
-    ContextObj* p = new(pCMM) CDO<T>(*this);
-    Debug("context") << " to " << p << std::endl;
-    return p;
+    return new (pCMM) CDO<T>(*this);
   }
 
   /**
@@ -68,10 +64,8 @@ protected:
    */
   void restore(ContextObj* pContextObj) override
   {
-    //Debug("context") << "restore cdo " << this;
     CDO<T>* p = static_cast<CDO<T>*>(pContextObj);
     d_data = p->d_data;
-    //Debug("context") << " to " << get() << std::endl;
     // Explicitly call destructor as it will not otherwise get called.
     p->d_data.~T();
   }
@@ -174,7 +168,6 @@ public:
 
 };/* class CDO */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDO_H */

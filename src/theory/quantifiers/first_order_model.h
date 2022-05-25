@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Morgan Deters
+ *   Andrew Reynolds, Paul Meng, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
@@ -73,7 +73,7 @@ class FirstOrderModel : protected EnvObj
    * Choose a term that is equivalent to a in the current context that is the
    * best term for instantiating the index^th variable of quantified formula q.
    * If no legal term can be found, we return null. This can occur if:
-   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a's type is not the type of the index^th variable of q,
    * - a is in an equivalent class with all terms that are restricted not to
    * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
    * guided instantiation.
@@ -219,6 +219,6 @@ class FirstOrderModel : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__FIRST_ORDER_MODEL_H */

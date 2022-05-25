@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,11 +33,11 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5;
-using namespace cvc5::kind;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 void SortInference::UnionFind::print(const char * c){
@@ -277,7 +277,7 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
           }
         }
       }
-      if (Trace.isOn("sort-inference-rewrite"))
+      if (TraceIsOn("sort-inference-rewrite"))
       {
         Trace("sort-inference-rewrite")
             << "Add the following injections for " << tss.first
@@ -381,7 +381,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
         //apply sort inference to quantified variables
         for( size_t i=0; i<n[0].getNumChildren(); i++ ){
           TypeNode nitn = n[0][i].getType();
-          if( !nitn.isSort() )
+          if (!nitn.isUninterpretedSort())
           {
             // If the variable is of an interpreted sort, we assume the
             // the sort of the variable will stay the same sort.
@@ -574,7 +574,7 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
     // to be rewritten in the sort-inferred signature. Notice we only assign
     // pref here if it is an uninterpreted sort.
     if (!pref.isNull() && d_id_for_types.find(pref) == d_id_for_types.end()
-        && pref.isSort())
+        && pref.isUninterpretedSort())
     {
       retType = pref;
     }else{
@@ -605,9 +605,12 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // if no sort was inferred for this node, return original
-  if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
+  if (tn.isNull() || tn == old.getType())
+  {
     return old;
-  }else if( old.isConst() ){
+  }
+  else if (old.isConst())
+  {
     //must make constant of type tn
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
@@ -618,7 +621,9 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
           "constant created during sort inference");  // use mkConst???
     }
     return d_const_map[tn][ old ];
-  }else if( old.getKind()==kind::BOUND_VARIABLE ){
+  }
+  else if (old.getKind() == kind::BOUND_VARIABLE)
+  {
     std::stringstream ss;
     ss << "b_" << old;
     return nm->mkBoundVar(ss.str(), tn);
@@ -714,7 +719,8 @@ Node SortInference::simplifyNode(
     }else if( n.getKind()==kind::EQUAL ){
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
-      if( !tn1.isComparableTo( tn2 ) ){
+      if (tn1 != tn2)
+      {
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);
@@ -756,7 +762,7 @@ Node SortInference::simplifyNode(
       {
         TypeNode tn = children[i+1].getType();
         TypeNode tna = getTypeForId( d_op_arg_types[op][i] );
-        if (!tn.isSubtypeOf(tna))
+        if (tn != tna)
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
           Assert(false);
@@ -875,7 +881,7 @@ bool SortInference::isWellSorted( Node n ) {
 }
 
 bool SortInference::isMonotonic( TypeNode tn ) {
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }
 
@@ -885,4 +891,4 @@ bool SortInference::isHandledApplyUf(Kind k) const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

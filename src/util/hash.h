@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *   Andres Noetzli, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * cvc5 hash utilities.
  */
 
 #include "cvc5_public.h"
@@ -39,7 +36,7 @@ struct hash<uint64_t> {
 
 }/* std namespace */
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace fnv1a {
 
@@ -68,6 +65,6 @@ struct PairHashFunction {
   }
 };/* struct PairHashFunction */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__HASH_H */

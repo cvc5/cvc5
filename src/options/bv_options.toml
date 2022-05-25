@@ -3,7 +3,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSatSolver"
-  category   = "expert"
+  category   = "regular"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
   default    = "CADICAL"
@@ -36,7 +36,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bitvectorPropagate"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-propagate"
   type       = "bool"
   default    = "true"
@@ -75,14 +75,6 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "true"
   help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
-
-[[option]]
-  name       = "bvExtractArithRewrite"
-  category   = "expert"
-  long       = "bv-extract-arith"
-  type       = "bool"
-  default    = "false"
-  help       = "enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)"
 
 [[option]]
   name       = "bvIntroducePow2"
@@ -125,7 +117,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvAssertInput"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-assert-input"
   type       = "bool"
   default    = "false"

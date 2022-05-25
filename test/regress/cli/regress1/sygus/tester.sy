@@ -1,0 +1,37 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic DTSLIA)
+(declare-datatype DT ((A (a Int)) (B (b String)) (JSBool (jsBool Bool))))
+
+(define-fun isA ((i DT)) Bool ((_ is A) i))
+(define-fun isB ((i DT)) Bool ((_ is B) i))
+
+(synth-fun add ((x1 DT)) DT
+	((ntDT DT) (ntBool Bool) (ntInt Int))
+	(
+		(ntDT DT
+			( x1
+				(JSBool ntBool)
+				(A ntInt)
+				(ite ntBool ntDT ntDT)
+			)
+		)
+		(ntBool Bool
+			(
+				(isA ntDT)
+				(isB ntDT)
+				(jsBool ntDT)
+			)
+		)
+		(ntInt Int
+			(1
+				(a ntDT)
+				(+ ntInt ntInt)
+			)
+		)
+	)
+)
+(constraint (= (add (A 6)) (A 7)))
+(constraint (= (add (B "j")) (B "j")))
+(check-synth)

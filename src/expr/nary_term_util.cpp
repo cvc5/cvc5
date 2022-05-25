@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 struct IsListTag
@@ -119,10 +119,16 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND:
     case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case ADD: nullTerm = nm->mkConstRealOrInt(tn, Rational(0)); break;
+    case ADD:
+      // Note that we ignore the type. This is safe since ADD is permissive
+      // for subtypes.
+      nullTerm = nm->mkConstInt(Rational(0));
+      break;
     case MULT:
     case NONLINEAR_MULT:
-      nullTerm = nm->mkConstRealOrInt(tn, Rational(1));
+      // Note that we ignore the type. This is safe since multiplication is
+      // permissive for subtypes.
+      nullTerm = nm->mkConstInt(Rational(1));
       break;
     case STRING_CONCAT:
       // handles strings and sequences
@@ -138,7 +144,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
       break;
     case REGEXP_INTER:
       // universal language
-      nullTerm = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+      nullTerm = nm->mkNode(REGEXP_ALL);
       break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
@@ -256,4 +262,4 @@ Node narySubstitute(Node src,
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
