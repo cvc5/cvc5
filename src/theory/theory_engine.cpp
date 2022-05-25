@@ -35,6 +35,7 @@
 #include "smt/logic_exception.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
@@ -48,7 +49,6 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "theory/ee_manager_central.h"
 
 using namespace std;
 
@@ -640,7 +640,8 @@ theory::TheoryId TheoryEngine::theoryExpPropagation(theory::TheoryId tid) const
 {
   if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
   {
-    if (EqEngineManagerCentral::usesCentralEqualityEngine(options(), tid) && Theory::expUsingCentralEqualityEngine(tid))
+    if (EqEngineManagerCentral::usesCentralEqualityEngine(options(), tid)
+        && Theory::expUsingCentralEqualityEngine(tid))
     {
       return THEORY_BUILTIN;
     }
@@ -1506,7 +1507,8 @@ TrustNode TheoryEngine::getExplanation(
   Node conclusion = explanationVector[0].d_node;
   // if the theory explains using the central equality engine, we always start
   // with THEORY_BUILTIN.
-  explanationVector[0].d_theory = theoryExpPropagation(explanationVector[0].d_theory);
+  explanationVector[0].d_theory =
+      theoryExpPropagation(explanationVector[0].d_theory);
   std::shared_ptr<LazyCDProof> lcp;
   if (isProofEnabled())
   {
