@@ -170,7 +170,7 @@ Node PatternTermSelector::getIsUsableTrigger(const Options& opts, Node n, Node q
             {
               trySolve = opts.quantifiers.relationalTriggers;
             }
-            else if (isUsableTrigger(it->first, q))
+            else if (isUsableTrigger(opts, it->first, q))
             {
               trySolve = true;
             }
