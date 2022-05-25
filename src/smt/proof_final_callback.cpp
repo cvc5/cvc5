@@ -33,9 +33,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
     : EnvObj(env),
       d_ruleCount(statisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
-      d_instRuleIds(
-          statisticsRegistry().registerHistogram<theory::InferenceId>(
-              "finalProof::instRuleId")),
+      d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
+          "finalProof::instRuleId")),
       d_annotationRuleIds(
           statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
