@@ -791,30 +791,6 @@ name   = "Quantifiers"
   help       = "number of conjectures to generate per instantiation round"
 
 [[option]]
-  name       = "conjectureFilterActiveTerms"
-  category   = "expert"
-  long       = "conjecture-filter-active-terms"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on active terms"
-
-[[option]]
-  name       = "conjectureFilterCanonical"
-  category   = "expert"
-  long       = "conjecture-filter-canonical"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on canonicity"
-
-[[option]]
-  name       = "conjectureFilterModel"
-  category   = "expert"
-  long       = "conjecture-filter-model"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on model"
-
-[[option]]
   name       = "conjectureGenGtEnum"
   category   = "expert"
   long       = "conjecture-gen-gt-enum=N"
