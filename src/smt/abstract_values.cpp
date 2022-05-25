@@ -38,7 +38,6 @@ Node AbstractValues::substituteAbstractValues(TNode n)
 
 Node AbstractValues::mkAbstractValue(TNode n)
 {
-  Assert(options::abstractValues());
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
