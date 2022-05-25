@@ -1,4 +1,5 @@
-; EXPECT: unknown
+; COMMAND-LINE: --mbqi
+; EXPECT: sat
 
 ; This triggered a failure related to datatypes model building (when symfpu is enabled)
 (set-logic ALL)

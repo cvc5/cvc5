@@ -1409,12 +1409,24 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // must have finite model finding on
     opts.writeQuantifiers().finiteModelFind = true;
   }
-
   if (opts.quantifiers.instMaxLevel != -1)
   {
-    verbose(1) << "SolverEngine: turning off cbqi to support instMaxLevel"
-               << std::endl;
+    notifyModifyOption("cegqi", "false", "instMaxLevel");
     opts.writeQuantifiers().cegqi = false;
+  }
+  if (opts.quantifiers.mbqi)
+  {
+    // MBQI is an alternative to CEGQI/SyQI
+    if (!opts.quantifiers.cegqiWasSetByUser)
+    {
+      notifyModifyOption("cegqi", "false", "mbqi");
+      opts.writeQuantifiers().cegqi = false;
+    }
+    if (!opts.quantifiers.sygusInstWasSetByUser)
+    {
+      notifyModifyOption("sygusInst", "false", "mbqi");
+      opts.writeQuantifiers().sygusInst = false;
+    }
   }
 
   if (opts.quantifiers.fmfBoundLazyWasSetByUser

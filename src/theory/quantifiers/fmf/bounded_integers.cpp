@@ -20,6 +20,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -780,16 +781,15 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    NodeManager* nm = NodeManager::currentNM();
     const DType& dt = datatypes::utils::datatypeOf(t.getOperator());
     unsigned index = datatypes::utils::indexOf(t.getOperator());
+    bool sharedSel = options().datatypes.dtSharedSelectors;
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
       Node u;
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = nm->mkNode(
-            APPLY_SELECTOR, dt[index].getSelectorInternal(e.getType(), i), e);
+        Node se = datatypes::utils::applySelector(dt[index], i, sharedSel, e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){
