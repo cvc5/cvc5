@@ -211,8 +211,8 @@ void InstMatchGenerator::initialize(Node q,
   {
     // candidates for apply selector are a union of correctly and incorrectly
     // applied selectors
-    d_cg =
-        new inst::CandidateGeneratorSelector(d_qstate, d_treg, d_match_pattern);
+    d_cg = new inst::CandidateGeneratorSelector(
+        d_env, d_qstate, d_treg, d_match_pattern);
   }
   else if (TriggerTermInfo::isAtomicTriggerKind(mpk))
   {
@@ -224,13 +224,13 @@ void InstMatchGenerator::initialize(Node q,
       if (dt.getNumConstructors() == 1)
       {
         d_cg = new inst::CandidateGeneratorConsExpand(
-            d_qstate, d_treg, d_match_pattern);
+            d_env, d_qstate, d_treg, d_match_pattern);
       }
     }
     if (d_cg == nullptr)
     {
       CandidateGeneratorQE* cg =
-          new CandidateGeneratorQE(d_qstate, d_treg, d_match_pattern);
+          new CandidateGeneratorQE(d_env, d_qstate, d_treg, d_match_pattern);
       // we will be scanning lists trying to find ground terms whose operator
       // is the same as d_match_operator's.
       d_cg = cg;
@@ -255,9 +255,10 @@ void InstMatchGenerator::initialize(Node q,
       Trace("inst-match-gen")
           << "Purify dt trigger " << d_pattern << ", will match terms of op "
           << cOp << std::endl;
-      d_cg = new inst::CandidateGeneratorQE(d_qstate, d_treg, cOp);
+      d_cg = new inst::CandidateGeneratorQE(d_env, d_qstate, d_treg, cOp);
     }else{
-      d_cg = new CandidateGeneratorQEAll(d_qstate, d_treg, d_match_pattern);
+      d_cg =
+          new CandidateGeneratorQEAll(d_env, d_qstate, d_treg, d_match_pattern);
     }
   }
   else if (mpk == EQUAL)
@@ -267,7 +268,7 @@ void InstMatchGenerator::initialize(Node q,
     {
       // candidates will be all disequalities
       d_cg = new inst::CandidateGeneratorQELitDeq(
-          d_qstate, d_treg, d_match_pattern);
+          d_env, d_qstate, d_treg, d_match_pattern);
     }
   }
   else
