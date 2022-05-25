@@ -15,9 +15,9 @@
 
 #include "theory/ee_manager_central.h"
 
-#include "smt/env.h"
 #include "options/arith_options.h"
 #include "options/theory_options.h"
+#include "smt/env.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"

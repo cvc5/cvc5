@@ -65,7 +65,8 @@ class EqEngineManagerCentral : public EqEngineManager
   void notifyBuildingModel();
 
  private:
-  /** Return true if the theory with the given id uses central equality engine */
+  /** Return true if the theory with the given id uses central equality engine
+   */
   bool usesCentralEqualityEngine(TheoryId id) const;
   /**
    * Notify class for central equality engine. This class dispatches
