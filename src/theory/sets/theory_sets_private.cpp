@@ -897,40 +897,6 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
   return false;
 }
 
-/******************** Model generation ********************/
-/******************** Model generation ********************/
-/******************** Model generation ********************/
-
-namespace {
-/**
- * This function is a helper function to print sets as
- * Set A = { a0, a1, a2, }
- * instead of
- * (union (singleton a0) (union (singleton a1) (singleton a2)))
- */
-void traceSetElementsRecursively(stringstream& stream, const Node& set)
-{
-  Assert(set.getType().isSet());
-  if (set.getKind() == SET_SINGLETON)
-  {
-    stream << set[0] << ", ";
-  }
-  if (set.getKind() == SET_UNION)
-  {
-    traceSetElementsRecursively(stream, set[0]);
-    traceSetElementsRecursively(stream, set[1]);
-  }
-}
-
-std::string traceElements(const Node& set)
-{
-  std::stringstream stream;
-  traceSetElementsRecursively(stream, set);
-  return stream.str();
-}
-
-}  // namespace
-
 bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
                                            const std::set<Node>& termSet)
 {
@@ -1009,8 +975,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         m->assertSkeleton(el);
       }
 
-      Trace("sets-model") << "Set " << eqc << " = { " << traceElements(rep)
-                          << " }" << std::endl;
+      Trace("sets-model") << "Set " << eqc << " = " << els << std::endl;
     }
   }
 

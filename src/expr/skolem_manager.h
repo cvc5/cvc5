@@ -168,7 +168,7 @@ enum class SkolemFunId
    */
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
-  BAG_DEQ_DIFF,
+  BAGS_DEQ_DIFF,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))

@@ -659,6 +659,14 @@ name   = "Quantifiers"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
+[[option]]
+  name       = "fmfBoundBlast"
+  category   = "expert"
+  long       = "fmf-bound-blast"
+  type       = "bool"
+  default    = "false"
+  help       = "send all instantiations for bounded ranges in a single round"
+
 ### Conflict-based instantiation options
 
 [[option]]
