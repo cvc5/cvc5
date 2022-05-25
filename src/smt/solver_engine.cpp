@@ -1461,13 +1461,6 @@ void SolverEngine::checkUnsatCore()
   coreChecker->getOptions().writeSmt().produceProofs = false;
   coreChecker->getOptions().writeSmt().checkProofs = false;
 
-  // set up separation logic heap if necessary
-  TypeNode sepLocType, sepDataType;
-  if (getSepHeapTypes(sepLocType, sepDataType))
-  {
-    coreChecker->declareSepHeap(sepLocType, sepDataType);
-  }
-
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();

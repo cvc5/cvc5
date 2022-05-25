@@ -1,5 +1,5 @@
-; COMMAND-LINE: --strings-exp
-; EXPECT: unknown
+; COMMAND-LINE: --strings-exp --mbqi
+; EXPECT: sat
 (set-logic HO_ALL)
 (declare-datatypes ((a 0) (b 0)) (((c) (d)) ((h (j b)) (e))))
 (declare-fun f () b)
