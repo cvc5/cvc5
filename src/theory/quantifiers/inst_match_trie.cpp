@@ -58,29 +58,6 @@ bool InstMatchTrie::addInstMatch(Node f,
   return true;
 }
 
-bool InstMatchTrie::removeInstMatch(Node q,
-                                    const std::vector<Node>& m,
-                                    ImtIndexOrder* imtio,
-                                    unsigned index)
-{
-  Assert(index < q[0].getNumChildren());
-  Assert(!imtio || index < imtio->d_order.size());
-  unsigned i_index = imtio ? imtio->d_order[index] : index;
-  Node n = m[i_index];
-  std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
-  if (it != d_data.end())
-  {
-    if ((index + 1) == q[0].getNumChildren()
-        || (imtio && (index + 1) == imtio->d_order.size()))
-    {
-      d_data.erase(n);
-      return true;
-    }
-    return it->second.removeInstMatch(q, m, imtio, index + 1);
-  }
-  return false;
-}
-
 void InstMatchTrie::print(std::ostream& out,
                           Node q,
                           std::vector<TNode>& terms) const
@@ -202,27 +179,6 @@ bool CDInstMatchTrie::addInstMatch(context::Context* context,
     imt->addInstMatch(context, f, m, index + 1, false);
   }
   return true;
-}
-
-bool CDInstMatchTrie::removeInstMatch(Node q,
-                                      const std::vector<Node>& m,
-                                      unsigned index)
-{
-  if (index == q[0].getNumChildren())
-  {
-    if (d_valid.get())
-    {
-      d_valid.set(false);
-      return true;
-    }
-    return false;
-  }
-  std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
-  if (it != d_data.end())
-  {
-    return it->second->removeInstMatch(q, m, index + 1);
-  }
-  return false;
 }
 
 void CDInstMatchTrie::print(std::ostream& out,

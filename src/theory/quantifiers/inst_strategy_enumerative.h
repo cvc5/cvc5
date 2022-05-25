@@ -18,7 +18,6 @@
 #ifndef CVC5__INST_STRATEGY_ENUMERATIVE_H
 #define CVC5__INST_STRATEGY_ENUMERATIVE_H
 
-#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
