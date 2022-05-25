@@ -31,20 +31,20 @@ namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(Env& env)
     : EnvObj(env),
-      d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
+      d_ruleCount(statisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
       d_instRuleIds(
-          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+          statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::instRuleId")),
       d_annotationRuleIds(
-          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+          statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
       d_totalRuleCount(
-          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
+          statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
-          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
+          statisticsRegistry().registerInt("finalProof::minPedanticLevel")),
       d_numFinalProofs(
-          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
+          statisticsRegistry().registerInt("finalProofs::numFinalProofs")),
       d_pedanticFailure(false)
 {
   d_minPedanticLevel += 10;
