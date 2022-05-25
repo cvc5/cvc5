@@ -251,13 +251,6 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
-  if (options::bvExtractArithRewrite()) {
-    if (RewriteRule<ExtractArith>::applies(node)) {
-      resultNode = RewriteRule<ExtractArith>::run<false>(node);
-      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-    }
-  }
-
   resultNode = LinearRewriteStrategy<
       // We could have an extract over extract
       RewriteRule<ExtractExtract>,

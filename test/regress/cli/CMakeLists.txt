@@ -67,6 +67,7 @@ set(regress_0_tests
   regress0/arith/issue5761-ppr.smt2
   regress0/arith/issue8097-iid.smt2
   regress0/arith/issue8159-rewrite-intreal.smt2
+  regress0/arith/issue8805-mixed-var-elim.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -753,6 +754,7 @@ set(regress_0_tests
   regress0/issue6605-2-abd-triv.smt2
   regress0/issue6738.smt2
   regress0/issue6741.smt2
+  regress0/issue8807-model-core-partial.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -1827,6 +1829,7 @@ set(regress_1_tests
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/table_aggregate1.smt2
+  regress1/bags/table_group1.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
