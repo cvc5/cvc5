@@ -48,7 +48,7 @@ if(NOT GTest_FOUND_SYSTEM)
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-	  -DCMAKE_CXX_FLAGS=${CARGS}
+	      -DCMAKE_CXX_FLAGS=${CARGS}
         BUILD_COMMAND ${CMAKE_COMMAND} --build .
             --config ${CMAKE_BUILD_TYPE} --target gtest
         COMMAND ${CMAKE_COMMAND} --build .
