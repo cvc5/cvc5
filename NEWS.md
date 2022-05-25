@@ -20,6 +20,11 @@ cvc5 1.0.1
 - The API method `mkTuple` no longer supports casting integers to reals when
   constructing tuples.
 
+**New Features**
+
+- Support for declaring oracle functions in the API via the method
+  `declareOracleFun`. This allows users to declare functions whose semantics
+  are associated with a provided executable implementation.
 
 cvc5 1.0
 =========

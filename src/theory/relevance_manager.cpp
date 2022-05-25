@@ -44,7 +44,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options().smt.produceDifficulty)
   {
-    d_dman = std::make_unique<DifficultyManager>(this, userContext(), val);
+    d_dman = std::make_unique<DifficultyManager>(env, this, val);
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
