@@ -94,7 +94,7 @@ void EqEngineManagerCentral::initializeTheories()
     // we can't use the central equality engine for the master equality
     // engine
     if (theoryId != THEORY_QUANTIFIERS && linfo.isTheoryEnabled(theoryId)
-        && !usesCentralEqualityEngine(theoryId))
+        && !usesCentralEqualityEngine(options(), theoryId))
     {
       Trace("ee-central") << "Must use separate master equality engine due to "
                           << theoryId << std::endl;
@@ -157,7 +157,7 @@ void EqEngineManagerCentral::initializeTheories()
     eq::EqualityEngineNotify* notify = esi.d_notify;
     d_theoryNotify[theoryId] = notify;
     // split on whether integrated, or whether asked for master
-    if (usesCentralEqualityEngine(t->getId()))
+    if (usesCentralEqualityEngine(options(), t->getId()))
     {
       Trace("ee-central") << "...uses central" << std::endl;
       // the theory uses the central equality engine
@@ -198,20 +198,17 @@ void EqEngineManagerCentral::initializeTheories()
   }
 }
 
-bool EqEngineManagerCentral::usesCentralEqualityEngine(TheoryId id) const
+bool EqEngineManagerCentral::usesCentralEqualityEngine(const Options& opts, TheoryId id)
 {
+  Assert (opts.theory.eeMode == options::EqEngineMode::CENTRAL);
   if (id == THEORY_BUILTIN)
   {
     return true;
   }
-  if (options().theory.eeMode == options::EqEngineMode::DISTRIBUTED)
-  {
-    return false;
-  }
   if (id == THEORY_ARITH)
   {
     // conditional on whether we are using the equality solver
-    return options().arith.arithEqSolver;
+    return opts.arith.arithEqSolver;
   }
   return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
          || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS

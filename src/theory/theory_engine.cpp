@@ -48,6 +48,7 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
+#include "theory/ee_manager_central.h"
 
 using namespace std;
 
@@ -639,7 +640,7 @@ theory::TheoryId TheoryEngine::theoryExpPropagation(theory::TheoryId tid) const
 {
   if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
   {
-    if (tid != THEORY_SAT_SOLVER && Theory::expUsingCentralEqualityEngine(tid))
+    if (EqEngineManagerCentral::usesCentralEqualityEngine(options(), tid) && Theory::expUsingCentralEqualityEngine(tid))
     {
       return THEORY_BUILTIN;
     }
@@ -908,11 +909,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   // determine the actual theory that will process/explain the fact, which is
   // THEORY_BUILTIN if the theory uses the central equality engine
-  TheoryId toTheoryIdProp =
-      (options().theory.eeMode != options::EqEngineMode::DISTRIBUTED
-       && Theory::expUsingCentralEqualityEngine(toTheoryId))
-          ? THEORY_BUILTIN
-          : toTheoryId;
+  TheoryId toTheoryIdProp = theoryExpPropagation(toTheoryId);
   // If sending to the shared solver, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
     if (markPropagation(
@@ -1509,11 +1506,7 @@ TrustNode TheoryEngine::getExplanation(
   Node conclusion = explanationVector[0].d_node;
   // if the theory explains using the central equality engine, we always start
   // with THEORY_BUILTIN.
-  if (options().theory.eeMode != options::EqEngineMode::DISTRIBUTED
-      && Theory::expUsingCentralEqualityEngine(explanationVector[0].d_theory))
-  {
-    explanationVector[0].d_theory = THEORY_BUILTIN;
-  }
+  explanationVector[0].d_theory = theoryExpPropagation(explanationVector[0].d_theory);
   std::shared_ptr<LazyCDProof> lcp;
   if (isProofEnabled())
   {
