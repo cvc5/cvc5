@@ -29,11 +29,12 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-PatternTermSelector::PatternTermSelector(Node q,
+PatternTermSelector::PatternTermSelector(const Options& opts,
+                                         Node q,
                                          options::TriggerSelMode tstrt,
                                          const std::vector<Node>& exc,
                                          bool filterInst)
-    : d_quant(q), d_tstrt(tstrt), d_excluded(exc), d_filterInst(filterInst)
+    : d_opts(opts), d_quant(q), d_tstrt(tstrt), d_excluded(exc), d_filterInst(filterInst)
 {
 }
 
@@ -218,9 +219,9 @@ bool PatternTermSelector::isUsableAtomicTrigger(const Options& opts, Node n, Nod
          && TriggerTermInfo::isAtomicTrigger(n) && isUsable(opts, n, q);
 }
 
-bool PatternTermSelector::isUsableTrigger(Node n, Node q)
+bool PatternTermSelector::isUsableTrigger(const Options& opts, Node n, Node q)
 {
-  Node nu = getIsUsableTrigger(n, q);
+  Node nu = getIsUsableTrigger(opts, n, q);
   return !nu.isNull();
 }
 
@@ -271,7 +272,7 @@ void PatternTermSelector::collectTermsInternal(
            && std::find(d_excluded.begin(), d_excluded.end(), n)
                   == d_excluded.end())
   {
-    nu = getIsUsableTrigger(n, d_quant);
+    nu = getIsUsableTrigger(d_opts, n, d_quant);
     if (!nu.isNull() && nu != n)
     {
       collectTermsInternal(
@@ -301,7 +302,7 @@ void PatternTermSelector::collectTermsInternal(
       }
     }
     Assert(reqEq.isNull() || !quantifiers::TermUtil::hasInstConstAttr(reqEq));
-    Assert(isUsableTrigger(nu, d_quant));
+    Assert(isUsableTrigger(d_opts, nu, d_quant));
     Trace("auto-gen-trigger-debug2")
         << "...add usable trigger : " << nu << std::endl;
     tinfo[nu].init(d_quant, nu, hasEPol ? (epol ? 1 : -1) : 0, reqEq);

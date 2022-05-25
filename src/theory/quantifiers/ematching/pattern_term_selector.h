@@ -46,7 +46,8 @@ class PatternTermSelector
    * also returning f(f(x)). This is default true since it helps in practice
    * to filter trigger instances.
    */
-  PatternTermSelector(Node q,
+  PatternTermSelector(const Options& opts,
+                      Node q,
                       options::TriggerSelMode tstrt,
                       const std::vector<Node>& exc = {},
                       bool filterInst = true);
@@ -180,6 +181,8 @@ class PatternTermSelector
                           Node n2,
                           const std::vector<Node>& fv1,
                           const std::vector<Node>& fv2);
+  /** Reference to options */
+  const Options& d_opts;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** The trigger selection strategy */
