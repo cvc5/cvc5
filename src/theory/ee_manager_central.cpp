@@ -72,7 +72,7 @@ void EqEngineManagerCentral::initializeTheories()
   std::map<TheoryId, EeSetupInfo> esiMap;
   // set of theories that need equality engines
   std::unordered_set<TheoryId> eeTheories;
-  const LogicInfo& logicInfo = logicInfo();
+  const LogicInfo& linfo = logicInfo();
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
        ++theoryId)
@@ -93,7 +93,7 @@ void EqEngineManagerCentral::initializeTheories()
     // if the logic has a theory that does not use central equality engine,
     // we can't use the central equality engine for the master equality
     // engine
-    if (theoryId != THEORY_QUANTIFIERS && logicInfo.isTheoryEnabled(theoryId)
+    if (theoryId != THEORY_QUANTIFIERS && linfo.isTheoryEnabled(theoryId)
         && !usesCentralEqualityEngine(theoryId))
     {
       Trace("ee-central") << "Must use separate master equality engine due to "
@@ -104,7 +104,7 @@ void EqEngineManagerCentral::initializeTheories()
 
   // initialize the master equality engine, which may be the central equality
   // engine
-  if (logicInfo.isQuantified())
+  if (linfo.isQuantified())
   {
     // construct the master equality engine
     Assert(d_masterEqualityEngine == nullptr);
@@ -162,7 +162,7 @@ void EqEngineManagerCentral::initializeTheories()
       Trace("ee-central") << "...uses central" << std::endl;
       // the theory uses the central equality engine
       eet.d_usedEe = &d_centralEqualityEngine;
-      if (logicInfo.isTheoryEnabled(theoryId))
+      if (linfo.isTheoryEnabled(theoryId))
       {
         // add to vectors for the kinds of notifications
         if (esi.needsNotifyNewClass())

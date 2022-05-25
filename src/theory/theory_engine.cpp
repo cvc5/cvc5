@@ -1091,8 +1091,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   return !d_inConflict;
 }
 
-const LogicInfo& TheoryEngine::logicInfo() const { return logicInfo(); }
-
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
 {
   Assert(a.getType() == b.getType());
