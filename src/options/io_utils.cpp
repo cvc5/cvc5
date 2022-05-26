@@ -21,26 +21,26 @@
 namespace cvc5::internal::options::ioutils {
 namespace {
 
+// There is no good way to figure out whether the value behind iword() was
+// explicitly set. The default value is zero; we shift by some random constant
+// such that zero is never a valid value, and we can still use both negative
+// and positive values.
+static constexpr long value_offset = 1024;
+
 template <typename T>
 void setData(std::ios_base& ios, int iosIndex, T value)
 {
-  constexpr long offset = 1024;
-  ios.iword(iosIndex) = static_cast<long>(value) + offset;
+  ios.iword(iosIndex) = static_cast<long>(value) + value_offset;
 }
 template <typename T>
 T getData(std::ios_base& ios, int iosIndex, T defaultValue)
 {
-  // There is no good way to figure out whether the value was explicitly set.
-  // The default value is zero; we shift by some random constant such that
-  // zero is never a valid value, and we can still use both negative and
-  // positive values.
-  constexpr long offset = 1024;
   long& l = ios.iword(iosIndex);
   if (l == 0)
   {
-    l = static_cast<long>(defaultValue) + offset;
+    return defaultValue;
   }
-  return static_cast<T>(l - offset);
+  return static_cast<T>(l - value_offset);
 }
 
 }  // namespace

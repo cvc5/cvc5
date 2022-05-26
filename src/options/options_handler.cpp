@@ -360,15 +360,11 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
 void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
   ioutils::setDefaultNodeDepth(depth);
-  ioutils::applyNodeDepth(TraceChannel.getStream(), depth);
-  ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
 
 void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
 {
   ioutils::setDefaultDagThresh(dag);
-  ioutils::applyDagThresh(TraceChannel.getStream(), dag);
-  ioutils::applyDagThresh(Warning.getStream(), dag);
 }
 
 static void print_config(const char* str, std::string config)
