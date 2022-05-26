@@ -184,6 +184,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "do global negation of input formula"
 
+[[option]]
+  name       = "mbqi"
+  category   = "expert"
+  long       = "mbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "use model-based quantifier instantiation"
+
 #### E-matching options
 
 [[option]]
