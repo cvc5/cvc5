@@ -840,6 +840,51 @@ def generate_sphinx_output_tags(modules, src_dir, build_dir):
 
 
 ################################################################################
+# for io_utils.h and io_utils.cpp
+
+
+def __get_printer_options(modules):
+    for mod, opt in all_options(modules):
+        if mod.id == 'printer':
+            yield opt
+
+
+def generate_iodecls(modules):
+    return concat_format(
+        '''
+void setDefault{name_capitalized}({type} value);
+void apply{name_capitalized}(std::ios_base& ios, {type} value);
+{type} get{name_capitalized}(std::ios_base& ios);''',
+        __get_printer_options(modules))
+
+
+def generate_ioimpls(modules):
+    return concat_format(
+        '''
+const static int s_ios{name_capitalized} = std::ios_base::xalloc();
+static thread_local {type} s_{name}Default = {fqdefault};
+void setDefault{name_capitalized}({type} value) {{ s_{name}Default = value; }}
+void apply{name_capitalized}(std::ios_base& ios, {type} value) {{ setData(ios, s_ios{name_capitalized}, value); }}
+{type} get{name_capitalized}(std::ios_base& ios) {{ return getData(ios, s_ios{name_capitalized}, s_{name}Default); }}
+''', __get_printer_options(modules))
+
+
+def generate_ioscope_members(modules):
+    return concat_format('  {type} d_{name};', __get_printer_options(modules))
+
+
+def generate_ioscope_memberinit(modules):
+    return concat_format('      d_{name}(get{name_capitalized}(d_ios))',
+                         __get_printer_options(modules),
+                         glue=',\n')
+
+
+def generate_ioscope_restore(modules):
+    return concat_format('  apply{name_capitalized}(d_ios, d_{name});',
+                         __get_printer_options(modules))
+
+
+################################################################################
 # main code generation for individual modules
 
 
@@ -878,6 +923,13 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
                    generate_sphinx_output_tags(modules, src_dir, build_dir))
 
     data = {
+        # options/io_utils.h
+        'ioscope_members': generate_ioscope_members(modules),
+        'iodecls': generate_iodecls(modules),
+        # options/io_utils.cpp
+        'ioimpls': generate_ioimpls(modules),
+        'ioscope_memberinit': generate_ioscope_memberinit(modules),
+        'ioscope_restore': generate_ioscope_restore(modules),
         # options/options.h
         'holder_fwd_decls': generate_holder_fwd_decls(modules),
         'holder_mem_decls': generate_holder_mem_decls(modules),
@@ -1048,6 +1100,8 @@ def mkoptions_main():
         {'input': 'options/module_template.cpp'},
     ]
     global_tpls = [
+        {'input': 'options/io_utils_template.h'},
+        {'input': 'options/io_utils_template.cpp'},
         {'input': 'options/options_template.h'},
         {'input': 'options/options_template.cpp'},
         {'input': 'options/options_public_template.cpp'},
