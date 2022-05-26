@@ -33,10 +33,8 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
-#include "options/bv_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/printer_options.h"
-#include "options/smt_options.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
@@ -198,7 +196,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_BITVECTOR:
     {
       const BitVector& bv = n.getConst<BitVector>();
-      if (options::bvPrintConstsAsIndexedSymbols())
+      if (options::ioutils::getBvPrintConstsAsIndexedSymbols(out))
       {
         out << "(_ bv" << bv.getValue() << " " << bv.getSize() << ")";
       }
@@ -211,7 +209,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_FLOATINGPOINT:
     {
       out << n.getConst<FloatingPoint>().toString(
-          options::bvPrintConstsAsIndexedSymbols());
+          options::ioutils::getBvPrintConstsAsIndexedSymbols(out));
       break;
     }
     case kind::CONST_ROUNDINGMODE:
@@ -562,7 +560,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::APPLY_UF: break;
     // higher-order
     case kind::HO_APPLY:
-      if (!options::flattenHOChains())
+      if (!options::ioutils::getFlattenHOChains(out))
       {
         out << smtKindString(k, d_variant) << ' ';
         break;
@@ -1426,9 +1424,10 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
+  auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
-  if (options::modelUninterpPrint()
+  if (modelUninterpPrint
       == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
     toStreamCmdDeclareType(out, tn);
@@ -1436,9 +1435,9 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (options::modelUninterpPrint()
+    if (modelUninterpPrint
             == options::ModelUninterpPrintMode::DeclSortAndFun
-        || options::modelUninterpPrint()
+        || modelUninterpPrint
                == options::ModelUninterpPrintMode::DeclFun)
     {
       out << "(declare-fun ";
