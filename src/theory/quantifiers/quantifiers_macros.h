@@ -20,6 +20,7 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
 #include "smt/env_obj.h"
 

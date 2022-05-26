@@ -34,7 +34,11 @@ PatternTermSelector::PatternTermSelector(const Options& opts,
                                          options::TriggerSelMode tstrt,
                                          const std::vector<Node>& exc,
                                          bool filterInst)
-    : d_opts(opts), d_quant(q), d_tstrt(tstrt), d_excluded(exc), d_filterInst(filterInst)
+    : d_opts(opts),
+      d_quant(q),
+      d_tstrt(tstrt),
+      d_excluded(exc),
+      d_filterInst(filterInst)
 {
 }
 
@@ -93,7 +97,10 @@ Node PatternTermSelector::getIsUsableEq(const Options& opts, Node q, Node n)
   return Node::null();
 }
 
-bool PatternTermSelector::isUsableEqTerms(const Options& opts, Node q, Node n1, Node n2)
+bool PatternTermSelector::isUsableEqTerms(const Options& opts,
+                                          Node q,
+                                          Node n1,
+                                          Node n2)
 {
   if (n1.getKind() == INST_CONSTANT)
   {
@@ -138,7 +145,9 @@ bool PatternTermSelector::isUsableEqTerms(const Options& opts, Node q, Node n1, 
   return false;
 }
 
-Node PatternTermSelector::getIsUsableTrigger(const Options& opts, Node n, Node q)
+Node PatternTermSelector::getIsUsableTrigger(const Options& opts,
+                                             Node n,
+                                             Node q)
 {
   bool pol = true;
   Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
@@ -213,7 +222,9 @@ Node PatternTermSelector::getIsUsableTrigger(const Options& opts, Node n, Node q
   return Node::null();
 }
 
-bool PatternTermSelector::isUsableAtomicTrigger(const Options& opts, Node n, Node q)
+bool PatternTermSelector::isUsableAtomicTrigger(const Options& opts,
+                                                Node n,
+                                                Node q)
 {
   return quantifiers::TermUtil::getInstConstAttr(n) == q
          && TriggerTermInfo::isAtomicTrigger(n) && isUsable(opts, n, q);

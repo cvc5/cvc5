@@ -97,7 +97,10 @@ class PatternTermSelector
    * This returns the union of all free variables in usable triggers that are
    * subterms of n.
    */
-  static void getTriggerVariables(const Options& opts, Node n, Node q, std::vector<Node>& tvars);
+  static void getTriggerVariables(const Options& opts,
+                                  Node n,
+                                  Node q,
+                                  std::vector<Node>& tvars);
 
  protected:
   /** Is n a usable trigger in quantified formula q?
