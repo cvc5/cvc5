@@ -57,8 +57,8 @@ class FunctionConst
    * Returns a node of kind LAMBDA that is equivalent to n, or null otherwise.
    *
    * This is the identity function for lambda terms and runs the conversion
-   * for constant array functions. For details, see the method
-   * getLambdaForArrayRepresentation.
+   * for constant array functions, and null for all other nodes. For details,
+   * see the method getLambdaForArrayRepresentation.
    */
   static Node toLambda(TNode n);
   /**
@@ -73,8 +73,8 @@ class FunctionConst
    * that is, arrays of the form:
    *   (store ... (store (storeall _ b) i1 e1) ... in en)
    * where b, i1, e1, ..., in, en are constants.
-   * Notice however that the return value of this form need not be a (canonical)
-   * array constant.
+   * Notice however that the return value of this form need not be an
+   * array such that isConst is true.
    *
    * If it is not possible to construct an array of this form that corresponds
    * to n, this method returns null.

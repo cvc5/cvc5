@@ -41,7 +41,6 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/bags/table_project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"

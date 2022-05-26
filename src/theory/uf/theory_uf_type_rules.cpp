@@ -218,7 +218,6 @@ bool FunctionProperties::isWellFounded(TypeNode type)
 
 Node FunctionProperties::mkGroundTerm(TypeNode type)
 {
-  // TODO: change to function constant?
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->getBoundVarListForFunctionType(type);
   Node ret = nm->mkGroundTerm(type.getRangeType());
