@@ -56,7 +56,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
 
   if (options().quantifiers.macrosQuant)
   {
-    d_qmacros.reset(new QuantifiersMacros(d_qreg));
+    d_qmacros.reset(new QuantifiersMacros(env, d_qreg));
   }
 }
 

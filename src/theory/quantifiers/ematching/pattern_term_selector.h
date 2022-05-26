@@ -97,7 +97,7 @@ class PatternTermSelector
    * This returns the union of all free variables in usable triggers that are
    * subterms of n.
    */
-  static void getTriggerVariables(Node n, Node q, std::vector<Node>& tvars);
+  static void getTriggerVariables(const Options& opts, Node n, Node q, std::vector<Node>& tvars);
 
  protected:
   /** Is n a usable trigger in quantified formula q?
@@ -119,7 +119,7 @@ class PatternTermSelector
    */
   static Node getIsUsableEq(const Options& opts, Node q, Node eq);
   /** returns whether n1 == n2 is a usable (relational) trigger for q. */
-  static bool isUsableEqTerms(Node q, Node n1, Node n2);
+  static bool isUsableEqTerms(const Options& opts, Node q, Node n1, Node n2);
   /** Helper for collect, with a fixed strategy for selection and filtering */
   void collectInternal(Node n,
                        std::vector<Node>& patTerms,

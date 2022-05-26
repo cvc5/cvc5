@@ -711,11 +711,12 @@ Node PatternTermSelector::getInversion(Node n, Node x)
   return Node::null();
 }
 
-void PatternTermSelector::getTriggerVariables(Node n,
+void PatternTermSelector::getTriggerVariables(const Options& opts,
+                                              Node n,
                                               Node q,
                                               std::vector<Node>& tvars)
 {
-  PatternTermSelector pts(q, options::TriggerSelMode::ALL);
+  PatternTermSelector pts(opts, q, options::TriggerSelMode::ALL);
   std::vector<Node> patTerms;
   std::map<Node, TriggerTermInfo> tinfo;
   // collect all patterns from n
