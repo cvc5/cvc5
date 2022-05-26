@@ -33,9 +33,6 @@ typerule LAMBDA ::cvc5::internal::theory::uf::LambdaTypeRule
 
 variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 
-# lambda expressions that are isomorphic to array constants can be considered constants
-construle LAMBDA ::cvc5::internal::theory::uf::LambdaTypeRule
-
 operator HO_APPLY 2 "higher-order (partial) function application"
 typerule HO_APPLY ::cvc5::internal::theory::uf::HoApplyTypeRule
 

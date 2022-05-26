@@ -19,6 +19,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
+#include "theory/uf/function_const.h"
 #include "util/integer.h"
 
 using namespace cvc5::internal::kind;
@@ -330,9 +331,18 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Evaluate " << currNode << std::endl;
           TNode op = currNode.getOperator();
-          Assert(evalAsNode.find(op) != evalAsNode.end());
-          // no function can be a valid EvalResult
-          op = evalAsNode[op];
+          if (op.getKind() == kind::FUNCTION_ARRAY_CONST)
+          {
+            // If we have a function constant as the operator, it was not
+            // processed. We require converting to a lambda now.
+            op = uf::FunctionConst::toLambda(op);
+          }
+          else
+          {
+            Assert(evalAsNode.find(op) != evalAsNode.end());
+            // no function can be a valid EvalResult
+            op = evalAsNode[op];
+          }
           Trace("evaluator") << "Operator evaluated to " << op << std::endl;
           if (op.getKind() != kind::LAMBDA)
           {
@@ -362,9 +372,10 @@ EvalResult Evaluator::evalInternal(
 
           // Lambdas are evaluated in a recursive fashion because each
           // evaluation requires different substitutions. We use a fresh cache
-          // since the evaluation of op[1] is under a new substitution and thus
-          // should not be cached. We could alternatively copy evalAsNode to
-          // evalAsNodeC but favor avoiding this copy for performance reasons.
+          // since the evaluation of op[1] is under a new substitution and
+          // thus should not be cached. We could alternatively copy evalAsNode
+          // to evalAsNodeC but favor avoiding this copy for performance
+          // reasons.
           std::unordered_map<TNode, Node> evalAsNodeC;
           std::unordered_map<TNode, EvalResult> resultsC;
           results[currNode] = evalInternal(
