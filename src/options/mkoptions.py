@@ -77,9 +77,9 @@ def wrap_line(s, indent, **kwargs):
         textwrap.wrap(s, width=80 - indent, **kwargs))
 
 
-def concat_format(s, objs):
+def concat_format(s, objs, glue='\n'):
     """Helper method to render a string for a list of object"""
-    return '\n'.join([s.format(**o.__dict__) for o in objs])
+    return glue.join([s.format(**o.__dict__) for o in objs])
 
 
 def format_include(include):
