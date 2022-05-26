@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -50,10 +51,10 @@ class BvInverterQuery
 
 // inverter class
 // TODO : move to theory/bv/ if generally useful?
-class BvInverter
+class BvInverter : protected EnvObj
 {
  public:
-  BvInverter(Rewriter* r = nullptr);
+  BvInverter(Env& env);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -125,8 +126,6 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
-  /** (Optional) rewriter used as helper in getInversionNode */
-  Rewriter* d_rewriter;
   /** Dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
 };
