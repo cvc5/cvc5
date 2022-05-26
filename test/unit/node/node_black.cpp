@@ -649,6 +649,7 @@ TEST_F(TestNodeBlackNode, dagifier)
 
   std::stringstream sstr;
   options::ioutils::applyDagThresh(sstr, 0);
+  options::ioutils::applyOutputLanguage(sstr, Language::LANG_SMTLIB_V2_6);
   sstr << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
