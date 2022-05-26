@@ -130,8 +130,9 @@ void Printer::toStream(std::ostream& out, const SkolemList& sks) const
   out << ")" << std::endl;
 }
 
-Printer* Printer::getPrinter(Language lang)
+Printer* Printer::getPrinter(std::ostream& out)
 {
+  Language lang = options::ioutils::getOutputLanguage(out);
   if (lang == Language::LANG_AUTO)
   {
     // Infer the language to use for output.

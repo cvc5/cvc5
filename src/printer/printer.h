@@ -46,7 +46,7 @@ class Printer
   virtual ~Printer() {}
 
   /** Get the Printer for a given Language */
-  static Printer* getPrinter(Language lang);
+  static Printer* getPrinter(std::ostream& out);
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out,

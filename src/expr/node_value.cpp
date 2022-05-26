@@ -51,7 +51,7 @@ void NodeValue::toStream(std::ostream& out,
   RefCountGuard guard(this);
 
   auto language = options::ioutils::getOutputLanguage(out);
-  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
+  Printer::getPrinter(out)->toStream(out, TNode(this), toDepth, dag);
 }
 
 void NodeValue::printAst(std::ostream& out, int ind) const {
