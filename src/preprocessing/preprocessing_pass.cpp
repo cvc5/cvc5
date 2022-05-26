@@ -45,7 +45,7 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
 {
 }
 
-PreprocessingPass::~PreprocessingPass() { }
+PreprocessingPass::~PreprocessingPass() {}
 
 }  // namespace preprocessing
 }  // namespace cvc5::internal
