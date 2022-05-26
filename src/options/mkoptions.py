@@ -176,11 +176,16 @@ class Option(object):
             self.alternate = True
         self.long_name = None
         self.long_opt = None
+        if self.name:
+            self.name_capitalized = self.name[0].capitalize() + self.name[1:]
         if self.long:
             r = self.long.split('=', 1)
             self.long_name = r[0]
             if len(r) > 1:
                 self.long_opt = r[1]
+        self.fqdefault = self.default
+        if self.mode and self.type not in self.default:
+            self.fqdefault = '{}::{}'.format(self.type, self.default)
         self.names = set()
         if self.long_name:
             self.names.add(self.long_name)
@@ -433,11 +438,8 @@ def generate_module_holder_decl(module):
     for option in module.options:
         if option.name is None:
             continue
-        if option.default:
-            default = option.default
-            if option.mode and option.type not in default:
-                default = '{}::{}'.format(option.type, default)
-            res.append('{} {} = {};'.format(option.type, option.name, default))
+        if option.fqdefault:
+            res.append('{} {} = {};'.format(option.type, option.name, option.fqdefault))
         else:
             res.append('{} {};'.format(option.type, option.name))
         res.append('bool {}WasSetByUser = false;'.format(option.name))
