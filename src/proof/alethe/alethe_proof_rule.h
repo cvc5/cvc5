@@ -409,8 +409,12 @@ enum class AletheRule : uint32_t
   REORDERING,
   // ======== bitvector
   BV_BITBLAST_STEP_VAR,
+  BV_BITBLAST_STEP_BVNEG,
   BV_BITBLAST_STEP_BVULE,
   BV_BITBLAST_STEP_BVULT,
+  BV_BITBLAST_STEP_EXTRACT,
+  BV_BITBLAST_STEP_CONCAT,
+  BV_BITBLAST_STEP_CONST,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
