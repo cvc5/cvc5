@@ -9,7 +9,6 @@ name   = "Printing"
   type       = "Language"
   default    = "Language::LANG_AUTO"
   handler    = "stringToLanguage"
-  predicates = ["applyOutputLanguage"]
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
@@ -20,7 +19,6 @@ name   = "Printing"
   type       = "int64_t"
   default    = "-1"
   minimum    = "-1"
-  predicates = ["setDefaultExprDepth"]
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
 [[option]]
@@ -30,7 +28,6 @@ name   = "Printing"
   type       = "int64_t"
   default    = "1"
   minimum    = "0"
-  predicates = ["setDefaultDagThresh"]
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
 [[option]]

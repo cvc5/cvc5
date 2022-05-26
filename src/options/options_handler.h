@@ -79,8 +79,6 @@ class OptionsHandler
   Language stringToLanguage(const std::string& flag, const std::string& optarg);
   /** Check that lang is not LANG_AST (not allowed as input language) */
   void languageIsNotAST(const std::string& flag, Language lang);
-  /** Apply the output language to the default output stream */
-  void applyOutputLanguage(const std::string& flag, Language lang);
   /** Apply verbosity to the different output channels */
   void setVerbosity(const std::string& flag, int value);
   /** Decrease verbosity and call setVerbosity */
@@ -106,12 +104,6 @@ class OptionsHandler
 
   /** Check that the sat solver mode is compatible with other bv options */
   void checkBvSatSolver(const std::string& flag, SatSolverMode m);
-
-  /******************************* expr options *******************************/
-  /** Set ExprSetDepth on all output streams */
-  void setDefaultExprDepth(const std::string& flag, int64_t depth);
-  /** Set ExprDag on all output streams */
-  void setDefaultDagThresh(const std::string& flag, int64_t dag);
 
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */

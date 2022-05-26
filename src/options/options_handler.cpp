@@ -155,12 +155,6 @@ void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
   }
 }
 
-void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
-{
-  ioutils::setDefaultOutputLanguage(lang);
-  ioutils::applyOutputLanguage(d_options->base.out, lang);
-}
-
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
 {
   if(Configuration::isMuzzledBuild()) {
@@ -355,16 +349,6 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
       d_options->writeBv().bitvectorToBool = true;
     }
   }
-}
-
-void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
-{
-  ioutils::setDefaultNodeDepth(depth);
-}
-
-void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
-{
-  ioutils::setDefaultDagThresh(dag);
 }
 
 static void print_config(const char* str, std::string config)
