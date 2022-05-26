@@ -24,8 +24,8 @@
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
-#include "util/rational.h"
 #include "theory/uf/function_const.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
