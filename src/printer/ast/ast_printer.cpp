@@ -32,8 +32,7 @@ namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n) const
+void AstPrinter::toStream(std::ostream& out, TNode n) const
 {
   size_t dag = options::ioutils::getDagThresh(out);
   int toDepth = options::ioutils::getNodeDepth(out);

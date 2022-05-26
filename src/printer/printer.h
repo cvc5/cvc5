@@ -49,8 +49,7 @@ class Printer
   static Printer* getPrinter(std::ostream& out);
 
   /** Write a Node out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out,
-                        TNode n) const = 0;
+  virtual void toStream(std::ostream& out, TNode n) const = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;

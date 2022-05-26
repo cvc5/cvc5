@@ -364,10 +364,7 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out) const
-  {
-    d_nv->toStream(out);
-  }
+  inline void toStream(std::ostream& out) const { d_nv->toStream(out); }
 
   /**
    * Very basic pretty printer for TypeNode.

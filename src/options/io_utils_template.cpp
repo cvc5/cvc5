@@ -13,10 +13,10 @@
  * IO manipulation classes.
  */
 
-#include "options/io_utils.h"
-
 #include <iomanip>
 #include <iostream>
+
+#include "options/io_utils.h"
 
 namespace cvc5::internal::options::ioutils {
 namespace {

@@ -18,8 +18,8 @@
 
 #include "expr/node_manager_attributes.h"
 #include "options/base_options.h"
-#include "options/printer_options.h"
 #include "options/language.h"
+#include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"

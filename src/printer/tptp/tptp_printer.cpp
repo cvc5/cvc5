@@ -32,8 +32,7 @@ namespace cvc5::internal {
 namespace printer {
 namespace tptp {
 
-void TptpPrinter::toStream(std::ostream& out,
-                           TNode n) const
+void TptpPrinter::toStream(std::ostream& out, TNode n) const
 {
   options::ioutils::Scope scope(out);
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);

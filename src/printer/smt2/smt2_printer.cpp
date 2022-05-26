@@ -38,8 +38,8 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -121,8 +121,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
-void Smt2Printer::toStream(std::ostream& out,
-                           TNode n) const
+void Smt2Printer::toStream(std::ostream& out, TNode n) const
 {
   size_t dag = options::ioutils::getDagThresh(out);
   int toDepth = options::ioutils::getNodeDepth(out);
@@ -1435,18 +1434,15 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
-  if (modelUninterpPrint
-      == options::ModelUninterpPrintMode::DeclSortAndFun)
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
     toStreamCmdDeclareType(out, tn);
   }
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (modelUninterpPrint
-            == options::ModelUninterpPrintMode::DeclSortAndFun
-        || modelUninterpPrint
-               == options::ModelUninterpPrintMode::DeclFun)
+    if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun
+        || modelUninterpPrint == options::ModelUninterpPrintMode::DeclFun)
     {
       out << "(declare-fun ";
       if (trn.getKind() == kind::UNINTERPRETED_SORT_VALUE)

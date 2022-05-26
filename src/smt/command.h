@@ -66,8 +66,7 @@ class CVC5_EXPORT CommandStatus
 
  public:
   virtual ~CommandStatus() {}
-  void toStream(
-      std::ostream& out) const;
+  void toStream(std::ostream& out) const;
   virtual CommandStatus& clone() const = 0;
 }; /* class CommandStatus */
 
@@ -153,8 +152,7 @@ class CVC5_EXPORT Command
                       SymbolManager* sm,
                       std::ostream& out);
 
-  virtual void toStream(
-      std::ostream& out) const = 0;
+  virtual void toStream(std::ostream& out) const = 0;
 
   std::string toString() const;
 

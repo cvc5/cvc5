@@ -31,9 +31,7 @@ namespace cvc5::internal {
 namespace proof {
 
 DotPrinter::DotPrinter()
-    : d_lbind(options::dagThresh() ? options::dagThresh() + 1
-                                          : 0),
-      d_ruleID(0)
+    : d_lbind(options::dagThresh() ? options::dagThresh() + 1 : 0), d_ruleID(0)
 {
   const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};
   const std::string colors[5] = {"purple", "yellow", "green", "brown", "blue"};

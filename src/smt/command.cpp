@@ -629,8 +629,7 @@ void SygusConstraintCommand::toStream(std::ostream& out) const
   }
   else
   {
-    Printer::getPrinter(out)->toStreamCmdConstraint(out,
-                                                         termToNode(d_term));
+    Printer::getPrinter(out)->toStreamCmdConstraint(out, termToNode(d_term));
   }
 }
 
@@ -726,7 +725,8 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
       std::vector<cvc5::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
       options::ioutils::Scope scope(d_solution);
-      options::ioutils::applyOutputLanguage(d_solution, Language::LANG_SYGUS_V2);
+      options::ioutils::applyOutputLanguage(d_solution,
+                                            Language::LANG_SYGUS_V2);
       Printer* p = Printer::getPrinter(d_solution);
       for (cvc5::Term& f : synthFuns)
       {
@@ -957,8 +957,7 @@ std::string CommandSequence::getCommandName() const { return "sequence"; }
 
 void CommandSequence::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdCommandSequence(out,
-                                                            d_commandSequence);
+  Printer::getPrinter(out)->toStreamCmdCommandSequence(out, d_commandSequence);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -967,8 +966,8 @@ void CommandSequence::toStream(std::ostream& out) const
 
 void DeclarationSequence::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdDeclarationSequence(
-      out, d_commandSequence);
+  Printer::getPrinter(out)->toStreamCmdDeclarationSequence(out,
+                                                           d_commandSequence);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1172,8 +1171,7 @@ std::string DeclareSortCommand::getCommandName() const
 
 void DeclareSortCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdDeclareType(out,
-                                                        sortToTypeNode(d_sort));
+  Printer::getPrinter(out)->toStreamCmdDeclareType(out, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1508,8 +1506,8 @@ std::string GetValueCommand::getCommandName() const { return "get-value"; }
 
 void GetValueCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdGetValue(
-      out, termVectorToNodes(d_terms));
+  Printer::getPrinter(out)->toStreamCmdGetValue(out,
+                                                termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
