@@ -73,13 +73,6 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
   }
 }
 
-void Printer::toStreamUsing(Language lang,
-                            std::ostream& out,
-                            const smt::Model& m) const
-{
-  getPrinter(lang)->toStream(out, m);
-}
-
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {

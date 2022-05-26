@@ -53,7 +53,11 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                                         : "CandidateFiniteModel");
   out << "% SZS output start " << statusName << " for " << m.getInputName()
       << endl;
-  this->Printer::toStreamUsing(Language::LANG_SMTLIB_V2_6, out, m);
+  {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+    getPrinter(out)->toStream(out, m);
+  }
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
 }

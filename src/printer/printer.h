@@ -314,11 +314,6 @@ class Printer
                                  const Node& n,
                                  const Node& value) const = 0;
 
-  /** write model response to command using another language printer */
-  void toStreamUsing(Language lang,
-                     std::ostream& out,
-                     const smt::Model& m) const;
-
   /**
    * Write an error to `out` stating that command `name` is not supported by
    * this printer.
