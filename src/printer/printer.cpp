@@ -135,21 +135,7 @@ Printer* Printer::getPrinter(std::ostream& out)
   Language lang = options::ioutils::getOutputLanguage(out);
   if (lang == Language::LANG_AUTO)
   {
-    // Infer the language to use for output.
-    //
-    // Options can be null in certain circumstances (e.g., when printing
-    // the singleton "null" expr.  So we guard against segfault
-    if (not Options::isCurrentNull())
-    {
-      if (Options::current().printer.outputLanguageWasSetByUser)
-      {
-        lang = options::outputLanguage();
-      }
-    }
-    if (lang == Language::LANG_AUTO)
-    {
-      lang = Language::LANG_SMTLIB_V2_6;  // default
-    }
+    lang = Language::LANG_SMTLIB_V2_6;  // default
   }
   if (d_printers[static_cast<size_t>(lang)] == nullptr)
   {

@@ -133,11 +133,6 @@ ResourceManager* Env::getResourceManager() const
   return d_resourceManager.get();
 }
 
-const Printer& Env::getPrinter()
-{
-  return *Printer::getPrinter(d_options.printer.outputLanguage);
-}
-
 bool Env::isOutputOn(OutputTag tag) const
 {
   return d_options.base.outputTagHolder[static_cast<size_t>(tag)];

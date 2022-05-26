@@ -1969,8 +1969,6 @@ ResourceManager* SolverEngine::getResourceManager() const
   return d_env->getResourceManager();
 }
 
-const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
-
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
 }  // namespace cvc5::internal
