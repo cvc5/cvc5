@@ -45,18 +45,6 @@ name   = "Base"
   help       = "force input language (default is \"auto\"; see --lang help)"
 
 [[option]]
-  name       = "outputLanguage"
-  alias      = ["output-language"]
-  category   = "common"
-  long       = "output-lang=LANG"
-  type       = "Language"
-  default    = "Language::LANG_AUTO"
-  handler    = "stringToLanguage"
-  predicates = ["applyOutputLanguage"]
-  includes   = ["options/language.h"]
-  help       = "force output language (default is \"auto\"; see --output-lang help)"
-
-[[option]]
   name       = "verbosity"
   long       = "verbosity=N"
   category   = "common"
