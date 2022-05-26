@@ -54,19 +54,16 @@ class FunctionConst
    */
   static TypeNode getArrayTypeForFunctionType(TypeNode ftn);
   /**
-   * toLambda
-   *
    * Returns a node of kind LAMBDA that is equivalent to n, or null otherwise.
+   *
    * This is the identity function for lambda terms and runs the conversion
    * for constant array functions. For details, see the method
    * getLambdaForArrayRepresentation.
    */
   static Node toLambda(TNode n);
   /**
-   * toArrayConst
+   * Extracts the array constant from the payload of a a function array constant
    *
-   * Given a function array constant, this extracts the array constant from its
-   * payload.
    *
    * Given a lambda expression n, returns an array term that corresponds to n.
    * This does the opposite direction of the examples described above the
