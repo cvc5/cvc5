@@ -31,8 +31,6 @@ class StatisticsRegistry;
 
 namespace smt {
 
-SolverEngine* currentSolverEngine();
-
 /** get the current resource manager */
 ResourceManager* currentResourceManager();
 
