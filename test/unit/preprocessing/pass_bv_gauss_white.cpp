@@ -3008,6 +3008,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5a)
 
 TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   /* (bvadd
    *   (bvadd
    *     (bvadd
