@@ -18,6 +18,7 @@
 
 #include "expr/node_manager_attributes.h"
 #include "options/base_options.h"
+#include "options/printer_options.h"
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -139,7 +140,7 @@ Printer* Printer::getPrinter(Language lang)
     // the singleton "null" expr.  So we guard against segfault
     if (not Options::isCurrentNull())
     {
-      if (Options::current().base.outputLanguageWasSetByUser)
+      if (Options::current().printer.outputLanguageWasSetByUser)
       {
         lang = options::outputLanguage();
       }

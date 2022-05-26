@@ -52,7 +52,7 @@ UnsatCore::const_iterator UnsatCore::end() const {
 void UnsatCore::toStream(std::ostream& out) const {
   options::ioutils::Scope scope(out);
   options::ioutils::applyDagThresh(out, 0);
-  auto language = options::ioutils::getOutputLang(out);
+  auto language = options::ioutils::getOutputLanguage(out);
   Printer::getPrinter(language)->toStream(out, *this);
 }
 

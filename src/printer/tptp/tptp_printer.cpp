@@ -38,7 +38,7 @@ void TptpPrinter::toStream(std::ostream& out,
                            size_t dag) const
 {
   options::ioutils::Scope scope(out);
-  options::ioutils::applyOutputLang(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   n.toStream(out, toDepth, dag);
 }/* TptpPrinter::toStream() */
 

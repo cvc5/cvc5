@@ -157,8 +157,8 @@ void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
 
 void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 {
-  ioutils::setDefaultOutputLang(lang);
-  ioutils::applyOutputLang(d_options->base.out, lang);
+  ioutils::setDefaultOutputLanguage(lang);
+  ioutils::applyOutputLanguage(d_options->base.out, lang);
 }
 
 void OptionsHandler::setVerbosity(const std::string& flag, int value)

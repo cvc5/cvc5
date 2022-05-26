@@ -31,14 +31,14 @@ InstantiationVec::InstantiationVec(const std::vector<Node>& vec,
 void InstantiationList::initialize(Node q) { d_quant = q; }
 std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist)
 {
-  auto language = options::ioutils::getOutputLang(out);
+  auto language = options::ioutils::getOutputLanguage(out);
   Printer::getPrinter(language)->toStream(out, ilist);
   return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const SkolemList& skl)
 {
-  auto language = options::ioutils::getOutputLang(out);
+  auto language = options::ioutils::getOutputLanguage(out);
   Printer::getPrinter(language)->toStream(out, skl);
   return out;
 }

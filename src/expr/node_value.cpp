@@ -50,7 +50,7 @@ void NodeValue::toStream(std::ostream& out,
   // count, even just for printing.
   RefCountGuard guard(this);
 
-  auto language = options::ioutils::getOutputLang(out);
+  auto language = options::ioutils::getOutputLanguage(out);
   Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
 }
 

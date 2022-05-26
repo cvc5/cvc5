@@ -88,7 +88,7 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
   c.toStream(out,
              options::ioutils::getNodeDepth(out),
              options::ioutils::getDagThresh(out),
-             options::ioutils::getOutputLang(out));
+             options::ioutils::getOutputLanguage(out));
   return out;
 }
 
@@ -107,7 +107,7 @@ ostream& operator<<(ostream& out, const Command* c)
 
 std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
 {
-  s.toStream(out, options::ioutils::getOutputLang(out));
+  s.toStream(out, options::ioutils::getOutputLanguage(out));
   return out;
 }
 

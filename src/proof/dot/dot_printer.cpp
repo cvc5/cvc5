@@ -31,7 +31,7 @@ namespace cvc5::internal {
 namespace proof {
 
 DotPrinter::DotPrinter()
-    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
+    : d_lbind(options::dagThresh() ? options::dagThresh() + 1
                                           : 0),
       d_ruleID(0)
 {
