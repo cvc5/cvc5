@@ -182,7 +182,8 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     }
     else
     {
-      status = CegInstantiator::isCbqiQuant(d_single_inv);
+      status = CegInstantiator::isCbqiQuant(d_single_inv,
+                                            options().quantifiers.cegqiAll);
     }
   }
   Trace("sygus-si") << "CegHandledStatus is " << status << std::endl;

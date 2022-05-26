@@ -37,7 +37,7 @@ class AbstractValues
   typedef std::unordered_map<Node, Node> NodeToNodeHashMap;
 
  public:
-  AbstractValues(NodeManager* nm);
+  AbstractValues();
   ~AbstractValues();
   /**
    * Substitute away all AbstractValues in a node, which replaces all
