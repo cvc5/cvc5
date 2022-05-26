@@ -318,7 +318,7 @@ def _set_handlers(option):
     return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
-def _set_predicates(option):
+def _set_predicates(module, option):
     """Render predicate calls for options::set()."""
     res = []
     if option.minimum:
@@ -332,6 +332,9 @@ def _set_predicates(option):
     res += [
         'opts.handler().{}(name, value);'.format(x) for x in option.predicates
     ]
+    if module.id == 'printer':
+        res.append('ioutils::setDefault{}(value);'.format(option.name_capitalized))
+
     return res
 
 
@@ -347,7 +350,7 @@ def generate_set_impl(modules):
         else:
             res.append('if ({}) {{'.format(cond))
         res.append('  auto value = {};'.format(_set_handlers(option)))
-        for pred in _set_predicates(option):
+        for pred in _set_predicates(module, option):
             res.append('  {}'.format(pred))
         if option.name:
             res.append('  opts.write{module}().{name} = value;'.format(
