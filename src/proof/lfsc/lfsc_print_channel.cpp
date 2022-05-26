@@ -80,7 +80,7 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
   options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-  n.toStream(ss, -1, 0);
+  n.toStream(ss);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;

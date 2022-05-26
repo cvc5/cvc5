@@ -366,7 +366,7 @@ private:
    */
   inline void toStream(std::ostream& out) const
   {
-    d_nv->toStream(out, -1, 0);
+    d_nv->toStream(out);
   }
 
   /**

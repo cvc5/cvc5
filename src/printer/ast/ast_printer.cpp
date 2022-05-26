@@ -33,10 +33,10 @@ namespace printer {
 namespace ast {
 
 void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          size_t dag) const
+                          TNode n) const
 {
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
   if(dag != 0) {
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);

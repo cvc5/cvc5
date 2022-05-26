@@ -520,7 +520,7 @@ bool TypeNode::isSygusDatatype() const
 
 std::string TypeNode::toString() const {
   std::stringstream ss;
-  d_nv->toStream(ss, -1, 0);
+  d_nv->toStream(ss);
   return ss.str();
 }
 

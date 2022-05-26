@@ -121,6 +121,14 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n) const
+{
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
+  toStream(out, n, toDepth, dag);
+}
+
 void Smt2Printer::toStreamWithLetify(std::ostream& out,
                                      Node n,
                                      int toDepth,

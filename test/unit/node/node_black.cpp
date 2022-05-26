@@ -68,9 +68,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.writePrinter().outputLanguage = Language::LANG_AST;
-    opts.writePrinter().outputLanguageWasSetByUser = true;
     d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
+    d_slvEngine->setOption("output-language", "ast");
   }
 
   std::unique_ptr<SolverEngine> d_slvEngine;
@@ -568,7 +567,7 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  o.toStream(sstr, -1, 0);
+  o.toStream(sstr);
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
