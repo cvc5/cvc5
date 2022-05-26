@@ -58,54 +58,6 @@ std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream&, const CommandStatus&) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream&, const CommandStatus*) CVC5_EXPORT;
 
-/**
- * IOStream manipulator to print success messages or not.
- *
- *   out << Command::printsuccess(false) << CommandSuccess();
- *
- * prints nothing, but
- *
- *   out << Command::printsuccess(true) << CommandSuccess();
- *
- * prints a success message (in a manner appropriate for the current
- * output language).
- */
-class CVC5_EXPORT CommandPrintSuccess
-{
- public:
-  /** Construct a CommandPrintSuccess with the given setting. */
-  CommandPrintSuccess(bool printSuccess) : d_printSuccess(printSuccess) {}
-  void applyPrintSuccess(std::ostream& out);
-  static bool getPrintSuccess(std::ostream& out);
-  static void setPrintSuccess(std::ostream& out, bool printSuccess);
-
- private:
-  /** The allocated index in ios_base for our depth setting. */
-  static const int s_iosIndex;
-
-  /**
-   * The default setting, for ostreams that haven't yet had a setdepth()
-   * applied to them.
-   */
-  static const int s_defaultPrintSuccess = false;
-
-  /** When this manipulator is used, the setting is stored here. */
-  bool d_printSuccess;
-
-}; /* class CommandPrintSuccess */
-
-/**
- * Sets the default print-success setting when pretty-printing an Expr
- * to an ostream.  Use like this:
- *
- *   // let out be an ostream, e an Expr
- *   out << Expr::setdepth(n) << e << endl;
- *
- * The depth stays permanently (until set again) with the stream.
- */
-std::ostream& operator<<(std::ostream& out,
-                         CommandPrintSuccess cps) CVC5_EXPORT;
-
 class CVC5_EXPORT CommandStatus
 {
  protected:
@@ -185,7 +137,6 @@ class CVC5_EXPORT CommandRecoverableFailure : public CommandStatus
 class CVC5_EXPORT Command
 {
  public:
-  typedef CommandPrintSuccess printsuccess;
 
   Command();
   Command(const Command& cmd);

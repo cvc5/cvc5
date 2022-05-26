@@ -77,8 +77,8 @@ class OptionsHandler
 
   /** Convert option value to Language enum */
   Language stringToLanguage(const std::string& flag, const std::string& optarg);
-  /** Check that lang is not LANG_AST (not allowed as input language) */
-  void languageIsNotAST(const std::string& flag, Language lang);
+  /** Set the input language. Check that lang is not LANG_AST */
+  void setInputLanguage(const std::string& flag, Language lang);
   /** Apply verbosity to the different output channels */
   void setVerbosity(const std::string& flag, int value);
   /** Decrease verbosity and call setVerbosity */
@@ -95,8 +95,6 @@ class OptionsHandler
   void enableDebugTag(const std::string& flag, const std::string& optarg);
   /** Enable a particular output tag */
   void enableOutputTag(const std::string& flag, OutputTag optarg);
-  /** Apply print success flag to the different output channels */
-  void setPrintSuccess(const std::string& flag, bool value);
   /** Pass the resource weight specification to the resource manager */
   void setResourceWeight(const std::string& flag, const std::string& optarg);
 

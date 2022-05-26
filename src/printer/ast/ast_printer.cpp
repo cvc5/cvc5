@@ -21,6 +21,7 @@
 
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
 #include "smt/command.h"
@@ -437,7 +438,7 @@ static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 
 static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-  if (cvc5::Command::printsuccess::getPrintSuccess(out))
+  if (options::ioutils::getPrintSuccess(out))
   {
     out << "OK" << endl;
   }

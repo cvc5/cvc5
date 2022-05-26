@@ -78,7 +78,6 @@ std::string sexprToString(cvc5::Term sexpr)
   return ss.str();
 }
 
-const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance =
     new CommandInterrupted();
@@ -121,31 +120,6 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   {
     out << *s;
   }
-  return out;
-}
-
-/* -------------------------------------------------------------------------- */
-/* class CommandPrintSuccess                                                  */
-/* -------------------------------------------------------------------------- */
-
-void CommandPrintSuccess::applyPrintSuccess(std::ostream& out)
-{
-  out.iword(s_iosIndex) = d_printSuccess;
-}
-
-bool CommandPrintSuccess::getPrintSuccess(std::ostream& out)
-{
-  return out.iword(s_iosIndex);
-}
-
-void CommandPrintSuccess::setPrintSuccess(std::ostream& out, bool printSuccess)
-{
-  out.iword(s_iosIndex) = printSuccess;
-}
-
-std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
-{
-  cps.applyPrintSuccess(out);
   return out;
 }
 

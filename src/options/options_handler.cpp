@@ -147,7 +147,7 @@ Languages currently supported as arguments to the --output-lang option:
   Unreachable();
 }
 
-void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
+void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
 {
   if (lang == Language::LANG_AST)
   {
@@ -283,13 +283,6 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
   d_options->writeBase().outputTagHolder.set(tagid);
-}
-
-void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
-{
-  TraceChannel.getStream() << cvc5::Command::printsuccess(value);
-  Warning.getStream() << cvc5::Command::printsuccess(value);
-  *d_options->base.out << cvc5::Command::printsuccess(value);
 }
 
 void OptionsHandler::setResourceWeight(const std::string& flag,
