@@ -68,8 +68,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.writeBase().outputLanguage = Language::LANG_AST;
-    opts.writeBase().outputLanguageWasSetByUser = true;
+    opts.writePrinter().outputLanguage = Language::LANG_AST;
+    opts.writePrinter().outputLanguageWasSetByUser = true;
     d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
   }
 
@@ -648,7 +648,7 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  options::ioutils::apply(sstr, 0, -1, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyDagThresh(sstr, 0);
   sstr << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
