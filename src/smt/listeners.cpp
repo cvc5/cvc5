@@ -25,6 +25,7 @@ ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 
 void ResourceOutListener::notify()
 {
+  SolverEngineScope scope(&d_slv);
   d_slv.interrupt();
 }
 
