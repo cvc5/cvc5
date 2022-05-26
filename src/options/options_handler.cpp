@@ -153,6 +153,11 @@ void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
   {
     throw OptionException("Language LANG_AST is not allowed for " + flag);
   }
+  if (!d_options->printer.outputLanguageWasSetByUser)
+  {
+    d_options->writePrinter().outputLanguage = lang;
+    ioutils::setDefaultOutputLanguage(lang);
+  }
 }
 
 void OptionsHandler::setVerbosity(const std::string& flag, int value)

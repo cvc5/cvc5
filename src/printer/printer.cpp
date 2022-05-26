@@ -144,11 +144,6 @@ Printer* Printer::getPrinter(Language lang)
       {
         lang = options::outputLanguage();
       }
-      if (lang == Language::LANG_AUTO
-          && Options::current().base.inputLanguageWasSetByUser)
-      {
-        lang = options::inputLanguage();
-      }
     }
     if (lang == Language::LANG_AUTO)
     {
