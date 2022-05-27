@@ -137,7 +137,7 @@ void TheoryEngine::finishInit()
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)   \
   if (theory::TheoryTraits<THEORY>::isParametric \
-      && logicInfo().isTheoryEnabled(THEORY))    \
+      && isTheoryEnabled(THEORY))    \
   {                                              \
     paraTheories.push_back(theoryOf(THEORY));    \
   }
@@ -320,7 +320,7 @@ void TheoryEngine::printAssertions(const char* tag) {
 
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
-      if (theory && logicInfo().isTheoryEnabled(theoryId))
+      if (theory && isTheoryEnabled(theoryId))
       {
         Trace(tag) << "--------------------------------------------" << endl;
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
@@ -372,7 +372,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)                      \
   if (theory::TheoryTraits<THEORY>::hasCheck                        \
-      && logicInfo().isTheoryEnabled(THEORY))                       \
+      && isTheoryEnabled(THEORY))                       \
   {                                                                 \
     theoryOf(THEORY)->check(effort);                                \
     if (d_inConflict)                                               \
@@ -472,7 +472,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
-          if (theory && logicInfo().isTheoryEnabled(theoryId))
+          if (theory && isTheoryEnabled(theoryId))
           {
             if( theory->needsCheckLastEffort() ){
               if (!d_tc->buildModel())
@@ -537,7 +537,7 @@ void TheoryEngine::propagate(Theory::Effort effort)
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)   \
   if (theory::TheoryTraits<THEORY>::hasPropagate \
-      && logicInfo().isTheoryEnabled(THEORY))    \
+      && isTheoryEnabled(THEORY))    \
   {                                              \
     theoryOf(THEORY)->propagate(effort);         \
   }
@@ -719,7 +719,7 @@ void TheoryEngine::notifyRestart() {
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)       \
   if (theory::TheoryTraits<THEORY>::hasNotifyRestart \
-      && logicInfo().isTheoryEnabled(THEORY))        \
+      && isTheoryEnabled(THEORY))        \
   {                                                  \
     theoryOf(THEORY)->notifyRestart();               \
   }
@@ -769,7 +769,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
   theory::TheoryId tid = d_env.theoryOf(atom);
-  if (!logicInfo().isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
@@ -863,7 +863,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   Assert(toTheoryId != fromTheoryId);
   if (toTheoryId != THEORY_SAT_SOLVER
-      && !logicInfo().isTheoryEnabled(toTheoryId))
+      && !isTheoryEnabled(toTheoryId))
   {
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
@@ -1855,7 +1855,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
-    if (theory && logicInfo().isTheoryEnabled(theoryId))
+    if (theory && isTheoryEnabled(theoryId))
     {
       for (context::CDList<Assertion>::const_iterator
                it = theory->facts_begin(),
