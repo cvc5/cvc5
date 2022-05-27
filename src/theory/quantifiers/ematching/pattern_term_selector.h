@@ -38,6 +38,7 @@ class PatternTermSelector
 {
  public:
   /**
+   * @param opts Reference to the options, which impacts pattern term selection
    * @param q The quantified formula we are selecting pattern terms for
    * @param tstrt the selection strategy (see options/quantifiers_mode.h),
    * @param exc The set of terms we are excluding as pattern terms.
