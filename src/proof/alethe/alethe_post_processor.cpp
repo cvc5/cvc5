@@ -32,7 +32,7 @@ namespace proof {
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     ProofNodeManager* pnm, AletheNodeConverter& anc, bool resPivots)
-    : d_pnm(pnm), d_anc(anc), d_resPivots(resPivots)
+    : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());

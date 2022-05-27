@@ -50,11 +50,11 @@ bool ProofNodeUpdaterCallback::updatePost(Node res,
   return false;
 }
 
-ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
+ProofNodeUpdater::ProofNodeUpdater(Env& env,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
                                    bool autoSym)
-    : d_pnm(pnm),
+    : EnvObj(env),
       d_cb(cb),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
@@ -111,6 +111,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
   Node res;
+  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  Assert (pnm!=nullptr);
   do
   {
     cur = visit.back();
@@ -126,7 +128,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         {
           // already have a proof, merge it into this one
           visited[cur] = true;
-          d_pnm->updateNode(cur.get(), itc->second.get());
+          pnm->updateNode(cur.get(), itc->second.get());
           // does not contain free assumptions since the range of resCache does
           // not contain free assumptions
           cfaMap[cur.get()] = false;
@@ -200,7 +202,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
 {
   PfRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
-  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
+  CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
   std::vector<Node> ccn;
   for (const std::shared_ptr<ProofNode>& cp : cc)

@@ -205,7 +205,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
-    tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    tplemma.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::lemma");
     for (theory::SkolemLemma& lem : ppLemmas)
     {
       Assert(lem.d_lemma.getGenerator() != nullptr);

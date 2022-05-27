@@ -241,7 +241,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
 {
   LazyCDProof lpf(
-      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProofRew");
+      d_env, &d_proof, nullptr, d_name + "::LazyCDProofRew");
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {
