@@ -1288,6 +1288,8 @@ class CVC5_EXPORT GetUnsatCoreCommand : public Command
                     internal::Language::LANG_AUTO) const override;
 
  protected:
+  /** The solver we were invoked with */
+  cvc5::Solver* d_solver;
   /** The symbol manager we were invoked with */
   SymbolManager* d_sm;
   /** the result of the unsat core call */

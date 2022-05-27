@@ -66,7 +66,7 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
   if (options().quantifiers.cegqiBv)
   {
     // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new BvInverter(env.getRewriter()));
+    d_bv_invert.reset(new BvInverter(env.getOptions(), env.getRewriter()));
   }
   if (options().quantifiers.cegqiNestedQE)
   {
@@ -409,7 +409,8 @@ bool InstStrategyCegqi::doCbqi(Node q)
 {
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
-    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q);
+    CegHandledStatus ret =
+        CegInstantiator::isCbqiQuant(q, options().quantifiers.cegqiAll);
     Trace("cegqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret != CEG_UNHANDLED;

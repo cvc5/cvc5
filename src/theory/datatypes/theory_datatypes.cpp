@@ -60,10 +60,11 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
-      d_rewriter(env.getEvaluator()),
+      d_rewriter(env.getEvaluator(), env.getOptions()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
+      d_checker(env.getOptions().datatypes.dtSharedSelectors),
       d_cpacb(*this)
 {
 
@@ -1005,8 +1006,10 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   //unsigned orig_size = nodes.size();
   std::map< TypeNode, int > typ_enum_map;
   std::vector< TypeEnumerator > typ_enum;
-  unsigned index = 0;
-  while( index<nodes.size() ){
+  size_t index = 0;
+  bool shareSel = options().datatypes.dtSharedSelectors;
+  while (index < nodes.size())
+  {
     Node eqc = nodes[index];
     Node neqc;
     bool addCons = false;
@@ -1026,14 +1029,16 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         Trace("dt-cmi") << pcons[i] << " ";
       }
       Trace("dt-cmi") << std::endl;
-      for( unsigned r=0; r<2; r++ ){
+      for (size_t r = 0; r < 2; r++)
+      {
         if( neqc.isNull() ){
-          for( unsigned i=0; i<pcons.size(); i++ ){
+          for (size_t i = 0, psize = pcons.size(); i < psize; i++)
+          {
             // must try the infinite ones first
             bool cfinite =
                 d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
-              neqc = utils::getInstCons(eqc, dt, i);
+              neqc = utils::getInstCons(eqc, dt, i, shareSel);
               break;
             }
           }
@@ -1183,7 +1188,8 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   }
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
-  Node n_ic = utils::getInstCons(k, dt, index);
+  Node n_ic =
+      utils::getInstCons(k, dt, index, options().datatypes.dtSharedSelectors);
   Assert (n_ic == rewrite(n_ic));
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
