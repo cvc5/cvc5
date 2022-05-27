@@ -1119,9 +1119,9 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     notifyModifyOption("learnedRewrite", "false", "unsat cores");
     opts.writeSmt().learnedRewrite = false;
   }
-  if (opts.smt.arithStaticLearning)
+  if (opts.arith.arithStaticLearning)
   {
-    if (opts.smt.arithStaticLearningWasSetByUser)
+    if (opts.arith.arithStaticLearningWasSetByUser)
     {
       reason << "arith static learning";
       return true;
