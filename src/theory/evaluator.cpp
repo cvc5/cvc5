@@ -187,7 +187,7 @@ Node Evaluator::eval(TNode n,
   Assert(ret.isNull() || !ret.isConst() || d_rr == nullptr
          || ret
                 == d_rr->rewrite(n.substitute(
-                       args.begin(), args.end(), vals.begin(), vals.end())));
+                    args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
 
