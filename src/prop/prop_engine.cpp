@@ -209,7 +209,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
     for (theory::SkolemLemma& lem : ppLemmas)
     {
       Assert(lem.d_lemma.getGenerator() != nullptr);
-      lem.d_lemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+      lem.d_lemma.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::lemma_new");
     }
   }
 

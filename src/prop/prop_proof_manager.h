@@ -40,8 +40,8 @@ class CDCLTSatSolverInterface;
 class PropPfManager
 {
  public:
-  PropPfManager(context::UserContext* userContext,
-                ProofNodeManager* pnm,
+  PropPfManager(Env& env,
+                context::UserContext* userContext,
                 CDCLTSatSolverInterface* satSolver,
                 ProofCnfStream* cnfProof);
 
@@ -76,8 +76,6 @@ class PropPfManager
   void checkProof(const context::CDList<Node>& assertions);
 
  private:
-  /** A node manager */
-  ProofNodeManager* d_pnm;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
   /**
