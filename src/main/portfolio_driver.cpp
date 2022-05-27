@@ -561,7 +561,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
                    "UFFPDTNIRA"))
   {
     // initial runs
-    s.add(0.025).set("simplifications", "none").set("enum-inst");
+    s.add(0.025).set("simplification", "none").set("enum-inst");
     s.add(0.025).unset("e-matching").set("enum-inst");
     s.add(0.025).unset("e-matching").set("enum-inst").set("enum-inst-sum");
     // trigger selections
