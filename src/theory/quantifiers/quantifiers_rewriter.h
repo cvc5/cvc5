@@ -108,24 +108,22 @@ class QuantifiersRewriter : public TheoryRewriter
    * args, lit is equivalent to ( var = ret ).
    */
   Node getVarElimEqReal(Node lit,
-                               const std::vector<Node>& args,
-                               Node& var) const;
+                        const std::vector<Node>& args,
+                        Node& var) const;
   /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  Node getVarElimEqBv(Node lit,
-                             const std::vector<Node>& args,
-                             Node& var) const;
+  Node getVarElimEqBv(Node lit, const std::vector<Node>& args, Node& var) const;
   /** variable eliminate for string equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
   Node getVarElimEqString(Node lit,
-                                 const std::vector<Node>& args,
-                                 Node& var) const;
+                          const std::vector<Node>& args,
+                          Node& var) const;
   /** get variable elimination
    *
    * If there exists an n with some polarity in body, and entails a literal that
