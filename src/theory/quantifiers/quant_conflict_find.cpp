@@ -62,7 +62,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
   registerNode( qn, true, true );
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
-  d_mg.reset(new MatchGen(d_env, p, this, qn));
+  d_mg = std::make_unique<MatchGen>(d_env, p, this, qn);
 
   if( d_mg->isValid() ){
     for (size_t j = q[0].getNumChildren(), nvars = d_vars.size(); j < nvars;
