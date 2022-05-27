@@ -31,7 +31,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(Env& env) : EnvObj(env) {}
+BvInverter::BvInverter(const Options& opts, Rewriter* r) : d_opts(opts), d_rewriter(r) {}
 
 /*---------------------------------------------------------------------------*/
 
@@ -55,14 +55,17 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   TNode solve_var = getSolveVariable(tn);
 
   // condition should be rewritten
-  Node new_cond = rewrite(cond);
-  if (new_cond != cond)
+  Node new_cond = cond;
+  if (d_rewriter != nullptr)
   {
-    Trace("cegqi-bv-skvinv-debug")
-        << "Condition " << cond << " was rewritten to " << new_cond
-        << std::endl;
+    new_cond = d_rewriter->rewrite(cond);
+    if (new_cond != cond)
+    {
+      Trace("cegqi-bv-skvinv-debug")
+          << "Condition " << cond << " was rewritten to " << new_cond
+          << std::endl;
+    }
   }
-  
   // optimization : if condition is ( x = solve_var ) should just return
   // solve_var and not introduce a Skolem this can happen when we ask for
   // the multiplicative inversion with bv1
@@ -339,7 +342,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      if (litk == EQUAL && options().quantifiers.cegqiBvConcInv)
+      if (litk == EQUAL && d_opts.quantifiers.cegqiBvConcInv)
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
