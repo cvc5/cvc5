@@ -23,6 +23,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_rule.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 

@@ -328,7 +328,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
       }
       Trace("lazy-cdproofchain") << "\n";
     }
-    pfnEnsureClosedWrt(pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
+    pfnEnsureClosedWrt(options(), pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
   }
 }
 
