@@ -34,7 +34,7 @@ name   = "SMT Layer"
   help       = "apply Boolean constant propagation as a substituion during simplification"
 
 [[option]]
-  name       = "doStaticLearning"
+  name       = "staticLearning"
   category   = "regular"
   long       = "static-learning"
   type       = "bool"
