@@ -591,7 +591,6 @@ name   = "Arithmetic Theory"
   default    = "false"
   help       = "whether to use the equality solver in the theory of arithmetic"
 
-  
 [[option]]
   name       = "arithStaticLearning"
   category   = "regular"
