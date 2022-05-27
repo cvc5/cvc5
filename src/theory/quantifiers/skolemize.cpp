@@ -174,7 +174,8 @@ void Skolemize::getSelfSel(const DType& dt,
   }
 }
 
-Node Skolemize::mkSkolemizedBody(Node f,
+Node Skolemize::mkSkolemizedBody(const Options& opts,
+                                 Node f,
                                  Node n,
                                  std::vector<TNode>& fvs,
                                  std::vector<Node>& sk,
@@ -197,7 +198,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
   std::vector<unsigned> var_indicies;
   for (unsigned i = 0; i < f[0].getNumChildren(); i++)
   {
-    if (isInductionTerm(f[0][i]))
+    if (isInductionTerm(opts, f[0][i]))
     {
       ind_vars.push_back(f[0][i]);
       ind_var_indicies.push_back(i);
@@ -260,7 +261,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
     Node nret = ret.substitute(ind_vars[0], k);
     // note : everything is under a negation
     // the following constructs ~( R( x, k ) => ~P( x ) )
-    if (options::dtStcInduction() && tn.isDatatype())
+    if (opts.quantifiers.dtStcInduction && tn.isDatatype())
     {
       const DType& dt = tn.getDType();
       std::vector<Node> disj;
@@ -279,7 +280,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
       Assert(!disj.empty());
       n_str_ind = disj.size() == 1 ? disj[0] : nm->mkNode(AND, disj);
     }
-    else if (options::intWfInduction() && tn.isInteger())
+    else if (opts.quantifiers.intWfInduction && tn.isInteger())
     {
       Node icond = nm->mkNode(GEQ, k, nm->mkConstInt(Rational(0)));
       Node iret =
@@ -336,7 +337,7 @@ Node Skolemize::getSkolemizedBody(Node f)
     Node sub;
     std::vector<unsigned> sub_vars;
     Node ret =
-        mkSkolemizedBody(f, f[1], fvs, d_skolem_constants[f], sub, sub_vars);
+        mkSkolemizedBody(options(), f, f[1], fvs, d_skolem_constants[f], sub, sub_vars);
     d_skolem_body[f] = ret;
     // store sub quantifier information
     if (!sub.isNull())
@@ -364,15 +365,15 @@ Node Skolemize::getSkolemizedBody(Node f)
   return it->second;
 }
 
-bool Skolemize::isInductionTerm(Node n)
+bool Skolemize::isInductionTerm(const Options& opts, Node n)
 {
   TypeNode tn = n.getType();
-  if (options::dtStcInduction() && tn.isDatatype())
+  if (opts.quantifiers.dtStcInduction && tn.isDatatype())
   {
     const DType& dt = tn.getDType();
     return !dt.isCodatatype();
   }
-  if (options::intWfInduction() && tn.isInteger())
+  if (opts.quantifiers.intWfInduction && tn.isInteger())
   {
     return true;
   }
