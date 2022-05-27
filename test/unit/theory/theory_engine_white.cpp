@@ -75,6 +75,7 @@ class TestTheoryWhiteEngine : public TestSmt
 
 TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
@@ -90,7 +91,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
   // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
-  nOut = Rewriter::rewrite(n);
+  nOut = rr->rewrite(n);
 
   // assert that the rewritten node is what we expect
   ASSERT_EQ(nOut, nExpected);
@@ -98,6 +99,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 
 TEST_F(TestTheoryWhiteEngine, rewriter_complex)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->realType());
   TypeNode u = d_nodeManager->mkSort("U");
@@ -137,7 +139,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
   // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
-  nOut = Rewriter::rewrite(n);
+  nOut = rr->rewrite(n);
 
   // assert that the rewritten node is what we expect
   ASSERT_EQ(nOut, nExpected);
