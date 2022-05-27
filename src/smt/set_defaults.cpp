@@ -1106,7 +1106,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     verbose(1) << "SolverEngine: turning off deep restart to support unsat "
                   "cores"
-                << std::endl;
+               << std::endl;
     opts.writeSmt().deepRestartMode = options::DeepRestartMode::NONE;
   }
   if (opts.smt.learnedRewrite)
@@ -1142,7 +1142,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     notifyModifyOption("pbRewrites", "false", "unsat cores");
     opts.writeArith().pbRewrites = false;
   }
-  
+
   if (opts.quantifiers.globalNegate)
   {
     if (opts.quantifiers.globalNegateWasSetByUser)

@@ -443,8 +443,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // If a literal is false at 0 level (both sat and user level) we also
       // ignore it, unless we are tracking the SAT solver's reasoning
       if (value(ps[i]) == l_False) {
-        if (!options().smt.produceUnsatCores && !needProof() && level(var(ps[i])) == 0
-            && user_level(var(ps[i])) == 0)
+        if (!options().smt.produceUnsatCores && !needProof()
+            && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0)
         {
           continue;
         }
