@@ -339,6 +339,8 @@ enum class InferenceId
   QUANTIFIERS_INST_CEGQI,
   // instantiations from syntax-guided instantiation
   QUANTIFIERS_INST_SYQI,
+  // instantiations from model-based instantiation
+  QUANTIFIERS_INST_MBQI,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation

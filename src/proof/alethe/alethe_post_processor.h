@@ -32,7 +32,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   AletheProofPostprocessCallback(ProofNodeManager* pnm,
-                                 AletheNodeConverter& anc);
+                                 AletheNodeConverter& anc,
+                                 bool resPivots);
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
@@ -91,6 +92,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofNodeManager* d_pnm;
   /** The Alethe node converter */
   AletheNodeConverter& d_anc;
+  /** Whether to keep the pivots in the alguments of the resolution rule */
+  bool d_resPivots;
   /** The cl operator
    * For every step the conclusion is a clause. But since the or operator
    *requires at least two arguments it is extended by the cl operator. In case
@@ -145,7 +148,9 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocess
 {
  public:
-  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
+  AletheProofPostprocess(ProofNodeManager* pnm,
+                         AletheNodeConverter& anc,
+                         bool resPivots);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

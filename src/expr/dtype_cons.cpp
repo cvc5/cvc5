@@ -240,21 +240,21 @@ TypeNode DTypeConstructor::getArgType(size_t index) const
   return (*this)[index].getType().getDatatypeSelectorRangeType();
 }
 
-Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
-                                           size_t index) const
+Node DTypeConstructor::getSelector(size_t index) const
 {
   Assert(isResolved());
   Assert(index < getNumArgs());
-  if (options::dtSharedSelectors())
-  {
-    computeSharedSelectors(domainType);
-    Assert(d_sharedSelectors[domainType].size() == getNumArgs());
-    return d_sharedSelectors[domainType][index];
-  }
-  else
-  {
-    return d_args[index]->getSelector();
-  }
+  return d_args[index]->getSelector();
+}
+
+Node DTypeConstructor::getSharedSelector(TypeNode domainType,
+                                         size_t index) const
+{
+  Assert(isResolved());
+  Assert(index < getNumArgs());
+  computeSharedSelectors(domainType);
+  Assert(d_sharedSelectors[domainType].size() == getNumArgs());
+  return d_sharedSelectors[domainType][index];
 }
 
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
