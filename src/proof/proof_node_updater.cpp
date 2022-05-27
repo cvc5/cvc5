@@ -19,6 +19,7 @@
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
@@ -229,7 +230,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
     }
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_pnm->updateNode(cur.get(), npn.get());
+    d_env.getProofNodeManager()->updateNode(cur.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
     if (d_debugFreeAssumps)
     {
@@ -288,9 +289,10 @@ void ProofNodeUpdater::runFinalize(
           resCacheNcWaiting.find(res);
       if (itnw != resCacheNcWaiting.end())
       {
+        ProofNodeManager * pnm = d_env.getProofNodeManager();
         for (std::shared_ptr<ProofNode>& ncp : itnw->second)
         {
-          d_pnm->updateNode(ncp.get(), cur.get());
+          pnm->updateNode(ncp.get(), cur.get());
         }
         resCacheNcWaiting.erase(res);
       }
@@ -306,7 +308,7 @@ void ProofNodeUpdater::runFinalize(
     // the proof. We can now debug based on the expected set of free
     // assumptions.
     Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
-    pfnEnsureClosedWrt(
+    pfnEnsureClosedWrt(options(),
         cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
   }
 }

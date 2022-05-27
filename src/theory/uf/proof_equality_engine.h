@@ -81,7 +81,7 @@ class EqualityEngine;
  * - explain, for explaining why a literal is true in the current state.
  * Details on these methods can be found below.
  */
-class ProofEqEngine : protected EnvObj, public EagerProofGenerator
+class ProofEqEngine : public EagerProofGenerator
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;

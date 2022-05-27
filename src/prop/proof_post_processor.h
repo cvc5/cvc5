@@ -23,6 +23,7 @@
 
 #include "proof/proof_node_updater.h"
 #include "prop/proof_cnf_stream.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -34,10 +35,10 @@ namespace prop {
  * assertions and lemmas, with the CNF transformation of these formulas, while
  * expanding the generators of lemmas.
  */
-class ProofPostprocessCallback : public ProofNodeUpdaterCallback
+class ProofPostprocessCallback : protected EnvObj, public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm,
+  ProofPostprocessCallback(Env& env,
                            ProofCnfStream* proofCnfStream);
   ~ProofPostprocessCallback() {}
   /**
@@ -74,8 +75,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The cnf stream proof generator */
   ProofCnfStream* d_proofCnfStream;
   //---------------------------------reset at the begining of each update
@@ -89,10 +88,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  * produced by the SAT solver. Its main task is to connect the refutation's
  * assumptions to the CNF transformation proof in ProofCnfStream.
  */
-class ProofPostproccess
+class ProofPostproccess : protected EnvObj
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm, ProofCnfStream* proofCnfStream);
+  ProofPostproccess(Env& env, ProofCnfStream* proofCnfStream);
   ~ProofPostproccess();
   /** post-process
    *
@@ -104,8 +103,6 @@ class ProofPostproccess
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace prop

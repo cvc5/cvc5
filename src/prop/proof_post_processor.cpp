@@ -21,8 +21,8 @@ namespace cvc5::internal {
 namespace prop {
 
 ProofPostprocessCallback::ProofPostprocessCallback(
-    ProofNodeManager* pnm, ProofCnfStream* proofCnfStream)
-    : d_pnm(pnm), d_proofCnfStream(proofCnfStream)
+    Env& env, ProofCnfStream* proofCnfStream)
+    : EnvObj(env), d_proofCnfStream(proofCnfStream)
 {
 }
 
@@ -94,9 +94,9 @@ bool ProofPostprocessCallback::update(Node res,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
+ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofCnfStream* proofCnfStream)
-    : d_cb(pnm, proofCnfStream), d_pnm(pnm)
+    : EnvObj(env), d_cb(env, proofCnfStream)
 {
 }
 
@@ -108,7 +108,7 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   // how to process, including how to process assumptions in pf.
   d_cb.initializeUpdate();
   // now, process
-  ProofNodeUpdater updater(d_pnm, d_cb);
+  ProofNodeUpdater updater(d_env, d_cb);
   updater.process(pf);
 }
 

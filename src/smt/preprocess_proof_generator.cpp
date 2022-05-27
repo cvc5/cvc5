@@ -25,6 +25,7 @@
 #include "proof/proof_node.h"
 #include "smt/env.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -34,8 +35,8 @@ PreprocessProofGenerator::PreprocessProofGenerator(
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
-      d_helperProofs(env.getProofNodeManager(), d_ctx),
-      d_inputPf(env.getProofNodeManager(), c, "InputProof"),
+      d_helperProofs(env, d_ctx),
+      d_inputPf(env, c, "InputProof"),
       d_name(name),
       d_ra(ra),
       d_rpp(rpp)
@@ -128,7 +129,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // make CDProof to construct the proof below
-  CDProof cdp(d_env.getProofNodeManager());
+  CDProof cdp(d_env);
 
   Node curr = f;
   std::vector<Node> transChildren;

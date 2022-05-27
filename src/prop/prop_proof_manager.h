@@ -23,6 +23,7 @@
 #include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -37,7 +38,7 @@ class CDCLTSatSolverInterface;
  * The expected proof to be built is a refutation proof with preprocessed
  * assertions as free assumptions.
  */
-class PropPfManager
+class PropPfManager : protected EnvObj
 {
  public:
   PropPfManager(Env& env,

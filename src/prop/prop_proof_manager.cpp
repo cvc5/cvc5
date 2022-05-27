@@ -19,6 +19,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -28,7 +29,7 @@ PropPfManager::PropPfManager(Env& env,
                              CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
     : EnvObj(env),
-      d_pfpp(new ProofPostproccess(env.getProofNodeManager(), cnfProof)),
+      d_pfpp(new ProofPostproccess(env, cnfProof)),
       d_satSolver(satSolver),
       d_assertions(userContext)
 {

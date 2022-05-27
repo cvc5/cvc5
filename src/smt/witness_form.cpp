@@ -24,19 +24,19 @@ namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
     : d_rewriter(env.getRewriter()),
-      d_tcpg(env.getProofNodeManager(),
+      d_tcpg(env,
              nullptr,
              TConvPolicy::FIXPOINT,
              TConvCachePolicy::NEVER,
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(env.getProofNodeManager(),
+      d_wintroPf(env,
                  nullptr,
                  nullptr,
                  "WfGenerator::LazyCDProof"),
       d_pskPf(
-          env.getProofNodeManager(), nullptr, "WfGenerator::PurifySkolemProof")
+          env, nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 

@@ -74,7 +74,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
-      d_theoryLemmaPg(d_env.getProofNodeManager(), d_env.getUserContext()),
+      d_theoryLemmaPg(d_env, d_env.getUserContext()),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -125,7 +125,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
         *d_cnfStream,
         static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
-        new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
+        new PropPfManager(env, userContext, d_satSolver, d_pfCnfStream.get()));
   }
 }
 
