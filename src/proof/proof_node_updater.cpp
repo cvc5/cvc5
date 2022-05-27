@@ -236,7 +236,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
       // the proof. We can now debug based on the expected set of free
       // assumptions.
       Trace("pfnu-debug") << "Ensure updated closed..." << std::endl;
-      pfnEnsureClosedWrt(
+      pfnEnsureClosedWrt(options(),
           npn.get(), fullFa, "pfnu-debug", "ProofNodeUpdater:postupdate");
     }
     Trace("pf-process-debug") << "..finished" << std::endl;
