@@ -18,6 +18,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 
@@ -319,8 +320,8 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // checker than the one of the manager in this class, then it is double
       // checked here, so that this class maintains the invariant that all of
       // its nodes in d_nodes have been checked by the underlying checker.
-      Assert(d_manager->getChecker() == nullptr
-             || d_manager->getChecker()->check(pn.get(), curFact) == curFact);
+      Assert(getManager()->getChecker() == nullptr
+             || getManager()->getChecker()->check(pn.get(), curFact) == curFact);
       // just store the proof for fact
       d_nodes.insert(curFact, pn);
     }
@@ -329,7 +330,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // We update cur to have the structure of the top node of pn. Notice that
       // the interface to update this node will ensure that the proof apf is a
       // proof of the assumption. If it does not, then pn was wrong.
-      if (!d_manager->updateNode(
+      if (!getManager()->updateNode(
               cur.get(), pn->getRule(), pn->getChildren(), pn->getArguments()))
       {
         return false;
