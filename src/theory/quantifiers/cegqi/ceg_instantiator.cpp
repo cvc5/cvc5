@@ -554,7 +554,7 @@ void CegInstantiator::registerTheoryId(TheoryId tid)
     // setup any theory-specific preprocessors here
     if (tid == THEORY_BV)
     {
-      d_tipp[tid] = new BvInstantiatorPreprocess;
+      d_tipp[tid] = new BvInstantiatorPreprocess(d_env.getOptions());
     }
     d_tids.push_back(tid);
   }
