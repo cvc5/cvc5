@@ -53,10 +53,11 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma)
 {
-  // if we are forcing the inference to be processed as a lemma, or if the
-  // inference must be sent as a lemma based on the policy in
-  // mustCommunicateFact.
-  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
+  // if we are forcing the inference to be processed as a lemma, if the
+  // dtInferAsLemmas option is set, or if the inference must be sent as a lemma
+  // based on the policy in mustCommunicateFact.
+  if (forceLemma || options().datatypes.dtInferAsLemmas
+      || DatatypesInference::mustCommunicateFact(conc, exp))
   {
     d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, id));
   }

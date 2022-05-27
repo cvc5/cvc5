@@ -149,6 +149,8 @@ void SineSolver::doReductions()
 Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Node xr = (x.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, x) : x);
+  Node yr = (y.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, y) : y);
   Node mone = nm->mkConstReal(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), PI);
   return nm->mkAnd(std::vector<Node>{
@@ -160,8 +162,8 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
                      nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
                      nm->mkNode(LEQ, x, pi),
                  }),
-                 x.eqNode(y),
-                 x.eqNode(nm->mkNode(
+                 xr.eqNode(yr),
+                 xr.eqNode(nm->mkNode(
                      ADD, y, nm->mkNode(MULT, nm->mkConstReal(2), s, pi)))),
       nm->mkNode(SINE, y).eqNode(nm->mkNode(SINE, x))});
 }

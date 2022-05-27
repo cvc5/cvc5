@@ -21,8 +21,10 @@
 #include "expr/node.h"
 #include "options/io_utils.h"
 #include "options/language.h"
-#include "smt_util/boolean_simplification.h"
+#include "preprocessing/util/boolean_simplification.h"
 #include "test_node.h"
+
+using namespace cvc5::internal::preprocessing;
 
 namespace cvc5::internal {
 namespace test {

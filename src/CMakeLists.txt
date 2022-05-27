@@ -134,6 +134,8 @@ libcvc5_add_sources(
   preprocessing/preprocessing_pass_context.h
   preprocessing/preprocessing_pass_registry.cpp
   preprocessing/preprocessing_pass_registry.h
+  preprocessing/util/boolean_simplification.cpp
+  preprocessing/util/boolean_simplification.h
   preprocessing/util/ite_utilities.cpp
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
@@ -347,8 +349,6 @@ libcvc5_add_sources(
   smt/unsat_core_manager.h
   smt/witness_form.cpp
   smt/witness_form.h
-  smt_util/boolean_simplification.cpp
-  smt_util/boolean_simplification.h
   theory/arith/arith_evaluator.cpp
   theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
@@ -817,6 +817,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/inst_strategy_mbqi.cpp
+  theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
   theory/quantifiers/instantiate.cpp

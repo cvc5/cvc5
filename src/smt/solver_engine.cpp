@@ -86,7 +86,7 @@ namespace cvc5::internal {
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
-      d_absValues(new AbstractValues(getNodeManager())),
+      d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_smtSolver(nullptr),
@@ -1460,13 +1460,6 @@ void SolverEngine::checkUnsatCore()
   // disable all proof options
   coreChecker->getOptions().writeSmt().produceProofs = false;
   coreChecker->getOptions().writeSmt().checkProofs = false;
-
-  // set up separation logic heap if necessary
-  TypeNode sepLocType, sepDataType;
-  if (getSepHeapTypes(sepLocType, sepDataType))
-  {
-    coreChecker->declareSepHeap(sepLocType, sepDataType);
-  }
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;

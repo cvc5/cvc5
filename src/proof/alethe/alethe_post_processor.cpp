@@ -31,8 +31,8 @@ namespace cvc5::internal {
 namespace proof {
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm, AletheNodeConverter& anc)
-    : d_pnm(pnm), d_anc(anc)
+    ProofNodeManager* pnm, AletheNodeConverter& anc, bool resPivots)
+    : d_pnm(pnm), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
@@ -1512,9 +1512,8 @@ bool AletheProofPostprocessCallback::updatePost(
       }
       std::vector<Node> new_children = children;
       std::vector<Node> new_args =
-          options::proofAletheResPivots()
-              ? args
-              : std::vector<Node>(args.begin(), args.begin() + 3);
+          d_resPivots ? args
+                      : std::vector<Node>(args.begin(), args.begin() + 3);
       Node trueNode = nm->mkConst(true);
       Node falseNode = nm->mkConst(false);
       bool hasUpdated = false;
@@ -1612,7 +1611,7 @@ bool AletheProofPostprocessCallback::updatePost(
           }
         }
       }
-      if (hasUpdated || !options::proofAletheResPivots())
+      if (hasUpdated || !d_resPivots)
       {
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
@@ -1821,8 +1820,9 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 }
 
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
-                                               AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc)
+                                               AletheNodeConverter& anc,
+                                               bool resPivots)
+    : d_pnm(pnm), d_cb(d_pnm, anc, resPivots)
 {
 }
 
