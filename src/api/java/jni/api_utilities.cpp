@@ -71,10 +71,10 @@ cvc5::Term computeOracle(JNIEnv* env,
   }
 
   jclass oracleClass = env->GetObjectClass(oracleRef);
-  jmethodID computeMethod = env->GetMethodID(
-      oracleClass, "compute", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
+  jmethodID applyMethod = env->GetMethodID(
+      oracleClass, "apply", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
 
-  jobject jTerm = env->CallObjectMethod(oracleRef, computeMethod, jTerms);
+  jobject jTerm = env->CallObjectMethod(oracleRef, applyMethod, jTerms);
   jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
   jlong termPointer = env->GetLongField(jTerm, pointer);
   cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
