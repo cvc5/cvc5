@@ -2204,7 +2204,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param symbol The name of the pool
+   * @param symbol The name of the oracle
    * @param sorts The sorts of the parameters to this function
    * @param sort The sort of the return value of this function
    * @param oracle An object that implements the oracle interface.
