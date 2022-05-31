@@ -205,7 +205,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
                             ancestorHashs,
                             ProofNodeClusterType::NOT_DEFINED);
 
-  if (options::printDotClusters())
+  if (options::ioutils::getPrintDotClusters(out))
   {
     // Print the sub-graphs
     for (unsigned i = 0; i < 5; i++)
@@ -273,7 +273,7 @@ uint64_t DotPrinter::printInternal(
   }
 
   ProofNodeClusterType proofNodeType = ProofNodeClusterType::NOT_DEFINED;
-  if (options::printDotClusters())
+  if (options::ioutils::getPrintDotClusters(out))
   {
     // Define the type of this node
     proofNodeType = defineProofNodeType(pn, parentType);
@@ -329,7 +329,7 @@ uint64_t DotPrinter::printInternal(
   }
 
   // If it's a scope, then remove from the stack
-  if (isSCOPE(r) && options::printDotClusters())
+  if (isSCOPE(r) && options::ioutils::getPrintDotClusters(out))
   {
     d_scopesArgs.pop_back();
   }
