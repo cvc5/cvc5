@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpolants
+; COMMAND-LINE: --produce-interpolants -q
 ; EXPECT: fail
 (set-logic ALL)
 (declare-fun a () Int)
