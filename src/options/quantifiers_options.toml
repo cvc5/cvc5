@@ -184,6 +184,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "do global negation of input formula"
 
+[[option]]
+  name       = "mbqi"
+  category   = "expert"
+  long       = "mbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "use model-based quantifier instantiation"
+
 #### E-matching options
 
 [[option]]
@@ -789,30 +797,6 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "1"
   help       = "number of conjectures to generate per instantiation round"
-
-[[option]]
-  name       = "conjectureFilterActiveTerms"
-  category   = "expert"
-  long       = "conjecture-filter-active-terms"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on active terms"
-
-[[option]]
-  name       = "conjectureFilterCanonical"
-  category   = "expert"
-  long       = "conjecture-filter-canonical"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on canonicity"
-
-[[option]]
-  name       = "conjectureFilterModel"
-  category   = "expert"
-  long       = "conjecture-filter-model"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on model"
 
 [[option]]
   name       = "conjectureGenGtEnum"

@@ -765,9 +765,9 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
-    if (!d_result.hasSolution()
-        || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
-        || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
+    std::string sygusOut = solver->getOption("sygus-out");
+    if (!d_result.hasSolution() || sygusOut == "status-and-def"
+        || sygusOut == "status")
     {
       if (d_result.hasSolution())
       {
@@ -783,8 +783,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
       }
     }
     // check whether we should print the solution
-    if (d_result.hasSolution()
-        && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
+    if (d_result.hasSolution() && sygusOut != "status")
     {
       std::vector<cvc5::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
@@ -2402,12 +2401,13 @@ void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
-GetUnsatCoreCommand::GetUnsatCoreCommand() : d_sm(nullptr) {}
+GetUnsatCoreCommand::GetUnsatCoreCommand() : d_solver(nullptr), d_sm(nullptr) {}
 void GetUnsatCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
     d_sm = sm;
+    d_solver = solver;
     d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
@@ -2430,7 +2430,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out) const
   }
   else
   {
-    if (options::printUnsatCoresFull())
+    if (d_solver->getOption("print-unsat-cores-full") == "true")
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));
@@ -2456,6 +2456,7 @@ const std::vector<cvc5::Term>& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_sm = d_sm;
   c->d_result = d_result;
   return c;

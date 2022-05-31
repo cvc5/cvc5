@@ -26,6 +26,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/inst_strategy_mbqi.h"
 #include "theory/quantifiers/inst_strategy_pool.h"
 #include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
@@ -95,6 +96,8 @@ class QuantifiersModules
   std::unique_ptr<QuantDSplit> d_qsplit;
   /** SyGuS instantiation engine */
   std::unique_ptr<SygusInst> d_sygus_inst;
+  /** model-based quantifier instantiation */
+  std::unique_ptr<InstStrategyMbqi> d_mbqi;
   /** Oracle engine */
   std::unique_ptr<OracleEngine> d_oracleEngine;
 };

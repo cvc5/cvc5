@@ -67,6 +67,7 @@ set(regress_0_tests
   regress0/arith/issue5761-ppr.smt2
   regress0/arith/issue8097-iid.smt2
   regress0/arith/issue8159-rewrite-intreal.smt2
+  regress0/arith/issue8805-mixed-var-elim.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -753,6 +754,7 @@ set(regress_0_tests
   regress0/issue6605-2-abd-triv.smt2
   regress0/issue6738.smt2
   regress0/issue6741.smt2
+  regress0/issue8807-model-core-partial.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -844,6 +846,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/issue8415-embed-arg.smt2
+  regress0/nl/nta/issue8773-phase-shift.smt2
   regress0/nl/nta/pi-simplest.smt2
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
@@ -1085,11 +1088,13 @@ set(regress_0_tests
   regress0/quantifiers/issue8227-subs-shadow.smt2
   regress0/quantifiers/issue8466-syqi-bool.smt2
   regress0/quantifiers/issue8609-subtype-assert.smt2
+  regress0/quantifiers/issue8821-enum-interleave-types.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
   regress0/quantifiers/matching-lia-1arg.smt2
+  regress0/quantifiers/mbqi-simple.smt2
   regress0/quantifiers/mix-complete-strat.smt2
   regress0/quantifiers/mix-match.smt2
   regress0/quantifiers/mix-simp.smt2
@@ -1827,6 +1832,7 @@ set(regress_1_tests
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/table_aggregate1.smt2
+  regress1/bags/table_group1.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2

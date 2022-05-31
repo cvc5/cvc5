@@ -29,6 +29,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
+#include "expr/function_array_const.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -40,12 +41,13 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/bags/table_project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/floatingpoint.h"
@@ -307,6 +309,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ") ";
       toStream(out, asa.getValue(), toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
+      break;
+    }
+    case kind::FUNCTION_ARRAY_CONST:
+    {
+      // prints as the equivalent lambda
+      Node lam = theory::uf::FunctionConst::toLambda(n);
+      toStream(out, lam, toDepth);
       break;
     }
 
@@ -792,6 +801,21 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  case kind::TABLE_GROUP:
+  {
+    TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (table.group A)
+      out << "table.group " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ table.group 0 1 2 3) A)
+      out << "(_ table.group" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];
@@ -1155,6 +1179,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::TABLE_PROJECT: return "table.project";
   case kind::TABLE_AGGREGATE: return "table.aggr";
   case kind::TABLE_JOIN: return "table.join";
+  case kind::TABLE_GROUP: return "table.group";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";

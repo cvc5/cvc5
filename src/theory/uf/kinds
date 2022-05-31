@@ -33,9 +33,6 @@ typerule LAMBDA ::cvc5::internal::theory::uf::LambdaTypeRule
 
 variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 
-# lambda expressions that are isomorphic to array constants can be considered constants
-construle LAMBDA ::cvc5::internal::theory::uf::LambdaTypeRule
-
 operator HO_APPLY 2 "higher-order (partial) function application"
 typerule HO_APPLY ::cvc5::internal::theory::uf::HoApplyTypeRule
 
@@ -44,7 +41,7 @@ constant CARDINALITY_CONSTRAINT_OP \
   CardinalityConstraint \
   ::cvc5::internal::CardinalityConstraintHashFunction \
   "expr/cardinality_constraint.h" \
-  "the empty set constant; payload is an instance of the cvc5::internal::CardinalityConstraint class"
+  "the cardinality constraint operator; payload is an instance of the cvc5::internal::CardinalityConstraint class"
 parameterized CARDINALITY_CONSTRAINT CARDINALITY_CONSTRAINT_OP 0 "a fixed upper bound on the cardinality of an uninterpreted sort"
 
 typerule CARDINALITY_CONSTRAINT_OP ::cvc5::internal::theory::uf::CardinalityConstraintOpTypeRule
@@ -55,10 +52,19 @@ constant COMBINED_CARDINALITY_CONSTRAINT_OP \
   CombinedCardinalityConstraint \
   ::cvc5::internal::CombinedCardinalityConstraintHashFunction \
   "expr/cardinality_constraint.h" \
-  "the empty set constant; payload is an instance of the cvc5::internal::CombinedCardinalityConstraint class"
+  "the combined cardinality constraint operator; payload is an instance of the cvc5::internal::CombinedCardinalityConstraint class"
 parameterized COMBINED_CARDINALITY_CONSTRAINT COMBINED_CARDINALITY_CONSTRAINT_OP 0 "a fixed upper bound on the sum of cardinalities of uninterpreted sorts"
 
 typerule COMBINED_CARDINALITY_CONSTRAINT_OP ::cvc5::internal::theory::uf::CombinedCardinalityConstraintOpTypeRule
 typerule COMBINED_CARDINALITY_CONSTRAINT ::cvc5::internal::theory::uf::CombinedCardinalityConstraintTypeRule
+
+
+constant FUNCTION_ARRAY_CONST \
+  class \
+  FunctionArrayConst \
+  ::cvc5::internal::FunctionArrayConstHashFunction \
+  "expr/function_array_const.h" \
+  "the function constant; payload is an instance of the cvc5::internal::FunctionArrayConst class"
+typerule FUNCTION_ARRAY_CONST ::cvc5::internal::theory::uf::FunctionArrayConstTypeRule
 
 endtheory
