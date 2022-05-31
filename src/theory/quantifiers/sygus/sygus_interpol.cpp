@@ -245,7 +245,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 
   // Fa( x )
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
-  Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms);
+  Node Fa = nm->mkAnd(axioms);
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")
