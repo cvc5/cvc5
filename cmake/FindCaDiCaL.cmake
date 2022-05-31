@@ -26,10 +26,10 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   set(CaDiCaL_FOUND_SYSTEM TRUE)
 
   # Unfortunately it is not part of the headers
-  find_library(CaDiCaL_BINARY NAMES cadical)
+  find_program(CaDiCaL_BINARY NAMES cadical)
   if(CaDiCaL_BINARY)
     execute_process(
-      COMMAND ${CaDiCaL_BINARY} --version OUTPUT_VARIALE CaDiCaL_VERSION
+      COMMAND ${CaDiCaL_BINARY} --version OUTPUT_VARIABLE CaDiCaL_VERSION
     )
   else()
     set(CaDiCaL_VERSION "")
