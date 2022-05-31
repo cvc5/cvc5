@@ -318,7 +318,6 @@ class DumpTester(Tester):
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
-                expected_exit_status=0,
                 compare_outputs=False,
             )
         )
@@ -747,6 +746,7 @@ def main():
     timeout = float(os.getenv("TEST_TIMEOUT", "600"))
 
     testers = g_args.tester
+    print("testers 754:", testers)
     if not testers:
         testers = g_default_testers
     elif "all" in testers:
