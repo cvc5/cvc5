@@ -305,6 +305,7 @@ bool SubstitutionMinimize::findInternal(Node n,
           visit.push_back(cur[cindex]);
           continue;
         }
+        // otherwise, we handle it normally below
       }
       if (cur.getNumChildren() > 0)
       {
