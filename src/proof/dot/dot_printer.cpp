@@ -228,7 +228,7 @@ uint64_t DotPrinter::printInternal(
   uint64_t currentRuleID = d_ruleID;
 
   // Print DAG option enabled
-  if (options::proofDotDAG())
+  if (options::ioutils::getPrintDotAsDAG(out))
   {
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
@@ -303,7 +303,7 @@ uint64_t DotPrinter::printInternal(
                                      ancestorHashs,
                                      proofNodeType);
     out << "\t" << childId << " -> " << currentRuleID << ";\n";
-    if (options::proofDotDAG())
+    if (options::ioutils::getPrintDotAsDAG(out))
     {
       ancestorHashs.pop_back();
     }
@@ -321,7 +321,7 @@ uint64_t DotPrinter::printInternal(
                                        ancestorHashs,
                                        proofNodeType);
       out << "\t" << childId << " -> " << currentRuleID << ";\n";
-      if (options::proofDotDAG())
+      if (options::ioutils::getPrintDotAsDAG(out))
       {
         ancestorHashs.pop_back();
       }

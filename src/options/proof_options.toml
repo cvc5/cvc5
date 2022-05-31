@@ -115,11 +115,3 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Add pivots to Alethe resolution steps"
-
-[[option]]
-  name       = "proofDotDAG"
-  category   = "expert"
-  long       = "proof-dot-dag"
-  type       = "bool"
-  default    = "false"
-  help       = "Indicates if the dot proof will be printed as a DAG or as a tree"

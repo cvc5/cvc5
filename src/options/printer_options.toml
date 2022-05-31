@@ -54,6 +54,14 @@ name   = "Printing"
   help       = "print instantiations for formulas that do not have given identifiers"
 
 [[option]]
+  name       = "printDotAsDAG"
+  category   = "expert"
+  long       = "proof-dot-dag"
+  type       = "bool"
+  default    = "false"
+  help       = "Indicates if the dot proof will be printed as a DAG or as a tree"
+
+[[option]]
   name       = "printDotClusters"
   category   = "regular"
   long       = "print-dot-clusters"
