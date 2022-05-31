@@ -846,6 +846,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/issue8415-embed-arg.smt2
+  regress0/nl/nta/issue8773-phase-shift.smt2
   regress0/nl/nta/pi-simplest.smt2
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
@@ -1086,6 +1087,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8227-subs-shadow.smt2
   regress0/quantifiers/issue8466-syqi-bool.smt2
   regress0/quantifiers/issue8609-subtype-assert.smt2
+  regress0/quantifiers/issue8821-enum-interleave-types.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2

@@ -407,7 +407,7 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q)
   return hmin;
 }
 
-CegHandledStatus CegInstantiator::isCbqiQuant(Node q)
+CegHandledStatus CegInstantiator::isCbqiQuant(Node q, bool cegqiAll)
 {
   Assert(q.getKind() == FORALL);
   // compute attributes
@@ -467,7 +467,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q)
       ret = CEG_PARTIALLY_HANDLED;
     }
   }
-  if (ret == CEG_UNHANDLED && options::cegqiAll())
+  if (ret == CEG_UNHANDLED && cegqiAll)
   {
     // try but not exclusively
     ret = CEG_PARTIALLY_HANDLED;
@@ -554,7 +554,7 @@ void CegInstantiator::registerTheoryId(TheoryId tid)
     // setup any theory-specific preprocessors here
     if (tid == THEORY_BV)
     {
-      d_tipp[tid] = new BvInstantiatorPreprocess;
+      d_tipp[tid] = new BvInstantiatorPreprocess(d_env.getOptions());
     }
     d_tids.push_back(tid);
   }

@@ -44,16 +44,18 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
   void includes(Node r1, Node r2)
   {
-    r1 = Rewriter::rewrite(r1);
-    r2 = Rewriter::rewrite(r2);
+    Rewriter* rr = d_slvEngine->getRewriter();
+    r1 = rr->rewrite(r1);
+    r2 = rr->rewrite(r2);
     std::cout << r1 << " includes " << r2 << std::endl;
     ASSERT_TRUE(RegExpEntail::regExpIncludes(r1, r2));
   }
 
   void doesNotInclude(Node r1, Node r2)
   {
-    r1 = Rewriter::rewrite(r1);
-    r2 = Rewriter::rewrite(r2);
+    Rewriter* rr = d_slvEngine->getRewriter();
+    r1 = rr->rewrite(r1);
+    r2 = rr->rewrite(r2);
     std::cout << r1 << " does not include " << r2 << std::endl;
     ASSERT_FALSE(RegExpEntail::regExpIncludes(r1, r2));
   }
@@ -88,6 +90,7 @@ TEST_F(TestTheoryBlackRegexpOperation, basic)
 
 TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   Node sigma = d_nodeManager->mkNode(REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(REGEXP_STAR, sigma);
   Node a = d_nodeManager->mkNode(STRING_TO_REGEXP,
@@ -100,9 +103,9 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
   Node _abc_ = d_nodeManager->mkNode(REGEXP_CONCAT, sigmaStar, abc, sigmaStar);
   Node _asc_ =
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, a, sigma, c, sigmaStar});
-  Node _sc_ = Rewriter::rewrite(
+  Node _sc_ = rr->rewrite(
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, sigma, c, sigmaStar}));
-  Node _as_ = Rewriter::rewrite(
+  Node _as_ = rr->rewrite(
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, a, sigma, sigmaStar}));
   Node _assc_ = d_nodeManager->mkNode(
       REGEXP_CONCAT,
@@ -111,9 +114,9 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, c, sigma, a, sigmaStar});
   Node _c_a_ = d_nodeManager->mkNode(REGEXP_CONCAT,
                                      {sigmaStar, c, sigmaStar, a, sigmaStar});
-  Node _s_s_ = Rewriter::rewrite(d_nodeManager->mkNode(
+  Node _s_s_ = rr->rewrite(d_nodeManager->mkNode(
       REGEXP_CONCAT, {sigmaStar, sigma, sigmaStar, sigma, sigmaStar}));
-  Node _a_abc_ = Rewriter::rewrite(d_nodeManager->mkNode(
+  Node _a_abc_ = rr->rewrite(d_nodeManager->mkNode(
       REGEXP_CONCAT, {sigmaStar, a, sigmaStar, abc, sigmaStar}));
 
   includes(_asc_, _abc_);
