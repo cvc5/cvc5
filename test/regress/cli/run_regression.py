@@ -318,6 +318,7 @@ class DumpTester(Tester):
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
+                expected_exit_status=0,
                 compare_outputs=False,
             )
         )
