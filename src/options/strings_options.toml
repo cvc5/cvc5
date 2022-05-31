@@ -106,14 +106,6 @@ name   = "Strings Theory"
   help       = "regression explanations for string lemmas"
 
 [[option]]
-  name       = "stringMinPrefixExplain"
-  category   = "expert"
-  long       = "strings-min-prefix-explain"
-  type       = "bool"
-  default    = "true"
-  help       = "minimize explanations for prefix of normal forms in strings"
-
-[[option]]
   name       = "stringModelBasedReduction"
   category   = "regular"
   long       = "strings-mbr"

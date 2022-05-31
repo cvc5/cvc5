@@ -26,10 +26,14 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-DifficultyManager::DifficultyManager(RelevanceManager* rlv,
-                                     context::Context* c,
+DifficultyManager::DifficultyManager(Env& env,
+                                     RelevanceManager* rlv,
                                      Valuation val)
-    : d_rlv(rlv), d_input(c), d_val(val), d_dfmap(c)
+    : EnvObj(env),
+      d_rlv(rlv),
+      d_input(userContext()),
+      d_val(val),
+      d_dfmap(userContext())
 {
 }
 
@@ -55,11 +59,13 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
   // compute if we should consider the lemma
   bool considerLemma = false;
-  if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL_ALL)
+  if (options().smt.difficultyMode
+      == options::DifficultyMode::LEMMA_LITERAL_ALL)
   {
     considerLemma = true;
   }
-  else if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL)
+  else if (options().smt.difficultyMode
+           == options::DifficultyMode::LEMMA_LITERAL)
   {
     considerLemma = inFullEffortCheck;
   }
@@ -103,7 +109,7 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 
 void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
-  if (options::difficultyMode() != options::DifficultyMode::MODEL_CHECK)
+  if (options().smt.difficultyMode != options::DifficultyMode::MODEL_CHECK)
   {
     return;
   }

@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
@@ -30,10 +31,10 @@ namespace cvc5::internal {
 namespace smt {
 
 /** Final callback class, for stats and pedantic checking */
-class ProofFinalCallback : public ProofNodeUpdaterCallback
+class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
 {
  public:
-  ProofFinalCallback(ProofNodeManager* pnm);
+  ProofFinalCallback(Env& env);
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -65,8 +66,6 @@ class ProofFinalCallback : public ProofNodeUpdaterCallback
   IntStat d_minPedanticLevel;
   /** The total number of final proofs */
   IntStat d_numFinalProofs;
-  /** Proof node manager (used for pedantic checking) */
-  ProofNodeManager* d_pnm;
   /** Was there a pedantic failure? */
   bool d_pedanticFailure;
   /** The pedantic failure string for debugging */

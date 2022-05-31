@@ -149,7 +149,8 @@ void RelevantDomain::compute(){
         }
       }
     }
-    //print debug
+    // print debug and verify types are correct
+    NodeManager* nm = NodeManager::currentNM();
     for (std::pair<const Node, std::map<size_t, RDomain*> >& d : d_rel_doms)
     {
       Trace("rel-dom") << "Relevant domain for " << d.first << " : "
@@ -166,17 +167,24 @@ void RelevantDomain::compute(){
           Trace("rel-dom") << "Dom( " << d.first << ", " << dd.first << " ) ";
         }
         Trace("rel-dom") << std::endl;
-        if (Configuration::isAssertionBuild())
+        if (d.first.getKind() == FORALL)
         {
-          if (d.first.getKind() == FORALL)
+          TypeNode expectedType = d.first[0][dd.first].getType();
+          for (Node& t : r->d_terms)
           {
-            TypeNode expectedType = d.first[0][dd.first].getType();
-            for (const Node& t : r->d_terms)
+            TypeNode tt = t.getType();
+            if (tt != expectedType)
             {
-              if (!t.getType().isComparableTo(expectedType))
+              // Computation may merge Int with Real due to inequalities. We
+              // correct this here.
+              if (tt.isInteger() && expectedType.isReal())
               {
-                Unhandled() << "Relevant domain: bad type " << t.getType()
-                            << ", expected " << expectedType;
+                t = nm->mkNode(TO_REAL, t);
+              }
+              else
+              {
+                Assert(false) << "Relevant domain: bad type " << t.getType()
+                              << ", expected " << expectedType;
               }
             }
           }

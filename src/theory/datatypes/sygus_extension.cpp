@@ -375,8 +375,8 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
   {
     Trace("sygus-sb-debug") << "Do lazy symmetry breaking...\n";
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
-      Node sel =
-          nm->mkNode(APPLY_SELECTOR, dt[tindex].getSelectorInternal(ntn, j), n);
+      Node sel = nm->mkNode(
+          APPLY_SELECTOR, getSelectorInternal(ntn, dt[tindex], j), n);
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
       Assert(d_active_terms.find(sel) == d_active_terms.end());
       IntMap::const_iterator itt = d_testers.find( sel );
@@ -602,7 +602,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   for (unsigned j = 0; j < dt_index_nargs; j++)
   {
     Node sel =
-        nm->mkNode(APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, j), n);
+        nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], j), n);
     Assert(sel.getType().isDatatype());
     children.push_back(sel);
   }
@@ -615,7 +615,10 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
-      Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
+      Node szr =
+          nm->mkNode(DT_SIZE,
+                     utils::getInstCons(
+                         n, dt, tindex, options().datatypes.dtSharedSelectors));
       szr = rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
@@ -927,8 +930,9 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           && children[0].getType() == tn && children[1].getType() == tn)
       {
         // chainable
-        Node child11 = nm->mkNode(
-            APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, 1), children[0]);
+        Node child11 = nm->mkNode(APPLY_SELECTOR,
+                                  getSelectorInternal(tn, dt[tindex], 1),
+                                  children[0]);
         Assert(child11.getType() == children[1].getType());
         Node order_pred_trans =
             nm->mkNode(OR,
@@ -989,7 +993,7 @@ Node SygusExtension::registerSearchValue(Node a,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
-  Assert(n.getType().isComparableTo(nv.getType()));
+  Assert(n.getType() == nv.getType());
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {
@@ -1015,7 +1019,7 @@ Node SygusExtension::registerSearchValue(Node a,
     for (unsigned i = 0, nchild = nv.getNumChildren(); i < nchild; i++)
     {
       Node sel =
-          nm->mkNode(APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), n);
+          nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
       Node nvc = registerSearchValue(a,
                                      sel,
                                      nv[i],
@@ -1734,7 +1738,7 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
     Node sel =
-        nm->mkNode(APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), n);
+        nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
     if (!checkValue(sel, vn[i], ind + 1))
     {
       return false;
@@ -1756,7 +1760,7 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
       Node sel = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, i), n);
+          APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }
@@ -1843,3 +1847,10 @@ int SygusExtension::getGuardStatus( Node g ) {
   }
 }
 
+Node SygusExtension::getSelectorInternal(TypeNode dtt,
+                                         const DTypeConstructor& dc,
+                                         size_t index) const
+{
+  return utils::getSelector(
+      dtt, dc, index, options().datatypes.dtSharedSelectors);
+}

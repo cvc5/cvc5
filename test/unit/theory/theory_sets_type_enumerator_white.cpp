@@ -41,6 +41,7 @@ class TestTheoryWhiteSetsTypeEnumerator : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsTypeEnumerator, set_of_booleans)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   SetEnumerator setEnumerator(d_nodeManager->mkSetType(boolType));
   ASSERT_FALSE(setEnumerator.isFinished());
@@ -59,7 +60,7 @@ TEST_F(TestTheoryWhiteSetsTypeEnumerator, set_of_booleans)
   addAndCheckUnique(actual2, elems);
   ASSERT_FALSE(setEnumerator.isFinished());
 
-  Node actual3 = Rewriter::rewrite(*++setEnumerator);
+  Node actual3 = rr->rewrite(*++setEnumerator);
   addAndCheckUnique(actual3, elems);
   ASSERT_FALSE(setEnumerator.isFinished());
 

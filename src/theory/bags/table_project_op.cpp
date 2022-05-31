@@ -32,4 +32,9 @@ TableJoinOp::TableJoinOp(std::vector<uint32_t> indices)
 {
 }
 
+TableGroupOp::TableGroupOp(std::vector<uint32_t> indices)
+    : ProjectOp(std::move(indices))
+{
+}
+
 }  // namespace cvc5::internal

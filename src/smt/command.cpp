@@ -124,21 +124,6 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   return out;
 }
 
-/* output stream insertion operator for benchmark statuses */
-std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
-{
-  switch (status)
-  {
-    case SMT_SATISFIABLE: return out << "sat";
-
-    case SMT_UNSATISFIABLE: return out << "unsat";
-
-    case SMT_UNKNOWN: return out << "unknown";
-
-    default: return out << "BenchmarkStatus::[UNKNOWNSTATUS!]";
-  }
-}
-
 /* -------------------------------------------------------------------------- */
 /* class CommandPrintSuccess                                                  */
 /* -------------------------------------------------------------------------- */
@@ -780,9 +765,9 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
-    if (!d_result.hasSolution()
-        || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
-        || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
+    std::string sygusOut = solver->getOption("sygus-out");
+    if (!d_result.hasSolution() || sygusOut == "status-and-def"
+        || sygusOut == "status")
     {
       if (d_result.hasSolution())
       {
@@ -798,8 +783,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
       }
     }
     // check whether we should print the solution
-    if (d_result.hasSolution()
-        && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
+    if (d_result.hasSolution() && sygusOut != "status")
     {
       std::vector<cvc5::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
@@ -1177,17 +1161,25 @@ void DeclarePoolCommand::toStream(std::ostream& out,
 /* class DeclareOracleFunCommand */
 /* -------------------------------------------------------------------------- */
 
-DeclareOracleFunCommand::DeclareOracleFunCommand(Term func)
-    : d_func(func), d_binName("")
+DeclareOracleFunCommand::DeclareOracleFunCommand(const std::string& id,
+                                                 Sort sort)
+    : d_id(id), d_sort(sort), d_binName("")
 {
 }
-DeclareOracleFunCommand::DeclareOracleFunCommand(Term func,
+DeclareOracleFunCommand::DeclareOracleFunCommand(const std::string& id,
+                                                 Sort sort,
                                                  const std::string& binName)
-    : d_func(func), d_binName(binName)
+    : d_id(id), d_sort(sort), d_binName(binName)
 {
 }
 
-Term DeclareOracleFunCommand::getFunction() const { return d_func; }
+const std::string& DeclareOracleFunCommand::getIdentifier() const
+{
+  return d_id;
+}
+
+Sort DeclareOracleFunCommand::getSort() const { return d_sort; }
+
 const std::string& DeclareOracleFunCommand::getBinaryName() const
 {
   return d_binName;
@@ -1195,16 +1187,25 @@ const std::string& DeclareOracleFunCommand::getBinaryName() const
 
 void DeclareOracleFunCommand::invoke(Solver* solver, SymbolManager* sm)
 {
-  // Notice that the oracle function is already declared by the parser so that
-  // the symbol is bound eagerly.
-  // mark that it will be printed in the model
-  sm->addModelDeclarationTerm(d_func);
+  std::vector<Sort> args;
+  Sort ret;
+  if (d_sort.isFunction())
+  {
+    args = d_sort.getFunctionDomainSorts();
+    ret = d_sort.getFunctionCodomainSort();
+  }
+  else
+  {
+    ret = d_sort;
+  }
+  // will call solver declare oracle function when available in API
   d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareOracleFunCommand::clone() const
 {
-  DeclareOracleFunCommand* dfc = new DeclareOracleFunCommand(d_func, d_binName);
+  DeclareOracleFunCommand* dfc =
+      new DeclareOracleFunCommand(d_id, d_sort, d_binName);
   return dfc;
 }
 
@@ -1219,7 +1220,7 @@ void DeclareOracleFunCommand::toStream(std::ostream& out,
                                        Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareOracleFun(
-      out, termToNode(d_func), d_binName);
+      out, d_id, sortToTypeNode(d_sort), d_binName);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2400,12 +2401,13 @@ void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
-GetUnsatCoreCommand::GetUnsatCoreCommand() : d_sm(nullptr) {}
+GetUnsatCoreCommand::GetUnsatCoreCommand() : d_solver(nullptr), d_sm(nullptr) {}
 void GetUnsatCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
     d_sm = sm;
+    d_solver = solver;
     d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
@@ -2428,7 +2430,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out) const
   }
   else
   {
-    if (options::printUnsatCoresFull())
+    if (d_solver->getOption("print-unsat-cores-full") == "true")
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));
@@ -2454,6 +2456,7 @@ const std::vector<cvc5::Term>& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_sm = d_sm;
   c->d_result = d_result;
   return c;
