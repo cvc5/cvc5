@@ -746,7 +746,6 @@ def main():
     timeout = float(os.getenv("TEST_TIMEOUT", "600"))
 
     testers = g_args.tester
-    print("testers 754:", testers)
     if not testers:
         testers = g_default_testers
     elif "all" in testers:
