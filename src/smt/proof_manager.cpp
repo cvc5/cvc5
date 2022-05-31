@@ -184,7 +184,8 @@ void PfManager::printProof(std::ostream& out,
   else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
-    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
+    proof::AletheProofPostprocess vpfpp(
+        d_pnm.get(), anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp;
     vpp.print(out, fp);

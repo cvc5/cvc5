@@ -45,7 +45,7 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
 {
 }
 
-PreprocessingPass::~PreprocessingPass() { Assert(smt::solverEngineInScope()); }
+PreprocessingPass::~PreprocessingPass() {}
 
 }  // namespace preprocessing
 }  // namespace cvc5::internal

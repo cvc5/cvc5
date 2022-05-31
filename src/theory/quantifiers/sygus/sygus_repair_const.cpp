@@ -215,7 +215,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (fo_body.getKind() == FORALL)
   {
     // must be a CBQI quantifier
-    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body);
+    CegHandledStatus hstatus =
+        CegInstantiator::isCbqiQuant(fo_body, options().quantifiers.cegqiAll);
     if (hstatus < CEG_HANDLED)
     {
       // abort if less than fully handled
