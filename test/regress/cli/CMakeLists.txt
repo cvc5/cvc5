@@ -824,6 +824,8 @@ set(regress_0_tests
   regress0/nl/issue8744-real.smt2
   regress0/nl/issue8744-real-cov.smt2
   regress0/nl/issue8755-nl-logic-exception.smt2
+  regress0/nl/issue8835-int-first.smt2
+  regress0/nl/issue8835-int-second.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
