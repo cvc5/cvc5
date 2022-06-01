@@ -643,7 +643,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   // new lemmas
   std::vector<Node> new_lems;
 
-  if (options::cegqiBvRmExtract())
+  if (d_opts.quantifiers.cegqiBvRmExtract)
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();

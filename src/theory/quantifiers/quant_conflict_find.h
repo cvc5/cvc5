@@ -34,11 +34,11 @@ class QuantConflictFind;
 class QuantInfo;
 
 //match generator
-class MatchGen {
+class MatchGen : protected EnvObj {
   friend class QuantInfo;
 
  public:
-  MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar = false);
+  MatchGen(Env& env, QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar = false);
 
   //type of the match generator
   enum {

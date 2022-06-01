@@ -29,6 +29,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
+#include "expr/function_array_const.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -44,6 +45,7 @@
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/floatingpoint.h"
@@ -312,6 +314,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ") ";
       toStream(out, asa.getValue(), toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
+      break;
+    }
+    case kind::FUNCTION_ARRAY_CONST:
+    {
+      // prints as the equivalent lambda
+      Node lam = theory::uf::FunctionConst::toLambda(n);
+      toStream(out, lam, toDepth);
       break;
     }
 

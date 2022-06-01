@@ -102,7 +102,8 @@ class Skolemize : protected EnvObj
    * has multiple induction variables. See page 5
    * of Reynolds et al., VMCAI 2015.
    */
-  static Node mkSkolemizedBody(Node q,
+  static Node mkSkolemizedBody(const Options& opts,
+                               Node q,
                                Node n,
                                std::vector<TNode>& fvs,
                                std::vector<Node>& sk,
@@ -115,7 +116,7 @@ class Skolemize : protected EnvObj
    */
   Node getSkolemizedBody(Node q);
   /** is n a variable that we can apply inductive strenghtening to? */
-  static bool isInductionTerm(Node n);
+  static bool isInductionTerm(const Options& opts, Node n);
   /**
    * Get skolemization vectors, where for each quantified formula that was
    * skolemized, this is the list of skolems that were used to witness the

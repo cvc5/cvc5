@@ -15,6 +15,8 @@
 
 #include "theory/ee_manager_central.h"
 
+#include "options/arith_options.h"
+#include "options/theory_options.h"
 #include "smt/env.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/shared_solver.h"
@@ -70,7 +72,7 @@ void EqEngineManagerCentral::initializeTheories()
   std::map<TheoryId, EeSetupInfo> esiMap;
   // set of theories that need equality engines
   std::unordered_set<TheoryId> eeTheories;
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& linfo = logicInfo();
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
        ++theoryId)
@@ -91,8 +93,8 @@ void EqEngineManagerCentral::initializeTheories()
     // if the logic has a theory that does not use central equality engine,
     // we can't use the central equality engine for the master equality
     // engine
-    if (theoryId != THEORY_QUANTIFIERS && logicInfo.isTheoryEnabled(theoryId)
-        && !Theory::usesCentralEqualityEngine(theoryId))
+    if (theoryId != THEORY_QUANTIFIERS && linfo.isTheoryEnabled(theoryId)
+        && !usesCentralEqualityEngine(options(), theoryId))
     {
       Trace("ee-central") << "Must use separate master equality engine due to "
                           << theoryId << std::endl;
@@ -102,7 +104,7 @@ void EqEngineManagerCentral::initializeTheories()
 
   // initialize the master equality engine, which may be the central equality
   // engine
-  if (logicInfo.isQuantified())
+  if (linfo.isQuantified())
   {
     // construct the master equality engine
     Assert(d_masterEqualityEngine == nullptr);
@@ -155,12 +157,12 @@ void EqEngineManagerCentral::initializeTheories()
     eq::EqualityEngineNotify* notify = esi.d_notify;
     d_theoryNotify[theoryId] = notify;
     // split on whether integrated, or whether asked for master
-    if (t->usesCentralEqualityEngine())
+    if (usesCentralEqualityEngine(options(), t->getId()))
     {
       Trace("ee-central") << "...uses central" << std::endl;
       // the theory uses the central equality engine
       eet.d_usedEe = &d_centralEqualityEngine;
-      if (logicInfo.isTheoryEnabled(theoryId))
+      if (linfo.isTheoryEnabled(theoryId))
       {
         // add to vectors for the kinds of notifications
         if (esi.needsNotifyNewClass())
@@ -194,6 +196,24 @@ void EqEngineManagerCentral::initializeTheories()
   {
     d_centralEqualityEngine.setMasterEqualityEngine(d_masterEqualityEngine);
   }
+}
+
+bool EqEngineManagerCentral::usesCentralEqualityEngine(const Options& opts,
+                                                       TheoryId id)
+{
+  Assert(opts.theory.eeMode == options::EqEngineMode::CENTRAL);
+  if (id == THEORY_BUILTIN)
+  {
+    return true;
+  }
+  if (id == THEORY_ARITH)
+  {
+    // conditional on whether we are using the equality solver
+    return opts.arith.arithEqSolver;
+  }
+  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
+         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
+         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
 }
 
 void EqEngineManagerCentral::notifyBuildingModel() {}
