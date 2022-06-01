@@ -93,14 +93,6 @@ name   = "Bitvector Theory"
   help       = "simplify formula via Gaussian Elimination if applicable"
 
 [[option]]
-  name       = "bvPrintConstsAsIndexedSymbols"
-  category   = "regular"
-  long       = "bv-print-consts-as-indexed-symbols"
-  type       = "bool"
-  default    = "false"
-  help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
-
-[[option]]
   name       = "bvSolver"
   category   = "regular"
   long       = "bv-solver=MODE"
