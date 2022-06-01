@@ -746,7 +746,9 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       // just add the instance
       d_triedLemmas++;
+      Trace("ajr-temp") << "Inst before: " << inst << std::endl;
       instq->processInstantiationRep(f, inst);
+      Trace("ajr-temp") << "Inst after: " << inst << std::endl;
       if (instq->addInstantiation(
               f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, Node::null()))
       {

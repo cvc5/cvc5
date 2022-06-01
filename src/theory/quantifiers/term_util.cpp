@@ -25,6 +25,8 @@
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
+#include "expr/array_store_all.h"
+#include "expr/function_array_const.h"
 
 using namespace cvc5::internal::kind;
 
@@ -215,26 +217,36 @@ int TermUtil::getTermDepth( Node n ) {
 }
 
 bool TermUtil::containsUninterpretedConstant( Node n ) {
-  if (!n.hasAttribute(ContainsUConstAttribute()) ){
-    bool ret = false;
-    if (n.getKind() == UNINTERPRETED_SORT_VALUE
-        && n.getType().isUninterpretedSort())
-    {
-      ret = true;
-    }
-    else
-    {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( containsUninterpretedConstant( n[i] ) ){
-          ret = true;
-          break;
-        }
+  if (n.hasAttribute(ContainsUConstAttribute()) ){
+    return n.getAttribute(ContainsUConstAttribute())!=0;
+  }
+  bool ret = false;
+  Kind k = n.getKind();
+  if (k == UNINTERPRETED_SORT_VALUE)
+  {
+    Assert (n.getType().isUninterpretedSort());
+    ret = true;
+  }
+  else if (k == STORE_ALL)
+  {
+    ret = containsUninterpretedConstant(n.getConst<ArrayStoreAll>().getValue());
+  }
+  else if ( k==FUNCTION_ARRAY_CONST)
+  {
+    ret = containsUninterpretedConstant(n.getConst<FunctionArrayConst>().getArrayValue());
+  }
+  else
+  {
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( containsUninterpretedConstant( n[i] ) ){
+        ret = true;
+        break;
       }
     }
-    ContainsUConstAttribute cuca;
-    n.setAttribute(cuca, ret ? 1 : 0);
   }
-  return n.getAttribute(ContainsUConstAttribute())!=0;
+  ContainsUConstAttribute cuca;
+  n.setAttribute(cuca, ret ? 1 : 0);
+  return ret;
 }
 
 Node TermUtil::simpleNegate(Node n)
