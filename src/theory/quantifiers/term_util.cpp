@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/term_util.h"
 
+#include "expr/array_store_all.h"
+#include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
@@ -25,8 +27,6 @@
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-#include "expr/array_store_all.h"
-#include "expr/function_array_const.h"
 
 using namespace cvc5::internal::kind;
 
@@ -217,28 +217,32 @@ int TermUtil::getTermDepth( Node n ) {
 }
 
 bool TermUtil::containsUninterpretedConstant( Node n ) {
-  if (n.hasAttribute(ContainsUConstAttribute()) ){
-    return n.getAttribute(ContainsUConstAttribute())!=0;
+  if (n.hasAttribute(ContainsUConstAttribute()))
+  {
+    return n.getAttribute(ContainsUConstAttribute()) != 0;
   }
   bool ret = false;
   Kind k = n.getKind();
   if (k == UNINTERPRETED_SORT_VALUE)
   {
-    Assert (n.getType().isUninterpretedSort());
+    Assert(n.getType().isUninterpretedSort());
     ret = true;
   }
   else if (k == STORE_ALL)
   {
     ret = containsUninterpretedConstant(n.getConst<ArrayStoreAll>().getValue());
   }
-  else if ( k==FUNCTION_ARRAY_CONST)
+  else if (k == FUNCTION_ARRAY_CONST)
   {
-    ret = containsUninterpretedConstant(n.getConst<FunctionArrayConst>().getArrayValue());
+    ret = containsUninterpretedConstant(
+        n.getConst<FunctionArrayConst>().getArrayValue());
   }
   else
   {
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( containsUninterpretedConstant( n[i] ) ){
+    for (const Node& nc : n)
+    {
+      if (containsUninterpretedConstant(nc))
+      {
         ret = true;
         break;
       }
