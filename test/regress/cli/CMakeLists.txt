@@ -755,6 +755,7 @@ set(regress_0_tests
   regress0/issue6738.smt2
   regress0/issue6741.smt2
   regress0/issue8807-model-core-partial.smt2
+  regress0/issue8833-interpol-no-shared-var.smt2
   regress0/issue8834-model-core-nconst.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
