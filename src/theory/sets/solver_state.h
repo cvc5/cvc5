@@ -160,6 +160,8 @@ class SolverState : public TheoryState
    * map is a representative of its congruence class.
    */
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
+  /** Get the list of all set.map terms in the current context */
+  const std::vector<Node>& getMapTerms() const;
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
 
@@ -192,8 +194,9 @@ class SolverState : public TheoryState
   Node d_true;
   Node d_false;
   /** the empty vector and map */
-  std::vector<Node> d_emptyVec;
-  std::map<Node, Node> d_emptyMap;
+  const std::vector<Node> d_emptyVec;
+  /** a convenient constant empty map */
+  const std::map<Node, Node> d_emptyMap;
   /** Reference to skolem cache */
   SkolemCache& d_skCache;
   /** The list of all equivalence classes of type set in the current context */
@@ -208,6 +211,8 @@ class SolverState : public TheoryState
   std::map<Node, Node> d_congruent;
   /** Map from equivalence classes to the list of non-variable sets in it */
   std::map<Node, std::vector<Node> > d_nvar_sets;
+  /** collection of map terms */
+  std::vector<Node> d_mapTerms;
   /** Map from equivalence classes to the list of comprehension sets in it */
   std::map<Node, std::vector<Node> > d_compSets;
   /** Map from equivalence classes to a variable sets in it */

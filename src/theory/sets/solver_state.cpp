@@ -42,6 +42,7 @@ void SolverState::reset()
   d_congruent.clear();
   d_nvar_sets.clear();
   d_var_set.clear();
+  d_mapTerms.clear();
   d_compSets.clear();
   d_pol_mems[0].clear();
   d_pol_mems[1].clear();
@@ -134,6 +135,10 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
+  }
+  else if (nk == SET_MAP)
+  {
+    d_mapTerms.push_back(n);
   }
   else if (nk == SET_COMPREHENSION)
   {
@@ -455,6 +460,8 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 {
   return d_op_list;
 }
+
+const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
 
 const std::vector<Node>& SolverState::getComprehensionSets() const
 {
