@@ -155,7 +155,6 @@ class TheorySetsPrivate : protected EnvObj
   //--------------------------------- end standard check
 
   /** Collect model values in m based on the relevant terms given by termSet */
-  void addSharedTerm(TNode);
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
