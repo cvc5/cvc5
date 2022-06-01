@@ -1825,7 +1825,21 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       else if (polarity != pol)
       {
         // a positive and negative pto
-        if (!areDisequal(pval, qval))
+        bool isSat = false;
+        std::vector<Node> conc;
+        for (size_t j=0; j<2; j++)
+        {
+          if (areDisequal(p[0][j], q[0][j]))
+          {
+            isSat = true;
+            break;
+          }
+          if (p[0][j] != q[0][j])
+          {
+            conc.push_back(p[0][j].eqNode(q[0][j]).notNode());
+          }
+        }
+        if (!isSat)
         {
           std::vector<Node> exp;
           if (plbl != qlbl)
@@ -1839,16 +1853,11 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           Node neg = polarity ? q : p;
           exp.push_back(pos);
           exp.push_back(neg.notNode());
-          std::vector<Node> conc;
-          if (pval != qval)
-          {
-            conc.push_back(pval.eqNode(qval).notNode());
-          }
           Node concn = nm->mkOr(conc);
           Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp
-                           << std::endl;
-          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B => y != w
-          // or (label (pto x y) A) ^ ~(label (pto z y) B) ^ A = B => false
+                            << std::endl;
+          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B => 
+          // (x != z or y != w)
           sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
         }
       }
