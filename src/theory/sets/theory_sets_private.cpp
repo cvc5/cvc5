@@ -757,7 +757,39 @@ void TheorySetsPrivate::checkMapDown()
         return;
       }
     }
+
+    const std::map<Node, Node>& negativeMembers = d_state.getNegativeMembers(term);
+    for (const std::pair<Node, Node>& pair : negativeMembers)
+    {
+      // (=>
+      //   (not (set.member y (set.map f A)))
+      //   (forall ((x T))
+      //     (=>
+      //       (set.member x A)
+      //       (not (= (f x) y))
+      //     )
+      //   )
+      // )
+      std::vector<Node> exp;
+      Node y = pair.first;
+      Node B = pair.second[1];
+      exp.push_back(pair.second.notNode());
+      d_state.addEqualityToExp(B, term, exp);
+      Node x = nm->mkBoundVar("x", elementType);
+      Node xList = nm->mkNode(BOUND_VAR_LIST, x);
+      Node memberA = nm->mkNode(SET_MEMBER, x, A);
+      Node f_x = nm->mkNode(APPLY_UF, f, x);
+      Node notEqual = f_x.eqNode(y).notNode();
+      Node body = memberA.impNode(notEqual);
+      Node forall = nm->mkNode(FORALL, xList, body);
+      d_im.assertInference(forall, InferenceId::SETS_MAP_DOWN_NEGATIVE, exp);
+      if (d_state.isInConflict())
+      {
+        return;
+      }
+    }
   }
+
 }
 
 void TheorySetsPrivate::checkDisequalities()
