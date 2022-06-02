@@ -56,7 +56,7 @@ if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
       "-DINCLUDE_DIRECTORIES=${GMP_INCLUDE_DIR}"
     LINK_LIBRARIES ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
-  if(NOT ${DOES_WORK})
+  if(NOT GMP_USABLE)
     message(VERBOSE "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
     set(GMP_FOUND_SYSTEM FALSE)
   endif()

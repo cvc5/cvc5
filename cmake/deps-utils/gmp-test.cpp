@@ -6,7 +6,6 @@
 
 int main()
 {
-  mpz_class i(0);
-  mpz_class i2 = i + 1;
+  mpz_class i = 0;
   return 0;
 }
