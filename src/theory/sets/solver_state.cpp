@@ -473,11 +473,11 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 
 const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
 
-context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>>>::iterator
-SolverState::getMapSkolemElements(Node n)
+std::shared_ptr<context::CDHashSet<Node>> SolverState::getMapSkolemElements(
+    Node n)
 {
   std::cout << "SolverState::getMapSkolemElements existing: " << n << std::endl;
-  return d_mapSkolemElements.find(n);
+  return d_mapSkolemElements[n];
 }
 
 const std::vector<Node>& SolverState::getComprehensionSets() const
@@ -619,8 +619,8 @@ bool SolverState::merge(TNode t1,
 
 void SolverState::registerMapDownElement(const Node& n, const Node& element)
 {
-  auto it = d_mapSkolemElements.find(n);
-  it->second->insert(element);
+  d_mapSkolemElements[n].get()->insert(element);
+
   std::cout << "map down element " << element << " for existing " << n
             << std::endl;
 }

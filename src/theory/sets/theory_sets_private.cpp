@@ -678,15 +678,15 @@ void TheorySetsPrivate::checkMapUp()
     Node A = term[1];
     const std::map<Node, Node>& positiveMembers = d_state.getMembers(A);
     const auto & skolemElements = d_state.getMapSkolemElements(term);
-    std::cout << "skolemElements: " <<  *skolemElements << std::endl;
-    std::cout << "skolemElements->size(): " <<  skolemElements->second->size() << std::endl;
+    std::cout << "skolemElements: " <<  skolemElements << std::endl;
+    std::cout << "skolemElements->size(): " <<  skolemElements->size() << std::endl;
     for (const std::pair<Node, Node>& pair : positiveMembers)
     {
       Node x = pair.first;
       std::cout << "x: " << x << std::endl;
-      if (skolemElements->second->contains(x))
+      if (skolemElements->contains(x))
       {
-        std::cout << "x is already a skolem element "<< std::endl;
+        std::cout << "x is already a skolem element " << std::endl;
         continue;
       }
       // (=>
