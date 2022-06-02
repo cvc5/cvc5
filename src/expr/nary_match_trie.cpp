@@ -165,8 +165,8 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           {
             currChildren.push_back(next);
             syms.pop_back();
-            // check subtyping in the (non-list) case
-            if (!var.getType().isSubtypeOf(next.getType()))
+            // check types in the (non-list) case
+            if (var.getType() != next.getType())
             {
               next = Node::null();
             }

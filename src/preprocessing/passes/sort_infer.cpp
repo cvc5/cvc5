@@ -72,12 +72,13 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     // could indicate correspondence between the functions
     // for (f1, f2) in model_replace_f, f1's model should be based on f2.
     // See cvc4-wishues/issues/75.
-  }
-  // only need to compute monotonicity on the resulting formula if we are
-  // using this option
-  if (options().uf.ufssFairnessMonotone)
-  {
-    si->computeMonotonicity(assertionsToPreprocess->ref());
+
+    // only need to compute monotonicity on the resulting formula if we are
+    // using this option
+    if (options().uf.ufssFairnessMonotone)
+    {
+      si->computeMonotonicity(assertionsToPreprocess->ref());
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

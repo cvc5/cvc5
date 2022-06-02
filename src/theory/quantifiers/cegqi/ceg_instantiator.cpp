@@ -407,7 +407,7 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q)
   return hmin;
 }
 
-CegHandledStatus CegInstantiator::isCbqiQuant(Node q)
+CegHandledStatus CegInstantiator::isCbqiQuant(Node q, bool cegqiAll)
 {
   Assert(q.getKind() == FORALL);
   // compute attributes
@@ -467,7 +467,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q)
       ret = CEG_PARTIALLY_HANDLED;
     }
   }
-  if (ret == CEG_UNHANDLED && options::cegqiAll())
+  if (ret == CEG_UNHANDLED && cegqiAll)
   {
     // try but not exclusively
     ret = CEG_PARTIALLY_HANDLED;
@@ -554,7 +554,7 @@ void CegInstantiator::registerTheoryId(TheoryId tid)
     // setup any theory-specific preprocessors here
     if (tid == THEORY_BV)
     {
-      d_tipp[tid] = new BvInstantiatorPreprocess;
+      d_tipp[tid] = new BvInstantiatorPreprocess(d_env.getOptions());
     }
     d_tids.push_back(tid);
   }
@@ -1092,7 +1092,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node n = it->second;
       Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      Assert(n.getType().isComparableTo(d_input_vars[i].getType()));
+      Assert(n.getType() == d_input_vars[i].getType());
       subs.push_back( n );
     }
   }
@@ -1104,7 +1104,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node v = d_input_vars[i];
       Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      Assert(subs[i].getType().isComparableTo(v.getType()));
+      Assert(subs[i].getType() == v.getType());
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
@@ -1153,7 +1153,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
-      Assert(subs[i].getType().isSubtypeOf(vars[i].getType()));
+      Assert(subs[i].getType() == vars[i].getType());
     }
   }
   Node nret;
@@ -1233,7 +1233,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             Node v = msum_term[it->first];
             if (!v.isNull())
             {
-              Assert(v.getType().isComparableTo(type));
+              Assert(v.getType() == type);
               c = nm->mkNode(MULT, c, v);
             }
             children.push_back( c );

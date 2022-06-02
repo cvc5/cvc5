@@ -209,21 +209,23 @@ void OracleEngine::checkOwnership(Node q)
   {
     std::vector<Node> inputs, outputs;
     Node assume, constraint, oracle;
-    getOracleInterface(q, inputs, outputs, assume, constraint, oracle);
-    Assert(constraint.isConst() && constraint.getConst<bool>())
-        << "Unhandled oracle constraint " << q;
-    CVC5_UNUSED bool isOracleFun = false;
-    if (OracleCaller::isOracleFunctionApp(assume))
+    if (!getOracleInterface(q, inputs, outputs, assume, constraint, oracle))
     {
-      // predicate case
-      isOracleFun = true;
+      Assert(false) << "Not an oracle interface " << q;
     }
-    else if (assume.getKind() == EQUAL)
+    else
+    {
+      Assert(outputs.size() == 1) << "Unhandled oracle constraint " << q;
+      Assert(constraint.isConst() && constraint.getConst<bool>())
+          << "Unhandled oracle constraint " << q;
+    }
+    CVC5_UNUSED bool isOracleFun = false;
+    if (assume.getKind() == EQUAL)
     {
       for (size_t i = 0; i < 2; i++)
       {
         if (OracleCaller::isOracleFunctionApp(assume[i])
-            && assume[1 - i].isConst())
+            && assume[1 - i] == outputs[0])
         {
           isOracleFun = true;
         }
@@ -295,23 +297,24 @@ bool OracleEngine::getOracleInterface(Node q,
     OracleInputVarAttribute oiva;
     for (const Node& v : q[0])
     {
-      if (v.hasAttribute(oiva))
+      if (v.getAttribute(oiva))
       {
         inputs.push_back(v);
       }
       else
       {
-        Assert(v.hasAttribute(OracleOutputVarAttribute()));
+        Assert(v.getAttribute(OracleOutputVarAttribute()));
         outputs.push_back(v);
       }
     }
     Assert(q[1].getKind() == ORACLE_FORMULA_GEN);
     assume = q[1][0];
-    constraint = q[1][0];
+    constraint = q[1][1];
     Assert(q.getNumChildren() == 3);
     Assert(q[2].getNumChildren() == 1);
-    Assert(q[2][0].getKind() == ORACLE);
-    oracleNode = q[2][0];
+    Assert(q[2][0].getNumChildren() == 1);
+    Assert(q[2][0][0].getKind() == ORACLE);
+    oracleNode = q[2][0][0];
     return true;
   }
   return false;

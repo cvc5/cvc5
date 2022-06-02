@@ -39,10 +39,8 @@ class Smt2Printer : public cvc5::internal::Printer
  public:
   Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
   using cvc5::internal::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
+  void toStream(std::ostream& out, TNode n) const override;
+  void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
   void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
@@ -76,7 +74,8 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print declare-oracle-fun command */
   void toStreamCmdDeclareOracleFun(std::ostream& out,
-                                   Node fun,
+                                   const std::string& id,
+                                   TypeNode type,
                                    const std::string& binName) const override;
 
   /** Print declare-pool command */

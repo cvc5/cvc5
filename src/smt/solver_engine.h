@@ -787,7 +787,7 @@ class CVC5_EXPORT SolverEngine
    *
    * Note that the per-call timer only ticks away when one of the
    * SolverEngine's workhorse functions (things like assertFormula(),
-   * checkEntailed(), checkSat(), and simplify()) are running.
+   * checkSat(), and simplify()) are running.
    * Between calls, the timer is still.
    *
    * When an SolverEngine is first created, it has no time or resource
@@ -857,9 +857,6 @@ class CVC5_EXPORT SolverEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
-
-  /** Get the printer used by this SMT engine */
-  const Printer& getPrinter() const;
 
   /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
@@ -1038,7 +1035,7 @@ class CVC5_EXPORT SolverEngine
    * or getExpandedAssertions, which may trigger initialization and SMT state
    * changes.
    */
-  std::vector<Node> getAssertionsInternal();
+  std::vector<Node> getAssertionsInternal() const;
 
   /**
    * Return a reference to options like for `EnvObj`.

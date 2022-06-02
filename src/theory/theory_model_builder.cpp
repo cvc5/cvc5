@@ -23,6 +23,7 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "theory/rewriter.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_model.h"
 #include "util/uninterpreted_sort_value.h"
 
@@ -1167,27 +1168,28 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       Node n = *eqc_i;
       static int repCheckInstance = 0;
       ++repCheckInstance;
-      AlwaysAssert(rep.getType().isSubtypeOf(n.getType()))
+      AlwaysAssert(rep.getType() == n.getType())
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
           << n.getType() << ")";
-      Node val = tm->getValue(*eqc_i);
+      Node val = tm->getValue(n);
       if (val != rep)
       {
         std::stringstream err;
         err << "Failed representative check:" << std::endl
             << "( " << repCheckInstance << ") "
-            << "n: " << n << endl
-            << "getValue(n): " << tm->getValue(n) << std::endl
+            << "n: " << n << std::endl
+            << "getValue(n): " << val << std::endl
             << "rep: " << rep << std::endl;
         if (val.isConst() && rep.isConst())
         {
           AlwaysAssert(val == rep) << err.str();
         }
-        else
+        else if (rewrite(val) != rewrite(rep))
         {
           // if it does not evaluate, it is just a warning, which may be the
-          // case for non-constant values, e.g. lambdas.
+          // case for non-constant values, e.g. lambdas. Furthermore we only
+          // throw this warning if rewriting cannot show they are equal.
           warning() << err.str();
         }
       }
@@ -1351,7 +1353,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Node hni = m->getRepresentative(hn[1]);
       Trace("model-builder-debug2") << "      get rep : " << hn[0]
                                     << " returned " << hni << std::endl;
-      Assert(hni.getType().isSubtypeOf(args[0].getType()));
+      Assert(hni.getType() == args[0].getType());
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
@@ -1359,7 +1361,10 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Assert(hnv.isConst());
       if (!apply_args.empty())
       {
-        Assert(hnv.getKind() == kind::LAMBDA
+        // Convert to lambda, which is necessary if hnv is a function array
+        // constant.
+        hnv = uf::FunctionConst::toLambda(hnv);
+        Assert(!hnv.isNull() && hnv.getKind() == kind::LAMBDA
                && hnv[0].getNumChildren() + 1 == args.size());
         std::vector<TNode> largs;
         for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
@@ -1371,8 +1376,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
             largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
         hnv = rewrite(hnv);
       }
-      Assert(!TypeNode::leastCommonTypeNode(hnv.getType(), curr.getType())
-                  .isNull());
+      Assert(hnv.getType() == curr.getType());
       curr = NodeManager::currentNM()->mkNode(kind::ITE, hni, hnv, curr);
     }
   }
