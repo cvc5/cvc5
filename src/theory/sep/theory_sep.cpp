@@ -1827,6 +1827,8 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
         // a positive and negative pto
         bool isSat = false;
         std::vector<Node> conc;
+        // based on the lemma below, either the domain or range has to be
+        // disequal. We iterate on each child of the pto
         for (size_t j = 0; j < 2; j++)
         {
           if (areDisequal(p[0][j], q[0][j]))
