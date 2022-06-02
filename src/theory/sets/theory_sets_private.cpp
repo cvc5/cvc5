@@ -696,19 +696,22 @@ void TheorySetsPrivate::checkMapUp()
         // (set.member x1 A). The cycle continues with step 2.
         continue;
       }
-      // (=>
+      // (=
       //   (and (set.member x B) (= A B))
       //   (set.member (f x) (set.map f A))
       // )
-      std::vector<Node> exp;
-
+      Node premise = pair.second;
       Node B = pair.second[1];
-      exp.push_back(pair.second);
-      d_state.addEqualityToExp(A, B, exp);
+      if(A != B)
+      {
+        premise = premise.andNode(A.eqNode(B));
+      }
       Node f_x = nm->mkNode(APPLY_UF, f, x);
       Node skolem = d_treg.getProxy(term);
-      Node fact = nm->mkNode(kind::SET_MEMBER, f_x, skolem);
-      d_im.assertInference(fact, InferenceId::SETS_MAP_UP, exp);
+      Node memberMap = nm->mkNode(kind::SET_MEMBER, f_x, skolem);
+      Node equivalence = premise.eqNode(memberMap);
+      std::vector<Node> empty;
+      d_im.assertInference(equivalence, InferenceId::SETS_MAP_UP, empty);
       if (d_state.isInConflict())
       {
         return;
@@ -728,7 +731,7 @@ void TheorySetsPrivate::checkMapDown()
     Node A = term[1];
     TypeNode elementType = A.getType().getSetElementType();
     const std::map<Node, Node>& positiveMembers = d_state.getMembers(term);
-    for (const std::pair<Node, Node>& pair : positiveMembers)
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
       // (=>
       //   (and
@@ -757,39 +760,7 @@ void TheorySetsPrivate::checkMapDown()
         return;
       }
     }
-
-    const std::map<Node, Node>& negativeMembers = d_state.getNegativeMembers(term);
-    for (const std::pair<Node, Node>& pair : negativeMembers)
-    {
-      // (=>
-      //   (not (set.member y (set.map f A)))
-      //   (forall ((x T))
-      //     (=>
-      //       (set.member x A)
-      //       (not (= (f x) y))
-      //     )
-      //   )
-      // )
-      std::vector<Node> exp;
-      Node y = pair.first;
-      Node B = pair.second[1];
-      exp.push_back(pair.second.notNode());
-      d_state.addEqualityToExp(B, term, exp);
-      Node x = nm->mkBoundVar("x", elementType);
-      Node xList = nm->mkNode(BOUND_VAR_LIST, x);
-      Node memberA = nm->mkNode(SET_MEMBER, x, A);
-      Node f_x = nm->mkNode(APPLY_UF, f, x);
-      Node notEqual = f_x.eqNode(y).notNode();
-      Node body = memberA.impNode(notEqual);
-      Node forall = nm->mkNode(FORALL, xList, body);
-      d_im.assertInference(forall, InferenceId::SETS_MAP_DOWN_NEGATIVE, exp);
-      if (d_state.isInConflict())
-      {
-        return;
-      }
-    }
   }
-
 }
 
 void TheorySetsPrivate::checkDisequalities()
