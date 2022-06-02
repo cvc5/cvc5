@@ -27,7 +27,10 @@ namespace theory {
 namespace sets {
 
 SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
-    : TheoryState(env, val), d_skCache(skc), d_members(env.getContext())
+    : TheoryState(env, val),
+      d_skCache(skc),
+      d_mapSkolemElements(env.getContext()),
+      d_members(env.getContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -463,9 +466,17 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
-const std::map<Node, std::vector<Node> >& SolverState::getMapSkolemElements() const
+std::shared_ptr<context::CDHashSet<Node>> SolverState::getMapSkolemElements(
+    Node n)
 {
-  return d_mapSkolemElements;
+  if (d_mapSkolemElements.count(n))
+  {
+    return d_mapSkolemElements[n];
+  }
+  std::shared_ptr<context::CDHashSet<Node>> set =
+      std::make_shared<context::CDHashSet<Node>>(d_env.getContext());
+  d_mapSkolemElements[n] = set;
+  return set;
 }
 
 const std::vector<Node>& SolverState::getComprehensionSets() const
@@ -605,9 +616,16 @@ bool SolverState::merge(TNode t1,
   return true;
 }
 
-void SolverState::registerMapDownElement(const Node& mapTerm, Node element)
+void SolverState::registerMapDownElement(Node n, Node element)
 {
-  d_mapSkolemElements[mapTerm].push_back(element);
+  if (d_mapSkolemElements.count(n))
+  {
+    d_mapSkolemElements[n].get()->insert(element);
+  }
+  std::shared_ptr<context::CDHashSet<Node>> set =
+      std::make_shared<context::CDHashSet<Node>>(d_env.getContext());
+  set->insert(element);
+  d_mapSkolemElements[n] = set;
 }
 
 }  // namespace sets

@@ -671,18 +671,17 @@ void TheorySetsPrivate::checkMapUp()
 {
   NodeManager* nm = NodeManager::currentNM();
   const std::vector<Node>& mapTerms = d_state.getMapTerms();
-  std::map<Node, std::vector<Node> > skolemElements = d_state.getMapSkolemElements();
 
   for (const Node& term : mapTerms)
   {
     Node f = term[0];
     Node A = term[1];
     const std::map<Node, Node>& positiveMembers = d_state.getMembers(A);
+    auto skolemElements = d_state.getMapSkolemElements(term).get();
     for (const std::pair<Node, Node>& pair : positiveMembers)
     {
       Node x = pair.first;
-      if (std::find(skolemElements[term].begin(), skolemElements[term].end(), x)
-          != skolemElements[term].end())
+      if (skolemElements->contains(x))
       {
         continue;
       }
