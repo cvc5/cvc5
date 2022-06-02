@@ -57,7 +57,7 @@ if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
     LINK_LIBRARIES ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
   if(NOT ${DOES_WORK})
-    message(VERBOSE "System version for ${name} does not work in the selected configuration. Maybe we are cross-compiling?")
+    message(VERBOSE "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
     set(GMP_FOUND_SYSTEM FALSE)
   endif()
 endif()
