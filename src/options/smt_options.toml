@@ -404,6 +404,7 @@ name   = "SMT Layer"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
+  maximum    = "4294967295"
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
