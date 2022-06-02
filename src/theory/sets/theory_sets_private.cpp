@@ -684,6 +684,16 @@ void TheorySetsPrivate::checkMapUp()
       Node x = pair.first;
       if (skolemElements->contains(x))
       {
+        // Break this cycle between inferences SETS_MAP_DOWN_POSITIVE
+        // and SETS_MAP_UP:
+        // 1- If (set.member y (set.map f A)) holds, then SETS_MAP_DOWN_POSITIVE
+        //    inference would generate a fresh skolem x1 such that (= (f x1) y)
+        //    and (set.member x1 A).
+        // 2- Since (set.member x1 A) holds, SETS_MAP_UP would infer
+        //    (set.member (f x1) (set.map f A)).
+        // Since (set.member (f x1) (set.map f A)) holds, step 1 would repeat
+        // and generate a new skolem x2 such that (= (f x2) (f x1)) and
+        // (set.member x1 A). The cycle continues with step 2.
         continue;
       }
       // (=>
@@ -736,7 +746,7 @@ void TheorySetsPrivate::checkMapDown()
       Node x = sm->mkSkolemFunction(
           SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
 
-      d_state.registerMapDownElement(term, x);
+      d_state.registerMapSkolemElement(term, x);
       Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
       Node f_x = nm->mkNode(APPLY_UF, f, x);
       Node equal = f_x.eqNode(y);

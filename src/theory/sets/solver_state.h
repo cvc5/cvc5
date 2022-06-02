@@ -161,9 +161,10 @@ class SolverState : public TheoryState
    * map is a representative of its congruence class.
    */
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
-  /** Get the list of all set.map terms in the current context */
+  /** Get the list of all set.map terms in the current user context */
   const context::CDHashSet<Node>& getMapTerms() const;
-  /** Get the list of all set.map terms in the current context */
+  /** Get the list of all skolem elements generated for map terms down rules in
+   * the current user context */
   std::shared_ptr<context::CDHashSet<Node>> getMapSkolemElements(Node n);
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
@@ -192,7 +193,8 @@ class SolverState : public TheoryState
    */
   bool merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset);
 
-  void registerMapDownElement(const Node & n, const Node & element);
+  /** register the skolem element for the set.map term n */
+  void registerMapSkolemElement(const Node& n, const Node& element);
 
  private:
   /** constants */
@@ -216,9 +218,9 @@ class SolverState : public TheoryState
   std::map<Node, Node> d_congruent;
   /** Map from equivalence classes to the list of non-variable sets in it */
   std::map<Node, std::vector<Node> > d_nvar_sets;
-  /** collection of map terms */
+  /** User context collection of set.map terms */
   context::CDHashSet<Node> d_mapTerms;
-  /** collection of map terms */
+  /** User context collection of skolem elements generated for set.map terms */
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_mapSkolemElements;
   /** Map from equivalence classes to the list of comprehension sets in it */

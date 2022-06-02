@@ -615,8 +615,11 @@ bool SolverState::merge(TNode t1,
   return true;
 }
 
-void SolverState::registerMapDownElement(const Node& n, const Node& element)
+void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
 {
+  Assert(n.getKind() == kind::SET_MAP);
+  Assert(element.getKind() == SKOLEM
+         && element.getType() == n[1].getType().getSetElementType());
   d_mapSkolemElements[n].get()->insert(element);
 }
 
