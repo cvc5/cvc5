@@ -88,8 +88,7 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rules for map terms (set.map f A) where A has type
    * (Set T):
-   *
-   * - Positive member rule:
+   * - General case:
    *   (=>
    *     (set.member y (set.map f A))
    *     (and
@@ -98,6 +97,11 @@ class TheorySetsPrivate : protected EnvObj
    *     )
    *   )
    *   where x is a fresh skolem
+   * - Special case where we can avoid skolems
+   *   (=
+   *     (set.member (f x) (set.map f A))
+   *     (set.member x A)
+   *   )
    */
   void checkMapDown();
   /**

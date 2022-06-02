@@ -723,7 +723,7 @@ void TheorySetsPrivate::checkMapUp()
 void TheorySetsPrivate::checkMapDown()
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager *sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
   for (const Node& term : mapTerms)
   {
@@ -733,28 +733,42 @@ void TheorySetsPrivate::checkMapDown()
     const std::map<Node, Node>& positiveMembers = d_state.getMembers(term);
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      // (=>
-      //   (and
-      //     (set.member y B)
-      //     (= B (set.map f A)))
-      //   (and
-      //     (set.member x A)
-      //     (= (f x) y))
-      // )
       std::vector<Node> exp;
-      Node y = pair.first;
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node x = sm->mkSkolemFunction(
-          SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
+      Node y = pair.first;
+      if (y.getKind() == APPLY_UF && y.getOperator() == f)
+      {
+        // special case
+        // (=>
+        //   (set.member (f x) (set.map f A))
+        //   (set.member x A))
+        Node x = y[0];
+        Node memberA = nm->mkNode(SET_MEMBER, x, A);
+        d_im.assertInference(memberA, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
+      }
+      else
+      {
+        // general case
+        // (=>
+        //   (and
+        //     (set.member y B)
+        //     (= B (set.map f A)))
+        //   (and
+        //     (set.member x A)
+        //     (= (f x) y))
+        // )
+        Node x = sm->mkSkolemFunction(
+            SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
 
-      d_state.registerMapSkolemElement(term, x);
-      Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
-      Node f_x = nm->mkNode(APPLY_UF, f, x);
-      Node equal = f_x.eqNode(y);
-      Node fact = memberA.andNode(equal);
-      d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
+        d_state.registerMapSkolemElement(term, x);
+        Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
+        Node f_x = nm->mkNode(APPLY_UF, f, x);
+        Node equal = f_x.eqNode(y);
+        Node fact = memberA.andNode(equal);
+        d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
+      }
       if (d_state.isInConflict())
       {
         return;
