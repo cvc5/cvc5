@@ -29,6 +29,7 @@ namespace sets {
 SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
     : TheoryState(env, val),
       d_skCache(skc),
+      d_mapTerms(env.getUserContext()),
       d_mapSkolemElements(env.getUserContext()),
       d_members(env.getContext())
 {
@@ -45,7 +46,6 @@ void SolverState::reset()
   d_congruent.clear();
   d_nvar_sets.clear();
   d_var_set.clear();
-  d_mapTerms.clear();
   d_compSets.clear();
   d_pol_mems[0].clear();
   d_pol_mems[1].clear();
@@ -141,7 +141,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   }
   else if (nk == SET_MAP)
   {
-    d_mapTerms.push_back(n);
+    d_mapTerms.insert(n);
     auto it = d_mapSkolemElements.find(n);
     if(it == d_mapSkolemElements.end())
     {
@@ -471,7 +471,7 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
   return d_op_list;
 }
 
-const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
+const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
 
 std::shared_ptr<context::CDHashSet<Node>> SolverState::getMapSkolemElements(
     Node n)

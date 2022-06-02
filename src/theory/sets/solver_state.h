@@ -162,7 +162,7 @@ class SolverState : public TheoryState
    */
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
   /** Get the list of all set.map terms in the current context */
-  const std::vector<Node>& getMapTerms() const;
+  const context::CDHashSet<Node>& getMapTerms() const;
   /** Get the list of all set.map terms in the current context */
   std::shared_ptr<context::CDHashSet<Node>> getMapSkolemElements(Node n);
   /** Get the list of all comprehension sets in the current context */
@@ -217,7 +217,7 @@ class SolverState : public TheoryState
   /** Map from equivalence classes to the list of non-variable sets in it */
   std::map<Node, std::vector<Node> > d_nvar_sets;
   /** collection of map terms */
-  std::vector<Node> d_mapTerms;
+  context::CDHashSet<Node> d_mapTerms;
   /** collection of map terms */
   context::CDHashMap<Node,
                      std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>>>

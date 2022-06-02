@@ -670,7 +670,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
 void TheorySetsPrivate::checkMapUp()
 {
   NodeManager* nm = NodeManager::currentNM();
-  const std::vector<Node>& mapTerms = d_state.getMapTerms();
+  const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
 
   for (const Node& term : mapTerms)
   {
@@ -714,7 +714,7 @@ void TheorySetsPrivate::checkMapDown()
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager *sm = nm->getSkolemManager();
-  const std::vector<Node>& mapTerms = d_state.getMapTerms();
+  const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
   for (const Node& term : mapTerms)
   {
     Node f = term[0];
