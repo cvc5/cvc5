@@ -164,7 +164,7 @@ class SolverState : public TheoryState
   /** Get the list of all set.map terms in the current context */
   const std::vector<Node>& getMapTerms() const;
   /** Get the list of all set.map terms in the current context */
-  std::shared_ptr<context::CDHashSet<Node>> getMapSkolemElements(Node n);
+  std::shared_ptr<context::CDHashSet<Node, std::hash<Node> >> getMapSkolemElements(Node n);
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
 
@@ -192,7 +192,7 @@ class SolverState : public TheoryState
    */
   bool merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset);
 
-  void registerMapDownElement(Node n, Node element);
+  void registerMapDownElement(const Node & n, const Node & element);
 
  private:
   /** constants */
@@ -219,7 +219,7 @@ class SolverState : public TheoryState
   /** collection of map terms */
   std::vector<Node> d_mapTerms;
   /** collection of map terms */
-  context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>> > d_mapSkolemElements;
+  context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node , std::hash<Node>>> > d_mapSkolemElements;
   /** Map from equivalence classes to the list of comprehension sets in it */
   std::map<Node, std::vector<Node> > d_compSets;
   /** Map from equivalence classes to a variable sets in it */

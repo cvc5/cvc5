@@ -46,7 +46,6 @@ void SolverState::reset()
   d_nvar_sets.clear();
   d_var_set.clear();
   d_mapTerms.clear();
-  d_mapSkolemElements.clear();
   d_compSets.clear();
   d_pol_mems[0].clear();
   d_pol_mems[1].clear();
@@ -466,16 +465,18 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
-std::shared_ptr<context::CDHashSet<Node>> SolverState::getMapSkolemElements(
+std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>> SolverState::getMapSkolemElements(
     Node n)
 {
   if (d_mapSkolemElements.count(n))
   {
+    std::cout << "SolverState::getMapSkolemElements existing: " << n << std::endl;
     return d_mapSkolemElements[n];
   }
   std::shared_ptr<context::CDHashSet<Node>> set =
-      std::make_shared<context::CDHashSet<Node>>(d_env.getContext());
+      std::make_shared<context::CDHashSet<Node, std::hash<Node>>>(d_env.getContext());
   d_mapSkolemElements[n] = set;
+  std::cout << "SolverState::getMapSkolemElements: " << n << std::endl;
   return set;
 }
 
@@ -616,16 +617,19 @@ bool SolverState::merge(TNode t1,
   return true;
 }
 
-void SolverState::registerMapDownElement(Node n, Node element)
+void SolverState::registerMapDownElement(const Node & n, const Node & element)
 {
   if (d_mapSkolemElements.count(n))
   {
     d_mapSkolemElements[n].get()->insert(element);
+    std::cout << "map down element " << element << " for existing " << n << std::endl;
+    return;
   }
   std::shared_ptr<context::CDHashSet<Node>> set =
-      std::make_shared<context::CDHashSet<Node>>(d_env.getContext());
+      std::make_shared<context::CDHashSet<Node, std::hash<Node> >>(d_env.getContext());
   set->insert(element);
   d_mapSkolemElements[n] = set;
+  std::cout << "registering map down element " << element << " for " << n << std::endl;
 }
 
 }  // namespace sets
