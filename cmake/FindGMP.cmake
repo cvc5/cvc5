@@ -105,8 +105,6 @@ if(NOT GMP_FOUND_SYSTEM)
           --with-pic
           --enable-cxx
           ${CONFIGURE_OPTS}
-          --enable-fat
-          gmp_cv_asm_x86_mulx=no
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
