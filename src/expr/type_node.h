@@ -364,9 +364,10 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out) const
-  {
-    d_nv->toStream(out, -1, 0);
+  inline void toStream(std::ostream& out) const {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    d_nv->toStream(out);
   }
 
   /**

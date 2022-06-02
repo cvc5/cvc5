@@ -32,19 +32,18 @@ namespace cvc5::internal {
 namespace printer {
 namespace tptp {
 
-void TptpPrinter::toStream(std::ostream& out,
-                           TNode n,
-                           int toDepth,
-                           size_t dag) const
+void TptpPrinter::toStream(std::ostream& out, TNode n) const
 {
   options::ioutils::Scope scope(out);
-  options::ioutils::applyOutputLang(out, Language::LANG_SMTLIB_V2_6);
-  n.toStream(out, toDepth, dag);
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  n.toStream(out);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
-  s->toStream(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  s->toStream(out);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
@@ -53,7 +52,11 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                                         : "CandidateFiniteModel");
   out << "% SZS output start " << statusName << " for " << m.getInputName()
       << endl;
-  this->Printer::toStreamUsing(Language::LANG_SMTLIB_V2_6, out, m);
+  {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+    getPrinter(out)->toStream(out, m);
+  }
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
 }
