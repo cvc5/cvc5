@@ -868,6 +868,7 @@ set(regress_0_tests
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
+  regress0/nl/proj-issue-425.smt2
   regress0/nl/proj-issue-444-memout-eqelim.smt2
   regress0/nl/proj-issue-451-ran-combination-1.smt2
   regress0/nl/proj-issue-451-ran-combination-2.smt2
@@ -1204,6 +1205,7 @@ set(regress_0_tests
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
   regress0/sep/issue8659-wand-diff-heaps.smt2
+  regress0/sep/issue8841-neg-prop.smt2
   regress0/sep/nemp.smt2
   regress0/sep/nil-no-elim.smt2
   regress0/sep/nspatial-simp.smt2
