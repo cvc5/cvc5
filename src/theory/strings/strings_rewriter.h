@@ -102,6 +102,14 @@ class StringsRewriter : public SequencesRewriter
    */
   Node rewriteStringIsDigit(Node n);
 
+  /** rewrite string unit
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.unit( t )
+   * Returns the rewritten form of n.
+   */
+  Node rewriteStringUnit(Node n);
+
  private:
   /** The cardinality of the alphabet */
   uint32_t d_alphaCard;
