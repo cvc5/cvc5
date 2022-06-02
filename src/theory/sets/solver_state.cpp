@@ -142,12 +142,11 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   else if (nk == SET_MAP)
   {
     d_mapTerms.insert(n);
-    auto it = d_mapSkolemElements.find(n);
-    if(it == d_mapSkolemElements.end())
+    if (d_mapSkolemElements.find(n) == d_mapSkolemElements.end())
     {
-      std::shared_ptr<context::CDHashSet<Node , std::hash<Node>>> set =
-          std::make_shared<context::CDHashSet<Node , std::hash<Node>>>(d_env.getUserContext());
-      d_mapSkolemElements.insert(n, set);
+      std::shared_ptr<context::CDHashSet<Node>> set =
+          std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+      d_mapSkolemElements[n] = set;
     }
   }
   else if (nk == SET_COMPREHENSION)
