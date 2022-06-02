@@ -90,7 +90,10 @@ void SygusInterpol::createVariables(bool needsShared)
     }
   }
   // make the sygus variable list
-  d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+  if (!d_vlvsShared.empty())
+  {
+    d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+  }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
@@ -234,12 +237,15 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
-  itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+  if (!d_ibvlShared.isNull())
+  {
+    itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+  }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
-  Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms);
+  Node Fa = nm->mkAnd(axioms);
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")

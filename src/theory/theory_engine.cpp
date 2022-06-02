@@ -35,6 +35,7 @@
 #include "smt/logic_exception.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
@@ -136,7 +137,7 @@ void TheoryEngine::finishInit()
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)   \
   if (theory::TheoryTraits<THEORY>::isParametric \
-      && d_logicInfo.isTheoryEnabled(THEORY))    \
+      && isTheoryEnabled(THEORY))    \
   {                                              \
     paraTheories.push_back(theoryOf(THEORY));    \
   }
@@ -161,7 +162,7 @@ void TheoryEngine::finishInit()
   }
 
   // initialize the quantifiers engine
-  if (d_logicInfo.isQuantified())
+  if (logicInfo().isQuantified())
   {
     // get the quantifiers engine, which is initialized by the quantifiers
     // theory
@@ -171,7 +172,7 @@ void TheoryEngine::finishInit()
   // finish initializing the quantifiers engine, which must come before
   // initializing theory combination, since quantifiers engine may have a
   // special model builder object
-  if (d_logicInfo.isQuantified())
+  if (logicInfo().isQuantified())
   {
     d_quantEngine->finishInit(this);
   }
@@ -214,7 +215,6 @@ void TheoryEngine::finishInit()
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
-      d_logicInfo(env.getLogicInfo()),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       d_lazyProof(
@@ -320,7 +320,8 @@ void TheoryEngine::printAssertions(const char* tag) {
 
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
-      if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+      if (theory && isTheoryEnabled(theoryId))
+      {
         Trace(tag) << "--------------------------------------------" << endl;
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
         {
@@ -341,7 +342,8 @@ void TheoryEngine::printAssertions(const char* tag) {
           }
         }
 
-        if (d_logicInfo.isSharingEnabled()) {
+        if (logicInfo().isSharingEnabled())
+        {
           Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
           context::CDList<TNode>::const_iterator
               it = theory->shared_terms_begin(),
@@ -370,7 +372,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)                      \
   if (theory::TheoryTraits<THEORY>::hasCheck                        \
-      && d_logicInfo.isTheoryEnabled(THEORY))                       \
+      && isTheoryEnabled(THEORY))                       \
   {                                                                 \
     theoryOf(THEORY)->check(effort);                                \
     if (d_inConflict)                                               \
@@ -442,7 +444,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       propagate(effort);
 
       // We do combination if all has been processed and we are in fullcheck
-      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled()
+      if (Theory::fullEffort(effort) && logicInfo().isSharingEnabled()
           && !d_factsAsserted && !needCheck() && !d_inConflict)
       {
         // Do the combination
@@ -451,7 +453,8 @@ void TheoryEngine::check(Theory::Effort effort) {
           TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
           d_tc->combineTheories();
         }
-        if(d_logicInfo.isQuantified()){
+        if (logicInfo().isQuantified())
+        {
           d_quantEngine->notifyCombineTheories();
         }
       }
@@ -469,7 +472,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
-          if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+          if (theory && isTheoryEnabled(theoryId))
+          {
             if( theory->needsCheckLastEffort() ){
               if (!d_tc->buildModel())
               {
@@ -482,7 +486,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict)
       {
-        if(d_logicInfo.isQuantified()) {
+        if (logicInfo().isQuantified())
+        {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
@@ -532,7 +537,7 @@ void TheoryEngine::propagate(Theory::Effort effort)
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)   \
   if (theory::TheoryTraits<THEORY>::hasPropagate \
-      && d_logicInfo.isTheoryEnabled(THEORY))    \
+      && isTheoryEnabled(THEORY))    \
   {                                              \
     theoryOf(THEORY)->propagate(effort);         \
   }
@@ -626,6 +631,24 @@ bool TheoryEngine::buildModel()
   return d_tc->buildModel();
 }
 
+bool TheoryEngine::isTheoryEnabled(theory::TheoryId theoryId) const
+{
+  return logicInfo().isTheoryEnabled(theoryId);
+}
+
+theory::TheoryId TheoryEngine::theoryExpPropagation(theory::TheoryId tid) const
+{
+  if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
+  {
+    if (EqEngineManagerCentral::usesCentralEqualityEngine(options(), tid)
+        && Theory::expUsingCentralEqualityEngine(tid))
+    {
+      return THEORY_BUILTIN;
+    }
+  }
+  return tid;
+}
+
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
@@ -696,7 +719,7 @@ void TheoryEngine::notifyRestart() {
 #endif
 #define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)       \
   if (theory::TheoryTraits<THEORY>::hasNotifyRestart \
-      && d_logicInfo.isTheoryEnabled(THEORY))        \
+      && isTheoryEnabled(THEORY))        \
   {                                                  \
     theoryOf(THEORY)->notifyRestart();               \
   }
@@ -746,10 +769,10 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
   theory::TheoryId tid = d_env.theoryOf(atom);
-  if (!d_logicInfo.isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
     stringstream ss;
-    ss << "The logic was specified as " << d_logicInfo.getLogicString()
+    ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
        << ", but got a preprocessing-time fact for that theory." << endl
        << "The fact:" << endl
@@ -839,10 +862,11 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   Trace("theory::assertToTheory") << "TheoryEngine::assertToTheory(" << assertion << ", " << originalAssertion << "," << toTheoryId << ", " << fromTheoryId << ")" << endl;
 
   Assert(toTheoryId != fromTheoryId);
-  if(toTheoryId != THEORY_SAT_SOLVER &&
-     ! d_logicInfo.isTheoryEnabled(toTheoryId)) {
+  if (toTheoryId != THEORY_SAT_SOLVER
+      && !isTheoryEnabled(toTheoryId))
+  {
     stringstream ss;
-    ss << "The logic was specified as " << d_logicInfo.getLogicString()
+    ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << toTheoryId
        << ", but got an asserted fact to that theory." << endl
        << "The fact:" << endl
@@ -855,7 +879,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   }
 
   // If sharing is disabled, things are easy
-  if (!d_logicInfo.isSharingEnabled()) {
+  if (!logicInfo().isSharingEnabled())
+  {
     Assert(assertion == originalAssertion);
     if (fromTheoryId == THEORY_SAT_SOLVER) {
       // Send to the apropriate theory
@@ -885,9 +910,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   // determine the actual theory that will process/explain the fact, which is
   // THEORY_BUILTIN if the theory uses the central equality engine
-  TheoryId toTheoryIdProp = (Theory::expUsingCentralEqualityEngine(toTheoryId))
-                                ? THEORY_BUILTIN
-                                : toTheoryId;
+  TheoryId toTheoryIdProp = theoryExpPropagation(toTheoryId);
   // If sending to the shared solver, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
     if (markPropagation(
@@ -998,7 +1021,8 @@ void TheoryEngine::assertFact(TNode literal)
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
 
-  if (d_logicInfo.isSharingEnabled()) {
+  if (logicInfo().isSharingEnabled())
+  {
     // If any shared terms, it's time to do sharing work
     d_sharedSolver->preNotifySharedFact(atom);
 
@@ -1035,7 +1059,9 @@ void TheoryEngine::assertFact(TNode literal)
                      /* to */ d_env.theoryOf(atom),
                      /* from */ THEORY_SAT_SOLVER);
     }
-  } else {
+  }
+  else
+  {
     // Assert the fact to the appropriate theory directly
     assertToTheory(literal,
                    literal,
@@ -1057,7 +1083,8 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
 
-  if (d_logicInfo.isSharingEnabled() && atom.getKind() == kind::EQUAL) {
+  if (logicInfo().isSharingEnabled() && atom.getKind() == kind::EQUAL)
+  {
     if (d_propEngine->isSatLiteral(literal)) {
       // We propagate SAT literals to SAT
       assertToTheory(literal, literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
@@ -1066,7 +1093,9 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
       // Assert to the shared terms database
       assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ theory);
     }
-  } else {
+  }
+  else
+  {
     // Just send off to the SAT solver
     Assert(d_propEngine->isSatLiteral(literal));
     assertToTheory(literal, literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
@@ -1074,8 +1103,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
   return !d_inConflict;
 }
-
-const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
 {
@@ -1126,7 +1153,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   TNode atom = polarity ? node : node[0];
 
   // If we're not in shared mode, explanations are simple
-  if (!d_logicInfo.isSharingEnabled())
+  if (!logicInfo().isSharingEnabled())
   {
     Trace("theory::explain")
         << "TheoryEngine::getExplanation: sharing is NOT enabled. "
@@ -1371,7 +1398,8 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
   markInConflict();
 
   // In the multiple-theories case, we need to reconstruct the conflict
-  if (d_logicInfo.isSharingEnabled()) {
+  if (logicInfo().isSharingEnabled())
+  {
     // Create the workplace for explanations
     std::vector<NodeTheoryPair> vec;
     vec.push_back(
@@ -1454,7 +1482,9 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
       tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
     }
     lemma(tconf, LemmaProperty::REMOVABLE);
-  } else {
+  }
+  else
+  {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
@@ -1477,10 +1507,8 @@ TrustNode TheoryEngine::getExplanation(
   Node conclusion = explanationVector[0].d_node;
   // if the theory explains using the central equality engine, we always start
   // with THEORY_BUILTIN.
-  if (Theory::expUsingCentralEqualityEngine(explanationVector[0].d_theory))
-  {
-    explanationVector[0].d_theory = THEORY_BUILTIN;
-  }
+  explanationVector[0].d_theory =
+      theoryExpPropagation(explanationVector[0].d_theory);
   std::shared_ptr<LazyCDProof> lcp;
   if (isProofEnabled())
   {
@@ -1827,7 +1855,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
-    if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+    if (theory && isTheoryEnabled(theoryId))
+    {
       for (context::CDList<Assertion>::const_iterator
                it = theory->facts_begin(),
                it_end = theory->facts_end();

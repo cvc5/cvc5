@@ -83,8 +83,8 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       Assert(o.getNumChildren() == 2);
       for (size_t i = 0; i < 2; ++i)
       {
-        const auto& l = o[i];
-        const auto& r = o[1 - i];
+        const auto& l = (o[i].getKind() == Kind::TO_REAL ? o[i][0] : o[i]);
+        const auto& r = (o[1-i].getKind() == Kind::TO_REAL ? o[1-i][0] : o[1-i]);
         // lhs can't be constant
         if (l.isConst()) continue;
         // types must match (otherwise we might have int/real issues)

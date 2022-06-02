@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -130,11 +131,6 @@ const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
 ResourceManager* Env::getResourceManager() const
 {
   return d_resourceManager.get();
-}
-
-const Printer& Env::getPrinter()
-{
-  return *Printer::getPrinter(d_options.base.outputLanguage);
 }
 
 bool Env::isOutputOn(OutputTag tag) const
