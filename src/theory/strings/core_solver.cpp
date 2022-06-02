@@ -2031,7 +2031,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       Node deq = u.eqNode(v).notNode();
       std::vector<Node> premises;
       premises.push_back(deq);
-      Assert(u[0].getType().isComparableTo(vc.getType()));
+      Assert(u[0].getType()==vc.getType());
       Node conc = u[0].eqNode(vc).notNode();
       d_im.sendInference(premises, conc, InferenceId::STRINGS_UNIT_INJ_DEQ, false, true);
       return;
@@ -2447,7 +2447,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   TypeNode intType = nm->integerType();
   Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
-  // as an optimization, use seq.nth instead of substr
+  // use seq.nth instead of substr
   Node ss1 = nm->mkNode(SEQ_NTH, n1, k);
   Node ss2 = nm->mkNode(SEQ_NTH, n2, k);
 

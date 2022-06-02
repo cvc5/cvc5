@@ -15,6 +15,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "options/io_utils.h"
 #include "options/options.h"
 #include "options/options_handler.h"
 #include "options/options_listener.h"

@@ -372,11 +372,11 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 proof->addStep(exp[1][0],
                                PfRule::AND_ELIM,
                                {exp[1]},
-                               {nm->mkConstReal(Rational(0))});
+                               {nm->mkConstInt(Rational(0))});
                 proof->addStep(exp[1][1],
                                PfRule::AND_ELIM,
                                {exp[1]},
-                               {nm->mkConstReal(Rational(1))});
+                               {nm->mkConstInt(Rational(1))});
                 Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
                 Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
                 if (rew->rewrite(lb) == rew->rewrite(exp[1][0]))

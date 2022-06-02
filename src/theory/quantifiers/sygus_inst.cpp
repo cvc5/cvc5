@@ -268,7 +268,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   FirstOrderModel* model = d_treg.getModel();
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
-  SygusExplain syexplain(db);
+  SygusExplain syexplain(d_env, db);
   NodeManager* nm = NodeManager::currentNM();
   options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 

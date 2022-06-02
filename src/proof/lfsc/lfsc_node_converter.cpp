@@ -31,6 +31,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
@@ -369,6 +370,13 @@ Node LfscNodeConverter::postConvert(Node n)
     // notice that intentionally we drop annotations here
     return ret;
   }
+  else if (k == FUNCTION_ARRAY_CONST)
+  {
+    // must convert to lambda and then run the conversion
+    Node lam = theory::uf::FunctionConst::toLambda(n);
+    Assert(!lam.isNull());
+    return convert(lam);
+  }
   else if (k == REGEXP_LOOP)
   {
     // ((_ re.loop n1 n2) t) is ((re.loop n1 n2) t)
@@ -579,7 +587,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     tn.toStream(ss);
     if (tn.isUninterpretedSortConstructor())
     {

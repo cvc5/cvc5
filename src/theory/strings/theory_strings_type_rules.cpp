@@ -334,10 +334,12 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
 {
+  Assert(n.getKind() == kind::SEQ_NTH);
   TypeNode t = n[0].getType(check);
   if (check && !t.isStringLike())
   {
-    throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
+    throw TypeCheckingExceptionPrivate(n,
+                                       "expecting a string-like term in nth");
   }
   if (check)
   {

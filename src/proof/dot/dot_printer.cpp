@@ -31,9 +31,7 @@ namespace cvc5::internal {
 namespace proof {
 
 DotPrinter::DotPrinter()
-    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
-                                          : 0),
-      d_ruleID(0)
+    : d_lbind(options::dagThresh() ? options::dagThresh() + 1 : 0), d_ruleID(0)
 {
   const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};
   const std::string colors[5] = {"purple", "yellow", "green", "brown", "blue"};
@@ -207,7 +205,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
                             ancestorHashs,
                             ProofNodeClusterType::NOT_DEFINED);
 
-  if (options::printDotClusters())
+  if (options::ioutils::getPrintDotClusters(out))
   {
     // Print the sub-graphs
     for (unsigned i = 0; i < 5; i++)
@@ -230,7 +228,7 @@ uint64_t DotPrinter::printInternal(
   uint64_t currentRuleID = d_ruleID;
 
   // Print DAG option enabled
-  if (options::proofDotDAG())
+  if (options::ioutils::getPrintDotAsDAG(out))
   {
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
@@ -275,7 +273,7 @@ uint64_t DotPrinter::printInternal(
   }
 
   ProofNodeClusterType proofNodeType = ProofNodeClusterType::NOT_DEFINED;
-  if (options::printDotClusters())
+  if (options::ioutils::getPrintDotClusters(out))
   {
     // Define the type of this node
     proofNodeType = defineProofNodeType(pn, parentType);
@@ -305,7 +303,7 @@ uint64_t DotPrinter::printInternal(
                                      ancestorHashs,
                                      proofNodeType);
     out << "\t" << childId << " -> " << currentRuleID << ";\n";
-    if (options::proofDotDAG())
+    if (options::ioutils::getPrintDotAsDAG(out))
     {
       ancestorHashs.pop_back();
     }
@@ -323,7 +321,7 @@ uint64_t DotPrinter::printInternal(
                                        ancestorHashs,
                                        proofNodeType);
       out << "\t" << childId << " -> " << currentRuleID << ";\n";
-      if (options::proofDotDAG())
+      if (options::ioutils::getPrintDotAsDAG(out))
       {
         ancestorHashs.pop_back();
       }
@@ -331,7 +329,7 @@ uint64_t DotPrinter::printInternal(
   }
 
   // If it's a scope, then remove from the stack
-  if (isSCOPE(r) && options::printDotClusters())
+  if (isSCOPE(r) && options::ioutils::getPrintDotClusters(out))
   {
     d_scopesArgs.pop_back();
   }

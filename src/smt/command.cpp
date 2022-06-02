@@ -78,17 +78,13 @@ std::string sexprToString(cvc5::Term sexpr)
   return ss.str();
 }
 
-const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance =
     new CommandInterrupted();
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
-  c.toStream(out,
-             options::ioutils::getNodeDepth(out),
-             options::ioutils::getDagThresh(out),
-             options::ioutils::getOutputLang(out));
+  c.toStream(out);
   return out;
 }
 
@@ -107,7 +103,7 @@ ostream& operator<<(ostream& out, const Command* c)
 
 std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
 {
-  s.toStream(out, options::ioutils::getOutputLang(out));
+  s.toStream(out);
   return out;
 }
 
@@ -121,31 +117,6 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   {
     out << *s;
   }
-  return out;
-}
-
-/* -------------------------------------------------------------------------- */
-/* class CommandPrintSuccess                                                  */
-/* -------------------------------------------------------------------------- */
-
-void CommandPrintSuccess::applyPrintSuccess(std::ostream& out)
-{
-  out.iword(s_iosIndex) = d_printSuccess;
-}
-
-bool CommandPrintSuccess::getPrintSuccess(std::ostream& out)
-{
-  return out.iword(s_iosIndex);
-}
-
-void CommandPrintSuccess::setPrintSuccess(std::ostream& out, bool printSuccess)
-{
-  out.iword(s_iosIndex) = printSuccess;
-}
-
-std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
-{
-  cps.applyPrintSuccess(out);
   return out;
 }
 
@@ -205,9 +176,9 @@ std::string Command::toString() const
   return ss.str();
 }
 
-void CommandStatus::toStream(std::ostream& out, Language language) const
+void CommandStatus::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStream(out, this);
+  Printer::getPrinter(out)->toStream(out, this);
 }
 
 void Command::printResult(std::ostream& out) const
@@ -271,12 +242,9 @@ void EmptyCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 Command* EmptyCommand::clone() const { return new EmptyCommand(d_name); }
 std::string EmptyCommand::getCommandName() const { return "empty"; }
 
-void EmptyCommand::toStream(std::ostream& out,
-                            int toDepth,
-                            size_t dag,
-                            Language language) const
+void EmptyCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdEmpty(out, d_name);
+  Printer::getPrinter(out)->toStreamCmdEmpty(out, d_name);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -308,12 +276,9 @@ Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
 
 std::string EchoCommand::getCommandName() const { return "echo"; }
 
-void EchoCommand::toStream(std::ostream& out,
-                           int toDepth,
-                           size_t dag,
-                           Language language) const
+void EchoCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdEcho(out, d_output);
+  Printer::getPrinter(out)->toStreamCmdEcho(out, d_output);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -340,12 +305,9 @@ Command* AssertCommand::clone() const { return new AssertCommand(d_term); }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
 
-void AssertCommand::toStream(std::ostream& out,
-                             int toDepth,
-                             size_t dag,
-                             Language language) const
+void AssertCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdAssert(out, termToNode(d_term));
+  Printer::getPrinter(out)->toStreamCmdAssert(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -370,12 +332,9 @@ void PushCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 Command* PushCommand::clone() const { return new PushCommand(d_nscopes); }
 std::string PushCommand::getCommandName() const { return "push"; }
 
-void PushCommand::toStream(std::ostream& out,
-                           int toDepth,
-                           size_t dag,
-                           Language language) const
+void PushCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdPush(out, d_nscopes);
+  Printer::getPrinter(out)->toStreamCmdPush(out, d_nscopes);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -400,12 +359,9 @@ void PopCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 Command* PopCommand::clone() const { return new PopCommand(d_nscopes); }
 std::string PopCommand::getCommandName() const { return "pop"; }
 
-void PopCommand::toStream(std::ostream& out,
-                          int toDepth,
-                          size_t dag,
-                          Language language) const
+void PopCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdPop(out, d_nscopes);
+  Printer::getPrinter(out)->toStreamCmdPop(out, d_nscopes);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -453,12 +409,9 @@ Command* CheckSatCommand::clone() const
 
 std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 
-void CheckSatCommand::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void CheckSatCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSat(out);
+  Printer::getPrinter(out)->toStreamCmdCheckSat(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -526,12 +479,9 @@ std::string CheckSatAssumingCommand::getCommandName() const
   return "check-sat-assuming";
 }
 
-void CheckSatAssumingCommand::toStream(std::ostream& out,
-                                       int toDepth,
-                                       size_t dag,
-                                       Language language) const
+void CheckSatAssumingCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSatAssuming(
+  Printer::getPrinter(out)->toStreamCmdCheckSatAssuming(
       out, termVectorToNodes(d_terms));
 }
 
@@ -564,12 +514,9 @@ std::string DeclareSygusVarCommand::getCommandName() const
   return "declare-var";
 }
 
-void DeclareSygusVarCommand::toStream(std::ostream& out,
-                                      int toDepth,
-                                      size_t dag,
-                                      Language language) const
+void DeclareSygusVarCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareVar(
+  Printer::getPrinter(out)->toStreamCmdDeclareVar(
       out, termToNode(d_var), sortToTypeNode(d_sort));
 }
 
@@ -621,13 +568,10 @@ std::string SynthFunCommand::getCommandName() const
   return d_isInv ? "synth-inv" : "synth-fun";
 }
 
-void SynthFunCommand::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void SynthFunCommand::toStream(std::ostream& out) const
 {
   std::vector<Node> nodeVars = termVectorToNodes(d_vars);
-  Printer::getPrinter(language)->toStreamCmdSynthFun(
+  Printer::getPrinter(out)->toStreamCmdSynthFun(
       out,
       termToNode(d_fun),
       nodeVars,
@@ -677,19 +621,15 @@ std::string SygusConstraintCommand::getCommandName() const
   return d_isAssume ? "assume" : "constraint";
 }
 
-void SygusConstraintCommand::toStream(std::ostream& out,
-                                      int toDepth,
-                                      size_t dag,
-                                      Language language) const
+void SygusConstraintCommand::toStream(std::ostream& out) const
 {
   if (d_isAssume)
   {
-    Printer::getPrinter(language)->toStreamCmdAssume(out, termToNode(d_term));
+    Printer::getPrinter(out)->toStreamCmdAssume(out, termToNode(d_term));
   }
   else
   {
-    Printer::getPrinter(language)->toStreamCmdConstraint(out,
-                                                         termToNode(d_term));
+    Printer::getPrinter(out)->toStreamCmdConstraint(out, termToNode(d_term));
   }
 }
 
@@ -740,12 +680,9 @@ std::string SygusInvConstraintCommand::getCommandName() const
   return "inv-constraint";
 }
 
-void SygusInvConstraintCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
+void SygusInvConstraintCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdInvConstraint(
+  Printer::getPrinter(out)->toStreamCmdInvConstraint(
       out,
       termToNode(d_predicates[0]),
       termToNode(d_predicates[1]),
@@ -765,9 +702,9 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
-    if (!d_result.hasSolution()
-        || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
-        || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
+    std::string sygusOut = solver->getOption("sygus-out");
+    if (!d_result.hasSolution() || sygusOut == "status-and-def"
+        || sygusOut == "status")
     {
       if (d_result.hasSolution())
       {
@@ -783,12 +720,14 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
       }
     }
     // check whether we should print the solution
-    if (d_result.hasSolution()
-        && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
+    if (d_result.hasSolution() && sygusOut != "status")
     {
       std::vector<cvc5::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
-      Printer* p = Printer::getPrinter(Language::LANG_SYGUS_V2);
+      options::ioutils::Scope scope(d_solution);
+      options::ioutils::applyOutputLanguage(d_solution,
+                                            Language::LANG_SYGUS_V2);
+      Printer* p = Printer::getPrinter(d_solution);
       for (cvc5::Term& f : synthFuns)
       {
         cvc5::Term sol = solver->getSynthSolution(f);
@@ -838,18 +777,15 @@ std::string CheckSynthCommand::getCommandName() const
   return d_isNext ? "check-synth-next" : "check-synth";
 }
 
-void CheckSynthCommand::toStream(std::ostream& out,
-                                 int toDepth,
-                                 size_t dag,
-                                 Language language) const
+void CheckSynthCommand::toStream(std::ostream& out) const
 {
   if (d_isNext)
   {
-    Printer::getPrinter(language)->toStreamCmdCheckSynthNext(out);
+    Printer::getPrinter(out)->toStreamCmdCheckSynthNext(out);
   }
   else
   {
-    Printer::getPrinter(language)->toStreamCmdCheckSynth(out);
+    Printer::getPrinter(out)->toStreamCmdCheckSynth(out);
   }
 }
 
@@ -874,12 +810,9 @@ void ResetCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 Command* ResetCommand::clone() const { return new ResetCommand(); }
 std::string ResetCommand::getCommandName() const { return "reset"; }
 
-void ResetCommand::toStream(std::ostream& out,
-                            int toDepth,
-                            size_t dag,
-                            Language language) const
+void ResetCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdReset(out);
+  Printer::getPrinter(out)->toStreamCmdReset(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -910,12 +843,9 @@ std::string ResetAssertionsCommand::getCommandName() const
   return "reset-assertions";
 }
 
-void ResetAssertionsCommand::toStream(std::ostream& out,
-                                      int toDepth,
-                                      size_t dag,
-                                      Language language) const
+void ResetAssertionsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdResetAssertions(out);
+  Printer::getPrinter(out)->toStreamCmdResetAssertions(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -930,12 +860,9 @@ void QuitCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 Command* QuitCommand::clone() const { return new QuitCommand(); }
 std::string QuitCommand::getCommandName() const { return "exit"; }
 
-void QuitCommand::toStream(std::ostream& out,
-                           int toDepth,
-                           size_t dag,
-                           Language language) const
+void QuitCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdQuit(out);
+  Printer::getPrinter(out)->toStreamCmdQuit(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1028,26 +955,19 @@ CommandSequence::iterator CommandSequence::end()
 
 std::string CommandSequence::getCommandName() const { return "sequence"; }
 
-void CommandSequence::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void CommandSequence::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdCommandSequence(out,
-                                                            d_commandSequence);
+  Printer::getPrinter(out)->toStreamCmdCommandSequence(out, d_commandSequence);
 }
 
 /* -------------------------------------------------------------------------- */
 /* class DeclarationSequence                                                  */
 /* -------------------------------------------------------------------------- */
 
-void DeclarationSequence::toStream(std::ostream& out,
-                                   int toDepth,
-                                   size_t dag,
-                                   Language language) const
+void DeclarationSequence::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclarationSequence(
-      out, d_commandSequence);
+  Printer::getPrinter(out)->toStreamCmdDeclarationSequence(out,
+                                                           d_commandSequence);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1095,12 +1015,9 @@ std::string DeclareFunctionCommand::getCommandName() const
   return "declare-fun";
 }
 
-void DeclareFunctionCommand::toStream(std::ostream& out,
-                                      int toDepth,
-                                      size_t dag,
-                                      Language language) const
+void DeclareFunctionCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
+  Printer::getPrinter(out)->toStreamCmdDeclareFunction(
       out, d_symbol, sortToTypeNode(d_func.getSort()));
 }
 
@@ -1146,12 +1063,9 @@ std::string DeclarePoolCommand::getCommandName() const
   return "declare-pool";
 }
 
-void DeclarePoolCommand::toStream(std::ostream& out,
-                                  int toDepth,
-                                  size_t dag,
-                                  Language language) const
+void DeclarePoolCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclarePool(
+  Printer::getPrinter(out)->toStreamCmdDeclarePool(
       out,
       d_func.toString(),
       sortToTypeNode(d_sort),
@@ -1215,12 +1129,9 @@ std::string DeclareOracleFunCommand::getCommandName() const
   return "declare-oracle-fun";
 }
 
-void DeclareOracleFunCommand::toStream(std::ostream& out,
-                                       int toDepth,
-                                       size_t dag,
-                                       Language language) const
+void DeclareOracleFunCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareOracleFun(
+  Printer::getPrinter(out)->toStreamCmdDeclareOracleFun(
       out, d_id, sortToTypeNode(d_sort), d_binName);
 }
 
@@ -1258,13 +1169,9 @@ std::string DeclareSortCommand::getCommandName() const
   return "declare-sort";
 }
 
-void DeclareSortCommand::toStream(std::ostream& out,
-                                  int toDepth,
-                                  size_t dag,
-                                  Language language) const
+void DeclareSortCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareType(out,
-                                                        sortToTypeNode(d_sort));
+  Printer::getPrinter(out)->toStreamCmdDeclareType(out, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1301,12 +1208,9 @@ Command* DefineSortCommand::clone() const
 
 std::string DefineSortCommand::getCommandName() const { return "define-sort"; }
 
-void DefineSortCommand::toStream(std::ostream& out,
-                                 int toDepth,
-                                 size_t dag,
-                                 Language language) const
+void DefineSortCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDefineType(
+  Printer::getPrinter(out)->toStreamCmdDefineType(
       out, d_symbol, sortVectorToTypeNodes(d_params), sortToTypeNode(d_sort));
 }
 
@@ -1371,12 +1275,9 @@ std::string DefineFunctionCommand::getCommandName() const
   return "define-fun";
 }
 
-void DefineFunctionCommand::toStream(std::ostream& out,
-                                     int toDepth,
-                                     size_t dag,
-                                     Language language) const
+void DefineFunctionCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDefineFunction(
+  Printer::getPrinter(out)->toStreamCmdDefineFunction(
       out,
       d_symbol,
       termVectorToNodes(d_formals),
@@ -1444,10 +1345,7 @@ std::string DefineFunctionRecCommand::getCommandName() const
   return "define-fun-rec";
 }
 
-void DefineFunctionRecCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        size_t dag,
-                                        Language language) const
+void DefineFunctionRecCommand::toStream(std::ostream& out) const
 {
   std::vector<std::vector<Node>> formals;
   formals.reserve(d_formals.size());
@@ -1456,7 +1354,7 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
     formals.push_back(termVectorToNodes(formal));
   }
 
-  Printer::getPrinter(language)->toStreamCmdDefineFunctionRec(
+  Printer::getPrinter(out)->toStreamCmdDefineFunctionRec(
       out, termVectorToNodes(d_funcs), formals, termVectorToNodes(d_formulas));
 }
 /* -------------------------------------------------------------------------- */
@@ -1485,12 +1383,9 @@ std::string DeclareHeapCommand::getCommandName() const
   return "declare-heap";
 }
 
-void DeclareHeapCommand::toStream(std::ostream& out,
-                                  int toDepth,
-                                  size_t dag,
-                                  Language language) const
+void DeclareHeapCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareHeap(
+  Printer::getPrinter(out)->toStreamCmdDeclareHeap(
       out, sortToTypeNode(d_locSort), sortToTypeNode(d_dataSort));
 }
 
@@ -1535,12 +1430,9 @@ Command* SimplifyCommand::clone() const
 
 std::string SimplifyCommand::getCommandName() const { return "simplify"; }
 
-void SimplifyCommand::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void SimplifyCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdSimplify(out, termToNode(d_term));
+  Printer::getPrinter(out)->toStreamCmdSimplify(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1612,13 +1504,10 @@ Command* GetValueCommand::clone() const
 
 std::string GetValueCommand::getCommandName() const { return "get-value"; }
 
-void GetValueCommand::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void GetValueCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetValue(
-      out, termVectorToNodes(d_terms));
+  Printer::getPrinter(out)->toStreamCmdGetValue(out,
+                                                termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1688,12 +1577,9 @@ std::string GetAssignmentCommand::getCommandName() const
   return "get-assignment";
 }
 
-void GetAssignmentCommand::toStream(std::ostream& out,
-                                    int toDepth,
-                                    size_t dag,
-                                    Language language) const
+void GetAssignmentCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetAssignment(out);
+  Printer::getPrinter(out)->toStreamCmdGetAssignment(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1741,12 +1627,9 @@ Command* GetModelCommand::clone() const
 
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
 
-void GetModelCommand::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void GetModelCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetModel(out);
+  Printer::getPrinter(out)->toStreamCmdGetModel(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1781,12 +1664,9 @@ Command* BlockModelCommand::clone() const
 
 std::string BlockModelCommand::getCommandName() const { return "block-model"; }
 
-void BlockModelCommand::toStream(std::ostream& out,
-                                 int toDepth,
-                                 size_t dag,
-                                 Language language) const
+void BlockModelCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdBlockModel(out, d_mode);
+  Printer::getPrinter(out)->toStreamCmdBlockModel(out, d_mode);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1834,12 +1714,9 @@ std::string BlockModelValuesCommand::getCommandName() const
   return "block-model-values";
 }
 
-void BlockModelValuesCommand::toStream(std::ostream& out,
-                                       int toDepth,
-                                       size_t dag,
-                                       Language language) const
+void BlockModelValuesCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdBlockModelValues(
+  Printer::getPrinter(out)->toStreamCmdBlockModelValues(
       out, termVectorToNodes(d_terms));
 }
 
@@ -1885,12 +1762,9 @@ Command* GetProofCommand::clone() const
 
 std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
-void GetProofCommand::toStream(std::ostream& out,
-                               int toDepth,
-                               size_t dag,
-                               Language language) const
+void GetProofCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetProof(out);
+  Printer::getPrinter(out)->toStreamCmdGetProof(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1945,12 +1819,9 @@ std::string GetInstantiationsCommand::getCommandName() const
   return "get-instantiations";
 }
 
-void GetInstantiationsCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        size_t dag,
-                                        Language language) const
+void GetInstantiationsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetInstantiations(out);
+  Printer::getPrinter(out)->toStreamCmdGetInstantiations(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2036,12 +1907,9 @@ std::string GetInterpolantCommand::getCommandName() const
   return "get-interpolant";
 }
 
-void GetInterpolantCommand::toStream(std::ostream& out,
-                                     int toDepth,
-                                     size_t dag,
-                                     Language language) const
+void GetInterpolantCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetInterpol(
+  Printer::getPrinter(out)->toStreamCmdGetInterpol(
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
@@ -2102,12 +1970,9 @@ std::string GetInterpolantNextCommand::getCommandName() const
   return "get-interpolant-next";
 }
 
-void GetInterpolantNextCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
+void GetInterpolantNextCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetInterpolNext(out);
+  Printer::getPrinter(out)->toStreamCmdGetInterpolNext(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2189,12 +2054,9 @@ Command* GetAbductCommand::clone() const
 
 std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
 
-void GetAbductCommand::toStream(std::ostream& out,
-                                int toDepth,
-                                size_t dag,
-                                Language language) const
+void GetAbductCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetAbduct(
+  Printer::getPrinter(out)->toStreamCmdGetAbduct(
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
@@ -2255,12 +2117,9 @@ std::string GetAbductNextCommand::getCommandName() const
   return "get-abduct-next";
 }
 
-void GetAbductNextCommand::toStream(std::ostream& out,
-                                    int toDepth,
-                                    size_t dag,
-                                    Language language) const
+void GetAbductNextCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetAbductNext(out);
+  Printer::getPrinter(out)->toStreamCmdGetAbductNext(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2329,12 +2188,9 @@ std::string GetQuantifierEliminationCommand::getCommandName() const
   return d_doFull ? "get-qe" : "get-qe-disjunct";
 }
 
-void GetQuantifierEliminationCommand::toStream(std::ostream& out,
-                                               int toDepth,
-                                               size_t dag,
-                                               Language language) const
+void GetQuantifierEliminationCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
+  Printer::getPrinter(out)->toStreamCmdGetQuantifierElimination(
       out, termToNode(d_term), d_doFull);
 }
 
@@ -2390,24 +2246,22 @@ std::string GetUnsatAssumptionsCommand::getCommandName() const
   return "get-unsat-assumptions";
 }
 
-void GetUnsatAssumptionsCommand::toStream(std::ostream& out,
-                                          int toDepth,
-                                          size_t dag,
-                                          Language language) const
+void GetUnsatAssumptionsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetUnsatAssumptions(out);
+  Printer::getPrinter(out)->toStreamCmdGetUnsatAssumptions(out);
 }
 
 /* -------------------------------------------------------------------------- */
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
-GetUnsatCoreCommand::GetUnsatCoreCommand() : d_sm(nullptr) {}
+GetUnsatCoreCommand::GetUnsatCoreCommand() : d_solver(nullptr), d_sm(nullptr) {}
 void GetUnsatCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
     d_sm = sm;
+    d_solver = solver;
     d_result = solver->getUnsatCore();
 
     d_commandStatus = CommandSuccess::instance();
@@ -2430,7 +2284,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out) const
   }
   else
   {
-    if (options::printUnsatCoresFull())
+    if (d_solver->getOption("print-unsat-cores-full") == "true")
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));
@@ -2456,6 +2310,7 @@ const std::vector<cvc5::Term>& GetUnsatCoreCommand::getUnsatCore() const
 Command* GetUnsatCoreCommand::clone() const
 {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand;
+  c->d_solver = d_solver;
   c->d_sm = d_sm;
   c->d_result = d_result;
   return c;
@@ -2466,12 +2321,9 @@ std::string GetUnsatCoreCommand::getCommandName() const
   return "get-unsat-core";
 }
 
-void GetUnsatCoreCommand::toStream(std::ostream& out,
-                                   int toDepth,
-                                   size_t dag,
-                                   Language language) const
+void GetUnsatCoreCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetUnsatCore(out);
+  Printer::getPrinter(out)->toStreamCmdGetUnsatCore(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2545,12 +2397,9 @@ std::string GetDifficultyCommand::getCommandName() const
   return "get-difficulty";
 }
 
-void GetDifficultyCommand::toStream(std::ostream& out,
-                                    int toDepth,
-                                    size_t dag,
-                                    Language language) const
+void GetDifficultyCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
+  Printer::getPrinter(out)->toStreamCmdGetDifficulty(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2611,12 +2460,9 @@ std::string GetLearnedLiteralsCommand::getCommandName() const
   return "get-learned-literals";
 }
 
-void GetLearnedLiteralsCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
+void GetLearnedLiteralsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetLearnedLiterals(out);
+  Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2667,12 +2513,9 @@ std::string GetAssertionsCommand::getCommandName() const
   return "get-assertions";
 }
 
-void GetAssertionsCommand::toStream(std::ostream& out,
-                                    int toDepth,
-                                    size_t dag,
-                                    Language language) const
+void GetAssertionsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetAssertions(out);
+  Printer::getPrinter(out)->toStreamCmdGetAssertions(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2708,12 +2551,9 @@ std::string SetBenchmarkLogicCommand::getCommandName() const
   return "set-logic";
 }
 
-void SetBenchmarkLogicCommand::toStream(std::ostream& out,
-                                        int toDepth,
-                                        size_t dag,
-                                        Language language) const
+void SetBenchmarkLogicCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkLogic(out, d_logic);
+  Printer::getPrinter(out)->toStreamCmdSetBenchmarkLogic(out, d_logic);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2757,12 +2597,9 @@ Command* SetInfoCommand::clone() const
 
 std::string SetInfoCommand::getCommandName() const { return "set-info"; }
 
-void SetInfoCommand::toStream(std::ostream& out,
-                              int toDepth,
-                              size_t dag,
-                              Language language) const
+void SetInfoCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetInfo(out, d_flag, d_value);
+  Printer::getPrinter(out)->toStreamCmdSetInfo(out, d_flag, d_value);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2817,12 +2654,9 @@ Command* GetInfoCommand::clone() const
 
 std::string GetInfoCommand::getCommandName() const { return "get-info"; }
 
-void GetInfoCommand::toStream(std::ostream& out,
-                              int toDepth,
-                              size_t dag,
-                              Language language) const
+void GetInfoCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetInfo(out, d_flag);
+  Printer::getPrinter(out)->toStreamCmdGetInfo(out, d_flag);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2865,12 +2699,9 @@ Command* SetOptionCommand::clone() const
 
 std::string SetOptionCommand::getCommandName() const { return "set-option"; }
 
-void SetOptionCommand::toStream(std::ostream& out,
-                                int toDepth,
-                                size_t dag,
-                                Language language) const
+void SetOptionCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetOption(out, d_flag, d_value);
+  Printer::getPrinter(out)->toStreamCmdSetOption(out, d_flag, d_value);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2918,12 +2749,9 @@ Command* GetOptionCommand::clone() const
 
 std::string GetOptionCommand::getCommandName() const { return "get-option"; }
 
-void GetOptionCommand::toStream(std::ostream& out,
-                                int toDepth,
-                                size_t dag,
-                                Language language) const
+void GetOptionCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdGetOption(out, d_flag);
+  Printer::getPrinter(out)->toStreamCmdGetOption(out, d_flag);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2963,12 +2791,9 @@ std::string DatatypeDeclarationCommand::getCommandName() const
   return "declare-datatypes";
 }
 
-void DatatypeDeclarationCommand::toStream(std::ostream& out,
-                                          int toDepth,
-                                          size_t dag,
-                                          Language language) const
+void DatatypeDeclarationCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(language)->toStreamCmdDatatypeDeclaration(
+  Printer::getPrinter(out)->toStreamCmdDatatypeDeclaration(
       out, sortVectorToTypeNodes(d_datatypes));
 }
 

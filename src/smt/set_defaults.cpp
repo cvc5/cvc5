@@ -299,12 +299,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       logic.disableTheory(THEORY_UF);
       logic.lock();
     }
-    if (logic.isTheoryEnabled(THEORY_ARRAYS))
-    {
-      logic = logic.getUnlockedCopy();
-      logic.disableTheory(THEORY_ARRAYS);
-      logic.lock();
-    }
   }
 
   // Set default options associated with strings-exp. We also set these options
@@ -807,11 +801,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
-      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV"
-      && logic.getLogicString() != "QF_ABV")
+      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV")
   {
     throw OptionException(
-        "Eager bit-blasting does not currently support theory combination. "
+        "Eager bit-blasting does not currently support theory combination with "
+        "any theory other than UF. "
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
@@ -1395,12 +1389,24 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // must have finite model finding on
     opts.writeQuantifiers().finiteModelFind = true;
   }
-
   if (opts.quantifiers.instMaxLevel != -1)
   {
-    verbose(1) << "SolverEngine: turning off cbqi to support instMaxLevel"
-               << std::endl;
+    notifyModifyOption("cegqi", "false", "instMaxLevel");
     opts.writeQuantifiers().cegqi = false;
+  }
+  if (opts.quantifiers.mbqi)
+  {
+    // MBQI is an alternative to CEGQI/SyQI
+    if (!opts.quantifiers.cegqiWasSetByUser)
+    {
+      notifyModifyOption("cegqi", "false", "mbqi");
+      opts.writeQuantifiers().cegqi = false;
+    }
+    if (!opts.quantifiers.sygusInstWasSetByUser)
+    {
+      notifyModifyOption("sygusInst", "false", "mbqi");
+      opts.writeQuantifiers().sygusInst = false;
+    }
   }
 
   if (opts.quantifiers.fmfBoundLazyWasSetByUser

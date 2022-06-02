@@ -167,7 +167,7 @@ class BvInstantiator : public Instantiator
 class BvInstantiatorPreprocess : public InstantiatorPreprocess
 {
  public:
-  BvInstantiatorPreprocess() {}
+  BvInstantiatorPreprocess(const Options& opts) : d_opts(opts) {}
   ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
@@ -208,6 +208,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
   void collectExtracts(Node lem,
                        std::map<Node, std::vector<Node>>& extract_map,
                        std::unordered_set<TNode>& visited);
+  /** Reference to options */
+  const Options& d_opts;
 };
 
 }  // namespace quantifiers

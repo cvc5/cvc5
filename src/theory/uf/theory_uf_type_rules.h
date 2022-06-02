@@ -90,7 +90,7 @@ class HoApplyTypeRule
 };
 
 /**
- * Type rule for lambas. Ensures the first argument is a bound varible list
+ * Type rule for lambdas. Ensures the first argument is a bound varible list
  * (x1 ... xn). Returns the function type (-> T1 ... Tn T) where T1...Tn are
  * the types of x1..xn and T is the type of the second argument.
  */
@@ -98,10 +98,17 @@ class LambdaTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-  // computes whether a lambda is a constant value, via conversion to array
-  // representation
-  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 }; /* class LambdaTypeRule */
+
+/**
+ * Type rule for function array constants. Returns the function type stored
+ * in the FUNCTION_ARRAY_CONST payload of the node.
+ */
+class FunctionArrayConstTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
 class FunctionProperties
 {

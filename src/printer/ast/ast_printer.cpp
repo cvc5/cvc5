@@ -21,6 +21,7 @@
 
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
 #include "smt/command.h"
@@ -31,11 +32,10 @@ namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          size_t dag) const
+void AstPrinter::toStream(std::ostream& out, TNode n) const
 {
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
   if(dag != 0) {
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
@@ -437,7 +437,7 @@ static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 
 static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-  if (cvc5::Command::printsuccess::getPrintSuccess(out))
+  if (options::ioutils::getPrintSuccess(out))
   {
     out << "OK" << endl;
   }
