@@ -43,6 +43,7 @@ void SolverState::reset()
   d_nvar_sets.clear();
   d_var_set.clear();
   d_mapTerms.clear();
+  d_mapSkolemElements.clear();
   d_compSets.clear();
   d_pol_mems[0].clear();
   d_pol_mems[1].clear();
@@ -462,6 +463,10 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
+const std::map<Node, std::vector<Node> >& SolverState::getMapSkolemElements() const
+{
+  return d_mapSkolemElements;
+}
 
 const std::vector<Node>& SolverState::getComprehensionSets() const
 {
@@ -598,6 +603,11 @@ bool SolverState::merge(TNode t1,
   }
   d_members[t1] = n_members;
   return true;
+}
+
+void SolverState::registerMapDownElement(const Node& mapTerm, Node element)
+{
+  d_mapSkolemElements[mapTerm].push_back(element);
 }
 
 }  // namespace sets

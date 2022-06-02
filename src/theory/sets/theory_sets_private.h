@@ -75,6 +75,41 @@ class TheorySetsPrivate : protected EnvObj
    * difference.
    */
   void checkUpwardsClosure();
+
+  /**
+   * Apply the following rule for map terms (set.map f A):
+   * Positive member rule:
+   * (=>
+   *   (set.member x A)
+   *   (set.member (f x) (set.map f A)
+   * )
+   */
+  void checkMapUp();
+  /**
+   * Apply the following rules for map terms (set.map f A) where A has type
+   * (Set T):
+   *
+   * - Positive member rule:
+   *   (=>
+   *     (set.member y (set.map f A))
+   *     (and
+   *       (= (f x) y)
+   *       (set.member x A)
+   *     )
+   *   )
+   *   where x is a fresh skolem
+   * - Negative member rule:
+   *   (=>
+   *     (not (set.member y (set.map f A)))
+   *     (forall ((x T))
+   *       (=>
+   *         (set.member x A)
+   *         (not (= (f x) y))
+   *       )
+   *     )
+   *   )
+   */
+  void checkMapDown();
   /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.

@@ -352,6 +352,20 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
+    // check map up rules
+    checkMapUp();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+    // check map down rules
+    checkMapDown();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
     // check disequalities
     checkDisequalities();
     d_im.doPendingLemmas();
@@ -648,6 +662,89 @@ void TheorySetsPrivate::checkUpwardsClosure()
             }
           }
         }
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkMapUp()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  const std::vector<Node>& mapTerms = d_state.getMapTerms();
+  std::map<Node, std::vector<Node> > skolemElements = d_state.getMapSkolemElements();
+
+  for (const Node& term : mapTerms)
+  {
+    Node f = term[0];
+    Node A = term[1];
+    const std::map<Node, Node>& positiveMembers = d_state.getMembers(A);
+    for (const std::pair<Node, Node>& pair : positiveMembers)
+    {
+      Node x = pair.first;
+      if (std::find(skolemElements[term].begin(), skolemElements[term].end(), x)
+          != skolemElements[term].end())
+      {
+        continue;
+      }
+      // (=>
+      //   (and (set.member x B) (= A B))
+      //   (set.member (f x) (set.map f A))
+      // )
+      std::vector<Node> exp;
+
+      Node B = pair.second[1];
+      exp.push_back(pair.second);
+      d_state.addEqualityToExp(A, B, exp);
+      Node f_x = nm->mkNode(APPLY_UF, f, x);
+      Node skolem = d_treg.getProxy(term);
+      Node fact = nm->mkNode(kind::SET_MEMBER, f_x, skolem);
+      d_im.assertInference(fact, InferenceId::SETS_MAP_UP, exp);
+      if (d_state.isInConflict())
+      {
+        return;
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkMapDown()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager *sm = nm->getSkolemManager();
+  const std::vector<Node>& mapTerms = d_state.getMapTerms();
+  for (const Node& term : mapTerms)
+  {
+    Node f = term[0];
+    Node A = term[1];
+    TypeNode elementType = A.getType().getSetElementType();
+    const std::map<Node, Node>& positiveMembers = d_state.getMembers(term);
+    for (const std::pair<Node, Node>& pair : positiveMembers)
+    {
+      // (=>
+      //   (and
+      //     (set.member y B)
+      //     (= B (set.map f A)))
+      //   (and
+      //     (set.member x A)
+      //     (= (f x) y))
+      // )
+      std::vector<Node> exp;
+      Node y = pair.first;
+      Node B = pair.second[1];
+      exp.push_back(pair.second);
+      d_state.addEqualityToExp(B, term, exp);
+      Node x = sm->mkSkolemFunction(
+          SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
+
+      d_state.registerMapDownElement(term, x);
+      Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
+      Node f_x = nm->mkNode(APPLY_UF, f, x);
+      Node equal = f_x.eqNode(y);
+      Node fact = memberA.andNode(equal);
+      d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
+      if (d_state.isInConflict())
+      {
+        return;
       }
     }
   }
@@ -1094,12 +1191,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       }
     }
     break;
-    case kind::SET_MAP:
-    {
-        throw LogicException(
-            "set.map not currently supported by the sets theory solver");
-    }
-      break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }

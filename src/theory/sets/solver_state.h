@@ -162,6 +162,8 @@ class SolverState : public TheoryState
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
   /** Get the list of all set.map terms in the current context */
   const std::vector<Node>& getMapTerms() const;
+  /** Get the list of all set.map terms in the current context */
+  const std::map<Node, std::vector<Node> >& getMapSkolemElements() const;
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
 
@@ -189,6 +191,8 @@ class SolverState : public TheoryState
    */
   bool merge(TNode t1, TNode t2, std::vector<Node>& facts, TNode cset);
 
+  void registerMapDownElement(const Node& mapTerm, Node element);
+
  private:
   /** constants */
   Node d_true;
@@ -213,6 +217,8 @@ class SolverState : public TheoryState
   std::map<Node, std::vector<Node> > d_nvar_sets;
   /** collection of map terms */
   std::vector<Node> d_mapTerms;
+  /** collection of map terms */
+  std::map<Node, std::vector<Node> > d_mapSkolemElements;
   /** Map from equivalence classes to the list of comprehension sets in it */
   std::map<Node, std::vector<Node> > d_compSets;
   /** Map from equivalence classes to a variable sets in it */
