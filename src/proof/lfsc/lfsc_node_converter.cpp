@@ -587,7 +587,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     tn.toStream(ss);
     if (tn.isUninterpretedSortConstructor())
     {

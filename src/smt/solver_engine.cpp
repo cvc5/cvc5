@@ -361,10 +361,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
     }
     getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
-    if (!getOptions().base.outputLanguageWasSetByUser)
+    if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().writeBase().outputLanguageWasSetByUser = false;
+      getOptions().writePrinter().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -1968,8 +1968,6 @@ ResourceManager* SolverEngine::getResourceManager() const
 {
   return d_env->getResourceManager();
 }
-
-const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 

@@ -73,7 +73,8 @@ class TestUtilBlackBooleanSimplification : public TestNode
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
 
     options::ioutils::applyNodeDepth(std::cout, -1);
-    options::ioutils::applyOutputLang(std::cout, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyOutputLanguage(std::cout,
+                                          Language::LANG_SMTLIB_V2_6);
   }
 
   // assert equality up to commuting children

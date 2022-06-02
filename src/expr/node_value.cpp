@@ -37,21 +37,18 @@ namespace expr {
 
 string NodeValue::toString() const {
   stringstream ss;
-  toStream(ss, -1, false);
+  toStream(ss);
   return ss.str();
 }
 
-void NodeValue::toStream(std::ostream& out,
-                         int toDepth,
-                         size_t dag) const
+void NodeValue::toStream(std::ostream& out) const
 {
   // Ensure that this node value is live for the length of this call.
   // It really breaks things badly if we don't have a nonzero ref
   // count, even just for printing.
   RefCountGuard guard(this);
 
-  auto language = options::ioutils::getOutputLang(out);
-  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
+  Printer::getPrinter(out)->toStream(out, TNode(this));
 }
 
 void NodeValue::printAst(std::ostream& out, int ind) const {
@@ -94,9 +91,7 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
 
 std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
 {
-  nv.toStream(out,
-              options::ioutils::getNodeDepth(out),
-              options::ioutils::getDagThresh(out));
+  nv.toStream(out);
   return out;
 }
 
