@@ -29,7 +29,7 @@ namespace sets {
 SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
     : TheoryState(env, val),
       d_skCache(skc),
-      d_mapSkolemElements(env.getContext()),
+      d_mapSkolemElements(env.getUserContext()),
       d_members(env.getContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -146,7 +146,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     if(it == d_mapSkolemElements.end())
     {
       std::shared_ptr<context::CDHashSet<Node , std::hash<Node>>> set =
-          std::make_shared<context::CDHashSet<Node , std::hash<Node>>>(d_env.getContext());
+          std::make_shared<context::CDHashSet<Node , std::hash<Node>>>(d_env.getUserContext());
       d_mapSkolemElements.insert(n, set);
     }
   }

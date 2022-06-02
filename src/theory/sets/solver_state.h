@@ -220,7 +220,9 @@ class SolverState : public TheoryState
   /** collection of map terms */
   std::vector<Node> d_mapTerms;
   /** collection of map terms */
-  context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node , std::hash<Node>>> > d_mapSkolemElements;
+  context::CDHashMap<Node,
+                     std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>>>
+      d_mapSkolemElements;
   /** Map from equivalence classes to the list of comprehension sets in it */
   std::map<Node, std::vector<Node> > d_compSets;
   /** Map from equivalence classes to a variable sets in it */
