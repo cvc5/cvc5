@@ -164,7 +164,8 @@ class SolverState : public TheoryState
   /** Get the list of all set.map terms in the current context */
   const std::vector<Node>& getMapTerms() const;
   /** Get the list of all set.map terms in the current context */
-  std::shared_ptr<context::CDHashSet<Node, std::hash<Node> >> getMapSkolemElements(Node n);
+  context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>>>::iterator
+  getMapSkolemElements(Node n);
   /** Get the list of all comprehension sets in the current context */
   const std::vector<Node>& getComprehensionSets() const;
 

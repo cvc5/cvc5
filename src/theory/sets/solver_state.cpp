@@ -142,6 +142,13 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   else if (nk == SET_MAP)
   {
     d_mapTerms.push_back(n);
+    auto it = d_mapSkolemElements.find(n);
+    if(it == d_mapSkolemElements.end())
+    {
+      std::shared_ptr<context::CDHashSet<Node , std::hash<Node>>> set =
+          std::make_shared<context::CDHashSet<Node , std::hash<Node>>>(d_env.getContext());
+      d_mapSkolemElements.insert(n, set);
+    }
   }
   else if (nk == SET_COMPREHENSION)
   {
@@ -465,19 +472,12 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
-std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>> SolverState::getMapSkolemElements(
-    Node n)
+
+context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node, std::hash<Node>>>>::iterator
+SolverState::getMapSkolemElements(Node n)
 {
-  if (d_mapSkolemElements.count(n))
-  {
-    std::cout << "SolverState::getMapSkolemElements existing: " << n << std::endl;
-    return d_mapSkolemElements[n];
-  }
-  std::shared_ptr<context::CDHashSet<Node>> set =
-      std::make_shared<context::CDHashSet<Node, std::hash<Node>>>(d_env.getContext());
-  d_mapSkolemElements[n] = set;
-  std::cout << "SolverState::getMapSkolemElements: " << n << std::endl;
-  return set;
+  std::cout << "SolverState::getMapSkolemElements existing: " << n << std::endl;
+  return d_mapSkolemElements.find(n);
 }
 
 const std::vector<Node>& SolverState::getComprehensionSets() const
@@ -617,19 +617,12 @@ bool SolverState::merge(TNode t1,
   return true;
 }
 
-void SolverState::registerMapDownElement(const Node & n, const Node & element)
+void SolverState::registerMapDownElement(const Node& n, const Node& element)
 {
-  if (d_mapSkolemElements.count(n))
-  {
-    d_mapSkolemElements[n].get()->insert(element);
-    std::cout << "map down element " << element << " for existing " << n << std::endl;
-    return;
-  }
-  std::shared_ptr<context::CDHashSet<Node>> set =
-      std::make_shared<context::CDHashSet<Node, std::hash<Node> >>(d_env.getContext());
-  set->insert(element);
-  d_mapSkolemElements[n] = set;
-  std::cout << "registering map down element " << element << " for " << n << std::endl;
+  auto it = d_mapSkolemElements.find(n);
+  it->second->insert(element);
+  std::cout << "map down element " << element << " for existing " << n
+            << std::endl;
 }
 
 }  // namespace sets
