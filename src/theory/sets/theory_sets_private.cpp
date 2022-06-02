@@ -677,7 +677,8 @@ void TheorySetsPrivate::checkMapUp()
     Node f = term[0];
     Node A = term[1];
     const std::map<Node, Node>& positiveMembers = d_state.getMembers(A);
-    auto skolemElements = d_state.getMapSkolemElements(term).get();
+    context::CDHashSet<Node>* skolemElements =
+        d_state.getMapSkolemElements(term).get();
     for (const std::pair<Node, Node>& pair : positiveMembers)
     {
       Node x = pair.first;
