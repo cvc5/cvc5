@@ -682,6 +682,15 @@ RewriteResponse TheorySetsRewriter::postRewriteFilter(TNode n)
       // (set.filter p (as set.empty (Set T)) = (as set.empty (Set T))
       return RewriteResponse(REWRITE_DONE, n[1]);
     }
+    case SET_SINGLETON:
+    {
+      // (set.filter p (set.singleton x)) =
+      //       (ite (p x) (set.singleton x) (as set.empty (Set T)))
+      Node empty = nm->mkConst(EmptySet(n.getType()));
+      Node condition = nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = nm->mkNode(ITE, condition, n[1], empty);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
     case SET_UNION:
     {
       // (set.filter p (set.union A B)) =
