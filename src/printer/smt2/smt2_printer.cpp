@@ -34,10 +34,8 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
-#include "options/bv_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/printer_options.h"
-#include "options/smt_options.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
@@ -125,6 +123,13 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
+void Smt2Printer::toStream(std::ostream& out, TNode n) const
+{
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
+  toStream(out, n, toDepth, dag);
+}
+
 void Smt2Printer::toStreamWithLetify(std::ostream& out,
                                      Node n,
                                      int toDepth,
@@ -200,7 +205,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_BITVECTOR:
     {
       const BitVector& bv = n.getConst<BitVector>();
-      if (options::bvPrintConstsAsIndexedSymbols())
+      if (options::ioutils::getBvPrintConstsAsIndexedSymbols(out))
       {
         out << "(_ bv" << bv.getValue() << " " << bv.getSize() << ")";
       }
@@ -213,7 +218,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_FLOATINGPOINT:
     {
       out << n.getConst<FloatingPoint>().toString(
-          options::bvPrintConstsAsIndexedSymbols());
+          options::ioutils::getBvPrintConstsAsIndexedSymbols(out));
       break;
     }
     case kind::CONST_ROUNDINGMODE:
@@ -571,7 +576,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::APPLY_UF: break;
     // higher-order
     case kind::HO_APPLY:
-      if (!options::flattenHOChains())
+      if (!options::ioutils::getFlattenHOChains(out))
       {
         out << smtKindString(k, d_variant) << ' ';
         break;
@@ -1260,6 +1265,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
+  case kind::STRING_UNIT: return "str.unit";
   case kind::REGEXP_NONE: return "re.none";
   case kind::REGEXP_ALL: return "re.all";
   case kind::REGEXP_ALLCHAR: return "re.allchar";
@@ -1435,20 +1441,18 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
+  auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
-  if (options::modelUninterpPrint()
-      == options::ModelUninterpPrintMode::DeclSortAndFun)
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
     toStreamCmdDeclareType(out, tn);
   }
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (options::modelUninterpPrint()
-            == options::ModelUninterpPrintMode::DeclSortAndFun
-        || options::modelUninterpPrint()
-               == options::ModelUninterpPrintMode::DeclFun)
+    if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun
+        || modelUninterpPrint == options::ModelUninterpPrintMode::DeclFun)
     {
       out << "(declare-fun ";
       if (trn.getKind() == kind::UNINTERPRETED_SORT_VALUE)
@@ -2121,7 +2125,7 @@ static void toStream(std::ostream& out,
                      const cvc5::CommandSuccess* s,
                      Variant v)
 {
-  if (cvc5::Command::printsuccess::getPrintSuccess(out))
+  if (options::ioutils::getPrintSuccess(out))
   {
     out << "success" << endl;
   }

@@ -361,10 +361,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
     }
     getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
-    if (!getOptions().base.outputLanguageWasSetByUser)
+    if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().writeBase().outputLanguageWasSetByUser = false;
+      getOptions().writePrinter().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -1340,7 +1340,7 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 
 UnsatCore SolverEngine::getUnsatCoreInternal()
 {
-  if (!d_env->getOptions().smt.unsatCores)
+  if (!d_env->getOptions().smt.produceUnsatCores)
   {
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
@@ -1378,7 +1378,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
 
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
-  Assert(options().smt.unsatCores)
+  Assert(options().smt.produceUnsatCores)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
@@ -1446,7 +1446,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 
 void SolverEngine::checkUnsatCore()
 {
-  Assert(d_env->getOptions().smt.unsatCores)
+  Assert(d_env->getOptions().smt.produceUnsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
@@ -1968,8 +1968,6 @@ ResourceManager* SolverEngine::getResourceManager() const
 {
   return d_env->getResourceManager();
 }
-
-const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
