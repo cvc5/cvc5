@@ -141,6 +141,15 @@ struct SetMapTypeRule
 }; /* struct SetMapTypeRule */
 
 /**
+ * Type rule for (set.filter p A) to make sure p is a unary predicate of type
+ * (-> T Bool) where A is a set of type (Set T)
+ */
+struct SetFilterTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct SetFilterTypeRule */
+
+/**
  * Type rule for binary operators (rel.join, rel.product) to check
  * if the two arguments are relations (set of tuples).
  * For arguments A of type (Relation A1 ... Am) and B of type

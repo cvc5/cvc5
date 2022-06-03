@@ -1152,6 +1152,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_CHOOSE: return "set.choose";
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
   case kind::SET_MAP: return "set.map";
+  case kind::SET_FILTER: return "set.filter";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";

@@ -1099,7 +1099,13 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
         throw LogicException(
             "set.map not currently supported by the sets theory solver");
     }
-      break;
+    break;
+    case kind::SET_FILTER:
+    {
+      throw LogicException(
+          "set.filter not currently supported by the sets theory solver");
+    }
+    break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
