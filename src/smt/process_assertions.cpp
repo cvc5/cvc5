@@ -276,7 +276,7 @@ bool ProcessAssertions::apply(Assertions& as)
   dumpAssertions("assertions::post-simplify", as);
   Trace("assertions::post-simplify") << std::endl;
 
-  if (options().smt.doStaticLearning)
+  if (options().smt.staticLearning)
   {
     applyPass("static-learning", as);
   }

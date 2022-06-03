@@ -34,7 +34,7 @@ name   = "SMT Layer"
   help       = "apply Boolean constant propagation as a substituion during simplification"
 
 [[option]]
-  name       = "doStaticLearning"
+  name       = "staticLearning"
   category   = "regular"
   long       = "static-learning"
   type       = "bool"
@@ -142,7 +142,7 @@ name   = "SMT Layer"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
-  name       = "unsatCores"
+  name       = "produceUnsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
