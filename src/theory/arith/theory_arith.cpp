@@ -188,7 +188,10 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
 
 void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
 {
-  d_internal->ppStaticLearn(n, learned);
+  if (options().arith.arithStaticLearning)
+  {
+    d_internal->ppStaticLearn(n, learned);
+  }
 }
 
 bool TheoryArith::preCheck(Effort level)
