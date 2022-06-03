@@ -15,7 +15,6 @@
 
 #include "theory/strings/term_registry.h"
 
-#include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "printer/smt2/smt2_printer.h"
@@ -78,6 +77,14 @@ uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
+Node mkCodeRange(Node t, uint32_t alphaCard)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(AND,
+                    nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
+                    nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+}
+
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -89,10 +96,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node len = nm->mkNode(STRING_LENGTH, t[0]);
     Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
-    Node code_range =
-        nm->mkNode(AND,
-                   nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
-                   nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+    Node code_range = mkCodeRange(t, alphaCard);
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
@@ -481,7 +485,7 @@ bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
 bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
 
-bool TermRegistry::isHandledUpdate(Node n)
+bool TermRegistry::isHandledUpdateOrSubstr(Node n)
 {
   Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
   NodeManager* nm = NodeManager::currentNM();

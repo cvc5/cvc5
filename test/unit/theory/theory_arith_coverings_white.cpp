@@ -386,7 +386,6 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   opts.writeSmt().proofMode = options::ProofMode::FULL;
   opts.writeSmt().produceProofs = true;
   Env env(NodeManager::currentNM(), &opts);
-  opts.handler().setDefaultDagThresh("--dag-thresh", 0);
   smt::PfManager pfm(env);
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need

@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -168,7 +169,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, options().base.outputLanguage);
+    options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn

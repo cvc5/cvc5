@@ -74,7 +74,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
-      d_theoryLemmaPg(d_env.getProofNodeManager(), d_env.getUserContext()),
+      d_theoryLemmaPg(d_env.getProofNodeManager(),
+                      d_env.getUserContext(),
+                      "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -240,7 +242,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   if (isProofEnabled() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
-    d_theoryLemmaPg.addStep(node, PfRule::THEORY_LEMMA, {}, {node});
+    Node actualNode = negated ? node.notNode() : node;
+    d_theoryLemmaPg.addStep(actualNode, PfRule::THEORY_LEMMA, {}, {actualNode});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
@@ -337,7 +340,7 @@ bool PropEngine::isDecision(Node lit) const {
 
 std::vector<Node> PropEngine::getPropDecisions() const
 {
-  std::vector<Node> decisions; 
+  std::vector<Node> decisions;
   std::vector<SatLiteral> miniDecisions = d_satSolver->getDecisions();
   for (SatLiteral d : miniDecisions)
   {

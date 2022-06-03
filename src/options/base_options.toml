@@ -40,21 +40,9 @@ name   = "Base"
   type       = "Language"
   default    = "Language::LANG_AUTO"
   handler    = "stringToLanguage"
-  predicates = ["languageIsNotAST"]
+  predicates = ["setInputLanguage"]
   includes   = ["options/language.h"]
   help       = "force input language (default is \"auto\"; see --lang help)"
-
-[[option]]
-  name       = "outputLanguage"
-  alias      = ["output-language"]
-  category   = "common"
-  long       = "output-lang=LANG"
-  type       = "Language"
-  default    = "Language::LANG_AUTO"
-  handler    = "stringToLanguage"
-  predicates = ["applyOutputLanguage"]
-  includes   = ["options/language.h"]
-  help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 [[option]]
   name       = "verbosity"
@@ -228,15 +216,6 @@ name   = "Base"
   includes   = ["<bitset>"]
   type       = "std::bitset<static_cast<size_t>(OutputTag::__MAX_VALUE)+1>"
   default    = '{}'
-
-[[option]]
-  name       = "printSuccess"
-  category   = "common"
-  long       = "print-success"
-  type       = "bool"
-  default    = "false"
-  predicates = ["setPrintSuccess"]
-  help       = "print the \"success\" output required of SMT-LIBv2"
 
 [[option]]
   name       = "cumulativeMillisecondLimit"

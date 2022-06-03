@@ -1,7 +1,5 @@
-; COMMAND-LINE: --bitblast=eager
+; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
-; DISABLE-TESTER: unsat-core
-; unsat cores throws error in debug
 (set-logic QF_ABV)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

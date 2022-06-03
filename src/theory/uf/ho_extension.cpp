@@ -19,6 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -100,7 +101,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       }
     }
   }
-  else if (k == kind::LAMBDA)
+  else if (k == kind::LAMBDA || k == kind::FUNCTION_ARRAY_CONST)
   {
     Trace("uf-lazy-ll") << "Preprocess lambda: " << node << std::endl;
     TrustNode skTrn = d_ll.ppRewrite(node, lems);
