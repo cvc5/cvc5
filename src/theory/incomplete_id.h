@@ -49,6 +49,9 @@ enum class IncompleteId
   QUANTIFIERS_SYGUS_SOLVED,
   // incomplete due to separation logic
   SEP,
+  // Higher order operators like sets.map were used in combination with set
+  // cardinality constraints
+  SETS_HO_CARD,
   // relations were used in combination with set cardinality constraints
   SETS_RELS_CARD,
   // we skipped processing a looping word equation
