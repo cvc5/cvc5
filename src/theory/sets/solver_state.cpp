@@ -425,10 +425,12 @@ const std::vector<Node>& SolverState::getComprehensionSets(Node r) const
 
 const std::map<Node, Node>& SolverState::getMembers(Node r) const
 {
+  Assert(r == getRepresentative(r));
   return getMembersInternal(r, 0);
 }
 const std::map<Node, Node>& SolverState::getNegativeMembers(Node r) const
 {
+  Assert(r == getRepresentative(r));
   return getMembersInternal(r, 1);
 }
 const std::map<Node, Node>& SolverState::getMembersInternal(Node r,

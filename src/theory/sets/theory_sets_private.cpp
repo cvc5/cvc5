@@ -676,7 +676,8 @@ void TheorySetsPrivate::checkMapUp()
   {
     Node f = term[0];
     Node A = term[1];
-    const std::map<Node, Node>& positiveMembers = d_state.getMembers(A);
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
     shared_ptr<context::CDHashSet<Node>> skolemElements =
         d_state.getMapSkolemElements(term);
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -726,7 +727,8 @@ void TheorySetsPrivate::checkMapDown()
     Node f = term[0];
     Node A = term[1];
     TypeNode elementType = A.getType().getSetElementType();
-    const std::map<Node, Node>& positiveMembers = d_state.getMembers(term);
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(term));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
       std::vector<Node> exp;
