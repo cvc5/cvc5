@@ -184,10 +184,10 @@ Node Evaluator::eval(TNode n,
   }
   // should be the same as substitution + rewriting, or possibly null if
   // d_rr is nullptr or non-constant
-  Assert(((ret.isNull() || !ret.isConst()) && d_rr == nullptr)
+  Assert(ret.isNull() || !ret.isConst() || d_rr == nullptr
          || ret
                 == d_rr->rewrite(n.substitute(
-                       args.begin(), args.end(), vals.begin(), vals.end())));
+                    args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
 
@@ -610,7 +610,7 @@ EvalResult Evaluator::evalInternal(
           Integer i = results[currNode[1]].d_rat.getNumerator();
           if (i.strictlyNegative() || i >= s_len)
           {
-            results[currNode] = EvalResult(s);
+            results[currNode] = EvalResult(Rational(-1));
           }
           else
           {

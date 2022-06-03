@@ -46,8 +46,6 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
-  options/io_utils.cpp
-  options/io_utils.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -1226,8 +1224,8 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
-list(APPEND options_gen_h_files "options/options.h")
+list(APPEND options_gen_cpp_files "options/io_utils.cpp" "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
+list(APPEND options_gen_h_files "options/io_utils.h" "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
 
@@ -1270,6 +1268,8 @@ add_custom_command(
     options/mkoptions.py
     ${options_toml_files}
     main/options_template.cpp
+    options/io_utils_template.h
+    options/io_utils_template.cpp
     options/module_template.h
     options/module_template.cpp
     options/options_public_template.cpp

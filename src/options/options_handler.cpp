@@ -147,18 +147,17 @@ Languages currently supported as arguments to the --output-lang option:
   Unreachable();
 }
 
-void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
+void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
 {
   if (lang == Language::LANG_AST)
   {
     throw OptionException("Language LANG_AST is not allowed for " + flag);
   }
-}
-
-void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
-{
-  ioutils::setDefaultOutputLang(lang);
-  ioutils::applyOutputLang(d_options->base.out, lang);
+  if (!d_options->printer.outputLanguageWasSetByUser)
+  {
+    d_options->writePrinter().outputLanguage = lang;
+    ioutils::setDefaultOutputLanguage(lang);
+  }
 }
 
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
@@ -291,13 +290,6 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
   d_options->writeBase().outputTagHolder.set(tagid);
 }
 
-void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
-{
-  TraceChannel.getStream() << cvc5::Command::printsuccess(value);
-  Warning.getStream() << cvc5::Command::printsuccess(value);
-  *d_options->base.out << cvc5::Command::printsuccess(value);
-}
-
 void OptionsHandler::setResourceWeight(const std::string& flag,
                                        const std::string& optarg)
 {
@@ -355,20 +347,6 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
       d_options->writeBv().bitvectorToBool = true;
     }
   }
-}
-
-void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
-{
-  ioutils::setDefaultNodeDepth(depth);
-  ioutils::applyNodeDepth(TraceChannel.getStream(), depth);
-  ioutils::applyNodeDepth(Warning.getStream(), depth);
-}
-
-void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
-{
-  ioutils::setDefaultDagThresh(dag);
-  ioutils::applyDagThresh(TraceChannel.getStream(), dag);
-  ioutils::applyDagThresh(Warning.getStream(), dag);
 }
 
 static void print_config(const char* str, std::string config)

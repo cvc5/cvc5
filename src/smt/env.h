@@ -137,12 +137,6 @@ class Env
   /* Option helpers---------------------------------------------------------- */
 
   /**
-   * Get the current printer based on the current options
-   * @return the current printer
-   */
-  const Printer& getPrinter();
-
-  /**
    * Check whether the output for the given output tag is enabled. Output tags
    * are enabled via the `output` option (or `-o` on the command line).
    */
