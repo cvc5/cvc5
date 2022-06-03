@@ -223,7 +223,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     // we don't merge non-constant intersections
     break;
-  }  // kind::INTERSECION
+  }  // kind::INTERSECTION
 
   case kind::SET_UNION:
   {
