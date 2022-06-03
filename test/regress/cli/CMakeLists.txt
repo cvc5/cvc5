@@ -2503,6 +2503,9 @@ set(regress_1_tests
   regress1/sets/sets-uc-wrong.smt2
   regress1/sets/set-comp-sat.smt2
   regress1/sets/set_filter1.smt2
+  regress1/sets/set_filter2.smt2
+  regress1/sets/set_filter3.smt2
+  regress1/sets/set_filter4.smt2
   regress1/sets/set_map_card_incomplete.smt2
   regress1/sets/set_map_negative_members.smt2
   regress1/sets/set_map_positive_members.smt2
