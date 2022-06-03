@@ -286,6 +286,10 @@ void TheorySetsPrivate::fullEffortCheck()
         {
           d_rels_enabled = true;
         }
+        else if(isHigherOrderKind(nk))
+        {
+          d_higher_order_kinds_enabled = true;
+        }
         ++eqc_i;
       }
       Trace("sets-eqc") << std::endl;
@@ -302,6 +306,12 @@ void TheorySetsPrivate::fullEffortCheck()
         Trace("sets-state")
             << "  " << ec.first << " -> " << ec.second << std::endl;
       }
+    }
+
+    if (d_card_enabled && d_higher_order_kinds_enabled)
+    {
+      d_fullCheckIncomplete = true;
+      d_fullCheckIncompleteId = IncompleteId::SETS_HO_CARD;
     }
 
     // We may have sent lemmas while registering the terms in the loop above,
@@ -1151,6 +1161,9 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
     }
   }
 }
+
+/** returns whether the given kind is a higher order kind for sets. */
+bool TheorySetsPrivate::isHigherOrderKind(Kind k) { return k == SET_MAP; }
 
 Node TheorySetsPrivate::explain(TNode literal)
 {

@@ -208,6 +208,9 @@ class TheorySetsPrivate : protected EnvObj
    */
   void processCarePairArgs(TNode a, TNode b);
 
+  /** returns whether the given kind is a higher order kind for sets. */
+  bool isHigherOrderKind(Kind k);
+
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */
@@ -248,6 +251,13 @@ class TheorySetsPrivate : protected EnvObj
    * involving cardinality constraints is asserted to this theory.
    */
   bool d_card_enabled;
+
+  /** are higher order set operators enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * higher order constraints is asserted to this theory.
+   */
+  bool d_higher_order_kinds_enabled;
 
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
