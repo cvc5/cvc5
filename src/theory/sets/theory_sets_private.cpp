@@ -696,22 +696,18 @@ void TheorySetsPrivate::checkMapUp()
         // (set.member x1 A). The cycle continues with step 2.
         continue;
       }
-      // (=
+      // (=>
       //   (and (set.member x B) (= A B))
       //   (set.member (f x) (set.map f A))
       // )
-      Node premise = pair.second;
+      std::vector<Node> exp;
+      exp.push_back(pair.second);
       Node B = pair.second[1];
-      if(A != B)
-      {
-        premise = premise.andNode(A.eqNode(B));
-      }
+      d_state.addEqualityToExp(A, B, exp);
       Node f_x = nm->mkNode(APPLY_UF, f, x);
       Node skolem = d_treg.getProxy(term);
       Node memberMap = nm->mkNode(kind::SET_MEMBER, f_x, skolem);
-      Node equivalence = premise.eqNode(memberMap);
-      std::vector<Node> empty;
-      d_im.assertInference(equivalence, InferenceId::SETS_MAP_UP, empty);
+      d_im.assertInference(memberMap, InferenceId::SETS_MAP_UP, exp);
       if (d_state.isInConflict())
       {
         return;

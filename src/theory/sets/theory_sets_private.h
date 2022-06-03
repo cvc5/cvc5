@@ -79,7 +79,7 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rule for map terms (set.map f A):
    * Positive member rule:
-   * (=
+   * (=>
    *   (set.member x A)
    *   (set.member (f x) (set.map f A)
    * )
@@ -98,7 +98,7 @@ class TheorySetsPrivate : protected EnvObj
    *   )
    *   where x is a fresh skolem
    * - Special case where we can avoid skolems
-   *   (=
+   *   (=>
    *     (set.member (f x) (set.map f A))
    *     (set.member x A)
    *   )
