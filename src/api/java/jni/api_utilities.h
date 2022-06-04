@@ -152,9 +152,9 @@ inline std::map<jlong, std::vector<jobject> > globalReferences;
  * @param terms a list of terms
  * @return the result of calling IOracle.compute(terms)
  */
-cvc5::Term computeOracle(JNIEnv* env,
-                         jobject solverRef,
-                         jobject oracleRef,
-                         const std::vector<cvc5::Term>& terms);
+cvc5::Term applyOracle(JNIEnv* env,
+                       jobject solverRef,
+                       jobject oracleRef,
+                       const std::vector<cvc5::Term>& terms);
 
 #endif  // CVC5__API_UTILITIES_H

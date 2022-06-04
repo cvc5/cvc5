@@ -2187,7 +2187,7 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::function<Term(std::vector<Term>)> fn =
       [env, solverReference, oracleReference](std::vector<Term> input) {
-        Term term = computeOracle(env, solverReference, oracleReference, input);
+        Term term = applyOracle(env, solverReference, oracleReference, input);
         return term;
       };
   Term* retPointer =
