@@ -75,6 +75,35 @@ class TheorySetsPrivate : protected EnvObj
    * difference.
    */
   void checkUpwardsClosure();
+
+  /**
+   * Apply the following rule for map terms (set.map f A):
+   * Positive member rule:
+   * (=>
+   *   (set.member x A)
+   *   (set.member (f x) (set.map f A)
+   * )
+   */
+  void checkMapUp();
+  /**
+   * Apply the following rules for map terms (set.map f A) where A has type
+   * (Set T):
+   * - General case:
+   *   (=>
+   *     (set.member y (set.map f A))
+   *     (and
+   *       (= (f x) y)
+   *       (set.member x A)
+   *     )
+   *   )
+   *   where x is a fresh skolem
+   * - Special case where we can avoid skolems
+   *   (=>
+   *     (set.member (f x) (set.map f A))
+   *     (set.member x A)
+   *   )
+   */
+  void checkMapDown();
   /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
@@ -155,7 +184,6 @@ class TheorySetsPrivate : protected EnvObj
   //--------------------------------- end standard check
 
   /** Collect model values in m based on the relevant terms given by termSet */
-  void addSharedTerm(TNode);
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
@@ -179,6 +207,9 @@ class TheorySetsPrivate : protected EnvObj
    * equal nor disequal and are sets.
    */
   void processCarePairArgs(TNode a, TNode b);
+
+  /** returns whether the given kind is a higher order kind for sets. */
+  bool isHigherOrderKind(Kind k);
 
  private:
   TheorySets& d_external;
@@ -220,6 +251,13 @@ class TheorySetsPrivate : protected EnvObj
    * involving cardinality constraints is asserted to this theory.
    */
   bool d_card_enabled;
+
+  /** are higher order set operators enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * higher order constraints is asserted to this theory.
+   */
+  bool d_higher_order_kinds_enabled;
 
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
