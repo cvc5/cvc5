@@ -15,6 +15,7 @@
 
 package io.github.cvc5;
 
+@FunctionalInterface
 public interface IOracle {
   Term apply(Term[] terms) throws CVC5ApiException;
 }
