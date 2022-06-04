@@ -11,6 +11,8 @@
  * ****************************************************************************
  *
  * The cvc5 java API.
+ *
+ * IOracle interface for cvc5 oracle functions.
  */
 
 package io.github.cvc5;
