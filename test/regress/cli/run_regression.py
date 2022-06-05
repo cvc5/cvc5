@@ -613,6 +613,8 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
+                if disable_tester == "proof" and "lfsc" in testers:
+                    testers.remove("lfsc")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()

@@ -2,7 +2,6 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
-; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (declare-sort E 0)
 (declare-fun s () (Seq E))
