@@ -58,8 +58,7 @@ class SortTest
   Sort create_param_datatype_sort() throws CVC5ApiException
   {
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl paramDtypeSpec =
-        d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
+    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
     DatatypeConstructorDecl paramCons = d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
     paramCons.addSelector("head", sort);
