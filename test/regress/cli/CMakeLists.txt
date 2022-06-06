@@ -489,6 +489,7 @@ set(regress_0_tests
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
   regress0/cores/issue8705-bool-ppassert.smt2
+  regress0/cores/issue8822-arith-static-learn.smt2
   regress0/cvc-rerror-print.cvc.smt2
   regress0/cvc3-bug15.cvc.smt2
   regress0/cvc3.userdoc.01.cvc.smt2
@@ -2000,6 +2001,7 @@ set(regress_1_tests
   regress1/issue5739-rtf-processed.smt2
   regress1/issue7902-abd-subsolver-uc.smt2
   regress1/issue7937-difficulty-irr.smt2
+  regress1/issue8852-interpol-no-var.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2505,6 +2507,10 @@ set(regress_1_tests
   regress1/sets/sets-tuple-poly.cvc.smt2
   regress1/sets/sets-uc-wrong.smt2
   regress1/sets/set-comp-sat.smt2
+  regress1/sets/set_map_card_incomplete.smt2
+  regress1/sets/set_map_negative_members.smt2
+  regress1/sets/set_map_positive_members.smt2
+  regress1/sets/set_map_unsat1.smt2
   regress1/sets/sharingbug.smt2
   regress1/sets/univ-set-uf-elim.smt2
   regress1/simplification_bug4.smt2
