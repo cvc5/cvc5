@@ -799,7 +799,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   else
   {
     // allocate a unique symbolic (unspecified) string of length one, and
-    // repreat it (nextIndex-currIndex times.
+    // repeat it (nextIndex-currIndex) times.
     d_strGapModelCounter++;
     Node symChar =
         utils::mkUnit(tn, nm->mkConstInt(-Rational(d_strGapModelCounter)));
