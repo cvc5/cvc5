@@ -333,6 +333,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_EQ_CONFLICT: return "SETS_EQ_CONFLICT";
     case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
     case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
+    case InferenceId::SETS_MAP_DOWN_POSITIVE: return "SETS_MAP_DOWN_POSITIVE";
+    case InferenceId::SETS_MAP_UP: return "SETS_MAP_UP";
     case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";
     case InferenceId::SETS_MEM_EQ_CONFLICT: return "SETS_MEM_EQ_CONFLICT";
     case InferenceId::SETS_PROXY: return "SETS_PROXY";

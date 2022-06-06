@@ -286,6 +286,10 @@ void TheorySetsPrivate::fullEffortCheck()
         {
           d_rels_enabled = true;
         }
+        else if(isHigherOrderKind(nk))
+        {
+          d_higher_order_kinds_enabled = true;
+        }
         ++eqc_i;
       }
       Trace("sets-eqc") << std::endl;
@@ -302,6 +306,12 @@ void TheorySetsPrivate::fullEffortCheck()
         Trace("sets-state")
             << "  " << ec.first << " -> " << ec.second << std::endl;
       }
+    }
+
+    if (d_card_enabled && d_higher_order_kinds_enabled)
+    {
+      d_fullCheckIncomplete = true;
+      d_fullCheckIncompleteId = IncompleteId::SETS_HO_CARD;
     }
 
     // We may have sent lemmas while registering the terms in the loop above,
@@ -347,6 +357,20 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check upwards closure
     checkUpwardsClosure();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+    // check map up rules
+    checkMapUp();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+    // check map down rules
+    checkMapDown();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -648,6 +672,114 @@ void TheorySetsPrivate::checkUpwardsClosure()
             }
           }
         }
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkMapUp()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
+
+  for (const Node& term : mapTerms)
+  {
+    Node f = term[0];
+    Node A = term[1];
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
+    shared_ptr<context::CDHashSet<Node>> skolemElements =
+        d_state.getMapSkolemElements(term);
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
+    {
+      Node x = pair.first;
+      if (skolemElements->contains(x))
+      {
+        // Break this cycle between inferences SETS_MAP_DOWN_POSITIVE
+        // and SETS_MAP_UP:
+        // 1- If (set.member y (set.map f A)) holds, then SETS_MAP_DOWN_POSITIVE
+        //    inference would generate a fresh skolem x1 such that (= (f x1) y)
+        //    and (set.member x1 A).
+        // 2- Since (set.member x1 A) holds, SETS_MAP_UP would infer
+        //    (set.member (f x1) (set.map f A)).
+        // Since (set.member (f x1) (set.map f A)) holds, step 1 would repeat
+        // and generate a new skolem x2 such that (= (f x2) (f x1)) and
+        // (set.member x1 A). The cycle continues with step 2.
+        continue;
+      }
+      // (=>
+      //   (and (set.member x B) (= A B))
+      //   (set.member (f x) (set.map f A))
+      // )
+      std::vector<Node> exp;
+      exp.push_back(pair.second);
+      Node B = pair.second[1];
+      d_state.addEqualityToExp(A, B, exp);
+      Node f_x = nm->mkNode(APPLY_UF, f, x);
+      Node skolem = d_treg.getProxy(term);
+      Node memberMap = nm->mkNode(kind::SET_MEMBER, f_x, skolem);
+      d_im.assertInference(memberMap, InferenceId::SETS_MAP_UP, exp);
+      if (d_state.isInConflict())
+      {
+        return;
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkMapDown()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
+  for (const Node& term : mapTerms)
+  {
+    Node f = term[0];
+    Node A = term[1];
+    TypeNode elementType = A.getType().getSetElementType();
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(term));
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
+    {
+      std::vector<Node> exp;
+      Node B = pair.second[1];
+      exp.push_back(pair.second);
+      d_state.addEqualityToExp(B, term, exp);
+      Node y = pair.first;
+      if (y.getKind() == APPLY_UF && y.getOperator() == f)
+      {
+        // special case
+        // (=>
+        //   (set.member (f x) (set.map f A))
+        //   (set.member x A))
+        Node x = y[0];
+        Node memberA = nm->mkNode(SET_MEMBER, x, A);
+        d_im.assertInference(memberA, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
+      }
+      else
+      {
+        // general case
+        // (=>
+        //   (and
+        //     (set.member y B)
+        //     (= B (set.map f A)))
+        //   (and
+        //     (set.member x A)
+        //     (= (f x) y))
+        // )
+        Node x = sm->mkSkolemFunction(
+            SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
+
+        d_state.registerMapSkolemElement(term, x);
+        Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
+        Node f_x = nm->mkNode(APPLY_UF, f, x);
+        Node equal = f_x.eqNode(y);
+        Node fact = memberA.andNode(equal);
+        d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
+      }
+      if (d_state.isInConflict())
+      {
+        return;
       }
     }
   }
@@ -1030,6 +1162,9 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
   }
 }
 
+/** returns whether the given kind is a higher order kind for sets. */
+bool TheorySetsPrivate::isHigherOrderKind(Kind k) { return k == SET_MAP; }
+
 Node TheorySetsPrivate::explain(TNode literal)
 {
   Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
@@ -1094,12 +1229,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       }
     }
     break;
-    case kind::SET_MAP:
-    {
-        throw LogicException(
-            "set.map not currently supported by the sets theory solver");
-    }
-      break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }

@@ -124,10 +124,14 @@ excluded by adding the `no-` prefix, e.g. `no-cryptominisat` means that the
 test is not valid for builds that include CryptoMiniSat support.
 
 To disable a specific type of test, the `DISABLE-TESTER` directive can be used.
-The following example disables the proof tester for a regression:
+The following example disables the abduct tester for a regression:
 
 ```
-; DISABLE-TESTER: proof
+; DISABLE-TESTER: abduct
 ```
 
-Multiple testers can be disabled using multiple `DISABLE-TESTER` directives.
+Multiple testers can be disabled using multiple `DISABLE-TESTER` directives. In
+general, each `DISABLE-TESTER` directive disables only the specified tester. The
+only exception to this rule is the proof tester. Disabling the proof tester,
+which directs cvc5 to check generated proofs internally, also disables testers
+that check the printed versions of those proofs (e.g., the lfsc tester).
