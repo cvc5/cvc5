@@ -396,6 +396,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case PfRule::THEORY_PREPROCESS:
+    {
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     // ======== Resolution and N-ary Resolution
     // See proof_rule.h for documentation on the RESOLUTION and CHAIN_RESOLUTION
     // rule. This comment uses variable names as introduced there.
@@ -1241,9 +1250,37 @@ bool AletheProofPostprocessCallback::update(Node res,
 	{
 	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_VAR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
 	}
+	case kind::BITVECTOR_AND:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVAND, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::BITVECTOR_OR:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVOR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::BITVECTOR_XOR:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVXOR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::BITVECTOR_XNOR:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVXNOR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::BITVECTOR_NOT:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVNOT, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::BITVECTOR_ADD:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVADD, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
 	case kind::BITVECTOR_NEG:
 	{
 	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVNEG, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
+	case kind::BITVECTOR_MULT:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVMULT, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
 	}
 	case kind::BITVECTOR_CONCAT:
 	{
@@ -1257,9 +1294,13 @@ bool AletheProofPostprocessCallback::update(Node res,
 	{
 	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_EXTRACT, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
 	}
+	case kind::EQUAL:
+	{
+	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVEQUAL, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
+	}
 	default:
 	{
-	std::cout << res[0].getKind() << std::endl;
+	  std::cout << res[0].getKind() << std::endl;
   	  return addAletheStep(AletheRule::BV_BITBLAST_STEP_VAR, res, nm->mkNode(kind::SEXPR,d_cl,res),children,{},*cdp);
 	}
       }
