@@ -800,6 +800,12 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   {
     // allocate a unique symbolic (unspecified) string of length one, and
     // repeat it (nextIndex-currIndex) times.
+    // Notice that this is guaranteed to be a unique (unspecified) character,
+    // since the only existing str.unit terms originate from our reductions,
+    // and hence are only applied to non-negative arguments. If the user
+    // was able to give arbitrary constraints over str.unit terms, then this
+    // construction would require a character not used in the model value of
+    // any other string.
     d_strGapModelCounter++;
     Node symChar =
         utils::mkUnit(tn, nm->mkConstInt(-Rational(d_strGapModelCounter)));
