@@ -210,8 +210,7 @@ class TermTest
 
     // Test Datatypes Ops
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl listDecl =
-        d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
+    DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
     cons.addSelector("head", sort);
