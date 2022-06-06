@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -69,8 +70,10 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
   }
   TypeNode tn = tuple.getType();
   const DType& dt = tn.getDType();
+  // note that shared selectors are irrelevant for datatypes with one
+  // constructor, hence we pass false here
   return NodeManager::currentNM()->mkNode(
-      APPLY_SELECTOR, dt[0].getSelectorInternal(tn, n_th), tuple);
+      APPLY_SELECTOR, utils::getSelector(tn, dt[0], n_th, false), tuple);
 }
 
 Node TupleUtils::getTupleProjection(const std::vector<uint32_t>& indices,
@@ -143,6 +146,23 @@ std::vector<Node> TupleUtils::getTupleElements(Node tuple1, Node tuple2)
     elements.push_back(TupleUtils::nthElementOfTuple(tuple2, i));
   }
   return elements;
+}
+
+bool TupleUtils::sameProjection(const std::vector<uint32_t>& indices,
+                                Node tuple1,
+                                Node tuple2)
+{
+  Assert(tuple1.isConst() && tuple2.isConst())
+      << "Both " << tuple1 << " and " << tuple2 << " are not constants"
+      << std::endl;
+  for (uint32_t index : indices)
+  {
+    if (tuple1[index] != tuple2[index])
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 Node TupleUtils::constructTupleFromElements(TypeNode tupleType,

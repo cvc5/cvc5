@@ -822,7 +822,7 @@ bool IntBlaster::childrenTypesChanged(Node n)
     {
       TypeNode originalType = child.getType();
       TypeNode newType = d_intblastCache[child].get().getType();
-      if (!newType.isSubtypeOf(originalType))
+      if (newType != originalType)
       {
         result = true;
         break;
@@ -836,7 +836,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
 {
   // If there is no reason to cast, return the
   // original node.
-  if (n.getType().isSubtypeOf(tn))
+  if (n.getType() == tn)
   {
     return n;
   }

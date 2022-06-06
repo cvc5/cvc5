@@ -79,11 +79,8 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
             a[2], bvl, bvlIndex + 1, visited);
         if (!val.isNull())
         {
-          Assert(!TypeNode::leastCommonTypeNode(a[1].getType(),
-                                                bvl[bvlIndex].getType())
-                      .isNull());
-          Assert(!TypeNode::leastCommonTypeNode(val.getType(), body.getType())
-                      .isNull());
+          Assert(a[1].getType() == bvl[bvlIndex].getType());
+          Assert(val.getType() == body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
           ret = NodeManager::currentNM()->mkNode(kind::ITE, cond, val, body);
         }
@@ -369,7 +366,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     Trace("builtin-rewrite-debug2")
         << "  make array store all " << curr.getType()
         << " annotated : " << array_type << std::endl;
-    Assert(curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
+    Assert(curr.getType() == array_type.getArrayConstituentType());
     curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must
@@ -382,7 +379,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     for (size_t i = 0, numCond = conds.size(); i < numCond; i++)
     {
       size_t ii = (numCond - 1) - i;
-      Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
+      Assert(conds[ii].getType() == first_arg.getType());
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
       // normalize it using the array rewriter utility, which must be done at
       // each iteration of this loop

@@ -216,6 +216,17 @@ struct TableJoinTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct TableJoinTypeRule */
 
+/**
+ * Table group operator is indexed by a list of indices (n_1, ..., n_k). It
+ * ensures that the argument is a table whose arity is greater than each n_i for
+ * i = 1, ..., k. If the passed table is of type T, then the returned type is
+ * (Bag T), i.e., bag of tables.
+ */
+struct TableGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableGroupTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type);

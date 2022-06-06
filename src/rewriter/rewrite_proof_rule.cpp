@@ -28,19 +28,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-bool getDslPfRule(TNode n, DslPfRule& id)
-{
-  uint32_t i;
-  if (ProofRuleChecker::getUInt32(n, i))
-  {
-    id = static_cast<DslPfRule>(i);
-    return true;
-  }
-  return false;
-}
-
 RewriteProofRule::RewriteProofRule()
-    : d_id(DslPfRule::FAIL), d_isFixedPoint(false), d_isFlatForm(false)
+    : d_id(DslPfRule::FAIL), d_isFlatForm(false)
 {
 }
 
@@ -49,7 +38,7 @@ void RewriteProofRule::init(DslPfRule id,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc,
-                            bool isFixedPoint,
+                            Node context,
                             bool isFlatForm)
 {
   // not initialized yet
@@ -73,7 +62,7 @@ void RewriteProofRule::init(DslPfRule id,
     d_obGen.push_back(cc);
   }
   d_conc = conc;
-  d_isFixedPoint = isFixedPoint;
+  d_context = context;
   d_isFlatForm = isFlatForm;
   if (!expr::getListVarContext(conc, d_listVarCtx))
   {
@@ -97,7 +86,7 @@ void RewriteProofRule::init(DslPfRule id,
     }
   }
   // if fixed point, initialize match utility
-  if (d_isFixedPoint)
+  if (d_context != Node::null())
   {
     d_mt.addTerm(conc[0]);
   }
@@ -264,9 +253,16 @@ Node RewriteProofRule::getConclusion() const { return d_conc; }
 Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 {
   Assert(d_fvs.size() == ss.size());
-  return expr::narySubstitute(d_conc, d_fvs, ss);
+  Node conc = d_conc;
+  if (isFixedPoint())
+  {
+    Node context = getContext();
+    Node rhs = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
+    conc = conc[0].eqNode(rhs);
+  }
+  return expr::narySubstitute(conc, d_fvs, ss);
 }
-bool RewriteProofRule::isFixedPoint() const { return d_isFixedPoint; }
+bool RewriteProofRule::isFixedPoint() const { return d_context != Node::null(); }
 bool RewriteProofRule::isFlatForm() const { return d_isFlatForm; }
 }  // namespace rewriter
 }  // namespace cvc5::internal

@@ -118,7 +118,7 @@ void RewriteDb::addRule(DslPfRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        bool isFixedPoint,
+                        Node context,
                         bool isFlatForm)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -152,8 +152,9 @@ void RewriteDb::addRule(DslPfRule id,
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
-  Assert(a.getType().isComparableTo(b.getType()));
+  Assert(a.getType() == b.getType());
   Node cr = d_canon.getCanonicalTerm(tmpi, false, false);
+  context = d_canon.getCanonicalTerm(context, false, false);
 
   Node condC = cr[1];
   std::vector<Node> conds;
@@ -229,7 +230,7 @@ void RewriteDb::addRule(DslPfRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, isFixedPoint, isFlatForm);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context, isFlatForm);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }

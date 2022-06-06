@@ -608,7 +608,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
       for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
       {
         evalVisited[vsProc[j]] = msProc[j];
-        Assert(vsProc[j].getType().isComparableTo(msProc[j].getType()));
+        Assert(vsProc[j].getType() == msProc[j].getType());
       }
     }
   }

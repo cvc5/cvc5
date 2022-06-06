@@ -116,6 +116,18 @@ class RewriteDbProofCons
                          const std::vector<Node>& subs,
                          ProvenInfo& pi,
                          bool doFixedPoint = false);
+  /**
+   * Adds proofs to the cache s.t. we can show that:
+   *
+   * context[placeholder -> source] = context[placeholder -> target]
+   *
+   * Note: we assume that the placeholder only appears once
+   */
+  void cacheProofSubPlaceholder(TNode context,
+                                TNode placeholder,
+                                TNode source,
+                                TNode target);
+
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /** Basic utility */
@@ -143,6 +155,8 @@ class RewriteDbProofCons
   uint32_t d_currRecLimit;
   /** current rule we are applying to fixed point */
   DslPfRule d_currFixedPointId;
+  /** current substitution from fixed point */
+  std::vector<Node> d_currFixedPointSubs;
   /** current conclusion from fixed point */
   Node d_currFixedPointConc;
   /** Total number of rewrites we were asked to prove */

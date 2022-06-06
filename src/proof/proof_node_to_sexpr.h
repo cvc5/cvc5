@@ -26,6 +26,7 @@
 #include "proof/proof_rule.h"
 #include "theory/inference_id.h"
 #include "theory/theory_id.h"
+#include "rewriter/rewrites.h"
 
 namespace cvc5::internal {
 
@@ -63,6 +64,8 @@ class ProofNodeToSExpr
     METHOD_ID,
     // print the argument as an inference id
     INFERENCE_ID,
+    // print the argument as a DSL rewrite id
+    DSL_REWRITE_ID,
     // print a variable whose name is the term (see getOrMkNodeVariable)
     NODE_VAR
   };
@@ -74,8 +77,10 @@ class ProofNodeToSExpr
   std::map<theory::TheoryId, Node> d_tidMap;
   /** map method ids to a variable displaying the method id they represent */
   std::map<MethodId, Node> d_midMap;
-  /** map infer ids to a variable displaying the method id they represent */
+  /** map infer ids to a variable displaying the inference id they represent */
   std::map<theory::InferenceId, Node> d_iidMap;
+  /** map dsl rewrite ids to a variable displaying the dsl rewrite id they represent */
+  std::map<rewriter::DslPfRule, Node> d_dslrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;
   /** Dummy ":conclusion" marker */
@@ -97,6 +102,8 @@ class ProofNodeToSExpr
   Node getOrMkMethodIdVariable(TNode n);
   /** get or make inference id variable */
   Node getOrMkInferenceIdVariable(TNode n);
+  /** get or make DSL rewrite id variable */
+  Node getOrMkDslRewriteVariable(TNode n);
   /**
    * Get or make node variable that prints the same as n but has SEXPR type.
    * This is used to ensure the type checker does not complain when trying to
