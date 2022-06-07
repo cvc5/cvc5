@@ -461,6 +461,12 @@ class NodeManager
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
 
+  /**
+   * return true if k is an abstractable sort kind, i.e. a valid argument to
+   * mkAbstractType.
+   */
+  static bool canAbstractSortKind(Kind k);
+
   /** Make the abstract type with the given kind */
   TypeNode mkAbstractType(Kind k);
 

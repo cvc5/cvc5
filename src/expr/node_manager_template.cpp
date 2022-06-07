@@ -578,9 +578,16 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
+bool AbstractTypeChecker::canAbstractSortKind(Kind k)
+{
+  return k == ABSTRACT_TYPE || k == ARRAY_TYPE || k == BAG_TYPE
+         || k == BITVECTOR_TYPE || k == TUPLE_TYPE || k == FLOATINGPOINT_TYPE
+         || k == FUNCTION_TYPE || k == SEQUENCE_TYPE || k == SET_TYPE;
+}
+
 TypeNode NodeManager::mkAbstractType(Kind k)
 {
-  if (!AbstractTypeChecker::canAbstractSortKind(k))
+  if (!canAbstractSortKind(k))
   {
     std::stringstream ss;
     ss << "Cannot construct abstract type for kind " << k;
