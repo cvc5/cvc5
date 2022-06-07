@@ -1170,8 +1170,9 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
           isReal = true;
         }
       }
-      // if strict mode is not enabled, we are permissive for Int and Real
-      // subtyping
+      // If strict mode is not enabled, we are permissive for Int and Real
+      // subtyping. Note that all other arithmetic operators are already
+      // permissive.
       if (isReal && !strictModeEnabled())
       {
         for (Term& i : args)
