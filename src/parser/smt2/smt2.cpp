@@ -1150,17 +1150,39 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!isHoEnabled() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
+    if (kind == cvc5::EQUAL || kind == cvc5::DISTINCT)
     {
+      bool isReal = false;
       // need hol if these operators are applied over function args
-      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
-           ++i)
+      for (const Term& i : args)
       {
-        if ((*i).getSort().isFunction())
+        Sort s = i.getSort();
+        if (!isHoEnabled())
         {
-          parseError(
-              "Cannot apply equality to functions unless logic is prefixed by "
-              "HO_.");
+          if (s.isFunction())
+          {
+            parseError(
+                "Cannot apply equality to functions unless logic is prefixed "
+                "by HO_.");
+          }
+        }
+        if (s.isReal())
+        {
+          isReal = true;
+        }
+      }
+      // If strict mode is not enabled, we are permissive for Int and Real
+      // subtyping. Note that other arithmetic operators and relations are
+      // already permissive, e.g. <=, +.
+      if (isReal && !strictModeEnabled())
+      {
+        for (Term& i : args)
+        {
+          Sort s = i.getSort();
+          if (s.isInteger())
+          {
+            i = d_solver->mkTerm(cvc5::TO_REAL, {i});
+          }
         }
       }
     }
@@ -1198,14 +1220,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                       << std::endl;
       return ret;
     }
-    if (kind == cvc5::SET_SINGLETON && args.size() == 1)
-    {
-      cvc5::Term ret = d_solver->mkTerm(cvc5::SET_SINGLETON, {args[0]});
-      Trace("parser") << "applyParseOp: return set.singleton " << ret
-                      << std::endl;
-      return ret;
-    }
-    else if (kind == cvc5::CARDINALITY_CONSTRAINT)
+    if (kind == cvc5::CARDINALITY_CONSTRAINT)
     {
       if (args.size() != 2)
       {
