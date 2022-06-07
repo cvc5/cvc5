@@ -1,0 +1,8 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(define-fun plus ((x Int) (y Int)) Int (+ x y))
+(declare-fun A () (Set Int))
+(declare-fun sum () Int)
+(assert (= A (set.insert 1 2 (set.singleton 3))))
+(assert (= sum (set.fold plus 1 A)))
+(check-sat)
