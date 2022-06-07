@@ -22,6 +22,7 @@ int main(void)
 {
   Solver slv;
   slv.setOption("produce-unsat-cores", "true");
+  slv.setOption("strings-exp", "true");
   Sort s1 = slv.mkBitVectorSort(1);
   Sort s2 = slv.mkFloatingPointSort(8, 24);
   Term val = slv.mkBitVector(32, "10000000110010111010111011000101", 2);
