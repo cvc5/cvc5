@@ -606,6 +606,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(cvc5::SET_MAP, "set.map");
     addOperator(cvc5::SET_FILTER, "set.filter");
+    addOperator(cvc5::SET_FOLD, "set.fold");
     addOperator(cvc5::RELATION_JOIN, "rel.join");
     addOperator(cvc5::RELATION_PRODUCT, "rel.product");
     addOperator(cvc5::RELATION_TRANSPOSE, "rel.transpose");

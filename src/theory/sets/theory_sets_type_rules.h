@@ -150,6 +150,15 @@ struct SetFilterTypeRule
 }; /* struct SetFilterTypeRule */
 
 /**
+ * Type rule for (set.fold f t A) to make sure f is a binary operation of type
+ * (-> T1 T2 T2), t of type T2, and A is a set of type (Set T1)
+ */
+struct SetFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct SetFoldTypeRule */
+
+/**
  * Type rule for binary operators (rel.join, rel.product) to check
  * if the two arguments are relations (set of tuples).
  * For arguments A of type (Relation A1 ... Am) and B of type
