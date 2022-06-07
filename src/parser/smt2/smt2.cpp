@@ -1161,7 +1161,8 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
           if (s.isFunction())
           {
             parseError(
-                "Cannot apply equality to functions unless logic is prefixed by "
+                "Cannot apply equality to functions unless logic is prefixed "
+                "by "
                 "HO_.");
           }
         }
