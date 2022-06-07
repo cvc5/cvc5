@@ -30,6 +30,7 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
+#include "theory/builtin/abstract_type.h"
 #include "util/bitvector.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -575,6 +576,41 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
+}
+
+TypeNode NodeManager::mkAbstractType(Kind k)
+{
+  if (!AbstractTypeChecker::canAbstractSortKind(k))
+  {
+    std::stringstream ss;
+    ss << "Cannot construct abstract type for kind " << k;
+    throw Exception(ss.str());
+  }
+  if (k == kind::ARRAY_TYPE)
+  {
+    // ?Array -> (Array ? ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkArrayType(a, a);
+  }
+  else if (k == kind::SET_TYPE)
+  {
+    // ?Set -> (Set ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkSetType(a);
+  }
+  else if (k == kind::BAG_TYPE)
+  {
+    // ?Bag -> (Bag ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkBagType(a);
+  }
+  else if (k == kind::SEQUENCE_TYPE)
+  {
+    // ?Seq -> (Seq ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkSequenceType(a);
+  }
+  return mkTypeConst<AbstractType>(AbstractType(k));
 }
 
 TypeNode NodeManager::mkDatatypeType(DType& datatype)

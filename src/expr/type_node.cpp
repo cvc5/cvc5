@@ -21,6 +21,7 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/builtin/abstract_type.h"
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
@@ -262,9 +263,11 @@ bool TypeNode::isClosedEnumerable()
 
 bool TypeNode::isFirstClass() const
 {
-  return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE && getKind() != kind::UPDATER_TYPE
-         && (getKind() != kind::TYPE_CONSTANT
+  Kind k = getKind();
+  return k != kind::CONSTRUCTOR_TYPE && k != kind::SELECTOR_TYPE
+         && k != kind::TESTER_TYPE && k != kind::UPDATER_TYPE
+         && k != kind::ABSTRACT_TYPE
+         && (k != kind::TYPE_CONSTANT
              || (getConst<TypeConstant>() != REGEXP_TYPE
                  && getConst<TypeConstant>() != SEXPR_TYPE));
 }
@@ -286,6 +289,48 @@ bool TypeNode::isReal() const
 }
 
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }
+
+bool TypeNode::isInstanceOf(TypeNode t) const
+{
+  if (*this == t)
+  {
+    return true;
+  }
+  if (t.isAbstract())
+  {
+    Kind tak = t.getAbstractKind();
+    if (tak == kind::ABSTRACT_TYPE)
+    {
+      // everything is subtype of the fully abstract type
+      return true;
+    }
+    // ABSTRACT_TYPE{k} is a subtype of types with kind k
+    return getKind() == tak;
+  }
+  Kind k = getKind();
+  if (k == kind::TYPE_CONSTANT || k != t.getKind())
+  {
+    // different kinds, or distinct constants
+    return false;
+  }
+  size_t nchild = getNumChildren();
+  if (nchild == 0 || nchild != t.getNumChildren())
+  {
+    // different arities
+    return false;
+  }
+  for (size_t i = 0; i < nchild; i++)
+  {
+    TypeNode c = (*this)[i];
+    TypeNode tc = t[i];
+    if (!c.isInstanceOf(tc))
+    {
+      // disequal component type
+      return false;
+    }
+  }
+  return true;
+}
 
 bool TypeNode::isRealOrInt() const { return isReal() || isInteger(); }
 
@@ -516,6 +561,15 @@ bool TypeNode::isSygusDatatype() const
     return getDType().isSygus();
   }
   return false;
+}
+
+bool TypeNode::isAbstract() const { return getKind() == kind::ABSTRACT_TYPE; }
+
+Kind TypeNode::getAbstractKind() const
+{
+  Assert(isAbstract());
+  const AbstractType& ak = getConst<AbstractType>();
+  return ak.getKind();
 }
 
 std::string TypeNode::toString() const {

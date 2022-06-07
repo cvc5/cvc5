@@ -461,6 +461,9 @@ class NodeManager
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
 
+  /** Make the abstract type with the given kind */
+  TypeNode mkAbstractType(Kind k);
+
   /** Make a type representing the given datatype. */
   TypeNode mkDatatypeType(DType& datatype);
 

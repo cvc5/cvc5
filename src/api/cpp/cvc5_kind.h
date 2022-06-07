@@ -5275,6 +5275,23 @@ enum Kind : int32_t
    */
   INST_PATTERN_LIST,
 
+  /* Sort Kinds ------------------------------------------------------------ */
+  ABSTRACT_SORT,
+  ARRAY_SORT,
+  BAG_SORT,
+  BOOLEAN_SORT,
+  BITVECTOR_SORT,
+  DATATYPE_SORT,
+  FLOATINGPOINT_SORT,
+  FUNCTION_SORT,
+  INTEGER_SORT,
+  REAL_SORT,
+  REGLAN_SORT,
+  ROUNDINGMODE_SORT,
+  SEQUENCE_SORT,
+  SET_SORT,
+  STRING_SORT,
+  UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
   LAST_KIND

@@ -41,6 +41,8 @@
 #include "smt/command.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/bags/table_project_op.h"
+#include "theory/builtin/abstract_type.h"
+#include "theory/builtin/apply_abstract_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -194,6 +196,19 @@ void Smt2Printer::toStream(std::ostream& out,
         n.constToStream(out);
       }
       break;
+    case kind::ABSTRACT_TYPE:
+    {
+      const AbstractType& at = n.getConst<AbstractType>();
+      Kind atk = at.getKind();
+      out << "?";
+      // note that the fully abstract type is printed simply as "?", not
+      // "?Abstract"
+      if (atk != kind::ABSTRACT_TYPE)
+      {
+        out << smtKindString(atk, d_variant);
+      }
+      break;
+    }
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;

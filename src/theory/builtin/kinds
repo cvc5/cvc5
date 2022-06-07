@@ -319,4 +319,13 @@ typerule WITNESS ::cvc5::internal::theory::builtin::WitnessTypeRule
 
 variable RAW_SYMBOL "a variable that is not quoted in the smt2 printer (internal only)"
 
+
+constant ABSTRACT_TYPE \
+  struct \
+  AbstractType \
+  ::cvc5::internal::AbstractTypeHashFunction \
+  "theory/builtin/abstract_type.h" \
+  "abstract type"
+cardinality ABSTRACT_TYPE "Cardinality(Cardinality::INTEGERS)"
+
 endtheory

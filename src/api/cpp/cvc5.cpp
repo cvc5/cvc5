@@ -404,6 +404,16 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(SKOLEM_ADD_TO_POOL, internal::Kind::SKOLEM_ADD_TO_POOL),
         KIND_ENUM(INST_ATTRIBUTE, internal::Kind::INST_ATTRIBUTE),
         KIND_ENUM(INST_PATTERN_LIST, internal::Kind::INST_PATTERN_LIST),
+        /* Sorts ------------------------------------------------------------ */
+        KIND_ENUM(ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
+        KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
+        KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
+        KIND_ENUM(BITVECTOR_SORT, internal::Kind::BITVECTOR_TYPE),
+        KIND_ENUM(DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
+        KIND_ENUM(FLOATINGPOINT_SORT, internal::Kind::FLOATINGPOINT_TYPE),
+        KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
+        KIND_ENUM(SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
+        KIND_ENUM(SET_SORT, internal::Kind::SET_TYPE),
         KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
     };
 
@@ -718,6 +728,16 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
         {internal::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
         {internal::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
+        /* Sorts ------------------------------------------------------------ */
+        {internal::Kind::ABSTRACT_TYPE, ABSTRACT_SORT},
+        {internal::Kind::ARRAY_TYPE, ARRAY_SORT},
+        {internal::Kind::BAG_TYPE, BAG_SORT},
+        {internal::Kind::BITVECTOR_TYPE, BITVECTOR_SORT},
+        {internal::Kind::DATATYPE_TYPE, DATATYPE_SORT},
+        {internal::Kind::FLOATINGPOINT_TYPE, FLOATINGPOINT_SORT},
+        {internal::Kind::FUNCTION_TYPE, FUNCTION_SORT},
+        {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
+        {internal::Kind::SET_TYPE, SET_SORT},
         /* ----------------------------------------------------------------- */
         {internal::Kind::LAST_KIND, LAST_KIND},
     };
@@ -1775,6 +1795,32 @@ std::vector<Sort> Sort::getTupleSorts() const
   CVC5_API_CHECK(d_type->isTuple()) << "Not a tuple sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getTupleTypes());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/* --------------------------------------------------------------------- */
+
+Kind Sort::getKind() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  internal::Kind tk = d_type->getKind();
+  if (tk == internal::kind::TYPE_CONSTANT)
+  {
+    switch (d_type->getConst<internal::TypeConstant>())
+    {
+      case internal::BOOLEAN_TYPE: return BOOLEAN_SORT; break;
+      case internal::REAL_TYPE: return REAL_SORT; break;
+      case internal::INTEGER_TYPE: return INTEGER_SORT; break;
+      case internal::STRING_TYPE: return STRING_SORT; break;
+      case internal::REGEXP_TYPE: return REGLAN_SORT; break;
+      case internal::ROUNDINGMODE_TYPE: return ROUNDINGMODE_SORT; break;
+      default: return INTERNAL_KIND; break;
+    }
+  }
+  return intToExtKind(tk);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5475,6 +5521,16 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
   CVC5_API_SOLVER_CHECK_SORT(elemSort);
   //////// all checks before this line
   return Sort(this, getNodeManager()->mkSequenceType(*elemSort.d_type));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Sort Solver::mkAbstractSort(Kind k) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  internal::Kind ik = extToIntKind(k);
+  return Sort(this, getNodeManager()->mkAbstractType(ik));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
