@@ -75,6 +75,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/DatatypeDecl.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Grammar.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IOracle.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java

@@ -296,7 +296,11 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 
   // get the grammar type for the interpolant
   Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
-  Assert(!igdtbv.isNull());
+  // could have no variables, in which case there is nothing to do
+  if (igdtbv.isNull())
+  {
+    return true;
+  }
   Assert(igdtbv.getKind() == kind::BOUND_VAR_LIST);
   // convert back to original
   // must replace formal arguments of itp with the free variables in the
