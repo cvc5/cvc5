@@ -242,3 +242,11 @@ name   = "Strings Theory"
   type       = "uint64_t"
   default    = "65536"
   help       = "The maximum size of string values in models"
+
+[[option]]
+  name       = "stringsCodeElim"
+  category   = "expert"
+  long       = "strings-code-elim"
+  type       = "bool"
+  default    = "true"
+  help       = "eliminate code points during preprocessing"
