@@ -1162,8 +1162,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
           {
             parseError(
                 "Cannot apply equality to functions unless logic is prefixed "
-                "by "
-                "HO_.");
+                "by HO_.");
           }
         }
         if (s.isReal())
@@ -1220,14 +1219,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                       << std::endl;
       return ret;
     }
-    if (kind == cvc5::SET_SINGLETON && args.size() == 1)
-    {
-      cvc5::Term ret = d_solver->mkTerm(cvc5::SET_SINGLETON, {args[0]});
-      Trace("parser") << "applyParseOp: return set.singleton " << ret
-                      << std::endl;
-      return ret;
-    }
-    else if (kind == cvc5::CARDINALITY_CONSTRAINT)
+    if (kind == cvc5::CARDINALITY_CONSTRAINT)
     {
       if (args.size() != 2)
       {
