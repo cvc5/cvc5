@@ -42,7 +42,6 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/bags/table_project_op.h"
 #include "theory/builtin/abstract_type.h"
-#include "theory/builtin/apply_abstract_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
