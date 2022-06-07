@@ -849,7 +849,9 @@ InferInfo InferenceGenerator::groupSameProjection(
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
   Node sameProjection = xProjection.eqNode(yProjection);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "skolem_bag");
   Node part_y = d_nm->mkNode(APPLY_UF, part, y);
+  part_y = registerAndAssertSkolemLemma(part_y, "skolem_bag");
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion =
@@ -890,7 +892,9 @@ InferInfo InferenceGenerator::groupSamePart(
 
   Node sameMultiplicity = count_y_B.eqNode(count_y_A);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "skolem_bag");
   Node part_y = d_nm->mkNode(APPLY_UF, part, y);
+  part_y = registerAndAssertSkolemLemma(part_y, "skolem_bag");
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion =
