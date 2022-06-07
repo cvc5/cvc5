@@ -749,6 +749,7 @@ InferInfo InferenceGenerator::groupUp(Node n, Node e, Node part)
   Node count_e_A = getMultiplicityTerm(e, A);
 
   Node part_e = d_nm->mkNode(APPLY_UF, part, e);
+  part_e = registerAndAssertSkolemLemma(part_e, "part_e");
 
   Node count_e_part_e = getMultiplicityTerm(e, part_e);
 
@@ -784,6 +785,7 @@ InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x, Node part)
   Node count_x_A = getMultiplicityTerm(x, A);
   Node sameMultiplicity = count_x_B.eqNode(count_x_A);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion = d_nm->mkNode(AND, sameMultiplicity, part_x_is_B);
   return inferInfo;
@@ -849,9 +851,9 @@ InferInfo InferenceGenerator::groupSameProjection(
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
   Node sameProjection = xProjection.eqNode(yProjection);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "skolem_bag");
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
   Node part_y = d_nm->mkNode(APPLY_UF, part, y);
-  part_y = registerAndAssertSkolemLemma(part_y, "skolem_bag");
+  part_y = registerAndAssertSkolemLemma(part_y, "part_y");
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion =
@@ -892,9 +894,9 @@ InferInfo InferenceGenerator::groupSamePart(
 
   Node sameMultiplicity = count_y_B.eqNode(count_y_A);
   Node part_x = d_nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "skolem_bag");
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
   Node part_y = d_nm->mkNode(APPLY_UF, part, y);
-  part_y = registerAndAssertSkolemLemma(part_y, "skolem_bag");
+  part_y = registerAndAssertSkolemLemma(part_y, "part_y");
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   inferInfo.d_conclusion =
