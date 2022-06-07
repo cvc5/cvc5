@@ -1997,6 +1997,7 @@ set(regress_1_tests
   regress1/issue5739-rtf-processed.smt2
   regress1/issue7902-abd-subsolver-uc.smt2
   regress1/issue7937-difficulty-irr.smt2
+  regress1/issue8852-interpol-no-var.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2699,6 +2700,8 @@ set(regress_1_tests
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
   regress1/strings/tolower-find.smt2
+  regress1/strings/to_upper_12.smt2
+  regress1/strings/to_upper_over_concat.smt2
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2

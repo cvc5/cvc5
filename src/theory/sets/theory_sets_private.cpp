@@ -57,6 +57,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
       d_card_enabled(false),
+      d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -198,6 +199,7 @@ void TheorySetsPrivate::fullEffortReset()
   Assert(d_equalityEngine->consistent());
   d_fullCheckIncomplete = false;
   d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
+  d_higher_order_kinds_enabled = false;
   d_card_enabled = false;
   d_rels_enabled = false;
   // reset the state object
