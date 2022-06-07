@@ -3162,7 +3162,34 @@ enum Kind : int32_t
    * \endrst
    */
    SET_MAP,
-
+  /**
+   * Set filter.
+   *
+   * \rst
+   * This operator filters the elements of a set.
+   * (set.filter :math:`p \; A`) takes a predicate :math:`p` of Sort
+   * :math:`(\rightarrow T \; Bool)` as a first argument, and a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and returns a subset of Sort
+   * (Set :math:`T`) that includes all elements of :math:`A` that satisfy
+   * :math:`p`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \; Bool)`
+   *   - ``2:`` Term of bag Sort (Set :math:`T`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+   SET_FILTER,
   /* Relations ------------------------------------------------------------- */
 
   /**
@@ -3624,25 +3651,21 @@ enum Kind : int32_t
    * \rst
    * This operator filters the elements of a bag.
    * (bag.filter :math:`p \; B`) takes a predicate :math:`p` of Sort
-   * :math:`(\rightarrow S_1 \; S_2)` as a first argument, and a bag :math:`B`
-   * of Sort (Bag :math:`S`) as a second argument, and returns a subbag of Sort
+   * :math:`(\rightarrow T \; Bool)` as a first argument, and a bag :math:`B`
+   * of Sort (Bag :math:`T`) as a second argument, and returns a subbag of Sort
    * (Bag :math:`T`) that includes all elements of :math:`B` that satisfy
    * :math:`p` with the same multiplicity.
    *
    * - Arity: ``2``
    *
-   *   - ``1:`` Term of function Sort :math:`(\rightarrow S_1 \; S_2)`
-   *   - ``2:`` Term of bag Sort (Bag :math:`S_1`)
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \; Bool)`
+   *   - ``2:`` Term of bag Sort (Bag :math:`T`)
    * \endrst
    *
    * - Create Term of this Kind with:
    *
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in

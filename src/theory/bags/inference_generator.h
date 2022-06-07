@@ -289,7 +289,7 @@ class InferenceGenerator
    *     (= (bag.count e skolem) (bag.count e A)))
    * where skolem is a variable equals (bag.filter p A)
    */
-  InferInfo filterDownwards(Node n, Node e);
+  InferInfo filterDown(Node n, Node e);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
@@ -303,7 +303,7 @@ class InferenceGenerator
    *     (and (not (p e)) (= (bag.count e skolem) 0)))
    * where skolem is a variable equals (bag.filter p A)
    */
-  InferInfo filterUpwards(Node n, Node e);
+  InferInfo filterUp(Node n, Node e);
 
   /**
    * @param n is a (table.product A B) where A, B are tables

@@ -77,6 +77,10 @@ operator SET_IS_SINGLETON  1  "return whether the given set is a singleton"
 # of the second argument, a set of type (Set T1), and returns a set of type (Set T2).
 operator SET_MAP           2  "set map function"
 
+# The set.filter operator takes a predicate of type (-> T Bool) and a set of type (Set T)
+# and returns the same set excluding those elements that do not satisfy the predicate
+operator SET_FILTER        2  "set filter operator"
+
 operator RELATION_JOIN 		   2  "relation join"
 operator RELATION_PRODUCT 	   2  "relation cartesian product"
 operator RELATION_TRANSPOSE    1  "relation transpose"
@@ -99,6 +103,7 @@ typerule SET_COMPREHENSION  ::cvc5::internal::theory::sets::ComprehensionTypeRul
 typerule SET_CHOOSE         ::cvc5::internal::theory::sets::ChooseTypeRule
 typerule SET_IS_SINGLETON   ::cvc5::internal::theory::sets::IsSingletonTypeRule
 typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
+typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule
 typerule RELATION_PRODUCT 		::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule
