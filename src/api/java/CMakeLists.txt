@@ -163,7 +163,6 @@ target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
-target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
 target_link_libraries(cvc5jni PRIVATE cvc5)
 
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
