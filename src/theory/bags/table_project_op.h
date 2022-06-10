@@ -82,6 +82,20 @@ struct TableGroupOpHashFunction : public ProjectOpHashFunction
 {
 }; /* struct TableGroupOpHashFunction */
 
+class RelationGroupOp : public ProjectOp
+{
+ public:
+  explicit RelationGroupOp(std::vector<uint32_t> indices);
+  RelationGroupOp(const RelationGroupOp& op) = default;
+}; /* class RelationGroupOp */
+
+/**
+ * Hash function for the RelationGroupOpHashFunction objects.
+ */
+struct RelationGroupOpHashFunction : public ProjectOpHashFunction
+{
+}; /* struct RelationGroupOpHashFunction */
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__TABLE_PROJECT_OP_H */

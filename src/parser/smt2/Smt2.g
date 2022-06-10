@@ -1431,6 +1431,12 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_GROUP, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK RELATION_GROUP_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_GROUP, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1599,6 +1605,13 @@ identifier[cvc5::ParseOp& p]
         // i_1, ..., j_n are numerals
         p.d_kind = cvc5::TABLE_GROUP;
         p.d_op = SOLVER->mkOp(cvc5::TABLE_GROUP, numerals);
+      }
+     | RELATION_GROUP_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ rel.group i_1 ... i_n) where
+        // i_1, ..., j_n are numerals
+        p.d_kind = cvc5::RELATION_GROUP;
+        p.d_op = SOLVER->mkOp(cvc5::RELATION_GROUP, numerals);
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
@@ -2212,6 +2225,7 @@ TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS
 TABLE_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.aggr';
 TABLE_JOIN_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.join';
 TABLE_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.group';
+RELATION_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.group';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

@@ -20,6 +20,9 @@
 
 #include "theory/sets/normal_form.h"
 #include "util/cardinality.h"
+#include "theory/bags/table_project_op.h"
+#include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -575,6 +578,39 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
   tupleTypes.push_back(tupleTypes[0]);
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
+}
+
+TypeNode RelationGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+{
+  Assert(n.getKind() == kind::RELATION_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_GROUP_OP);
+  RelationGroupOp op = n.getOperator().getConst<RelationGroupOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode setType = n[0].getType(check);
+
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_GROUP operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_GROUP operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    datatypes::TupleUtils::checkTypeIndices(n, tupleType, indices);
+  }
+  return nm->mkSetType(setType);
 }
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)
