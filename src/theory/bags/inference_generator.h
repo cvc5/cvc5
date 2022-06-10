@@ -386,6 +386,7 @@ class InferenceGenerator
    *   (and
    *     (= (bag.count (part x) skolem) 1)
    *     (= (bag.count x (part x)) (bag.count x A))
+   *     (= (bag.count (as bag.empty (Table T)) skolem) 0)
    *   )
    * )
    *
