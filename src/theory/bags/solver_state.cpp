@@ -27,7 +27,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-SolverState::SolverState(Env& env, Valuation val) : TheoryState(env, val)
+SolverState::SolverState(Env& env, Valuation val)
+    : TheoryState(env, val), d_partElementSkolems(env.getUserContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -38,6 +39,12 @@ void SolverState::registerBag(TNode n)
 {
   Assert(n.getType().isBag());
   d_bags.insert(n);
+  if (n.getKind() == TABLE_GROUP)
+  {
+    std::shared_ptr<context::CDHashSet<Node>> set =
+        std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+    d_partElementSkolems[n] = set;
+  }
 }
 
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
@@ -128,6 +135,20 @@ void SolverState::collectDisequalBagTerms()
 }
 
 const std::map<Node, Node>& SolverState::getDisequalBagTerms() { return d_deq; }
+
+void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
+{
+  Assert(group.getKind() == TABLE_GROUP);
+  Assert(skolemElement.getType() == group[0].getType().getBagElementType());
+  d_partElementSkolems[group].get()->insert(skolemElement);
+}
+
+std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
+    Node n)
+{
+  Assert(n.getKind() == TABLE_GROUP);
+  return d_partElementSkolems[n];
+}
 
 void SolverState::reset()
 {

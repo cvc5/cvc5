@@ -370,9 +370,9 @@ class InferenceGenerator
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type T
    * @return an inference that represents:
-   * (and
-   *  (= (= A (as bag.empty T)) (= skolem (as bag.empty (bag T) ))
-   *  (= 1 (bag.count (as bag.empty T) skolem)))
+   * (=>
+   *  (= A (as bag.empty T))
+   *  (= skolem (bag (as bag.empty T) 1))
    * )
    */
   InferInfo groupNotEmpty(Node n);
@@ -381,16 +381,32 @@ class InferenceGenerator
    * @param e an element of type T
    * @param part a function of type T -> (Table T)
    * @return an inference that represents:
-   * (and
-   *   (= (bag.count e A) (bag.count e (part e))
-   *   (= (bag.count (part e) skolem) 1)
-   *   (= (= (bag.count e A) 0)
-   *      (= (part e) (as bag.empty (Table T))))
+   * (=>
+   *   (bag.member x A)
+   *   (and
+   *     (= (bag.count (part x) skolem) 1)
+   *     (= (bag.count x (part x)) (bag.count x A))
+   *   )
    * )
    *
    * where skolem is a variable equals ((_ table.group n1 ... nk) A)
    */
-  InferInfo groupUp(Node n, Node e, Node part);
+  InferInfo groupUp(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param e an element of type T
+   * @param part a function of type T -> (Table T)
+   * @return an inference that represents:
+   * (=>
+   *   (= (bag.count x A) 0)
+   *   (and
+   *      (= (part x) (as bag.empty (Table T)))
+   *      (= (bag.count x)
+   * )
+   *
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
+   */
+  InferInfo groupUp2(Node n, Node x, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)
@@ -411,25 +427,25 @@ class InferenceGenerator
   InferInfo groupDown(Node n, Node B, Node x, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
-   * @param B an element of type (Table T)
+   * @param B an element of type (Table T) and B is not of the form (part x)
+   * @param part a function of type T -> (Table T)
    * @return an inference that represents:
    * (=>
-   *   (bag.member B skolem)
+   *   (and
+   *     (bag.member B skolem)
+   *     (not (= A (as bag.empty (Table T)))
+   *   )
    *   (and
    *     (= (bag.count B skolem) 1)
-   *     (=>
-   *       (distinct B (as bag.empty (Table T)))
-   *       (and
-   *         (= (bag.count k_{n,B} B) (bag.count k_{n,B} A)
-   *         (>= (bag.count k_{n,B} B) 1)
-   *       )
-   *     )
+   *     (= B (part k_{n, B}))
+   *     (>= (bag.count k_{n,B} B) 1)
+   *     (= (bag.count k_{n,B} B) (bag.count k_{n,B} A))
    *   )
    * )
    * where skolem is a variable equals ((_ table.group n1 ... nk) A), and
    * k_{n, B} is a fresh skolem of type T.
    */
-  InferInfo groupPartCount(Node n, Node B);
+  InferInfo groupPartCount(Node n, Node B, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)

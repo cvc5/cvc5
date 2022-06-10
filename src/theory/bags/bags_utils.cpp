@@ -1025,9 +1025,6 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
 
   // construct the partition parts
   std::map<Node, Rational> parts;
-  // always add an empty part
-  Node emptyPart = nm->mkConst(EmptyBag(bagType));
-  parts[emptyPart] = Rational(1);
   for (std::pair<Node, std::set<Node>> pair : sets)
   {
     const std::set<Node>& eqc = pair.second;
@@ -1044,6 +1041,12 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
     Node part = computeDisjointUnion(bagType, bags);
     // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
+  }
+  if (parts.empty())
+  {
+    // add an empty part
+    Node emptyPart = nm->mkConst(EmptyBag(bagType));
+    parts[emptyPart] = Rational(1);
   }
   Node ret = constructConstantBagFromElements(partitionType, parts);
   Trace("bags-partition") << "ret: " << ret << std::endl;
