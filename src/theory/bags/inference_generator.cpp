@@ -736,7 +736,7 @@ InferInfo InferenceGenerator::groupNotEmpty(Node n)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::groupUp(Node n, Node x, Node part)
+InferInfo InferenceGenerator::groupUp1(Node n, Node x, Node part)
 {
   Assert(n.getKind() == TABLE_GROUP);
   Assert(x.getType() == n[0].getType().getBagElementType());
@@ -744,7 +744,7 @@ InferInfo InferenceGenerator::groupUp(Node n, Node x, Node part)
   Node A = n[0];
   TypeNode bagType = A.getType();
 
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP1);
   Node count_x_A = getMultiplicityTerm(x, A);
   Node x_member_A = d_nm->mkNode(GEQ, count_x_A, d_one);
   inferInfo.d_premises.push_back(x_member_A);
@@ -776,7 +776,7 @@ InferInfo InferenceGenerator::groupUp2(Node n, Node x, Node part)
   Node A = n[0];
   TypeNode bagType = A.getType();
 
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_UP2);
   Node count_x_A = getMultiplicityTerm(x, A);
   Node x_not_in_A = d_nm->mkNode(EQUAL, count_x_A, d_zero);
   inferInfo.d_premises.push_back(x_not_in_A);
