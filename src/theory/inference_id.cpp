@@ -143,6 +143,13 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
+    case InferenceId::TABLES_GROUP_NOT_EMPTY: return "TABLES_GROUP_NOT_EMPTY";
+    case InferenceId::TABLES_GROUP_UP: return "TABLES_GROUP_UP";
+    case InferenceId::TABLES_GROUP_DOWN: return "TABLES_GROUP_DOWN";
+    case InferenceId::TABLES_GROUP_PART_COUNT: return "TABLES_GROUP_PART_COUNT";
+    case InferenceId::TABLES_GROUP_SAME_PROJECTION:
+      return "TABLES_GROUP_SAME_PROJECTION";
+    case InferenceId::TABLES_GROUP_SAME_PART: return "TABLES_GROUP_SAME_PART";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -326,6 +333,7 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
     case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
+    case InferenceId::SETS_SKOLEM: return "SETS_SKOLEM";
     case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
@@ -382,6 +390,15 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
+    case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
+    case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
+    case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";
+    case InferenceId::SETS_RELS_GROUP_PART_MEMBER:
+      return "SETS_RELS_GROUP_PART_MEMBER";
+    case InferenceId::SETS_RELS_GROUP_SAME_PROJECTION:
+      return "SETS_RELS_GROUP_SAME_PROJECTION";
+    case InferenceId::SETS_RELS_GROUP_SAME_PART:
+      return "SETS_RELS_GROUP_SAME_PART";
 
     case InferenceId::STRINGS_I_NORM_S: return "STRINGS_I_NORM_S";
     case InferenceId::STRINGS_I_CONST_MERGE: return "STRINGS_I_CONST_MERGE";

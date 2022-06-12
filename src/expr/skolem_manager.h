@@ -169,6 +169,17 @@ enum class SkolemFunId
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
   BAGS_DEQ_DIFF,
+  /** Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Table T))
+   */
+  TABLES_GROUP_PART,
+  /**
+   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * and a part B of type (Table T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  TABLES_GROUP_PART_ELEMENT,
   /** Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
    * this uninterpreted function maps elements of A to their parts in the
    * resulting partition. It has type (-> T (Relation T))

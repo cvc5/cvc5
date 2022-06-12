@@ -210,6 +210,12 @@ enum class InferenceId
   TABLES_PRODUCT_DOWN,
   TABLES_JOIN_UP,
   TABLES_JOIN_DOWN,
+  TABLES_GROUP_NOT_EMPTY,
+  TABLES_GROUP_UP,
+  TABLES_GROUP_DOWN,
+  TABLES_GROUP_PART_COUNT,
+  TABLES_GROUP_SAME_PROJECTION,
+  TABLES_GROUP_SAME_PART,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -478,6 +484,7 @@ enum class InferenceId
   // ---------------------------------- sets theory
   //-------------------- sets core solver
   // split when computing care graph
+  SETS_SKOLEM,
   SETS_CG_SPLIT,
   SETS_COMPREHENSION,
   SETS_DEQ,
@@ -538,6 +545,13 @@ enum class InferenceId
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
+  SETS_RELS_GROUP_NOT_EMPTY,
+  SETS_RELS_GROUP_UP1,
+  SETS_RELS_GROUP_UP2,
+  SETS_RELS_GROUP_DOWN,
+  SETS_RELS_GROUP_PART_MEMBER,
+  SETS_RELS_GROUP_SAME_PROJECTION,
+  SETS_RELS_GROUP_SAME_PART,
   //-------------------------------------- end sets theory
 
   //-------------------------------------- strings theory
