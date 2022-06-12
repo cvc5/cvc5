@@ -159,6 +159,9 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   else if (nk == RELATION_GROUP)
   {
     d_groupTerms.insert(n);
+    std::shared_ptr<context::CDHashSet<Node>> set =
+        std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+    d_partElementSkolems[n] = set;
   }
   else if (nk == SET_COMPREHENSION)
   {
@@ -646,7 +649,7 @@ void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
   Assert(group.getKind() == RELATION_GROUP);
-  Assert(skolemElement.getType() == group[0].getType().getBagElementType());
+  Assert(skolemElement.getType() == group[0].getType().getSetElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
 
