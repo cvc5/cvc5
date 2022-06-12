@@ -374,6 +374,7 @@ class InferenceGenerator
    *  (= A (as bag.empty T))
    *  (= skolem (bag (as bag.empty T) 1))
    * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
    */
   InferInfo groupNotEmpty(Node n);
   /**
@@ -392,7 +393,7 @@ class InferenceGenerator
    *
    * where skolem is a variable equals ((_ table.group n1 ... nk) A)
    */
-  InferInfo groupUp(Node n, Node x, Node part);
+  InferInfo groupUp1(Node n, Node x, Node part);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param e an element of type T
@@ -400,11 +401,8 @@ class InferenceGenerator
    * @return an inference that represents:
    * (=>
    *   (= (bag.count x A) 0)
-   *   (and
-   *      (= (part x) (as bag.empty (Table T)))
-   *      (= (bag.count x)
+   *   (= (part x) (as bag.empty (Table T)))
    * )
-   *
    * where skolem is a variable equals ((_ table.group n1 ... nk) A)
    */
   InferInfo groupUp2(Node n, Node x, Node part);

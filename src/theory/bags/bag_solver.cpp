@@ -381,7 +381,7 @@ void BagSolver::checkGroup(Node n)
       continue;
     }
     Node aRep = d_state.getRepresentative(a);
-    InferInfo i = d_ig.groupUp(n, aRep, part);
+    InferInfo i = d_ig.groupUp1(n, aRep, part);
     d_im.lemmaTheoryInference(&i);
     i = d_ig.groupUp2(n, aRep, part);
     d_im.lemmaTheoryInference(&i);
