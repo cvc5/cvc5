@@ -47,7 +47,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-1.4.1")
+  set(CaDiCaL_VERSION "rel-1.5.2")
+  set(CaDiCaL_CHECKSUM "8bc2c3bdf4ef3780f001b31c2fe02168f3bb34b8")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -82,7 +83,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
     URL https://github.com/arminbiere/cadical/archive/${CaDiCaL_VERSION}.tar.gz
-    URL_HASH SHA1=ad3be225f20e5c5b3883290478282698624c14a5
+    URL_HASH SHA1=${CaDiCaL_CHECKSUM}
     CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
     # avoid configure script, prepare the makefile manually
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/makefile.in
