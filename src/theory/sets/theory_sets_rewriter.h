@@ -111,6 +111,8 @@ private:
   *  - Evaluation of ((_ rel.group n1 ... nk) A) when A is a constant
   */
  RewriteResponse postRewriteGroup(TNode n);
+
+ RewriteResponse postRewriteAggregate(TNode n);
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets

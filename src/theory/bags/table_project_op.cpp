@@ -42,4 +42,9 @@ RelationGroupOp::RelationGroupOp(std::vector<uint32_t> indices)
 {
 }
 
+RelationAggregateOp::RelationAggregateOp(std::vector<uint32_t> indices)
+    : ProjectOp(std::move(indices))
+{
+}
+
 }  // namespace cvc5::internal

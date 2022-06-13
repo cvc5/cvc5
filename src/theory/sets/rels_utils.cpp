@@ -20,6 +20,7 @@
 #include "theory/bags/table_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
+#include "theory/sets/set_reduction.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory::datatypes;
@@ -149,6 +150,19 @@ Node RelsUtils::evaluateGroup(TNode n)
   Node ret = NormalForm::elementsToSet(parts, partitionType);
   Trace("sets-group") << "ret: " << ret << std::endl;
   return ret;
+}
+
+Node RelsUtils::evaluateRelationAggregate(TNode n)
+{
+  Assert(n.getKind() == RELATION_AGGREGATE);
+  if (!(n[1].isConst() && n[2].isConst()))
+  {
+    // we can't proceed further.
+    return n;
+  }
+
+  Node reduction = SetReduction::reduceAggregateOperator(n);
+  return reduction;
 }
 
 }  // namespace sets
