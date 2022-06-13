@@ -464,7 +464,7 @@ std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)
 
 /**
  * Check if the first string (the logic) is one of the remaining strings.
- * Used to have a reasonably concise syntax to check the current logic agains a
+ * Used to have a reasonably concise syntax to check the current logic against a
  * lengthy list.
  */
 template <typename... T>
