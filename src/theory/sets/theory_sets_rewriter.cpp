@@ -722,10 +722,10 @@ RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
     }
     case SET_SINGLETON:
     {
-      // (set.fold f t (set.singleton x)) = (f t x)
+      // (set.fold f t (set.singleton x)) = (f x t)
       Node x = n[2][0];
-      Node f_t_x = nm->mkNode(APPLY_UF, f, t, x);
-      return RewriteResponse(REWRITE_AGAIN_FULL, f_t_x);
+      Node f_x_t = nm->mkNode(APPLY_UF, f, x, t);
+      return RewriteResponse(REWRITE_AGAIN_FULL, f_x_t);
     }
     case SET_UNION:
     {
