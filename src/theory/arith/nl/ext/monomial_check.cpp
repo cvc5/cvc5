@@ -331,7 +331,7 @@ int MonomialCheck::compareSign(
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
       Node prem = av.eqNode(zero);
-      Node conc = oa.eqNode(zero);
+      Node conc = oa.eqNode(mkZero(oa.getType()));
       Node lemma = prem.impNode(conc);
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
@@ -403,6 +403,7 @@ bool MonomialCheck::compareMonomial(
       << "compareMonomial " << oa << " and " << ob << ", indices = " << a_index
       << " " << b_index << std::endl;
   Assert(status == 0 || status == 2);
+  NodeManager* nm = NodeManager::currentNM();
   const std::vector<Node>& vla = d_data->d_mdb.getVariableList(a);
   const std::vector<Node>& vlb = d_data->d_mdb.getVariableList(b);
   if (a_index == vla.size() && b_index == vlb.size())
@@ -419,13 +420,11 @@ bool MonomialCheck::compareMonomial(
       if (status == 2)
       {
         // must state that all variables are non-zero
-        Node zero = mkZero(oa.getType());
         for (const Node& v : vla)
         {
-          exp.push_back(v.eqNode(zero).negate());
+          exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
-      NodeManager* nm = NodeManager::currentNM();
       Node clem = nm->mkNode(
           Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
@@ -504,7 +503,8 @@ bool MonomialCheck::compareMonomial(
     {
       Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
       // can multiply b by <=1
-      exp.push_back(mkLit(d_data->d_one, bv, bvo == ovo ? 0 : 2, true));
+      Node one = mkOne(bv.getType());
+      exp.push_back(mkLit(one, bv, bvo == ovo ? 0 : 2, true));
       return compareMonomial(oa,
                              a,
                              a_index,
@@ -528,7 +528,8 @@ bool MonomialCheck::compareMonomial(
     {
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // can multiply a by >=1
-      exp.push_back(mkLit(av, d_data->d_one, avo == ovo ? 0 : 2, true));
+      Node one = mkOne(av.getType());
+      exp.push_back(mkLit(av, one, avo == ovo ? 0 : 2, true));
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -553,7 +554,8 @@ bool MonomialCheck::compareMonomial(
     {
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // do avo>=1 instead
-      exp.push_back(mkLit(av, d_data->d_one, avo == ovo ? 0 : 2, true));
+      Node one = mkOne(av.getType());
+      exp.push_back(mkLit(av, one, avo == ovo ? 0 : 2, true));
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -717,23 +719,23 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
 }
 Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
 {
-  Assert(a.getType().isComparableTo(b.getType()));
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(a.getType().isRealOrInt() && b.getType().isRealOrInt());
   if (status == 0)
   {
-    Node a_eq_b = a.eqNode(b);
+    Node a_eq_b = mkEquality(a, b);
     if (!isAbsolute)
     {
       return a_eq_b;
     }
-    Node negate_b = NodeManager::currentNM()->mkNode(Kind::NEG, b);
-    return a_eq_b.orNode(a.eqNode(negate_b));
+    Node negate_b = nm->mkNode(Kind::NEG, b);
+    return a_eq_b.orNode(mkEquality(a, negate_b));
   }
   else if (status < 0)
   {
     return mkLit(b, a, -status);
   }
   Assert(status == 1 || status == 2);
-  NodeManager* nm = NodeManager::currentNM();
   Kind greater_op = status == 1 ? Kind::GEQ : Kind::GT;
   if (!isAbsolute)
   {

@@ -94,6 +94,8 @@ enum class InferenceId
   // variables in a model, but those variables are inconsistent with assignments
   // from another theory
   ARITH_SPLIT_FOR_NL_MODEL,
+  // dummy lemma to demand a restart
+  ARITH_DEMAND_RESTART,
   //-------------------- preprocessing
   // equivalence of term and its preprocessed form
   ARITH_PP_ELIM_OPERATORS,
@@ -331,6 +333,8 @@ enum class InferenceId
   QUANTIFIERS_INST_CEGQI,
   // instantiations from syntax-guided instantiation
   QUANTIFIERS_INST_SYQI,
+  // instantiations from model-based instantiation
+  QUANTIFIERS_INST_MBQI,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation
@@ -482,6 +486,10 @@ enum class InferenceId
   SETS_EQ_CONFLICT,
   SETS_EQ_MEM,
   SETS_EQ_MEM_CONFLICT,
+  SETS_FILTER_DOWN,
+  SETS_FILTER_UP,
+  SETS_MAP_DOWN_POSITIVE,
+  SETS_MAP_UP,
   SETS_MEM_EQ,
   SETS_MEM_EQ_CONFLICT,
   SETS_PROXY,

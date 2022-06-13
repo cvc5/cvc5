@@ -174,9 +174,6 @@ class Assertions : protected EnvObj
   context::CDO<size_t> d_globalDefineFunLemmasIndex;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
    */
   std::vector<Node> d_assumptions;
   /** Whether we did a global negation of the formula. */

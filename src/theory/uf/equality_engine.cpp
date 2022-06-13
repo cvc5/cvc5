@@ -1103,13 +1103,16 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
 
+  // Get the ids
+  EqualityNodeId t1Id = getNodeId(t1);
+  EqualityNodeId t2Id = getNodeId(t2);
+
+  Trace("pf::ee") << "Ids: " << t1Id << ", " << t2Id << "\n";
+
   if (TraceIsOn("equality::internal"))
   {
     debugPrintGraph();
   }
-  // Get the ids
-  EqualityNodeId t1Id = getNodeId(t1);
-  EqualityNodeId t2Id = getNodeId(t2);
 
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   if (polarity) {
@@ -1230,7 +1233,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           if (!c1.isNull() && !c2.isNull())
           {
             simpTrans = false;
-            Assert(c1.getType().isComparableTo(c2.getType()));
+            Assert(c1.getType() == c2.getType());
             std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
@@ -2057,22 +2060,27 @@ void EqualityEngine::propagate() {
   }
 }
 
-void EqualityEngine::debugPrintGraph() const {
-  Trace("equality::graph") << std::endl << "Dumping graph" << std::endl;
-  for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++ nodeId) {
-
-    Trace("equality::graph") << d_nodes[nodeId] << " " << nodeId << "(" << getEqualityNode(nodeId).getFind() << "):";
+void EqualityEngine::debugPrintGraph() const
+{
+  Trace("equality::internal") << std::endl << "Dumping graph" << std::endl;
+  for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++nodeId)
+  {
+    Trace("equality::internal") << d_nodes[nodeId] << " " << nodeId << "("
+                                << getEqualityNode(nodeId).getFind() << "):";
 
     EqualityEdgeId edgeId = d_equalityGraph[nodeId];
-    while (edgeId != null_edge) {
+    while (edgeId != null_edge)
+    {
       const EqualityEdge& edge = d_equalityEdges[edgeId];
-      Trace("equality::graph") << " [" << edge.getNodeId() << "] " << d_nodes[edge.getNodeId()] << ":" << edge.getReason();
+      Trace("equality::internal")
+          << " [" << edge.getNodeId() << "] " << d_nodes[edge.getNodeId()]
+          << ":" << edge.getReason();
       edgeId = edge.getNext();
     }
 
-    Trace("equality::graph") << std::endl;
+    Trace("equality::internal") << std::endl;
   }
-  Trace("equality::graph") << std::endl;
+  Trace("equality::internal") << std::endl;
 }
 
 std::string EqualityEngine::debugPrintEqc() const

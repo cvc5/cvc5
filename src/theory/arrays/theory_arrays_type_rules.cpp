@@ -40,7 +40,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                          "array select operating on non-array");
     }
     TypeNode indexType = n[1].getType(check);
-    if (!indexType.isSubtypeOf(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array select not indexed with correct type for array");
@@ -65,12 +65,12 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       TypeNode indexType = n[1].getType(check);
       TypeNode valueType = n[2].getType(check);
-      if (!indexType.isSubtypeOf(arrayType.getArrayIndexType()))
+      if (indexType != arrayType.getArrayIndexType())
       {
         throw TypeCheckingExceptionPrivate(
             n, "array store not indexed with correct type for array");
       }
-      if (!valueType.isSubtypeOf(arrayType.getArrayConstituentType()))
+      if (valueType != arrayType.getArrayConstituentType())
       {
         Trace("array-types")
             << "array type: " << arrayType.getArrayConstituentType()
@@ -197,13 +197,13 @@ TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
                                          "array table fun arg 1 is non-array");
     }
     TypeNode indexType = n[2].getType(check);
-    if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 2 does not match type of array");
     }
     indexType = n[3].getType(check);
-    if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 3 does not match type of array");
@@ -306,12 +306,12 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
     TypeNode indexType = n0_type.getArrayIndexType();
     TypeNode indexRangeType1 = n[2].getType(check);
     TypeNode indexRangeType2 = n[3].getType(check);
-    if (!indexRangeType1.isSubtypeOf(indexType))
+    if (indexRangeType1 != indexType)
     {
       throw TypeCheckingExceptionPrivate(
           n, "eqrange lower index type does not match array index type");
     }
-    if (!indexRangeType2.isSubtypeOf(indexType))
+    if (indexRangeType2 != indexType)
     {
       throw TypeCheckingExceptionPrivate(
           n, "eqrange upper index type does not match array index type");

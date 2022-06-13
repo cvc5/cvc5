@@ -102,7 +102,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
       combine_i.eqNode(nm->mkNode(APPLY_UF, f, uf_i, combine_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
-  Node singleton = nm->mkBag(elementType, uf_i, one);
+  Node singleton = nm->mkNode(BAG_MAKE, uf_i, one);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
       nm->mkNode(BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
@@ -171,7 +171,7 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(ADD, uf_i_multiplicity, cardinality_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
-  Node bag = nm->mkBag(elementType, uf_i, uf_i_multiplicity);
+  Node bag = nm->mkNode(BAG_MAKE, uf_i, uf_i_multiplicity);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
       nm->mkNode(BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));
@@ -214,28 +214,16 @@ Node BagReduction::reduceAggregateOperator(Node node)
   const std::vector<uint32_t>& indices =
       node.getOperator().getConst<TableAggregateOp>().getIndices();
 
-  Node t1 = bvm->mkBoundVar<FirstIndexVarAttribute>(node, "t1", elementType);
-  Node t2 = bvm->mkBoundVar<SecondIndexVarAttribute>(node, "t2", elementType);
-  Node list = nm->mkNode(BOUND_VAR_LIST, t1, t2);
-  Node body = nm->mkConst(true);
-  for (uint32_t i : indices)
-  {
-    Node select1 = datatypes::TupleUtils::nthElementOfTuple(t1, i);
-    Node select2 = datatypes::TupleUtils::nthElementOfTuple(t2, i);
-    Node equal = select1.eqNode(select2);
-    body = body.andNode(equal);
-  }
-
-  Node lambda = nm->mkNode(LAMBDA, list, body);
-  Node partition = nm->mkNode(BAG_PARTITION, lambda, A);
+  Node groupOp = nm->mkConst(TableGroupOp(indices));
+  Node group = nm->mkNode(TABLE_GROUP, {groupOp, A});
 
   Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
-      partition, "bag", nm->mkBagType(elementType));
+      group, "bag", nm->mkBagType(elementType));
   Node foldList = nm->mkNode(BOUND_VAR_LIST, bag);
   Node foldBody = nm->mkNode(BAG_FOLD, function, initialValue, bag);
 
   Node fold = nm->mkNode(LAMBDA, foldList, foldBody);
-  Node map = nm->mkNode(BAG_MAP, fold, partition);
+  Node map = nm->mkNode(BAG_MAP, fold, group);
   return map;
 }
 

@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/datatypes_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
@@ -51,7 +52,6 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
   Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
                           << std::endl;
   // look in equivalence class for a constructor
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned k = 0, size = eqc.size(); k < size; k++)
   {
     Node n = eqc[k];
@@ -64,14 +64,12 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       const DType& dt = d_type.getDType();
       unsigned cindex = datatypes::utils::indexOf(n.getOperator());
       // now must solve for selectors applied to pv
-      for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
+      Node val = datatypes::utils::getInstCons(
+          pv, dt, cindex, options().datatypes.dtSharedSelectors);
+      for (const Node& c : val)
       {
-        Node c = nm->mkNode(
-            APPLY_SELECTOR, dt[cindex].getSelectorInternal(d_type, j), pv);
         ci->pushStackVariable(c);
-        children.push_back(c);
       }
-      Node val = nm->mkNode(kind::APPLY_CONSTRUCTOR, children);
       TermProperties pv_prop_dt;
       if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
       {
@@ -146,15 +144,14 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
     }
     else
     {
-      NodeManager* nm = NodeManager::currentNM();
       unsigned cindex = DType::indexOf(a.getOperator());
       TypeNode tn = a.getType();
       const DType& dt = tn.getDType();
-      for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)
+      Node val = datatypes::utils::getInstCons(
+          sb, dt, cindex, options().datatypes.dtSharedSelectors);
+      for (size_t i = 0, nchild = val.getNumChildren(); i < nchild; i++)
       {
-        Node nn = nm->mkNode(
-            APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), sb);
-        Node s = solve_dt(v, a[i], Node::null(), sa[i], nn);
+        Node s = solve_dt(v, a[i], Node::null(), sa[i], val[i]);
         if (!s.isNull())
         {
           return s;

@@ -250,7 +250,6 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::IS_INTEGER:
       case kind::TO_INTEGER:
       case kind::TO_REAL:
-      case kind::CAST_TO_REAL:
       case kind::POW:
       case kind::PI: return RewriteResponse(REWRITE_DONE, t);
       default: Unhandled() << k;
@@ -297,8 +296,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
       case kind::ABS: return rewriteAbs(t);
-      case kind::TO_REAL:
-      case kind::CAST_TO_REAL: return rewriteToReal(t);
+      case kind::TO_REAL: return rewriteToReal(t);
       case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case kind::POW:
       {
@@ -592,7 +590,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
 {
-  Assert(t.getKind() == kind::CAST_TO_REAL || t.getKind() == kind::TO_REAL);
+  Assert(t.getKind() == kind::TO_REAL);
   if (!t[0].getType().isInteger())
   {
     // if it is already real type, then just return the argument
@@ -602,16 +600,9 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   if (t[0].isConst())
   {
     // If the argument is constant, return a real constant.
-    // !!!! Note that this does not preserve the type of t, since rat is
-    // an integral rational. This will be corrected when the type rule for
-    // CONST_RATIONAL is changed to always return Real.
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
-  // CAST_TO_REAL is our way of marking integral constants coming from the
-  // user as Real. It should only be applied to constants, which is handled
-  // above.
-  Assert(t.getKind() != kind::CAST_TO_REAL);
   return RewriteResponse(REWRITE_DONE, t);
 }
 

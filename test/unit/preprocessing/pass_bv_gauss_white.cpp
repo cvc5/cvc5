@@ -1871,6 +1871,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -1925,9 +1926,9 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
   ASSERT_EQ(ret, BVGauss::Result::PARTIAL);
   ASSERT_EQ(res.size(), 2);
 
-  x = Rewriter::rewrite(x);
-  y = Rewriter::rewrite(y);
-  z = Rewriter::rewrite(z);
+  x = rr->rewrite(x);
+  y = rr->rewrite(y);
+  z = rr->rewrite(z);
 
   Node x1 = d_nodeManager->mkNode(
       kind::BITVECTOR_UREM,
@@ -1986,8 +1987,8 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
      *  9 0 1  7   -->  1 0 5  2
      *  3 1 0  9        0 1 7  3
      */
-    ASSERT_EQ(res[Rewriter::rewrite(y)], y3);
-    ASSERT_EQ(res[Rewriter::rewrite(z)], z3);
+    ASSERT_EQ(res[rr->rewrite(y)], y3);
+    ASSERT_EQ(res[rr->rewrite(z)], z3);
   }
   else if (res.find(y) == res.end())
   {
@@ -2022,6 +2023,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2096,9 +2098,9 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
   ASSERT_EQ(ret, BVGauss::Result::PARTIAL);
   ASSERT_EQ(res.size(), 2);
 
-  x_mul_xx = Rewriter::rewrite(x_mul_xx);
-  y_mul_yy = Rewriter::rewrite(y_mul_yy);
-  z_mul_zz = Rewriter::rewrite(z_mul_zz);
+  x_mul_xx = rr->rewrite(x_mul_xx);
+  y_mul_yy = rr->rewrite(y_mul_yy);
+  z_mul_zz = rr->rewrite(z_mul_zz);
 
   Node x1 = d_nodeManager->mkNode(
       kind::BITVECTOR_UREM,
@@ -2241,6 +2243,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2295,9 +2298,9 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
   ASSERT_EQ(ret, BVGauss::Result::UNIQUE);
   ASSERT_EQ(res.size(), 3);
 
-  n1 = Rewriter::rewrite(n1);
-  n2 = Rewriter::rewrite(n2);
-  z = Rewriter::rewrite(z);
+  n1 = rr->rewrite(n1);
+  n2 = rr->rewrite(n2);
+  z = rr->rewrite(z);
 
   ASSERT_EQ(res[n1], bv::utils::mkConst(48, 4));
   ASSERT_EQ(res[n2], bv::utils::mkConst(48, 2));
@@ -3005,6 +3008,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5a)
 
 TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   /* (bvadd
    *   (bvadd
    *     (bvadd
@@ -3105,7 +3109,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
           kind::BITVECTOR_MULT, bv::utils::mkConst(20, 83), ww));
 
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(plus7), 19);
-  ASSERT_EQ(d_bv_gauss->getMinBwExpr(Rewriter::rewrite(plus7)), 17);
+  ASSERT_EQ(d_bv_gauss->getMinBwExpr(rr->rewrite(plus7)), 17);
 }
 }  // namespace test
 }  // namespace cvc5::internal

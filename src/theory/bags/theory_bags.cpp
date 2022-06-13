@@ -84,6 +84,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(TABLE_PROJECT);
   d_equalityEngine->addFunctionKind(TABLE_AGGREGATE);
   d_equalityEngine->addFunctionKind(TABLE_JOIN);
+  d_equalityEngine->addFunctionKind(TABLE_GROUP);
 }
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
@@ -412,7 +413,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
             Trace("bags-model") << "newElement is " << newElement << std::endl;
             Rational difference = rCardRational - constructedRational;
             Node multiplicity = nm->mkConstInt(difference);
-            Node slackBag = nm->mkBag(elementType, newElement, multiplicity);
+            Node slackBag = nm->mkNode(BAG_MAKE, newElement, multiplicity);
             constructedBag =
                 nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
             constructedBag = rewrite(constructedBag);

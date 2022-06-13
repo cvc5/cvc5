@@ -22,6 +22,9 @@
 #include "theory/theory_rewriter.h"
 
 namespace cvc5::internal {
+
+class Options;
+
 namespace theory {
 namespace datatypes {
 
@@ -38,7 +41,7 @@ namespace datatypes {
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
-  DatatypesRewriter(Evaluator* sygusEval);
+  DatatypesRewriter(Evaluator* sygusEval, const Options& opts);
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
 
@@ -65,13 +68,13 @@ class DatatypesRewriter : public TheoryRewriter
    *   (APPLY_SELECTOR selC x)
    * its expanded form is
    *   (APPLY_SELECTOR selC' x)
-   * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
-   * internal selector function for selC (possibly a shared selector).
+   * where selC' is the internal selector function for selC (a shared selector
+   * if sharedSel is true).
    * Note that we do not introduce an uninterpreted function here, e.g. to
    * handle when the selector is misapplied. This is because it suffices to
    * reason about the original selector term e.g. via congruence.
    */
-  static Node expandApplySelector(Node n);
+  static Node expandApplySelector(Node n, bool sharedSel);
   /**
    * Expand a match term into its definition.
    * For example
@@ -200,6 +203,8 @@ class DatatypesRewriter : public TheoryRewriter
   Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
   /** Pointer to the evaluator, used as an optimization for the above method */
   Evaluator* d_sygusEval;
+  /** Reference to the options */
+  const Options& d_opts;
 };
 
 }  // namespace datatypes

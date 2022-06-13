@@ -37,8 +37,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval)
-    : d_sygusEval(sygusEval)
+DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval, const Options& opts)
+    : d_sygusEval(sygusEval), d_opts(opts)
 {
 }
 
@@ -147,7 +147,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Node ret = sygusToBuiltinEval(ev, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       Trace("dt-sygus-util") << "Type is " << ret.getType() << std::endl;
-      Assert(in.getType().isComparableTo(ret.getType()));
+      Assert(in.getType() == ret.getType());
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
@@ -780,12 +780,11 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-Node DatatypesRewriter::expandApplySelector(Node n)
+Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
-  if (!options::dtSharedSelectors()
-      || !selector.hasAttribute(DTypeConsIndexAttr()))
+  if (!sharedSel || !selector.hasAttribute(DTypeConsIndexAttr()))
   {
     return n;
   }
@@ -798,10 +797,7 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   size_t selectorIndex = utils::indexOf(selector);
   Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
   Assert(selectorIndex < c.getNumArgs());
-  Node selector_use = c.getSelectorInternal(ndt, selectorIndex);
-  NodeManager* nm = NodeManager::currentNM();
-  Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
-  return sel;
+  return utils::applySelector(c, selectorIndex, true, n[0]);
 }
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
@@ -813,7 +809,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   {
     case kind::APPLY_SELECTOR:
     {
-      ret = expandApplySelector(n);
+      ret = expandApplySelector(n, d_opts.datatypes.dtSharedSelectors);
     }
     break;
     case APPLY_UPDATER:
@@ -837,6 +833,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       Trace("dt-expand") << "expr is " << n << std::endl;
       Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;
       Trace("dt-expand") << "t is " << tn << std::endl;
+      bool shareSel = d_opts.datatypes.dtSharedSelectors;
       for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
       {
         if (i == updateIndex)
@@ -845,7 +842,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
         else
         {
-          b << nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
+          b << utils::applySelector(dc, i, shareSel, n[0]);
         }
       }
       ret = b;

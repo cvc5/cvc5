@@ -23,6 +23,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -100,14 +101,14 @@ void BaseSolver::checkInit()
             else
             {
               // should not have two constants in the same equivalence class
-              Assert(cval.getType().isSequence());
               std::vector<Node> cchars = Word::getChars(cval);
               if (cchars.size() == 1)
               {
                 Node oval = prev.isConst() ? n : prev;
-                Assert(oval.getKind() == SEQ_UNIT);
+                Assert(oval.getKind() == SEQ_UNIT
+                       || oval.getKind() == STRING_UNIT);
                 s = oval[0];
-                t = cchars[0].getConst<Sequence>().getVec()[0];
+                t = Word::getNth(cchars[0], 0);
                 // oval is congruent (ignored) in this context
                 d_congruent.insert(oval);
               }
@@ -123,7 +124,7 @@ void BaseSolver::checkInit()
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
-              Assert(s.getType().isComparableTo(t.getType()));
+              Assert(s.getType() == t.getType());
               d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }

@@ -1982,12 +1982,16 @@ void CoreSolver::processDeq(Node ni, Node nj)
     for (size_t i = 0; i < 2; i++)
     {
       NormalForm& nfc = i == 0 ? nfni : nfnj;
-      if (nfc.d_nf.size() == 0 || nfc.d_nf[0].getKind() != SEQ_UNIT)
+      if (nfc.d_nf.size() == 0)
       {
         // may need to look at the other side
         continue;
       }
       Node u = nfc.d_nf[0];
+      if (u.getKind() != SEQ_UNIT && u.getKind() != STRING_UNIT)
+      {
+        continue;
+      }
       // if the other side is constant like
       NormalForm& nfo = i == 0 ? nfnj : nfni;
       if (nfo.d_nf.size() == 0 || !utils::isConstantLike(nfo.d_nf[0]))
@@ -2007,14 +2011,14 @@ void CoreSolver::processDeq(Node ni, Node nj)
           break;
         }
         // get the element of the character
-        vc = vchars[0].getConst<Sequence>().getVec()[0];
+        vc = Word::getNth(vchars[0], 0);
       }
       else
       {
-        Assert(v.getKind() == SEQ_UNIT);
+        Assert(v.getKind() == SEQ_UNIT || v.getKind() == STRING_UNIT);
         vc = v[0];
       }
-      Assert(u[0].getType().isComparableTo(vc.getType()));
+      Assert(u[0].getType() == vc.getType());
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {
@@ -2027,6 +2031,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       Node deq = u.eqNode(v).notNode();
       std::vector<Node> premises;
       premises.push_back(deq);
+      Assert(u[0].getType()==vc.getType());
       Node conc = u[0].eqNode(vc).notNode();
       d_im.sendInference(premises, conc, InferenceId::STRINGS_UNIT_INJ_DEQ, false, true);
       return;
@@ -2442,19 +2447,10 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   TypeNode intType = nm->integerType();
   Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
-  Node ss1, ss2;
-  if (n1.getType().isString())
-  {
-    // substring of length 1
-    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
-    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
-  }
-  else
-  {
-    // as an optimization, for sequences, use seq.nth
-    ss1 = nm->mkNode(SEQ_NTH, n1, k);
-    ss2 = nm->mkNode(SEQ_NTH, n2, k);
-  }
+  // use seq.nth instead of substr
+  Node ss1 = nm->mkNode(SEQ_NTH, n1, k);
+  Node ss2 = nm->mkNode(SEQ_NTH, n2, k);
+
   // disequality between nth/substr
   Node conc1 = ss1.eqNode(ss2).negate();
 

@@ -952,19 +952,49 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node ts = builtin::BuiltinProofRuleChecker::applySubstitution(
         t, children, ids, ida);
     Node eqq = t.eqNode(ts);
+    // should have the same conclusion, if not, then tcpg does not agree with
+    // the substitution.
     if (eq != eqq)
     {
-      pfn = nullptr;
-    }
-    // should give a proof, if not, then tcpg does not agree with the
-    // substitution.
-    if (pfn == nullptr)
-    {
-      warning() << "resort to TRUST_SUBS" << std::endl
-                << eq << std::endl
-                << eqq << std::endl
-                << "from " << children << " applied to " << t << std::endl;
-      cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      // this can happen in very rare cases where e.g. x -> a; f(x) -> b
+      // and t*{x -> a} = t*{x -> a}*{f(x) -> b} != t*{x -> a, f(x) -> b}
+      if (ida == MethodId::SBA_SEQUENTIAL && vsList.size() > 1)
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to sequential reconstruction" << std::endl;
+        // just do the naive sequential reconstruction,
+        // (SUBS F1 ... Fn t) ---> (TRANS (SUBS F1 t) ... (SUBS Fn tn))
+        Node curr = t;
+        std::vector<Node> transChildren;
+        for (size_t i = 0, nvs = vsList.size(); i < nvs; i++)
+        {
+          size_t ii = nvs - 1 - i;
+          TNode var = vsList[ii];
+          TNode subs = ssList[ii];
+          Node next = curr.substitute(var, subs);
+          if (next != curr)
+          {
+            Node eqo = curr.eqNode(next);
+            transChildren.push_back(eqo);
+            // ensure the proof for the substitution exists
+            addProofForSubsStep(var, subs, fromList[ii], cdp);
+            // do the single step SUBS on curr with the default arguments
+            cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, {curr});
+            curr = next;
+          }
+        }
+        Assert(curr == ts);
+        cdp->addStep(eqq, PfRule::TRANS, transChildren, {});
+      }
+      else
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to TRUST_SUBS" << std::endl
+            << eq << std::endl
+            << eqq << std::endl
+            << "from " << children << " applied to " << t << std::endl;
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      }
     }
     else
     {
@@ -1088,9 +1118,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
       Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT,
-                     scalar,
-                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
+          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConstInt(Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());
@@ -1239,9 +1267,8 @@ ProofPostproccess::ProofPostproccess(Env& env,
     : EnvObj(env),
       d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(
-          env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
-      d_finalCb(env.getProofNodeManager()),
+      d_updater(env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
+      d_finalCb(env),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
 }

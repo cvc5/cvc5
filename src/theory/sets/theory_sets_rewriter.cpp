@@ -223,7 +223,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     // we don't merge non-constant intersections
     break;
-  }  // kind::INTERSECION
+  }  // kind::INTERSECTION
 
   case kind::SET_UNION:
   {
@@ -333,6 +333,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }  // kind::SET_IS_SINGLETON
 
   case SET_MAP: return postRewriteMap(node);
+  case SET_FILTER: return postRewriteFilter(node);
 
   case kind::RELATION_TRANSPOSE:
   {
@@ -608,12 +609,11 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   else if (k == kind::SET_INSERT)
   {
     size_t setNodeIndex =  node.getNumChildren()-1;
-    TypeNode elementType = node[setNodeIndex].getType().getSetElementType();
-    Node insertedElements = nm->mkSingleton(elementType, node[0]);
+    Node insertedElements = nm->mkNode(SET_SINGLETON, node[0]);
 
     for (size_t i = 1; i < setNodeIndex; ++i)
     {
-      Node singleton = nm->mkSingleton(elementType, node[i]);
+      Node singleton = nm->mkNode(SET_SINGLETON, node[i]);
       insertedElements =
           nm->mkNode(kind::SET_UNION, insertedElements, singleton);
     }
@@ -641,11 +641,11 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
   Assert(n.getKind() == kind::SET_MAP);
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n[1].getKind();
-  TypeNode rangeType = n[0].getType().getRangeType();
   switch (k)
   {
     case SET_EMPTY:
     {
+      TypeNode rangeType = n[0].getType().getRangeType();
       // (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
       Node ret = nm->mkConst(EmptySet(nm->mkSetType(rangeType)));
       return RewriteResponse(REWRITE_DONE, ret);
@@ -654,7 +654,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
     {
       // (set.map f (set.singleton x)) = (set.singleton (f x))
       Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret = nm->mkSingleton(rangeType, mappedElement);
+      Node ret = nm->mkNode(SET_SINGLETON, mappedElement);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     case SET_UNION:
@@ -662,6 +662,41 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
       // (set.map f (set.union A B)) = (set.union (set.map f A) (set.map f B))
       Node a = nm->mkNode(SET_MAP, n[0], n[1][0]);
       Node b = nm->mkNode(SET_MAP, n[0], n[1][1]);
+      Node ret = nm->mkNode(SET_UNION, a, b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteFilter(TNode n)
+{
+  Assert(n.getKind() == kind::SET_FILTER);
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case SET_EMPTY:
+    {
+      // (set.filter p (as set.empty (Set T)) = (as set.empty (Set T))
+      return RewriteResponse(REWRITE_DONE, n[1]);
+    }
+    case SET_SINGLETON:
+    {
+      // (set.filter p (set.singleton x)) =
+      //       (ite (p x) (set.singleton x) (as set.empty (Set T)))
+      Node empty = nm->mkConst(EmptySet(n.getType()));
+      Node condition = nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = nm->mkNode(ITE, condition, n[1], empty);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case SET_UNION:
+    {
+      // (set.filter p (set.union A B)) =
+      //   (set.union (set.filter p A) (set.filter p B))
+      Node a = nm->mkNode(SET_FILTER, n[0], n[1][0]);
+      Node b = nm->mkNode(SET_FILTER, n[0], n[1][1]);
       Node ret = nm->mkNode(SET_UNION, a, b);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }

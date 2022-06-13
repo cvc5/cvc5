@@ -54,7 +54,7 @@ struct MemberTypeRule
 };
 
 /**
- * Type rule for (set.singleton (SetSingletonOp t) x) to check the sort of x
+ * Type rule for (set.singleton x) to check the sort of x
  * matches the sort t.
  */
 struct SingletonTypeRule
@@ -139,6 +139,15 @@ struct SetMapTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct SetMapTypeRule */
+
+/**
+ * Type rule for (set.filter p A) to make sure p is a unary predicate of type
+ * (-> T Bool) where A is a set of type (Set T)
+ */
+struct SetFilterTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct SetFilterTypeRule */
 
 /**
  * Type rule for binary operators (rel.join, rel.product) to check

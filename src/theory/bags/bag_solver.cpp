@@ -302,12 +302,12 @@ void BagSolver::checkFilter(Node n)
 
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.filterDownwards(n, d_state.getRepresentative(e));
+    InferInfo i = d_ig.filterDown(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.filterUpwards(n, d_state.getRepresentative(e));
+    InferInfo i = d_ig.filterUp(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }

@@ -167,15 +167,14 @@ class LfscTester(Tester):
 
     def run(self, benchmark_info):
         with tempfile.NamedTemporaryFile() as tmpf:
-            proof_args = [
+            cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
             ]
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
-                + benchmark_info.command_line_args
-                + proof_args
+                + cvc5_args
                 + [benchmark_info.benchmark_basename],
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
@@ -184,12 +183,12 @@ class LfscTester(Tester):
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(
-                "cvc5", EXIT_OK, exit_status, output, error, benchmark_info.command_line_args)
+                "cvc5", EXIT_OK, exit_status, output, error, cvc5_args)
             if exit_code:
                 return exit_code
             if "check" not in output:
-                print('not ok (cvc5) - Empty proof - Flags: {}'.format(exit_status,
-                      benchmark_info.command_line_args))
+                print(
+                    'not ok (cvc5) - Empty proof - Flags: {}'.format(exit_status, cvc5_args))
                 print()
                 print_outputs(output, error)
                 return EXIT_FAILURE
@@ -201,16 +200,15 @@ class LfscTester(Tester):
             )
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(
-                "lfsc", EXIT_OK, exit_status, output, error, benchmark_info.command_line_args)
+                "lfsc", EXIT_OK, exit_status, output, error, cvc5_args)
             if exit_code:
                 return exit_code
             if "success" not in output:
-                print(
-                    "not ok (lfsc) - Unexpected output - Flags: {}".format(benchmark_info.command_line_args))
+                print("not ok (lfsc) - Unexpected output - Flags: {}".format(cvc5_args))
                 print()
                 print_outputs(output, error)
                 return EXIT_FAILURE
-        print("ok - Flags: {}".format(benchmark_info.command_line_args))
+        print("ok - Flags: {}".format(cvc5_args))
         return EXIT_OK
 
 
@@ -615,6 +613,8 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
+                if disable_tester == "proof" and "lfsc" in testers:
+                    testers.remove("lfsc")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()

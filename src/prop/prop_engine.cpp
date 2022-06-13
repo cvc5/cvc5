@@ -74,7 +74,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
-      d_theoryLemmaPg(d_env.getProofNodeManager(), d_env.getUserContext()),
+      d_theoryLemmaPg(d_env.getProofNodeManager(),
+                      d_env.getUserContext(),
+                      "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -175,6 +177,7 @@ void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
     Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
     output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
   }
+  Assert(lhs.getType() == rhs.getType());
 }
 
 void PropEngine::assertInputFormulas(
@@ -239,7 +242,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   if (isProofEnabled() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
-    d_theoryLemmaPg.addStep(node, PfRule::THEORY_LEMMA, {}, {node});
+    Node actualNode = negated ? node.notNode() : node;
+    d_theoryLemmaPg.addStep(actualNode, PfRule::THEORY_LEMMA, {}, {actualNode});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
@@ -288,11 +292,16 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // Assert to decision engine. Notice this must come before the calls to
-  // assertTrustedLemmaInternal below, since the decision engine requires
-  // setting up information about the relevance of skolems before literals
-  // are potentially asserted to the theory engine, which it listens to for
-  // tracking active skolem definitions.
+  // Assert to decision engine first.
+  // Note that this order is important for theories that send lemmas during
+  // preregistration, as it impacts the order in which lemmas are processed
+  // by default by the decision engine. In particular, sending to the SAT
+  // solver first means that lemmas sent during preregistration in response to
+  // the current lemma are processed after that lemma. This makes a difference
+  // e.g. for string reduction lemmas, where preregistration lemmas are
+  // introduced for skolems that appear in reductions. Moving this
+  // block after the one below has mixed (trending negative) performance on
+  // SMT-LIB strings logics.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -331,13 +340,18 @@ bool PropEngine::isDecision(Node lit) const {
 
 std::vector<Node> PropEngine::getPropDecisions() const
 {
-  std::vector<Node> decisions; 
+  std::vector<Node> decisions;
   std::vector<SatLiteral> miniDecisions = d_satSolver->getDecisions();
   for (SatLiteral d : miniDecisions)
   {
     decisions.push_back(d_cnfStream->getNode(d));
   }
   return decisions;
+}
+
+std::vector<Node> PropEngine::getPropOrderHeap() const
+{
+  return d_satSolver->getOrderHeap();
 }
 
 int32_t PropEngine::getDecisionLevel(Node lit) const
@@ -714,6 +728,11 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
 std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
 {
   return d_theoryProxy->getLearnedZeroLevelLiteralsForRestart();
+}
+
+modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
+{
+  return d_theoryProxy->getLiteralType(lit);
 }
 
 }  // namespace prop

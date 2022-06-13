@@ -245,7 +245,7 @@ bool CandidateRewriteFilter::notify(Node s,
   {
     // By using internal representation of terms, we ensure polymorphism is
     // handled correctly.
-    Assert(vars[i].getType().isComparableTo(subs[i].getType()));
+    Assert(vars[i].getType() == subs[i].getType());
   }
 #endif
   // must convert the inferred substitution to original form

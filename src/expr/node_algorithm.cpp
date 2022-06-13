@@ -800,7 +800,7 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
     visited.insert(curr);
     if (curr.first.getNumChildren() == 0)
     {
-      if (!curr.first.getType().isComparableTo(curr.second.getType()))
+      if (curr.first.getType() != curr.second.getType())
       {
         // the two subterms have different types
         return false;

@@ -235,11 +235,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
       static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
 
   Node s01 = d_nodeManager->mkConst(Sequence(intType, {zero, one}));
-  Node sx = d_nodeManager->mkSeqUnit(intType, x);
-  Node sy = d_nodeManager->mkSeqUnit(intType, y);
-  Node sz = d_nodeManager->mkSeqUnit(intType, z);
-  Node sw = d_nodeManager->mkSeqUnit(intType, w);
-  Node sv = d_nodeManager->mkSeqUnit(intType, v);
+  Node sx = d_nodeManager->mkNode(SEQ_UNIT, x);
+  Node sy = d_nodeManager->mkNode(SEQ_UNIT, y);
+  Node sz = d_nodeManager->mkNode(SEQ_UNIT, z);
+  Node sw = d_nodeManager->mkNode(SEQ_UNIT, w);
+  Node sv = d_nodeManager->mkNode(SEQ_UNIT, v);
   Node xyz = d_nodeManager->mkNode(STRING_CONCAT, sx, sy, sz);
   Node wv = d_nodeManager->mkNode(STRING_CONCAT, sw, sv);
 
@@ -435,11 +435,11 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_update)
   Node one = d_nodeManager->mkConstInt(1);
   Node three = d_nodeManager->mkConstInt(3);
 
-  Node sx = d_nodeManager->mkSeqUnit(intType, x);
-  Node sy = d_nodeManager->mkSeqUnit(intType, y);
-  Node sz = d_nodeManager->mkSeqUnit(intType, z);
-  Node sw = d_nodeManager->mkSeqUnit(intType, w);
-  Node sv = d_nodeManager->mkSeqUnit(intType, v);
+  Node sx = d_nodeManager->mkNode(SEQ_UNIT, x);
+  Node sy = d_nodeManager->mkNode(SEQ_UNIT, y);
+  Node sz = d_nodeManager->mkNode(SEQ_UNIT, z);
+  Node sw = d_nodeManager->mkNode(SEQ_UNIT, w);
+  Node sv = d_nodeManager->mkNode(SEQ_UNIT, v);
   Node xyz = d_nodeManager->mkNode(STRING_CONCAT, sx, sy, sz);
   Node wv = d_nodeManager->mkNode(STRING_CONCAT, sw, sv);
 
