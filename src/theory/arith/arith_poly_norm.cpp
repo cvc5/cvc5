@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -158,7 +158,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
-    Assert(k != CONST_RATIONAL);
+    Assert(k != CONST_RATIONAL && k != CONST_INTEGER);
     if (k == MULT || k == NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
@@ -188,7 +188,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
     Kind k = cur.getKind();
     if (it == visited.end())
     {
-      if (k == CONST_RATIONAL)
+      if (k == CONST_RATIONAL || k == CONST_INTEGER)
       {
         Rational r = cur.getConst<Rational>();
         if (r.sgn() == 0)
@@ -247,7 +247,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
-        case CONST_RATIONAL: break;
+        case CONST_RATIONAL:
+        case CONST_INTEGER: break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "theory/sets/normal_form.h"
-#include "theory/sets/singleton_op.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -78,11 +77,8 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
     TypeNode secondSetType = n[1].getType(check);
     if (secondSetType != setType)
     {
-      if (!setType.isComparableTo(secondSetType))
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "set subset operating on sets of different types");
-      }
+      throw TypeCheckingExceptionPrivate(
+          n, "set subset operating on sets of different types");
     }
   }
   return nodeManager->booleanType();
@@ -104,12 +100,12 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
     TypeNode elementType = n[0].getType(check);
     // e.g. (member 1 (singleton 1.0)) is true whereas
     // (member 1.0 (singleton 1)) throws a typing error
-    if (!elementType.isSubtypeOf(setType.getSetElementType()))
+    if (elementType != setType.getSetElementType())
     {
       std::stringstream ss;
       ss << "member operating on sets of different types:\n"
          << "child type:  " << elementType << "\n"
-         << "not subtype: " << setType.getSetElementType() << "\n"
+         << "not type: " << setType.getSetElementType() << "\n"
          << "in term : " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -121,25 +117,8 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
                                         bool check)
 {
-  Assert(n.getKind() == kind::SET_SINGLETON && n.hasOperator()
-         && n.getOperator().getKind() == kind::SET_SINGLETON_OP);
-
-  const SetSingletonOp& op = n.getOperator().getConst<SetSingletonOp>();
-  TypeNode type1 = op.getType();
-  if (check)
-  {
-    TypeNode type2 = n[0].getType(check);
-    TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
-    // the type of the element should be a subtype of the type of the operator
-    // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
-    if (leastCommonType.isNull() || leastCommonType != type1)
-    {
-      std::stringstream ss;
-      ss << "The type '" << type2 << "' of the element is not a subtype of '"
-         << type1 << "' in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-  }
+  Assert(n.getKind() == kind::SET_SINGLETON);
+  TypeNode type1 = n[0].getType(check);
   return nodeManager->mkSetType(type1);
 }
 
@@ -333,6 +312,48 @@ TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
   TypeNode rangeType = n[0].getType().getRangeType();
   TypeNode retType = nodeManager->mkSetType(rangeType);
   return retType;
+}
+
+TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
+                                        TNode n,
+                                        bool check)
+{
+  Assert(n.getKind() == kind::SET_FILTER);
+  TypeNode functionType = n[0].getType(check);
+  TypeNode setType = n[1].getType(check);
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "set.filter operator expects a set in the second argument, "
+          "a non-set is found");
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " Bool) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    NodeManager* nm = NodeManager::currentNM();
+    if (!(argTypes.size() == 1 && argTypes[0] == elementType
+          && functionType.getRangeType() == nm->booleanType()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " Bool). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return setType;
 }
 
 TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,

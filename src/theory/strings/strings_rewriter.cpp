@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,6 +72,10 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
   else if (nk == STRING_FROM_CODE)
   {
     retNode = rewriteStringFromCode(node);
+  }
+  else if (nk == STRING_UNIT)
+  {
+    retNode = rewriteStringUnit(node);
   }
   else
   {
@@ -324,6 +328,24 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
                             nm->mkNode(LEQ, nm->mkConstInt(Rational(48)), t),
                             nm->mkNode(LEQ, t, nm->mkConstInt(Rational(57))));
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
+}
+
+Node StringsRewriter::rewriteStringUnit(Node n)
+{
+  Assert(n.getKind() == STRING_UNIT);
+  NodeManager* nm = NodeManager::currentNM();
+  if (n[0].isConst())
+  {
+    Integer i = n[0].getConst<Rational>().getNumerator();
+    Node ret;
+    if (i >= 0 && i < d_alphaCard)
+    {
+      std::vector<unsigned> svec = {i.toUnsignedInt()};
+      ret = nm->mkConst(String(svec));
+      return returnRewrite(n, ret, Rewrite::SEQ_UNIT_EVAL);
+    }
+  }
+  return n;
 }
 
 }  // namespace strings

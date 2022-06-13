@@ -184,6 +184,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "do global negation of input formula"
 
+[[option]]
+  name       = "mbqi"
+  category   = "expert"
+  long       = "mbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "use model-based quantifier instantiation"
+
 #### E-matching options
 
 [[option]]
@@ -559,6 +567,14 @@ name   = "Quantifiers"
   default    = "true"
   help       = "pool-based instantiation: instantiate with ground terms occurring in user-specified pools"
 
+[[option]]
+  name       = "oracles"
+  category   = "expert"
+  long       = "oracles"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable interface to external oracles"
+
 ### Finite model finding options
 
 [[option]]
@@ -594,10 +610,10 @@ name   = "Quantifiers"
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
-  name       = "mbqiMode"
+  name       = "fmfMbqiMode"
   category   = "expert"
-  long       = "mbqi=MODE"
-  type       = "MbqiMode"
+  long       = "fmf-mbqi=MODE"
+  type       = "FmfMbqiMode"
   default    = "FMC"
   help       = "choose mode for model-based quantifier instantiation"
   help_mode  = "Model-based quantifier instantiation modes."
@@ -650,6 +666,14 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
+
+[[option]]
+  name       = "fmfBoundBlast"
+  category   = "expert"
+  long       = "fmf-bound-blast"
+  type       = "bool"
+  default    = "false"
+  help       = "send all instantiations for bounded ranges in a single round"
 
 ### Conflict-based instantiation options
 
@@ -773,30 +797,6 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "1"
   help       = "number of conjectures to generate per instantiation round"
-
-[[option]]
-  name       = "conjectureFilterActiveTerms"
-  category   = "expert"
-  long       = "conjecture-filter-active-terms"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on active terms"
-
-[[option]]
-  name       = "conjectureFilterCanonical"
-  category   = "expert"
-  long       = "conjecture-filter-canonical"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on canonicity"
-
-[[option]]
-  name       = "conjectureFilterModel"
-  category   = "expert"
-  long       = "conjecture-filter-model"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on model"
 
 [[option]]
   name       = "conjectureGenGtEnum"

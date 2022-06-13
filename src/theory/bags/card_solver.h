@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -118,9 +118,6 @@ class CardSolver : protected EnvObj
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
   NodeManager* d_nm;
-
-  /** bag reduction */
-  BagReduction d_bagReduction;
 
   /**
    * A map from bag representatives to sets of bag representatives with the

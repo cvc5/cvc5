@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,15 +28,15 @@
 
 namespace cvc5::internal {
 
-using ::cvc5::internal::context::CDHashMap;
-using ::cvc5::internal::context::CDHashSet;
-using ::cvc5::internal::context::Context;
-using ::std::copy;
-using ::std::endl;
-using ::std::ostream_iterator;
-using ::std::pair;
-using ::std::string;
-using ::std::vector;
+using context::CDHashMap;
+using context::CDHashSet;
+using context::Context;
+using std::copy;
+using std::endl;
+using std::ostream_iterator;
+using std::pair;
+using std::string;
+using std::vector;
 
 /** Overloaded type trie.
  *
@@ -246,20 +246,15 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
     argTypes = t.getFunctionDomainSorts();
     rangeType = t.getFunctionCodomainSort();
   }
-  else if (t.isConstructor())
+  else if (t.isDatatypeConstructor())
   {
-    argTypes = t.getConstructorDomainSorts();
-    rangeType = t.getConstructorCodomainSort();
+    argTypes = t.getDatatypeConstructorDomainSorts();
+    rangeType = t.getDatatypeConstructorCodomainSort();
   }
-  else if (t.isTester())
+  else if (t.isDatatypeSelector())
   {
-    argTypes.push_back(t.getTesterDomainSort());
-    rangeType = t.getTesterCodomainSort();
-  }
-  else if (t.isSelector())
-  {
-    argTypes.push_back(t.getSelectorDomainSort());
-    rangeType = t.getSelectorCodomainSort();
+    argTypes.push_back(t.getDatatypeSelectorDomainSort());
+    rangeType = t.getDatatypeSelectorCodomainSort();
   }
   // add to the trie
   TypeArgTrie* tat = &d_overload_type_arg_trie[name];

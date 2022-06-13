@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 using namespace cvc5::internal::theory::quantifiers::inst;
 
 namespace cvc5::internal {
@@ -69,6 +69,8 @@ InstantiationEngine::InstantiationEngine(Env& env,
 
 InstantiationEngine::~InstantiationEngine() {}
 
+std::string InstantiationEngine::identify() const { return "InstEngine"; }
+
 void InstantiationEngine::presolve() {
   for( unsigned i=0; i<d_instStrategies.size(); ++i ){
     d_instStrategies[i]->presolve();
@@ -83,7 +85,7 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   bool finished = false;
   //while unfinished, try effort level=0,1,2....
   while( !finished && e<=eLimit ){
-    Trace("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
+    Trace("inst-engine-debug") << "IE: Prepare instantiation (" << e << ")." << std::endl;
     finished = true;
     //instantiate each quantifier
     for( unsigned i=0; i<d_quants.size(); i++ ){

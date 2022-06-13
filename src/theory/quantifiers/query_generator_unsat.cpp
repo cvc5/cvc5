@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,11 +32,11 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(d_env.getOriginalOptions());
-  d_subOptions.quantifiers.sygus = false;
-  d_subOptions.smt.produceProofs = true;
-  d_subOptions.smt.checkProofs = true;
-  d_subOptions.smt.produceModels = true;
-  d_subOptions.smt.checkModels = true;
+  d_subOptions.writeQuantifiers().sygus = false;
+  d_subOptions.writeSmt().produceProofs = true;
+  d_subOptions.writeSmt().checkProofs = true;
+  d_subOptions.writeSmt().produceModels = true;
+  d_subOptions.writeSmt().checkModels = true;
 }
 
 bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)

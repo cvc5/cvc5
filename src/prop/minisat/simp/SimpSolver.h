@@ -44,8 +44,8 @@ class SimpSolver : public Solver {
     //
   SimpSolver(Env& env,
              cvc5::internal::prop::TheoryProxy* proxy,
-             cvc5::internal::context::Context* context,
-             cvc5::internal::context::UserContext* userContext,
+             context::Context* context,
+             context::UserContext* userContext,
              ProofNodeManager* pnm,
              bool enableIncremental = false);
   ~SimpSolver();

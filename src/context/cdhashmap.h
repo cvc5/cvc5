@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Dejan Jovanovic
+ *   Morgan Deters, Mikolas Janota, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,8 +91,7 @@
 #include "context/cdhashmap_forward.h"
 #include "context/context.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 
 // Auxiliary class: almost the same as CDO (see cdo.h)
 
@@ -407,7 +406,6 @@ class CDHashMap : public ContextObj
 
 }; /* class CDHashMap<> */
 
-}  // namespace context
-}  // namespace cvc5::internal
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDHASHMAP_H */

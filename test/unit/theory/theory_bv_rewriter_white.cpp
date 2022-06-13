@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,6 +44,7 @@ class TestTheoryWhiteBvRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_to_fixpoint)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   TypeNode bvType = d_nodeManager->mkBitVectorType(1);
 
@@ -62,12 +63,13 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_to_fixpoint)
           d_nodeManager->mkNode(BITVECTOR_ITE, boolToBv(b3), zero, bv),
           bv),
       bv);
-  Node nr = Rewriter::rewrite(n);
-  ASSERT_EQ(nr, Rewriter::rewrite(nr));
+  Node nr = rr->rewrite(n);
+  ASSERT_EQ(nr, rr->rewrite(nr));
 }
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_concat_to_fixpoint)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   TypeNode bvType = d_nodeManager->mkBitVectorType(4);
 
@@ -80,12 +82,13 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_concat_to_fixpoint)
       BITVECTOR_CONCAT,
       bv::utils::mkExtract(d_nodeManager->mkNode(BITVECTOR_CONCAT, x, y), 7, 0),
       z);
-  Node nr = Rewriter::rewrite(n);
-  ASSERT_EQ(nr, Rewriter::rewrite(nr));
+  Node nr = rr->rewrite(n);
+  ASSERT_EQ(nr, rr->rewrite(nr));
 }
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   TypeNode bvType = d_nodeManager->mkBitVectorType(1);
 
@@ -95,19 +98,20 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
 
   Node ite = d_nodeManager->mkNode(BITVECTOR_ITE, c2, zero, zero);
   Node n = d_nodeManager->mkNode(BITVECTOR_ITE, c1, ite, ite);
-  Node nr = Rewriter::rewrite(n);
-  ASSERT_EQ(nr, Rewriter::rewrite(nr));
+  Node nr = rr->rewrite(n);
+  ASSERT_EQ(nr, rr->rewrite(nr));
 }
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_comp)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   TypeNode bvType = d_nodeManager->mkBitVectorType(1);
   Node zero = d_nodeManager->mkConst(BitVector(1, 0u));
   Node x = d_nodeManager->mkVar("x", bvType);
   Node lhs = d_nodeManager->mkNode(BITVECTOR_NOT, x);
   Node rhs = d_nodeManager->mkNode(BITVECTOR_AND, zero, zero);
   Node n = d_nodeManager->mkNode(BITVECTOR_COMP, lhs, rhs);
-  Node nr = Rewriter::rewrite(n);
+  Node nr = rr->rewrite(n);
   // bvcomp(bvnot(x), bvand(0, 0)) ---> x
   ASSERT_EQ(nr, x);
 }

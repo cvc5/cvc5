@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Mudathir Mohamed, Aina Niemetz
+ *   Abdalrhman Mohamed, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +59,7 @@ int main()
   Term leq = slv.mkTerm(LEQ, {start, start});
 
   // create the grammar object
-  Grammar g = slv.mkSygusGrammar({x, y}, {start, start_bool});
+  Grammar g = slv.mkGrammar({x, y}, {start, start_bool});
 
   // bind each non-terminal to its rules
   g.addRules(start, {zero, one, x, y, plus, minus, ite});
@@ -71,8 +71,8 @@ int main()
   Term min = slv.synthFun("min", {x, y}, integer);
 
   // declare universal variables.
-  Term varX = slv.declareSygusVar(integer, "x");
-  Term varY = slv.declareSygusVar(integer, "y");
+  Term varX = slv.declareSygusVar("x", integer);
+  Term varY = slv.declareSygusVar("y", integer);
 
   Term max_x_y = slv.mkTerm(APPLY_UF, {max, varX, varY});
   Term min_x_y = slv.mkTerm(APPLY_UF, {min, varX, varY});

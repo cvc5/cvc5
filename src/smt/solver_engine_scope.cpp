@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,14 +27,6 @@ namespace cvc5::internal {
 namespace smt {
 
 thread_local SolverEngine* s_slvEngine_current = nullptr;
-
-SolverEngine* currentSolverEngine()
-{
-  Assert(s_slvEngine_current != nullptr);
-  return s_slvEngine_current;
-}
-
-bool solverEngineInScope() { return s_slvEngine_current != nullptr; }
 
 ResourceManager* currentResourceManager()
 {
@@ -60,7 +52,7 @@ SolverEngineScope::~SolverEngineScope()
 
 StatisticsRegistry& SolverEngineScope::currentStatisticsRegistry()
 {
-  Assert(solverEngineInScope());
+  Assert(s_slvEngine_current != nullptr);
   return s_slvEngine_current->getStatisticsRegistry();
 }
 

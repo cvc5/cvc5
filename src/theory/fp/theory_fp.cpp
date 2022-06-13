@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Andrew Reynolds, Andres Noetzli
+ *   Martin Brain, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -430,7 +430,8 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
     NodeManager* nm = NodeManager::currentNM();
 
     handleLemma(
-        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::internal::BitVector(1U, 1U))),
+        nm->mkNode(
+            kind::EQUAL, addA, nm->mkConst(cvc5::internal::BitVector(1U, 1U))),
         InferenceId::FP_EQUATE_TERM);
 
     ++oldSize;
@@ -447,11 +448,12 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
       NodeManager* nm = NodeManager::currentNM();
 
       handleLemma(
-          nm->mkNode(kind::EQUAL,
-                     node,
-                     nm->mkNode(kind::EQUAL,
-                                wordBlasted,
-                                nm->mkConst(::cvc5::internal::BitVector(1U, 1U)))),
+          nm->mkNode(
+              kind::EQUAL,
+              node,
+              nm->mkNode(kind::EQUAL,
+                         wordBlasted,
+                         nm->mkConst(cvc5::internal::BitVector(1U, 1U)))),
           InferenceId::FP_EQUATE_TERM);
     }
     else

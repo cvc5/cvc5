@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@ namespace datatypes {
 class DatatypesProofRuleChecker : public ProofRuleChecker
 {
  public:
-  DatatypesProofRuleChecker() {}
+  DatatypesProofRuleChecker(bool sharedSel) : d_sharedSel(sharedSel) {}
   ~DatatypesProofRuleChecker() {}
 
   /** Register all rules owned by this rule checker into pc. */
@@ -41,6 +41,8 @@ class DatatypesProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
+  /** Whether we are using shared selectors */
+  bool d_sharedSel;
 };
 
 }  // namespace datatypes

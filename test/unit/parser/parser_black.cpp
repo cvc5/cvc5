@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Morgan Deters
+ *   Aina Niemetz, Christopher L. Conway, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,9 +66,9 @@ class TestParserBlackParser : public TestInternal
     cvc5::Sort u = parser.mkSort("u");
     cvc5::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.bindVar("f", d_solver.get()->mkFunctionSort(t, u));
-    parser.bindVar("g", d_solver.get()->mkFunctionSort(u, v));
-    parser.bindVar("h", d_solver.get()->mkFunctionSort(v, t));
+    parser.bindVar("f", d_solver.get()->mkFunctionSort({t}, u));
+    parser.bindVar("g", d_solver.get()->mkFunctionSort({u}, v));
+    parser.bindVar("h", d_solver.get()->mkFunctionSort({v}, t));
     /* x:t; y:u; z:v; */
     parser.bindVar("x", t);
     parser.bindVar("y", u);

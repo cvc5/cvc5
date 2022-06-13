@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -176,7 +176,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       Node sub;
       std::vector<unsigned> sub_vars;
       // return skolemized body
-      ret = Skolemize::mkSkolemizedBody(n, nn, fvs, sk, sub, sub_vars);
+      ret =
+          Skolemize::mkSkolemizedBody(options(), n, nn, fvs, sk, sub, sub_vars);
     }
     visited[key] = ret;
     return ret;

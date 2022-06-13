@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -24,7 +25,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -287,8 +288,11 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
+      bool shareSel = options().datatypes.dtSharedSelectors;
       Node ret = nm->mkNode(
-          APPLY_SELECTOR, dt[i].getSelectorInternal(headType, 0), en[0]);
+          APPLY_SELECTOR,
+          datatypes::utils::getSelector(headType, dt[i], 0, shareSel),
+          en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -297,7 +301,8 @@ Node SygusEvalUnfold::unfold(Node en,
 
   Assert(!dt.isParametric());
   std::map<int, Node> pre;
-  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+  bool sharedSel = options().datatypes.dtSharedSelectors;
+  for (size_t j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
   {
     std::vector<Node> cc;
     Node s;
@@ -310,8 +315,8 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
-      s = nm->mkNode(
-          APPLY_SELECTOR, dt[i].getSelectorInternal(headType, j), en[0]);
+      Node sel = datatypes::utils::getSelector(headType, dt[i], j, sharedSel);
+      s = nm->mkNode(APPLY_SELECTOR, sel, en[0]);
     }
     cc.push_back(s);
     if (track_exp)

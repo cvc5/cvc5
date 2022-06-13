@@ -39,9 +39,11 @@ The numbers ``n1 ... nk`` denote the number of type
 parameters for the datatype, where ``0`` is used for non-parametric datatypes.
 
 In addition to declaring symbols for constructors and selectors, the above
-command also adds tester (or "discriminator") indexed symbols of the form
+command also allows for tester (or "discriminator") indexed symbols of the form
 ``(_ is C)`` for each constructor ``C``, which are unary predicates which
-evaluate to true iff their argument has top-symbol ``C``.
+evaluate to true iff their argument has top-symbol ``C``. It also allows for
+updater indexed symbols of the form ``(_ update Sij)`` for each selector ``Sij``,
+whose semantics are described below.
 
 Semantics
 ---------
@@ -109,6 +111,29 @@ Examples
    (assert (and (= (fname x) "John") (= (lname x) "Smith")))
    (check-sat)
 
+Datatype Updaters
+--------------------
+
+Datatype updaters are a (non-standard) extension available in datatype logics.
+The term:
+
+.. code:: smtlib
+
+   ((_ update Sij) t u)
+
+is equivalent to replacing the field of ``t`` denoted by the selector ``Sij``
+with the value ``u``, or ``t`` itself if that selector does not apply to the
+constructor symbol of ``t``.  For example, for the list datatype, we have that:
+
+.. code:: smtlib
+
+   ((_ update head) (cons 4 nil) 7) = (cons 7 nil)
+   ((_ update tail) (cons 4 nil) (cons 5 nil)) = (cons 4 (cons 5 nil))
+   ((_ update head) nil 5) = nil
+
+Note that datatype updaters can be seen as syntax sugar for an if-then-else
+term that checks whether the constructor of ``t`` is the same as the one
+associated with the given selector.
 
 Parametric Datatypes
 --------------------
@@ -169,7 +194,7 @@ Syntax/API
 ----------
 
 For the C++ API examples in the table below, we assume that we have created
-a `cvc5::api::Solver solver` object.
+a `cvc5::Solver solver` object.
 
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 |                    | SMTLIB language                        | C++ API                                                                                                                         |
@@ -184,7 +209,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term ci = dt[i].getConstructorTerm();``                                                                                       |
+|                    |                                        | ``Term ci = dt[i].getTerm();``                                                                                                  |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {ci, <Term_1>, ..., <Term_n>});``                                             |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -192,7 +217,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term sij = dt[i].getSelector(j).getSelectorTerm();``                                                                          |
+|                    |                                        | ``Term sij = dt[i].getSelector(j).getTerm();``                                                                                  |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_SELECTOR, {sij, t});``                                                                     |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -212,7 +237,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_TESTER, {upd, t, u});``                                                                    |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Sort         | ``(Tuple <Sort_1>, ..., <Sort_n>)``    | ``std::vector<cvc5::api::Sort> sorts = { ... };``                                                                               |
+| Tuple Sort         | ``(Tuple <Sort_1>, ..., <Sort_n>)``    | ``std::vector<cvc5::Sort> sorts = { ... };``                                                                                    |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -226,7 +251,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getConstructorTerm();``                                                                                        |
+|                    |                                        | ``Term c = dt[0].getTerm();``                                                                                                   |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -234,7 +259,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term sel = dt[0].getSelector(i).getSelectorTerm();``                                                                          |
+|                    |                                        | ``Term sel = dt[0].getSelector(i).getTerm();``                                                                                  |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_SELECTOR, {sel, t});``                                                                     |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -268,7 +293,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getConstructorTerm();``                                                                                        |
+|                    |                                        | ``Term c = dt[0].getTerm();``                                                                                                   |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+

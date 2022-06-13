@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -106,7 +106,6 @@ cvc5_option(USE_EDITLINE      "Use Editline for better interactive support")
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_POLY               "Use LibPoly for polynomial arithmetic")
 option(USE_COCOA              "Use CoCoALib for further polynomial operations")
-option(USE_PYTHON2            "Force Python 2 (deprecated)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -295,12 +294,7 @@ else()
   endif()
 endif()
 
-if(USE_PYTHON2)
-  find_package(PythonInterp 2.7 REQUIRED)
-else()
-  find_package(PythonInterp 3 REQUIRED)
-endif()
-
+find_package(PythonInterp 3 REQUIRED)
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -350,6 +344,7 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
+  add_check_c_cxx_flag("-gz")
 endif()
 
 if(ENABLE_COMP_INC_TRACK)
@@ -615,7 +610,6 @@ message("")
 print_config("Shared build              " ${BUILD_SHARED_LIBS})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
-print_config("Python2                   " ${USE_PYTHON2})
 print_config("Interprocedural opt.      " ${ENABLE_IPO})
 message("")
 print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT} FOUND_SYSTEM ${CryptoMiniSat_FOUND_SYSTEM})

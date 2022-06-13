@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -835,12 +835,12 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
 bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
   Assert(v.getKind() == BOUND_VARIABLE);
-  return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
+  return !expr::hasSubterm(s, v) && s.getType() == v.getType();
 }
 
 Node QuantifiersRewriter::getVarElimEq(Node lit,
                                        const std::vector<Node>& args,
-                                       Node& var)
+                                       Node& var) const
 {
   Assert(lit.getKind() == EQUAL);
   Node slv;
@@ -862,7 +862,7 @@ Node QuantifiersRewriter::getVarElimEq(Node lit,
 
 Node QuantifiersRewriter::getVarElimEqReal(Node lit,
                                            const std::vector<Node>& args,
-                                           Node& var)
+                                           Node& var) const
 {
   // for arithmetic, solve the equality
   std::map<Node, Node> msum;
@@ -896,7 +896,7 @@ Node QuantifiersRewriter::getVarElimEqReal(Node lit,
 
 Node QuantifiersRewriter::getVarElimEqBv(Node lit,
                                          const std::vector<Node>& args,
-                                         Node& var)
+                                         Node& var) const
 {
   if (TraceIsOn("quant-velim-bv"))
   {
@@ -914,7 +914,7 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
   std::vector<Node> active_args;
   computeArgVec(args, active_args, lit);
 
-  BvInverter binv;
+  BvInverter binv(d_opts);
   for (const Node& cvar : active_args)
   {
     // solve for the variable on this path using the inverter
@@ -947,7 +947,7 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
 
 Node QuantifiersRewriter::getVarElimEqString(Node lit,
                                              const std::vector<Node>& args,
-                                             Node& var)
+                                             Node& var) const
 {
   Assert(lit.getKind() == EQUAL);
   NodeManager* nm = NodeManager::currentNM();
@@ -1124,7 +1124,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           << "Variable eliminate based on theory-specific solving : " << var
           << " -> " << slv << std::endl;
       Assert(!expr::hasSubterm(slv, var));
-      Assert(slv.getType().isSubtypeOf(var.getType()));
+      Assert(slv.getType() == var.getType());
       vars.push_back(var);
       subs.push_back(slv);
       args.erase(ita);

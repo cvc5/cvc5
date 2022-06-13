@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Francois Bobot, Haniel Barbosa
+ *   Francois Bobot, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -182,6 +182,10 @@ class Tptp : public Parser {
   void addArithmeticOperators();
   /** is the name declared, if so, return the term for that name */
   cvc5::Term isTptpDeclared(const std::string& name);
+  /**
+   * Make APPLY_UF from arguments, which ensures that subyping is not used.
+   */
+  Term makeApplyUf(std::vector<Term>& args);
 
   // In CNF variable are implicitly binded
   // d_freevar collect them

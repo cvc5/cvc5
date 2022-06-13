@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -364,13 +364,14 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out) const
-  {
-    d_nv->toStream(out, -1, 0);
+  inline void toStream(std::ostream& out) const {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    d_nv->toStream(out);
   }
 
   /**
-   * Very basic pretty printer for Node.
+   * Very basic pretty printer for TypeNode.
    *
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -432,17 +433,6 @@ private:
    */
   bool isWellFounded() const;
 
-  /**
-   * Is this type a subtype of the given type?
-   */
-  bool isSubtypeOf(TypeNode t) const;
-
-  /**
-   * Is this type comparable to the given type (i.e., do they share
-   * a common ancestor in the subtype tree)?
-   */
-  bool isComparableTo(TypeNode t) const;
-
   /** Is this the Boolean type? */
   bool isBoolean() const;
 
@@ -483,16 +473,16 @@ private:
   TypeNode getArrayConstituentType() const;
 
   /** Get the return type (for constructor types) */
-  TypeNode getConstructorRangeType() const;
+  TypeNode getDatatypeConstructorRangeType() const;
 
   /** Get the domain type (for selector types) */
-  TypeNode getSelectorDomainType() const;
+  TypeNode getDatatypeSelectorDomainType() const;
 
   /** Get the return type (for selector types) */
-  TypeNode getSelectorRangeType() const;
+  TypeNode getDatatypeSelectorRangeType() const;
 
   /** Get the domain type (for tester types) */
-  TypeNode getTesterDomainType() const;
+  TypeNode getDatatypeTesterDomainType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -604,6 +594,12 @@ private:
   bool isInstantiatedDatatype() const;
 
   /**
+   * Is this an uninterpreted sort constructed from instantiating an
+   * uninterpreted sort constructor?
+   */
+  bool isInstantiatedUninterpretedSort() const;
+
+  /**
    * Return true if this is an instantiated parametric datatype or
    * uninterpreted sort constructor type.
    */
@@ -633,57 +629,56 @@ private:
   /** Is this an instantiated datatype parameter */
   bool isParameterInstantiatedDatatype(size_t n) const;
 
-  /** Is this a constructor type */
-  bool isConstructor() const;
+  /** Is this a datatype constructor type? */
+  bool isDatatypeConstructor() const;
 
-  /** Is this a selector type */
-  bool isSelector() const;
+  /** Is this a datatype selector type? */
+  bool isDatatypeSelector() const;
 
-  /** Is this a tester type */
-  bool isTester() const;
+  /** Is this a datatype tester type? */
+  bool isDatatypeTester() const;
 
-  /** Is this a datatype updater type */
-  bool isUpdater() const;
+  /** Is this a datatype updater type? */
+  bool isDatatypeUpdater() const;
 
-  /** Get the internal Datatype specification from a datatype type */
+  /** Get the internal Datatype specification from a datatype type. */
   const DType& getDType() const;
 
-  /** Get the exponent size of this floating-point type */
+  /** Get the exponent size of this floating-point type. */
   unsigned getFloatingPointExponentSize() const;
 
-  /** Get the significand size of this floating-point type */
+  /** Get the significand size of this floating-point type. */
   unsigned getFloatingPointSignificandSize() const;
 
-  /** Get the size of this bit-vector type */
+  /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
 
-  /** Is this a sort kind */
+  /** Is this a sort kind? */
   bool isUninterpretedSort() const;
 
-  /** Is this a sort constructor kind */
+  /** Is this a sort constructor kind? */
   bool isUninterpretedSortConstructor() const;
 
-  /** Get sort constructor arity */
+  /** Get sort constructor arity. */
   uint64_t getUninterpretedSortConstructorArity() const;
+
+  /** Is this an unresolved datatype? */
+  bool isUnresolvedDatatype() const;
 
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.
    */
   std::string getName() const;
 
-  /** Get the most general base type of the type */
-  TypeNode getBaseType() const;
-
   /**
-   * Returns the leastUpperBound in the extended type lattice of the two types.
-   * If this is \top, i.e. there is no inhabited type that contains both,
-   * a TypeNode such that isNull() is true is returned.
+   * Get the uninterpreted sort constructor type this instantiated
+   * uninterpreted sort has been constructed from.
+   *
+   * Asserts that this is an instantiated uninterpreted sort.
    */
-  static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
-  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
+  TypeNode getUninterpretedSortConstructor() const;
 
 private:
-  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Indents the given stream a given amount of spaces.
@@ -862,17 +857,6 @@ inline bool TypeNode::isBoolean() const {
     ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE );
 }
 
-inline bool TypeNode::isInteger() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE );
-}
-
-inline bool TypeNode::isReal() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE ) ||
-    isInteger();
-}
-
 inline bool TypeNode::isString() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == STRING_TYPE;
@@ -903,20 +887,21 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
   return (*this)[1];
 }
 
-inline TypeNode TypeNode::getConstructorRangeType() const {
-  Assert(isConstructor());
+inline TypeNode TypeNode::getDatatypeConstructorRangeType() const
+{
+  Assert(isDatatypeConstructor());
   return (*this)[getNumChildren()-1];
 }
 
-inline TypeNode TypeNode::getSelectorDomainType() const
+inline TypeNode TypeNode::getDatatypeSelectorDomainType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[0];
 }
 
-inline TypeNode TypeNode::getSelectorRangeType() const
+inline TypeNode TypeNode::getDatatypeSelectorRangeType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[1];
 }
 

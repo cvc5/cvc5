@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Morgan Deters
+ *   Mathias Preiner, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,8 +25,8 @@
 #include "options/base_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "preprocessing/util/boolean_simplification.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"

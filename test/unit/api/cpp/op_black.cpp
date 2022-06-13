@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Makai Mann, Aina Niemetz
+ *   Andres Noetzli, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,12 @@ class TestApiBlackOp : public TestApi
 {
 };
 
+TEST_F(TestApiBlackOp, hash)
+{
+  std::hash<cvc5::Op> h;
+  ASSERT_NO_THROW(h(d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1})));
+}
+
 TEST_F(TestApiBlackOp, getKind)
 {
   Op x;
@@ -34,8 +40,9 @@ TEST_F(TestApiBlackOp, isNull)
 {
   Op x;
   ASSERT_TRUE(x.isNull());
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
-  ASSERT_FALSE(x.isNull());
+  Op y = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
+  ASSERT_FALSE(y.isNull());
+  ASSERT_NE(x, y);
 }
 
 TEST_F(TestApiBlackOp, opFromKind)
@@ -95,6 +102,9 @@ TEST_F(TestApiBlackOp, getNumIndices)
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
   Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
   ASSERT_EQ(indices.size(), tupleProject.getNumIndices());
+
+  Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
+  ASSERT_EQ(indices.size(), tableProject.getNumIndices());
 }
 
 TEST_F(TestApiBlackOp, subscriptOperator)
@@ -115,6 +125,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   Op iand = d_solver.mkOp(IAND, {11});
   Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, {12});
   Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, {13});
+  Op regexpRepeat = d_solver.mkOp(REGEXP_REPEAT, {14});
 
   ASSERT_EQ(4, divisible[0].getUInt32Value());
   ASSERT_EQ(5, bvRepeat[0].getUInt32Value());
@@ -126,6 +137,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_EQ(11, iand[0].getUInt32Value());
   ASSERT_EQ(12, fpToUbv[0].getUInt32Value());
   ASSERT_EQ(13, fpToSbv[0].getUInt32Value());
+  ASSERT_EQ(14, regexpRepeat[0].getUInt32Value());
 
   // Operators with 2 indices
   Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, {1, 0});
@@ -166,6 +178,11 @@ TEST_F(TestApiBlackOp, opScopingToString)
   std::string op_repr = bitvector_repeat_ot.toString();
   Solver solver2;
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);
+  {
+    std::stringstream ss;
+    ss << bitvector_repeat_ot;
+    ASSERT_EQ(ss.str(), op_repr);
+  }
 }
 }  // namespace test
 }  // namespace cvc5::internal

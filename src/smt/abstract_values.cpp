@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,11 +22,8 @@
 namespace cvc5::internal {
 namespace smt {
 
-AbstractValues::AbstractValues(NodeManager* nm)
-    : d_nm(nm),
-      d_fakeContext(),
-      d_abstractValueMap(&d_fakeContext),
-      d_abstractValues()
+AbstractValues::AbstractValues()
+    : d_fakeContext(), d_abstractValueMap(&d_fakeContext), d_abstractValues()
 {
 }
 AbstractValues::~AbstractValues() {}
@@ -41,11 +38,10 @@ Node AbstractValues::substituteAbstractValues(TNode n)
 
 Node AbstractValues::mkAbstractValue(TNode n)
 {
-  Assert(options::abstractValues());
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
-    val = d_nm->getSkolemManager()->mkDummySkolem(
+    val = NodeManager::currentNM()->getSkolemManager()->mkDummySkolem(
         "a",
         n.getType(),
         "an abstract value",

@@ -83,6 +83,24 @@ Other Arithmetic Operators
 .. autofunction:: cvc5.pythonic.Sqrt
 .. autofunction:: cvc5.pythonic.Cbrt
 
+Transcendentals
+--------------------------
+.. autofunction:: cvc5.pythonic.Pi
+.. autofunction:: cvc5.pythonic.Exponential
+.. autofunction:: cvc5.pythonic.Sine
+.. autofunction:: cvc5.pythonic.Cosine
+.. autofunction:: cvc5.pythonic.Tangent
+.. autofunction:: cvc5.pythonic.Arcsine
+.. autofunction:: cvc5.pythonic.Arccosine
+.. autofunction:: cvc5.pythonic.Arctangent
+.. autofunction:: cvc5.pythonic.Secant
+.. autofunction:: cvc5.pythonic.Cosecant
+.. autofunction:: cvc5.pythonic.Cotangent
+.. autofunction:: cvc5.pythonic.Arcsecant
+.. autofunction:: cvc5.pythonic.Arccosecant
+.. autofunction:: cvc5.pythonic.Arccotangent
+
+
 Testers
 -------------------
 .. autofunction:: cvc5.pythonic.is_arith

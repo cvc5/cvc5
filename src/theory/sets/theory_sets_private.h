@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,6 +75,58 @@ class TheorySetsPrivate : protected EnvObj
    * difference.
    */
   void checkUpwardsClosure();
+
+  /**
+   * Apply the following rule for filter terms (set.filter p A):
+   * (=>
+   *   (and (set.member x B) (= A B))
+   *   (or
+   *    (and (p x) (set.member x (set.filter p A)))
+   *    (and (not (p x)) (not (set.member x (set.filter p A))))
+   *   )
+   * )
+   */
+  void checkFilterUp();
+  /**
+   * Apply the following rule for filter terms (set.filter p A):
+   * (=>
+   *   (bag.member x (set.filter p A))
+   *   (and
+   *    (p x)
+   *    (set.member x A)
+   *   )
+   * )
+   */
+  void checkFilterDown();
+
+  /**
+   * Apply the following rule for map terms (set.map f A):
+   * Positive member rule:
+   * (=>
+   *   (set.member x A)
+   *   (set.member (f x) (set.map f A)
+   * )
+   */
+  void checkMapUp();
+  /**
+   * Apply the following rules for map terms (set.map f A) where A has type
+   * (Set T):
+   * - General case:
+   *   (=>
+   *     (set.member y (set.map f A))
+   *     (and
+   *       (= (f x) y)
+   *       (set.member x A)
+   *     )
+   *   )
+   *   where x is a fresh skolem
+   * - Special case where we can avoid skolems
+   *   (=>
+   *     (set.member (f x) (set.map f A))
+   *     (set.member x A)
+   *   )
+   */
+  void checkMapDown();
   /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
@@ -100,10 +152,10 @@ class TheorySetsPrivate : protected EnvObj
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    // singleton or emptyset equal to this eqc
-    context::CDO< Node > d_singleton;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // singleton or emptyset equal to this eqc
+   context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -119,8 +171,6 @@ class TheorySetsPrivate : protected EnvObj
   bool d_fullCheckIncomplete;
   /** The reason we set the above flag to true */
   IncompleteId d_fullCheckIncompleteId;
-  std::map< Node, TypeNode > d_most_common_type;
-  std::map< Node, Node > d_most_common_type_term;
 
  public:
 
@@ -157,7 +207,6 @@ class TheorySetsPrivate : protected EnvObj
   //--------------------------------- end standard check
 
   /** Collect model values in m based on the relevant terms given by termSet */
-  void addSharedTerm(TNode);
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
@@ -181,6 +230,9 @@ class TheorySetsPrivate : protected EnvObj
    * equal nor disequal and are sets.
    */
   void processCarePairArgs(TNode a, TNode b);
+
+  /** returns whether the given kind is a higher order kind for sets. */
+  bool isHigherOrderKind(Kind k);
 
  private:
   TheorySets& d_external;
@@ -222,6 +274,13 @@ class TheorySetsPrivate : protected EnvObj
    * involving cardinality constraints is asserted to this theory.
    */
   bool d_card_enabled;
+
+  /** are higher order set operators enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * higher order constraints is asserted to this theory.
+   */
+  bool d_higher_order_kinds_enabled;
 
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@ ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
       type.toString().c_str());
 
   PrettyCheckArgument(
-      value.getType().isComparableTo(type.getArrayConstituentType()),
+      value.getType() == type.getArrayConstituentType(),
       value,
       "expr type `%s' does not match constituent type of array type `%s'",
       value.getType().toString().c_str(),

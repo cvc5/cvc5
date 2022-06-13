@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Andrew Reynolds
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +21,10 @@
 #include "expr/node.h"
 #include "options/io_utils.h"
 #include "options/language.h"
-#include "smt_util/boolean_simplification.h"
+#include "preprocessing/util/boolean_simplification.h"
 #include "test_node.h"
+
+using namespace cvc5::internal::preprocessing;
 
 namespace cvc5::internal {
 namespace test {
@@ -71,7 +73,8 @@ class TestUtilBlackBooleanSimplification : public TestNode
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
 
     options::ioutils::applyNodeDepth(std::cout, -1);
-    options::ioutils::applyOutputLang(std::cout, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyOutputLanguage(std::cout,
+                                          Language::LANG_SMTLIB_V2_6);
   }
 
   // assert equality up to commuting children

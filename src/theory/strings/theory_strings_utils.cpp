@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -154,6 +154,17 @@ Node mkSuffix(Node t, Node n)
       STRING_SUBSTR, t, n, nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, t), n));
 }
 
+Node mkUnit(TypeNode tn, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (tn.isString())
+  {
+    return nm->mkNode(STRING_UNIT, n);
+  }
+  Assert(tn.isSequence());
+  return nm->mkNode(SEQ_UNIT, n);
+}
+
 Node getConstantComponent(Node t)
 {
   if (t.getKind() == STRING_TO_REGEXP)
@@ -259,7 +270,10 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
-bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
+bool isConstantLike(Node n)
+{
+  return n.isConst() || n.getKind() == SEQ_UNIT || n.getKind() == STRING_UNIT;
+}
 
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {

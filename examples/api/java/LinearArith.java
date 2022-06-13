@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mudathir Mohamed
+ *   Mudathir Mohamed, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,7 +14,7 @@
  * the push pop of cvc5. This also gives an example option.
  */
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 public class LinearArith
 {
   public static void main(String args[]) throws CVC5ApiException
@@ -57,8 +57,8 @@ public class LinearArith
       Term diff_leq_two_thirds = slv.mkTerm(Kind.LEQ, diff, two_thirds);
       System.out.println("Prove that " + diff_leq_two_thirds + " with cvc5.");
       System.out.println("cvc5 should report UNSAT.");
-      System.out.println("Result from cvc5 is: "
-          + slv.checkSatAssuming(diff_leq_two_thirds.notTerm()));
+      System.out.println(
+          "Result from cvc5 is: " + slv.checkSatAssuming(diff_leq_two_thirds.notTerm()));
       slv.pop();
 
       System.out.println();

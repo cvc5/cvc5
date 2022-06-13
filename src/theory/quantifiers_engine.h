@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,7 @@ class TermRegistry;
  */
 class QuantifiersEngine : protected EnvObj
 {
-  friend class ::cvc5::internal::TheoryEngine;
+  friend class internal::TheoryEngine;
   typedef context::CDHashMap<Node, bool> BoolMap;
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -145,6 +145,10 @@ class QuantifiersEngine : protected EnvObj
   bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
   /** Declare pool */
   void declarePool(Node p, const std::vector<Node>& initValue);
+  /** Declare oracle fun */
+  void declareOracleFun(Node f);
+  /** Get the list of all declared oracle functions */
+  std::vector<Node> getOracleFuns() const;
   //----------end user interface for instantiations
  private:
   //---------------------- private initialization

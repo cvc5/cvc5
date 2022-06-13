@@ -1,7 +1,8 @@
-; COMMAND-LINE: --incremental -q --produce-unsat-cores
-; COMMAND-LINE: --incremental -q --unsat-cores-mode=sat-proof --produce-unsat-cores
+; COMMAND-LINE: --incremental --produce-unsat-cores
+; COMMAND-LINE: --incremental --unsat-cores-mode=sat-proof --produce-unsat-cores
 ; EXPECT: sat
 ; EXPECT: sat
+(set-logic ALL)
 (declare-const i2 Int)
 (declare-const i5 Int)
 (declare-fun st2 () (Set Int))

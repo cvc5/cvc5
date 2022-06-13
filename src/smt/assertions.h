@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -174,9 +174,6 @@ class Assertions : protected EnvObj
   context::CDO<size_t> d_globalDefineFunLemmasIndex;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
    */
   std::vector<Node> d_assumptions;
   /** Whether we did a global negation of the formula. */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,7 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
           << "\t\t..arg " << i << " is integer constant " << n[i]
           << " in real position.\n";
       childChanged = true;
-      children.push_back(nm->mkNode(kind::CAST_TO_REAL, n[i]));
+      children.push_back(nm->mkNode(kind::TO_REAL, n[i]));
     }
     if (childChanged)
     {

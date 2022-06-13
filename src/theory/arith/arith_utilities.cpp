@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +13,7 @@
  * Implementation of common functions for dealing with nodes.
  */
 
-#include "arith_utilities.h"
+#include "theory/arith/arith_utilities.h"
 
 #include <cmath>
 
@@ -97,6 +97,22 @@ Kind transKinds(Kind k1, Kind k2)
     }
   }
   return UNDEFINED_KIND;
+}
+
+Node mkZero(const TypeNode& tn)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+}
+
+bool isZero(const Node& n)
+{
+  Assert(n.getType().isRealOrInt());
+  return n.isConst() && n.getConst<Rational>().sgn() == 0;
+}
+
+Node mkOne(const TypeNode& tn, bool isNeg)
+{
+  return NodeManager::currentNM()->mkConstRealOrInt(tn, isNeg ? -1 : 1);
 }
 
 bool isTranscendentalKind(Kind k)
@@ -203,82 +219,6 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
   }
 }
 
-Node arithSubstitute(Node n, const Subs& sub)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
-  std::vector<TNode> visit;
-  visit.push_back(n);
-  do
-  {
-    TNode cur = visit.back();
-    visit.pop_back();
-    auto it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      Kind ck = cur.getKind();
-      auto s = sub.find(cur);
-      if (s)
-      {
-        visited[cur] = *s;
-      }
-      else if (cur.getNumChildren() == 0)
-      {
-        visited[cur] = cur;
-      }
-      else
-      {
-        TheoryId ctid = theory::kindToTheoryId(ck);
-        if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
-             && ctid != THEORY_BUILTIN)
-            || isTranscendentalKind(ck))
-        {
-          // Do not traverse beneath applications that belong to another theory
-          // besides (core) arithmetic. Notice that transcendental function
-          // applications are also not traversed here.
-          visited[cur] = cur;
-        }
-        else
-        {
-          visit.push_back(cur);
-          for (const Node& cn : cur)
-          {
-            visit.push_back(cn);
-          }
-        }
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
 Node mkBounded(Node l, Node a, Node u)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -333,6 +273,38 @@ Node multConstants(const Node& c1, const Node& c2)
   Assert(tn.isRealOrInt());
   return nm->mkConstRealOrInt(
       tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
+}
+
+Node mkEquality(const Node& a, const Node& b)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(a.getType().isRealOrInt());
+  Assert(b.getType().isRealOrInt());
+  // if they have the same type, just make them equal
+  if (a.getType() == b.getType())
+  {
+    return nm->mkNode(EQUAL, a, b);
+  }
+  // otherwise subtract and set equal to zero
+  Node diff = nm->mkNode(Kind::SUB, a, b);
+  return nm->mkNode(EQUAL, diff, mkZero(diff.getType()));
+}
+
+std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
+{
+  TypeNode at = a.getType();
+  TypeNode bt = b.getType();
+  if (at == bt)
+  {
+    return {a, b};
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  if (at.isInteger() && bt.isReal())
+  {
+    return {nm->mkNode(kind::TO_REAL, a), b};
+  }
+  Assert(at.isReal() && bt.isInteger());
+  return {a, nm->mkNode(kind::TO_REAL, b)};
 }
 
 }  // namespace arith

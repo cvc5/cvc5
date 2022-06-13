@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Makai Mann
+#   Yoni Zohar, Aina Niemetz, Makai Mann
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -41,7 +41,7 @@ def create_datatype_sort(solver):
 
 def create_param_datatype_sort(solver):
     sort = solver.mkParamSort("T")
-    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", sort)
+    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", [sort])
     paramCons = solver.mkDatatypeConstructorDecl("cons")
     paramNil = solver.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)
@@ -49,6 +49,10 @@ def create_param_datatype_sort(solver):
     paramDtypeSpec.addConstructor(paramNil)
     paramDtypeSort = solver.mkDatatypeSort(paramDtypeSpec)
     return paramDtypeSort
+
+
+def test_hash(solver):
+    hash(solver.getIntegerSort())
 
 
 def test_operators_comparison(solver):
@@ -136,9 +140,9 @@ def test_is_datatype(solver):
 def test_is_constructor(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
-    cons_sort = dt[0].getConstructorTerm().getSort()
-    assert cons_sort.isConstructor()
-    Sort(solver).isConstructor()
+    cons_sort = dt[0].getTerm().getSort()
+    assert cons_sort.isDatatypeConstructor()
+    Sort(solver).isDatatypeConstructor()
 
 
 def test_is_selector(solver):
@@ -146,24 +150,24 @@ def test_is_selector(solver):
     dt = dt_sort.getDatatype()
     dt0 = dt[0]
     dt01 = dt0[1]
-    cons_sort = dt01.getSelectorTerm().getSort()
-    assert cons_sort.isSelector()
-    Sort(solver).isSelector()
+    cons_sort = dt01.getTerm().getSort()
+    assert cons_sort.isDatatypeSelector()
+    Sort(solver).isDatatypeSelector()
 
 
 def test_is_tester(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
     cons_sort = dt[0].getTesterTerm().getSort()
-    assert cons_sort.isTester()
-    Sort(solver).isTester()
+    assert cons_sort.isDatatypeTester()
+    Sort(solver).isDatatypeTester()
 
 def test_is_updater(solver):
   dt_sort = create_datatype_sort(solver)
   dt = dt_sort.getDatatype()
   updater_sort = dt[0][0].getUpdaterTerm().getSort()
-  assert updater_sort.isUpdater()
-  Sort(solver).isUpdater()
+  assert updater_sort.isDatatypeUpdater()
+  Sort(solver).isDatatypeUpdater()
 
 def test_is_function(solver):
     fun_sort = solver.mkFunctionSort(solver.getRealSort(),
@@ -185,7 +189,7 @@ def test_is_tuple(solver):
 
 
 def test_is_record(solver):
-    rec_sort = solver.mkRecordSort([("asdf", solver.getRealSort())])
+    rec_sort = solver.mkRecordSort(("asdf", solver.getRealSort()))
     assert rec_sort.isRecord()
     Sort(solver).isRecord()
 
@@ -222,7 +226,7 @@ def test_is_uninterpreted(solver):
 
 
 def test_is_sort_constructor(solver):
-    sc_sort = solver.mkUninterpretedSortConstructorSort("asdf", 1)
+    sc_sort = solver.mkUninterpretedSortConstructorSort(1, "asdf")
     assert sc_sort.isUninterpretedSortConstructor()
     Sort(solver).isUninterpretedSortConstructor()
 
@@ -240,49 +244,49 @@ def test_datatype_sorts(solver):
     intSort = solver.getIntegerSort()
     dtypeSort = create_datatype_sort(solver)
     dt = dtypeSort.getDatatype()
-    assert not dtypeSort.isConstructor()
+    assert not dtypeSort.isDatatypeConstructor()
     with pytest.raises(RuntimeError):
-        dtypeSort.getConstructorCodomainSort()
+        dtypeSort.getDatatypeConstructorCodomainSort()
     with pytest.raises(RuntimeError):
-        dtypeSort.getConstructorDomainSorts()
+        dtypeSort.getDatatypeConstructorDomainSorts()
     with pytest.raises(RuntimeError):
-        dtypeSort.getConstructorArity()
+        dtypeSort.getDatatypeConstructorArity()
 
     # get constructor
     dcons = dt[0]
-    consTerm = dcons.getConstructorTerm()
+    consTerm = dcons.getTerm()
     consSort = consTerm.getSort()
-    assert consSort.isConstructor()
-    assert not consSort.isTester()
-    assert not consSort.isSelector()
-    assert consSort.getConstructorArity() == 2
-    consDomSorts = consSort.getConstructorDomainSorts()
+    assert consSort.isDatatypeConstructor()
+    assert not consSort.isDatatypeTester()
+    assert not consSort.isDatatypeSelector()
+    assert consSort.getDatatypeConstructorArity() == 2
+    consDomSorts = consSort.getDatatypeConstructorDomainSorts()
     assert consDomSorts[0] == intSort
     assert consDomSorts[1] == dtypeSort
-    assert consSort.getConstructorCodomainSort() == dtypeSort
+    assert consSort.getDatatypeConstructorCodomainSort() == dtypeSort
 
     # get tester
     isConsTerm = dcons.getTesterTerm()
-    assert isConsTerm.getSort().isTester()
+    assert isConsTerm.getSort().isDatatypeTester()
     booleanSort = solver.getBooleanSort()
 
-    assert isConsTerm.getSort().getTesterDomainSort() == dtypeSort
-    assert isConsTerm.getSort().getTesterCodomainSort() == booleanSort
+    assert isConsTerm.getSort().getDatatypeTesterDomainSort() == dtypeSort
+    assert isConsTerm.getSort().getDatatypeTesterCodomainSort() == booleanSort
     with pytest.raises(RuntimeError):
-        booleanSort.getTesterDomainSort()
+        booleanSort.getDatatypeTesterDomainSort()
     with pytest.raises(RuntimeError):
-        booleanSort.getTesterCodomainSort()
+        booleanSort.getDatatypeTesterCodomainSort()
 
     # get selector
     dselTail = dcons[1]
-    tailTerm = dselTail.getSelectorTerm()
-    assert tailTerm.getSort().isSelector()
-    assert tailTerm.getSort().getSelectorDomainSort() == dtypeSort
-    assert tailTerm.getSort().getSelectorCodomainSort() == dtypeSort
+    tailTerm = dselTail.getTerm()
+    assert tailTerm.getSort().isDatatypeSelector()
+    assert tailTerm.getSort().getDatatypeSelectorDomainSort() == dtypeSort
+    assert tailTerm.getSort().getDatatypeSelectorCodomainSort() == dtypeSort
     with pytest.raises(RuntimeError):
-        booleanSort.getSelectorDomainSort()
+        booleanSort.getDatatypeSelectorDomainSort()
     with pytest.raises(RuntimeError):
-        booleanSort.getSelectorCodomainSort()
+        booleanSort.getDatatypeSelectorCodomainSort()
 
 
 def test_instantiate(solver):
@@ -300,7 +304,7 @@ def test_instantiate(solver):
     with pytest.raises(RuntimeError):
         dtypeSort.instantiate([solver.getIntegerSort()])
     # instantiate uninterpreted sort constructor
-    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 1)
+    sortConsSort = solver.mkUninterpretedSortConstructorSort(1, "s")
     sortConsSort.instantiate([solver.getIntegerSort()])
 
 def test_is_instantiated(solver):
@@ -309,7 +313,7 @@ def test_is_instantiated(solver):
     instParamDtypeSort = paramDtypeSort.instantiate([solver.getIntegerSort()]);
     assert instParamDtypeSort.isInstantiated()
 
-    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 1)
+    sortConsSort = solver.mkUninterpretedSortConstructorSort(1, "s")
     assert not sortConsSort.isInstantiated()
     instSortConsSort = sortConsSort.instantiate([solver.getIntegerSort()])
     assert instSortConsSort.isInstantiated()
@@ -348,7 +352,7 @@ def test_get_instantiated_parameters(solver):
     assert instSorts[1] == boolSort
 
     # uninterpreted sort constructor sort instantiation
-    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 4)
+    sortConsSort = solver.mkUninterpretedSortConstructorSort(4, "s")
     with pytest.raises(RuntimeError):
         sortConsSort.getInstantiatedParameters()
 
@@ -365,6 +369,18 @@ def test_get_instantiated_parameters(solver):
         intSort.getInstantiatedParameters()
     with pytest.raises(RuntimeError):
         bvSort.getInstantiatedParameters()
+
+def test_get_uninterpreted_sort_constructor(solver):
+    intSort = solver.getIntegerSort()
+    realSort = solver.getRealSort()
+    boolSort = solver.getBooleanSort()
+    bvSort = solver.mkBitVectorSort(8)
+    sortConsSort = solver.mkUninterpretedSortConstructorSort(4, "s")
+    with pytest.raises(RuntimeError):
+        sortConsSort.getUninterpretedSortConstructor()
+    instSortConsSort = \
+        sortConsSort.instantiate([boolSort, intSort, bvSort, realSort]);
+    assert sortConsSort == instSortConsSort.getUninterpretedSortConstructor()
 
 def test_get_function_arity(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
@@ -450,7 +466,7 @@ def test_get_uninterpreted_sort_name(solver):
 
 
 def test_get_uninterpreted_sort_constructor_name(solver):
-    sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
+    sSort = solver.mkUninterpretedSortConstructorSort(2, "s")
     sSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
@@ -458,7 +474,7 @@ def test_get_uninterpreted_sort_constructor_name(solver):
 
 
 def test_get_uninterpreted_sort_constructor_arity(solver):
-    sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
+    sSort = solver.mkUninterpretedSortConstructorSort(2, "s")
     sSort.getUninterpretedSortConstructorArity()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
@@ -507,8 +523,8 @@ def test_get_datatype_arity(solver):
 
 def test_get_tuple_length(solver):
     tupleSort = solver.mkTupleSort(
-        [solver.getIntegerSort(),
-         solver.getIntegerSort()])
+        solver.getIntegerSort(),
+        solver.getIntegerSort())
     tupleSort.getTupleLength()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
@@ -517,8 +533,8 @@ def test_get_tuple_length(solver):
 
 def test_get_tuple_sorts(solver):
     tupleSort = solver.mkTupleSort(
-        [solver.getIntegerSort(),
-         solver.getIntegerSort()])
+        solver.getIntegerSort(),
+        solver.getIntegerSort())
     tupleSort.getTupleSorts()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):

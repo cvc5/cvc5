@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *   Andrew Reynolds, Kshitij Bansal, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,12 +45,11 @@ class NormalForm {
     }
     else
     {
-      TypeNode elementType = setType.getSetElementType();
       ElementsIterator it = elements.begin();
-      Node cur = nm->mkSingleton(elementType, *it);
+      Node cur = nm->mkNode(kind::SET_SINGLETON, *it);
       while (++it != elements.end())
       {
-        Node singleton = nm->mkSingleton(elementType, *it);
+        Node singleton = nm->mkNode(kind::SET_SINGLETON, *it);
         cur = nm->mkNode(kind::SET_UNION, singleton, cur);
       }
       return cur;

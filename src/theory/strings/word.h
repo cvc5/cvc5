@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,6 +46,12 @@ class Word
    * concatenation is equivalent to x.
    */
   static std::vector<Node> getChars(TNode x);
+  /**
+   * Get nth. If x is a string constant, this returns the constant integer
+   * corresponding to the code point of x at position n. If x is a sequence
+   * constant, then this returns the nth element of x.
+   */
+  static Node getNth(TNode x, size_t n);
 
   /** Return true if x is empty */
   static bool isEmpty(TNode x);

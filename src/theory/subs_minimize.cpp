@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -258,6 +258,14 @@ bool SubstitutionMinimize::findInternal(Node n,
   if (value[n] != target)
   {
     Trace("subs-min") << "... not equal to target " << target << std::endl;
+    // depends on all variables
+    for (const std::pair<const TNode, Node>& v : value)
+    {
+      if (v.first.isVar())
+      {
+        reqVars.push_back(v.first);
+      }
+    }
     return false;
   }
 
@@ -290,12 +298,16 @@ bool SubstitutionMinimize::findInternal(Node n,
       {
         // only recurse on relevant branch
         Node bval = value[cur[0]];
-        Assert(!bval.isNull() && bval.isConst());
-        unsigned cindex = bval.getConst<bool>() ? 1 : 2;
-        visit.push_back(cur[0]);
-        visit.push_back(cur[cindex]);
+        if (!bval.isNull() && bval.isConst())
+        {
+          unsigned cindex = bval.getConst<bool>() ? 1 : 2;
+          visit.push_back(cur[0]);
+          visit.push_back(cur[cindex]);
+          continue;
+        }
+        // otherwise, we handle it normally below
       }
-      else if (cur.getNumChildren() > 0)
+      if (cur.getNumChildren() > 0)
       {
         Kind ck = cur.getKind();
         bool alreadyJustified = false;

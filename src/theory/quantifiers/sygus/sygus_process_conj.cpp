@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,8 +62,7 @@ bool SynthConjectureProcessFun::checkMatch(
        ++it)
   {
     Assert(it->first < d_arg_vars.size());
-    Assert(
-        it->second.getType().isComparableTo(d_arg_vars[it->first].getType()));
+    Assert(it->second.getType() == d_arg_vars[it->first].getType());
     vars.push_back(d_arg_vars[it->first]);
     subs.push_back(it->second);
   }

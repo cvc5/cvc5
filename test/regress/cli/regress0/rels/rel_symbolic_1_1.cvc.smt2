@@ -2,9 +2,9 @@
 (set-option :incremental false)
 (set-logic ALL)
 
-(declare-fun x () (Set (Tuple Int Int)))
-(declare-fun y () (Set (Tuple Int Int)))
-(declare-fun r () (Set (Tuple Int Int)))
+(declare-fun x () (Relation Int Int))
+(declare-fun y () (Relation Int Int))
+(declare-fun r () (Relation Int Int))
 (declare-fun d () (Tuple Int Int))
 (assert (set.member d y))
 (declare-fun a () (Tuple Int Int))

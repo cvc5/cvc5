@@ -2,6 +2,35 @@ id     = "PRINTER"
 name   = "Printing"
 
 [[option]]
+  name       = "outputLanguage"
+  alias      = ["output-language"]
+  category   = "common"
+  long       = "output-lang=LANG"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  includes   = ["options/language.h"]
+  help       = "force output language (default is \"auto\"; see --output-lang help)"
+
+[[option]]
+  name       = "nodeDepth"
+  category   = "expert"
+  long       = "expr-depth=N"
+  type       = "int64_t"
+  default    = "-1"
+  minimum    = "-1"
+  help       = "print exprs to depth N (0 == default, -1 == no limit)"
+
+[[option]]
+  name       = "dagThresh"
+  category   = "common"
+  long       = "dag-thresh=N"
+  type       = "int64_t"
+  default    = "1"
+  minimum    = "0"
+  help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
+
+[[option]]
   name       = "printInstMode"
   category   = "common"
   long       = "print-inst=MODE"
@@ -23,6 +52,22 @@ name   = "Printing"
   type       = "bool"
   default    = "true"
   help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
+  name       = "printDotAsDAG"
+  category   = "expert"
+  long       = "proof-dot-dag"
+  type       = "bool"
+  default    = "false"
+  help       = "Indicates if the dot proof will be printed as a DAG or as a tree"
+
+[[option]]
+  name       = "printDotClusters"
+  category   = "regular"
+  long       = "print-dot-clusters"
+  type       = "bool"
+  default    = "false"
+  help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
 
 [[option]]
   name       = "printUnsatCoresFull"
@@ -75,3 +120,19 @@ name   = "Printing"
 [[option.mode.STANDARD]]
   name = "sygus-standard"
   help = "Print based on SyGuS standard."
+
+[[option]]
+  name       = "bvPrintConstsAsIndexedSymbols"
+  category   = "regular"
+  long       = "bv-print-consts-as-indexed-symbols"
+  type       = "bool"
+  default    = "false"
+  help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
+
+[[option]]
+  name       = "printSuccess"
+  category   = "common"
+  long       = "print-success"
+  type       = "bool"
+  default    = "false"
+  help       = "print the \"success\" output required of SMT-LIBv2"

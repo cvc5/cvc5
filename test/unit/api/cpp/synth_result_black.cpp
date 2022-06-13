@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,6 +43,12 @@ TEST_F(TestApiBlackSynthResult, hasSolution)
   ASSERT_TRUE(res.hasSolution());
   ASSERT_FALSE(res.hasNoSolution());
   ASSERT_FALSE(res.isUnknown());
+  ASSERT_EQ(res.toString(), "(SOLUTION)");
+  {
+    std::stringstream ss;
+    ss << res;
+    ASSERT_EQ(res.toString(), ss.str());
+  }
 }
 
 TEST_F(TestApiBlackSynthResult, hasNoSolution)

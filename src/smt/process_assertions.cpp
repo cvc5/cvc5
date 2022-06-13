@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -276,7 +276,7 @@ bool ProcessAssertions::apply(Assertions& as)
   dumpAssertions("assertions::post-simplify", as);
   Trace("assertions::post-simplify") << std::endl;
 
-  if (options().smt.doStaticLearning)
+  if (options().smt.staticLearning)
   {
     applyPass("static-learning", as);
   }
@@ -464,7 +464,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
 {
-  PrintBenchmark pb(&d_env.getPrinter());
+  PrintBenchmark pb(Printer::getPrinter(os));
   std::vector<Node> assertions;
   // Notice that the following list covers define-fun and define-fun-rec
   // from input. The former does not impact the assertions since define-fun are

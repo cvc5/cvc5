@@ -75,7 +75,7 @@ class Solver : protected EnvObj
   cvc5::internal::prop::TheoryProxy* d_proxy;
 
   /** The contexts from the SMT solver */
-  cvc5::internal::context::Context* d_context;
+  context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -132,8 +132,8 @@ public:
     //
  Solver(Env& env,
         cvc5::internal::prop::TheoryProxy* proxy,
-        cvc5::internal::context::Context* context,
-        cvc5::internal::context::UserContext* userContext,
+        context::Context* context,
+        context::UserContext* userContext,
         ProofNodeManager* pnm,
         bool enableIncremental = false);
  virtual ~Solver();
@@ -287,6 +287,15 @@ public:
  void setDecisionVar(Var v,
                      bool b);  // Declare if a variable should be eligible for
                                // selection in the decision heuristic.
+
+ // Return the decision trail
+ const vec<Lit>& getMiniSatDecisions() { return trail; }
+
+ // Return the order_heap, which is a priority queue of variables ordered with
+ // respect to the variable activity. The order heap is made available here
+ // in order to make partitions based on the literals contained in the heap.
+
+ const std::vector<Node> getMiniSatOrderHeap();
 
  // Read state:
  //

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,8 +28,7 @@
 #include "context/context.h"
 #include "context/cdlist.h"
 
-namespace cvc5::internal {
-namespace context {
+namespace cvc5::context {
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
 class CDQueue;
@@ -155,7 +154,6 @@ public:
 
 };/* class CDQueue<> */
 
-}  // namespace context
-}  // namespace cvc5::internal
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDQUEUE_H */

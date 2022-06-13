@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,6 +78,16 @@ struct QuantifierAnnotationTypeRule
  * annotations. Returns the instantiation pattern list type.
  */
 struct QuantifierInstPatternListTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
+ * Type rule for oracle formula generators, which are used as the bodies
+ * of quantified formulas that specify oracle interfaces. The type rule
+ * ensures its two children are of type Boolean, and returns the Boolean type.
+ */
+struct QuantifierOracleFormulaGenTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };

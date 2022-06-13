@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Diego Della Rocca de Camargos
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -184,7 +184,8 @@ void PfManager::printProof(std::ostream& out,
   else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
-    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
+    proof::AletheProofPostprocess vpfpp(
+        d_pnm.get(), anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp;
     vpp.print(out, fp);

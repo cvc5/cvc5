@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -162,12 +162,6 @@ class OutputChannel {
    * This can happen through, for example, the SMT-LIBv2 language.
    */
   virtual void handleUserAttribute(const char* attr, Theory* t) {}
-
-  /** Demands that the search restart from sat search level 0.
-   * Using this leads to non-termination issues.
-   * It is appropriate for prototyping for theories.
-   */
-  virtual void demandRestart() {}
 
   //---------------------------- new proof
   /**

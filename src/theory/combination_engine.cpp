@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ CombinationEngine::CombinationEngine(Env& env,
       d_te(te),
       d_valuation(&te),
       d_pnm(env.isTheoryProofProducing() ? env.getProofNodeManager() : nullptr),
-      d_logicInfo(te.getLogicInfo()),
+      d_logicInfo(env.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
       d_mmanager(nullptr),

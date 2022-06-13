@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Makai Mann, Aina Niemetz, Mudathir Mohamed
+ *   Andres Noetzli, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,10 +14,10 @@
  */
 
 package tests;
-import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.cvc5.api.*;
+import io.github.cvc5.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,38 +30,45 @@ class OpTest
 {
   private Solver d_solver;
 
-  @BeforeEach void setUp()
+  @BeforeEach
+  void setUp()
   {
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
+  @AfterEach
+  void tearDown()
   {
     d_solver.close();
   }
 
-  @Test void getKind() throws CVC5ApiException
+  @Test
+  void getKind() throws CVC5ApiException
   {
     Op x;
     x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
     assertDoesNotThrow(() -> x.getKind());
   }
 
-  @Test void isNull() throws CVC5ApiException
+  @Test
+  void isNull() throws CVC5ApiException
   {
     Op x = d_solver.getNullOp();
     assertTrue(x.isNull());
-    x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-    assertFalse(x.isNull());
+    Op y = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
+    assertFalse(y.isNull());
+    assertTrue(x != y);
   }
 
-  @Test void opFromKind()
+  @Test
+  void opFromKind()
   {
     assertDoesNotThrow(() -> d_solver.mkOp(ADD));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkOp(BITVECTOR_EXTRACT));
   }
 
-  @Test void getNumIndices() throws CVC5ApiException
+  @Test
+  void getNumIndices() throws CVC5ApiException
   {
     // Operators with 0 indices
     Op plus = d_solver.mkOp(ADD);
@@ -112,9 +119,13 @@ class OpTest
     int[] indices = {0, 3, 2, 0, 1, 2};
     Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
     assertEquals(6, tupleProject.getNumIndices());
+
+    Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
+    assertEquals(6, tableProject.getNumIndices());
   }
 
-  @Test void opSubscriptOperator() throws CVC5ApiException
+  @Test
+  void opSubscriptOperator() throws CVC5ApiException
   {
     // Operators with 0 indices
     Op plus = d_solver.mkOp(ADD);
@@ -132,6 +143,7 @@ class OpTest
     Op iand = d_solver.mkOp(IAND, 11);
     Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 12);
     Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
+    Op regexpRepeat = d_solver.mkOp(REGEXP_REPEAT, 14);
 
     assertEquals(4, divisible.get(0).getIntegerValue().intValue());
     assertEquals(5, bvRepeat.get(0).getIntegerValue().intValue());
@@ -143,6 +155,7 @@ class OpTest
     assertEquals(11, iand.get(0).getIntegerValue().intValue());
     assertEquals(12, fpToUbv.get(0).getIntegerValue().intValue());
     assertEquals(13, fpToSbv.get(0).getIntegerValue().intValue());
+    assertEquals(14, regexpRepeat.get(0).getIntegerValue().intValue());
 
     // Operators with 2 indices
     Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, 1, 0);
@@ -177,7 +190,8 @@ class OpTest
     }
   }
 
-  @Test void opScopingToString() throws CVC5ApiException
+  @Test
+  void opScopingToString() throws CVC5ApiException
   {
     Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
     String op_repr = bitvector_repeat_ot.toString();

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
-
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,6 +31,11 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
+namespace cvc5::context {
+class Context;
+class UserContext;
+}  // namespace cvc5::context
+
 namespace cvc5 {
 
 class Solver;
@@ -51,15 +56,6 @@ class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-
-namespace context {
-class Context;
-class UserContext;
-}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -231,7 +227,7 @@ class CVC5_EXPORT SolverEngine
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by cvc5.
    */
-  void blockModel();
+  void blockModel(modes::BlockModelsMode mode);
 
   /**
    * Block the current model values of (at least) the values in exprs.
@@ -330,6 +326,7 @@ class CVC5_EXPORT SolverEngine
                          const std::vector<Node>& formals,
                          Node formula,
                          bool global = false);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -464,6 +461,16 @@ class CVC5_EXPORT SolverEngine
    * of type T.
    */
   void declarePool(const Node& p, const std::vector<Node>& initValue);
+
+  /**
+   * Add an oracle function to the state, also adds an oracle interface
+   * defining it.
+   *
+   * @param var The oracle function symbol
+   * @param fn The method for the oracle
+   */
+  void declareOracleFun(
+      Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
@@ -780,7 +787,7 @@ class CVC5_EXPORT SolverEngine
    *
    * Note that the per-call timer only ticks away when one of the
    * SolverEngine's workhorse functions (things like assertFormula(),
-   * checkEntailed(), checkSat(), and simplify()) are running.
+   * checkSat(), and simplify()) are running.
    * Between calls, the timer is still.
    *
    * When an SolverEngine is first created, it has no time or resource
@@ -851,9 +858,6 @@ class CVC5_EXPORT SolverEngine
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
-  /** Get the printer used by this SMT engine */
-  const Printer& getPrinter() const;
-
   /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
   /**
@@ -864,8 +868,7 @@ class CVC5_EXPORT SolverEngine
   std::vector<Node> getExpandedAssertions();
 
   /**
-   * !!!!! temporary, until the environment is passsed to all classes that
-   * require it.
+   * Get the enviornment from this solver engine.
    */
   Env& getEnv();
   /* .......................................................................  */
@@ -956,6 +959,14 @@ class CVC5_EXPORT SolverEngine
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
+  /**
+   * Deep restart, assumes that we just ran a satisfiability check.
+   * Returns true if we wish to reconstruct the SMT solver and try again. If
+   * so, the SMT solver is deep restarted, and we are prepared to make another
+   * satisfiability check.
+   */
+  bool deepRestart();
+
   // --------------------------------------- callbacks from the state
   /**
    * Notify push pre, which is called just before the user context of the state
@@ -1012,7 +1023,6 @@ class CVC5_EXPORT SolverEngine
   void debugCheckFunctionBody(Node formula,
                               const std::vector<Node>& formals,
                               Node func);
-
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
@@ -1025,7 +1035,7 @@ class CVC5_EXPORT SolverEngine
    * or getExpandedAssertions, which may trigger initialization and SMT state
    * changes.
    */
-  std::vector<Node> getAssertionsInternal();
+  std::vector<Node> getAssertionsInternal() const;
 
   /**
    * Return a reference to options like for `EnvObj`.
@@ -1044,7 +1054,6 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */

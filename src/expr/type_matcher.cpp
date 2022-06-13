@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,15 +75,13 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
     if (!d_match[index].isNull())
     {
       Trace("typecheck-idt")
-          << "check subtype " << tn << " " << d_match[index] << std::endl;
-      TypeNode tnn = TypeNode::leastCommonTypeNode(tn, d_match[index]);
-      // recognize subtype relation
-      if (!tnn.isNull())
+          << "check types " << tn << " " << d_match[index] << std::endl;
+      if (tn != d_match[index])
       {
-        d_match[index] = tnn;
-        return true;
+        return false;
       }
-      return false;
+      d_match[index] = tn;
+      return true;
     }
     d_match[index] = tn;
     return true;

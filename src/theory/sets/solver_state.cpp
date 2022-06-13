@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Paul Meng
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,11 @@ namespace theory {
 namespace sets {
 
 SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
-    : TheoryState(env, val), d_skCache(skc), d_members(env.getContext())
+    : TheoryState(env, val),
+      d_skCache(skc),
+      d_mapTerms(env.getUserContext()),
+      d_mapSkolemElements(env.getUserContext()),
+      d_members(env.getContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -50,6 +54,7 @@ void SolverState::reset()
   d_bop_index.clear();
   d_op_list.clear();
   d_allCompSets.clear();
+  d_filterTerms.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -134,6 +139,20 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
+  }
+  else if (nk == SET_FILTER)
+  {
+    d_filterTerms.push_back(n);
+  }
+  else if (nk == SET_MAP)
+  {
+    d_mapTerms.insert(n);
+    if (d_mapSkolemElements.find(n) == d_mapSkolemElements.end())
+    {
+      std::shared_ptr<context::CDHashSet<Node>> set =
+          std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+      d_mapSkolemElements[n] = set;
+    }
   }
   else if (nk == SET_COMPREHENSION)
   {
@@ -411,10 +430,12 @@ const std::vector<Node>& SolverState::getComprehensionSets(Node r) const
 
 const std::map<Node, Node>& SolverState::getMembers(Node r) const
 {
+  Assert(r == getRepresentative(r));
   return getMembersInternal(r, 0);
 }
 const std::map<Node, Node>& SolverState::getNegativeMembers(Node r) const
 {
+  Assert(r == getRepresentative(r));
   return getMembersInternal(r, 1);
 }
 const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
@@ -454,6 +475,16 @@ const std::map<Node, std::map<Node, Node>>& SolverState::getBinaryOpIndex(
 const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 {
   return d_op_list;
+}
+
+const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
+
+const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
+
+std::shared_ptr<context::CDHashSet<Node>> SolverState::getMapSkolemElements(
+    Node n)
+{
+  return d_mapSkolemElements[n];
 }
 
 const std::vector<Node>& SolverState::getComprehensionSets() const
@@ -591,6 +622,14 @@ bool SolverState::merge(TNode t1,
   }
   d_members[t1] = n_members;
   return true;
+}
+
+void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
+{
+  Assert(n.getKind() == kind::SET_MAP);
+  Assert(element.getKind() == SKOLEM
+         && element.getType() == n[1].getType().getSetElementType());
+  d_mapSkolemElements[n].get()->insert(element);
 }
 
 }  // namespace sets

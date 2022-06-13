@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Abdalrhman Mohamed, Andrew Reynolds
+ *   Ying Sheng, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,7 +65,8 @@ void SygusInterpol::createVariables(bool needsShared)
   for (const Node& s : d_syms)
   {
     TypeNode tn = s.getType();
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // datatype symbols should be considered interpreted symbols here, not
       // (higher-order) variables.
@@ -89,7 +90,10 @@ void SygusInterpol::createVariables(bool needsShared)
     }
   }
   // make the sygus variable list
-  d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+  if (!d_vlvsShared.empty())
+  {
+    d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+  }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
@@ -233,12 +237,15 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
-  itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+  if (!d_ibvlShared.isNull())
+  {
+    itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+  }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
-  Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms);
+  Node Fa = nm->mkAnd(axioms);
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")
@@ -289,7 +296,11 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 
   // get the grammar type for the interpolant
   Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
-  Assert(!igdtbv.isNull());
+  // could have no variables, in which case there is nothing to do
+  if (igdtbv.isNull())
+  {
+    return true;
+  }
   Assert(igdtbv.getKind() == kind::BOUND_VAR_LIST);
   // convert back to original
   // must replace formal arguments of itp with the free variables in the

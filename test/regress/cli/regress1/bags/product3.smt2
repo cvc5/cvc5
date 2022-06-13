@@ -2,9 +2,9 @@
 
 (set-info :status sat)
 
-(declare-fun A () (Bag (Tuple Int Int Int)))
-(declare-fun B () (Bag (Tuple Int Int Int)))
-(declare-fun C () (Bag (Tuple Int Int Int Int Int Int)))
+(declare-fun A () (Table Int Int Int))
+(declare-fun B () (Table Int Int Int))
+(declare-fun C () (Table Int Int Int Int Int Int))
 
 (assert (= C (table.product A B)))
 

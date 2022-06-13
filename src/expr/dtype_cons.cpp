@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,17 +40,17 @@ DTypeConstructor::DTypeConstructor(std::string name,
   Assert(name != "");
 }
 
-void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
+void DTypeConstructor::addArg(std::string selectorName, TypeNode rangeType)
 {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the selector type away inside a var until resolution (when we can
   // create the proper selector type)
   Assert(!isResolved());
-  Assert(!selectorType.isNull());
+  Assert(!rangeType.isNull());
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Node sel = sm->mkDummySkolem("unresolved_" + selectorName,
-                               selectorType,
+                               rangeType,
                                "is an unresolved selector type placeholder",
                                SkolemManager::SKOLEM_EXACT_NAME);
   // can use null updater for now
@@ -237,30 +237,30 @@ const DTypeSelector& DTypeConstructor::operator[](size_t index) const
 TypeNode DTypeConstructor::getArgType(size_t index) const
 {
   Assert(index < getNumArgs());
-  return (*this)[index].getType().getSelectorRangeType();
+  return (*this)[index].getType().getDatatypeSelectorRangeType();
 }
 
-Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
-                                           size_t index) const
+Node DTypeConstructor::getSelector(size_t index) const
 {
   Assert(isResolved());
   Assert(index < getNumArgs());
-  if (options::dtSharedSelectors())
-  {
-    computeSharedSelectors(domainType);
-    Assert(d_sharedSelectors[domainType].size() == getNumArgs());
-    return d_sharedSelectors[domainType][index];
-  }
-  else
-  {
-    return d_args[index]->getSelector();
-  }
+  return d_args[index]->getSelector();
+}
+
+Node DTypeConstructor::getSharedSelector(TypeNode domainType,
+                                         size_t index) const
+{
+  Assert(isResolved());
+  Assert(index < getNumArgs());
+  computeSharedSelectors(domainType);
+  Assert(d_sharedSelectors[domainType].size() == getNumArgs());
+  return d_sharedSelectors[domainType][index];
 }
 
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 {
   Assert(isResolved());
-  Assert(sel.getType().isSelector());
+  Assert(sel.getType().isDatatypeSelector());
   // might be a builtin selector
   if (sel.hasAttribute(DTypeIndexAttr()))
   {
@@ -271,7 +271,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
     }
   }
   // otherwise, check shared selector
-  TypeNode domainType = sel.getType().getSelectorDomainType();
+  TypeNode domainType = sel.getType().getDatatypeSelectorDomainType();
   computeSharedSelectors(domainType);
   std::map<Node, unsigned>::iterator its =
       d_sharedSelectorIndex[domainType].find(sel);
@@ -471,7 +471,7 @@ void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
     {
       ctype = d_constructor.getType();
     }
-    Assert(ctype.isConstructor());
+    Assert(ctype.isDatatypeConstructor());
     Assert(ctype.getNumChildren() - 1 == getNumArgs());
     // compute the shared selectors
     const DType& dt = DType::datatypeOf(d_constructor);
@@ -614,7 +614,7 @@ bool DTypeConstructor::resolve(
                                     nm->mkConstructorType(argTypes, self),
                                     "is a constructor",
                                     SkolemManager::SKOLEM_EXACT_NAME);
-  Assert(d_constructor.getType().isConstructor());
+  Assert(d_constructor.getType().isDatatypeConstructor());
   // associate constructor with all selectors
   for (std::shared_ptr<DTypeSelector> sel : d_args)
   {
@@ -643,15 +643,21 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     children.push_back(
         doParametricSubstitution((*i), paramTypes, paramReplacements));
   }
-  for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
+  if (range.getKind() == INSTANTIATED_SORT_TYPE)
   {
-    if (paramTypes[i].getUninterpretedSortConstructorArity()
-        == origChildren.size())
+    // paramTypes contains a list of uninterpreted sort constructors.
+    // paramReplacements contains a list of instantiated parametric datatypes.
+    // If range is (INSTANTIATED_SORT_TYPE c T1 ... Tn), and
+    //    paramTypes[i] is c
+    //    paramReplacements[i] is (PARAMETRIC_DATATYPE d S1 ... Sn)
+    // then we return (PARAMETRIC_DATATYPE d T'1 ... T'n) where T'1 ...T'n
+    // is the result of recursively processing T1 ... Tn.
+    for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
     {
-      TypeNode tn = paramTypes[i].instantiate(origChildren);
-      if (range == tn)
+      if (paramTypes[i] == origChildren[0])
       {
-        TypeNode tret = paramReplacements[i].instantiate(children);
+        std::vector<TypeNode> params(children.begin() + 1, children.end());
+        TypeNode tret = paramReplacements[i].instantiate(params);
         return tret;
       }
     }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Tim King, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,11 +34,11 @@ class QuantConflictFind;
 class QuantInfo;
 
 //match generator
-class MatchGen {
+class MatchGen : protected EnvObj {
   friend class QuantInfo;
 
  public:
-  MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar = false);
+  MatchGen(Env& env, QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar = false);
 
   //type of the match generator
   enum {

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Mathias Preiner
+ *   Aina Niemetz, Mathias Preiner, Martin Brain
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,22 +35,22 @@
 
 namespace symfpu {
 
-#define CVC5_LIT_ITE_DFN(T)                                            \
-  template <>                                                          \
-  struct ite<::cvc5::internal::symfpuLiteral::Cvc5Prop, T>                       \
-  {                                                                    \
-    static const T& iteOp(const ::cvc5::internal::symfpuLiteral::Cvc5Prop& cond, \
-                          const T& l,                                  \
-                          const T& r)                                  \
-    {                                                                  \
-      return cond ? l : r;                                             \
-    }                                                                  \
+#define CVC5_LIT_ITE_DFN(T)                                                    \
+  template <>                                                                  \
+  struct ite<cvc5::internal::symfpuLiteral::Cvc5Prop, T>                       \
+  {                                                                            \
+    static const T& iteOp(const cvc5::internal::symfpuLiteral::Cvc5Prop& cond, \
+                          const T& l,                                          \
+                          const T& r)                                          \
+    {                                                                          \
+      return cond ? l : r;                                                     \
+    }                                                                          \
   }
 
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::rm);
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::prop);
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::sbv);
-CVC5_LIT_ITE_DFN(::cvc5::internal::symfpuLiteral::traits::ubv);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::rm);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::prop);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::sbv);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::ubv);
 
 #undef CVC5_LIT_ITE_DFN
 }  // namespace symfpu

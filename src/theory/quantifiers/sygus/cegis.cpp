@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -608,7 +608,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
       for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
       {
         evalVisited[vsProc[j]] = msProc[j];
-        Assert(vsProc[j].getType().isComparableTo(msProc[j].getType()));
+        Assert(vsProc[j].getType() == msProc[j].getType());
       }
     }
   }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Morgan Deters, Aina Niemetz
+ *   Andres Noetzli, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +40,7 @@ enum Kind_t
 
 // import Kind into the "cvc5" namespace but keep the individual kind
 // constants under kind::
-typedef ::cvc5::internal::kind::Kind_t Kind;
+typedef cvc5::internal::kind::Kind_t Kind;
 
 namespace kind {
 
@@ -68,12 +68,12 @@ std::ostream& operator<<(std::ostream&, cvc5::internal::Kind);
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
 /* TODO: This could be generated. */
-bool isAssociative(::cvc5::internal::Kind k);
-std::string kindToString(::cvc5::internal::Kind k);
+bool isAssociative(cvc5::internal::Kind k);
+std::string kindToString(cvc5::internal::Kind k);
 
 struct KindHashFunction
 {
-  inline size_t operator()(::cvc5::internal::Kind k) const { return k; }
+  inline size_t operator()(cvc5::internal::Kind k) const { return k; }
 }; /* struct KindHashFunction */
 
 }  // namespace kind
@@ -101,9 +101,9 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-::cvc5::internal::theory::TheoryId kindToTheoryId(::cvc5::internal::Kind k);
-::cvc5::internal::theory::TheoryId typeConstantToTheoryId(
-    ::cvc5::internal::TypeConstant typeConstant);
+cvc5::internal::theory::TheoryId kindToTheoryId(cvc5::internal::Kind k);
+cvc5::internal::theory::TheoryId typeConstantToTheoryId(
+    cvc5::internal::TypeConstant typeConstant);
 
 }  // namespace theory
 }  // namespace cvc5::internal

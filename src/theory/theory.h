@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -99,7 +99,7 @@ namespace eq {
 class Theory : protected EnvObj
 {
   friend class CarePairArgumentCallback;
-  friend class ::cvc5::internal::TheoryEngine;
+  friend class internal::TheoryEngine;
 
  protected:
   /** Name of this theory instance. Along with the TheoryId this should
@@ -203,15 +203,6 @@ class Theory : protected EnvObj
    */
   bool proofsEnabled() const;
 
-  /**
-   * Set separation logic heap. This is called when the location and data
-   * types for separation logic are determined. This should be called at
-   * most once, before solving.
-   *
-   * This currently should be overridden by the separation logic theory only.
-   */
-  virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
-
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
@@ -224,7 +215,7 @@ class Theory : protected EnvObj
    *
    * The following criteria imply that x -> val is *not* a legal elimination:
    * (1) If x is contained in val,
-   * (2) If the type of val is not a subtype of the type of x,
+   * (2) If the type of val is not the same as the type of x,
    * (3) If val contains an operator that cannot be evaluated, and
    * produceModels is true. For example, x -> sqrt(2) is not a legal
    * elimination if we are producing models. This is because we care about the
@@ -796,11 +787,10 @@ class Theory : protected EnvObj
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /** Return true if this theory uses central equality engine */
-  bool usesCentralEqualityEngine() const;
-  /** uses central equality engine (static) */
-  static bool usesCentralEqualityEngine(TheoryId id);
-  /** Explains/propagates via central equality engine only */
+  /**
+   * Return true if this theory explains and propagates via central equality
+   * engine only when the theory uses the central equality engine.
+   */
   static bool expUsingCentralEqualityEngine(TheoryId id);
 
  private:

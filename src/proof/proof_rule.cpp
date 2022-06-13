@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -133,7 +133,6 @@ const char* toString(PfRule id)
     case PfRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
     case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
-    case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
@@ -161,8 +160,7 @@ const char* toString(PfRule id)
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case PfRule::STRING_INFERENCE: return "STRING_INFERENCE";
     //================================================= Arith rules
-    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
-      return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case PfRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";

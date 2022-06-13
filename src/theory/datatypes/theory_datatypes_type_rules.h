@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,11 +126,10 @@ class DtSygusEvalTypeRule
  * - The head is a datatype T,
  * - The remaining children are either MATCH_BIND_CASE or MATCH_CASE,
  * - The patterns for the cases are over the same datatype as the head term,
- * - The return types for the cases are comparable,
+ * - The return types for the cases are the same,
  * - The patterns specified by the children are exhaustive for T.
  *
- * The type rule returns the (least common subtype) of the return types of the
- * cases.
+ * The type rule returns the return type of the cases.
  */
 class MatchTypeRule
 {
@@ -161,7 +160,7 @@ class MatchBindCaseTypeRule
 
 /**
  * Tuple project is indexed by a list of indices (n_1, ..., n_m). It ensures
- * that the argument is a tuple whose arity k is greater that each n_i for
+ * that the argument is a tuple whose arity k is greater than each n_i for
  * i = 1, ..., m. If the argument is of type (Tuple T_1 ... T_k), then the
  * returned type is (Tuple T_{n_1} ... T_{n_m}).
  */

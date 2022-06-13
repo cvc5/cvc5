@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -219,7 +219,10 @@ void SygusInst::reset_round(Theory::Effort e)
   for (uint32_t i = 0; i < nasserted; ++i)
   {
     Node q = model->getAssertedQuantifier(i);
-
+    if (!shouldProcess(q))
+    {
+      continue;
+    }
     if (model->isQuantifierActive(q))
     {
       d_active_quant.insert(q);
@@ -243,6 +246,19 @@ void SygusInst::reset_round(Theory::Effort e)
   }
 }
 
+bool SygusInst::shouldProcess(Node q)
+{
+  // Note that we currently process quantified formulas that other modules
+  // e.g. CEGQI have taken full ownership over.
+  // ignore internal quantifiers
+  QuantAttributes& qattr = d_qreg.getQuantAttributes();
+  if (qattr.isQuantBounded(q))
+  {
+    return false;
+  }
+  return true;
+}
+
 void SygusInst::check(Theory::Effort e, QEffort quant_e)
 {
   Trace("sygus-inst") << "Check " << e << ", " << quant_e << std::endl;
@@ -252,7 +268,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   FirstOrderModel* model = d_treg.getModel();
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
-  SygusExplain syexplain(db);
+  SygusExplain syexplain(d_env, db);
   NodeManager* nm = NodeManager::currentNM();
   options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 
@@ -522,7 +538,11 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     // evaluation function, since we are not using the builtin support
     // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
     // skolem construction here is deterministic and reproducible.
-    Node k = sm->mkPurifySkolem(eval, "eval");
+    SkolemManager::SkolemFlags flags = eval.getType().isBoolean()
+                                           ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                           : SkolemManager::SKOLEM_DEFAULT;
+    Node k = sm->mkPurifySkolem(
+        eval, "eval", "evaluation variable for sygus-inst", flags);
     // Requires instantiation constant attribute as well. This ensures that
     // other instantiation methods, e.g. E-matching do not consider this term
     // for instantiation, as it is model-unsound to do so.

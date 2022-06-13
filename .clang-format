@@ -24,7 +24,7 @@ AllowShortCaseLabelsOnASingleLine: true
 BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: NonAssignment
-BreakAfterJavaFieldAnnotations: false
+BreakAfterJavaFieldAnnotations: true
 BraceWrapping:
   AfterCaseLabel: true
   AfterObjCDeclaration: true

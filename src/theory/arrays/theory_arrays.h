@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -371,7 +371,7 @@ class TheoryArrays : public Theory {
   using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
   context::CDQueue<RowLemmaType> d_RowQueue;
-  context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;
+  context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction> d_RowAlreadyAdded;
 
   typedef context::CDHashSet<Node> CDNodeSet;
 
@@ -389,24 +389,29 @@ class TheoryArrays : public Theory {
   context::CDList<TNode> d_constReadsList;
   context::Context* d_constReadsContext;
   /** Helper class to keep d_constReadsContext in sync with satContext */
-  class ContextPopper : public context::ContextNotifyObj {
+  class ContextPopper : public context::ContextNotifyObj
+  {
     context::Context* d_satContext;
     context::Context* d_contextToPop;
-  protected:
-   void contextNotifyPop() override
-   {
-     if (d_contextToPop->getLevel() > d_satContext->getLevel())
-     {
-       d_contextToPop->pop();
-     }
-    }
-  public:
-    ContextPopper(context::Context* context, context::Context* contextToPop)
-      :context::ContextNotifyObj(context), d_satContext(context),
-       d_contextToPop(contextToPop)
-    {}
 
-  };/* class ContextPopper */
+   protected:
+    void contextNotifyPop() override
+    {
+      if (d_contextToPop->getLevel() > d_satContext->getLevel())
+      {
+        d_contextToPop->pop();
+      }
+    }
+
+   public:
+    ContextPopper(context::Context* context, context::Context* contextToPop)
+        : context::ContextNotifyObj(context),
+          d_satContext(context),
+          d_contextToPop(contextToPop)
+    {
+    }
+
+  }; /* class ContextPopper */
   ContextPopper d_contextPopper;
 
   // The decision requests we have for the core

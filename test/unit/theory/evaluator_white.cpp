@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli
+ *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,8 +103,8 @@ TEST_F(TestTheoryWhiteEvaluator, strIdOf)
 {
   Node a = d_nodeManager->mkConst(String("A"));
   Node empty = d_nodeManager->mkConst(String(""));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
 
   std::vector<Node> args;
   std::vector<Node> vals;
@@ -150,14 +150,14 @@ TEST_F(TestTheoryWhiteEvaluator, code)
   {
     Node n = d_nodeManager->mkNode(kind::STRING_TO_CODE, a);
     Node r = eval.eval(n, args, vals);
-    ASSERT_EQ(r, d_nodeManager->mkConst(CONST_RATIONAL, Rational(65)));
+    ASSERT_EQ(r, d_nodeManager->mkConstInt(Rational(65)));
   }
 
   // (str.code "") ---> -1
   {
     Node n = d_nodeManager->mkNode(kind::STRING_TO_CODE, empty);
     Node r = eval.eval(n, args, vals);
-    ASSERT_EQ(r, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1)));
+    ASSERT_EQ(r, d_nodeManager->mkConstInt(Rational(-1)));
   }
 }
 }  // namespace test

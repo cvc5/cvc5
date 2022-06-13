@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Alex Ozdemir
+ *   Andrew Reynolds, Gereon Kremer, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,15 +16,16 @@
 #include "theory/arith/theory_arith.h"
 
 #include "options/smt_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
-#include "theory/arith/infer_bounds.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/arith/nl/nonlinear_extension.h"
-#include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -45,7 +46,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_ppre(d_env),
       d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
-      d_internal(new TheoryArithPrivate(*this, env, d_bab)),
+      d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
@@ -58,10 +59,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 
-  if (options().arith.arithEqSolver)
-  {
-    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
-  }
+  // construct the equality solver
+  d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
 }
 
 TheoryArith::~TheoryArith(){
@@ -79,13 +78,7 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
   // if the equality solver is enabled, then it is responsible for setting
   // up the equality engine
-  if (d_eqSolver != nullptr)
-  {
-    return d_eqSolver->needsEqualityEngine(esi);
-  }
-  // otherwise, the linear arithmetic solver is responsible for setting up
-  // the equality engine
-  return d_internal->needsEqualityEngine(esi);
+  return d_eqSolver->needsEqualityEngine(esi);
 }
 void TheoryArith::finishInit()
 {
@@ -105,16 +98,56 @@ void TheoryArith::finishInit()
     d_nonlinearExtension.reset(
         new nl::NonlinearExtension(d_env, *this, d_astate));
   }
-  if (d_eqSolver != nullptr)
-  {
-    d_eqSolver->finishInit();
-  }
+  d_eqSolver->finishInit();
   // finish initialize in the old linear solver
   d_internal->finishInit();
+
+  // Set the congruence manager on the equality solver. If the congruence
+  // manager exists, it is responsible for managing the notifications from
+  // the equality engine, which the equality solver forwards to it.
+  d_eqSolver->setCongruenceManager(d_internal->getCongruenceManager());
 }
 
 void TheoryArith::preRegisterTerm(TNode n)
 {
+  // handle logic exceptions
+  Kind k = n.getKind();
+  bool isTransKind = isTranscendentalKind(k);
+  // note that we don't throw an exception for non-linear multiplication in
+  // linear logics, since this is caught in the linear solver with a more
+  // informative error message
+  if (isTransKind || k == IAND || k == POW2)
+  {
+    if (d_nonlinearExtension == nullptr)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " requires the logic to include non-linear arithmetic";
+      throw LogicException(ss.str());
+    }
+    // logic exceptions based on the configuration of nl-ext: if we are a
+    // transcendental function, we require nl-ext=full.
+    if (isTransKind)
+    {
+      if (options().arith.nlExt != options::NlExtMode::FULL)
+      {
+        std::stringstream ss;
+        ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+           << " requires nl-ext mode to be set to value 'full'";
+        throw LogicException(ss.str());
+      }
+    }
+    if (options().arith.nlCov && !options().arith.nlCovForce)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " is not compatible with using the coverings-based solver. If "
+            "you know what you are doing, "
+            "you can try --nl-cov-force, but expect crashes or incorrect "
+            "results.";
+      throw LogicException(ss.str());
+    }
+  }
   if (d_nonlinearExtension != nullptr)
   {
     d_nonlinearExtension->preRegisterTerm(n);
@@ -122,7 +155,11 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
+void TheoryArith::notifySharedTerm(TNode n)
+{
+  n = n.getKind() == kind::TO_REAL ? n[0] : n;
+  d_internal->notifySharedTerm(n);
+}
 
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
@@ -151,7 +188,10 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
 
 void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
 {
-  d_internal->ppStaticLearn(n, learned);
+  if (options().arith.arithStaticLearning)
+  {
+    d_internal->ppStaticLearn(n, learned);
+  }
 }
 
 bool TheoryArith::preCheck(Effort level)
@@ -200,6 +240,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheIllTyped.clear();
     d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
@@ -233,7 +274,7 @@ bool TheoryArith::preNotifyFact(
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.
   bool ret = true;
-  if (d_eqSolver != nullptr)
+  if (options().arith.arithEqSolver)
   {
     // the equality solver may indicate ret = false, after which the assertion
     // will be asserted to the equality engine in the default way.
@@ -254,14 +295,11 @@ bool TheoryArith::needsCheckLastEffort() {
 
 TrustNode TheoryArith::explain(TNode n)
 {
-  if (d_eqSolver != nullptr)
+  // if the equality solver has an explanation for it, use it
+  TrustNode texp = d_eqSolver->explain(n);
+  if (!texp.isNull())
   {
-    // if the equality solver has an explanation for it, use it
-    TrustNode texp = d_eqSolver->explain(n);
-    if (!texp.isNull())
-    {
-      return texp;
-    }
+    return texp;
   }
   return d_internal->explain(n);
 }
@@ -298,8 +336,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    // maps to constant of comparable type
-    Assert(p.first.getType().isComparableTo(p.second.getType()));
+    // maps to constant of same type
+    Assert(p.first.getType() == p.second.getType());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -353,6 +391,7 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryArith::getModelValue(TNode var) {
+  var = var.getKind() == kind::TO_REAL ? var[0] : var;
   std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
   if (it != d_arithModelCache.end())
   {
@@ -363,12 +402,9 @@ Node TheoryArith::getModelValue(TNode var) {
 
 std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
-  ArithEntailmentCheckParameters def;
-  def.addLookupRowSumAlgorithms();
-  ArithEntailmentCheckSideEffects ase;
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
-  return res;
+  return d_internal->entailmentCheck(lit);
 }
+
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
   return d_im.getProofEqEngine();
@@ -380,7 +416,8 @@ void TheoryArith::updateModelCache(std::set<Node>& termSet)
   {
     d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
-    d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
@@ -388,48 +425,53 @@ void TheoryArith::updateModelCache(const std::set<Node>& termSet)
   if (!d_arithModelCacheSet)
   {
     d_arithModelCacheSet = true;
-    d_internal->collectModelValues(termSet, d_arithModelCache);
+    d_internal->collectModelValues(
+        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
 bool TheoryArith::sanityCheckIntegerModel()
 {
-
-    // Double check that the model from the linear solver respects integer types,
-    // if it does not, add a branch and bound lemma. This typically should never
-    // be necessary, but is needed in rare cases.
-    bool addedLemma = false;
-    bool badAssignment = false;
-    Trace("arith-check") << "model:" << std::endl;
-    for (const auto& p : d_arithModelCache)
+  // Double check that the model from the linear solver respects integer types,
+  // if it does not, add a branch and bound lemma. This typically should never
+  // be necessary, but is needed in rare cases.
+  if (Configuration::isAssertionBuild())
+  {
+    for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Trace("arith-check") << p.first << " -> " << p.second << std::endl;
-      if (p.first.getType().isInteger() && !p.second.getType().isInteger())
-      {
-        warning() << "TheoryArithPrivate generated a bad model value for "
-                     "integer variable "
-                  << p.first << " : " << p.second << std::endl;
-        // must branch and bound
-        TrustNode lem =
-            d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
-        if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
-        {
-          addedLemma = true;
-        }
-        badAssignment = true;
-      }
+      Assert(p.first.getType() == p.second.getType());
     }
-    if (addedLemma)
+  }
+  bool addedLemma = false;
+  bool badAssignment = false;
+  Trace("arith-check") << "model:" << std::endl;
+  for (const auto& p : d_arithModelCacheIllTyped)
+  {
+    Trace("arith-check") << p.first << " -> " << p.second << std::endl;
+    Assert(p.first.getType().isInteger() && !p.second.getType().isInteger());
+    warning() << "TheoryArithPrivate generated a bad model value for "
+                 "integer variable "
+              << p.first << " : " << p.second << std::endl;
+    // must branch and bound
+    TrustNode lem =
+        d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
+    if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
     {
-      // we had to add a branch and bound lemma since the linear solver assigned
-      // a non-integer value to an integer variable.
-      return true;
+      addedLemma = true;
     }
-    // this would imply that linear arithmetic's model failed to satisfy a branch
-    // and bound lemma
-    AlwaysAssert(!badAssignment)
-        << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
-          "branching lemma was sent";
-    return false;
+    badAssignment = true;
+  }
+  if (addedLemma)
+  {
+    // we had to add a branch and bound lemma since the linear solver assigned
+    // a non-integer value to an integer variable.
+    return true;
+  }
+  // this would imply that linear arithmetic's model failed to satisfy a branch
+  // and bound lemma
+  AlwaysAssert(!badAssignment)
+      << "Bad assignment from TheoryArithPrivate::collectModelValues, and no "
+         "branching lemma was sent";
+  return false;
 }
 
 }  // namespace arith

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,7 +142,7 @@ ostream& operator<<(ostream& out, enum Result::Status s)
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  Language language = options::ioutils::getOutputLang(out);
+  Language language = options::ioutils::getOutputLanguage(out);
   switch (language) {
     case Language::LANG_SYGUS_V2: r.toStreamSmt2(out); break;
     case Language::LANG_TPTP: r.toStreamTptp(out); break;

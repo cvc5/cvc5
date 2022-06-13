@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Andres Noetzli
+ *   Aina Niemetz, Martin Brain, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,8 +45,8 @@ class wrappedBitVector;
 
 using Cvc5BitWidth = uint32_t;
 using Cvc5Prop = bool;
-using Cvc5RM = ::cvc5::internal::RoundingMode;
-using Cvc5FPSize = ::cvc5::internal::FloatingPointSize;
+using Cvc5RM = cvc5::internal::RoundingMode;
+using Cvc5FPSize = cvc5::internal::FloatingPointSize;
 using Cvc5UnsignedBitVector = wrappedBitVector<false>;
 using Cvc5SignedBitVector = wrappedBitVector<true>;
 

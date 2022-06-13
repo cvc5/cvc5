@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::context;
+using namespace cvc5::context;
 
 namespace cvc5::internal {
 namespace theory {
@@ -46,15 +46,17 @@ typedef Region::RegionNodeInfo RegionNodeInfo;
 typedef RegionNodeInfo::DiseqList DiseqList;
 
 Region::Region(SortModel* cf, context::Context* c)
-  : d_cf( cf )
-  , d_testCliqueSize( c, 0 )
-  , d_splitsSize( c, 0 )
-  , d_testClique( c )
-  , d_splits( c )
-  , d_reps_size( c, 0 )
-  , d_total_diseq_external( c, 0 )
-  , d_total_diseq_internal( c, 0 )
-  , d_valid( c, true ) {}
+    : d_cf(cf),
+      d_testCliqueSize(c, 0),
+      d_splitsSize(c, 0),
+      d_testClique(c),
+      d_splits(c),
+      d_reps_size(c, 0),
+      d_total_diseq_external(c, 0),
+      d_total_diseq_internal(c, 0),
+      d_valid(c, true)
+{
+}
 
 Region::~Region() {
   for(iterator i = begin(), iend = end(); i != iend; ++i) {

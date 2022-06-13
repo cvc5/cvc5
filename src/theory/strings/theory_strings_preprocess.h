@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+ *   Andrew Reynolds, Tianyi Liang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,6 +91,10 @@ class StringsPreprocess {
    * visited stores a cache of previous results.
    */
   Node simplifyRec(Node t, std::vector<Node>& asserts);
+  /**
+   * Makes the term returning the code point of string x at point i.
+   */
+  static Node mkCodePointAtIndex(Node x, Node i);
 };
 
 }  // namespace strings

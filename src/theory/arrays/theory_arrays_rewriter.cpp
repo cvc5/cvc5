@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters
+ *   Andrew Reynolds, Clark Barrett, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 #include "proof/conv_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "theory/arrays/skolem_cache.h"
+#include "theory/type_enumerator.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -38,8 +39,10 @@ struct ArrayConstantMostFrequentValueCountTag
 };
 }  // namespace attr
 
-typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
-typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
+using ArrayConstantMostFrequentValueCountAttr =
+    expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t>;
+using ArrayConstantMostFrequentValueAttr =
+    expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node>;
 
 Node getMostFrequentValue(TNode store) {
   return store.getAttribute(ArrayConstantMostFrequentValueAttr());
@@ -63,7 +66,13 @@ TheoryArraysRewriter::TheoryArraysRewriter(Rewriter* rewriter,
 
 Node TheoryArraysRewriter::normalizeConstant(TNode node)
 {
-  return normalizeConstant(node, node[1].getType().getCardinality());
+  if (node.isConst())
+  {
+    return node;
+  }
+  Node ret = normalizeConstant(node, node[1].getType().getCardinality());
+  Assert(ret.isConst());
+  return ret;
 }
 
 // this function is called by printers when using the option "--model-u-dt-enum"

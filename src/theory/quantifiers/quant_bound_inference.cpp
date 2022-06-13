@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,7 +94,7 @@ BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v)
 }
 
 void QuantifiersBoundInference::getBoundVarIndices(
-    Node q, std::vector<unsigned>& indices) const
+    Node q, std::vector<size_t>& indices) const
 {
   Assert(indices.empty());
   // we take the bounded variables first

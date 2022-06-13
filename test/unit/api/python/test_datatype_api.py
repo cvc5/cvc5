@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Yoni Zohar, Andrew Reynolds, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -39,8 +39,8 @@ def test_mk_datatype_sort(solver):
     nilConstr = d[1]
     with pytest.raises(RuntimeError):
         d[2]
-    consConstr.getConstructorTerm()
-    nilConstr.getConstructorTerm()
+    consConstr.getTerm()
+    nilConstr.getTerm()
 
 def test_is_null(solver):
   # creating empty (null) objects.
@@ -58,14 +58,16 @@ def test_is_null(solver):
   assert sel.isNull()
 
   # changing the objects to be non-null
-  dtypeSpec = solver.mkDatatypeDecl("list");
-  cons = solver.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", solver.getIntegerSort());
-  dtypeSpec.addConstructor(cons);
+  dtypeSpec = solver.mkDatatypeDecl("list")
+  cons = solver.mkDatatypeConstructorDecl("cons")
+  cons.addSelector("head", solver.getIntegerSort())
+  dtypeSpec.addConstructor(cons)
+  assert dtypeSpec.getNumConstructors() == 1
+  assert not dtypeSpec.isParametric()
   listSort = solver.mkDatatypeSort(dtypeSpec)
-  d = listSort.getDatatype();
-  consConstr = d[0];
-  sel = consConstr[0];
+  d = listSort.getDatatype()
+  consConstr = d[0]
+  sel = consConstr[0]
 
   # verifying that the new objects are non-null
   assert not dtypeSpec.isNull()
@@ -85,11 +87,8 @@ def test_mk_datatype_sorts(solver):
     #
 
     #Make unresolved types as placeholders
-    unresTypes = set([])
-    unresTree = solver.mkUnresolvedSort("tree")
-    unresList = solver.mkUnresolvedSort("list")
-    unresTypes.add(unresTree)
-    unresTypes.add(unresList)
+    unresTree = solver.mkUnresolvedDatatypeSort("tree")
+    unresList = solver.mkUnresolvedDatatypeSort("list")
 
     tree = solver.mkDatatypeDecl("tree")
     node = solver.mkDatatypeConstructorDecl("node")
@@ -114,7 +113,7 @@ def test_mk_datatype_sorts(solver):
     dtdecls.append(tree)
     dtdecls.append(llist)
     dtsorts = []
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == len(dtdecls)
     for i in range(0, len(dtdecls)):
         assert dtsorts[i].isDatatype()
@@ -137,6 +136,48 @@ def test_mk_datatype_sorts(solver):
     with pytest.raises(RuntimeError):
         solver.mkDatatypeSorts(dtdeclsBad)
 
+
+def test_mk_datatype_sorts_sel_unres(solver):
+    # Same as above, using unresolved selectors
+
+    tree = solver.mkDatatypeDecl("tree")
+    node = solver.mkDatatypeConstructorDecl("node")
+    node.addSelectorUnresolved("left", "tree")
+    node.addSelectorUnresolved("right", "tree")
+    tree.addConstructor(node)
+
+    leaf = solver.mkDatatypeConstructorDecl("leaf")
+    leaf.addSelectorUnresolved("data", "list")
+    tree.addConstructor(leaf)
+
+    llist = solver.mkDatatypeDecl("list")
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    cons.addSelectorUnresolved("car", "tree")
+    cons.addSelectorUnresolved("cdr", "tree")
+    llist.addConstructor(cons)
+
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    llist.addConstructor(nil)
+
+    dtdecls = []
+    dtdecls.append(tree)
+    dtdecls.append(llist)
+    dtsorts = []
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
+    assert len(dtsorts) == len(dtdecls)
+    for i in range(0, len(dtdecls)):
+        assert dtsorts[i].isDatatype()
+        assert not dtsorts[i].getDatatype().isFinite()
+        assert dtsorts[i].getDatatype().getName() == dtdecls[i].getName()
+    # verify the resolution was correct
+    dtTree = dtsorts[0].getDatatype()
+    dtcTreeNode = dtTree[0]
+    assert dtcTreeNode.getName() == "node"
+    dtsTreeNodeLeft = dtcTreeNode[0]
+    assert dtsTreeNodeLeft.getName() == "left"
+    # argument type should have resolved to be recursive
+    assert dtsTreeNodeLeft.getCodomainSort().isDatatype()
+    assert dtsTreeNodeLeft.getCodomainSort() == dtsorts[0]
 
 def test_datatype_structs(solver):
     intSort = solver.getIntegerSort()
@@ -164,7 +205,7 @@ def test_datatype_structs(solver):
     assert dt.isWellFounded()
     # get constructor
     dcons = dt[0]
-    consTerm = dcons.getConstructorTerm()
+    consTerm = dcons.getTerm()
     assert dcons.getNumSelectors() == 2
 
     # create datatype sort to test
@@ -194,7 +235,7 @@ def test_datatype_structs(solver):
     assert dtStream.isWellFounded()
 
     # create tuple
-    tupSort = solver.mkTupleSort([boolSort])
+    tupSort = solver.mkTupleSort(boolSort)
     dtTuple = tupSort.getDatatype()
     assert dtTuple.isTuple()
     assert not dtTuple.isRecord()
@@ -203,7 +244,7 @@ def test_datatype_structs(solver):
 
     # create record
     fields = [("b", boolSort), ("i", intSort)]
-    recSort = solver.mkRecordSort(fields)
+    recSort = solver.mkRecordSort(*fields)
     assert recSort.isDatatype()
     dtRecord = recSort.getDatatype()
     assert not dtRecord.isTuple()
@@ -327,13 +368,9 @@ def test_datatype_simply_rec(solver):
     #   END
 
     # Make unresolved types as placeholders
-    unresTypes = set([])
-    unresWList = solver.mkUnresolvedSort("wlist")
-    unresList = solver.mkUnresolvedSort("list")
-    unresNs = solver.mkUnresolvedSort("ns")
-    unresTypes.add(unresWList)
-    unresTypes.add(unresList)
-    unresTypes.add(unresNs)
+    unresWList = solver.mkUnresolvedDatatypeSort("wlist")
+    unresList = solver.mkUnresolvedDatatypeSort("list")
+    unresNs = solver.mkUnresolvedDatatypeSort("ns")
 
     wlist = solver.mkDatatypeDecl("wlist")
     leaf = solver.mkDatatypeConstructorDecl("leaf")
@@ -358,7 +395,7 @@ def test_datatype_simply_rec(solver):
 
     dtdecls = [wlist, llist, ns]
     # this is well-founded and has no nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 3
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
@@ -369,9 +406,7 @@ def test_datatype_simply_rec(solver):
     #     ns2 = elem2(ndata: array(int,ns2)) | nil2
     #   END
 
-    unresTypes.clear()
-    unresNs2 = solver.mkUnresolvedSort("ns2")
-    unresTypes.add(unresNs2)
+    unresNs2 = solver.mkUnresolvedDatatypeSort("ns2")
 
     ns2 = solver.mkDatatypeDecl("ns2")
     elem2 = solver.mkDatatypeConstructorDecl("elem2")
@@ -385,7 +420,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(ns2)
 
     # this is not well-founded due to non-simple recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 1
     assert dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray()
     assert dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort() \
@@ -398,11 +433,8 @@ def test_datatype_simply_rec(solver):
     #     ns3 = elem3(ndata: set(list3))
     #   END
 
-    unresTypes.clear()
-    unresNs3 = solver.mkUnresolvedSort("ns3")
-    unresTypes.add(unresNs3)
-    unresList3 = solver.mkUnresolvedSort("list3")
-    unresTypes.add(unresList3)
+    unresNs3 = solver.mkUnresolvedDatatypeSort("ns3")
+    unresList3 = solver.mkUnresolvedDatatypeSort("list3")
 
     list3 = solver.mkDatatypeDecl("list3")
     cons3 = solver.mkDatatypeConstructorDecl("cons3")
@@ -422,7 +454,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(ns3)
 
     # both are well-founded and have nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 2
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
@@ -432,11 +464,8 @@ def test_datatype_simply_rec(solver):
     #     list4 = cons(car: set(ns4), cdr: list4) | nil,
     #     ns4 = elem(ndata: list4)
     #   END
-    unresTypes.clear()
-    unresNs4 = solver.mkUnresolvedSort("ns4")
-    unresTypes.add(unresNs4)
-    unresList4 = solver.mkUnresolvedSort("list4")
-    unresTypes.add(unresList4)
+    unresNs4 = solver.mkUnresolvedDatatypeSort("ns4")
+    unresList4 = solver.mkUnresolvedDatatypeSort("list4")
 
     list4 = solver.mkDatatypeDecl("list4")
     cons4 = solver.mkDatatypeConstructorDecl("cons4")
@@ -456,7 +485,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(ns4)
 
     # both are well-founded and have nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 2
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
@@ -465,9 +494,7 @@ def test_datatype_simply_rec(solver):
     #   DATATYPE
     #     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
     #   END
-    unresTypes.clear()
-    unresList5 = solver.mkUninterpretedSortConstructorSort("list5", 1)
-    unresTypes.add(unresList5)
+    unresList5 = solver.mkUninterpretedSortConstructorSort(1, "list5")
 
     v = []
     x = solver.mkParamSort("X")
@@ -490,7 +517,7 @@ def test_datatype_simply_rec(solver):
     dtdecls.append(list5)
 
     # well-founded and has nested recursion
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 1
     assert dtsorts[0].getDatatype().isWellFounded()
 
@@ -502,10 +529,7 @@ def test_datatype_specialized_cons(solver):
     #   END
 
     # Make unresolved types as placeholders
-    unresTypes = set([])
-    unresList = solver.mkUninterpretedSortConstructorSort("plist", 1)
-    unresTypes.add(unresList)
-
+    unresList = solver.mkUninterpretedSortConstructorSort(1, "plist")
     v = []
     x = solver.mkParamSort("X")
     v.append(x)
@@ -524,7 +548,7 @@ def test_datatype_specialized_cons(solver):
     dtdecls = [plist]
 
     # make the datatype sorts
-    dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
+    dtsorts = solver.mkDatatypeSorts(dtdecls)
     assert len(dtsorts) == 1
     d = dtsorts[0].getDatatype()
     nilc = d[0]
@@ -535,8 +559,8 @@ def test_datatype_specialized_cons(solver):
 
     testConsTerm = Term(solver)
     # get the specialized constructor term for list[Int]
-    testConsTerm = nilc.getInstantiatedConstructorTerm(listInt)
-    assert testConsTerm != nilc.getConstructorTerm()
+    testConsTerm = nilc.getInstantiatedTerm(listInt)
+    assert testConsTerm != nilc.getTerm()
     # error to get the specialized constructor term for Int
     with pytest.raises(RuntimeError):
-        nilc.getInstantiatedConstructorTerm(isort)
+        nilc.getInstantiatedTerm(isort)

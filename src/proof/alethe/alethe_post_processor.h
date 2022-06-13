@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   AletheProofPostprocessCallback(ProofNodeManager* pnm,
-                                 AletheNodeConverter& anc);
+                                 AletheNodeConverter& anc,
+                                 bool resPivots);
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
@@ -50,17 +51,24 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
+  /** Should proof pn be updated at post-visit?
+   *
+   * Only if its top-level Alethe proof rule is RESOLUTION, REORDERING, or
+   * CONTRACTION.
+   */
+  bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                        const std::vector<Node>& fa) override;
   /**
    * This method is used to add an additional application of the or-rule between
    * a conclusion (cl (or F1 ... Fn)) and a rule that uses this conclusion as a
    * premise and treats it as a clause, i.e. assumes that it has been printed
    * as (cl F1 ... Fn).
    */
-  bool finalize(Node res,
-                PfRule id,
-                const std::vector<Node>& children,
-                const std::vector<Node>& args,
-                CDProof* cdp);
+  bool updatePost(Node res,
+                  PfRule id,
+                  const std::vector<Node>& children,
+                  const std::vector<Node>& args,
+                  CDProof* cdp) override;
   /**
    * This method is used to add some last steps to a proof when this is
    * necessary. The final step should always be printed as (cl). However:
@@ -84,6 +92,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofNodeManager* d_pnm;
   /** The Alethe node converter */
   AletheNodeConverter& d_anc;
+  /** Whether to keep the pivots in the alguments of the resolution rule */
+  bool d_resPivots;
   /** The cl operator
    * For every step the conclusion is a clause. But since the or operator
    *requires at least two arguments it is extended by the cl operator. In case
@@ -138,7 +148,9 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocess
 {
  public:
-  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
+  AletheProofPostprocess(ProofNodeManager* pnm,
+                         AletheNodeConverter& anc,
+                         bool resPivots);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

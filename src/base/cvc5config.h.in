@@ -1,3 +1,16 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ */
+
 #ifndef CVC5__BASE__CVC5CONFIG_H
 #define CVC5__BASE__CVC5CONFIG_H
 
@@ -51,6 +64,9 @@
 
 /* Define to 1 if the <unistd.h> header file is available. */
 #cmakedefine01 HAVE_UNISTD_H
+
+/* Define to 1 if the <sys/wait.h> header file is available. */
+#cmakedefine01 HAVE_SYS_WAIT_H
 
 /* Define to 1 if `strerror_r' returns (char *). */
 #cmakedefine01 STRERROR_R_CHAR_P

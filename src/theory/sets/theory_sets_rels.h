@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Tim King
+ *   Andrew Reynolds, Paul Meng, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -180,7 +180,7 @@ class TheorySetsRels : protected EnvObj
 
   /** Helper functions */
   bool hasTerm( Node a );
-  void makeSharedTerm(Node, TypeNode t);
+  void makeSharedTerm(Node a);
   void reduceTupleVar( Node );
   bool hasMember( Node, Node );
   void computeTupleReps( Node );

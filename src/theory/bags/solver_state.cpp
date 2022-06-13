@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +43,7 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
 {
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
-  Assert(element.getType().isSubtypeOf(bag.getType().getBagElementType())
+  Assert(element.getType() == bag.getType().getBagElementType()
          && element == getRepresentative(element));
   Assert(skolem.isVar() && skolem.getType().isInteger());
   std::pair<Node, Node> pair = std::make_pair(element, skolem);
@@ -119,7 +119,7 @@ void SolverState::collectDisequalBagTerms()
         TypeNode elementType = A.getType().getBagElementType();
         SkolemManager* sm = d_nm->getSkolemManager();
         Node skolem = sm->mkSkolemFunction(
-            SkolemFunId::BAG_DEQ_DIFF, elementType, {A, B});
+            SkolemFunId::BAGS_DEQ_DIFF, elementType, {A, B});
         d_deq[equal] = skolem;
       }
     }

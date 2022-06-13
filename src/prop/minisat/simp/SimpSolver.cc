@@ -49,8 +49,8 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 
 SimpSolver::SimpSolver(Env& env,
                        cvc5::internal::prop::TheoryProxy* proxy,
-                       cvc5::internal::context::Context* context,
-                       cvc5::internal::context::UserContext* userContext,
+                       context::Context* context,
+                       context::UserContext* userContext,
                        ProofNodeManager* pnm,
                        bool enableIncremental)
     : Solver(env, proxy, context, userContext, pnm, enableIncremental),
@@ -60,14 +60,14 @@ SimpSolver::SimpSolver(Env& env,
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
-      use_rcheck(opt_use_rcheck && !options().smt.unsatCores && !pnm),
+      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores && !pnm),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
       use_simplification(
           options().prop.minisatSimpMode != options::MinisatSimpMode::NONE
-          && !enableIncremental && !options().smt.unsatCores && !pnm),
+          && !enableIncremental && !options().smt.produceUnsatCores && !pnm),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),

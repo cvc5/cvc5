@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -865,7 +865,7 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
     size_t len = Word::getLength(s);
     ret = nm->mkConstInt(Rational(len));
   }
-  else if (sk == SEQ_UNIT)
+  else if (sk == SEQ_UNIT || sk == STRING_UNIT)
   {
     ret = nm->mkConstInt(1);
   }

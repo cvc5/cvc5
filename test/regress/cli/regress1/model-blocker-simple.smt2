@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --produce-models --block-models=literals
+; COMMAND-LINE: --incremental --produce-models
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
@@ -10,9 +10,9 @@
 (check-sat)
 (block-model-values (x))
 (check-sat)
-(block-model)
+(block-model :literals)
 (check-sat)
 (block-model-values ((+ x 1)))
 (check-sat)
-(block-model)
+(block-model :literals)
 (check-sat)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -522,7 +522,7 @@ Rational String::toNumber() const
 
 namespace strings {
 
-size_t StringHashFunction::operator()(const ::cvc5::internal::String& s) const
+size_t StringHashFunction::operator()(const cvc5::internal::String& s) const
 {
   uint64_t ret = fnv1a::offsetBasis;
   for (unsigned c : s.d_str)

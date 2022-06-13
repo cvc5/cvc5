@@ -1,16 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of context::CDMap<>.
+ * Black box testing of cvc5::context::CDMap<>.
  */
 
 #include <map>
@@ -23,8 +23,8 @@
 namespace cvc5::internal {
 namespace test {
 
-using context::CDHashMap;
-using context::Context;
+using cvc5::context::CDHashMap;
+using cvc5::context::Context;
 
 class TestContextBlackCDHashMap : public TestContext
 {
