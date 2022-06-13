@@ -20,6 +20,8 @@ set(libmain_src_files
   interactive_shell.h
   main.h
   options.h
+  portfolio_driver.cpp
+  portfolio_driver.h
   signal_handlers.cpp
   signal_handlers.h
   time_limit.cpp
