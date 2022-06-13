@@ -31,6 +31,7 @@
 #include "main/interactive_shell.h"
 #include "main/main.h"
 #include "main/options.h"
+#include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "parser/parser.h"
@@ -222,37 +223,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
             Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
-      bool interrupted = false;
-      while (status)
-      {
-        if (interrupted) {
-          dopts.out() << cvc5::CommandInterrupted();
-          pExecutor->reset();
-          break;
-        }
-        cmd.reset(parser->nextCommand());
-        if (cmd == nullptr) break;
-
-        status = pExecutor->doCommand(cmd);
-        if (cmd->interrupted() && status == 0) {
-          interrupted = true;
-          break;
-        }
-
-        if (dynamic_cast<cvc5::QuitCommand*>(cmd.get()) != nullptr)
-        {
-          break;
-        }
-      }
-    }
-
-    cvc5::Result result;
-    if(status) {
-      result = pExecutor->getResult();
-      returnValue = 0;
-    } else {
-      // there was some kind of error
-      returnValue = 1;
+      PortfolioDriver driver(parser);
+      returnValue = driver.solve(pExecutor) ? 0 : 1;
     }
 
 #ifdef CVC5_COMPETITION_MODE
