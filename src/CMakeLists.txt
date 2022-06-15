@@ -1334,8 +1334,7 @@ target_include_directories(cvc5
 )
 install(TARGETS cvc5
   EXPORT cvc5-targets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 include(GenerateExportHeader)

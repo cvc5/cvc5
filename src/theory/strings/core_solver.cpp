@@ -2447,19 +2447,9 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   TypeNode intType = nm->integerType();
   Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
-  Node ss1, ss2;
-  if (n1.getType().isString())
-  {
-    // substring of length 1
-    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
-    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
-  }
-  else
-  {
-    // as an optimization, for sequences, use seq.nth
-    ss1 = nm->mkNode(SEQ_NTH, n1, k);
-    ss2 = nm->mkNode(SEQ_NTH, n2, k);
-  }
+  // use seq.nth instead of substr
+  Node ss1 = nm->mkNode(SEQ_NTH, n1, k);
+  Node ss2 = nm->mkNode(SEQ_NTH, n2, k);
 
   // disequality between nth/substr
   Node conc1 = ss1.eqNode(ss2).negate();

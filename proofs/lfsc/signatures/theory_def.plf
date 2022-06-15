@@ -170,6 +170,8 @@
 (define str.suffixof (# x term (# y term (apply (apply f_str.suffixof x) y))))
 (declare f_str.rev term)
 (define str.rev (# x term (apply f_str.rev x)))
+(declare f_str.unit term)
+(define str.unit (# x term (apply f_str.unit x)))
 (declare f_str.update term)
 (define str.update (# x term (# y term (# z term (apply (apply (apply f_str.update x) y) z)))))
 (declare f_str.to_lower term)
@@ -485,6 +487,10 @@
 (define rel.join_image (# x term (# y term (apply (apply f_rel.join_image x) y))))
 (declare f_set.insert term)
 (define set.insert (# x term (# y term (apply (apply f_set.insert x) y))))
+(declare f_set.filter term)
+(define set.filter (# x term (# y term (apply (apply f_set.filter x) y))))
+(declare f_set.map term)
+(define set.map (# x term (# y term (apply (apply f_set.map x) y))))
 
 ;; ---- Bags
 (declare bag.empty (! s sort term))

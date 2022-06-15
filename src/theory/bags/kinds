@@ -71,7 +71,7 @@ operator BAG_CHOOSE        1  "return an element in the bag given as a parameter
 operator BAG_MAP           2  "bag map function"
 
 # The bag.filter operator takes a predicate of type (-> T Bool) and a bag of type (Bag T)
-# and return the same bag excluding those elements that do not satisfy the predicate
+# and returns the same bag excluding those elements that do not satisfy the predicate
 operator BAG_FILTER        2  "bag filter operator"
 
 # bag.fold operator combines elements of a bag into a single value.

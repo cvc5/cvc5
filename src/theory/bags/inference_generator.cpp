@@ -533,7 +533,7 @@ InferInfo InferenceGenerator::mapUp(
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::filterDownwards(Node n, Node e)
+InferInfo InferenceGenerator::filterDown(Node n, Node e)
 {
   Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
   Assert(e.getType() == n[1].getType().getBagElementType());
@@ -555,7 +555,7 @@ InferInfo InferenceGenerator::filterDownwards(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::filterUpwards(Node n, Node e)
+InferInfo InferenceGenerator::filterUp(Node n, Node e)
 {
   Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
   Assert(e.getType() == n[1].getType().getBagElementType());

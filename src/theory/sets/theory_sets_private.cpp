@@ -57,6 +57,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
       d_card_enabled(false),
+      d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -198,6 +199,7 @@ void TheorySetsPrivate::fullEffortReset()
   Assert(d_equalityEngine->consistent());
   d_fullCheckIncomplete = false;
   d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
+  d_higher_order_kinds_enabled = false;
   d_card_enabled = false;
   d_rels_enabled = false;
   // reset the state object
@@ -357,6 +359,20 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check upwards closure
     checkUpwardsClosure();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+    // check filter up rule
+    checkFilterUp();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+    // check filter down rules
+    checkFilterDown();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -672,6 +688,70 @@ void TheorySetsPrivate::checkUpwardsClosure()
             }
           }
         }
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkFilterUp()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  const std::vector<Node>& filterTerms = d_state.getFilterTerms();
+
+  for (const Node& term : filterTerms)
+  {
+    Node p = term[0];
+    Node A = term[1];
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
+    {
+      Node x = pair.first;
+      std::vector<Node> exp;
+      exp.push_back(pair.second);
+      Node B = pair.second[1];
+      d_state.addEqualityToExp(A, B, exp);
+      Node p_x = nm->mkNode(APPLY_UF, p, x);
+      Node skolem = d_treg.getProxy(term);
+      Node memberFilter = nm->mkNode(kind::SET_MEMBER, x, skolem);
+      Node not_p_x = p_x.notNode();
+      Node not_memberFilter = memberFilter.notNode();
+      Node orNode =
+          p_x.andNode(memberFilter).orNode(not_p_x.andNode(not_memberFilter));
+      d_im.assertInference(orNode, InferenceId::SETS_FILTER_UP, exp);
+      if (d_state.isInConflict())
+      {
+        return;
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkFilterDown()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  const std::vector<Node>& filterTerms = d_state.getFilterTerms();
+  for (const Node& term : filterTerms)
+  {
+    Node p = term[0];
+    Node A = term[1];
+
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(term));
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
+    {
+      std::vector<Node> exp;
+      Node B = pair.second[1];
+      exp.push_back(pair.second);
+      d_state.addEqualityToExp(B, term, exp);
+      Node x = pair.first;
+      Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
+      Node p_x = nm->mkNode(APPLY_UF, p, x);
+      Node fact = memberA.andNode(p_x);
+      d_im.assertInference(fact, InferenceId::SETS_FILTER_DOWN, exp);
+      if (d_state.isInConflict())
+      {
+        return;
       }
     }
   }
@@ -1162,8 +1242,10 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
   }
 }
 
-/** returns whether the given kind is a higher order kind for sets. */
-bool TheorySetsPrivate::isHigherOrderKind(Kind k) { return k == SET_MAP; }
+bool TheorySetsPrivate::isHigherOrderKind(Kind k)
+{
+  return k == SET_MAP || k == SET_FILTER;
+}
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
