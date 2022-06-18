@@ -31,8 +31,8 @@ class TypeNode;
 class ProjectOp
 {
  public:
-  ProjectOp(std::vector<uint32_t> indices);
-  ProjectOp(const ProjectOp& op);
+  explicit ProjectOp(std::vector<uint32_t> indices);
+  ProjectOp(const ProjectOp& op) = default;
 
   /** return the indices of the projection */
   const std::vector<uint32_t>& getIndices() const;

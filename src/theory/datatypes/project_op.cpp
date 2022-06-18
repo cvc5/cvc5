@@ -47,10 +47,6 @@ ProjectOp::ProjectOp(std::vector<uint32_t> indices)
 {
 }
 
-ProjectOp::ProjectOp(const ProjectOp& op) : d_indices(std::move(op.d_indices))
-{
-}
-
 const std::vector<uint32_t>& ProjectOp::getIndices() const { return d_indices; }
 
 bool ProjectOp::operator==(const ProjectOp& op) const
