@@ -21,9 +21,8 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
-#include "table_project_op.h"
 #include "theory/bags/bags_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
@@ -523,7 +522,7 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
   Assert(n.getKind() == kind::TABLE_PROJECT && n.hasOperator()
          && n.getOperator().getKind() == kind::TABLE_PROJECT_OP);
-  TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   TypeNode bagType = n[0].getType(check);
   if (check)
@@ -580,7 +579,7 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
 {
   Assert(n.getKind() == kind::TABLE_AGGREGATE && n.hasOperator()
          && n.getOperator().getKind() == kind::TABLE_AGGREGATE_OP);
-  TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
   TypeNode functionType = n[0].getType(check);
@@ -644,7 +643,7 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
   Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
          && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
-  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   Node A = n[0];
   Node B = n[1];
@@ -711,7 +710,7 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
   Assert(n.getKind() == kind::TABLE_GROUP && n.hasOperator()
          && n.getOperator().getKind() == kind::TABLE_GROUP_OP);
-  TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
   TypeNode bagType = n[0].getType(check);

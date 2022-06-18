@@ -117,40 +117,40 @@ operator TABLE_PRODUCT             2 "table cross product"
 # table.project operator extends datatypes tuple_project operator to a bag of tuples
 constant TABLE_PROJECT_OP \
   class \
-  TableProjectOp \
-  ::cvc5::internal::TableProjectOpHashFunction \
-  "theory/bags/table_project_op.h" \
-  "operator for TABLE_PROJECT; payload is an instance of the cvc5::internal::TableProjectOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for TABLE_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized TABLE_PROJECT TABLE_PROJECT_OP 1 "table projection"
 
 # table.aggregate operator
 constant TABLE_AGGREGATE_OP \
   class \
-  TableAggregateOp \
-  ::cvc5::internal::TableAggregateOpHashFunction \
-  "theory/bags/table_project_op.h" \
-  "operator for TABLE_AGGREGATE; payload is an instance of the cvc5::internal::TableAggregateOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for TABLE_AGGREGATE; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized TABLE_AGGREGATE TABLE_AGGREGATE_OP 3 "table aggregate"
 
 # table.join operator
 constant TABLE_JOIN_OP \
   class \
-  TableJoinOp \
-  ::cvc5::internal::TableJoinOpHashFunction \
-  "theory/bags/table_project_op.h" \
-  "operator for TABLE_JOIN; payload is an instance of the cvc5::internal::TableJoinOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for TABLE_JOIN; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized TABLE_JOIN TABLE_JOIN_OP 2 "table join"
 
 # table.group operator
 constant TABLE_GROUP_OP \
   class \
-  TableGroupOp \
-  ::cvc5::internal::TableGroupOpHashFunction \
-  "theory/bags/table_project_op.h" \
-  "operator for TABLE_GROUP; payload is an instance of the cvc5::internal::TableGroupOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for TABLE_GROUP; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized TABLE_GROUP TABLE_GROUP_OP 1 "table group"
 
