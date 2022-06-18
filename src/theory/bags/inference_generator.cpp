@@ -877,7 +877,7 @@ InferInfo InferenceGenerator::groupSameProjection(
   inferInfo.d_premises.push_back(x.eqNode(y).notNode());
 
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   Node xProjection = TupleUtils::getTupleProjection(indices, x);
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
@@ -912,7 +912,7 @@ InferInfo InferenceGenerator::groupSamePart(
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count_B_n = getMultiplicityTerm(B, skolem);
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   Node xProjection = TupleUtils::getTupleProjection(indices, x);
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
