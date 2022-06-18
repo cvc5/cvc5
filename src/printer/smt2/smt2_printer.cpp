@@ -40,9 +40,8 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/bags/table_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
@@ -747,7 +746,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TUPLE_PROJECT:
   {
-    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (tuple.project tuple)
@@ -762,7 +761,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_PROJECT:
   {
-    TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.project A)
@@ -777,7 +776,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_AGGREGATE:
   {
-    TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.project function initial_value bag)
@@ -793,7 +792,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_JOIN:
   {
-    TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.join A B)
@@ -808,7 +807,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_GROUP:
   {
-    TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.group A)
@@ -823,7 +822,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::RELATION_GROUP:
   {
-    RelationGroupOp op = n.getOperator().getConst<RelationGroupOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (rel.group A)

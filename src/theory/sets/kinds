@@ -92,9 +92,9 @@ operator SET_FOLD          3  "set fold operator"
 # rel.group operator
 constant RELATION_GROUP_OP \
   class \
-  RelationGroupOp \
-  ::cvc5::internal::RelationGroupOpHashFunction \
-  "theory/bags/table_project_op.h" \
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
   "operator for RELATION_GROUP; payload is an instance of the cvc5::internal::RelationGroupOp class"
 
 parameterized RELATION_GROUP RELATION_GROUP_OP 1 "relation group"

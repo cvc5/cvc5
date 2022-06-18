@@ -23,7 +23,7 @@
 #include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bags/table_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
@@ -1160,7 +1160,7 @@ void TheorySetsPrivate::groupSameProjection(
   exp.push_back(x.eqNode(y).notNode());
 
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   Node xProjection = TupleUtils::getTupleProjection(indices, x);
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
@@ -1194,7 +1194,7 @@ void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
   Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<RelationGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   Node xProjection = TupleUtils::getTupleProjection(indices, x);
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
