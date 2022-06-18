@@ -22,8 +22,8 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "util/rational.h"
 
@@ -519,7 +519,7 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
   Assert(n.getKind() == kind::TUPLE_PROJECT && n.hasOperator()
          && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
-  TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   if (check)
   {

@@ -69,8 +69,7 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
-#include "theory/bags/table_project_op.h"
-#include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
@@ -1949,11 +1948,14 @@ size_t Op::getNumIndicesHelper() const
     case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
-      size = d_node->getConst<internal::TupleProjectOp>().getIndices().size();
-      break;
+    case TABLE_AGGREGATE:
+    case TABLE_GROUP:
+    case TABLE_JOIN:
     case TABLE_PROJECT:
-      size = d_node->getConst<internal::TableProjectOp>().getIndices().size();
+    {
+      size = d_node->getConst<internal::ProjectOp>().getIndices().size();
       break;
+    }
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
   return size;
@@ -2105,11 +2107,14 @@ Term Op::getIndexHelper(size_t index) const
 
       break;
     }
-
     case TUPLE_PROJECT:
+    case TABLE_AGGREGATE:
+    case TABLE_GROUP:
+    case TABLE_JOIN:
+    case TABLE_PROJECT:
     {
       const std::vector<uint32_t>& projectionIndices =
-          d_node->getConst<internal::TupleProjectOp>().getIndices();
+          d_node->getConst<internal::ProjectOp>().getIndices();
       t = d_solver->mkRationalValHelper(projectionIndices[index]);
       break;
     }
@@ -6144,20 +6149,14 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       res = mkOpHelper(kind, internal::RegExpLoop(args[0], args[1]));
       break;
     case TUPLE_PROJECT:
-      res = mkOpHelper(kind, internal::TupleProjectOp(args));
-      break;
-    case TABLE_PROJECT:
-      res = mkOpHelper(kind, internal::TableProjectOp(args));
-      break;
     case TABLE_AGGREGATE:
-      res = mkOpHelper(kind, internal::TableAggregateOp(args));
-      break;
-    case TABLE_JOIN:
-      res = mkOpHelper(kind, internal::TableJoinOp(args));
-      break;
     case TABLE_GROUP:
-      res = mkOpHelper(kind, internal::TableGroupOp(args));
+    case TABLE_JOIN:
+    case TABLE_PROJECT:
+    {
+      res = mkOpHelper(kind, internal::ProjectOp(args));
       break;
+    }
     default:
       if (nargs == 0)
       {
