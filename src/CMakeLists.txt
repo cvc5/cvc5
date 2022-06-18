@@ -567,8 +567,6 @@ libcvc5_add_sources(
   theory/bags/solver_state.h
   theory/bags/strategy.cpp
   theory/bags/strategy.h
-  theory/bags/table_project_op.cpp
-  theory/bags/table_project_op.h
   theory/bags/term_registry.cpp
   theory/bags/term_registry.h
   theory/bags/theory_bags.cpp
@@ -662,8 +660,8 @@ libcvc5_add_sources(
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
-  theory/datatypes/tuple_project_op.cpp
-  theory/datatypes/tuple_project_op.h
+  theory/datatypes/project_op.cpp
+  theory/datatypes/project_op.h
   theory/datatypes/tuple_utils.cpp
   theory/datatypes/tuple_utils.h
   theory/datatypes/type_enumerator.cpp
@@ -1334,8 +1332,7 @@ target_include_directories(cvc5
 )
 install(TARGETS cvc5
   EXPORT cvc5-targets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 include(GenerateExportHeader)
