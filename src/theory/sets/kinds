@@ -92,20 +92,20 @@ operator SET_FOLD          3  "set fold operator"
 # rel.group operator
 constant RELATION_GROUP_OP \
   class \
-  RelationGroupOp \
-  ::cvc5::internal::RelationGroupOpHashFunction \
-  "theory/bags/table_project_op.h" \
-  "operator for RELATION_GROUP; payload is an instance of the cvc5::internal::RelationGroupOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_GROUP; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized RELATION_GROUP RELATION_GROUP_OP 1 "relation group"
 
 # relation aggregate operator
 constant RELATION_AGGREGATE_OP \
   class \
-  RelationAggregateOp \
-  ::cvc5::internal::RelationAggregateOpHashFunction \
-  "theory/bags/table_project_op.h" \
-  "operator for RELATION_AGGREGATE; payload is an instance of the cvc5::internal::RelationAggregateOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_AGGREGATE; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized RELATION_AGGREGATE RELATION_AGGREGATE_OP 3 "relation aggregate"
 

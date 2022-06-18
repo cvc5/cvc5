@@ -18,7 +18,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/emptyset.h"
 #include "expr/skolem_manager.h"
-#include "theory/bags/table_project_op.h"
+#include "theory/datatypes//project_op.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "util/rational.h"
 
@@ -129,10 +129,9 @@ Node SetReduction::reduceAggregateOperator(Node node)
   TypeNode elementType = function.getType().getArgTypes()[0];
   Node initialValue = node[1];
   Node A = node[2];
-  const std::vector<uint32_t>& indices =
-      node.getOperator().getConst<RelationAggregateOp>().getIndices();
 
-  Node groupOp = nm->mkConst(RelationGroupOp(indices));
+  ProjectOp op = node.getOperator().getConst<ProjectOp>();
+  Node groupOp = nm->mkConst(RELATION_GROUP_OP, op);
   Node group = nm->mkNode(RELATION_GROUP, {groupOp, A});
 
   Node set = bvm->mkBoundVar<FirstIndexVarAttribute>(

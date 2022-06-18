@@ -20,8 +20,7 @@
 
 #include "theory/sets/normal_form.h"
 #include "util/cardinality.h"
-#include "theory/bags/table_project_op.h"
-#include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 
 namespace cvc5::internal {
@@ -586,7 +585,7 @@ TypeNode RelationGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check
 {
   Assert(n.getKind() == kind::RELATION_GROUP && n.hasOperator()
          && n.getOperator().getKind() == kind::RELATION_GROUP_OP);
-  RelationGroupOp op = n.getOperator().getConst<RelationGroupOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
   TypeNode setType = n[0].getType(check);
@@ -621,7 +620,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
 {
   Assert(n.getKind() == kind::RELATION_AGGREGATE && n.hasOperator()
          && n.getOperator().getKind() == kind::RELATION_AGGREGATE_OP);
-  RelationAggregateOp op = n.getOperator().getConst<RelationAggregateOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
   TypeNode functionType = n[0].getType(check);

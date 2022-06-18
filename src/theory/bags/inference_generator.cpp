@@ -23,7 +23,7 @@
 #include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
-#include "theory/bags/table_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/uf/equality_engine.h"
@@ -647,7 +647,7 @@ InferInfo InferenceGenerator::joinUp(Node n, Node e1, Node e2)
   std::vector<Node> aElements = TupleUtils::getTupleElements(e1);
   std::vector<Node> bElements = TupleUtils::getTupleElements(e2);
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableJoinOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_UP);
 
@@ -704,7 +704,7 @@ InferInfo InferenceGenerator::joinDown(Node n, Node e)
   Node multiply = d_nm->mkNode(MULT, countA, countB);
   Node multiplicityConstraint = count.eqNode(multiply);
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableJoinOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
   Node joinConstraints = d_true;
   for (size_t i = 0; i < indices.size(); i += 2)
   {
@@ -877,7 +877,7 @@ InferInfo InferenceGenerator::groupSameProjection(
   inferInfo.d_premises.push_back(x.eqNode(y).notNode());
 
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   Node xProjection = TupleUtils::getTupleProjection(indices, x);
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
@@ -912,7 +912,7 @@ InferInfo InferenceGenerator::groupSamePart(
   Node skolem = registerAndAssertSkolemLemma(n, "skolem_bag");
   Node count_B_n = getMultiplicityTerm(B, skolem);
   const std::vector<uint32_t>& indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   Node xProjection = TupleUtils::getTupleProjection(indices, x);
   Node yProjection = TupleUtils::getTupleProjection(indices, y);

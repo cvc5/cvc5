@@ -17,7 +17,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "theory/bags/table_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/set_reduction.h"
@@ -98,7 +98,7 @@ Node RelsUtils::evaluateGroup(TNode n)
   }
 
   std::vector<uint32_t> indices =
-      n.getOperator().getConst<RelationGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   std::set<Node> elements = NormalForm::getElementsFromNormalConstant(A);
   Trace("sets-group") << "elements: " << elements << std::endl;
