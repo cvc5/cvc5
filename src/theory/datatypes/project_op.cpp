@@ -13,7 +13,7 @@
  * A class for ProjectOp operator.
  */
 
-#include "tuple_project_op.h"
+#include "project_op.h"
 
 #include <iostream>
 
@@ -47,16 +47,15 @@ ProjectOp::ProjectOp(std::vector<uint32_t> indices)
 {
 }
 
+ProjectOp::ProjectOp(const ProjectOp& op) : d_indices(std::move(op.d_indices))
+{
+}
+
 const std::vector<uint32_t>& ProjectOp::getIndices() const { return d_indices; }
 
 bool ProjectOp::operator==(const ProjectOp& op) const
 {
   return d_indices == op.d_indices;
-}
-
-TupleProjectOp::TupleProjectOp(std::vector<uint32_t> indices)
-    : ProjectOp(std::move(indices))
-{
 }
 
 }  // namespace cvc5::internal
