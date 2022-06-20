@@ -25,12 +25,7 @@
 #include "smt/model.h"
 #include "util/result.h"
 
-namespace cvc5 {
-
-class Command;
-class CommandStatus;
-
-namespace internal {
+namespace cvc5::internal {
 
 class UnsatCore;
 struct InstantiationList;
@@ -45,14 +40,14 @@ class Printer
    */
   virtual ~Printer() {}
 
-  /** Get the Printer for a given Language */
+  /** Get the Printer for a given output stream */
   static Printer* getPrinter(std::ostream& out);
+
+  /** Get the Printer for a given Language */
+  static Printer* getPrinter(Language lang);
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
-
-  /** Write a CommandStatus out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
 
   /** Write a Model out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const smt::Model& m) const;
@@ -65,6 +60,23 @@ class Printer
 
   /** Write a skolem list out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const SkolemList& sks) const;
+
+  /** Print command success status */
+  virtual void toStreamCmdSuccess(std::ostream& out) const;
+
+  /** Print command interrupted status */
+  virtual void toStreamCmdInterrupted(std::ostream& out) const;
+
+  /** Print command unsupported status */
+  virtual void toStreamCmdUnsupported(std::ostream& out) const;
+
+  /** Print command failure status */
+  virtual void toStreamCmdFailure(std::ostream& out,
+                                  const std::string& message) const;
+
+  /** Print command recoverable failure status */
+  virtual void toStreamCmdRecoverableFailure(std::ostream& out,
+                                             const std::string& message) const;
 
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
@@ -283,10 +295,6 @@ class Printer
                                       TypeNode locType,
                                       TypeNode dataType) const;
 
-  /** Print command sequence command */
-  virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}
@@ -308,6 +316,13 @@ class Printer
                                  const Node& value) const = 0;
 
   /**
+   * Write an error to `out` stating that command status `name` is not supported
+   * by this printer.
+   */
+  void printUnknownCommandStatus(std::ostream& out,
+                                 const std::string& name) const;
+
+  /**
    * Write an error to `out` stating that command `name` is not supported by
    * this printer.
    */
@@ -327,7 +342,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace internal
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__PRINTER_H */

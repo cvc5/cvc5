@@ -13,7 +13,7 @@
  * Implementation of command objects.
  */
 
-#include "smt/command.h"
+#include "parser/api/cpp/command.h"
 
 #include <exception>
 #include <iostream>
@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::parser {
 
 using namespace internal;
 
@@ -176,17 +176,37 @@ std::string Command::toString() const
   return ss.str();
 }
 
-void CommandStatus::toStream(std::ostream& out) const
-{
-  Printer::getPrinter(out)->toStream(out, this);
-}
-
 void Command::printResult(std::ostream& out) const
 {
   if (d_commandStatus != nullptr)
   {
     out << *d_commandStatus;
   }
+}
+
+void CommandSuccess::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdSuccess(out);
+}
+
+void CommandInterrupted::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdInterrupted(out);
+}
+
+void CommandUnsupported::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdUnsupported(out);
+}
+
+void CommandFailure::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdFailure(out, d_message);
+}
+
+void CommandRecoverableFailure::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdRecoverableFailure(out, d_message);
 }
 
 void Command::resetSolver(cvc5::Solver* solver)
@@ -957,7 +977,10 @@ std::string CommandSequence::getCommandName() const { return "sequence"; }
 
 void CommandSequence::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdCommandSequence(out, d_commandSequence);
+  for (Command* i : d_commandSequence)
+  {
+    out << *i;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1818,8 +1841,7 @@ void GetInstantiationsCommand::toStream(std::ostream& out) const
 /* class GetInterpolCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-GetInterpolantCommand::GetInterpolantCommand(const std::string& name,
-                                             Term conj)
+GetInterpolantCommand::GetInterpolantCommand(const std::string& name, Term conj)
     : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
@@ -2787,4 +2809,4 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out) const
       out, sortVectorToTypeNodes(d_datatypes));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::parser

@@ -284,8 +284,6 @@ libcvc5_add_sources(
   smt/assertions.h
   smt/check_models.cpp
   smt/check_models.h
-  smt/command.cpp
-  smt/command.h
   smt/difficulty_post_processor.cpp
   smt/difficulty_post_processor.h
   smt/env.cpp

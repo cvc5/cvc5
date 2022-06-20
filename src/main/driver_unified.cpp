@@ -34,9 +34,9 @@
 #include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -162,7 +162,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    std::unique_ptr<cvc5::Command> cmd;
+    std::unique_ptr<cvc5::parser::Command> cmd;
     bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {

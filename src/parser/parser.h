@@ -34,11 +34,11 @@
 namespace cvc5 {
 
 // Forward declarations
-class Command;
 class ResourceManager;
 
 namespace parser {
 
+class Command;
 class Input;
 
 /** Types of checks for the symbols */

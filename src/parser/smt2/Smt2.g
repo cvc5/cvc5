@@ -79,7 +79,7 @@ using namespace cvc5::parser;
 #include "base/check.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "smt/command.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 
@@ -141,9 +141,9 @@ parseExpr returns [cvc5::Term expr = cvc5::Term()]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [cvc5::Command* cmd_return = NULL]
+parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
 @declarations {
-  std::unique_ptr<cvc5::Command> cmd;
+  std::unique_ptr<cvc5::parser::Command> cmd;
   std::string name;
 }
 @after {
@@ -177,7 +177,7 @@ parseCommand returns [cvc5::Command* cmd_return = NULL]
  * @return the parsed SyGuS command, or NULL if we've reached the end of the
  * input
  */
-parseSygus returns [cvc5::Command* cmd_return = NULL]
+parseSygus returns [cvc5::parser::Command* cmd_return = NULL]
 @declarations {
   std::string name;
 }
@@ -192,7 +192,7 @@ parseSygus returns [cvc5::Command* cmd_return = NULL]
  * Parse the internal portion of the command, ignoring the surrounding
  * parentheses.
  */
-command [std::unique_ptr<cvc5::Command>* cmd]
+command [std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::string name;
   std::vector<std::string> names;
@@ -457,7 +457,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   ;
 
-sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
+sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
 @declarations {
   cvc5::Term expr, expr2, fun;
   cvc5::Sort t, range;
@@ -512,7 +512,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
       PARSER_STATE->defineVar(name, fun);
-      cmd = std::unique_ptr<Command>(
+      cmd = std::unique_ptr<cvc5::parser::Command>(
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
   | /* constraint */
@@ -682,7 +682,7 @@ sygusGrammar[cvc5::Grammar*& ret,
   }
 ;
 
-setInfoInternal[std::unique_ptr<cvc5::Command>* cmd]
+setInfoInternal[std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::string name;
   cvc5::Term sexpr;
@@ -691,7 +691,7 @@ setInfoInternal[std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr))); }
   ;
 
-setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
+setOptionInternal[std::unique_ptr<cvc5::parser::Command>* cmd]
 @init {
   std::string name;
   cvc5::Term sexpr;
@@ -708,7 +708,7 @@ setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
     }
   ;
 
-smt25Command[std::unique_ptr<cvc5::Command>* cmd]
+smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::string name;
   std::string fname;
@@ -725,7 +725,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Term> funcs;
   std::vector<cvc5::Term> func_defs;
   cvc5::Term aexpr;
-  std::unique_ptr<cvc5::CommandSequence> seq;
+  std::unique_ptr<CommandSequence> seq;
   std::vector<cvc5::Sort> sorts;
   std::vector<cvc5::Term> flattenVars;
 }
@@ -853,7 +853,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     }
   ;
 
-extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
+extendedCommand[std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::vector<cvc5::DatatypeDecl> dts;
   cvc5::Term e, e2;
@@ -863,7 +863,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Term> terms;
   std::vector<cvc5::Sort> sorts;
   std::vector<std::pair<std::string, cvc5::Sort> > sortedVarNames;
-  std::unique_ptr<cvc5::CommandSequence> seq;
+  std::unique_ptr<CommandSequence> seq;
   cvc5::Grammar* g = nullptr;
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
@@ -961,7 +961,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     )
   ;
 
-datatypeDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
+datatypeDefCommand[bool isCo, std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::vector<cvc5::DatatypeDecl> dts;
   std::string name;
@@ -977,7 +977,7 @@ datatypeDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
  datatypesDef[isCo, dnames, arities, cmd]
  ;
 
-datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
+datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::vector<cvc5::DatatypeDecl> dts;
   std::string name;
@@ -1010,7 +1010,7 @@ datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
 datatypesDef[bool isCo,
              const std::vector<std::string>& dnames,
              const std::vector<int>& arities,
-             std::unique_ptr<cvc5::Command>* cmd]
+             std::unique_ptr<cvc5::parser::Command>* cmd]
 @declarations {
   std::vector<cvc5::DatatypeDecl> dts;
   std::string name;

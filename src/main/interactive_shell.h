@@ -27,10 +27,9 @@ class Solver;
 class SymbolManager;
 
 namespace parser {
-  class Parser;
+class Command;
+class Parser;
   }  // namespace parser
-
-  class Command;
 
   namespace internal {
 
@@ -51,7 +50,7 @@ namespace parser {
      * Read a command from the interactive shell. This will read as
      * many lines as necessary to parse a well-formed command.
      */
-    Command* readCommand();
+    parser::Command* readCommand();
 
     /**
      * Return the internal parser being used.

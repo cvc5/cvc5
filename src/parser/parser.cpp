@@ -26,9 +26,9 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
+#include "parser/api/cpp/command.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "smt/command.h"
 
 using namespace std;
 
