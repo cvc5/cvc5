@@ -18,7 +18,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
-#include "table_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "util/rational.h"
@@ -211,10 +211,9 @@ Node BagReduction::reduceAggregateOperator(Node node)
   TypeNode elementType = function.getType().getArgTypes()[0];
   Node initialValue = node[1];
   Node A = node[2];
-  const std::vector<uint32_t>& indices =
-      node.getOperator().getConst<TableAggregateOp>().getIndices();
+  ProjectOp op = node.getOperator().getConst<ProjectOp>();
 
-  Node groupOp = nm->mkConst(TableGroupOp(indices));
+  Node groupOp = nm->mkConst(TABLE_GROUP_OP, op);
   Node group = nm->mkNode(TABLE_GROUP, {groupOp, A});
 
   Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
