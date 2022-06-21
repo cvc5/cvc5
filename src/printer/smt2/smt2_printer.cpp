@@ -327,7 +327,7 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as " << av << " " << n.getType() << ")";
+      ss << "(as " << av << "_" << n.getType() << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
