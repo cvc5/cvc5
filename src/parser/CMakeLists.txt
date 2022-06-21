@@ -118,6 +118,7 @@ set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON
 target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 
 add_dependencies(cvc5parser-objs ANTLR3)
+add_dependencies(cvc5parserapi-objs cvc5parser-objs)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 
 add_library(cvc5parser

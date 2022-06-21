@@ -22,8 +22,8 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "test.h"
 
 namespace cvc5::internal {
@@ -65,7 +65,7 @@ class TestMainBlackInteractiveShell : public TestInternal
                      uint32_t minCommands,
                      uint32_t maxCommands)
   {
-    Command* cmd;
+    parser::Command* cmd;
     uint32_t n = 0;
     while (n <= maxCommands && (cmd = shell.readCommand()) != NULL)
     {
@@ -110,7 +110,7 @@ TEST_F(TestMainBlackInteractiveShell, def_use2)
   InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   /* readCommand may return a sequence, see above. */
   *d_sin << "(declare-const x Real)\n" << std::flush;
-  Command* tmp = shell.readCommand();
+  parser::Command* tmp = shell.readCommand();
   *d_sin << "(assert (> x 0))\n" << std::flush;
   countCommands(shell, 1, 1);
   delete tmp;

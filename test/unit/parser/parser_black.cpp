@@ -21,10 +21,10 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
-#include "smt/command.h"
 #include "test.h"
 
 namespace cvc5::internal {
@@ -84,7 +84,7 @@ class TestParserBlackParser : public TestInternal
             .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
     ASSERT_FALSE(parser->done());
-    Command* cmd;
+    parser::Command* cmd;
     while ((cmd = parser->nextCommand()) != NULL)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
@@ -105,7 +105,7 @@ class TestParserBlackParser : public TestInternal
     parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
     ASSERT_THROW(
         {
-          Command* cmd;
+          parser::Command* cmd;
           while ((cmd = parser->nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
@@ -127,7 +127,7 @@ class TestParserBlackParser : public TestInternal
     if (d_lang == "LANG_SMTLIB_V2_6")
     {
       /* Use QF_LIA to make multiplication ("*") available */
-      std::unique_ptr<Command> cmd(
+      std::unique_ptr<parser::Command> cmd(
           static_cast<Smt2*>(parser.get())->setLogic("QF_LIA"));
     }
 

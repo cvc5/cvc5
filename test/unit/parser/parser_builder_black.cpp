@@ -24,9 +24,9 @@
 #include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "options/language.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "test_api.h"
 
 namespace cvc5::internal {
@@ -48,7 +48,7 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkInput(Parser* parser, const std::string& expected)
   {
-    Command* cmd = parser->nextCommand();
+    parser::Command* cmd = parser->nextCommand();
     ASSERT_NE(cmd, nullptr);
     ASSERT_EQ(cmd->toString(), expected);
     delete cmd;
