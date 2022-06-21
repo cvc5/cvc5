@@ -1320,11 +1320,6 @@ class CVC5_EXPORT CommandSequence : public Command
   void toStream(std::ostream& out) const override;
 }; /* class CommandSequence */
 
-class CVC5_EXPORT DeclarationSequence : public CommandSequence
-{
-  void toStream(std::ostream& out) const override;
-};
-
 }  // namespace cvc5
 
 #endif /* CVC5__COMMAND_H */
