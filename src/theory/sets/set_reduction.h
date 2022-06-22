@@ -13,8 +13,8 @@
  * set reduction.
  */
 
-#ifndef CVC5__SET_REDUCTION_H
-#define CVC5__SET_REDUCTION_H
+#ifndef CVC5__THEORY__SETS__SET_REDUCTION_H
+#define CVC5__THEORY__SETS__SET_REDUCTION_H
 
 #include <vector>
 
