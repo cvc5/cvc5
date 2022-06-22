@@ -56,7 +56,8 @@ std::string quoteSymbol(const std::string& s)
   return "|" + tmp + "|";
 }
 
-std::string quoteString(const std::string& s) {
+std::string quoteString(const std::string& s)
+{
   // escape all double-quotes
   std::string output = s;
   size_t pos = 0;
