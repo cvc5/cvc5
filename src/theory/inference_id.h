@@ -561,7 +561,7 @@ enum class InferenceId
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   STRINGS_I_NORM,
-  // split between two str.unit terms
+  // split between the argument of two equated str.unit terms
   STRINGS_UNIT_SPLIT,
   // a code point must be out of bounds due to (str.unit x) = (str.unit y) and
   // x != y.
