@@ -2119,10 +2119,7 @@ static void toStream(std::ostream& out,
                      const cvc5::CommandSuccess* s,
                      Variant v)
 {
-  if (options::ioutils::getPrintSuccess(out))
-  {
     out << "success" << endl;
-  }
 }
 
 static void toStream(std::ostream& out,
