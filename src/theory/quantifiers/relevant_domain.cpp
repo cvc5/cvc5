@@ -309,7 +309,8 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
 }
 
 void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n ) {
-  if( d_rel_dom_lit[hasPol][pol].find( n )!=d_rel_dom_lit[hasPol][pol].end() ){
+  if (d_rel_dom_lit[hasPol][pol].find(n) != d_rel_dom_lit[hasPol][pol].end())
+  {
     return;
   }
     NodeManager* nm = NodeManager::currentNM();
@@ -317,8 +318,9 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     rdl.d_merge = false;
     int varCount = 0;
     int varCh = -1;
-    Assert (n.getNumChildren()==2);
-    for( size_t i=0; i<2; i++ ){
+    Assert(n.getNumChildren() == 2);
+    for (size_t i = 0; i < 2; i++)
+    {
       if( n[i].getKind()==INST_CONSTANT ){
         // must get the quantified formula this belongs to, which may be
         // different from q
@@ -331,71 +333,87 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         rdl.d_rd[i] = nullptr;
       }
     }
-    
+
     Node r_add;
     bool varLhs = true;
     if( varCount==2 ){
       // don't merge Int and Real
-      rdl.d_merge = (n[0].getType()==n[1].getType());
-    }else if( varCount==1 ){
-        r_add = n[1-varCh];
-        varLhs = (varCh==0);
-        rdl.d_rd[0] = rdl.d_rd[varCh];
-        rdl.d_rd[1] = nullptr;
-      }else if (n[0].getType().isRealOrInt())
-        //solve the inequality for one/two variables, if possible
-        std::map< Node, Node > msum;
-        if (ArithMSum::getMonomialSumLit(n, msum))
+      rdl.d_merge = (n[0].getType() == n[1].getType());
+    }
+    else if (varCount == 1)
+    {
+      r_add = n[1 - varCh];
+      varLhs = (varCh == 0);
+      rdl.d_rd[0] = rdl.d_rd[varCh];
+      rdl.d_rd[1] = nullptr;
+    }
+    else if (n[0].getType().isRealOrInt())
+      // solve the inequality for one/two variables, if possible
+      std::map<Node, Node> msum;
+    if (ArithMSum::getMonomialSumLit(n, msum))
+    {
+      Node var;
+      Node var2;
+      bool hasNonVar = false;
+      for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
+           ++it)
+      {
+        if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
+            && TermUtil::getInstConstAttr(it->first) == q)
         {
-          Node var;
-          Node var2;
-          bool hasNonVar = false;
-          for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-            if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
-                && TermUtil::getInstConstAttr(it->first) == q)
-            {
-              if( var.isNull() ){
-                var = it->first;
-              }else if( var2.isNull() ){
-                var2 = it->first;
-              }else{
-                hasNonVar = true;
-              }
-            }else{
-              hasNonVar = true;
-            }
+          if (var.isNull())
+          {
+            var = it->first;
           }
-          Trace("rel-dom") << "Process lit " << n << ", var/var2=" << var
-                            << "/" << var2 << std::endl;
-          if( !var.isNull() ){
-            Assert(var.hasAttribute(InstVarNumAttribute()));
-            if( var2.isNull() ){
-              //single variable solve
-              Node veq_c;
-              Node val;
-              int ires =
-                  ArithMSum::isolate(var, msum, veq_c, val, n.getKind());
-              if( ires!=0 ){
-                if( veq_c.isNull() ){
-                  r_add = val;
-                  varLhs = (ires==1);
-                  rdl.d_rd[0] = getRDomain(
-                      q, var.getAttribute(InstVarNumAttribute()), false);
-                  rdl.d_rd[1] = nullptr;
-                }
-              }
-            }else if( !hasNonVar ){
-              Assert(var2.hasAttribute(InstVarNumAttribute()));
-              //merge the domains
-              rdl.d_rd[0] = getRDomain(
-                  q, var.getAttribute(InstVarNumAttribute()), false);
-              rdl.d_rd[1] = getRDomain(
-                  q, var2.getAttribute(InstVarNumAttribute()), false);
-              rdl.d_merge = true;
+          else if (var2.isNull())
+          {
+            var2 = it->first;
+          }
+          else
+          {
+            hasNonVar = true;
+          }
+        }
+        else
+        {
+          hasNonVar = true;
+        }
+      }
+      Trace("rel-dom") << "Process lit " << n << ", var/var2=" << var << "/"
+                       << var2 << std::endl;
+      if (!var.isNull())
+      {
+        Assert(var.hasAttribute(InstVarNumAttribute()));
+        if (var2.isNull())
+        {
+          // single variable solve
+          Node veq_c;
+          Node val;
+          int ires = ArithMSum::isolate(var, msum, veq_c, val, n.getKind());
+          if (ires != 0)
+          {
+            if (veq_c.isNull())
+            {
+              r_add = val;
+              varLhs = (ires == 1);
+              rdl.d_rd[0] =
+                  getRDomain(q, var.getAttribute(InstVarNumAttribute()), false);
+              rdl.d_rd[1] = nullptr;
             }
           }
         }
-      
+        else if (!hasNonVar)
+        {
+          Assert(var2.hasAttribute(InstVarNumAttribute()));
+          // merge the domains
+          rdl.d_rd[0] =
+              getRDomain(q, var.getAttribute(InstVarNumAttribute()), false);
+          rdl.d_rd[1] =
+              getRDomain(q, var2.getAttribute(InstVarNumAttribute()), false);
+          rdl.d_merge = true;
+        }
+      }
+        }
     }
     if (rdl.d_merge)
     {
@@ -416,7 +434,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       //the positive occurence adds other terms
       if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
         if( n.getKind()==EQUAL ){
-          for( size_t i=0; i<2; i++ ){
+          for (size_t i = 0; i < 2; i++)
+          {
             Node roff = nm->mkNode(
                 ADD, r_add, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
             rdl.d_val.push_back(roff);
