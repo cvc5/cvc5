@@ -429,7 +429,8 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     // we only do this for non-finite types, as finite types have cardinality
     // restrictions.
     if (n.getKind() == kind::EQUAL
-        && !isCardinalityClassFinite(n[0].getType().getCardinalityClass(), false))
+        && !isCardinalityClassFinite(n[0].getType().getCardinalityClass(),
+                                     false))
     {
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
       Assert(n[0].getType() == n[1].getType());
@@ -685,7 +686,9 @@ Node SortInference::simplifyNode(
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
         }
-        else if (n.getKind() == kind::EQUAL && !isCardinalityClassFinite(n[0].getType().getCardinalityClass(), false)
+        else if (n.getKind() == kind::EQUAL
+                 && !isCardinalityClassFinite(
+                     n[0].getType().getCardinalityClass(), false)
                  && i == 0)
         {
           Assert(d_equality_types.find(n) != d_equality_types.end());
