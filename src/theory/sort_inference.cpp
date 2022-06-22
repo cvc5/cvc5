@@ -428,11 +428,13 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     int retType;
     // we only do this for infinite types, as finite types have cardinality
     // restrictions.
-    if( n.getKind()==kind::EQUAL && n[0].getType().getCardinalityClass() == CardinalityClass::INFINITE ){
+    if (n.getKind() == kind::EQUAL
+        && n[0].getType().getCardinalityClass() == CardinalityClass::INFINITE)
+    {
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
-      Assert (n[0].getType()==n[1].getType());
-      //we only require that the left and right hand side must be equal
-      setEqual( child_types[0], child_types[1] );
+      Assert(n[0].getType() == n[1].getType());
+      // we only require that the left and right hand side must be equal
+      setEqual(child_types[0], child_types[1]);
       d_equality_types[n] = child_types[0];
       retType = getIdForType( n.getType() );
     }
@@ -874,7 +876,8 @@ bool SortInference::isWellSorted( Node n ) {
   }
 }
 
-bool SortInference::isMonotonic( TypeNode tn ) const {
+bool SortInference::isMonotonic(TypeNode tn) const
+{
   Assert(tn.isUninterpretedSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }
