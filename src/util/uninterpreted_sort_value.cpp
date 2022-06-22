@@ -28,7 +28,7 @@ namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val)
 {
-  return out << val.getIndex();
+  return out << "@" << val.getType() << "_" << val.getIndex();
 }
 
 UninterpretedSortValue::UninterpretedSortValue(const TypeNode& type,
