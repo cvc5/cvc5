@@ -313,41 +313,42 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   {
     return;
   }
-    NodeManager* nm = NodeManager::currentNM();
-    RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
-    rdl.d_merge = false;
-    int varCount = 0;
-    int varCh = -1;
-    Assert(n.getNumChildren() == 2);
-    for (size_t i = 0; i < 2; i++)
-    {
-      if( n[i].getKind()==INST_CONSTANT ){
-        // must get the quantified formula this belongs to, which may be
-        // different from q
-        Node qi = TermUtil::getInstConstAttr(n[i]);
-        unsigned id = n[i].getAttribute(InstVarNumAttribute());
-        rdl.d_rd[i] = getRDomain(qi, id, false);
-        varCount++;
-        varCh = i;
-      }else{
-        rdl.d_rd[i] = nullptr;
-      }
+  NodeManager* nm = NodeManager::currentNM();
+  RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
+  rdl.d_merge = false;
+  int varCount = 0;
+  int varCh = -1;
+  Assert(n.getNumChildren() == 2);
+  for (size_t i = 0; i < 2; i++)
+  {
+    if( n[i].getKind()==INST_CONSTANT ){
+      // must get the quantified formula this belongs to, which may be
+      // different from q
+      Node qi = TermUtil::getInstConstAttr(n[i]);
+      unsigned id = n[i].getAttribute(InstVarNumAttribute());
+      rdl.d_rd[i] = getRDomain(qi, id, false);
+      varCount++;
+      varCh = i;
+    }else{
+      rdl.d_rd[i] = nullptr;
     }
+  }
 
-    Node r_add;
-    bool varLhs = true;
-    if( varCount==2 ){
-      // don't merge Int and Real
-      rdl.d_merge = (n[0].getType() == n[1].getType());
-    }
-    else if (varCount == 1)
-    {
-      r_add = n[1 - varCh];
-      varLhs = (varCh == 0);
-      rdl.d_rd[0] = rdl.d_rd[varCh];
-      rdl.d_rd[1] = nullptr;
-    }
-    else if (n[0].getType().isRealOrInt())
+  Node r_add;
+  bool varLhs = true;
+  if( varCount==2 ){
+    // don't merge Int and Real
+    rdl.d_merge = (n[0].getType() == n[1].getType());
+  }
+  else if (varCount == 1)
+  {
+    r_add = n[1 - varCh];
+    varLhs = (varCh == 0);
+    rdl.d_rd[0] = rdl.d_rd[varCh];
+    rdl.d_rd[1] = nullptr;
+  }
+  else if (n[0].getType().isRealOrInt())
+  {
       // solve the inequality for one/two variables, if possible
       std::map<Node, Node> msum;
     if (ArithMSum::getMonomialSumLit(n, msum))
@@ -356,7 +357,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       Node var2;
       bool hasNonVar = false;
       for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
-           ++it)
+          ++it)
       {
         if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
             && TermUtil::getInstConstAttr(it->first) == q)
@@ -380,7 +381,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         }
       }
       Trace("rel-dom") << "Process lit " << n << ", var/var2=" << var << "/"
-                       << var2 << std::endl;
+                      << var2 << std::endl;
       if (!var.isNull())
       {
         Assert(var.hasAttribute(InstVarNumAttribute()));
@@ -413,45 +414,44 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
           rdl.d_merge = true;
         }
       }
-        }
     }
-    if (rdl.d_merge)
-    {
-      //do not merge if constant negative polarity
-      if( hasPol && !pol ){
-        rdl.d_merge = false;
-      }
-      return;
+  }
+  if (rdl.d_merge)
+  {
+    //do not merge if constant negative polarity
+    if( hasPol && !pol ){
+      rdl.d_merge = false;
     }
-    r_add = Instantiate::ensureType(
-    if (!r_add.isNull() && !TermUtil::hasInstConstAttr(r_add))
-    {
-      Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol << ", kind = " << n.getKind() << std::endl;
-      //the negative occurrence adds the term to the domain
-      if( !hasPol || !pol ){
-        rdl.d_val.push_back(r_add);
-      }
-      //the positive occurence adds other terms
-      if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
-        if( n.getKind()==EQUAL ){
-          for (size_t i = 0; i < 2; i++)
-          {
-            Node roff = nm->mkNode(
-                ADD, r_add, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
-            rdl.d_val.push_back(roff);
-          }
-        }else if( n.getKind()==GEQ ){
-          Node roff =
-              nm->mkNode(ADD, r_add, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
+    return;
+  }
+  r_add = Instantiate::ensureType(
+  if (!r_add.isNull() && !TermUtil::hasInstConstAttr(r_add))
+  {
+    Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol << ", kind = " << n.getKind() << std::endl;
+    //the negative occurrence adds the term to the domain
+    if( !hasPol || !pol ){
+      rdl.d_val.push_back(r_add);
+    }
+    //the positive occurence adds other terms
+    if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
+      if( n.getKind()==EQUAL ){
+        for (size_t i = 0; i < 2; i++)
+        {
+          Node roff = nm->mkNode(
+              ADD, r_add, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
           rdl.d_val.push_back(roff);
         }
+      }else if( n.getKind()==GEQ ){
+        Node roff =
+            nm->mkNode(ADD, r_add, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
+        rdl.d_val.push_back(roff);
       }
     }
-    else
-    {
-      rdl.d_rd[0] = nullptr;
-      rdl.d_rd[1] = nullptr;
-    }
+  }
+  else
+  {
+    rdl.d_rd[0] = nullptr;
+    rdl.d_rd[1] = nullptr;
   }
 }
 
