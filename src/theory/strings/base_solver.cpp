@@ -127,6 +127,8 @@ void BaseSolver::checkInit()
               Node eq = s.eqNode(t);
               if (n.getType().isString())
               {
+                // String unit is not injective, due to invalid code points.
+                // We do an inference scheme in two parts.
                 // for (str.unit x), (str.unit y): x = y or x != y
                 if (!d_state.areDisequal(s, t))
                 {
