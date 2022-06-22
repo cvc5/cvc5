@@ -318,7 +318,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
   rdl.d_merge = false;
   size_t varCount = 0;
-  int varCh = -1;
+  size_t varCh;
   Assert(n.getNumChildren() == 2);
   for (size_t i = 0; i < 2; i++)
   {
@@ -347,6 +347,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   }
   else if (varCount == 1)
   {
+    Assert ((1 - varCh)<n.getNumChildren());
     r_add = n[1 - varCh];
     varLhs = (varCh == 0);
     rdl.d_rd[0] = rdl.d_rd[varCh];
@@ -361,19 +362,18 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       Node var;
       Node var2;
       bool hasNonVar = false;
-      for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
-           ++it)
+      for (std::pair<const Node, Node>& m : msum)
       {
-        if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
-            && TermUtil::getInstConstAttr(it->first) == q)
+        if (!m.first.isNull() && m.first.getKind() == INST_CONSTANT
+            && TermUtil::getInstConstAttr(m.first) == q)
         {
           if (var.isNull())
           {
-            var = it->first;
+            var = m.first;
           }
           else if (var2.isNull())
           {
-            var2 = it->first;
+            var2 = m.first;
           }
           else
           {
@@ -432,7 +432,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   }
   if (!r_add.isNull())
   {
-    Assert (varCh>=0 && varCh<n.getNumChildren());
+    Assert (varCh<n.getNumChildren());
     // ensure that r_add has the same type as the variable
     r_add = Instantiate::ensureType(r_add, n[varCh].getType());
   }
