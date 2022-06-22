@@ -1306,6 +1306,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         d_im.sendInference(ant, d_false, InferenceId::STRINGS_N_CONST, isRev, true);
         return;
       }
+      else if (d_state.areEqual(x,y))
+      {
+        // already equal
+        return;
+      }
       // `x` and `y` have the same length. We infer that the two components
       // have to be the same.
       //

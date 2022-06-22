@@ -37,7 +37,7 @@ BaseSolver::BaseSolver(Env& env,
                        SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr)
-    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context())
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context()), d_strUnitOobEq(userContext())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
@@ -56,6 +56,7 @@ void BaseSolver::checkInit()
   // count of congruent, non-congruent per operator (independent of type),
   // for debugging.
   std::map<Kind, std::pair<uint32_t, uint32_t>> congruentCount;
+  NodeManager * nm = NodeManager::currentNM();
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   while (!eqcs_i.isFinished())
@@ -124,20 +125,24 @@ void BaseSolver::checkInit()
             {
               Assert(s.getType() == t.getType());
               Node eq = s.eqNode(t);
-              if (s.getType().isString())
+              if (n.getType().isString())
               {
                 // for (str.unit x), (str.unit y): x = y or x != y
                 if (!d_state.areDisequal(s, t))
                 {
                   d_im.sendSplit(s, t, InferenceId::STRINGS_UNIT_SPLIT);
                 }
-                else
+                else if (d_strUnitOobEq.find(eq)!=d_strUnitOobEq.end())
                 {
+                  // cache that we have performed this inference
+                  Node eqSym = t.eqNode(s);
+                  d_strUnitOobEq.insert(eq);
+                  d_strUnitOobEq.insert(eqSym);
                   exp.push_back(eq.notNode());
-                  // (seq.unit x) = (seq.unit y) ^ x != y =>
+                  // (str.unit x) = (str.unit y) ^ x != y =>
                   // x or y is not a valid code point
-                  Node scr = mkCodeRange(s, d_cardSize);
-                  Node tcr = mkCodeRange(s, d_cardSize);
+                  Node scr = utils::mkCodeRange(s, d_cardSize);
+                  Node tcr = utils::mkCodeRange(t, d_cardSize);
                   Node conc = nm->mkNode(AND, scr.notNode(), tcr.notNode());
                   d_im.sendInference(
                       exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
