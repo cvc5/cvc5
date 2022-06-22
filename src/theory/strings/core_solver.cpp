@@ -1276,7 +1276,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     Trace("strings-solve-debug")
         << "Process " << x << " ... " << y << std::endl;
 
-    if (x == y)
+    if (d_state.areEqual(x, y))
     {
       // The normal forms have the same term at the current position. We just
       // continue with the next index. By construction of the normal forms, we
@@ -1290,7 +1290,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       index++;
       continue;
     }
-    Assert(!d_state.areEqual(x, y));
 
     std::vector<Node> lenExp;
     Node xLenTerm = d_state.getLength(x, lenExp);
@@ -1304,11 +1303,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         // if both are constant, it's just a constant conflict
         d_im.sendInference(ant, d_false, InferenceId::STRINGS_N_CONST, isRev, true);
-        return;
-      }
-      else if (d_state.areEqual(x,y))
-      {
-        // already equal
         return;
       }
       // `x` and `y` have the same length. We infer that the two components
