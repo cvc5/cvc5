@@ -318,7 +318,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
   rdl.d_merge = false;
   size_t varCount = 0;
-  size_t varCh;
+  size_t varCh = 0;
   Assert(n.getNumChildren() == 2);
   for (size_t i = 0; i < 2; i++)
   {
@@ -338,7 +338,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     }
   }
 
-  Node r_add;
+  Node rAdd;
+  Node rVar;
   bool varLhs = true;
   if (varCount == 2)
   {
@@ -347,8 +348,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   }
   else if (varCount == 1)
   {
-    Assert ((1 - varCh)<n.getNumChildren());
-    r_add = n[1 - varCh];
+    rVar = n[varCh];
+    rAdd = n[1 - varCh];
     varLhs = (varCh == 0);
     rdl.d_rd[0] = rdl.d_rd[varCh];
     rdl.d_rd[1] = nullptr;
@@ -400,7 +401,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
           {
             if (veq_c.isNull())
             {
-              r_add = val;
+              rVar = var;
+              rAdd = val;
               varLhs = (ires == 1);
               rdl.d_rd[0] =
                   getRDomain(q, var.getAttribute(InstVarNumAttribute()), false);
@@ -430,20 +432,19 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     }
     return;
   }
-  if (!r_add.isNull())
+  if (!rAdd.isNull())
   {
-    Assert (varCh<n.getNumChildren());
-    // ensure that r_add has the same type as the variable
-    r_add = Instantiate::ensureType(r_add, n[varCh].getType());
+    // ensure that rAdd has the same type as the variable
+    rAdd = Instantiate::ensureType(rAdd, rVar.getType());
   }
-  if (!r_add.isNull() && !TermUtil::hasInstConstAttr(r_add))
+  if (!rAdd.isNull() && !TermUtil::hasInstConstAttr(rAdd))
   {
-    Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol
+    Trace("rel-dom-debug") << "...add term " << rAdd << ", pol = " << pol
                            << ", kind = " << n.getKind() << std::endl;
     // the negative occurrence adds the term to the domain
     if (!hasPol || !pol)
     {
-      rdl.d_val.push_back(r_add);
+      rdl.d_val.push_back(rAdd);
     }
     // the positive occurence adds other terms
     if ((!hasPol || pol) && n[0].getType().isInteger())
@@ -453,14 +454,14 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         for (size_t i = 0; i < 2; i++)
         {
           Node roff =
-              nm->mkNode(ADD, r_add, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
+              nm->mkNode(ADD, rAdd, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
           rdl.d_val.push_back(roff);
         }
       }
       else if (n.getKind() == GEQ)
       {
         Node roff =
-            nm->mkNode(ADD, r_add, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
+            nm->mkNode(ADD, rAdd, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
         rdl.d_val.push_back(roff);
       }
     }
