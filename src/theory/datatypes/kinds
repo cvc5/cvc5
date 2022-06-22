@@ -141,10 +141,10 @@ typerule MATCH_BIND_CASE ::cvc5::internal::theory::datatypes::MatchBindCaseTypeR
 
 constant TUPLE_PROJECT_OP \
   class \
-  TupleProjectOp \
-  ::cvc5::internal::TupleProjectOpHashFunction \
-  "theory/datatypes/tuple_project_op.h" \
-  "operator for TUPLE_PROJECT; payload is an instance of the cvc5::internal::TupleProjectOp class"
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for TUPLE_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
 
 parameterized TUPLE_PROJECT TUPLE_PROJECT_OP 1 \
     "projects a tuple from an existing tuple using indices passed in TupleProjectOp"

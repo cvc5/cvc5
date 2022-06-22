@@ -514,10 +514,4 @@ void Printer::toStreamCmdCommandSequence(
   printUnknownCommand(out, "sequence");
 }
 
-void Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  printUnknownCommand(out, "sequence");
-}
-
 }  // namespace cvc5::internal
