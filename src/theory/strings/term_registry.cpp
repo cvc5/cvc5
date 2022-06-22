@@ -77,14 +77,6 @@ uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
-Node mkCodeRange(Node t, uint32_t alphaCard)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(AND,
-                    nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
-                    nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
-}
-
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();

@@ -122,10 +122,32 @@ void BaseSolver::checkInit()
             }
             if (!d_state.areEqual(s, t))
             {
-              // (seq.unit x) = (seq.unit y) => x=y, or
-              // (seq.unit x) = (seq.unit c) => x=c
               Assert(s.getType() == t.getType());
-              d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
+              Node eq = s.eqNode(t);
+              if (s.getType().isString())
+              {
+                // for (str.unit x), (str.unit y): x = y or x != y
+                if (!d_state.areDisequal(s, t))
+                {
+                  d_im.sendSplit(s, t, InferenceId::STRINGS_UNIT_SPLIT);
+                }
+                else
+                {
+                  exp.push_back(eq.notNode());
+                  // (seq.unit x) = (seq.unit y) ^ x != y =>
+                  // x or y is not a valid code point
+                  Node scr = mkCodeRange(s, d_cardSize);
+                  Node tcr = mkCodeRange(s, d_cardSize);
+                  Node conc = nm->mkNode(AND, scr.notNode(), tcr.notNode());
+                  d_im.sendInference(exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+                }
+              }
+              else
+              {
+                // (seq.unit x) = (seq.unit y) => x=y, or
+                // (seq.unit x) = (seq.unit c) => x=c
+                d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+              }
             }
           }
           // update best content
