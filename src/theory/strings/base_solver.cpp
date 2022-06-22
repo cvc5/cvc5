@@ -139,7 +139,8 @@ void BaseSolver::checkInit()
                   Node scr = mkCodeRange(s, d_cardSize);
                   Node tcr = mkCodeRange(s, d_cardSize);
                   Node conc = nm->mkNode(AND, scr.notNode(), tcr.notNode());
-                  d_im.sendInference(exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+                  d_im.sendInference(
+                      exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
                 }
               }
               else

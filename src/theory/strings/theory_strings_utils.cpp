@@ -457,7 +457,6 @@ Node mkCodeRange(Node t, uint32_t alphaCard)
                     nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
 }
 
-
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
