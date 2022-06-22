@@ -1,5 +1,4 @@
-; COMMAND-LINE: --mbqi
-; EXPECT: sat
+; EXPECT: unknown
 (set-logic ALL)
 (set-option :full-saturate-quant true)
 (declare-fun q2 (Real Real) Bool)
