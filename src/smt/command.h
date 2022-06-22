@@ -185,7 +185,6 @@ class CVC5_EXPORT Command
 
   /** Get the command status (it's NULL if we haven't run yet). */
   const CommandStatus* getCommandStatus() const { return d_commandStatus; }
-  virtual void printResult(std::ostream& out) const;
 
   /**
    * This field contains a command status if the command has been
@@ -210,6 +209,12 @@ class CVC5_EXPORT Command
   static void resetSolver(cvc5::Solver* solver);
 
  protected:
+  /**
+   * Print the result of running the command. This method is only called if the
+   * command ran successfully.
+   */
+  virtual void printResult(std::ostream& out) const;
+
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
   // which is currently necessary for e.g. printing commands.

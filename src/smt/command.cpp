@@ -163,7 +163,11 @@ bool Command::interrupted() const
 void Command::invoke(cvc5::Solver* solver, SymbolManager* sm, std::ostream& out)
 {
   invoke(solver, sm);
-  if (!(isMuted() && ok()))
+  if (!ok())
+  {
+    out << *d_commandStatus;
+  }
+  else if (!isMuted())
   {
     printResult(out);
   }
@@ -382,15 +386,7 @@ cvc5::Result CheckSatCommand::getResult() const { return d_result; }
 
 void CheckSatCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    Trace("dtview::command") << "* RESULT: " << d_result << std::endl;
-    out << d_result << endl;
-  }
+  out << d_result << endl;
 }
 
 std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
@@ -443,14 +439,7 @@ cvc5::Result CheckSatAssumingCommand::getResult() const
 
 void CheckSatAssumingCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
+  out << d_result << endl;
 }
 
 std::string CheckSatAssumingCommand::getCommandName() const
@@ -718,14 +707,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 cvc5::SynthResult CheckSynthCommand::getResult() const { return d_result; }
 void CheckSynthCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_solution.str();
-  }
+  out << d_solution.str();
 }
 
 std::string CheckSynthCommand::getCommandName() const
@@ -1293,14 +1275,7 @@ void SimplifyCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 cvc5::Term SimplifyCommand::getResult() const { return d_result; }
 void SimplifyCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
+  out << d_result << endl;
 }
 
 std::string SimplifyCommand::getCommandName() const { return "simplify"; }
@@ -1358,16 +1333,9 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 cvc5::Term GetValueCommand::getResult() const { return d_result; }
 void GetValueCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    options::ioutils::Scope scope(out);
-    options::ioutils::applyDagThresh(out, 0);
-    out << d_result << endl;
-  }
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  out << d_result << endl;
 }
 
 std::string GetValueCommand::getCommandName() const { return "get-value"; }
@@ -1423,14 +1391,7 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 cvc5::Term GetAssignmentCommand::getResult() const { return d_result; }
 void GetAssignmentCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
+  out << d_result << endl;
 }
 
 std::string GetAssignmentCommand::getCommandName() const
@@ -1467,17 +1428,7 @@ void GetModelCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetModelCommand::printResult(std::ostream& out) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result;
-  }
-}
+void GetModelCommand::printResult(std::ostream& out) const { out << d_result; }
 
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
 
@@ -1584,17 +1535,7 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetProofCommand::printResult(std::ostream& out) const
-{
-  if (ok())
-  {
-    out << d_result;
-  }
-  else
-  {
-    this->Command::printResult(out);
-  }
-}
+void GetProofCommand::printResult(std::ostream& out) const { out << d_result; }
 
 std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
@@ -1632,14 +1573,7 @@ void GetInstantiationsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 void GetInstantiationsCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_solver->getInstantiations();
-  }
+  out << d_solver->getInstantiations();
 }
 
 std::string GetInstantiationsCommand::getCommandName() const
@@ -1702,23 +1636,16 @@ void GetInterpolantCommand::invoke(Solver* solver, SymbolManager* sm)
 
 void GetInterpolantCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  if (!d_result.isNull())
   {
-    this->Command::printResult(out);
+    out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+        << std::endl;
   }
   else
   {
-    options::ioutils::Scope scope(out);
-    options::ioutils::applyDagThresh(out, 0);
-    if (!d_result.isNull())
-    {
-      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
-          << std::endl;
-    }
-    else
-    {
-      out << "fail" << std::endl;
-    }
+    out << "fail" << std::endl;
   }
 }
 
@@ -1758,23 +1685,16 @@ void GetInterpolantNextCommand::invoke(Solver* solver, SymbolManager* sm)
 
 void GetInterpolantNextCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  if (!d_result.isNull())
   {
-    this->Command::printResult(out);
+    out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+        << std::endl;
   }
   else
   {
-    options::ioutils::Scope scope(out);
-    options::ioutils::applyDagThresh(out, 0);
-    if (!d_result.isNull())
-    {
-      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
-          << std::endl;
-    }
-    else
-    {
-      out << "fail" << std::endl;
-    }
+    out << "fail" << std::endl;
   }
 }
 
@@ -1838,23 +1758,16 @@ void GetAbductCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 void GetAbductCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  if (!d_result.isNull())
   {
-    this->Command::printResult(out);
+    out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+        << std::endl;
   }
   else
   {
-    options::ioutils::Scope scope(out);
-    options::ioutils::applyDagThresh(out, 0);
-    if (!d_result.isNull())
-    {
-      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
-          << std::endl;
-    }
-    else
-    {
-      out << "fail" << std::endl;
-    }
+    out << "fail" << std::endl;
   }
 }
 
@@ -1891,23 +1804,16 @@ void GetAbductNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 void GetAbductNextCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  if (!d_result.isNull())
   {
-    this->Command::printResult(out);
+    out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+        << std::endl;
   }
   else
   {
-    options::ioutils::Scope scope(out);
-    options::ioutils::applyDagThresh(out, 0);
-    if (!d_result.isNull())
-    {
-      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
-          << std::endl;
-    }
-    else
-    {
-      out << "fail" << std::endl;
-    }
+    out << "fail" << std::endl;
   }
 }
 
@@ -1964,14 +1870,7 @@ cvc5::Term GetQuantifierEliminationCommand::getResult() const
 }
 void GetQuantifierEliminationCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
+  out << d_result << endl;
 }
 
 std::string GetQuantifierEliminationCommand::getCommandName() const
@@ -2015,14 +1914,7 @@ std::vector<cvc5::Term> GetUnsatAssumptionsCommand::getResult() const
 
 void GetUnsatAssumptionsCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    container_to_stream(out, d_result, "(", ")\n", " ");
-  }
+  container_to_stream(out, d_result, "(", ")\n", " ");
 }
 
 std::string GetUnsatAssumptionsCommand::getCommandName() const
@@ -2062,26 +1954,19 @@ void GetUnsatCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 void GetUnsatCoreCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  if (d_solver->getOption("print-unsat-cores-full") == "true")
   {
-    this->Command::printResult(out);
+    // use the assertions
+    UnsatCore ucr(termVectorToNodes(d_result));
+    ucr.toStream(out);
   }
   else
   {
-    if (d_solver->getOption("print-unsat-cores-full") == "true")
-    {
-      // use the assertions
-      UnsatCore ucr(termVectorToNodes(d_result));
-      ucr.toStream(out);
-    }
-    else
-    {
-      // otherwise, use the names
-      std::vector<std::string> names;
-      d_sm->getExpressionNames(d_result, names, true);
-      UnsatCore ucr(names);
-      ucr.toStream(out);
-    }
+    // otherwise, use the names
+    std::vector<std::string> names;
+    d_sm->getExpressionNames(d_result, names, true);
+    UnsatCore ucr(names);
+    ucr.toStream(out);
   }
 }
 
@@ -2127,30 +2012,23 @@ void GetDifficultyCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 void GetDifficultyCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  out << "(" << std::endl;
+  for (const std::pair<const cvc5::Term, cvc5::Term>& d : d_result)
   {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << "(" << std::endl;
-    for (const std::pair<const cvc5::Term, cvc5::Term>& d : d_result)
+    out << "(";
+    // use name if it has one
+    std::string name;
+    if (d_sm->getExpressionName(d.first, name, true))
     {
-      out << "(";
-      // use name if it has one
-      std::string name;
-      if (d_sm->getExpressionName(d.first, name, true))
-      {
-        out << name;
-      }
-      else
-      {
-        out << d.first;
-      }
-      out << " " << d.second << ")" << std::endl;
+      out << name;
     }
-    out << ")" << std::endl;
+    else
+    {
+      out << d.first;
+    }
+    out << " " << d.second << ")" << std::endl;
   }
+  out << ")" << std::endl;
 }
 
 const std::map<cvc5::Term, cvc5::Term>& GetDifficultyCommand::getDifficultyMap()
@@ -2194,19 +2072,12 @@ void GetLearnedLiteralsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 void GetLearnedLiteralsCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
+  out << "(" << std::endl;
+  for (const cvc5::Term& lit : d_result)
   {
-    this->Command::printResult(out);
+    out << lit << std::endl;
   }
-  else
-  {
-    out << "(" << std::endl;
-    for (const cvc5::Term& lit : d_result)
-    {
-      out << lit << std::endl;
-    }
-    out << ")" << std::endl;
-  }
+  out << ")" << std::endl;
 }
 
 const std::vector<cvc5::Term>& GetLearnedLiteralsCommand::getLearnedLiterals()
@@ -2251,14 +2122,7 @@ void GetAssertionsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 std::string GetAssertionsCommand::getResult() const { return d_result; }
 void GetAssertionsCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result;
-  }
+  out << d_result;
 }
 
 std::string GetAssertionsCommand::getCommandName() const
@@ -2378,11 +2242,7 @@ void GetInfoCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 std::string GetInfoCommand::getResult() const { return d_result; }
 void GetInfoCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else if (d_result != "")
+  if (d_result != "")
   {
     out << d_result << endl;
   }
@@ -2461,11 +2321,7 @@ void GetOptionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 std::string GetOptionCommand::getResult() const { return d_result; }
 void GetOptionCommand::printResult(std::ostream& out) const
 {
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else if (d_result != "")
+  if (d_result != "")
   {
     out << d_result << endl;
   }
