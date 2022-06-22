@@ -150,7 +150,7 @@ void BaseSolver::checkInit()
                   // x or y is not a valid code point
                   Node scr = utils::mkCodeRange(s, d_cardSize);
                   Node tcr = utils::mkCodeRange(t, d_cardSize);
-                  Node conc = nm->mkNode(AND, scr.notNode(), tcr.notNode());
+                  Node conc = nm->mkNode(OR, scr.notNode(), tcr.notNode());
                   d_im.sendInference(
                       exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
                 }
