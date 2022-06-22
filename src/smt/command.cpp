@@ -36,7 +36,6 @@
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/model.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
 
