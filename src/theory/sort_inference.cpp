@@ -426,9 +426,10 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     Trace("sort-inference-debug") << "...Process " << n << std::endl;
 
     int retType;
-    if( n.getKind()==kind::EQUAL && !n[0].getType().isBoolean() ){
+    // we only do this for infinite types, as finite types have cardinality
+    // restrictions.
+    if( n.getKind()==kind::EQUAL && n[0].getType().getCardinalityClass() == CardinalityClass::INFINITE ){
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
-      //if original types are mixed (e.g. Int/Real), don't commit type equality in either direction
       Assert (n[0].getType()==n[1].getType());
       //we only require that the left and right hand side must be equal
       setEqual( child_types[0], child_types[1] );
