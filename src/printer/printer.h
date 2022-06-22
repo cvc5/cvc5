@@ -287,10 +287,6 @@ class Printer
   virtual void toStreamCmdCommandSequence(
       std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
-  /** Print declaration sequence command */
-  virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}
