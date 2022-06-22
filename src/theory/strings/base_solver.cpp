@@ -132,7 +132,7 @@ void BaseSolver::checkInit()
                 {
                   d_im.sendSplit(s, t, InferenceId::STRINGS_UNIT_SPLIT);
                 }
-                else if (d_strUnitOobEq.find(eq)!=d_strUnitOobEq.end())
+                else if (d_strUnitOobEq.find(eq)==d_strUnitOobEq.end())
                 {
                   // cache that we have performed this inference
                   Node eqSym = t.eqNode(s);
