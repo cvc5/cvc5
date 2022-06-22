@@ -325,9 +325,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::UNINTERPRETED_SORT_VALUE:
     {
-      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
+      const UninterpretedSortValue& v = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as " << av << " " << n.getType() << ")";
+      ss << "(as " << v << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -1578,12 +1578,6 @@ void Smt2Printer::toStreamCmdCommandSequence(
   {
     out << *i;
   }
-}
-
-void Smt2Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  toStreamCmdCommandSequence(out, sequence);
 }
 
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
