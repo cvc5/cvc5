@@ -233,7 +233,7 @@ class BaseSolver : protected EnvObj
    * various inference schemas implemented by this class.
    */
   NodeSet d_congruent;
-  /** 
+  /**
    * Set of equalities that we have applied STRINGS_UNIT_INJ_OOB to
    * in the current user context
    */
