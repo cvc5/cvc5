@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
@@ -316,7 +317,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   NodeManager* nm = NodeManager::currentNM();
   RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
   rdl.d_merge = false;
-  int varCount = 0;
+  size_t varCount = 0;
   int varCh = -1;
   Assert(n.getNumChildren() == 2);
   for (size_t i = 0; i < 2; i++)
@@ -429,7 +430,12 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     }
     return;
   }
-  r_add = Instantiate::ensureType(
+  if (!r_add.isNull())
+  {
+    Assert (varCh>=0 && varCh<n.getNumChildren());
+    // ensure that r_add has the same type as the variable
+    r_add = Instantiate::ensureType(r_add, n[varCh].getType());
+  }
   if (!r_add.isNull() && !TermUtil::hasInstConstAttr(r_add))
   {
     Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol
