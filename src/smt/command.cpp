@@ -961,16 +961,6 @@ void CommandSequence::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class DeclarationSequence                                                  */
-/* -------------------------------------------------------------------------- */
-
-void DeclarationSequence::toStream(std::ostream& out) const
-{
-  Printer::getPrinter(out)->toStreamCmdDeclarationSequence(out,
-                                                           d_commandSequence);
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DeclarationDefinitionCommand                                         */
 /* -------------------------------------------------------------------------- */
 

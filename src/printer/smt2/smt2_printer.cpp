@@ -1563,12 +1563,6 @@ void Smt2Printer::toStreamCmdCommandSequence(
   }
 }
 
-void Smt2Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  toStreamCmdCommandSequence(out, sequence);
-}
-
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
