@@ -27,7 +27,7 @@ std::string quoteSymbol(const std::string& s)
 {
   if (s.empty())
   {
-    return "|" + s + "|";
+    return "||";
   }
 
   // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted)
