@@ -186,8 +186,9 @@ void CommandStatus::toStream(std::ostream& out) const
 
 void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
-  Assert(d_commandStatus != nullptr);
-  if (!ok() || solver->getOption("print-success") == "true")
+  if (!ok()
+      || (d_commandStatus != nullptr
+          && solver->getOption("print-success") == "true"))
   {
     out << *d_commandStatus;
   }
