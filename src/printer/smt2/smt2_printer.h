@@ -251,11 +251,6 @@ class Smt2Printer : public cvc5::internal::Printer
                               TypeNode locType,
                               TypeNode dataType) const override;
 
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
   /**
    * Get the string for a kind k, which returns how the kind k is printed in
    * the SMT-LIB format (with variant v).

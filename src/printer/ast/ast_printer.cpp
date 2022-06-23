@@ -230,19 +230,6 @@ void AstPrinter::toStreamCmdQuit(std::ostream& out) const
   out << "Quit()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  out << "cvc5::CommandSequence[" << endl;
-  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
-}
-
 void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
                                             const std::string& id,
                                             TypeNode type) const
@@ -424,10 +411,7 @@ static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 
 static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-  if (options::ioutils::getPrintSuccess(out))
-  {
-    out << "OK" << endl;
-  }
+  out << "OK" << endl;
 }
 
 static void toStream(std::ostream& out, const cvc5::CommandInterrupted* s)

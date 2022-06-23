@@ -725,7 +725,6 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Term> funcs;
   std::vector<cvc5::Term> func_defs;
   cvc5::Term aexpr;
-  std::unique_ptr<cvc5::CommandSequence> seq;
   std::vector<cvc5::Sort> sorts;
   std::vector<cvc5::Term> flattenVars;
 }
@@ -863,7 +862,6 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Term> terms;
   std::vector<cvc5::Sort> sorts;
   std::vector<std::pair<std::string, cvc5::Sort> > sortedVarNames;
-  std::unique_ptr<cvc5::CommandSequence> seq;
   cvc5::Grammar* g = nullptr;
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in

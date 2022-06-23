@@ -1,4 +1,5 @@
 ; DISABLE-TESTER: lfsc
+; Disabled since table.group is not supported in LFSC
 (set-logic HO_ALL)
 
 (set-info :status unsat)
