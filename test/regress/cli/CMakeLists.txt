@@ -68,6 +68,7 @@ set(regress_0_tests
   regress0/arith/issue8097-iid.smt2
   regress0/arith/issue8159-rewrite-intreal.smt2
   regress0/arith/issue8805-mixed-var-elim.smt2
+  regress0/arith/issue8905-pi-to-int.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -2625,6 +2626,7 @@ set(regress_1_tests
   regress1/strings/issue8094-witness-model.smt2
   regress1/strings/issue8347-has-skolem.smt2
   regress1/strings/issue8434-nterm-str-rw.smt2
+  regress1/strings/issue8890-inj-oob.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
