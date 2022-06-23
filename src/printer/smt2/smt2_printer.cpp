@@ -1555,15 +1555,6 @@ void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
   out << "(exit)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  for (cvc5::Command* i : sequence)
-  {
-    out << *i;
-  }
-}
-
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
@@ -2120,10 +2111,7 @@ static void toStream(std::ostream& out,
                      const cvc5::CommandSuccess* s,
                      Variant v)
 {
-  if (options::ioutils::getPrintSuccess(out))
-  {
-    out << "success" << endl;
-  }
+  out << "success" << endl;
 }
 
 static void toStream(std::ostream& out,

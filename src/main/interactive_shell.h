@@ -18,7 +18,9 @@
 
 #include <iosfwd>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 namespace cvc5 {
 
@@ -36,6 +38,8 @@ namespace parser {
   class InteractiveShell
   {
    public:
+    using CmdSeq = std::vector<std::unique_ptr<cvc5::Command>>;
+
     InteractiveShell(Solver* solver,
                      parser::SymbolManager* sm,
                      std::istream& in,
@@ -47,10 +51,10 @@ namespace parser {
     ~InteractiveShell();
 
     /**
-     * Read a command from the interactive shell. This will read as
-     * many lines as necessary to parse a well-formed command.
+     * Read a list of commands from the interactive shell. This will read as
+     * many lines as necessary to parse at least one well-formed command.
      */
-    Command* readCommand();
+    std::optional<CmdSeq> readCommand();
 
     /**
      * Return the internal parser being used.
