@@ -434,7 +434,7 @@ def run_process(args, cwd, timeout, s_input=None):
     output and the error output are empty and the exit code is 124."""
 
     cmd = " ".join([shlex.quote(a) for a in args]) if isinstance(args, list) else args
-
+    print("Running command: {}".format(str(cmd)))
     out = bytes()
     err = bytes()
     exit_status = STATUS_TIMEOUT

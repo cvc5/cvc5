@@ -664,6 +664,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_DEQ_STRINGS_EQ:
     case InferenceId::STRINGS_DEQ_LENS_EQ:
     case InferenceId::STRINGS_DEQ_LENGTH_SP:
+    case InferenceId::STRINGS_UNIT_SPLIT:
     {
       if (conc.getKind() != OR)
       {

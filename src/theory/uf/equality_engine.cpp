@@ -1277,6 +1277,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
 
 void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
 {
+  Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
   bool polarity = lit.getKind() != kind::NOT;
   TNode atom = polarity ? lit : lit[0];

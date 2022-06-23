@@ -182,6 +182,10 @@ enum class SkolemFunId
   SETS_CHOOSE,
   /** set diff to witness (not (= A B)) */
   SETS_DEQ_DIFF,
+  SETS_FOLD_CARD,
+  SETS_FOLD_COMBINE,
+  SETS_FOLD_ELEMENTS,
+  SETS_FOLD_UNION,
   /**
    * A skolem variable that is unique per terms (set.map f A), y which is an
    * element in (set.map f A). The skolem is constrained to be an element in A,
