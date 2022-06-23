@@ -27,13 +27,13 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "expr/node.h"
-#include "expr/symbol_manager.h"
 #include "expr/type_node.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
@@ -44,6 +44,7 @@ using namespace std;
 namespace cvc5 {
 
 using namespace internal;
+using namespace parser;
 
 std::string sexprToString(cvc5::Term sexpr)
 {

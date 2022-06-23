@@ -24,10 +24,9 @@ namespace cvc5 {
 
 class Solver;
 
-class SymbolManager;
-
 namespace parser {
   class Parser;
+  class SymbolManager;
   }  // namespace parser
 
   class Command;
@@ -38,7 +37,7 @@ namespace parser {
   {
    public:
     InteractiveShell(Solver* solver,
-                     SymbolManager* sm,
+                     parser::SymbolManager* sm,
                      std::istream& in,
                      std::ostream& out);
 

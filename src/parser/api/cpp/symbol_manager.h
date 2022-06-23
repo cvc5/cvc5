@@ -24,9 +24,9 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/symbol_table.h"
+#include "parser/api/cpp/symbol_table.h"
 
-namespace cvc5 {
+namespace cvc5::parser {
 
 /** Represents the result of a call to `setExpressionName()`. */
 enum class NamingResult
@@ -53,7 +53,7 @@ class CVC5_EXPORT SymbolManager
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
   /** Get the underlying symbol table */
-  internal::SymbolTable* getSymbolTable();
+  SymbolTable* getSymbolTable();
   //---------------------------- named expressions
   /** Set name of term t to name
    *
@@ -178,7 +178,7 @@ class CVC5_EXPORT SymbolManager
   /**
    * The declaration scope that is "owned" by this symbol manager.
    */
-  internal::SymbolTable d_symtabAllocated;
+  SymbolTable d_symtabAllocated;
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
@@ -189,6 +189,6 @@ class CVC5_EXPORT SymbolManager
   bool d_globalDeclarations;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::parser
 
 #endif /* CVC5__EXPR__SYMBOL_MANAGER_H */

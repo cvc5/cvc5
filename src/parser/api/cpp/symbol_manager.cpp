@@ -13,7 +13,7 @@
  * The symbol manager.
  */
 
-#include "expr/symbol_manager.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -22,7 +22,7 @@
 
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::parser {
 
 // ---------------------------------------------- SymbolManager::Implementation
 
@@ -253,7 +253,7 @@ void SymbolManager::Implementation::popScope()
   Trace("sym-manager") << "SymbolManager: popScope" << std::endl;
   if (d_context.getLevel() == 0)
   {
-    throw internal::ScopeException();
+    throw ScopeException();
   }
   d_context.pop();
   Trace("sym-manager-debug")
@@ -308,10 +308,7 @@ SymbolManager::SymbolManager(cvc5::Solver* s)
 
 SymbolManager::~SymbolManager() {}
 
-internal::SymbolTable* SymbolManager::getSymbolTable()
-{
-  return &d_symtabAllocated;
-}
+SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
 
 NamingResult SymbolManager::setExpressionName(cvc5::Term t,
                                               const std::string& name,
@@ -436,4 +433,4 @@ void SymbolManager::resetAssertions()
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::parser

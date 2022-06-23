@@ -25,8 +25,8 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/symbol_manager.h"
-#include "expr/symbol_table.h"
+#include "parser/api/cpp/symbol_manager.h"
+#include "parser/api/cpp/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
@@ -117,7 +117,7 @@ private:
  /**
   * This current symbol table used by this parser, from symbol manager.
   */
- internal::SymbolTable* d_symtab;
+ SymbolTable* d_symtab;
 
  /**
   * The level of the assertions in the declaration scope.  Things declared

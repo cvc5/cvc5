@@ -27,6 +27,10 @@ set(libcvc5parser_src_files
   antlr_input_imports.cpp
   antlr_line_buffered_input.cpp
   antlr_line_buffered_input.h
+  api/cpp/symbol_manager.cpp
+  api/cpp/symbol_manager.h
+  api/cpp/symbol_table.cpp
+  api/cpp/symbol_table.h
   bounded_token_buffer.cpp
   bounded_token_buffer.h
   bounded_token_factory.cpp
