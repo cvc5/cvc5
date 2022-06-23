@@ -1216,39 +1216,6 @@ class CVC5_EXPORT QuitCommand : public Command
   void toStream(std::ostream& out) const override;
 }; /* class QuitCommand */
 
-class CVC5_EXPORT CommandSequence : public Command
-{
- protected:
-  /** All the commands to be executed (in sequence) */
-  std::vector<Command*> d_commandSequence;
-  /** Next command to be executed */
-  unsigned int d_index;
-
- public:
-  CommandSequence();
-  ~CommandSequence();
-
-  void addCommand(Command* cmd);
-  void clear();
-
-  void invoke(cvc5::Solver* solver, SymbolManager* sm) override;
-  void invoke(cvc5::Solver* solver,
-              SymbolManager* sm,
-              std::ostream& out) override;
-
-  typedef std::vector<Command*>::iterator iterator;
-  typedef std::vector<Command*>::const_iterator const_iterator;
-
-  const_iterator begin() const;
-  const_iterator end() const;
-
-  iterator begin();
-  iterator end();
-
-  std::string getCommandName() const override;
-  void toStream(std::ostream& out) const override;
-}; /* class CommandSequence */
-
 }  // namespace cvc5
 
 #endif /* CVC5__COMMAND_H */

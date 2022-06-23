@@ -84,27 +84,12 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
-  if(seq != nullptr) {
-    // assume no error
-    bool status = true;
-
-    for (CommandSequence::iterator subcmd = seq->begin();
-         status && subcmd != seq->end();
-         ++subcmd)
-    {
-      status = doCommand(*subcmd);
-    }
-
-    return status;
-  } else {
-    if (d_solver->getOptionInfo("verbosity").intValue() > 2)
-    {
-      d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
-    }
-
-    return doCommandSingleton(cmd);
+  if (d_solver->getOptionInfo("verbosity").intValue() > 2)
+  {
+    d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
   }
+
+  return doCommandSingleton(cmd);
 }
 
 void CommandExecutor::reset()
