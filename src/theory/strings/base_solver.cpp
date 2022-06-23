@@ -151,8 +151,14 @@ void BaseSolver::checkInit()
                   Node scr = utils::mkCodeRange(s, d_cardSize);
                   Node tcr = utils::mkCodeRange(t, d_cardSize);
                   Node conc = nm->mkNode(OR, scr.notNode(), tcr.notNode());
+                  // We do not explain exp for two reasons. First, we are
+                  // caching this inference based on the user context and thus
+                  // it should not depend on the current explanation. Second,
+                  // s or t may be concrete integers corresponding to code
+                  // points of string constants, and thus are not guaranteed to
+                  // be terms in the equality engine.
                   d_im.sendInference(
-                      exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+                      exp, exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
                 }
               }
               else
