@@ -292,7 +292,15 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // Assert to decision engine first.
+  // Assert to the SAT solver first
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
+  }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
   // by default by the decision engine. In particular, sending to the SAT
@@ -314,14 +322,6 @@ void PropEngine::assertLemmasInternal(
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
-  }
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
 }
 
