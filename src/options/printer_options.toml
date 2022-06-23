@@ -31,53 +31,6 @@ name   = "Printing"
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
 [[option]]
-  name       = "printInstMode"
-  category   = "common"
-  long       = "print-inst=MODE"
-  type       = "PrintInstMode"
-  default    = "LIST"
-  help       = "print format for printing instantiations"
-  help_mode  = "Print format for printing instantiations."
-[[option.mode.LIST]]
-  name = "list"
-  help = "Print the list of instantiations per quantified formula, when non-empty."
-[[option.mode.NUM]]
-  name = "num"
-  help = "Print the total number of instantiations per quantified formula, when non-zero."
-
-[[option]]
-  name       = "printInstFull"
-  category   = "regular"
-  long       = "print-inst-full"
-  type       = "bool"
-  default    = "true"
-  help       = "print instantiations for formulas that do not have given identifiers"
-
-[[option]]
-  name       = "printDotAsDAG"
-  category   = "expert"
-  long       = "proof-dot-dag"
-  type       = "bool"
-  default    = "false"
-  help       = "Indicates if the dot proof will be printed as a DAG or as a tree"
-
-[[option]]
-  name       = "printDotClusters"
-  category   = "regular"
-  long       = "print-dot-clusters"
-  type       = "bool"
-  default    = "false"
-  help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
-
-[[option]]
-  name       = "printUnsatCoresFull"
-  category   = "regular"
-  long       = "print-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  help       = "when printing unsat cores, include unlabeled assertions"
-
-[[option]]
   name       = "flattenHOChains"
   category   = "expert"
   long       = "flatten-ho-chains"
@@ -104,35 +57,9 @@ name   = "Printing"
   help = "(default) do not print declarations of uninterpreted elements in models."
 
 [[option]]
-  name       = "sygusOut"
-  category   = "regular"
-  long       = "sygus-out=MODE"
-  type       = "SygusSolutionOutMode"
-  default    = "STANDARD"
-  help       = "output mode for sygus"
-  help_mode  = "Modes for sygus solution output."
-[[option.mode.STATUS]]
-  name = "status"
-  help = "Print only status for check-synth calls."
-[[option.mode.STATUS_AND_DEF]]
-  name = "status-and-def"
-  help = "Print status followed by definition corresponding to solution."
-[[option.mode.STANDARD]]
-  name = "sygus-standard"
-  help = "Print based on SyGuS standard."
-
-[[option]]
   name       = "bvPrintConstsAsIndexedSymbols"
   category   = "regular"
   long       = "bv-print-consts-as-indexed-symbols"
   type       = "bool"
   default    = "false"
   help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
-
-[[option]]
-  name       = "printSuccess"
-  category   = "common"
-  long       = "print-success"
-  type       = "bool"
-  default    = "false"
-  help       = "print the \"success\" output required of SMT-LIBv2"

@@ -13,6 +13,7 @@
  * Black box testing of cvc5::InteractiveShell.
  */
 
+#include <memory>
 #include <sstream>
 #include <vector>
 
@@ -65,12 +66,15 @@ class TestMainBlackInteractiveShell : public TestInternal
                      uint32_t minCommands,
                      uint32_t maxCommands)
   {
-    Command* cmd;
     uint32_t n = 0;
-    while (n <= maxCommands && (cmd = shell.readCommand()) != NULL)
+    while (n <= maxCommands)
     {
-      ++n;
-      delete cmd;
+      std::optional<InteractiveShell::CmdSeq> cmds = shell.readCommand();
+      if (!cmds)
+      {
+        break;
+      }
+      n += cmds->size();
     }
     ASSERT_LE(n, maxCommands);
     ASSERT_GE(n, minCommands);
@@ -100,9 +104,7 @@ TEST_F(TestMainBlackInteractiveShell, def_use1)
 {
   InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   *d_sin << "(declare-const x Real) (assert (> x 0))\n" << std::flush;
-  /* readCommand may return a sequence, so we can't say for sure
-     whether it will return 1 or 2... */
-  countCommands(shell, 1, 2);
+  countCommands(shell, 2, 2);
 }
 
 TEST_F(TestMainBlackInteractiveShell, def_use2)
@@ -110,10 +112,9 @@ TEST_F(TestMainBlackInteractiveShell, def_use2)
   InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   /* readCommand may return a sequence, see above. */
   *d_sin << "(declare-const x Real)\n" << std::flush;
-  Command* tmp = shell.readCommand();
+  shell.readCommand();
   *d_sin << "(assert (> x 0))\n" << std::flush;
   countCommands(shell, 1, 1);
-  delete tmp;
 }
 
 TEST_F(TestMainBlackInteractiveShell, empty_line)

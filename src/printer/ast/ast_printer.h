@@ -143,11 +143,6 @@ class AstPrinter : public cvc5::internal::Printer
   /** Print quit command */
   void toStreamCmdQuit(std::ostream& out) const override;
 
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
  private:
   void toStream(std::ostream& out,
                 TNode n,
