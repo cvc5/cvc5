@@ -307,9 +307,8 @@ void PropEngine::assertLemmasInternal(
   // solver first means that lemmas sent during preregistration in response to
   // the current lemma are processed after that lemma. This makes a difference
   // e.g. for string reduction lemmas, where preregistration lemmas are
-  // introduced for skolems that appear in reductions. Moving this
-  // block after the one below has mixed (trending negative) performance on
-  // SMT-LIB strings logics.
+  // introduced for skolems that appear in reductions. Moving the above
+  // block after the one below has mixed performance on SMT-LIB strings logics.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
