@@ -31,6 +31,7 @@
 #include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/printer_options.h"
+#include "options/quantifiers_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -1575,9 +1576,9 @@ void SolverEngine::printInstantiations(std::ostream& out)
 
   // First, extract and print the skolemizations
   bool printed = false;
-  bool reqNames = !d_env->getOptions().printer.printInstFull;
+  bool reqNames = !d_env->getOptions().quantifiers.printInstFull;
   // only print when in list mode
-  if (d_env->getOptions().printer.printInstMode == options::PrintInstMode::LIST)
+  if (d_env->getOptions().quantifiers.printInstMode == options::PrintInstMode::LIST)
   {
     std::map<Node, std::vector<Node>> sks;
     qe->getSkolemTermVectors(sks);
@@ -1635,7 +1636,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
       continue;
     }
     // must have a name
-    if (d_env->getOptions().printer.printInstMode
+    if (d_env->getOptions().quantifiers.printInstMode
         == options::PrintInstMode::NUM)
     {
       out << "(num-instantiations " << name << " " << i.second.d_inst.size()
@@ -1645,7 +1646,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
     {
       // take the name
       i.second.d_quant = name;
-      Assert(d_env->getOptions().printer.printInstMode
+      Assert(d_env->getOptions().quantifiers.printInstMode
              == options::PrintInstMode::LIST);
       out << i.second;
     }
