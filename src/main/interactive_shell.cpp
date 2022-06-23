@@ -377,7 +377,7 @@ restart:
     // cmd_seq = new CommandSequence();
   }
 
-  return cmdSeq;
+  return std::optional<CmdSeq>(std::move(cmdSeq));
 }/* InteractiveShell::readCommand() */
 
 #if HAVE_LIBEDITLINE
