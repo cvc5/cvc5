@@ -380,7 +380,8 @@ class InferenceGenerator
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param e an element of type T
-   * @param part a function of type T -> (Table T)
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (bag.member x A)
@@ -397,7 +398,8 @@ class InferenceGenerator
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param e an element of type T
-   * @param part a function of type T -> (Table T)
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (= (bag.count x A) 0)
@@ -410,6 +412,8 @@ class InferenceGenerator
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T)
    * @param x an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (and
@@ -427,7 +431,8 @@ class InferenceGenerator
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T) and B is not of the form (part x)
-   * @param part a function of type T -> (Table T)
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (and
@@ -450,6 +455,8 @@ class InferenceGenerator
    * @param B an element of type (Table T)
    * @param x an element of type T
    * @param y an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (and
@@ -473,6 +480,8 @@ class InferenceGenerator
    * @param B an element of type (Table T)
    * @param x an element of type T
    * @param y an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (and
@@ -480,9 +489,8 @@ class InferenceGenerator
    *     (bag.member x B)
    *     (bag.member y A)
    *     (distinct x y)
-   *     (and
-   *       (= ((_ tuple.project n1 ... nk) x)
-   *          ((_ tuple.project n1 ... nk) y))
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
    *   )
    *   (and
    *     (= (bag.count y B) (bag.count y A))
