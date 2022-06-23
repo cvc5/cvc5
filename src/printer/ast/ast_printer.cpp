@@ -424,7 +424,7 @@ static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 
 static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-    out << "OK" << endl;
+  out << "OK" << endl;
 }
 
 static void toStream(std::ostream& out, const cvc5::CommandInterrupted* s)
