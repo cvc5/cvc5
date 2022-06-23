@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 ; EXPECT: unknown
 (set-logic ALL)
 (declare-const x1 Bool)
