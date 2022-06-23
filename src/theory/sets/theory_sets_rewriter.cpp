@@ -722,6 +722,41 @@ RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
     }
     case SET_SINGLETON:
     {
+      // (set.fold f t (set.singleton x)) = (f x t)
+      Node x = n[2][0];
+      Node f_x_t = nm->mkNode(APPLY_UF, f, x, t);
+      return RewriteResponse(REWRITE_AGAIN_FULL, f_x_t);
+    }
+    case SET_UNION:
+    {
+      // (set.fold f t (set.union B C)) = (set.fold f (set.fold f t A) B))
+      Node A = n[2][0];
+      Node B = n[2][1];
+      Node foldA = nm->mkNode(SET_FOLD, f, t, A);
+      Node fold = nm->mkNode(SET_FOLD, f, foldA, B);
+      return RewriteResponse(REWRITE_AGAIN_FULL, fold);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
+{
+  Assert(n.getKind() == kind::SET_FOLD);
+  NodeManager* nm = NodeManager::currentNM();
+  Node f = n[0];
+  Node t = n[1];
+  Kind k = n[2].getKind();
+  switch (k)
+  {
+    case SET_EMPTY:
+    {
+      // ((set.fold f t (as set.empty (Set T))) = t
+      return RewriteResponse(REWRITE_DONE, t);
+    }
+    case SET_SINGLETON:
+    {
       // (set.fold f t (set.singleton x)) = (f t x)
       Node x = n[2][0];
       Node f_t_x = nm->mkNode(APPLY_UF, f, t, x);
