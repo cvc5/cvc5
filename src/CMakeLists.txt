@@ -1012,6 +1012,8 @@ libcvc5_add_sources(
   theory/sets/normal_form.h
   theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
+  theory/sets/set_reduction.cpp
+  theory/sets/set_reduction.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp

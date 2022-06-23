@@ -100,6 +100,10 @@ const char* toString(SkolemFunId id)
       return "TABLES_GROUP_PART_ELEMENT";
     case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
     case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
+    case SkolemFunId::SETS_FOLD_CARD: return "SETS_FOLD_CARD";
+    case SkolemFunId::SETS_FOLD_COMBINE: return "SETS_FOLD_COMBINE";
+    case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
+    case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     default: return "?";
