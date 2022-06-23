@@ -94,6 +94,14 @@ private:
   *  where p: T -> Bool
   */
  RewriteResponse postRewriteFilter(TNode n);
+ /**
+  *  rewrites for n include:
+  *  - (set.fold f t (as set.empty (Set T))) = t
+  *  - (set.fold f t (set.singleton x)) = (f t x)
+  *  - (set.fold f t (set.union A B)) = (set.fold f (set.fold f t A) B))
+  *  where f: T -> S -> S, and t : S
+  */
+ RewriteResponse postRewriteFold(TNode n);
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets
