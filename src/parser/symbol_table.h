@@ -13,7 +13,7 @@
  * Convenience class for scoping variable and type declarations.
  */
 
-#include "cvc5_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H
@@ -31,7 +31,7 @@ class Sort;
 class Term;
 }  // namespace cvc5
 
-namespace cvc5::parser {
+namespace cvc5::internal::parser {
 
 class CVC5_EXPORT ScopeException : public internal::Exception
 {
@@ -201,6 +201,6 @@ class CVC5_EXPORT SymbolTable
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
-}  // namespace cvc5::parser
+}  // namespace cvc5::internal::parser
 
 #endif /* CVC5__SYMBOL_TABLE_H */

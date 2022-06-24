@@ -19,8 +19,10 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
+#include "parser/symbol_table.h"
 
 using namespace cvc5::context;
+using namespace cvc5::internal::parser;
 
 namespace cvc5::parser {
 
@@ -50,6 +52,8 @@ class SymbolManager::Implementation
   }
 
   ~Implementation() { d_context.pop(); }
+  SymbolTable& getSymbolTable() { return d_symtabAllocated; }
+
   /** set expression name */
   NamingResult setExpressionName(cvc5::Term t,
                                  const std::string& name,
@@ -93,6 +97,10 @@ class SymbolManager::Implementation
   const std::string& getLastSynthName() const;
 
  private:
+  /**
+   * The declaration scope that is "owned" by this symbol manager.
+   */
+  SymbolTable d_symtabAllocated;
   /** The context manager for the scope maps. */
   Context d_context;
   /** Map terms to names */
@@ -246,11 +254,13 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
   {
     d_hasPushedScope = true;
   }
+  d_symtabAllocated.pushScope();
 }
 
 void SymbolManager::Implementation::popScope()
 {
   Trace("sym-manager") << "SymbolManager: popScope" << std::endl;
+  d_symtabAllocated.popScope();
   if (d_context.getLevel() == 0)
   {
     throw ScopeException();
@@ -278,6 +288,8 @@ const std::string& SymbolManager::Implementation::getLastSynthName() const
 void SymbolManager::Implementation::reset()
 {
   Trace("sym-manager") << "SymbolManager: reset" << std::endl;
+  // reset resets the symbol table even when global declarations are true
+  d_symtabAllocated.reset();
   // clear names by popping to context level 0
   while (d_context.getLevel() > 0)
   {
@@ -308,7 +320,17 @@ SymbolManager::SymbolManager(cvc5::Solver* s)
 
 SymbolManager::~SymbolManager() {}
 
-SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
+SymbolTable* SymbolManager::getSymbolTable()
+{
+  return &d_implementation->getSymbolTable();
+}
+
+bool SymbolManager::bind(const std::string& name,
+                         cvc5::Term obj,
+                         bool doOverload)
+{
+  return d_implementation->getSymbolTable().bind(name, obj, doOverload);
+}
 
 NamingResult SymbolManager::setExpressionName(cvc5::Term t,
                                               const std::string& name,
@@ -367,7 +389,7 @@ void SymbolManager::addFunctionToSynthesize(cvc5::Term f)
 
 size_t SymbolManager::scopeLevel() const
 {
-  return d_symtabAllocated.getLevel();
+  return d_implementation->getSymbolTable().getLevel();
 }
 
 void SymbolManager::pushScope(bool isUserContext)
@@ -379,7 +401,6 @@ void SymbolManager::pushScope(bool isUserContext)
     return;
   }
   d_implementation->pushScope(isUserContext);
-  d_symtabAllocated.pushScope();
 }
 
 void SymbolManager::popScope()
@@ -393,7 +414,6 @@ void SymbolManager::popScope()
   {
     return;
   }
-  d_symtabAllocated.popScope();
   d_implementation->popScope();
 }
 
@@ -419,8 +439,6 @@ const std::string& SymbolManager::getLastSynthName() const
 
 void SymbolManager::reset()
 {
-  // reset resets the symbol table even when global declarations are true
-  d_symtabAllocated.reset();
   d_implementation->reset();
 }
 
@@ -429,7 +447,7 @@ void SymbolManager::resetAssertions()
   d_implementation->resetAssertions();
   if (!d_globalDeclarations)
   {
-    d_symtabAllocated.resetAssertions();
+    d_implementation->getSymbolTable().resetAssertions();
   }
 }
 

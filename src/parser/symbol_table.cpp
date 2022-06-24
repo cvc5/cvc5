@@ -14,7 +14,7 @@
  * (implementation).
  */
 
-#include "parser/api/cpp/symbol_table.h"
+#include "parser/symbol_table.h"
 
 #include <ostream>
 #include <string>
@@ -26,7 +26,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 
-namespace cvc5::parser {
+namespace cvc5::internal::parser {
 
 using context::CDHashMap;
 using context::CDHashSet;
@@ -686,4 +686,4 @@ size_t SymbolTable::getLevel() const { return d_implementation->getLevel(); }
 void SymbolTable::reset() { d_implementation->reset(); }
 void SymbolTable::resetAssertions() { d_implementation->resetAssertions(); }
 
-}  // namespace cvc5::parser
+}  // namespace cvc5::internal::parser

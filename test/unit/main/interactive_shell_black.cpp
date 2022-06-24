@@ -18,14 +18,17 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 #include "test.h"
+
+using namespace cvc5::parser;
+using namespace cvc5::internal::parser;
 
 namespace cvc5::internal {
 namespace test {

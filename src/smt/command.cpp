@@ -40,11 +40,11 @@
 #include "util/utility.h"
 
 using namespace std;
+using namespace cvc5::parser;
 
 namespace cvc5 {
 
 using namespace internal;
-using namespace parser;
 
 std::string sexprToString(cvc5::Term sexpr)
 {
@@ -1055,7 +1055,7 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     bool global = sm->getGlobalDeclarations();
     cvc5::Term fun =
         solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
-    sm->getSymbolTable()->bind(d_symbol, fun, global);
+    sm->bind(d_symbol, fun, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

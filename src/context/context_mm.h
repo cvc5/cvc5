@@ -25,6 +25,8 @@
 #endif
 #include <vector>
 
+#include "cvc5_export.h"
+
 namespace cvc5::context {
 
 #ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER

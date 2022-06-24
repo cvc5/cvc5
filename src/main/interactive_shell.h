@@ -41,7 +41,7 @@ namespace parser {
     using CmdSeq = std::vector<std::unique_ptr<cvc5::Command>>;
 
     InteractiveShell(Solver* solver,
-                     parser::SymbolManager* sm,
+                     cvc5::parser::SymbolManager* sm,
                      std::istream& in,
                      std::ostream& out);
 
@@ -59,13 +59,13 @@ namespace parser {
     /**
      * Return the internal parser being used.
      */
-    parser::Parser* getParser() { return d_parser.get(); }
+    cvc5::parser::Parser* getParser() { return d_parser.get(); }
 
    private:
     Solver* d_solver;
     std::istream& d_in;
     std::ostream& d_out;
-    std::unique_ptr<parser::Parser> d_parser;
+    std::unique_ptr<cvc5::parser::Parser> d_parser;
     bool d_quit;
     bool d_usingEditline;
 
