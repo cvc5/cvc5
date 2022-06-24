@@ -125,7 +125,7 @@ void TheoryProxy::notifyInputFormulas(
 
 void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 {
-  Assert (!skolem.isNull());
+  Assert(!skolem.isNull());
   d_skdm->notifySkolemDefinition(skolem, a);
 }
 
