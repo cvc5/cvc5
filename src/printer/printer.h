@@ -283,10 +283,6 @@ class Printer
                                       TypeNode locType,
                                       TypeNode dataType) const;
 
-  /** Print command sequence command */
-  virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}
