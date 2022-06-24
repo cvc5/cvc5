@@ -108,6 +108,10 @@ void TheoryProxy::notifyInputFormulas(
     {
       skolem = it->second;
     }
+    if (!skolem.isNull())
+    {
+      notifySkolemDefinition(assertions[i], skolem);
+    }
     notifyAssertion(assertions[i], skolem, false);
   }
 
@@ -119,6 +123,12 @@ void TheoryProxy::notifyInputFormulas(
   }
 }
 
+void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
+{
+  Assert (!skolem.isNull());
+  d_skdm->notifySkolemDefinition(skolem, a);
+}
+
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())
@@ -127,7 +137,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   }
   else
   {
-    d_skdm->notifySkolemDefinition(skolem, a);
     d_decisionEngine->addSkolemDefinition(a, skolem, isLemma);
   }
 }

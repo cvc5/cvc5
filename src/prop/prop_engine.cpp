@@ -223,6 +223,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
       Trace("te-lemma") << "Lemma, new lemma: " << lem.d_lemma.getProven()
                         << " (skolem is " << lem.d_skolem << ")" << std::endl;
     }
+    Trace("te-lemma") << "removable = " << removable << std::endl;
   }
 
   // now, assert the lemmas
@@ -292,7 +293,18 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
+  if (!removable)
+  {
+    // notify skolem definitions first to ensure that the computation of
+    // when a literal contains a skolem is accurate in the calls below.
+    Trace("prop") << "Notify skolem definitions..." << std::endl;
+    for (const theory::SkolemLemma& lem : ppLemmas)
+    {
+      d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
+    }
+  }
   // Assert to the SAT solver first
+  Trace("prop") << "Push to SAT..." << std::endl;
   if (!trn.isNull())
   {
     assertTrustedLemmaInternal(trn, removable);
@@ -311,6 +323,7 @@ void PropEngine::assertLemmasInternal(
   // block after the one below has mixed performance on SMT-LIB strings logics.
   if (!removable)
   {
+    Trace("prop") << "Notify assertions..." << std::endl;
     // also add to the decision engine, where notice we don't need proofs
     if (!trn.isNull())
     {
@@ -322,6 +335,7 @@ void PropEngine::assertLemmasInternal(
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
   }
+  Trace("prop") << "Finish " << trn << std::endl;
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
