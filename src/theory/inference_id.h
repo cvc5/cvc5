@@ -210,6 +210,13 @@ enum class InferenceId
   TABLES_PRODUCT_DOWN,
   TABLES_JOIN_UP,
   TABLES_JOIN_DOWN,
+  TABLES_GROUP_NOT_EMPTY,
+  TABLES_GROUP_UP1,
+  TABLES_GROUP_UP2,
+  TABLES_GROUP_DOWN,
+  TABLES_GROUP_PART_COUNT,
+  TABLES_GROUP_SAME_PROJECTION,
+  TABLES_GROUP_SAME_PART,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
