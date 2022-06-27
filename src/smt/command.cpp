@@ -27,19 +27,20 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "expr/node.h"
-#include "expr/symbol_manager.h"
 #include "expr/type_node.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
 
 using namespace std;
+using namespace cvc5::parser;
 
 namespace cvc5 {
 
@@ -1054,7 +1055,7 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     bool global = sm->getGlobalDeclarations();
     cvc5::Term fun =
         solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
-    sm->getSymbolTable()->bind(d_symbol, fun, global);
+    sm->bind(d_symbol, fun, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
