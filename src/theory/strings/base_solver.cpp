@@ -292,8 +292,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
 {
   // we have either (seq.unit x) = C, or (seq.unit x) = (seq.unit y)
   // where C is a sequence constant.
-  Node cval =
-      b.isConst() ? b : (a.isConst() ? a : Node::null());
+  Node cval = b.isConst() ? b : (a.isConst() ? a : Node::null());
   std::vector<Node> exp;
   exp.push_back(b.eqNode(a));
   Node s, t;
@@ -310,8 +309,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
     if (cchars.size() == 1)
     {
       Node oval = b.isConst() ? a : b;
-      Assert(oval.getKind() == SEQ_UNIT
-              || oval.getKind() == STRING_UNIT);
+      Assert(oval.getKind() == SEQ_UNIT || oval.getKind() == STRING_UNIT);
       s = oval[0];
       t = Word::getNth(cchars[0], 0);
       // oval is congruent (ignored) in this context
@@ -325,7 +323,8 @@ bool BaseSolver::processConstantLike(Node a, Node b)
       return true;
     }
   }
-  Trace("strings-base") << "Process constant-like pair " << s << ", " << t << " from " << a << ", " << b << std::endl;
+  Trace("strings-base") << "Process constant-like pair " << s << ", " << t
+                        << " from " << a << ", " << b << std::endl;
   if (!d_state.areEqual(s, t))
   {
     Assert(s.getType() == t.getType());
@@ -350,15 +349,15 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // x or y is not a valid code point
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
-        Node conc = NodeManager::currentNM()->mkNode(OR, scr.notNode(), tcr.notNode());
+        Node conc =
+            NodeManager::currentNM()->mkNode(OR, scr.notNode(), tcr.notNode());
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,
         // s or t may be concrete integers corresponding to code
         // points of string constants, and thus are not guaranteed to
         // be terms in the equality engine.
-        d_im.sendInference(
-            exp, exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+        d_im.sendInference(exp, exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
       }
     }
     else
