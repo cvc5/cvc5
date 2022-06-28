@@ -83,12 +83,19 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       Assert(o.getNumChildren() == 2);
       for (size_t i = 0; i < 2; ++i)
       {
-        const auto& l = o[i];
-        const auto& r = o[1 - i];
+        const auto& l = (o[i].getKind() == Kind::TO_REAL ? o[i][0] : o[i]);
+        const auto& r = (o[1-i].getKind() == Kind::TO_REAL ? o[1-i][0] : o[1-i]);
+        // lhs can't be constant
         if (l.isConst()) continue;
+        // types must match (otherwise we might have int/real issues)
+        if (r.getType() != l.getType()) continue;
+        // can't substitute stuff from other theories
         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
+        // can't substitute the same thing twice
         if (d_substitutions->hasSubstitution(l)) continue;
+        // lhs can't be a subexpression of rhs, would leaf to recursion
         if (expr::hasSubterm(r, l)) continue;
+        // the same, but after substitution
         d_substitutions->invalidateCache();
         if (expr::hasSubterm(d_substitutions->apply(r, nullptr, nullptr, &stc), l)) continue;
         Trace("nl-eqs") << "Found substitution " << l << " -> " << r

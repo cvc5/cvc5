@@ -16,6 +16,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/uf/equality_engine.h"
 #include "theory/uf/equality_engine_iterator.h"
 
 namespace cvc5::internal {
@@ -120,39 +121,10 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c) const
   std::map<TypeNode, uint64_t> tnum;
   while (!eqcs_i.isFinished())
   {
-    TNode r = (*eqcs_i);
-    TypeNode tr = r.getType();
-    if (tnum.find(tr) == tnum.end())
-    {
-      tnum[tr] = 0;
-    }
-    tnum[tr]++;
-    bool firstTime = true;
-    Trace(c) << "  " << r;
-    Trace(c) << " : { ";
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
-    while (!eqc_i.isFinished())
-    {
-      TNode n = (*eqc_i);
-      if (r != n)
-      {
-        if (firstTime)
-        {
-          Trace(c) << std::endl;
-          firstTime = false;
-        }
-        Trace(c) << "    " << n << std::endl;
-      }
-      ++eqc_i;
-    }
-    if (!firstTime)
-    {
-      Trace(c) << "  ";
-    }
-    Trace(c) << "}" << std::endl;
+    tnum[(*eqcs_i).getType()]++;
     ++eqcs_i;
   }
-  Trace(c) << std::endl;
+  Trace(c) << ee->debugPrintEqc() << std::endl;
   for (const std::pair<const TypeNode, uint64_t>& t : tnum)
   {
     Trace(c) << "# eqc for " << t.first << " : " << t.second << std::endl;

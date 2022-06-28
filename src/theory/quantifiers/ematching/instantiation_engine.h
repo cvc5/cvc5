@@ -47,16 +47,13 @@ class InstantiationEngine : public QuantifiersModule {
   bool checkCompleteFor(Node q) override;
   void checkOwnership(Node q) override;
   void registerQuantifier(Node q) override;
-  Node explain(TNode n) { return Node::null(); }
   /** add user pattern */
   void addUserPattern(Node q, Node pat);
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
-  std::string identify() const override { return "InstEngine"; }
+  std::string identify() const override;
 
  private:
-  /** is the engine incomplete for this quantifier */
-  bool isIncomplete(Node q);
   /** do instantiation round */
   void doInstantiationRound(Theory::Effort effort);
   /** Return true if this module should process quantified formula q */

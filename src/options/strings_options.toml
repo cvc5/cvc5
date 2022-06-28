@@ -106,14 +106,6 @@ name   = "Strings Theory"
   help       = "regression explanations for string lemmas"
 
 [[option]]
-  name       = "stringMinPrefixExplain"
-  category   = "expert"
-  long       = "strings-min-prefix-explain"
-  type       = "bool"
-  default    = "true"
-  help       = "minimize explanations for prefix of normal forms in strings"
-
-[[option]]
   name       = "stringModelBasedReduction"
   category   = "regular"
   long       = "strings-mbr"
@@ -250,3 +242,11 @@ name   = "Strings Theory"
   type       = "uint64_t"
   default    = "65536"
   help       = "The maximum size of string values in models"
+
+[[option]]
+  name       = "stringsCodeElim"
+  category   = "expert"
+  long       = "strings-code-elim"
+  type       = "bool"
+  default    = "true"
+  help       = "eliminate code points during preprocessing"

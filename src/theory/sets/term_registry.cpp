@@ -45,7 +45,8 @@ Node TermRegistry::getProxy(Node n)
 {
   Kind nk = n.getKind();
   if (nk != SET_EMPTY && nk != SET_SINGLETON && nk != SET_INTER
-      && nk != SET_MINUS && nk != SET_UNION && nk != SET_UNIVERSE)
+      && nk != SET_MINUS && nk != SET_UNION && nk != SET_UNIVERSE
+      && nk != SET_MAP)
   {
     return n;
   }
@@ -93,19 +94,6 @@ Node TermRegistry::getUnivSet(TypeNode tn)
   Node n = nm->mkNullaryOperator(tn, SET_UNIVERSE);
   d_univset[tn] = n;
   return n;
-}
-
-Node TermRegistry::getTypeConstraintSkolem(Node n, TypeNode tn)
-{
-  std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
-  if (it == d_tc_skolem[n].end())
-  {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-    Node k = sm->mkDummySkolem("tc_k", tn);
-    d_tc_skolem[n][tn] = k;
-    return k;
-  }
-  return it->second;
 }
 
 void TermRegistry::debugPrintSet(Node s, const char* c) const

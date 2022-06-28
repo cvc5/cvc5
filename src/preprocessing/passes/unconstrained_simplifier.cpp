@@ -255,7 +255,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0].getType() != parent[1].getType())
           {
             TNode other = (parent[0] == current) ? parent[1] : parent[0];
-            if (current.getType().isSubtypeOf(other.getType()))
+            if (current.getType() == other.getType())
             {
               break;
             }
@@ -530,7 +530,8 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test = other.eqNode(nm->mkConstReal(Rational(0)));
+              Node test = other.eqNode(
+                  nm->mkConstRealOrInt(other.getType(), Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;

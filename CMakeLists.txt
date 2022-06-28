@@ -344,6 +344,7 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
+  add_check_c_cxx_flag("-gz")
 endif()
 
 if(ENABLE_COMP_INC_TRACK)

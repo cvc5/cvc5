@@ -2,7 +2,6 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
-; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (declare-const v (_ BitVec 2))
 (declare-const x7 Bool)

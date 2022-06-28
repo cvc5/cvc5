@@ -33,10 +33,7 @@ class AstPrinter : public cvc5::internal::Printer
 {
  public:
   using cvc5::internal::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
+  void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
 
@@ -145,16 +142,6 @@ class AstPrinter : public cvc5::internal::Printer
 
   /** Print quit command */
   void toStreamCmdQuit(std::ostream& out) const override;
-
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
-  /** Print declaration sequence command */
-  void toStreamCmdDeclarationSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
 
  private:
   void toStream(std::ostream& out,

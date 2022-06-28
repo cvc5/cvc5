@@ -31,6 +31,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
@@ -214,18 +215,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
-  else if (k == CONST_RATIONAL || k == CONST_INTEGER || k == CAST_TO_REAL)
+  else if (k == CONST_RATIONAL || k == CONST_INTEGER)
   {
-    if (k == CAST_TO_REAL)
-    {
-      // already converted
-      do
-      {
-        n = n[0];
-        Assert(n.getKind() == APPLY_UF || n.getKind() == CONST_RATIONAL
-               || n.getKind() == CONST_INTEGER);
-      } while (n.getKind() != CONST_RATIONAL && n.getKind() != CONST_INTEGER);
-    }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
     Node rconstf;
     Node arg;
@@ -313,8 +304,7 @@ Node LfscNodeConverter::postConvert(Node n)
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      Node u = nm->mkSeqUnit(tn.getSequenceElementType(),
-                             postConvert(charVec[size - (i + 1)]));
+      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size - (i + 1)]));
       if (size == 1)
       {
         // singleton case
@@ -379,6 +369,13 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // notice that intentionally we drop annotations here
     return ret;
+  }
+  else if (k == FUNCTION_ARRAY_CONST)
+  {
+    // must convert to lambda and then run the conversion
+    Node lam = theory::uf::FunctionConst::toLambda(n);
+    Assert(!lam.isNull());
+    return convert(lam);
   }
   else if (k == REGEXP_LOOP)
   {
@@ -461,31 +458,33 @@ Node LfscNodeConverter::postConvert(Node n)
       // must convert recursively, since nullTerm may have subterms.
       ret = convert(nullTerm);
     }
-    // the kind to chain
-    Kind ck = k;
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
-    Node opc;
-    if (k == ADD || k == MULT || k == NONLINEAR_MULT)
+    bool isArithOp = (k == ADD || k == MULT || k == NONLINEAR_MULT);
+    std::stringstream arithOpName;
+    if (isArithOp)
     {
-      std::stringstream opName;
       // currently allow subtyping
-      opName << "a.";
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
-      TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
-      opc = getSymbolInternal(k, ftype, opName.str());
-      ck = APPLY_UF;
+      arithOpName << "a.";
+      arithOpName << printer::smt2::Smt2Printer::smtKindString(k);
     }
     // now, iterate over children and make binary conversion
     for (size_t i = istart, npchild = children.size(); i < npchild; i++)
     {
-      if (!opc.isNull())
+      if (isArithOp)
       {
-        ret = nm->mkNode(ck, opc, children[i], ret);
+        // Arithmetic operators must deal with permissive type rules for
+        // ADD, MULT, NONLINEAR_MULT. We use the properly typed operator to
+        // avoid debug failures.
+        TypeNode tn1 = children[i].getType();
+        TypeNode tn2 = ret.getType();
+        TypeNode ftype = nm->mkFunctionType({tn1, tn2}, tn);
+        Node opc = getSymbolInternal(k, ftype, arithOpName.str());
+        ret = nm->mkNode(APPLY_UF, opc, children[i], ret);
       }
       else
       {
-        ret = nm->mkNode(ck, children[i], ret);
+        ret = nm->mkNode(k, children[i], ret);
       }
     }
     Trace("lfsc-term-process-debug")
@@ -575,35 +574,37 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       cur = nm->mkSortConstructor(ss.str(), nargs);
       cur = nm->mkSort(cur, convTypes);
     }
+    else
+    {
+      // no need to convert type for tuples of size 0,
+      // type as node is simple
+      tnn = getSymbolInternal(k, d_sortType, "Tuple");
+    }
   }
   else if (tn.getNumChildren() == 0)
   {
     Assert(!tn.isTuple());
     // an uninterpreted sort, or an uninstantiatied (maybe parametric) datatype
     d_declTypes.insert(tn);
-    if (tnn.isNull())
+    std::stringstream ss;
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+    tn.toStream(ss);
+    if (tn.isUninterpretedSortConstructor())
     {
-      std::stringstream ss;
-      options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
-      tn.toStream(ss);
-      if (tn.isUninterpretedSortConstructor())
-      {
-        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
-        tnn = getSymbolInternal(k, d_sortType, s, false);
-        cur =
-            nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
-      }
-      else if (tn.isUninterpretedSort() || tn.isDatatype())
-      {
-        std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
-        tnn = getSymbolInternal(k, d_sortType, s, false);
-        cur = nm->mkSort(s);
-      }
-      else
-      {
-        // all other builtin type constants, e.g. Int
-        tnn = getSymbolInternal(k, d_sortType, ss.str());
-      }
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSortConstructor(s, tn.getUninterpretedSortConstructorArity());
+    }
+    else if (tn.isUninterpretedSort() || tn.isDatatype())
+    {
+      std::string s = getNameForUserNameOfInternal(tn.getId(), ss.str());
+      tnn = getSymbolInternal(k, d_sortType, s, false);
+      cur = nm->mkSort(s);
+    }
+    else
+    {
+      // all other builtin type constants, e.g. Int
+      tnn = getSymbolInternal(k, d_sortType, ss.str());
     }
   }
   else
@@ -1200,10 +1201,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
-    // We take the base type, so that e.g. arithmetic operators are over
-    // real. This avoids issues with subtyping when currying during proof
-    // postprocessing
-    argTypes.push_back(nc.getType().getBaseType());
+    argTypes.push_back(nc.getType());
   }
   // we only use binary operators
   if (NodeManager::isNAryKind(k))

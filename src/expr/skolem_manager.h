@@ -140,7 +140,7 @@ enum class SkolemFunId
    */
   BAGS_CHOOSE,
   /** An uninterpreted function for bag.map operator:
-   * To compute (bag.count y (map f A)), we need to find the distinct
+   * To compute (bag.count y (bag.map f A)), we need to find the distinct
    * elements in A that are mapped to y by function f (i.e., preimage of {y}).
    * If n is the cardinality of this preimage, then
    * the preimage is the set {uf(1), ..., uf(n)}
@@ -149,13 +149,13 @@ enum class SkolemFunId
   BAGS_MAP_PREIMAGE,
   /**
    * A skolem variable for the size of the preimage of {y} that is unique per
-   * terms (map f A), y which might be an element in (map f A). (see the
+   * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
    * documentation for BAGS_MAP_PREIMAGE)
    */
   BAGS_MAP_PREIMAGE_SIZE,
   /**
    * A skolem variable for the index that is unique per terms
-   * (map f A), y, preImageSize, y, e which might be an element in A.
+   * (bag.map f A), y, preImageSize, y, e which might be an element in A.
    * (see the documentation for BAGS_MAP_PREIMAGE)
    */
   BAGS_MAP_PREIMAGE_INDEX,
@@ -168,20 +168,52 @@ enum class SkolemFunId
    */
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
-  BAG_DEQ_DIFF,
+  BAGS_DEQ_DIFF,
+  /** Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Table T))
+   */
+  TABLES_GROUP_PART,
+  /**
+   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * and a part B of type (Table T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  TABLES_GROUP_PART_ELEMENT,
+  /** Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Relation T))
+   */
+  RELATIONS_GROUP_PART,
+  /**
+   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * and a part B of type (Relation T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  RELATIONS_GROUP_PART_ELEMENT,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))
    *    (ite
-   *      (= A (as emptyset (Set E)))
+   *      (= A (as set.empty (Set E)))
    *      (= x (uf A))
-   *      (and (member x A) (= x uf(A)))
+   *      (and (set.member x A) (= x uf(A)))
    * where uf: (Set E) -> E is a skolem function, and E is the type of elements
    * of A
    */
   SETS_CHOOSE,
   /** set diff to witness (not (= A B)) */
   SETS_DEQ_DIFF,
+  SETS_FOLD_CARD,
+  SETS_FOLD_COMBINE,
+  SETS_FOLD_ELEMENTS,
+  SETS_FOLD_UNION,
+  /**
+   * A skolem variable that is unique per terms (set.map f A), y which is an
+   * element in (set.map f A). The skolem is constrained to be an element in A,
+   * and it is mapped to y by f.
+   */
+  SETS_MAP_DOWN_ELEMENT,
   /** Higher-order type match predicate, see HoTermDb */
   HO_TYPE_MATCH_PRED,
   /** the "none" term, for instantiation evaluation */

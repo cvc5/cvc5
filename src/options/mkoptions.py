@@ -77,9 +77,9 @@ def wrap_line(s, indent, **kwargs):
         textwrap.wrap(s, width=80 - indent, **kwargs))
 
 
-def concat_format(s, objs):
+def concat_format(s, objs, glue='\n'):
     """Helper method to render a string for a list of object"""
-    return '\n'.join([s.format(**o.__dict__) for o in objs])
+    return glue.join([s.format(**o.__dict__) for o in objs])
 
 
 def format_include(include):
@@ -157,6 +157,7 @@ class Module(object):
         self.options = []
         self.id = self.id.lower()
         self.id_cap = self.id.upper()
+        self.id_capitalized = self.id.capitalize()
         self.filename = os.path.splitext(os.path.split(filename)[-1])[0]
         self.header = os.path.join('options', '{}.h'.format(self.filename))
 
@@ -175,11 +176,16 @@ class Option(object):
             self.alternate = True
         self.long_name = None
         self.long_opt = None
+        if self.name:
+            self.name_capitalized = self.name[0].capitalize() + self.name[1:]
         if self.long:
             r = self.long.split('=', 1)
             self.long_name = r[0]
             if len(r) > 1:
                 self.long_opt = r[1]
+        self.fqdefault = self.default
+        if self.mode and self.type not in self.default:
+            self.fqdefault = '{}::{}'.format(self.type, self.default)
         self.names = set()
         if self.long_name:
             self.names.add(self.long_name)
@@ -220,7 +226,8 @@ def generate_holder_mem_decls(modules):
 
 def generate_holder_ref_decls(modules):
     """Render reference declarations for holder members of the Option class"""
-    return concat_format('  options::Holder{id_cap}& {id};', modules)
+    return concat_format('''  const options::Holder{id_cap}& {id};
+  options::Holder{id_cap}& write{id_capitalized}();''', modules)
 
 
 ################################################################################
@@ -242,6 +249,15 @@ def generate_holder_mem_inits(modules):
 def generate_holder_ref_inits(modules):
     """Render initializations of holder references of the Option class"""
     return concat_format('        {id}(*d_{id}),', modules)
+
+
+def generate_write_functions(modules):
+    """Render write functions for holders within the Option class"""
+    return concat_format('''  options::Holder{id_cap}& Options::write{id_capitalized}()
+  {{
+    return *d_{id};
+  }}
+''', modules)
 
 
 def generate_holder_mem_copy(modules):
@@ -302,7 +318,7 @@ def _set_handlers(option):
     return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
-def _set_predicates(option):
+def _set_predicates(module, option):
     """Render predicate calls for options::set()."""
     res = []
     if option.minimum:
@@ -316,6 +332,9 @@ def _set_predicates(option):
     res += [
         'opts.handler().{}(name, value);'.format(x) for x in option.predicates
     ]
+    if module.id == 'printer':
+        res.append('ioutils::setDefault{}(value);'.format(option.name_capitalized))
+
     return res
 
 
@@ -331,13 +350,13 @@ def generate_set_impl(modules):
         else:
             res.append('if ({}) {{'.format(cond))
         res.append('  auto value = {};'.format(_set_handlers(option)))
-        for pred in _set_predicates(option):
+        for pred in _set_predicates(module, option):
             res.append('  {}'.format(pred))
         if option.name:
-            res.append('  opts.{module}.{name} = value;'.format(
-                module=module.id, name=option.name))
-            res.append('  opts.{module}.{name}WasSetByUser = true;'.format(
-                module=module.id, name=option.name))
+            res.append('  opts.write{module}().{name} = value;'.format(
+                module=module.id_capitalized, name=option.name))
+            res.append('  opts.write{module}().{name}WasSetByUser = true;'.format(
+                module=module.id_capitalized, name=option.name))
     return '\n    '.join(res)
 
 
@@ -422,11 +441,8 @@ def generate_module_holder_decl(module):
     for option in module.options:
         if option.name is None:
             continue
-        if option.default:
-            default = option.default
-            if option.mode and option.type not in default:
-                default = '{}::{}'.format(option.type, default)
-            res.append('{} {} = {};'.format(option.type, option.name, default))
+        if option.fqdefault:
+            res.append('{} {} = {};'.format(option.type, option.name, option.fqdefault))
         else:
             res.append('{} {};'.format(option.type, option.name))
         res.append('bool {}WasSetByUser = false;'.format(option.name))
@@ -827,6 +843,51 @@ def generate_sphinx_output_tags(modules, src_dir, build_dir):
 
 
 ################################################################################
+# for io_utils.h and io_utils.cpp
+
+
+def __get_printer_options(modules):
+    for mod, opt in all_options(modules):
+        if mod.id == 'printer':
+            yield opt
+
+
+def generate_iodecls(modules):
+    return concat_format(
+        '''
+void setDefault{name_capitalized}({type} value);
+void apply{name_capitalized}(std::ios_base& ios, {type} value);
+{type} get{name_capitalized}(std::ios_base& ios);''',
+        __get_printer_options(modules))
+
+
+def generate_ioimpls(modules):
+    return concat_format(
+        '''
+const static int s_ios{name_capitalized} = std::ios_base::xalloc();
+static thread_local {type} s_{name}Default = {fqdefault};
+void setDefault{name_capitalized}({type} value) {{ s_{name}Default = value; }}
+void apply{name_capitalized}(std::ios_base& ios, {type} value) {{ setData(ios, s_ios{name_capitalized}, value); }}
+{type} get{name_capitalized}(std::ios_base& ios) {{ return getData(ios, s_ios{name_capitalized}, s_{name}Default); }}
+''', __get_printer_options(modules))
+
+
+def generate_ioscope_members(modules):
+    return concat_format('  {type} d_{name};', __get_printer_options(modules))
+
+
+def generate_ioscope_memberinit(modules):
+    return concat_format('      d_{name}(get{name_capitalized}(d_ios))',
+                         __get_printer_options(modules),
+                         glue=',\n')
+
+
+def generate_ioscope_restore(modules):
+    return concat_format('  apply{name_capitalized}(d_ios, d_{name});',
+                         __get_printer_options(modules))
+
+
+################################################################################
 # main code generation for individual modules
 
 
@@ -865,6 +926,13 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
                    generate_sphinx_output_tags(modules, src_dir, build_dir))
 
     data = {
+        # options/io_utils.h
+        'ioscope_members': generate_ioscope_members(modules),
+        'iodecls': generate_iodecls(modules),
+        # options/io_utils.cpp
+        'ioimpls': generate_ioimpls(modules),
+        'ioscope_memberinit': generate_ioscope_memberinit(modules),
+        'ioscope_restore': generate_ioscope_restore(modules),
         # options/options.h
         'holder_fwd_decls': generate_holder_fwd_decls(modules),
         'holder_mem_decls': generate_holder_mem_decls(modules),
@@ -873,6 +941,7 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
         'headers_module': generate_module_headers(modules),
         'holder_mem_inits': generate_holder_mem_inits(modules),
         'holder_ref_inits': generate_holder_ref_inits(modules),
+        'write_functions': generate_write_functions(modules),
         'holder_mem_copy': generate_holder_mem_copy(modules),
         # options/options_public.cpp
         'options_includes': generate_public_includes(modules),
@@ -1034,6 +1103,8 @@ def mkoptions_main():
         {'input': 'options/module_template.cpp'},
     ]
     global_tpls = [
+        {'input': 'options/io_utils_template.h'},
+        {'input': 'options/io_utils_template.cpp'},
         {'input': 'options/options_template.h'},
         {'input': 'options/options_template.cpp'},
         {'input': 'options/options_public_template.cpp'},

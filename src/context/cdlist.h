@@ -15,7 +15,7 @@
  * simply shortened.
  */
 
-#include "cvc5_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__CONTEXT__CDLIST_H
 #define CVC5__CONTEXT__CDLIST_H

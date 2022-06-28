@@ -31,6 +31,7 @@
 #include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/printer_options.h"
+#include "options/quantifiers_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -58,6 +59,7 @@
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
+#include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -85,7 +87,7 @@ namespace cvc5::internal {
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
-      d_absValues(new AbstractValues(getNodeManager())),
+      d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_smtSolver(nullptr),
@@ -345,8 +347,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->d_options.driver.filename = value;
-    d_env->d_originalOptions->driver.filename = value;
+    d_env->d_options.writeDriver().filename = value;
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
@@ -359,12 +360,12 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().base.inputLanguage = Language::LANG_SMTLIB_V2_6;
+    getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
-    if (!getOptions().base.outputLanguageWasSetByUser)
+    if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().base.outputLanguageWasSetByUser = false;
+      getOptions().writePrinter().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -499,7 +500,7 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   if (formals.size() > 0)
   {
     TypeNode rangeType = funcType.getRangeType();
-    if (!formulaType.isComparableTo(rangeType))
+    if (formulaType != rangeType)
     {
       stringstream ss;
       ss << "Type of defined function does not match its declaration\n"
@@ -512,7 +513,7 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
   else
   {
-    if (!formulaType.isComparableTo(funcType))
+    if (formulaType != funcType)
     {
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
@@ -673,6 +674,20 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
        << " since model is not available. Perhaps the most recent call to "
           "check-sat was interrupted?";
     throw RecoverableModalException(ss.str().c_str());
+  }
+  // compute the model core if necessary and not done so already
+  const Options& opts = d_env->getOptions();
+  if (opts.smt.modelCoresMode != options::ModelCoresMode::NONE
+      && !m->isUsingModelCore())
+  {
+    // If we enabled model cores, we compute a model core for m based on our
+    // (expanded) assertions using the model core builder utility. Notice that
+    // we get the assertions using the getAssertionsInternal, which does not
+    // impact whether we are in "sat" mode
+    std::vector<Node> asserts = getAssertionsInternal();
+    d_smtSolver->getPreprocessor()->expandDefinitions(asserts);
+    ModelCoreBuilder mcb(*d_env.get());
+    mcb.setModelCore(asserts, m, opts.smt.modelCoresMode);
   }
 
   return m;
@@ -943,6 +958,53 @@ void SolverEngine::declarePool(const Node& p,
   qe->declarePool(p, initValue);
 }
 
+void SolverEngine::declareOracleFun(
+    Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn)
+{
+  finishInit();
+  d_state->doPendingPops();
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
+  qe->declareOracleFun(var);
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> inputs;
+  std::vector<Node> outputs;
+  TypeNode tn = var.getType();
+  Node app;
+  if (tn.isFunction())
+  {
+    const std::vector<TypeNode>& argTypes = tn.getArgTypes();
+    for (const TypeNode& t : argTypes)
+    {
+      inputs.push_back(nm->mkBoundVar(t));
+    }
+    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    std::vector<Node> appc;
+    appc.push_back(var);
+    appc.insert(appc.end(), inputs.begin(), inputs.end());
+    app = nm->mkNode(kind::APPLY_UF, appc);
+  }
+  else
+  {
+    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    app = var;
+  }
+  // makes equality assumption
+  Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
+  // no constraints
+  Node constraint = nm->mkConst(true);
+  // make the oracle constant which carries the method implementation
+  Oracle oracle(fn);
+  Node o = NodeManager::currentNM()->mkOracle(oracle);
+  // set the attribute, which ensures we remember the method implementation for
+  // the oracle function
+  var.setAttribute(theory::OracleInterfaceAttribute(), o);
+  // define the oracle interface
+  Node q = quantifiers::OracleEngine::mkOracleInterface(
+      inputs, outputs, assume, constraint, o);
+  // assert it
+  assertFormula(q);
+}
+
 Node SolverEngine::simplify(const Node& ex)
 {
   SolverEngineScope smts(this);
@@ -996,10 +1058,7 @@ Node SolverEngine::getValue(const Node& ex) const
   Trace("smt") << "--- expected type " << expectedType << endl;
 
   // type-check the result we got
-  // Notice that lambdas have function type, which does not respect the subtype
-  // relation, so we ignore them here.
-  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
-         || resultNode.getType().isSubtypeOf(expectedType))
+  Assert(resultNode.isNull() || resultNode.getType() == expectedType)
       << "Run with -t smt for details.";
 
   // Ensure it's a value (constant or const-ish like real algebraic
@@ -1048,18 +1107,6 @@ bool SolverEngine::isModelCoreSymbol(Node n)
     return true;
   }
   TheoryModel* tm = getAvailableModel("isModelCoreSymbol");
-  // compute the model core if not done so already
-  if (!tm->isUsingModelCore())
-  {
-    // If we enabled model cores, we compute a model core for m based on our
-    // (expanded) assertions using the model core builder utility. Notice that
-    // we get the assertions using the getAssertionsInternal, which does not
-    // impact whether we are in "sat" mode
-    std::vector<Node> asserts = getAssertionsInternal();
-    d_smtSolver->getPreprocessor()->expandDefinitions(asserts);
-    ModelCoreBuilder mcb(*d_env.get());
-    mcb.setModelCore(asserts, tm, opts.smt.modelCoresMode);
-  }
   return tm->isModelCoreSymbol(n);
 }
 
@@ -1170,7 +1217,7 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
   return std::make_pair(heap, nil);
 }
 
-std::vector<Node> SolverEngine::getAssertionsInternal()
+std::vector<Node> SolverEngine::getAssertionsInternal() const
 {
   Assert(d_state->isFullyInited());
   const CDList<Node>& al = d_asserts->getAssertionList();
@@ -1294,7 +1341,7 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 
 UnsatCore SolverEngine::getUnsatCoreInternal()
 {
-  if (!d_env->getOptions().smt.unsatCores)
+  if (!d_env->getOptions().smt.produceUnsatCores)
   {
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
@@ -1332,7 +1379,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
 
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
-  Assert(options().smt.unsatCores)
+  Assert(options().smt.produceUnsatCores)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
@@ -1343,10 +1390,10 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     std::unique_ptr<SolverEngine> coreChecker;
     initializeSubsolver(coreChecker, *d_env.get());
     coreChecker->setLogic(getLogicInfo());
-    coreChecker->getOptions().smt.checkUnsatCores = false;
+    coreChecker->getOptions().writeSmt().checkUnsatCores = false;
     // disable all proof options
-    coreChecker->getOptions().smt.produceProofs = false;
-    coreChecker->getOptions().smt.checkProofs = false;
+    coreChecker->getOptions().writeSmt().produceProofs = false;
+    coreChecker->getOptions().writeSmt().checkProofs = false;
 
     for (const Node& ucAssertion : core)
     {
@@ -1400,7 +1447,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 
 void SolverEngine::checkUnsatCore()
 {
-  Assert(d_env->getOptions().smt.unsatCores)
+  Assert(d_env->getOptions().smt.produceUnsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
@@ -1410,17 +1457,10 @@ void SolverEngine::checkUnsatCore()
   // initialize the core checker
   std::unique_ptr<SolverEngine> coreChecker;
   initializeSubsolver(coreChecker, *d_env.get());
-  coreChecker->getOptions().smt.checkUnsatCores = false;
+  coreChecker->getOptions().writeSmt().checkUnsatCores = false;
   // disable all proof options
-  coreChecker->getOptions().smt.produceProofs = false;
-  coreChecker->getOptions().smt.checkProofs = false;
-
-  // set up separation logic heap if necessary
-  TypeNode sepLocType, sepDataType;
-  if (getSepHeapTypes(sepLocType, sepDataType))
-  {
-    coreChecker->declareSepHeap(sepLocType, sepDataType);
-  }
+  coreChecker->getOptions().writeSmt().produceProofs = false;
+  coreChecker->getOptions().writeSmt().checkProofs = false;
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;
@@ -1536,9 +1576,9 @@ void SolverEngine::printInstantiations(std::ostream& out)
 
   // First, extract and print the skolemizations
   bool printed = false;
-  bool reqNames = !d_env->getOptions().printer.printInstFull;
+  bool reqNames = !d_env->getOptions().quantifiers.printInstFull;
   // only print when in list mode
-  if (d_env->getOptions().printer.printInstMode == options::PrintInstMode::LIST)
+  if (d_env->getOptions().quantifiers.printInstMode == options::PrintInstMode::LIST)
   {
     std::map<Node, std::vector<Node>> sks;
     qe->getSkolemTermVectors(sks);
@@ -1596,7 +1636,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
       continue;
     }
     // must have a name
-    if (d_env->getOptions().printer.printInstMode
+    if (d_env->getOptions().quantifiers.printInstMode
         == options::PrintInstMode::NUM)
     {
       out << "(num-instantiations " << name << " " << i.second.d_inst.size()
@@ -1606,7 +1646,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
     {
       // take the name
       i.second.d_quant = name;
-      Assert(d_env->getOptions().printer.printInstMode
+      Assert(d_env->getOptions().quantifiers.printInstMode
              == options::PrintInstMode::LIST);
       out << i.second;
     }
@@ -1862,16 +1902,16 @@ void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
-    d_env->d_options.base.cumulativeResourceLimit = units;
+    d_env->d_options.writeBase().cumulativeResourceLimit = units;
   }
   else
   {
-    d_env->d_options.base.perCallResourceLimit = units;
+    d_env->d_options.writeBase().perCallResourceLimit = units;
   }
 }
 void SolverEngine::setTimeLimit(uint64_t millis)
 {
-  d_env->d_options.base.perCallMillisecondLimit = millis;
+  d_env->d_options.writeBase().perCallMillisecondLimit = millis;
 }
 
 unsigned long SolverEngine::getResourceUsage() const
@@ -1929,8 +1969,6 @@ ResourceManager* SolverEngine::getResourceManager() const
 {
   return d_env->getResourceManager();
 }
-
-const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 

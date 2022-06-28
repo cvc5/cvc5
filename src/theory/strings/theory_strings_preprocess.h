@@ -91,6 +91,10 @@ class StringsPreprocess {
    * visited stores a cache of previous results.
    */
   Node simplifyRec(Node t, std::vector<Node>& asserts);
+  /**
+   * Makes the term returning the code point of string x at point i.
+   */
+  static Node mkCodePointAtIndex(Node x, Node i);
 };
 
 }  // namespace strings

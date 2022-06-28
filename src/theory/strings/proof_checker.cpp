@@ -181,7 +181,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::CONCAT_CONFLICT)
     {
-      Assert(children.size() == 1);
+      Assert(children.size() >= 1 && children.size() <= 2);
       if (!t0.isConst() || !s0.isConst())
       {
         // not constants
@@ -193,6 +193,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
         // versa.
+        return Node::null();
+      }
+      // if a disequality was provided, ensure that it is correct
+      if (children.size() == 2)
+      {
+        if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
+            || children[1][0][0] != t0 || children[1][0][1] != s0)
+        {
+          return Node::null();
+        }
+      }
+      else if (t0.getType().isSequence())
+      {
+        // we require the disequality for sequences
         return Node::null();
       }
       return nm->mkConst(false);
@@ -478,21 +492,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node t[2];
     for (size_t i = 0; i < 2; i++)
     {
-      if (children[0][i].getKind() == SEQ_UNIT)
+      Node c = children[0][i];
+      Kind k = c.getKind();
+      if (k == SEQ_UNIT || k == STRING_UNIT)
       {
-        t[i] = children[0][i][0];
+        t[i] = c[0];
       }
-      else if (children[0][i].isConst())
+      else if (c.isConst())
       {
         // notice that Word::getChars is not the right call here, since it
         // gets a vector of sequences of length one. We actually need to
-        // extract the character, which is a sequence-specific operation.
-        const Sequence& sx = children[0][i].getConst<Sequence>();
-        const std::vector<Node>& vec = sx.getVec();
-        if (vec.size() == 1)
+        // extract the character.
+        if (Word::getLength(c) == 1)
         {
-          // the character of the single character sequence
-          t[i] = vec[0];
+          t[i] = Word::getNth(c, 0);
         }
       }
       if (t[i].isNull())

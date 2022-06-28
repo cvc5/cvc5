@@ -31,7 +31,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersMacros::QuantifiersMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
+QuantifiersMacros::QuantifiersMacros(Env& env, QuantifiersRegistry& qr)
+    : EnvObj(env), d_qreg(qr)
+{
+}
 
 Node QuantifiersMacros::solve(Node lit, bool reqGround)
 {
@@ -87,7 +90,8 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
         Trace("macros-debug")
             << "...does not contain bad (recursive) operator." << std::endl;
         // must be ground UF term if mode is GROUND_UF
-        if (options::macrosQuantMode() != options::MacrosQuantMode::GROUND_UF
+        if (options().quantifiers.macrosQuantMode
+                != options::MacrosQuantMode::GROUND_UF
             || preservesTriggerVariables(lit, n_def))
         {
           Trace("macros-debug")
@@ -146,7 +150,8 @@ bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector<Node> trigger_var;
-  inst::PatternTermSelector::getTriggerVariables(icn, q, trigger_var);
+  inst::PatternTermSelector::getTriggerVariables(
+      d_env.getOptions(), icn, q, trigger_var);
   Trace("macros-debug2") << "Done." << std::endl;
   // only if all variables are also trigger variables
   return trigger_var.size() >= var.size();
@@ -274,7 +279,7 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   }
   TNode op = n.getOperator();
   TNode fdeft = fdef;
-  Assert(op.getType().isComparableTo(fdef.getType()));
+  Assert(op.getType() == fdef.getType());
   return op.eqNode(fdef);
 }
 

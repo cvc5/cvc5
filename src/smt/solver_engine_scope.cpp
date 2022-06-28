@@ -28,14 +28,6 @@ namespace smt {
 
 thread_local SolverEngine* s_slvEngine_current = nullptr;
 
-SolverEngine* currentSolverEngine()
-{
-  Assert(s_slvEngine_current != nullptr);
-  return s_slvEngine_current;
-}
-
-bool solverEngineInScope() { return s_slvEngine_current != nullptr; }
-
 ResourceManager* currentResourceManager()
 {
   return s_slvEngine_current->getResourceManager();
@@ -60,7 +52,7 @@ SolverEngineScope::~SolverEngineScope()
 
 StatisticsRegistry& SolverEngineScope::currentStatisticsRegistry()
 {
-  Assert(solverEngineInScope());
+  Assert(s_slvEngine_current != nullptr);
   return s_slvEngine_current->getStatisticsRegistry();
 }
 

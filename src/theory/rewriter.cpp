@@ -93,7 +93,7 @@ Node Rewriter::rewrite(TNode node) {
     // eagerly for the sake of efficiency here.
     return node;
   }
-  return getInstance()->rewriteTo(theoryOf(node), node);
+  return rewriteTo(theoryOf(node), node);
 }
 
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
@@ -110,11 +110,11 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   if (isExtEq)
   {
     // theory rewriter is responsible for rewriting the equality
-    TheoryRewriter* tr = getInstance()->d_theoryRewriters[theoryOf(node)];
+    TheoryRewriter* tr = d_theoryRewriters[theoryOf(node)];
     Assert(tr != nullptr);
     return tr->rewriteEqualityExtWithProof(node);
   }
-  Node ret = getInstance()->rewriteTo(theoryOf(node), node, d_tpg.get());
+  Node ret = rewriteTo(theoryOf(node), node, d_tpg.get());
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
@@ -150,11 +150,6 @@ void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 {
   return d_theoryRewriters[theoryId];
-}
-
-Rewriter* Rewriter::getInstance()
-{
-  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,
@@ -219,9 +214,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           TheoryId newTheory = theoryOf(newNode);
           rewriteStackTop.d_node = newNode;
           rewriteStackTop.d_theoryId = newTheory;
-          Assert(
-              newNode.getType().isSubtypeOf(rewriteStackTop.d_node.getType()))
-              << "Pre-rewriting " << rewriteStackTop.d_node
+          Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+              << "Pre-rewriting " << rewriteStackTop.d_node << " to " << newNode
               << " does not preserve type";
           // In the pre-rewrite, if changing theories, we just call the other
           // theories pre-rewrite. If the kind of the node was changed, then we
@@ -310,8 +304,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // We continue with the response we got
         TNode newNode = response.d_node;
         TheoryId newTheoryId = theoryOf(newNode);
-        Assert(newNode.getType().isSubtypeOf(rewriteStackTop.d_node.getType()))
-            << "Post-rewriting " << rewriteStackTop.d_node
+        Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+            << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
             || response.d_status == REWRITE_AGAIN_FULL)
@@ -403,8 +397,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
     if (rewriteStack.size() == 1) {
       Assert(!isEquality || rewriteStackTop.d_node.getKind() == kind::EQUAL
              || rewriteStackTop.d_node.isConst());
-      Assert(rewriteStackTop.d_node.getType().isSubtypeOf(node.getType()))
-          << "Rewriting " << node << " does not preserve type";
+      Assert(rewriteStackTop.d_node.getType() == node.getType())
+          << "Rewriting " << node << " to " << rewriteStackTop.d_node
+          << " does not preserve type";
       return rewriteStackTop.d_node;
     }
 

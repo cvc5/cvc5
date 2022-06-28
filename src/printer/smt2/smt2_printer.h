@@ -39,10 +39,8 @@ class Smt2Printer : public cvc5::internal::Printer
  public:
   Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
   using cvc5::internal::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
+  void toStream(std::ostream& out, TNode n) const override;
+  void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
   void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
@@ -76,7 +74,8 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print declare-oracle-fun command */
   void toStreamCmdDeclareOracleFun(std::ostream& out,
-                                   Node fun,
+                                   const std::string& id,
+                                   TypeNode type,
                                    const std::string& binName) const override;
 
   /** Print declare-pool command */
@@ -252,16 +251,6 @@ class Smt2Printer : public cvc5::internal::Printer
                               TypeNode locType,
                               TypeNode dataType) const override;
 
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
-  /** Print declaration sequence command */
-  void toStreamCmdDeclarationSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
   /**
    * Get the string for a kind k, which returns how the kind k is printed in
    * the SMT-LIB format (with variant v).
@@ -298,15 +287,7 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamDeclareType(std::ostream& out, TypeNode tn) const;
   /** To stream type node, which ensures tn is printed in smt2 format */
   void toStreamType(std::ostream& out, TypeNode tn) const;
-  /**
-   * To stream, with a forced type. This method is used in some corner cases
-   * to force a node n to be printed as if it had type tn. This is used e.g.
-   * for the body of define-fun commands and arguments of singleton terms.
-   */
-  void toStreamCastToType(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          TypeNode tn) const;
+  /** To stream datatype */
   void toStream(std::ostream& out, const DType& dt) const;
   /**
    * To stream model sort. This prints the appropriate output for type

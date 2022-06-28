@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "expr/cardinality_constraint.h"
+#include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
@@ -50,14 +51,14 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
     {
       TypeNode currentArgument = (*argument_it).getType();
       TypeNode currentArgumentType = *argument_type_it;
-      if (!currentArgument.isSubtypeOf(currentArgumentType))
+      if (currentArgument != currentArgumentType)
       {
         std::stringstream ss;
-        ss << "argument type is not a subtype of the function's argument "
+        ss << "argument type is not the type of the function's argument "
            << "type:\n"
            << "argument:  " << *argument_it << "\n"
            << "has type:  " << (*argument_it).getType() << "\n"
-           << "not subtype: " << *argument_type_it << "\n"
+           << "not type: " << *argument_type_it << "\n"
            << "in term : " << n;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
@@ -131,7 +132,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TypeNode aType = n[1].getType(check);
-    if (!aType.isSubtypeOf(fType[0]))
+    if (aType != fType[0])
     {
       throw TypeCheckingExceptionPrivate(
           n, "argument does not match function type");
@@ -175,51 +176,13 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
+                                                 TNode n,
+                                                 bool check)
 {
-  Assert(n.getKind() == kind::LAMBDA);
-  // get array representation of this function, if possible
-  Node na = FunctionConst::getArrayRepresentationForLambda(n);
-  if (!na.isNull())
-  {
-    Assert(na.getType().isArray());
-    Trace("lambda-const") << "Array representation for " << n << " is " << na
-                          << " " << na.getType() << std::endl;
-    // must have the standard bound variable list
-    Node bvl =
-        NodeManager::currentNM()->getBoundVarListForFunctionType(n.getType());
-    if (bvl == n[0])
-    {
-      // array must be constant
-      if (na.isConst())
-      {
-        Trace("lambda-const") << "*** Constant lambda : " << n;
-        Trace("lambda-const") << " since its array representation : " << na
-                              << " is constant." << std::endl;
-        return true;
-      }
-      else
-      {
-        Trace("lambda-const") << "Non-constant lambda : " << n
-                              << " since array is not constant." << std::endl;
-      }
-    }
-    else
-    {
-      Trace("lambda-const")
-          << "Non-constant lambda : " << n
-          << " since its varlist is not standard." << std::endl;
-      Trace("lambda-const") << "  standard : " << bvl << std::endl;
-      Trace("lambda-const") << "   current : " << n[0] << std::endl;
-    }
-  }
-  else
-  {
-    Trace("lambda-const") << "Non-constant lambda : " << n
-                          << " since it has no array representation."
-                          << std::endl;
-  }
-  return false;
+  Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
+  const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
+  return fc.getType();
 }
 
 Cardinality FunctionProperties::computeCardinality(TypeNode type)

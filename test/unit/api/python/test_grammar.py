@@ -24,6 +24,16 @@ def solver():
     return cvc5.Solver()
 
 
+def test_to_string(solver):
+    solver.setOption("sygus", "true")
+    boolean = solver.getBooleanSort()
+    start = solver.mkVar(boolean)
+    nts = solver.mkVar(boolean)
+    g = solver.mkGrammar([nts], [start])
+    g.addRule(start, solver.mkBoolean(False))
+    str(g)
+
+
 def test_add_rule(solver):
     solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()

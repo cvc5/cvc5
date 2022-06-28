@@ -234,6 +234,11 @@ class BaseSolver : protected EnvObj
    */
   NodeSet d_congruent;
   /**
+   * Set of equalities that we have applied STRINGS_UNIT_INJ_OOB to
+   * in the current user context
+   */
+  NodeSet d_strUnitOobEq;
+  /**
    * Maps equivalence classes to their info, see description of `BaseEqcInfo`
    * for more information.
    */

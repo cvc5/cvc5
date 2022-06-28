@@ -923,7 +923,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       Trace("fmc-exh-debug") << std::endl;
       int index = riter.increment();
       Trace("fmc-exh-debug") << "Incremented index " << index << std::endl;
-      if( !riter.isFinished() ){
+      if (!options().quantifiers.fmfBoundBlast && !riter.isFinished())
+      {
         if (index >= 0 && riter.d_index[index] > 0 && addedLemmas > 0
             && riter.d_enum_type[index] == ENUM_CUSTOM)
         {
@@ -957,11 +958,6 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     //just do directly
     doCheck( fm, f, d, n[0] );
     doNegate( d );
-  }
-  else if (n.getKind() == kind::TO_REAL)
-  {
-    // no-op
-    doCheck(fm, f, d, n[0]);
   }
   else if( n.getKind() == kind::FORALL ){
     d.addEntry(fm, mkCondDefault(fm, f), Node::null());
@@ -1310,7 +1306,8 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   return true;
 }
 
-Node FullModelChecker::mkCond( std::vector< Node > & cond ) {
+Node FullModelChecker::mkCond(const std::vector<Node>& cond)
+{
   return NodeManager::currentNM()->mkNode(APPLY_UF, cond);
 }
 

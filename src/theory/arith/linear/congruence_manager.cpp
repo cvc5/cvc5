@@ -394,24 +394,6 @@ bool ArithCongruenceManager::propagate(TNode x){
   return true;
 }
 
-void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumptions) {
-  if (literal.getKind() != kind::NOT) {
-    d_ee->explainEquality(literal[0], literal[1], true, assumptions);
-  } else {
-    d_ee->explainEquality(literal[0][0], literal[0][1], false, assumptions);
-  }
-}
-
-void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
-                                           NodeBuilder& nb)
-{
-  std::set<TNode>::const_iterator it = s.begin();
-  std::set<TNode>::const_iterator it_end = s.end();
-  for(; it != it_end; ++it) {
-    nb << *it;
-  }
-}
-
 TrustNode ArithCongruenceManager::explainInternal(TNode internal)
 {
   if (isProofEnabled())
@@ -452,18 +434,6 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   return trn;
 }
 
-void ArithCongruenceManager::explain(TNode external, NodeBuilder& out)
-{
-  Node internal = externalToInternal(external);
-
-  std::vector<TNode> assumptions;
-  explain(internal, assumptions);
-  std::set<TNode> assumptionSet;
-  assumptionSet.insert(assumptions.begin(), assumptions.end());
-
-  enqueueIntoNB(assumptionSet, out);
-}
-
 void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   Assert(!isWatchedVariable(s));
 
@@ -474,8 +444,9 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   ++(d_statistics.d_watchedVariables);
 
   d_watchedVariables.add(s);
-
-  Node eq = x.eqNode(y);
+  // must ensure types are correct, thus, add TO_REAL if necessary here
+  std::pair<Node, Node> p = mkSameType(x, y);
+  Node eq = p.first.eqNode(p.second);
   d_watchedEqualities.set(s, eq);
 }
 

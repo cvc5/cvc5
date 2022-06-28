@@ -40,6 +40,17 @@ class GrammarTest
   }
 
   @Test
+  void testToString()
+  {
+    d_solver.setOption("sygus", "true");
+    Sort bool = d_solver.getBooleanSort();
+    Term start = d_solver.mkVar(bool);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    g.addRule(start, d_solver.mkBoolean(false));
+    g.toString();
+  }
+
+  @Test
   void addRule()
   {
     d_solver.setOption("sygus", "true");
