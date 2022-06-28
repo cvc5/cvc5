@@ -89,6 +89,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_stringsFmf(env, valuation, d_termReg),
       d_strat(d_env),
       d_absModelCounter(0),
+      d_strGapModelCounter(0),
       d_cpacb(*this)
 {
   d_termReg.finishInit(&d_im);
@@ -140,6 +141,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_IN_REGEXP, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TO_CODE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::SEQ_UNIT, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_UNIT, false);
   // `seq.nth` is not always defined, and so we do not evaluate it eagerly.
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH, false);
   // extended functions
@@ -162,6 +164,7 @@ void TheoryStrings::finishInit()
 
   // memberships are not relevant for model building
   d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
+  d_valuation.setIrrelevantKind(kind::STRING_LEQ);
   // seq nth doesn't always evaluate
   d_valuation.setUnevaluatedKind(SEQ_NTH);
 }
@@ -209,6 +212,8 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
+  d_absModelCounter = 0;
+  d_strGapModelCounter = 0;
   if (TraceIsOn("strings-debug-model"))
   {
     Trace("strings-debug-model")
@@ -447,15 +452,17 @@ bool TheoryStrings::collectModelInfoType(
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
-      if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+      if (nfe.d_nf[0].getKind() == SEQ_UNIT
+          || nfe.d_nf[0].getKind() == STRING_UNIT)
       {
-        Node argVal;
         if (nfe.d_nf[0][0].getType().isStringLike())
         {
           // By this point, we should have assigned model values for the
           // elements of this sequence type because of the check in the
           // beginning of this method
-          argVal = m->getRepresentative(nfe.d_nf[0][0]);
+          Node argVal = m->getRepresentative(nfe.d_nf[0][0]);
+          Assert(nfe.d_nf[0].getKind() == SEQ_UNIT);
+          assignedValue = utils::mkUnit(eqc.getType(), argVal);
         }
         else
         {
@@ -463,10 +470,9 @@ bool TheoryStrings::collectModelInfoType(
           // value of this term, since it might not be available yet, as
           // it may belong to a theory that has not built its model yet.
           // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
-          argVal = nfe.d_nf[0][0];
+          assignedValue = nfe.d_nf[0];
         }
-        Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        assignedValue = rewrite(assignedValue);
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -492,7 +498,7 @@ bool TheoryStrings::collectModelInfoType(
       }
       else if (options().strings.seqArray != options::SeqArrayMode::NONE)
       {
-        TypeNode etype = eqc.getType().getSequenceElementType();
+        TypeNode eqcType = eqc.getType();
         // determine skeleton based on the write model, if it exists
         const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
         Trace("strings-model")
@@ -520,7 +526,7 @@ bool TheoryStrings::collectModelInfoType(
               continue;
             }
             usedWrites.insert(ivalue);
-            Node wsunit = nm->mkNode(SEQ_UNIT, w.second);
+            Node wsunit = utils::mkUnit(eqcType, w.second);
             writes.emplace_back(ivalue, wsunit);
           }
           // sort based on index value
@@ -547,6 +553,8 @@ bool TheoryStrings::collectModelInfoType(
             }
             if (nextIndex > currIndex)
             {
+              Trace("strings-model") << "Make skeleton from " << currIndex
+                                     << " ... " << nextIndex << std::endl;
               // allocate arbitrary value to fill gap
               Assert(conSeq != nullptr);
               Node base = eqc;
@@ -746,18 +754,20 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
+  TypeNode tn = c.getType();
+  Assert(tn.isSequence());
   Assert(c.getKind() == CONST_SEQUENCE);
   const Sequence& sn = c.getConst<Sequence>();
   const std::vector<Node>& snvec = sn.getVec();
   std::vector<Node> skChildren;
-  TypeNode etn = c.getType().getSequenceElementType();
+  TypeNode etn = tn.getSequenceElementType();
   for (const Node& snv : snvec)
   {
     Assert(snv.getType() == etn);
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v, "smv");
-    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+    skChildren.push_back(utils::mkUnit(tn, kv));
   }
   return utils::mkConcat(skChildren, c.getType());
 }
@@ -766,23 +776,42 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
                                        size_t currIndex,
                                        size_t nextIndex)
 {
+  Assert(nextIndex > currIndex);
   Assert(!r.isNull());
-  Assert(r.getType().isSequence());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::vector<Node> cacheVals;
-  cacheVals.push_back(r);
+  TypeNode tn = r.getType();
   std::vector<Node> skChildren;
-  TypeNode etn = r.getType().getSequenceElementType();
-  for (size_t i = currIndex; i < nextIndex; i++)
+  if (tn.isSequence())
   {
-    cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
-    Node kv = sm->mkSkolemFunction(
-        SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
-    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
-    cacheVals.pop_back();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(r);
+    TypeNode etn = tn.getSequenceElementType();
+    for (size_t i = currIndex; i < nextIndex; i++)
+    {
+      cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
+      Node kv = sm->mkSkolemFunction(
+          SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+      skChildren.push_back(utils::mkUnit(tn, kv));
+      cacheVals.pop_back();
+    }
   }
-  return utils::mkConcat(skChildren, r.getType());
+  else
+  {
+    // allocate a unique symbolic (unspecified) string of length one, and
+    // repeat it (nextIndex-currIndex) times.
+    // Notice that this is guaranteed to be a unique (unspecified) character,
+    // since the only existing str.unit terms originate from our reductions,
+    // and hence are only applied to non-negative arguments. If the user
+    // was able to give arbitrary constraints over str.unit terms, then this
+    // construction would require a character not used in the model value of
+    // any other string.
+    d_strGapModelCounter++;
+    Node symChar =
+        utils::mkUnit(tn, nm->mkConstInt(-Rational(d_strGapModelCounter)));
+    skChildren.resize(nextIndex - currIndex, symChar);
+  }
+  return utils::mkConcat(skChildren, tn);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1150,7 +1179,8 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  if (atom.getKind() == EQUAL)
+  Kind ak = atom.getKind();
+  if (ak == EQUAL)
   {
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
@@ -1159,7 +1189,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
   }
-  if (atom.getKind() == STRING_FROM_CODE)
+  if (ak == STRING_FROM_CODE)
   {
     // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
@@ -1176,10 +1206,20 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     lems.push_back(SkolemLemma(tnk, k));
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
+  else if (ak == STRING_TO_CODE && options().strings.stringsCodeElim)
+  {
+    // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
+    NodeManager* nm = NodeManager::currentNM();
+    Node t = atom[0];
+    Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
+    Node ret = nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+  }
+
   TrustNode ret;
   Node atomRet = atom;
   if (options().strings.regExpElim != options::RegExpElimMode::OFF
-      && atom.getKind() == STRING_IN_REGEXP)
+      && ak == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
     ret = d_regexp_elim.eliminateTrusted(atomRet);

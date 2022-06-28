@@ -32,13 +32,13 @@ if(NOT GTest_FOUND_SYSTEM)
 
     include(ExternalProject)
 
-    set(GTest_VERSION "1.10.0")
+    set(GTest_VERSION "1.11.0")
 
     ExternalProject_Add(
         GTest-EP
         ${COMMON_EP_CONFIG}
         URL https://github.com/google/googletest/archive/refs/tags/release-${GTest_VERSION}.tar.gz
-        URL_HASH SHA1=9c89be7df9c5e8cb0bc20b3c4b39bf7e82686770
+        URL_HASH SHA1=7b100bb68db8df1060e178c495f3cbe941c9b058
         DOWNLOAD_NAME gtest.tar.gz
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

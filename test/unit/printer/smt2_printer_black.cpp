@@ -37,7 +37,7 @@ class TestPrinterBlackSmt2 : public TestSmt
   {
     std::stringstream ss;
     options::ioutils::applyNodeDepth(ss, -1);
-    options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     ss << n;
     ASSERT_EQ(ss.str(), expected);
   }

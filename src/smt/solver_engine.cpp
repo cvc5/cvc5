@@ -31,6 +31,7 @@
 #include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/printer_options.h"
+#include "options/quantifiers_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -86,7 +87,7 @@ namespace cvc5::internal {
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
-      d_absValues(new AbstractValues(getNodeManager())),
+      d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_smtSolver(nullptr),
@@ -361,10 +362,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
     }
     getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
-    if (!getOptions().base.outputLanguageWasSetByUser)
+    if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().writeBase().outputLanguageWasSetByUser = false;
+      getOptions().writePrinter().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -1354,7 +1355,7 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 
 UnsatCore SolverEngine::getUnsatCoreInternal()
 {
-  if (!d_env->getOptions().smt.unsatCores)
+  if (!d_env->getOptions().smt.produceUnsatCores)
   {
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
@@ -1392,7 +1393,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
 
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
-  Assert(options().smt.unsatCores)
+  Assert(options().smt.produceUnsatCores)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
@@ -1461,7 +1462,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 
 void SolverEngine::checkUnsatCore()
 {
-  Assert(d_env->getOptions().smt.unsatCores)
+  Assert(d_env->getOptions().smt.produceUnsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
@@ -1591,9 +1592,9 @@ void SolverEngine::printInstantiations(std::ostream& out)
 
   // First, extract and print the skolemizations
   bool printed = false;
-  bool reqNames = !d_env->getOptions().printer.printInstFull;
+  bool reqNames = !d_env->getOptions().quantifiers.printInstFull;
   // only print when in list mode
-  if (d_env->getOptions().printer.printInstMode == options::PrintInstMode::LIST)
+  if (d_env->getOptions().quantifiers.printInstMode == options::PrintInstMode::LIST)
   {
     std::map<Node, std::vector<Node>> sks;
     qe->getSkolemTermVectors(sks);
@@ -1651,7 +1652,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
       continue;
     }
     // must have a name
-    if (d_env->getOptions().printer.printInstMode
+    if (d_env->getOptions().quantifiers.printInstMode
         == options::PrintInstMode::NUM)
     {
       out << "(num-instantiations " << name << " " << i.second.d_inst.size()
@@ -1661,7 +1662,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
     {
       // take the name
       i.second.d_quant = name;
-      Assert(d_env->getOptions().printer.printInstMode
+      Assert(d_env->getOptions().quantifiers.printInstMode
              == options::PrintInstMode::LIST);
       out << i.second;
     }
@@ -1984,8 +1985,6 @@ ResourceManager* SolverEngine::getResourceManager() const
 {
   return d_env->getResourceManager();
 }
-
-const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 

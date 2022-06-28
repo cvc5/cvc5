@@ -858,9 +858,6 @@ class CVC5_EXPORT SolverEngine
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
-  /** Get the printer used by this SMT engine */
-  const Printer& getPrinter() const;
-
   /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
   /**

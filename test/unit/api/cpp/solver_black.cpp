@@ -3538,5 +3538,11 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   ASSERT_TRUE(xval != yval);
 }
 
+TEST_F(TestApiBlackSolver, verticalBars)
+{
+  Term a = d_solver.declareFun("|a |", {}, d_solver.getRealSort());
+  ASSERT_EQ("|a |", a.toString());
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

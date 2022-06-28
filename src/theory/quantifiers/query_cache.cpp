@@ -38,7 +38,7 @@ QueryCache::QueryCache(Env& env, bool checkUnsat, const Options* optr)
   // disable proofs no matter what
   d_subOptions.writeSmt().produceProofs = false;
   d_subOptions.writeSmt().checkProofs = false;
-  d_subOptions.writeSmt().unsatCores = false;
+  d_subOptions.writeSmt().produceUnsatCores = false;
   d_subOptions.writeSmt().checkUnsatCores = false;
 }
 

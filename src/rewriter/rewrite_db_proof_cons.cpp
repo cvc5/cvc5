@@ -29,7 +29,8 @@ namespace cvc5::internal {
 namespace rewriter {
 
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
-    : d_notify(*this),
+    : EnvObj(env),
+      d_notify(*this),
       d_trrc(env.getProofNodeManager()),
       d_db(db),
       d_pnm(env.getProofNodeManager()),
@@ -283,7 +284,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     {
       return false;
     }
-    Node r = theory::Rewriter::rewrite(target[0]);
+    Node r = rewrite(target[0]);
     if (r != r2)
     {
       return false;
@@ -294,7 +295,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     std::vector<Node> rchildren;
     for (size_t i = 0; i < nchild; i++)
     {
-      Node rr = theory::Rewriter::rewrite(target[0][i]);
+      Node rr = rewrite(target[0][i]);
       if (!rr.isConst())
       {
         return false;
@@ -537,7 +538,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
       // rewriting is more expensive than evaluation, so we do it as a second
       // resort.
       Node lhs = i == 1 ? ev[0] : eqi[0];
-      Node eqr = theory::Rewriter::rewrite(lhs.eqNode(eqi[1]));
+      Node eqr = rewrite(lhs.eqNode(eqi[1]));
       if (eqr.isConst())
       {
         // definitely not true

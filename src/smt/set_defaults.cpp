@@ -91,9 +91,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
-    opts.writeSmt().unsatCores = true;
+    opts.writeSmt().produceUnsatCores = true;
   }
-  if (opts.smt.unsatCores
+  if (opts.smt.produceUnsatCores
       && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
@@ -123,7 +123,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       {
         notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
       }
-      opts.writeSmt().unsatCores = true;
+      opts.writeSmt().produceUnsatCores = true;
       opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
     }
   }
@@ -146,7 +146,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
     // if proofs weren't enabled by user, and we are producing unsat cores
-    if (opts.smt.unsatCores)
+    if (opts.smt.produceUnsatCores)
     {
       opts.writeSmt().produceProofs = true;
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
@@ -165,7 +165,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
   // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
   // for proof mode.
-  Assert(opts.smt.unsatCores
+  Assert(opts.smt.produceUnsatCores
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
   Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
@@ -177,7 +177,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
       // different on proof-new we silently disable
-      opts.writeSmt().unsatCores = false;
+      opts.writeSmt().produceUnsatCores = false;
       opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::OFF;
       notifyModifyOption(
           "produceProofs and unsatCores", "false", reasonNoProofs.str());
@@ -311,12 +311,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       logic.disableTheory(THEORY_UF);
       logic.lock();
     }
-    if (logic.isTheoryEnabled(THEORY_ARRAYS))
-    {
-      logic = logic.getUnlockedCopy();
-      logic.disableTheory(THEORY_ARRAYS);
-      logic.lock();
-    }
   }
 
   // Set default options associated with strings-exp. We also set these options
@@ -437,7 +431,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (safeUnsatCores(opts))
+  if (opts.smt.produceUnsatCores)
   {
     // check if the options are not compatible with unsat cores
     std::stringstream reasonNoUc;
@@ -543,7 +537,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     // uses a non-standard implementation that sends (unsound) lemmas during
     // presolve.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving && !opts.smt.unsatCores;
+                       && !opts.base.incrementalSolving && !opts.smt.produceUnsatCores;
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     opts.writeUf().ufSymmetryBreaker = qf_uf_noinc;
@@ -821,11 +815,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
-      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV"
-      && logic.getLogicString() != "QF_ABV")
+      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV")
   {
     throw OptionException(
-        "Eager bit-blasting does not currently support theory combination. "
+        "Eager bit-blasting does not currently support theory combination with "
+        "any theory other than UF. "
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
@@ -1105,24 +1099,24 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
 bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
                                              std::ostream& reason) const
 {
-  if (opts.smt.simplificationMode != options::SimplificationMode::NONE)
+  // All techniques that are incompatible with unsat cores are listed here.
+  // A preprocessing pass is incompatible with unsat cores if
+  // (A) its reasoning is not local, i.e. it may replace an assertion A by A'
+  // where A does not imply A', or if it adds new assertions B that are not
+  // tautologies, AND
+  // (B) it does not track proofs.
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
-    if (opts.smt.simplificationModeWasSetByUser)
+    if (opts.smt.deepRestartModeWasSetByUser)
     {
-      reason << "simplification";
+      reason << "deep restarts";
       return true;
     }
-    notifyModifyOption("simplificationMode", "none", "unsat cores");
-    opts.writeSmt().simplificationMode = options::SimplificationMode::NONE;
-    if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
-    {
-      verbose(1) << "SolverEngine: turning off deep restart to support unsat "
-                    "cores"
-                 << std::endl;
-      opts.writeSmt().deepRestartMode = options::DeepRestartMode::NONE;
-    }
+    verbose(1) << "SolverEngine: turning off deep restart to support unsat "
+                  "cores"
+               << std::endl;
+    opts.writeSmt().deepRestartMode = options::DeepRestartMode::NONE;
   }
-
   if (opts.smt.learnedRewrite)
   {
     if (opts.smt.learnedRewriteWasSetByUser)
@@ -1132,6 +1126,18 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     notifyModifyOption("learnedRewrite", "false", "unsat cores");
     opts.writeSmt().learnedRewrite = false;
+  }
+  // most static learning techniques are local, although arithmetic static
+  // learning is not.
+  if (opts.arith.arithStaticLearning)
+  {
+    if (opts.arith.arithStaticLearningWasSetByUser)
+    {
+      reason << "arith static learning";
+      return true;
+    }
+    notifyModifyOption("arithStaticLearning", "false", "proofs");
+    opts.writeArith().arithStaticLearning = false;
   }
 
   if (opts.arith.pbRewrites)
@@ -1143,72 +1149,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     notifyModifyOption("pbRewrites", "false", "unsat cores");
     opts.writeArith().pbRewrites = false;
-  }
-
-  if (opts.smt.sortInference)
-  {
-    if (opts.smt.sortInferenceWasSetByUser)
-    {
-      reason << "sort inference";
-      return true;
-    }
-    notifyModifyOption("sortInference", "false", "unsat cores");
-    opts.writeSmt().sortInference = false;
-  }
-
-  if (opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
-  {
-    if (opts.quantifiers.preSkolemQuantWasSetByUser)
-    {
-      reason << "pre-skolemization";
-      return true;
-    }
-    notifyModifyOption("preSkolemQuant", "off", "unsat cores");
-    opts.writeQuantifiers().preSkolemQuant = options::PreSkolemQuantMode::OFF;
-  }
-
-  if (opts.bv.bitvectorToBool)
-  {
-    if (opts.bv.bitvectorToBoolWasSetByUser)
-    {
-      reason << "bv-to-bool";
-      return true;
-    }
-    notifyModifyOption("bitvectorToBool", "false", "unsat cores");
-    opts.writeBv().bitvectorToBool = false;
-  }
-
-  if (opts.bv.boolToBitvector != options::BoolToBVMode::OFF)
-  {
-    if (opts.bv.boolToBitvectorWasSetByUser)
-    {
-      reason << "bool-to-bv != off";
-      return true;
-    }
-    notifyModifyOption("boolToBitvector", "off", "unsat cores");
-    opts.writeBv().boolToBitvector = options::BoolToBVMode::OFF;
-  }
-
-  if (opts.bv.bvIntroducePow2)
-  {
-    if (opts.bv.bvIntroducePow2WasSetByUser)
-    {
-      reason << "bv-intro-pow2";
-      return true;
-    }
-    notifyModifyOption("bvIntroducePow2", "false", "unsat cores");
-    opts.writeBv().bvIntroducePow2 = false;
-  }
-
-  if (opts.smt.repeatSimp)
-  {
-    if (opts.smt.repeatSimpWasSetByUser)
-    {
-      reason << "repeat-simp";
-      return true;
-    }
-    notifyModifyOption("repeatSimp", "false", "unsat cores");
-    opts.writeSmt().repeatSimp = false;
   }
 
   if (opts.quantifiers.globalNegate)
@@ -1225,21 +1165,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
   if (opts.smt.doITESimp)
   {
     reason << "ITE simp";
-    return true;
-  }
-  if (opts.smt.unconstrainedSimp)
-  {
-    if (opts.smt.unconstrainedSimpWasSetByUser)
-    {
-      reason << "unconstrained simplification";
-      return true;
-    }
-    notifyModifyOption("unconstrainedSimp", "false", "unsat cores");
-    opts.writeSmt().unconstrainedSimp = false;
-  }
-  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
-  {
-    reason << "deep restarts";
     return true;
   }
   return false;

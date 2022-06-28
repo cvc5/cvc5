@@ -111,8 +111,9 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         }
         std::stringstream ss;
         ss << "(! ";
-        options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
-        cur.toStream(ss, -1, 0);
+        options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+        options::ioutils::applyDagThresh(ss, 0);
+        cur.toStream(ss);
         ss << " :named " << prefix << id << ")";
         Node letVar = nm->mkRawSymbol(ss.str(), cur.getType());
         visited[cur] = letVar;
@@ -198,8 +199,9 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
       {
         std::stringstream ss, ssVar;
         ss << "(! ";
-        options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
-        ret.toStream(ss, -1, 0);
+        options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+        options::ioutils::applyDagThresh(ss, 0);
+        ret.toStream(ss);
         ssVar << prefix << id;
         ss << " :named " << ssVar.str() << ")";
         Node declaration = nm->mkRawSymbol(ss.str(), ret.getType());
@@ -264,7 +266,7 @@ bool LetUpdaterPfCallback::update(Node res,
 }
 
 AletheProofPrinter::AletheProofPrinter()
-    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
+    : d_lbind(options::ioutils::getDagThresh(std::cout) ? options::ioutils::getDagThresh(std::cout) + 1
                                           : 0),
       d_cb(new LetUpdaterPfCallback(d_lbind))
 {
@@ -287,7 +289,7 @@ void AletheProofPrinter::print(std::ostream& out,
   Trace("alethe-printer") << "- letify.\n";
   updater.process(innerPf);
 
-  if (options::defaultDagThresh())
+  if (options::ioutils::getDagThresh(std::cout))
   {
     std::vector<Node> letList;
     d_lbind.letify(letList);

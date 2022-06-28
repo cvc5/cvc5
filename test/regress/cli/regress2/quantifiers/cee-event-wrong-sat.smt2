@@ -1,6 +1,7 @@
 ; COMMAND-LINE: -q --full-saturate-quant --ee-mode=distributed --no-check-unsat-cores
 ; COMMAND-LINE: -q --full-saturate-quant --ee-mode=central --no-check-unsat-cores
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((T@$TypeValue 0) (T@A 0)) (((A)) ((T))))

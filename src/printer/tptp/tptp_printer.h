@@ -30,10 +30,7 @@ class TptpPrinter : public cvc5::internal::Printer
 {
  public:
   using cvc5::internal::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
+  void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**

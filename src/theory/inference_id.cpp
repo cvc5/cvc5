@@ -143,6 +143,14 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
+    case InferenceId::TABLES_GROUP_NOT_EMPTY: return "TABLES_GROUP_NOT_EMPTY";
+    case InferenceId::TABLES_GROUP_UP1: return "TABLES_GROUP_UP1";
+    case InferenceId::TABLES_GROUP_UP2: return "TABLES_GROUP_UP2";
+    case InferenceId::TABLES_GROUP_DOWN: return "TABLES_GROUP_DOWN";
+    case InferenceId::TABLES_GROUP_PART_COUNT: return "TABLES_GROUP_PART_COUNT";
+    case InferenceId::TABLES_GROUP_SAME_PROJECTION:
+      return "TABLES_GROUP_SAME_PROJECTION";
+    case InferenceId::TABLES_GROUP_SAME_PART: return "TABLES_GROUP_SAME_PART";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -333,6 +341,11 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_EQ_CONFLICT: return "SETS_EQ_CONFLICT";
     case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
     case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
+    case InferenceId::SETS_FILTER_DOWN: return "SETS_FILTER_DOWN";
+    case InferenceId::SETS_FILTER_UP: return "SETS_FILTER_UP";
+    case InferenceId::SETS_FOLD: return "SETS_FOLD";
+    case InferenceId::SETS_MAP_DOWN_POSITIVE: return "SETS_MAP_DOWN_POSITIVE";
+    case InferenceId::SETS_MAP_UP: return "SETS_MAP_UP";
     case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";
     case InferenceId::SETS_MEM_EQ_CONFLICT: return "SETS_MEM_EQ_CONFLICT";
     case InferenceId::SETS_PROXY: return "SETS_PROXY";
@@ -383,6 +396,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_I_CONST_CONFLICT:
       return "STRINGS_I_CONST_CONFLICT";
     case InferenceId::STRINGS_I_NORM: return "STRINGS_I_NORM";
+    case InferenceId::STRINGS_UNIT_SPLIT: return "STRINGS_UNIT_SPLIT";
+    case InferenceId::STRINGS_UNIT_INJ_OOB: return "STRINGS_UNIT_INJ_OOB";
     case InferenceId::STRINGS_UNIT_INJ: return "STRINGS_UNIT_INJ";
     case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
       return "STRINGS_UNIT_CONST_CONFLICT";

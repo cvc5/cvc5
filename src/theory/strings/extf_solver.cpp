@@ -70,6 +70,7 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(kind::STRING_TO_LOWER);
   d_extt.addFunctionKind(kind::STRING_TO_UPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::STRING_UNIT);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
   d_extt.addFunctionKind(kind::SEQ_NTH);
 
@@ -150,8 +151,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
       return false;
     }
   }
-  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP || k == STRING_TO_CODE
-           || (k == STRING_CONTAINS && pol == 0))
+  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
+           || k == STRING_TO_CODE || (k == STRING_CONTAINS && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
@@ -168,7 +169,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
         return false;
       }
       else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
-               && d_termReg.isHandledUpdate(n))
+               && d_termReg.isHandledUpdateOrSubstr(n))
       {
         // don't need to reduce certain seq.update
         // don't need to reduce certain seq.extract with length 1

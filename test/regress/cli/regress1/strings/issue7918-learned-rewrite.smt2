@@ -1,4 +1,4 @@
-; COMMAND-LINE: --learned-rewrite
+; COMMAND-LINE: --learned-rewrite --no-produce-proofs
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun v () String)

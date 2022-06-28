@@ -15,7 +15,6 @@
 
 #include "theory/strings/term_registry.h"
 
-#include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "printer/smt2/smt2_printer.h"
@@ -89,11 +88,28 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node len = nm->mkNode(STRING_LENGTH, t[0]);
     Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
-    Node code_range =
-        nm->mkNode(AND,
-                   nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
-                   nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+    Node code_range = utils::mkCodeRange(t, alphaCard);
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
+  }
+  else if (tk == SEQ_NTH)
+  {
+    if (t[0].getType().isString())
+    {
+      Node s = t[0];
+      Node n = t[1];
+      // start point is greater than or equal zero
+      Node c1 = nm->mkNode(GEQ, n, nm->mkConstInt(0));
+      // start point is less than end of string
+      Node c2 = nm->mkNode(GT, nm->mkNode(STRING_LENGTH, s), n);
+      // check whether this application of seq.nth is defined.
+      Node cond = nm->mkNode(AND, c1, c2);
+      Node code_range = utils::mkCodeRange(t, alphaCard);
+      // the lemma for `seq.nth`
+      lemma = nm->mkNode(ITE, cond, code_range, t.eqNode(nm->mkConstInt(Rational(-1))));
+      // IF: n >=0 AND n < len( s )
+      // THEN: 0 <= (seq.nth s n) < |A|
+      // ELSE: (seq.nth s n) = -1
+    }
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
   {
@@ -481,7 +497,7 @@ bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
 bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
 
-bool TermRegistry::isHandledUpdate(Node n)
+bool TermRegistry::isHandledUpdateOrSubstr(Node n)
 {
   Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
   NodeManager* nm = NodeManager::currentNM();

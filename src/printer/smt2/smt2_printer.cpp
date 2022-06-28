@@ -29,23 +29,22 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
+#include "expr/function_array_const.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
-#include "options/bv_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/printer_options.h"
-#include "options/smt_options.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "theory/bags/table_project_op.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/floatingpoint.h"
@@ -123,6 +122,13 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
+void Smt2Printer::toStream(std::ostream& out, TNode n) const
+{
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
+  toStream(out, n, toDepth, dag);
+}
+
 void Smt2Printer::toStreamWithLetify(std::ostream& out,
                                      Node n,
                                      int toDepth,
@@ -198,7 +204,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_BITVECTOR:
     {
       const BitVector& bv = n.getConst<BitVector>();
-      if (options::bvPrintConstsAsIndexedSymbols())
+      if (options::ioutils::getBvPrintConstsAsIndexedSymbols(out))
       {
         out << "(_ bv" << bv.getValue() << " " << bv.getSize() << ")";
       }
@@ -211,7 +217,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_FLOATINGPOINT:
     {
       out << n.getConst<FloatingPoint>().toString(
-          options::bvPrintConstsAsIndexedSymbols());
+          options::ioutils::getBvPrintConstsAsIndexedSymbols(out));
       break;
     }
     case kind::CONST_ROUNDINGMODE:
@@ -309,12 +315,19 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")";
       break;
     }
+    case kind::FUNCTION_ARRAY_CONST:
+    {
+      // prints as the equivalent lambda
+      Node lam = theory::uf::FunctionConst::toLambda(n);
+      toStream(out, lam, toDepth);
+      break;
+    }
 
     case kind::UNINTERPRETED_SORT_VALUE:
     {
-      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
+      const UninterpretedSortValue& v = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as " << av << " " << n.getType() << ")";
+      ss << "(as " << v << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -562,7 +575,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::APPLY_UF: break;
     // higher-order
     case kind::HO_APPLY:
-      if (!options::flattenHOChains())
+      if (!options::ioutils::getFlattenHOChains(out))
       {
         out << smtKindString(k, d_variant) << ' ';
         break;
@@ -733,7 +746,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TUPLE_PROJECT:
   {
-    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (tuple.project tuple)
@@ -748,7 +761,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_PROJECT:
   {
-    TableProjectOp op = n.getOperator().getConst<TableProjectOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.project A)
@@ -763,7 +776,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_AGGREGATE:
   {
-    TableAggregateOp op = n.getOperator().getConst<TableAggregateOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.project function initial_value bag)
@@ -779,7 +792,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_JOIN:
   {
-    TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.join A B)
@@ -794,7 +807,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::TABLE_GROUP:
   {
-    TableGroupOp op = n.getOperator().getConst<TableGroupOp>();
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
       // e.g. (table.group A)
@@ -1138,6 +1151,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_CHOOSE: return "set.choose";
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
   case kind::SET_MAP: return "set.map";
+  case kind::SET_FILTER: return "set.filter";
+  case kind::SET_FOLD: return "set.fold";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";
@@ -1251,6 +1266,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
+  case kind::STRING_UNIT: return "str.unit";
   case kind::REGEXP_NONE: return "re.none";
   case kind::REGEXP_ALL: return "re.all";
   case kind::REGEXP_ALLCHAR: return "re.allchar";
@@ -1426,20 +1442,18 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
+  auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
-  if (options::modelUninterpPrint()
-      == options::ModelUninterpPrintMode::DeclSortAndFun)
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
     toStreamCmdDeclareType(out, tn);
   }
   // print the representatives
   for (const Node& trn : elements)
   {
-    if (options::modelUninterpPrint()
-            == options::ModelUninterpPrintMode::DeclSortAndFun
-        || options::modelUninterpPrint()
-               == options::ModelUninterpPrintMode::DeclFun)
+    if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun
+        || modelUninterpPrint == options::ModelUninterpPrintMode::DeclFun)
     {
       out << "(declare-fun ";
       if (trn.getKind() == kind::UNINTERPRETED_SORT_VALUE)
@@ -1539,21 +1553,6 @@ void Smt2Printer::toStreamCmdResetAssertions(std::ostream& out) const
 void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
 {
   out << "(exit)" << std::endl;
-}
-
-void Smt2Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  for (cvc5::Command* i : sequence)
-  {
-    out << *i;
-  }
-}
-
-void Smt2Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  toStreamCmdCommandSequence(out, sequence);
 }
 
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
@@ -2112,10 +2111,7 @@ static void toStream(std::ostream& out,
                      const cvc5::CommandSuccess* s,
                      Variant v)
 {
-  if (cvc5::Command::printsuccess::getPrintSuccess(out))
-  {
-    out << "success" << endl;
-  }
+  out << "success" << endl;
 }
 
 static void toStream(std::ostream& out,

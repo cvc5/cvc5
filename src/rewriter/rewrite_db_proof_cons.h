@@ -28,6 +28,7 @@
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_rcons.h"
 #include "rewriter/rewrites.h"
+#include "smt/env_obj.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/query_cache.h"
 #include "util/statistics_stats.h"
@@ -35,7 +36,7 @@
 namespace cvc5::internal {
 namespace rewriter {
 
-class RewriteDbProofCons
+class RewriteDbProofCons : protected EnvObj
 {
  public:
   RewriteDbProofCons(Env& env, RewriteDb* db);

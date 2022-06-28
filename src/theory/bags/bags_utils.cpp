@@ -18,8 +18,8 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
-#include "table_project_op.h"
 #include "theory/bags/bag_reduction.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
@@ -985,14 +985,8 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
   TypeNode bagType = A.getType();
   TypeNode partitionType = n.getType();
 
-  if (A.getKind() == BAG_EMPTY)
-  {
-    // return a nonempty partition
-    return nm->mkNode(BAG_MAKE, A, nm->mkConstInt(Rational(1)));
-  }
-
   std::vector<uint32_t> indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
   Trace("bags-group") << "elements: " << elements << std::endl;
@@ -1048,6 +1042,12 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
     // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
   }
+  if (parts.empty())
+  {
+    // add an empty part
+    Node emptyPart = nm->mkConst(EmptyBag(bagType));
+    parts[emptyPart] = Rational(1);
+  }
   Node ret = constructConstantBagFromElements(partitionType, parts);
   Trace("bags-partition") << "ret: " << ret << std::endl;
   return ret;
@@ -1069,7 +1069,7 @@ Node BagsUtils::evaluateTableProject(TNode n)
 
   std::map<Node, Rational> elements;
   std::vector<uint32_t> indices =
-      n.getOperator().getConst<TableProjectOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   for (const auto& [a, countA] : elementsA)
   {
@@ -1088,7 +1088,7 @@ BagsUtils::splitTableJoinIndices(Node n)
 {
   Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
          && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
-  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   size_t joinSize = indices.size() / 2;
   std::vector<uint32_t> indices1(joinSize), indices2(joinSize);

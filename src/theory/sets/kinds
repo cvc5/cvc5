@@ -77,6 +77,18 @@ operator SET_IS_SINGLETON  1  "return whether the given set is a singleton"
 # of the second argument, a set of type (Set T1), and returns a set of type (Set T2).
 operator SET_MAP           2  "set map function"
 
+# The set.filter operator takes a predicate of type (-> T Bool) and a set of type (Set T)
+# and returns the same set excluding those elements that do not satisfy the predicate
+operator SET_FILTER        2  "set filter operator"
+
+# set.fold operator combines elements of a set into a single value.
+# (set.fold f t A) folds the elements of bag A starting with term t and using
+# the combining function f.
+#  f: a binary operation of type (-> T1 T2 T2)
+#  t: an initial value of type T2
+#  A: a bag of type (Set T1)
+operator SET_FOLD          3  "set fold operator"
+
 operator RELATION_JOIN 		   2  "relation join"
 operator RELATION_PRODUCT 	   2  "relation cartesian product"
 operator RELATION_TRANSPOSE    1  "relation transpose"
@@ -99,6 +111,8 @@ typerule SET_COMPREHENSION  ::cvc5::internal::theory::sets::ComprehensionTypeRul
 typerule SET_CHOOSE         ::cvc5::internal::theory::sets::ChooseTypeRule
 typerule SET_IS_SINGLETON   ::cvc5::internal::theory::sets::IsSingletonTypeRule
 typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
+typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
+typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule
 typerule RELATION_PRODUCT 		::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

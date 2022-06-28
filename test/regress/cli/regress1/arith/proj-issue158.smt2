@@ -1,3 +1,4 @@
+; COMMAND-LINE: --no-produce-proofs
 (set-logic NIA)
 (set-info :status sat)
 (set-option :repeat-simp true)

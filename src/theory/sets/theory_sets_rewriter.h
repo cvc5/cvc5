@@ -83,6 +83,25 @@ private:
   *  where f: T1 -> T2
   */
  RewriteResponse postRewriteMap(TNode n);
+
+ /**
+  *  rewrites for n include:
+  *  - (set.filter p (as set.empty (Set T)) = (as set.empty (Set T))
+  *  - (set.filter p (set.singleton x)) =
+  *       (ite (p x) (set.singleton x) (as set.empty (Set T)))
+  *  - (set.filter p (set.union A B)) =
+  *       (set.union (set.filter p A) (set.filter p B))
+  *  where p: T -> Bool
+  */
+ RewriteResponse postRewriteFilter(TNode n);
+ /**
+  *  rewrites for n include:
+  *  - (set.fold f t (as set.empty (Set T))) = t
+  *  - (set.fold f t (set.singleton x)) = (f t x)
+  *  - (set.fold f t (set.union A B)) = (set.fold f (set.fold f t A) B))
+  *  where f: T -> S -> S, and t : S
+  */
+ RewriteResponse postRewriteFold(TNode n);
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets

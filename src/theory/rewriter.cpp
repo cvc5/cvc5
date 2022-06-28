@@ -93,7 +93,7 @@ Node Rewriter::rewrite(TNode node) {
     // eagerly for the sake of efficiency here.
     return node;
   }
-  return getInstance()->rewriteTo(theoryOf(node), node);
+  return rewriteTo(theoryOf(node), node);
 }
 
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
@@ -110,11 +110,11 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   if (isExtEq)
   {
     // theory rewriter is responsible for rewriting the equality
-    TheoryRewriter* tr = getInstance()->d_theoryRewriters[theoryOf(node)];
+    TheoryRewriter* tr = d_theoryRewriters[theoryOf(node)];
     Assert(tr != nullptr);
     return tr->rewriteEqualityExtWithProof(node);
   }
-  Node ret = getInstance()->rewriteTo(theoryOf(node), node, d_tpg.get());
+  Node ret = rewriteTo(theoryOf(node), node, d_tpg.get());
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
@@ -150,11 +150,6 @@ void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 {
   return d_theoryRewriters[theoryId];
-}
-
-Rewriter* Rewriter::getInstance()
-{
-  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,

@@ -639,7 +639,7 @@ Node SequencesRewriter::rewriteLength(Node node)
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
   }
-  else if (nk0 == SEQ_UNIT)
+  else if (nk0 == SEQ_UNIT || nk0 == STRING_UNIT)
   {
     Node retNode = nm->mkConstInt(Rational(1));
     return returnRewrite(node, retNode, Rewrite::LEN_SEQ_UNIT);
@@ -1757,10 +1757,15 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       if (posInt.fitsUnsignedInt() && posInt < Integer(len))
       {
         size_t pos = posInt.toUnsignedInt();
-        std::vector<Node> elements = s.getConst<Sequence>().getVec();
-        const Node& ret = elements[pos];
+        Node ret = Word::getNth(s, pos);
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
       }
+    }
+    if (s.getType().isString())
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node ret = nm->mkConstInt(Rational(-1));
+      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_OOB);
     }
   }
 
@@ -1769,12 +1774,16 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   if ((i.isConst() && i.getConst<Rational>().isZero())
       || d_stringsEntail.stripSymbolicLength(suffix, prefix, 1, i, true))
   {
-    if (suffix.size() > 0 && suffix[0].getKind() == SEQ_UNIT)
+    if (suffix.size() > 0)
     {
-      // (seq.nth (seq.++ prefix (seq.unit x) suffix) n) ---> x
-      // if len(prefix) = n
-      Node ret = suffix[0][0];
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_SYM);
+      if (suffix[0].getKind() == SEQ_UNIT)
+      {
+        // (seq.nth (seq.++ prefix (seq.unit x) suffix) n) ---> x
+        // if len(prefix) = n
+        Node ret = suffix[0][0];
+        return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_SYM);
+      }
+      // TODO: STRING_UNIT?
     }
   }
 
@@ -3642,6 +3651,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
 
 Node SequencesRewriter::rewriteSeqUnit(Node node)
 {
+  Assert(node.getKind() == SEQ_UNIT);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {

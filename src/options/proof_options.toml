@@ -160,7 +160,7 @@ name   = "Proof"
   help       = "Add pivots to Alethe resolution steps"
 
 [[option]]
-  name       = "proofDotDAG"
+  name       = "printDotAsDAG"
   category   = "expert"
   long       = "proof-dot-dag"
   type       = "bool"
@@ -174,3 +174,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "produce final proof regardless of printing or checking it"
+
+[[option]]
+  name       = "printDotClusters"
+  category   = "regular"
+  long       = "print-dot-clusters"
+  type       = "bool"
+  default    = "false"
+  help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
