@@ -98,6 +98,9 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::TABLES_GROUP_PART: return "TABLES_GROUP_PART";
     case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
       return "TABLES_GROUP_PART_ELEMENT";
+    case SkolemFunId::RELATIONS_GROUP_PART: return "RELATIONS_GROUP_PART";
+    case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
+      return "RELATIONS_GROUP_PART_ELEMENT";
     case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
     case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
     case SkolemFunId::SETS_FOLD_CARD: return "SETS_FOLD_CARD";

@@ -3330,6 +3330,37 @@ enum Kind : int32_t
    * \endrst
    */
   RELATION_IDEN,
+  /**
+   * Relation group
+   *
+   * \rst
+   * :math:`((\_ \; rel.group \; n_1 \; \dots \; n_k) \; A)` partitions tuples
+   * of relation :math:`A` such that tuples that have the same projection
+   * with indices :math:`n_1 \; \dots \; n_k` are in the same part.
+   * It returns a set of relations of type :math:`(Set \; T)` where
+   * :math:`T` is the type of :math:`A`.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of relation sort
+   *
+   * - Indices: ``n``
+   *
+   *   - ``1..n:``  Indices of the projection
+   *
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  RELATION_GROUP,
 
   /* Bags ------------------------------------------------------------------ */
 

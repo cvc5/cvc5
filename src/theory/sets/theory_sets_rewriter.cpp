@@ -589,8 +589,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
 
-  default:
-    break;
+  case RELATION_GROUP: return postRewriteGroup(node);
+  default: break;
   }
 
   return RewriteResponse(REWRITE_DONE, node);
@@ -739,6 +739,30 @@ RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
 
     default: return RewriteResponse(REWRITE_DONE, n);
   }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_GROUP);
+  Node A = n[0];
+  Kind k = A.getKind();
+  if (k == SET_EMPTY || k == SET_SINGLETON)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
+    //    (rel.singleton (as set.empty (Relation T) ))
+    // - ((_ rel.group n1 ... nk) (set.singleton x)) =
+    //      (set.singleton (set.singleton x))
+    Node singleton = nm->mkNode(SET_SINGLETON, A);
+    return RewriteResponse(REWRITE_AGAIN_FULL, singleton);
+  }
+  if (A.isConst())
+  {
+    Node evaluation = RelsUtils::evaluateGroup(n);
+    return RewriteResponse(REWRITE_AGAIN_FULL, evaluation);
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 }  // namespace sets

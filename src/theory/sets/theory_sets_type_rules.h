@@ -212,6 +212,17 @@ struct RelIdenTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Relation group operator is indexed by a list of indices (n_1, ..., n_k). It
+ * ensures that the argument is a relation whose arity is greater than each n_i
+ * for i = 1, ..., k. If the passed relation is of type T, then the returned
+ * type is (Set T), i.e., set of relations.
+ */
+struct RelationGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct RelationGroupTypeRule */
+
 struct SetsProperties
 {
   static Cardinality computeCardinality(TypeNode type);

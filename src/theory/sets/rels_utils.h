@@ -64,6 +64,14 @@ class RelsUtils
    * @return  a tuple (tuple a b)
    */
   static Node constructPair(Node rel, Node a, Node b);
+
+  /**
+   * @param n of the form ((_ rel.group (n_1 ... n_k) ) A) where A is a
+   * constant relation
+   * @return a partition of A such that each part contains tuples with the same
+   * projection with indices n_1 ... n_k
+   */
+  static Node evaluateGroup(TNode n);
 };
 }  // namespace sets
 }  // namespace theory
