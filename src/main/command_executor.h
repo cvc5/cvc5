@@ -20,7 +20,7 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 
@@ -48,7 +48,7 @@ class CommandExecutor
    * Certain commands (e.g. reset-assertions) have a specific impact on the
    * symbol manager.
    */
-  std::unique_ptr<SymbolManager> d_symman;
+  std::unique_ptr<parser::SymbolManager> d_symman;
 
   cvc5::Result d_result;
 
@@ -73,7 +73,7 @@ class CommandExecutor
   cvc5::Solver* getSolver() { return d_solver.get(); }
 
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
-  SymbolManager* getSymbolManager() { return d_symman.get(); }
+  parser::SymbolManager* getSymbolManager() { return d_symman.get(); }
 
   cvc5::Result getResult() const { return d_result; }
   void reset();
@@ -108,8 +108,8 @@ private:
 }; /* class CommandExecutor */
 
 bool solverInvoke(cvc5::Solver* solver,
-                  SymbolManager* sm,
-                  cvc5::parser::Command* cmd,
+                  parser::SymbolManager* sm,
+                  parser::Command* cmd,
                   std::ostream& out);
 
 }  // namespace main

@@ -24,10 +24,14 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/symbol_table.h"
 
 namespace cvc5 {
 
+namespace internal::parser {
+class SymbolTable;
+}
+
+namespace parser {
 /** Represents the result of a call to `setExpressionName()`. */
 enum class NamingResult
 {
@@ -53,7 +57,32 @@ class CVC5_EXPORT SymbolManager
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
   /** Get the underlying symbol table */
-  internal::SymbolTable* getSymbolTable();
+  internal::parser::SymbolTable* getSymbolTable();
+
+  /**
+   * Bind an expression to a name in the current scope level in the underlying
+   * symbol table.
+   *
+   * When doOverload is false:
+   * if <code>name</code> is already bound to an expression in the current
+   * level, then the binding is replaced. If <code>name</code> is bound
+   * in a previous level, then the binding is "covered" by this one
+   * until the current scope is popped.
+   * If levelZero is true the name shouldn't be already bound.
+   *
+   * When doOverload is true:
+   * if <code>name</code> is already bound to an expression in the current
+   * level, then we mark the previous bound expression and obj as overloaded
+   * functions.
+   *
+   * @param name an identifier
+   * @param obj the expression to bind to <code>name</code>
+   * @param doOverload set if the binding can overload the function name.
+   *
+   * Returns false if the binding was invalid.
+   */
+  bool bind(const std::string& name, cvc5::Term obj, bool doOverload = false);
+
   //---------------------------- named expressions
   /** Set name of term t to name
    *
@@ -175,10 +204,6 @@ class CVC5_EXPORT SymbolManager
  private:
   /** The API Solver object. */
   cvc5::Solver* d_solver;
-  /**
-   * The declaration scope that is "owned" by this symbol manager.
-   */
-  internal::SymbolTable d_symtabAllocated;
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
@@ -189,6 +214,7 @@ class CVC5_EXPORT SymbolManager
   bool d_globalDeclarations;
 };
 
+}  // namespace parser
 }  // namespace cvc5
 
 #endif /* CVC5__EXPR__SYMBOL_MANAGER_H */

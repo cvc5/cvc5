@@ -18,57 +18,60 @@
 
 #include <iosfwd>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 namespace cvc5 {
 
 class Solver;
 
-class SymbolManager;
-
 namespace parser {
 class Command;
 class Parser;
-  }  // namespace parser
+class SymbolManager;
+}  // namespace parser
 
-  namespace internal {
+namespace internal {
 
-  class InteractiveShell
-  {
-   public:
-    InteractiveShell(Solver* solver,
-                     SymbolManager* sm,
-                     std::istream& in,
-                     std::ostream& out);
+class InteractiveShell
+{
+ public:
+  using CmdSeq = std::vector<std::unique_ptr<cvc5::parser::Command>>;
 
-    /**
-     * Close out the interactive session.
-     */
-    ~InteractiveShell();
+  InteractiveShell(Solver* solver,
+                   cvc5::parser::SymbolManager* sm,
+                   std::istream& in,
+                   std::ostream& out);
 
-    /**
-     * Read a command from the interactive shell. This will read as
-     * many lines as necessary to parse a well-formed command.
-     */
-    parser::Command* readCommand();
+  /**
+   * Close out the interactive session.
+   */
+  ~InteractiveShell();
 
-    /**
-     * Return the internal parser being used.
-     */
-    parser::Parser* getParser() { return d_parser.get(); }
+  /**
+   * Read a list of commands from the interactive shell. This will read as
+   * many lines as necessary to parse at least one well-formed command.
+   */
+  std::optional<CmdSeq> readCommand();
 
-   private:
-    Solver* d_solver;
-    std::istream& d_in;
-    std::ostream& d_out;
-    std::unique_ptr<parser::Parser> d_parser;
-    bool d_quit;
-    bool d_usingEditline;
+  /**
+   * Return the internal parser being used.
+   */
+  cvc5::parser::Parser* getParser() { return d_parser.get(); }
 
-    std::string d_historyFilename;
+ private:
+  Solver* d_solver;
+  std::istream& d_in;
+  std::ostream& d_out;
+  std::unique_ptr<cvc5::parser::Parser> d_parser;
+  bool d_quit;
+  bool d_usingEditline;
 
-    static const std::string INPUT_FILENAME;
-    static const unsigned s_historyLimit = 500;
+  std::string d_historyFilename;
+
+  static const std::string INPUT_FILENAME;
+  static const unsigned s_historyLimit = 500;
   }; /* class InteractiveShell */
 
   }  // namespace internal

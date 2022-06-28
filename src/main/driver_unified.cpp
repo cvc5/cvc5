@@ -22,6 +22,7 @@
 #include <iostream>
 #include <memory>
 #include <new>
+#include <optional>
 
 #include "api/cpp/cvc5.h"
 #include "base/configuration.h"
@@ -162,7 +163,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    std::unique_ptr<cvc5::parser::Command> cmd;
     bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
@@ -187,13 +187,22 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
           << std::endl
           << Configuration::copyright() << std::endl;
 
-      while(true) {
-        cmd.reset(shell.readCommand());
-        if (cmd == nullptr)
+      bool quit = false;
+      while (!quit)
+      {
+        std::optional<InteractiveShell::CmdSeq> cmds = shell.readCommand();
+        if (!cmds)
+        {
           break;
-        status = pExecutor->doCommand(cmd) && status;
-        if (cmd->interrupted()) {
-          break;
+        }
+        for (std::unique_ptr<cvc5::parser::Command>& cmd : *cmds)
+        {
+          status = pExecutor->doCommand(cmd) && status;
+          if (cmd->interrupted())
+          {
+            quit = true;
+            break;
+          }
         }
       }
     }

@@ -1244,7 +1244,7 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
-  return k == SET_MAP || k == SET_FILTER;
+  return k == SET_MAP || k == SET_FILTER || k == SET_FOLD;
 }
 
 Node TheorySetsPrivate::explain(TNode literal)

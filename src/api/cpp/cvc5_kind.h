@@ -3190,6 +3190,32 @@ enum Kind : int32_t
    * \endrst
    */
    SET_FILTER,
+   /**
+   * Set fold.
+   *
+   * \rst
+   * This operator combines elements of a set into a single value.
+   * (set.fold :math:`f \; t \; A`) folds the elements of set :math:`A`
+   * starting with Term :math:`t` and using the combining function :math:`f`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow S_1 \; S_2 \; S_2)`
+   *   - ``2:`` Term of Sort :math:`S_2` (the initial value)
+   *   - ``3:`` Term of bag Sort (Set :math:`S_1`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  SET_FOLD,
   /* Relations ------------------------------------------------------------- */
 
   /**
@@ -3692,10 +3718,6 @@ enum Kind : int32_t
    *
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in

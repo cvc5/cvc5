@@ -151,10 +151,7 @@ void AstPrinter::toStreamModelTerm(std::ostream& out,
 
 void AstPrinter::toStreamCmdSuccess(std::ostream& out) const
 {
-  if (options::ioutils::getPrintSuccess(out))
-  {
-    out << "OK" << endl;
-  }
+  out << "OK" << endl;
 }
 
 void AstPrinter::toStreamCmdInterrupted(std::ostream& out) const

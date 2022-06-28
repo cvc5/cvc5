@@ -13,7 +13,7 @@
  * Convenience class for scoping variable and type declarations.
  */
 
-#include "cvc5_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H
@@ -31,9 +31,9 @@ class Sort;
 class Term;
 }  // namespace cvc5
 
-namespace cvc5::internal {
+namespace cvc5::internal::parser {
 
-class CVC5_EXPORT ScopeException : public Exception
+class CVC5_EXPORT ScopeException : public internal::Exception
 {
 };
 
@@ -176,7 +176,7 @@ class CVC5_EXPORT SymbolTable
   /** Get overloaded constant for type.
    * If possible, it returns the defined symbol with name
    * that has type t. Otherwise returns null expression.
-  */
+   */
   cvc5::Term getOverloadedConstantForType(const std::string& name,
                                           cvc5::Sort t) const;
 
@@ -201,6 +201,6 @@ class CVC5_EXPORT SymbolTable
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
-}  // namespace cvc5::internal
+}  // namespace cvc5::internal::parser
 
 #endif /* CVC5__SYMBOL_TABLE_H */

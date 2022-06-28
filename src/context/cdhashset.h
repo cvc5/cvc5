@@ -13,7 +13,7 @@
  * Context-dependent set class.
  */
 
-#include "cvc5_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__CONTEXT__CDHASHSET_H
 #define CVC5__CONTEXT__CDHASHSET_H

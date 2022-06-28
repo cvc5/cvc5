@@ -17,12 +17,13 @@
  */
 #include "main/interactive_shell.h"
 
-#include <cstring>
 #include <unistd.h>
 
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -41,18 +42,18 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
-#include "expr/symbol_manager.h"
 #include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "theory/logic_info.h"
 
 using namespace std;
+using namespace cvc5::parser;
 
 namespace cvc5::internal {
 
-using namespace cvc5::parser;
 using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
@@ -170,7 +171,7 @@ InteractiveShell::~InteractiveShell() {
 #endif /* HAVE_LIBEDITLINE */
 }
 
-Command* InteractiveShell::readCommand()
+std::optional<InteractiveShell::CmdSeq> InteractiveShell::readCommand()
 {
   char* lineBuf = NULL;
   string line = "";
@@ -181,7 +182,7 @@ restart:
    * QuitCommand. */
   if(d_in.eof() || d_quit) {
     d_out << endl;
-    return NULL;
+    return {};
   }
 
   /* If something's wrong with the input, there's nothing we can do. */
@@ -248,7 +249,7 @@ restart:
       if(input.empty()) {
         /* Nothing left to parse. */
         d_out << endl;
-        return NULL;
+        return {};
       }
 
       /* Some input left to parse, but nothing left to read.
@@ -306,14 +307,14 @@ restart:
 
   /* There may be more than one command in the input. Build up a
      sequence. */
-  CommandSequence *cmd_seq = new CommandSequence();
+  std::vector<std::unique_ptr<Command>> cmdSeq;
   Command *cmd;
 
   try
   {
     while ((cmd = d_parser->nextCommand()))
     {
-      cmd_seq->addCommand(cmd);
+      cmdSeq.emplace_back(cmd);
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)
       {
         d_quit = true;
@@ -376,7 +377,7 @@ restart:
     // cmd_seq = new CommandSequence();
   }
 
-  return cmd_seq;
+  return std::optional<CmdSeq>(std::move(cmdSeq));
 }/* InteractiveShell::readCommand() */
 
 #if HAVE_LIBEDITLINE

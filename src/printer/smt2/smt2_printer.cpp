@@ -325,9 +325,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::UNINTERPRETED_SORT_VALUE:
     {
-      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
+      const UninterpretedSortValue& v = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as " << av << " " << n.getType() << ")";
+      ss << "(as " << v << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -1152,6 +1152,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
   case kind::SET_MAP: return "set.map";
   case kind::SET_FILTER: return "set.filter";
+  case kind::SET_FOLD: return "set.fold";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";
@@ -1474,10 +1475,7 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
 
 void Smt2Printer::toStreamCmdSuccess(std::ostream& out) const
 {
-  if (options::ioutils::getPrintSuccess(out))
-  {
-    out << "success" << endl;
-  }
+  out << "success" << endl;
 }
 
 void Smt2Printer::toStreamCmdInterrupted(std::ostream& out) const

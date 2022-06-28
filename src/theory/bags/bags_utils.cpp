@@ -985,12 +985,6 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
   TypeNode bagType = A.getType();
   TypeNode partitionType = n.getType();
 
-  if (A.getKind() == BAG_EMPTY)
-  {
-    // return a nonempty partition
-    return nm->mkNode(BAG_MAKE, A, nm->mkConstInt(Rational(1)));
-  }
-
   std::vector<uint32_t> indices =
       n.getOperator().getConst<ProjectOp>().getIndices();
 
@@ -1047,6 +1041,12 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
     Node part = computeDisjointUnion(bagType, bags);
     // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
+  }
+  if (parts.empty())
+  {
+    // add an empty part
+    Node emptyPart = nm->mkConst(EmptyBag(bagType));
+    parts[emptyPart] = Rational(1);
   }
   Node ret = constructConstantBagFromElements(partitionType, parts);
   Trace("bags-partition") << "ret: " << ret << std::endl;

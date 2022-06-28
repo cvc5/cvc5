@@ -210,6 +210,13 @@ enum class InferenceId
   TABLES_PRODUCT_DOWN,
   TABLES_JOIN_UP,
   TABLES_JOIN_DOWN,
+  TABLES_GROUP_NOT_EMPTY,
+  TABLES_GROUP_UP1,
+  TABLES_GROUP_UP2,
+  TABLES_GROUP_DOWN,
+  TABLES_GROUP_PART_COUNT,
+  TABLES_GROUP_SAME_PROJECTION,
+  TABLES_GROUP_SAME_PART,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -488,6 +495,7 @@ enum class InferenceId
   SETS_EQ_MEM_CONFLICT,
   SETS_FILTER_DOWN,
   SETS_FILTER_UP,
+  SETS_FOLD,
   SETS_MAP_DOWN_POSITIVE,
   SETS_MAP_UP,
   SETS_MEM_EQ,
@@ -561,6 +569,11 @@ enum class InferenceId
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   STRINGS_I_NORM,
+  // split between the argument of two equated str.unit terms
+  STRINGS_UNIT_SPLIT,
+  // a code point must be out of bounds due to (str.unit x) = (str.unit y) and
+  // x != y.
+  STRINGS_UNIT_INJ_OOB,
   // injectivity of seq.unit
   // (seq.unit x) = (seq.unit y) => x=y, or
   // (seq.unit x) = (seq.unit c) => x=c
