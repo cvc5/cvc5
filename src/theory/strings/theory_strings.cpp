@@ -458,7 +458,7 @@ bool TheoryStrings::collectModelInfoType(
         // exists. We preempitively get the model value here, so that we
         // avoid repeated model values for strings.
         Node val = d_valuation.getModelValue(nfe.d_nf[0][0]);
-        Node assignedVal = utils::mkUnit(eqc.getType(), val);
+        assignedValue = utils::mkUnit(eqc.getType(), val);
         assignedValue = rewrite(assignedValue);
         Trace("strings-model")
             << "-> assign via str.unit: " << assignedValue << std::endl;
