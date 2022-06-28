@@ -42,7 +42,7 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
-#include "expr/symbol_manager.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
