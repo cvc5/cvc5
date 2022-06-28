@@ -113,11 +113,16 @@ if(NOT GMP_FOUND_SYSTEM)
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-        <SOURCE_DIR>/configure
+        emconfigure <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic
           --enable-cxx
+
+          --host=none
+          --disable-assembly
+          --disable-fft
+
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
