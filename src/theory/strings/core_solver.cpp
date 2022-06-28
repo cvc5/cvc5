@@ -1279,7 +1279,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     // require checking equal here, usually x == y, but this also holds the
     // case of (str.unit a) and (str.unit b) for distinct a, b, where we do
     // not want to unify these terms here.
-    if (d_state.areEqual(x, y))
+    if (x==y || (d_state.areEqual(x, y) && utils::isConstantLike(x) && utils::isConstantLike(y)))
     {
       // The normal forms have the same term at the current position. We just
       // continue with the next index. By construction of the normal forms, we

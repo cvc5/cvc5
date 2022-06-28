@@ -213,6 +213,12 @@ class BaseSolver : protected EnvObj
   void checkCardinalityType(TypeNode tn,
                             std::vector<std::vector<Node> >& cols,
                             std::vector<Node>& lts);
+  /** 
+   * Called when a and b are constant-like terms in the same equivalence class.
+   * 
+   * @return true if a conflict was discovered
+   */
+  bool processConstantLike(Node a, Node b);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
