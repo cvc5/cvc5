@@ -452,8 +452,18 @@ bool TheoryStrings::collectModelInfoType(
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
-      if (nfe.d_nf[0].getKind() == SEQ_UNIT
-          || nfe.d_nf[0].getKind() == STRING_UNIT)
+      if (nfe.d_nf[0].getKind() == STRING_UNIT)
+      {
+        // str.unit is applied to integers, where we are guaranteed the model
+        // exists. We preempitively get the model value here, so that we
+        // avoid repeated model values for strings.
+        Node val = d_valuation.getModelValue(nfe.d_nf[0][0]);
+        assignedValue = utils::mkUnit(eqc.getType(), val);
+        assignedValue = rewrite(assignedValue);
+        Trace("strings-model")
+            << "-> assign via str.unit: " << assignedValue << std::endl;
+      }
+      else if (nfe.d_nf[0].getKind() == SEQ_UNIT)
       {
         if (nfe.d_nf[0][0].getType().isStringLike())
         {
