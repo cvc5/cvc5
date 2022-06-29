@@ -516,10 +516,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, t12));
-    std::vector<Node> bchildren;
-    bchildren.push_back(b11);
-    bchildren.push_back(b12);
-    bchildren.push_back(b13);
+    std::vector<Node> bchildren { b11, b12, b13 };
     if (s.getType().isString())
     {
       Node crange = utils::mkCodeRange(skt, alphaCard);
