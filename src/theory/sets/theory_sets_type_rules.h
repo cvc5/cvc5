@@ -234,7 +234,7 @@ struct RelationGroupTypeRule
 struct RelationAggregateTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-}; /* struct TableAggregateTypeRule */
+}; /* struct RelationAggregateTypeRule */
 
 struct SetsProperties
 {
