@@ -19,13 +19,14 @@
 #define CVC5__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
+
 #include "context/cdhashmap.h"
+#include "smt/env_obj.h"
 #include "theory/rewriter.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/theory.h"
 #include "util/hash.h"
-#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -67,7 +68,10 @@ class StringsPreprocess : protected EnvObj
    * @param alphaCard The cardinality of the alphabet
    * @return The reduced form of t.
    */
-  static Node reduce(Node t, std::vector<Node>& asserts, SkolemCache* sc, size_t alphaCard);
+  static Node reduce(Node t,
+                     std::vector<Node>& asserts,
+                     SkolemCache* sc,
+                     size_t alphaCard);
   /**
    * Calls the above method for the skolem cache owned by this class, and
    * records statistics.

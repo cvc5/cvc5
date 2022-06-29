@@ -35,7 +35,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(Env& env, 
+StringsPreprocess::StringsPreprocess(Env& env,
                                      SkolemCache* sc,
                                      HistogramStat<Kind>* statReductions)
     : EnvObj(env), d_sc(sc), d_statReductions(statReductions)
@@ -48,7 +48,8 @@ StringsPreprocess::~StringsPreprocess(){
 
 Node StringsPreprocess::reduce(Node t,
                                std::vector<Node>& asserts,
-                               SkolemCache* sc, size_t alphaCard)
+                               SkolemCache* sc,
+                               size_t alphaCard)
 {
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
