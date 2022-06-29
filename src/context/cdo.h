@@ -13,7 +13,7 @@
  * A context-dependent object.
  */
 
-#include "cvc5_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__CONTEXT__CDO_H
 #define CVC5__CONTEXT__CDO_H

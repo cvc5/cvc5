@@ -27,6 +27,8 @@ set(libcvc5parser_src_files
   antlr_input_imports.cpp
   antlr_line_buffered_input.cpp
   antlr_line_buffered_input.h
+  api/cpp/symbol_manager.cpp
+  api/cpp/symbol_manager.h
   bounded_token_buffer.cpp
   bounded_token_buffer.h
   bounded_token_factory.cpp
@@ -48,6 +50,8 @@ set(libcvc5parser_src_files
   smt2/smt2_input.h
   smt2/sygus_input.cpp
   smt2/sygus_input.h
+  symbol_table.cpp
+  symbol_table.h
   tptp/tptp.cpp
   tptp/tptp.h
   tptp/tptp_input.cpp

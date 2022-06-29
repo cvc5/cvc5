@@ -20,13 +20,14 @@
 #include "base/exception.h"
 #include "context/context.h"
 #include "expr/kind.h"
-#include "expr/symbol_table.h"
+#include "parser/symbol_table.h"
 #include "test_api.h"
 
 namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
+using namespace parser;
 
 namespace test {
 

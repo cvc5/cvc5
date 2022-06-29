@@ -29,6 +29,8 @@
 #include "smt/command.h"
 #include "smt/solver_engine.h"
 
+using namespace cvc5::parser;
+
 namespace cvc5::main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
