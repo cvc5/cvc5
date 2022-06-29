@@ -116,6 +116,13 @@ void BaseSolver::checkInit()
               foundConst = true;
             }
           }
+          // Determine if we need to track n to compare it to other constant
+          // like terms in this equivalence class. This is done if we do not
+          // have any other constant-like terms we are tracking, or if we have
+          // not yet encountered a constant and we are a string equivalence
+          // class. This is because all *pairs* of str.unit must be compared
+          // to one another, whereas since seq.unit is injective, we can
+          // compare seq.unit with a single representative seq.unit term.
           if (prevConstLike.empty() || addToConstLike)
           {
             prevConstLike.push_back(n);
