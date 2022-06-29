@@ -331,7 +331,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       // we do not use optimizations
       SkolemCache skc(nullptr);
       std::vector<Node> conj;
-      ret = StringsPreprocess::reduce(t, conj, &skc);
+      ret = StringsPreprocess::reduce(t, conj, &skc, d_alphaCard);
       conj.push_back(t.eqNode(ret));
       ret = nm->mkAnd(conj);
     }
