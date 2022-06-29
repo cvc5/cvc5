@@ -102,6 +102,15 @@ private:
   *  where f: T -> S -> S, and t : S
   */
  RewriteResponse postRewriteFold(TNode n);
+ /**
+  *  rewrites for n include:
+  *  - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
+  *          (rel.singleton (as set.empty (Relation T) ))
+  *  - ((_ rel.group n1 ... nk) (set.singleton x)) =
+  *          (set.singleton (set.singleton x))
+  *  - Evaluation of ((_ rel.group n1 ... nk) A) when A is a constant
+  */
+ RewriteResponse postRewriteGroup(TNode n);
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets

@@ -309,6 +309,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
         KIND_ENUM(RELATION_JOIN_IMAGE, internal::Kind::RELATION_JOIN_IMAGE),
         KIND_ENUM(RELATION_IDEN, internal::Kind::RELATION_IDEN),
+        KIND_ENUM(RELATION_GROUP, internal::Kind::RELATION_GROUP),
         /* Bags ------------------------------------------------------------- */
         KIND_ENUM(BAG_UNION_MAX, internal::Kind::BAG_UNION_MAX),
         KIND_ENUM(BAG_UNION_DISJOINT, internal::Kind::BAG_UNION_DISJOINT),
@@ -633,6 +634,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
         {internal::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
         {internal::Kind::RELATION_IDEN, RELATION_IDEN},
+        {internal::Kind::RELATION_GROUP, RELATION_GROUP},
         /* Bags ------------------------------------------------------------ */
         {internal::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
         {internal::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
@@ -772,6 +774,7 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
     {REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
     {TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT_OP},
+    {RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
     {TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
     {TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
     {TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
@@ -1950,6 +1953,7 @@ size_t Op::getNumIndicesHelper() const
     case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
+    case RELATION_GROUP:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
@@ -2110,6 +2114,7 @@ Term Op::getIndexHelper(size_t index) const
       break;
     }
     case TUPLE_PROJECT:
+    case RELATION_GROUP:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
@@ -6151,6 +6156,7 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       res = mkOpHelper(kind, internal::RegExpLoop(args[0], args[1]));
       break;
     case TUPLE_PROJECT:
+    case RELATION_GROUP:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:

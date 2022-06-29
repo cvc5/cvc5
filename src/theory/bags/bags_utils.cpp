@@ -146,7 +146,7 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
     case TABLE_JOIN: return evaluateJoin(rewriter, n);
-    case TABLE_GROUP: return evaluateGroup(rewriter, n);
+    case TABLE_GROUP: return evaluateGroup(n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
@@ -975,7 +975,7 @@ Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
+Node BagsUtils::evaluateGroup(TNode n)
 {
   Assert(n.getKind() == TABLE_GROUP);
 
@@ -1049,7 +1049,7 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
     parts[emptyPart] = Rational(1);
   }
   Node ret = constructConstantBagFromElements(partitionType, parts);
-  Trace("bags-partition") << "ret: " << ret << std::endl;
+  Trace("bags-group") << "ret: " << ret << std::endl;
   return ret;
 }
 
