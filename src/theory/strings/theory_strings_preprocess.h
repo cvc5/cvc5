@@ -25,6 +25,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -37,9 +38,11 @@ namespace strings {
  * used for reducing extended functions on-demand during the "extended function
  * reductions" inference schema of TheoryStrings.
  */
-class StringsPreprocess {
+class StringsPreprocess : protected EnvObj
+{
  public:
-  StringsPreprocess(SkolemCache* sc,
+  StringsPreprocess(Env& env,
+                    SkolemCache* sc,
                     HistogramStat<Kind>* statReductions = nullptr);
   ~StringsPreprocess();
   /** The reduce routine
@@ -61,9 +64,10 @@ class StringsPreprocess {
    * @param asserts The vector for storing the assertions that correspond to
    * the reduction of t,
    * @param sc The skolem cache for generating new variables,
+   * @param alphaCard The cardinality of the alphabet
    * @return The reduced form of t.
    */
-  static Node reduce(Node t, std::vector<Node>& asserts, SkolemCache* sc);
+  static Node reduce(Node t, std::vector<Node>& asserts, SkolemCache* sc, size_t alphaCard);
   /**
    * Calls the above method for the skolem cache owned by this class, and
    * records statistics.
