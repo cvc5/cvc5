@@ -258,8 +258,9 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
     }
     else if (svalue.getKind() == Kind::CONST_RATIONAL)
     {
-      Assert (svalue.getConst<Rational>().isIntegral());
-      svalue = NodeManager::currentNM()->mkConstInt(svalue.getConst<Rational>());
+      Assert(svalue.getConst<Rational>().isIntegral());
+      svalue =
+          NodeManager::currentNM()->mkConstInt(svalue.getConst<Rational>());
     }
   }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
