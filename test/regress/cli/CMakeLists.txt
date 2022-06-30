@@ -2639,6 +2639,7 @@ set(regress_1_tests
   regress1/strings/issue8890-inj-oob.smt2
   regress1/strings/issue8906-oob-exp.smt2
   regress1/strings/issue8915-str-unit-model.smt2
+  regress1/strings/issue8916-str-unit-pairs.smt2
   regress1/strings/issue8918-str-nth-crange-red.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
