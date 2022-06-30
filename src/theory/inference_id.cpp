@@ -324,7 +324,6 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_LABEL_INTRO: return "SEP_LABEL_INTRO";
     case InferenceId::SEP_LABEL_DEF: return "SEP_LABEL_DEF";
     case InferenceId::SEP_EMP: return "SEP_EMP";
-    case InferenceId::SEP_POS_PTO_SINGLETON: return "SEP_POS_PTO_SINGLETON";
     case InferenceId::SEP_POS_REDUCTION: return "SEP_POS_REDUCTION";
     case InferenceId::SEP_NEG_REDUCTION: return "SEP_NEG_REDUCTION";
     case InferenceId::SEP_REFINEMENT: return "SEP_REFINEMENT";

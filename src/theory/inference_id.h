@@ -462,8 +462,6 @@ enum class InferenceId
   SEP_LABEL_DEF,
   // lemma for sep.emp
   SEP_EMP,
-  // lemma for positive labelled PTO
-  SEP_POS_PTO_SINGLETON,
   // positive reduction for sep constraint
   SEP_POS_REDUCTION,
   // negative reduction for sep constraint

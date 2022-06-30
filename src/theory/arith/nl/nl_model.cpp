@@ -274,6 +274,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
                         << std::endl;
   Assert(getSubstitutedForm(s) == s)
       << "Added a substitution whose range is not in substituted form " << s;
+  // cannot substitute real for integer
+  Assert(v.getType().isReal() || s.getType().isInteger());
   // should not substitute the same variable twice
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
