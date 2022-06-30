@@ -147,6 +147,11 @@ if(NOT Poly_FOUND_SYSTEM)
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
   # paths make it impossible to find the locally built GMP library otherwise.
+  set(POLY_PATCH_CMD_WASM ${POLY_PATCH_CMD_WASM}
+    COMMAND
+      bash ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-wasm-patch.sh ${DEPS_BASE}
+  )
+  
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
@@ -157,6 +162,7 @@ if(NOT Poly_FOUND_SYSTEM)
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
       <SOURCE_DIR>/CMakeLists.txt
       ${POLY_PATCH_CMD}
+      ${POLY_PATCH_CMD_WASM}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
