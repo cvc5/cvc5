@@ -726,15 +726,12 @@ void SolverEngine::notifyPopPre()
   pe->pop();
 }
 
-void SolverEngine::notifyPostSolvePre()
+void SolverEngine::notifyPostSolve()
 {
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   pe->resetTrail();
-}
 
-void SolverEngine::notifyPostSolvePost()
-{
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->postsolve();
