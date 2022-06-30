@@ -168,6 +168,11 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     d_im.lemma(andNode, InferenceId::BAGS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
+  if (nk == TABLE_AGGREGATE)
+  {
+    Node ret = SetReduction::reduceAggregateOperator(n);
+    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+  }
   return d_internal->ppRewrite(n, lems);
 }
 

@@ -590,6 +590,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }
 
   case RELATION_GROUP: return postRewriteGroup(node);
+  case RELATION_AGGREGATE: return postRewriteAggregate(node);
   default: break;
   }
 
@@ -760,6 +761,21 @@ RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
   {
     Node evaluation = RelsUtils::evaluateGroup(n);
     return RewriteResponse(REWRITE_AGAIN_FULL, evaluation);
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteAggregate(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = RelsUtils::evaluateRelationAggregate(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
 
   return RewriteResponse(REWRITE_DONE, n);

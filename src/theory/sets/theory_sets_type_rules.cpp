@@ -27,6 +27,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
+using namespace cvc5::internal::theory::datatypes;
+
 TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
@@ -610,6 +612,72 @@ TypeNode RelationGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check
     datatypes::TupleUtils::checkTypeIndices(n, tupleType, indices);
   }
   return nm->mkSetType(setType);
+}
+
+TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
+                                                TNode n,
+                                                bool check)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_AGGREGATE_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode functionType = n[0].getType(check);
+  TypeNode initialValueType = n[1].getType(check);
+  TypeNode setType = n[2].getType(check);
+
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a table. Found '" << n[2]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TupleUtils::checkTypeIndices(n, tupleType, indices);
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    TypeNode rangeType = functionType.getRangeType();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == rangeType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (rangeType != initialValueType)
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects an initial value of type "
+         << rangeType << ". Found a term of type '" << initialValueType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return nm->mkSetType(functionType.getRangeType());
 }
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)
