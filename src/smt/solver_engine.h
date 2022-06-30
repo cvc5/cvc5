@@ -984,17 +984,11 @@ class CVC5_EXPORT SolverEngine
    */
   void notifyPopPre();
   /**
-   * Notify post solve pre, which is called once per check-sat query. It
-   * is triggered when the first d_state.doPendingPops() is issued after the
-   * check-sat. This method is called before the contexts pop in the method
-   * doPendingPops.
+   * Notify post solve pre, which is called once per check-sat query. It is
+   * triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
    */
-  void notifyPostSolvePre();
-  /**
-   * Same as above, but after contexts are popped. This calls the postsolve
-   * method of the underlying TheoryEngine.
-   */
-  void notifyPostSolvePost();
+  void notifyPostSolve();
   // --------------------------------------- end callbacks from the state
 
   /**
