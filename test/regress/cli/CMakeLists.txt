@@ -2505,6 +2505,7 @@ set(regress_1_tests
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
   regress1/sets/proj-issue494-finite-leafof.smt2
+  regress1/sets/relation_aggregate1.smt2
   regress1/sets/relation_group1.smt2
   regress1/sets/relation_group2.smt2
   regress1/sets/relation_group3.smt2
@@ -2638,6 +2639,7 @@ set(regress_1_tests
   regress1/strings/issue8890-inj-oob.smt2
   regress1/strings/issue8906-oob-exp.smt2
   regress1/strings/issue8915-str-unit-model.smt2
+  regress1/strings/issue8918-str-nth-crange-red.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

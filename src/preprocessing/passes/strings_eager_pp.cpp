@@ -33,7 +33,7 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
 {
   NodeManager* nm = NodeManager::currentNM();
   theory::strings::SkolemCache skc(nullptr);
-  theory::strings::StringsPreprocess pp(&skc);
+  theory::strings::StringsPreprocess pp(d_env, &skc);
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
        ++i)
   {
