@@ -71,7 +71,7 @@ Env::~Env() {}
 
 void Env::finishInit(ProofNodeManager* pnm)
 {
-  if (pnm!=nullptr)
+  if (pnm != nullptr)
   {
     Assert(d_proofNodeManager == nullptr);
     d_proofNodeManager = pnm;
