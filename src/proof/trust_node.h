@@ -153,7 +153,10 @@ class TrustNode
    *
    * @param reqNullGen Whether we consider a null generator to be a failure.
    */
-  void debugCheckClosed(const Options& opts, const char* c, const char* ctx, bool reqNullGen = true);
+  void debugCheckClosed(const Options& opts,
+                        const char* c,
+                        const char* ctx,
+                        bool reqNullGen = true);
 
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);

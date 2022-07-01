@@ -18,12 +18,12 @@
 #include "expr/bound_var_manager.h"
 #include "options/strings_options.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
-#include "smt/env.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -48,9 +48,7 @@ struct ReElimStarIndexAttributeId
 typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
     ReElimStarIndexAttribute;
 
-RegExpElimination::RegExpElimination(Env& env,
-                                     bool isAgg,
-                                     context::Context* c)
+RegExpElimination::RegExpElimination(Env& env, bool isAgg, context::Context* c)
     : EnvObj(env),
       d_isAggressive(isAgg),
       d_epg(!env.isTheoryProofProducing()
@@ -81,7 +79,7 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
     // Currently aggressive doesnt work due to fresh bound variables
     if (isProofEnabled() && !d_isAggressive)
     {
-      ProofNodeManager * pnm = d_env.getProofNodeManager();
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
       Node eq = atom.eqNode(eatom);
       Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
       std::shared_ptr<ProofNode> pn =
@@ -649,7 +647,10 @@ Node RegExpElimination::returnElim(Node atom, Node atomElim, const char* id)
                    << "." << std::endl;
   return atomElim;
 }
-bool RegExpElimination::isProofEnabled() const { return d_env.isTheoryProofProducing(); }
+bool RegExpElimination::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace strings
 }  // namespace theory

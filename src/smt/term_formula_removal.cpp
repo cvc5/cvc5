@@ -475,9 +475,8 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       newLem = TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
-      newLem.debugCheckClosed(options(),
-                              "rtf-proof-debug",
-                              "RemoveTermFormulas::run:new_assert");
+      newLem.debugCheckClosed(
+          options(), "rtf-proof-debug", "RemoveTermFormulas::run:new_assert");
     }
 
     // The representation is now the skolem

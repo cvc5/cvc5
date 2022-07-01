@@ -91,7 +91,7 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof(
     std::vector<std::shared_ptr<ProofNode>>& scope,
     const detail::TreeProofNode& pn) const
 {
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   // Store scope size to reset scope afterwards
   std::size_t before = scope.size();
   std::vector<std::shared_ptr<ProofNode>> children;

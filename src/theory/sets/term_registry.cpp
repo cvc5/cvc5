@@ -34,9 +34,9 @@ TermRegistry::TermRegistry(Env& env,
       d_skCache(skc),
       d_proxy(userContext()),
       d_proxy_to_term(userContext()),
-      d_epg(
-          env.isTheoryProofProducing() ? new EagerProofGenerator(env, nullptr, "sets::TermRegistry::epg")
-              : nullptr)
+      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(
+                env, nullptr, "sets::TermRegistry::epg")
+                                         : nullptr)
 {
 }
 

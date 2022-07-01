@@ -36,7 +36,8 @@ namespace proof {
  * A callback class used by the Lfsc convereter for post-processing proof nodes
  * by replacing internal rules by the rules in the Lfsc calculus.
  */
-class LfscProofPostprocessCallback : protected EnvObj, public ProofNodeUpdaterCallback
+class LfscProofPostprocessCallback : protected EnvObj,
+                                     public ProofNodeUpdaterCallback
 {
  public:
   LfscProofPostprocessCallback(Env& env, LfscNodeConverter& ltp);

@@ -48,7 +48,7 @@ std::shared_ptr<ProofNode> CDProof::getProofFor(Node fact)
   // add as assumption
   std::vector<Node> pargs = {fact};
   std::vector<std::shared_ptr<ProofNode>> passume;
-  ProofNodeManager * pnm = getManager();
+  ProofNodeManager* pnm = getManager();
   std::shared_ptr<ProofNode> pfa =
       pnm->mkNode(PfRule::ASSUME, passume, pargs, fact);
   d_nodes.insert(fact, pfa);
@@ -96,7 +96,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     std::vector<std::shared_ptr<ProofNode>> pschild;
     pschild.push_back(pfs);
     std::vector<Node> args;
-    ProofNodeManager * pnm = getManager();
+    ProofNodeManager* pnm = getManager();
     if (pf == nullptr)
     {
       Trace("cdproof") << "...fresh make symm" << std::endl;
@@ -154,7 +154,7 @@ bool CDProof::addStep(Node expected,
     // we will overwrite the existing proof node by updating its contents below
   }
   // collect the child proofs, for each premise
-  ProofNodeManager * pnm = getManager();
+  ProofNodeManager* pnm = getManager();
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
@@ -321,7 +321,8 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // checked here, so that this class maintains the invariant that all of
       // its nodes in d_nodes have been checked by the underlying checker.
       Assert(getManager()->getChecker() == nullptr
-             || getManager()->getChecker()->check(pn.get(), curFact) == curFact);
+             || getManager()->getChecker()->check(pn.get(), curFact)
+                    == curFact);
       // just store the proof for fact
       d_nodes.insert(curFact, pn);
     }
@@ -414,9 +415,10 @@ bool CDProof::hasStep(Node fact)
 
 size_t CDProof::getNumProofNodes() const { return d_nodes.size(); }
 
-ProofNodeManager* CDProof::getManager() const { 
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
-  Assert (pnm!=nullptr); 
+ProofNodeManager* CDProof::getManager() const
+{
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
   return pnm;
 }
 

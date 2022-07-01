@@ -112,8 +112,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
   Node res;
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
-  Assert (pnm!=nullptr);
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
   do
   {
     cur = visit.back();
@@ -240,7 +240,10 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
       // assumptions.
       Trace("pfnu-debug") << "Ensure updated closed..." << std::endl;
       pfnEnsureClosedWrt(options(),
-          npn.get(), fullFa, "pfnu-debug", "ProofNodeUpdater:postupdate");
+                         npn.get(),
+                         fullFa,
+                         "pfnu-debug",
+                         "ProofNodeUpdater:postupdate");
     }
     Trace("pf-process-debug") << "..finished" << std::endl;
     return true;
@@ -289,7 +292,7 @@ void ProofNodeUpdater::runFinalize(
           resCacheNcWaiting.find(res);
       if (itnw != resCacheNcWaiting.end())
       {
-        ProofNodeManager * pnm = d_env.getProofNodeManager();
+        ProofNodeManager* pnm = d_env.getProofNodeManager();
         for (std::shared_ptr<ProofNode>& ncp : itnw->second)
         {
           pnm->updateNode(ncp.get(), cur.get());
@@ -308,8 +311,8 @@ void ProofNodeUpdater::runFinalize(
     // the proof. We can now debug based on the expected set of free
     // assumptions.
     Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
-    pfnEnsureClosedWrt(options(),
-        cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
+    pfnEnsureClosedWrt(
+        options(), cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
   }
 }
 

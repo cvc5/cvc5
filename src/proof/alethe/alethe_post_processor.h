@@ -28,7 +28,8 @@ namespace proof {
  * A callback class used by the Alethe converter for post-processing proof nodes
  * by replacing internal rules by the rules in the Alethe calculus.
  */
-class AletheProofPostprocessCallback : protected EnvObj, public ProofNodeUpdaterCallback
+class AletheProofPostprocessCallback : protected EnvObj,
+                                       public ProofNodeUpdaterCallback
 {
  public:
   AletheProofPostprocessCallback(Env& env,
@@ -146,9 +147,7 @@ class AletheProofPostprocessCallback : protected EnvObj, public ProofNodeUpdater
 class AletheProofPostprocess : protected EnvObj
 {
  public:
-  AletheProofPostprocess(Env& env,
-                         AletheNodeConverter& anc,
-                         bool resPivots);
+  AletheProofPostprocess(Env& env, AletheNodeConverter& anc, bool resPivots);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

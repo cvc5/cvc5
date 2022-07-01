@@ -33,10 +33,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(Env& env)
-    : EagerProofGenerator(env)
-{
-}
+OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
 void OperatorElim::checkNonLinearLogic(Node term)
 {

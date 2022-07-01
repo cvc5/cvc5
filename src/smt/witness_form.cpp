@@ -31,12 +31,8 @@ WitnessFormGenerator::WitnessFormGenerator(Env& env)
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(env,
-                 nullptr,
-                 nullptr,
-                 "WfGenerator::LazyCDProof"),
-      d_pskPf(
-          env, nullptr, "WfGenerator::PurifySkolemProof")
+      d_wintroPf(env, nullptr, nullptr, "WfGenerator::LazyCDProof"),
+      d_pskPf(env, nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 

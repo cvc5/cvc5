@@ -184,8 +184,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // we use the existing proofs
-  LazyCDProof lpf(
-      d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
+  LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
   if (f[0] == f[1])
   {
     // assertion failure in debug
@@ -240,8 +239,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
 {
-  LazyCDProof lpf(
-      d_env, &d_proof, nullptr, d_name + "::LazyCDProofRew");
+  LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProofRew");
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {

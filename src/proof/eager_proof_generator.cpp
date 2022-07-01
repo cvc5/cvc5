@@ -105,7 +105,7 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
                                            const std::vector<Node>& args,
                                            bool isConflict)
 {
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   // if no children, its easy
   if (exp.empty())
   {

@@ -170,7 +170,10 @@ void pfgEnsureClosedWrt(const Options& opts,
   ensureClosedWrtInternal(opts, proven, pg, nullptr, assumps, c, ctx, reqGen);
 }
 
-void pfnEnsureClosed(const Options& opts, ProofNode* pn, const char* c, const char* ctx)
+void pfnEnsureClosed(const Options& opts,
+                     ProofNode* pn,
+                     const char* c,
+                     const char* ctx)
 {
   ensureClosedWrtInternal(opts, Node::null(), nullptr, pn, {}, c, ctx, false);
 }
@@ -181,7 +184,8 @@ void pfnEnsureClosedWrt(const Options& opts,
                         const char* c,
                         const char* ctx)
 {
-  ensureClosedWrtInternal(opts, Node::null(), nullptr, pn, assumps, c, ctx, false);
+  ensureClosedWrtInternal(
+      opts, Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
 }  // namespace cvc5::internal

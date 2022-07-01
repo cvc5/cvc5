@@ -21,9 +21,9 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
-#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 

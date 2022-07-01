@@ -76,7 +76,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
-      ProofNodeManager * pnm = d_env.getProofNodeManager();
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
       Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
       Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
@@ -91,24 +91,23 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
           literal == rawEq
               ? pfNotLit
               : pnm->mkNode(
-                    PfRule::MACRO_SR_PRED_TRANSFORM,
-                    {pfNotLit,
-                     teq.getGenerator()->getProofFor(teq.getProven())},
-                    {rawEq.negate()});
-      Pf pfBot = pnm->mkNode(
-          PfRule::CONTRA,
-          {pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                         {pnm->mkAssume(less.negate()), pfNotRawEq},
-                         {greater}),
-           pnm->mkAssume(greater.negate())},
-          {});
+                  PfRule::MACRO_SR_PRED_TRANSFORM,
+                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
+                  {rawEq.negate()});
+      Pf pfBot =
+          pnm->mkNode(PfRule::CONTRA,
+                      {pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+                                   {pnm->mkAssume(less.negate()), pfNotRawEq},
+                                   {greater}),
+                       pnm->mkAssume(greater.negate())},
+                      {});
       std::vector<Node> assumptions = {
           literal.negate(), less.negate(), greater.negate()};
       // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
       Pf pfNotAnd = pnm->mkScope(pfBot, assumptions);
       Pf pfL = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                             {pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
-                             {l});
+                           {pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
+                           {l});
       lem = d_pfGen->mkTrustNode(l, pfL);
     }
     else
@@ -135,7 +134,10 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   return lem;
 }
 
-bool BranchAndBound::proofsEnabled() const { return d_env.isTheoryProofProducing(); }
+bool BranchAndBound::proofsEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace arith
 }  // namespace theory

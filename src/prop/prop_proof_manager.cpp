@@ -24,7 +24,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-PropPfManager::PropPfManager(Env& env, 
+PropPfManager::PropPfManager(Env& env,
                              context::UserContext* userContext,
                              CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
@@ -62,7 +62,10 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
   }
   std::vector<Node> avec{d_assertions.begin(), d_assertions.end()};
   pfnEnsureClosedWrt(options(),
-      conflictProof.get(), avec, "sat-proof", "PropPfManager::checkProof");
+                     conflictProof.get(),
+                     avec,
+                     "sat-proof",
+                     "PropPfManager::checkProof");
 }
 
 std::shared_ptr<ProofNode> PropPfManager::getProof()

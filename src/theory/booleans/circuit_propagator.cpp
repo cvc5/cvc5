@@ -74,7 +74,8 @@ void CircuitPropagator::assertTrue(TNode assertion)
   }
   else if (assertion.getKind() == kind::AND)
   {
-    ProofCircuitPropagatorBackward prover{d_env.getProofNodeManager(), assertion, true};
+    ProofCircuitPropagatorBackward prover{
+        d_env.getProofNodeManager(), assertion, true};
     if (isProofEnabled())
     {
       addProof(assertion, prover.assume(assertion));
@@ -92,7 +93,9 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Assign the given assertion to true
     assignAndEnqueue(assertion,
                      true,
-                     isProofEnabled() ? d_env.getProofNodeManager()->mkAssume(assertion) : nullptr);
+                     isProofEnabled()
+                         ? d_env.getProofNodeManager()->mkAssume(assertion)
+                         : nullptr);
   }
 }
 
@@ -236,7 +239,8 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 {
   Trace("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
                         << ", " << parentAssignment << ")" << endl;
-  ProofCircuitPropagatorBackward prover{d_env.getProofNodeManager(), parent, parentAssignment};
+  ProofCircuitPropagatorBackward prover{
+      d_env.getProofNodeManager(), parent, parentAssignment};
 
   // backward rules
   switch (parent.getKind())
@@ -448,7 +452,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
     Trace("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
-    ProofCircuitPropagatorForward prover{d_env.getProofNodeManager(), child, childAssignment, parent};
+    ProofCircuitPropagatorForward prover{
+        d_env.getProofNodeManager(), child, childAssignment, parent};
 
     // Forward rules
     switch (parent.getKind())

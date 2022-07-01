@@ -35,9 +35,7 @@ template <typename T>
 class CDProofSet
 {
  public:
-  CDProofSet(Env& env,
-             context::Context* c,
-             std::string namePrefix = "Proof")
+  CDProofSet(Env& env, context::Context* c, std::string namePrefix = "Proof")
       : d_env(env), d_proofs(c), d_namePrefix(namePrefix)
   {
   }
@@ -65,7 +63,7 @@ class CDProofSet
 
  protected:
   /** Reference to env */
-  Env& d_env; 
+  Env& d_env;
   /** A context-dependent list of lazy proofs. */
   context::CDList<std::shared_ptr<T>> d_proofs;
   /** The name prefix of the lazy proofs */

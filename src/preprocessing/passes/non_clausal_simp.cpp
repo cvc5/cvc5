@@ -54,10 +54,10 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
       d_statistics(statisticsRegistry()),
       d_llpg(d_env.isTheoryProofProducing() ? new smt::PreprocessProofGenerator(
                  d_env, userContext(), "NonClausalSimp::llpg")
-                   : nullptr),
+                                            : nullptr),
       d_llra(d_env.isTheoryProofProducing() ? new LazyCDProof(
                  d_env, nullptr, userContext(), "NonClausalSimp::llra")
-                   : nullptr),
+                                            : nullptr),
       d_tsubsList(userContext())
 {
 }
@@ -450,7 +450,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool NonClausalSimp::isProofEnabled() const { return options().smt.produceProofs; }
+bool NonClausalSimp::isProofEnabled() const
+{
+  return options().smt.produceProofs;
+}
 
 Node NonClausalSimp::processLearnedLit(Node lit,
                                        theory::TrustSubstitutionMap* subs,

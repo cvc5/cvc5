@@ -23,9 +23,9 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "smt/env.h"
 #include "theory/quantifiers/extended_rewrite.h"
-#include "proof/proof_node_manager.h"
 
 namespace cvc5::internal {
 namespace smt {

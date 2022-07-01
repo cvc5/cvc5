@@ -42,8 +42,7 @@ ExtState::ExtState(Env& env, InferenceManager& im, NlModel& model)
   d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
   if (env.isTheoryProofProducing())
   {
-    d_proof.reset(new CDProofSet<CDProof>(
-        env, env.getUserContext(), "nl-ext"));
+    d_proof.reset(new CDProofSet<CDProof>(env, env.getUserContext(), "nl-ext"));
   }
 }
 

@@ -35,11 +35,11 @@ namespace prop {
  * assertions and lemmas, with the CNF transformation of these formulas, while
  * expanding the generators of lemmas.
  */
-class ProofPostprocessCallback : protected EnvObj, public ProofNodeUpdaterCallback
+class ProofPostprocessCallback : protected EnvObj,
+                                 public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(Env& env,
-                           ProofCnfStream* proofCnfStream);
+  ProofPostprocessCallback(Env& env, ProofCnfStream* proofCnfStream);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes

@@ -21,8 +21,8 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
-#include "theory/datatypes/inference.h"
 #include "smt/env_obj.h"
+#include "theory/datatypes/inference.h"
 
 namespace cvc5::internal {
 namespace theory {

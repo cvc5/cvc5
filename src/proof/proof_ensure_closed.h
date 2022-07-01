@@ -62,7 +62,10 @@ void pfgEnsureClosedWrt(const Options& opts,
  * assertion failure if pn is not closed. Detailed information is printed
  * on trace c. Context ctx is a string used for debugging.
  */
-void pfnEnsureClosed(const Options& opts, ProofNode* pn, const char* c, const char* ctx);
+void pfnEnsureClosed(const Options& opts,
+                     ProofNode* pn,
+                     const char* c,
+                     const char* ctx);
 /**
  * Same as above, but throws an assertion failure only if the free assumptions
  * of pn are not contained in assumps.

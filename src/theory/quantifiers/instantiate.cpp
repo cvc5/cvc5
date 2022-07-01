@@ -53,10 +53,9 @@ Instantiate::Instantiate(Env& env,
       d_treg(tr),
       d_insts(userContext()),
       d_c_inst_match_trie_dom(userContext()),
-      d_pfInst(isProofEnabled() ? new CDProof(env,
-                                              userContext(),
-                                              "Instantiate::pfInst")
-                                : nullptr)
+      d_pfInst(isProofEnabled()
+                   ? new CDProof(env, userContext(), "Instantiate::pfInst")
+                   : nullptr)
 {
 }
 
@@ -248,10 +247,8 @@ bool Instantiate::addInstantiation(Node q,
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(d_env,
-                                nullptr,
-                                nullptr,
-                                "Instantiate::LazyCDProof::tmp"));
+    pfTmp.reset(new LazyCDProof(
+        d_env, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
   }
 
   // construct the instantiation

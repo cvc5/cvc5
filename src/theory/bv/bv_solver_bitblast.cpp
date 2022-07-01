@@ -119,13 +119,15 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bbInputFacts(context()),
       d_assumptions(context()),
       d_assertions(context()),
-      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(env, userContext(), "") : nullptr),
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(env, userContext(), "")
+                : nullptr),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
       d_propagate(options().bv.bitvectorPropagate),
       d_resetNotify(new NotifyResetAssertions(userContext()))
 {
-  if (env.isTheoryProofProducing() )
+  if (env.isTheoryProofProducing())
   {
     d_bvProofChecker.registerTo(env.getProofNodeManager()->getChecker());
   }

@@ -94,8 +94,7 @@ bool ProofPostprocessCallback::update(Node res,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(Env& env,
-                                     ProofCnfStream* proofCnfStream)
+ProofPostproccess::ProofPostproccess(Env& env, ProofCnfStream* proofCnfStream)
     : EnvObj(env), d_cb(env, proofCnfStream)
 {
 }

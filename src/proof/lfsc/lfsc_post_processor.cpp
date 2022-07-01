@@ -22,8 +22,8 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "smt/env.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -32,7 +32,10 @@ namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
     Env& env, LfscNodeConverter& ltp)
-    : EnvObj(env), d_pc(env.getProofNodeManager()->getChecker()), d_tproc(ltp), d_firstTime(false)
+    : EnvObj(env),
+      d_pc(env.getProofNodeManager()->getChecker()),
+      d_tproc(ltp),
+      d_firstTime(false)
 {
 }
 

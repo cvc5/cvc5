@@ -39,8 +39,9 @@ CombinationEngine::CombinationEngine(Env& env,
       d_eemanager(nullptr),
       d_mmanager(nullptr),
       d_sharedSolver(nullptr),
-      d_cmbsPg(env.isTheoryProofProducing() ? new EagerProofGenerator(env, env.getUserContext())
-                     : nullptr)
+      d_cmbsPg(env.isTheoryProofProducing()
+                   ? new EagerProofGenerator(env, env.getUserContext())
+                   : nullptr)
 {
   // create the equality engine, model manager, and shared solver
   if (options().theory.eeMode == options::EqEngineMode::DISTRIBUTED)

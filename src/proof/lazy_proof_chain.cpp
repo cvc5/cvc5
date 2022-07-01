@@ -254,7 +254,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "\n";
     }
   } while (!visit.empty());
-  ProofNodeManager * pnm = getManager();
+  ProofNodeManager* pnm = getManager();
   // expand all assumptions marked to be connected
   for (const std::pair<const Node, std::shared_ptr<ProofNode>>& npfn :
        toConnect)
@@ -328,7 +328,8 @@ void LazyCDProofChain::addLazyStep(Node expected,
       }
       Trace("lazy-cdproofchain") << "\n";
     }
-    pfnEnsureClosedWrt(options(), pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
+    pfnEnsureClosedWrt(
+        options(), pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
   }
 }
 

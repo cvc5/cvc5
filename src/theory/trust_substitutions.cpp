@@ -15,8 +15,8 @@
 
 #include "theory/trust_substitutions.h"
 
-#include "theory/rewriter.h"
 #include "smt/env.h"
+#include "theory/rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -39,12 +39,12 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
       d_ids(ids),
       d_eqtIndex(c)
 {
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   // should not set the proof node manager more than once
   Assert(d_tspb == nullptr);
   d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
-      d_subsPg.reset(new LazyCDProof(
-          env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+      d_subsPg.reset(
+          new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
   d_applyPg.reset(
       new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
   d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));

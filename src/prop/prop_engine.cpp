@@ -74,8 +74,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
-      d_theoryLemmaPg(d_env, d_env.getUserContext(),
-                      "PropEngine::ThLemmaPg"),
+      d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -206,11 +205,13 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
-    tplemma.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::lemma");
+    tplemma.debugCheckClosed(
+        options(), "te-proof-debug", "TheoryEngine::lemma");
     for (theory::SkolemLemma& lem : ppLemmas)
     {
       Assert(lem.d_lemma.getGenerator() != nullptr);
-      lem.d_lemma.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::lemma_new");
+      lem.d_lemma.debugCheckClosed(
+          options(), "te-proof-debug", "TheoryEngine::lemma_new");
     }
   }
 

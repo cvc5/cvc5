@@ -22,10 +22,10 @@
 #include "expr/attribute.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/eager_proof_generator.h"
+#include "smt/env.h"
 #include "theory/arrays/skolem_cache.h"
 #include "theory/type_enumerator.h"
 #include "util/cardinality.h"
-#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -60,7 +60,9 @@ void setMostFrequentValueCount(TNode store, uint64_t count) {
 }
 
 TheoryArraysRewriter::TheoryArraysRewriter(Env& env)
-    : d_rewriter(env.getRewriter()), d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(env) : nullptr)
+    : d_rewriter(env.getRewriter()),
+      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
+                                         : nullptr)
 {
 }
 

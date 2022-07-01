@@ -24,11 +24,11 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "proof/theory_proof_step_buffer.h"
+#include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
