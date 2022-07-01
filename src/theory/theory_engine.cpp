@@ -1417,7 +1417,8 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
       Trace("te-proof-debug") << "add lazy step " << tncExp.identifyGenerator()
                               << " for " << proven << std::endl;
       d_lazyProof->addLazyStep(proven, tncExp.getGenerator());
-      pfgEnsureClosed(proven,
+      pfgEnsureClosed(options(),
+                      proven,
                       d_lazyProof.get(),
                       "te-proof-debug",
                       "TheoryEngine::conflict_during");
