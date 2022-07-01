@@ -1,6 +1,5 @@
 (set-logic HO_ALL)
 (set-info :status sat)
-(set-option :fmf-bound true)
 (set-option :uf-lazy-ll true)
 
 (declare-fun A () (Relation String String))
