@@ -43,8 +43,8 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
   if (pnm != nullptr)
   {
     d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker()));
-    d_subsPg.reset(new LazyCDProof(
-            env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_subsPg.reset(
+        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
     d_applyPg.reset(
         new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
     d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));
