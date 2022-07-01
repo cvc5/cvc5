@@ -40,14 +40,15 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
       d_eqtIndex(c)
 {
   ProofNodeManager* pnm = d_env.getProofNodeManager();
-  // should not set the proof node manager more than once
-  Assert(d_tspb == nullptr);
-  d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
-      d_subsPg.reset(
-          new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
-  d_applyPg.reset(
-      new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
-  d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));
+  if (pnm != nullptr)
+  {
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
+        d_subsPg.reset(
+            new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_applyPg.reset(
+        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+    d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));
+  }
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
