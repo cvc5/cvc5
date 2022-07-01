@@ -43,7 +43,7 @@ Skolemize::Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr)
       d_skolemized(userContext()),
       d_epg(!isProofEnabled()
                 ? nullptr
-                : new EagerProofGenerator(env.getProofNodeManager(),
+                : new EagerProofGenerator(env,
                                           userContext(),
                                           "Skolemize::epg"))
 {
@@ -72,7 +72,7 @@ TrustNode Skolemize::process(Node q)
     Node existsq = nm->mkNode(EXISTS, echildren);
     Node res = skm->mkSkolemize(existsq, d_skolem_constants[q], "skv");
     Node qnot = q.notNode();
-    CDProof cdp(pnm);
+    CDProof cdp(d_env);
     cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
     std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
     std::vector<Node> assumps;

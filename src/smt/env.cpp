@@ -45,7 +45,7 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_rewriter(new theory::Rewriter()),
       d_evalRew(nullptr),
       d_eval(nullptr),
-      d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
+      d_topLevelSubs(nullptr),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
@@ -69,13 +69,13 @@ Env::Env(NodeManager* nm, const Options* opts)
 
 Env::~Env() {}
 
-void Env::setProofNodeManager(ProofNodeManager* pnm)
+void Env::finishInit(ProofNodeManager* pnm)
 {
   Assert(pnm != nullptr);
   Assert(d_proofNodeManager == nullptr);
   d_proofNodeManager = pnm;
-  d_rewriter->setProofNodeManager(pnm);
-  d_topLevelSubs->setProofNodeManager(pnm);
+  d_rewriter->finishInit(*this);
+  d_topLevelSubs.reset(new theory::TrustSubstitutionMap(*this, d_userContext.get()));
 }
 
 void Env::shutdown()

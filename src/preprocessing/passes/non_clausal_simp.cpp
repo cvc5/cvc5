@@ -52,14 +52,13 @@ NonClausalSimp::Statistics::Statistics(StatisticsRegistry& reg)
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
       d_statistics(statisticsRegistry()),
-      d_pnm(d_env.getProofNodeManager()),
-      d_llpg(d_pnm ? new smt::PreprocessProofGenerator(
+      d_llpg(d_env.isTheoryProofProducing() ? new smt::PreprocessProofGenerator(
                  d_env, userContext(), "NonClausalSimp::llpg")
                    : nullptr),
-      d_llra(d_pnm ? new LazyCDProof(
+      d_llra(d_env.isTheoryProofProducing() ? new LazyCDProof(
                  d_env, nullptr, userContext(), "NonClausalSimp::llra")
                    : nullptr),
-      d_tsubsList(userContext())
+      d_tsubsList(d_env, userContext())
 {
 }
 
@@ -124,12 +123,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
-          u, d_pnm, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
+          d_env, u, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& cps = constantPropagations->get();
   // new substitutions
   std::shared_ptr<TrustSubstitutionMap> newSubstitutions =
       std::make_shared<TrustSubstitutionMap>(
-          u, d_pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
+          d_env, u, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& nss = newSubstitutions->get();
 
   size_t j = 0;
@@ -451,7 +450,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool NonClausalSimp::isProofEnabled() const { return d_pnm != nullptr; }
+bool NonClausalSimp::isProofEnabled() const { return options().smt.produceProofs; }
 
 Node NonClausalSimp::processLearnedLit(Node lit,
                                        theory::TrustSubstitutionMap* subs,
