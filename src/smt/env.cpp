@@ -76,9 +76,9 @@ void Env::finishInit(ProofNodeManager* pnm)
     Assert(d_proofNodeManager == nullptr);
     d_proofNodeManager = pnm;
     d_rewriter->finishInit(*this);
-    d_topLevelSubs.reset(
-        new theory::TrustSubstitutionMap(*this, d_userContext.get()));
   }
+  d_topLevelSubs.reset(
+      new theory::TrustSubstitutionMap(*this, d_userContext.get()));
 }
 
 void Env::shutdown()
