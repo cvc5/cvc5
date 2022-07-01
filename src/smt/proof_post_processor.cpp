@@ -886,10 +886,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
               << "......updated to " << var << " -> " << ss
               << " based on previous substitution" << std::endl;
           // make the proof for the tranitivity step
-          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
+          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_env);
           pfs.push_back(pf);
           // prove the updated substitution
-          TConvProofGenerator tcg(d_pnm,
+          TConvProofGenerator tcg(d_env,
                                   nullptr,
                                   TConvPolicy::ONCE,
                                   TConvCachePolicy::NEVER,
@@ -934,7 +934,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // should be implied by the substitution now
     TConvPolicy tcpolicy = ida == MethodId::SBA_FIXPOINT ? TConvPolicy::FIXPOINT
                                                          : TConvPolicy::ONCE;
-    TConvProofGenerator tcpg(d_pnm,
+    TConvProofGenerator tcpg(d_env,
                              nullptr,
                              tcpolicy,
                              TConvCachePolicy::NEVER,

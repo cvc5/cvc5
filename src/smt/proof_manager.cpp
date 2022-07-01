@@ -263,7 +263,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   DifficultyPostprocessCallback dpc;
-  ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  ProofNodeUpdater dpnu(d_env, dpc);
   Trace("difficulty-proc") << "Compute accumulated difficulty" << std::endl;
   // For each child of SAT_REFUTATION, we increment the difficulty on all
   // "source" free assumptions (see DifficultyPostprocessCallback) by the

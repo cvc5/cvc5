@@ -34,7 +34,7 @@ namespace theory {
 namespace arith {
 
 OperatorElim::OperatorElim(Env& env)
-    : EnvObj(env), EagerProofGenerator(d_env.getProofNodeManager())
+    : EagerProofGenerator(env)
 {
 }
 

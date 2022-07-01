@@ -725,7 +725,7 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<Node> core;
   getUnsatCore(core);
-  CDProof cdp(d_env.getProofNodeManager());
+  CDProof cdp(d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
   return cdp.getProofFor(fnode);
