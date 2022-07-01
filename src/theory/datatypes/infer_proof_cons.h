@@ -22,11 +22,9 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "theory/datatypes/inference.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
-
-class ProofNodeManager;
-
 namespace theory {
 namespace datatypes {
 
@@ -40,13 +38,13 @@ namespace datatypes {
  * The main (private) method of this class is convert below, which is
  * called when we need to construct a proof node from an InferInfo.
  */
-class InferProofCons : public ProofGenerator
+class InferProofCons : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<DatatypesInference>>
       NodeDatatypesInferenceMap;
 
  public:
-  InferProofCons(context::Context* c, ProofNodeManager* pnm);
+  InferProofCons(Env& env, context::Context* c);
   ~InferProofCons() {}
   /**
    * This is called to notify that di is an inference that may need a proof
