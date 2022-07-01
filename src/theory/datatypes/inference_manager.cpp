@@ -111,7 +111,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
   if (isProofEnabled())
   {
     ipcl =
-        std::make_shared<InferProofCons>(nullptr, d_env.getProofNodeManager());
+        std::make_shared<InferProofCons>(d_env, nullptr);
   }
   conc = prepareDtInference(conc, exp, id, ipcl.get());
   // send it as a lemma

@@ -85,8 +85,6 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The lazy fact map */
   NodeDatatypesInferenceMap d_lazyFactMap;
 };

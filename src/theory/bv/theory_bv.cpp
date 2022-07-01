@@ -48,13 +48,13 @@ TheoryBV::TheoryBV(Env& env,
   switch (options().bv.bvSolver)
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im, d_pnm));
+      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im));
       break;
 
     default:
       AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
       d_internal.reset(
-          new BVSolverBitblastInternal(d_env, &d_state, d_im, d_pnm));
+          new BVSolverBitblastInternal(d_env, &d_state, d_im));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
