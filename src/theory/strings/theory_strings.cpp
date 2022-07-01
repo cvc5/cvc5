@@ -55,7 +55,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this),
       d_statistics(),
       d_state(env, d_valuation),
-      d_termReg(env, *this, d_state, d_statistics, d_pnm),
+      d_termReg(env, *this, d_state, d_statistics),
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),

@@ -33,7 +33,7 @@ namespace eq {
 ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
     : EagerProofGenerator(env, env.getUserContext(), "pfee::" + ee.identify()),
       d_ee(ee),
-      d_factPg(env.getContext(), env.getProofNodeManager()),
+      d_factPg(env, env.getContext()),
       d_assumpPg(env.getProofNodeManager()),
       d_proof(env,
               nullptr,
@@ -282,7 +282,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   // "skeleton" that is the base of the proof we are constructing. The call to
   // LazyCDProofChain::getProofFor will expand the leaves of this proof via
   // calls to curr.
-  LazyCDProofChain outer(d_pnm, true, nullptr, curr, false);
+  LazyCDProofChain outer(d_env, true, nullptr, curr, false);
   outer.addLazyStep(conc, pg);
   return ensureProofForFact(conc, assumps, tnk, &outer);
 }
@@ -290,7 +290,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
 TrustNode ProofEqEngine::explain(Node conc)
 {
   Trace("pfee") << "pfee::explain " << conc << std::endl;
-  LazyCDProof tmpProof(d_pnm, &d_proof);
+  LazyCDProof tmpProof(d_env, &d_proof);
   std::vector<TNode> assumps;
   explainWithProof(conc, assumps, &tmpProof);
   return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
@@ -353,7 +353,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy
-  pfBody = d_pnm->clone(pfBody);
+  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  pfBody = pnm->clone(pfBody);
   Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
   // The free assumptions must be closed by assumps, which should be passed
   // as arguments of SCOPE. However, some of the free assumptions may not
@@ -377,7 +378,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   }
   // Scope the proof constructed above, and connect the formula with the proof
   // minimize the assumptions.
-  pf = d_pnm->mkScope(pfBody, scopeAssumps, true, true);
+  pf = pnm->mkScope(pfBody, scopeAssumps, true, true);
   // If we have no assumptions, and are proving an explanation for propagation
   if (scopeAssumps.empty() && tnk == TrustNodeKind::PROP_EXP)
   {
@@ -387,7 +388,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // minimize here, since we already ensured the proof was closed above, and
     // we do not want to minimize, or else "true" would be omitted.
     scopeAssumps.push_back(nm->mkConst(true));
-    pf = d_pnm->mkScope(pf, scopeAssumps, false);
+    pf = pnm->mkScope(pf, scopeAssumps, false);
   }
   exp = nm->mkAnd(scopeAssumps);
   // Make the lemma or conflict node. This must exactly match the conclusion

@@ -287,8 +287,6 @@ class ProofEqEngine : public EagerProofGenerator
   /** common nodes */
   Node d_true;
   Node d_false;
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The SAT-context-dependent proof object */
   LazyCDProof d_proof;
   /**

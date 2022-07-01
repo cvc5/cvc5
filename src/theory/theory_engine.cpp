@@ -215,13 +215,11 @@ void TheoryEngine::finishInit()
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
-      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
-                                           : nullptr),
       d_lazyProof(
-          d_pnm != nullptr ? new LazyCDProof(
-              d_pnm, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+          env.isTheoryProofProducing() ? new LazyCDProof(
+              env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
                            : nullptr),
-      d_tepg(new TheoryEngineProofGenerator(d_pnm, userContext())),
+      d_tepg(new TheoryEngineProofGenerator(env, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
       d_quantEngine(nullptr),
@@ -1145,7 +1143,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
     if (isProofEnabled())
     {
       texplanation.debugCheckClosed(
-          "te-proof-exp", "texplanation no share", false);
+          options(), "te-proof-exp", "texplanation no share", false);
       // check if no generator, if so, add THEORY_LEMMA
       if (texplanation.getGenerator() == nullptr)
       {
@@ -1321,7 +1319,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
     // ensure closed
-    tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
+    tlemma.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
   // assert the lemma
@@ -1369,7 +1367,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
   Trace("te-proof-debug") << "Check closed conflict" << std::endl;
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
   tconflict.debugCheckClosed(
-      "te-proof-debug", "TheoryEngine::conflict_initial", false);
+      options(), "te-proof-debug", "TheoryEngine::conflict_initial", false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1392,7 +1390,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     {
       Trace("te-proof-debug")
           << "Check closed conflict explained with sharing" << std::endl;
-      tncExp.debugCheckClosed("te-proof-debug",
+      tncExp.debugCheckClosed(options(), "te-proof-debug",
                               "TheoryEngine::conflict_explained_sharing");
       Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
       Trace("te-proof-debug") << "Conflict " << tconflict << " from "
@@ -1458,7 +1456,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
         << "Check closed conflict with sharing" << std::endl;
     if (isProofEnabled())
     {
-      tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
+      tconf.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
     lemma(tconf, LemmaProperty::REMOVABLE);
   }
@@ -1508,7 +1506,7 @@ TrustNode TheoryEngine::getExplanation(
     // communicating arrangements between shared terms, and the rewriter
     // for arithmetic equalities does not preserve terms, e.g. x=y may become
     // x+-1*y=0.
-    lcp.reset(new LazyCDProof(d_pnm,
+    lcp.reset(new LazyCDProof(d_env,
                               nullptr,
                               nullptr,
                               "TheoryEngine::LazyCDProof::getExplanation",
@@ -1640,7 +1638,7 @@ TrustNode TheoryEngine::getExplanation(
         d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
     if (lcp != nullptr)
     {
-      texplanation.debugCheckClosed("te-proof-exp", "texplanation", false);
+      texplanation.debugCheckClosed(options(), "te-proof-exp", "texplanation", false);
       Trace("te-proof-exp")
           << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
           << " by " << texplanation.getNode() << std::endl;
