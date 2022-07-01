@@ -54,10 +54,10 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
       d_statistics(statisticsRegistry()),
       d_llpg(options().smt.produceProofs ? new smt::PreprocessProofGenerator(
                  d_env, userContext(), "NonClausalSimp::llpg")
-                                            : nullptr),
+                                         : nullptr),
       d_llra(options().smt.produceProofs ? new LazyCDProof(
                  d_env, nullptr, userContext(), "NonClausalSimp::llra")
-                                            : nullptr),
+                                         : nullptr),
       d_tsubsList(userContext())
 {
 }

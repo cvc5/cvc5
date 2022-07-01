@@ -315,7 +315,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::vector<Node> childrenResArgs;
   Node resPlaceHolder;
   size_t nextGuardedElimPos = eliminators[0];
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   do
   {
     size_t start = lastElim + 1;
@@ -334,10 +334,10 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     Trace("smt-proof-pp-debug2") << "\tres children: " << childrenRes << "\n";
     Trace("smt-proof-pp-debug2") << "\tres args: " << childrenResArgs << "\n";
     resPlaceHolder = pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
-                                                     childrenRes,
-                                                     childrenResArgs,
-                                                     Node::null(),
-                                                     "");
+                                                   childrenRes,
+                                                   childrenResArgs,
+                                                   Node::null(),
+                                                   "");
     Trace("smt-proof-pp-debug2")
         << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("smt-proof-pp-debug2") << "-------\n";
@@ -666,7 +666,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   else if (id == PfRule::MACRO_RESOLUTION
            || id == PfRule::MACRO_RESOLUTION_TRUST)
   {
-    ProofNodeManager * pnm = d_env.getProofNodeManager();
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
     Node chainConclusion = pnm->getChecker()->checkDebug(
@@ -1083,7 +1083,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(!args.empty());
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
-    ProofNodeManager * pnm = d_env.getProofNodeManager();
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // try to replay theory rewrite
     // first, check that maybe its just an evaluation step
     ProofChecker* pc = pnm->getChecker();
@@ -1109,7 +1109,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
-    ProofNodeManager * pnm = d_env.getProofNodeManager();
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     NodeManager* nm = NodeManager::currentNM();
     ProofStepBuffer steps{pnm->getChecker()};
 
