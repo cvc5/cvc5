@@ -16,6 +16,7 @@
 #include "theory/trust_substitutions.h"
 
 #include "theory/rewriter.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {

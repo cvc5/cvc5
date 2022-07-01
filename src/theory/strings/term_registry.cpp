@@ -38,8 +38,7 @@ namespace strings {
 TermRegistry::TermRegistry(Env& env,
                            Theory& t,
                            SolverState& s,
-                           SequencesStatistics& statistics,
-                           ProofNodeManager* pnm)
+                           SequencesStatistics& statistics)
     : EnvObj(env),
       d_theory(t),
       d_state(s),
@@ -57,8 +56,8 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
+      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(
+                      env,
                       userContext(),
                       "strings::TermRegistry::EagerProofGenerator")
                 : nullptr)

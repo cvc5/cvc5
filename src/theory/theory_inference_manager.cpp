@@ -66,14 +66,13 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
   if (isProofEnabled())
   {
     context::UserContext* u = userContext();
-    ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
-        new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
+        new EagerProofGenerator(env, u, statsName + "EagerProofGenerator"));
     if (options().proof.proofAnnotate)
     {
-      d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));
+      d_iipa.reset(new InferenceIdProofAnnotator(env, u));
       d_apg.reset(new AnnotationProofGenerator(
-          pnm, u, statsName + "AnnotationProofGenerator"));
+          env, u, statsName + "AnnotationProofGenerator"));
     }
   }
 }

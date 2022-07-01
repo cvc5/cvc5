@@ -43,11 +43,11 @@ InferenceManager::InferenceManager(Env& env,
       d_statistics(statistics),
       d_ipc(isProofEnabled()
                 ? new InferProofCons(
-                      context(), env.getProofNodeManager(), d_statistics)
+                      env, context(), d_statistics)
                 : nullptr),
       d_ipcl(isProofEnabled()
                  ? new InferProofCons(
-                       context(), env.getProofNodeManager(), d_statistics)
+                       env, context(), d_statistics)
                  : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();

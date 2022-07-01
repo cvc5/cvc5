@@ -23,6 +23,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
+#include "smt/env.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -47,14 +48,14 @@ struct ReElimStarIndexAttributeId
 typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
     ReElimStarIndexAttribute;
 
-RegExpElimination::RegExpElimination(bool isAgg,
-                                     ProofNodeManager* pnm,
+RegExpElimination::RegExpElimination(Env& env,
+                                     bool isAgg,
                                      context::Context* c)
-    : d_isAggressive(isAgg),
-      d_pnm(pnm),
-      d_epg(pnm == nullptr
+    : EnvObj(env),
+      d_isAggressive(isAgg),
+      d_epg(!env.isTheoryProofProducing()
                 ? nullptr
-                : new EagerProofGenerator(pnm, c, "RegExpElimination::epg"))
+                : new EagerProofGenerator(env, c, "RegExpElimination::epg"))
 {
 }
 
@@ -80,10 +81,11 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
     // Currently aggressive doesnt work due to fresh bound variables
     if (isProofEnabled() && !d_isAggressive)
     {
+      ProofNodeManager * pnm = d_env.getProofNodeManager();
       Node eq = atom.eqNode(eatom);
       Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
       std::shared_ptr<ProofNode> pn =
-          d_pnm->mkNode(PfRule::RE_ELIM, {}, {atom, aggn}, eq);
+          pnm->mkNode(PfRule::RE_ELIM, {}, {atom, aggn}, eq);
       d_epg->setProofFor(eq, pn);
       return TrustNode::mkTrustRewrite(atom, eatom, d_epg.get());
     }
@@ -647,7 +649,7 @@ Node RegExpElimination::returnElim(Node atom, Node atomElim, const char* id)
                    << "." << std::endl;
   return atomElim;
 }
-bool RegExpElimination::isProofEnabled() const { return d_pnm != nullptr; }
+bool RegExpElimination::isProofEnabled() const { return d_env.isTheoryProofProducing(); }
 
 }  // namespace strings
 }  // namespace theory

@@ -37,8 +37,7 @@ ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
       d_ee(ee),
       d_factPg(env.getContext(), env.getProofNodeManager()),
       d_assumpPg(env.getProofNodeManager()),
-      d_pnm(env.getProofNodeManager()),
-      d_proof(env.getProofNodeManager(),
+      d_proof(env,
               nullptr,
               env.getContext(),
               "pfee::LazyCDProof::" + ee.identify()),
@@ -225,7 +224,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << ", exp = " << exp << ", noExplain = " << noExplain
                 << ", args = " << args << std::endl;
   Assert(conc != d_true);
-  LazyCDProof tmpProof(d_pnm, &d_proof);
+  LazyCDProof tmpProof(d_env, &d_proof);
   LazyCDProof* curr;
   TrustNodeKind tnk;
   // same policy as above: for conflicts, use existing lazy proof
@@ -244,7 +243,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   explainVecWithProof(tnk, assumps, exp, noExplain, curr);
   // Register the proof step. We use a separate lazy CDProof which will make
   // calls to curr above for the proofs of the literals in exp.
-  LazyCDProof outer(d_pnm, curr);
+  LazyCDProof outer(d_env, curr);
   if (!outer.addStep(conc, id, exp, args))
   {
     // a step went wrong, e.g. during checking
@@ -264,7 +263,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp
                 << ", noExplain = " << noExplain << " via generator"
                 << std::endl;
-  LazyCDProof tmpProof(d_pnm, &d_proof);
+  LazyCDProof tmpProof(d_env, &d_proof);
   LazyCDProof* curr;
   TrustNodeKind tnk;
   // same policy as above: for conflicts, use existing lazy proof
